@@ -1,0 +1,56 @@
+#optimole-app {
+  padding: 0 30px 0 20px;
+
+  $primary: #e7602a;
+  $success: #34a85e;
+  $danger: #d54222;
+  @import "~bulma/bulma";
+
+  .card {
+    transition: all 750ms ease-in-out;
+    max-width: 1000px;
+  }
+  .logo {
+    margin-bottom: 10px;
+    img {
+      max-width: 180px;
+      margin: 0 auto;
+    }
+  }
+  .vue-js-switch {
+    align-self: center;
+  }
+  .api-key-control {
+    padding: 0 15px 0 0;
+  }
+  .api-key-label, .label {
+    align-self: center;
+    margin: 0.5em 10px 0.5em 0;
+  }
+  .header {
+    padding: 0 1.5rem 0;
+    &.level {
+      margin-bottom: 0;
+    }
+  }
+  .account {
+    img {
+      margin-left: -12px;
+      margin-right: 5px;
+      border-radius: 50%;
+    }
+    .label {
+      margin-bottom: 0;
+    }
+  }
+}
+
+//Fade animation.
+.fade-enter-active, .fade-leave-active {
+  transition: opacity .5s;
+}
+
+.fade-enter, .fade-leave-to /* .fade-leave-active below version 2.1.8 */
+{
+  opacity: 0;
+}

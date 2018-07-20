@@ -1,7 +1,7 @@
 <?php
 
 /**
- * The class defines way of connecting this user to the OrbitFox Dashboard.
+ * The class defines way of connecting this user to the Optimole Dashboard.
  *
  * @package    \Optimole\Inc
  * @author     Optimole <friends@optimole.com>
@@ -42,9 +42,9 @@ final class Optml_Api {
 	/**
 	 * Request constructor.
 	 *
-	 * @param string $path The request url.
+	 * @param string $path   The request url.
 	 * @param string $method The request method type.
-	 * @param string $params The request method type.
+	 * @param array  $params The request method type.
 	 *
 	 * @return array|boolean Api data.
 	 */
@@ -107,7 +107,7 @@ final class Optml_Api {
 	 * object therefore, we don't want the object to be cloned.
 	 *
 	 * @access public
-	 * @since 1.0.0
+	 * @since  1.0.0
 	 * @return void
 	 */
 	public function __clone() {
@@ -119,7 +119,7 @@ final class Optml_Api {
 	 * Disable unserializing of the class
 	 *
 	 * @access public
-	 * @since 1.0.0
+	 * @since  1.0.0
 	 * @return void
 	 */
 	public function __wakeup() {

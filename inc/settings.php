@@ -11,8 +11,9 @@ class Optml_Settings {
 	 * @var array Settings schema.
 	 */
 	private $default_schema = array(
-		'api_key'      => '',
-		'service_data' => ''
+		'api_key'        => '',
+		'service_data'   => '',
+		'admin_bar_item' => 'enabled'
 	);
 	/**
 	 * Option key.
@@ -79,7 +80,7 @@ class Optml_Settings {
 	/**
 	 * Update settings.
 	 *
-	 * @param string $key Settings key.
+	 * @param string $key   Settings key.
 	 * @param mixed  $value Settings value.
 	 *
 	 * @return bool Update result.

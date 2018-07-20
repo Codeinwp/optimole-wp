@@ -3,7 +3,7 @@
  * Plugin Name:       Image optimization & CDN by Optimole
  * Description:        Complete handling of your website images.
  * Version:           1.0.0
- * Author:            Optimiole
+ * Author:            Optimole
  * Author URI:        https://optimole.com
  * License:           GPL-2.0+
  * License URI:       http://www.gnu.org/licenses/gpl-2.0.txt
@@ -42,7 +42,7 @@ function optml_autoload( $class ) {
  * @return Optml_Main Optimole instance.
  */
 function optml() {
-	define( 'OPTML_URL', plugin_dir_url( '/', __FILE__ ) );
+	define( 'OPTML_URL', plugin_dir_url( __FILE__ ) );
 	define( 'OPTML_PATH', plugin_dir_path( __FILE__ ) );
 	define( 'OPTML_VERSION', '1.0.0' );
 	define( 'OPTML_NAMESPACE', 'optml' );
