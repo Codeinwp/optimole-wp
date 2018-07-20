@@ -119,12 +119,15 @@ class Optml_Admin {
 			return;
 		}
 		$settings = new Optml_Settings();
-
+		$service_data = $settings->get( 'service_data' );
+		if( empty ($service_data) ) {
+			return;
+		}
 		$should_load = $settings->get( 'admin_bar_item' );
 		if ( $should_load !== 'enabled' ) {
 			return;
 		}
-		$service_data = $settings->get( 'service_data' );
+
 		$args         = array(
 			'id'    => 'optml_image_quota',
 			'title' => 'Optimole' . __( ' Image Traffic', 'optimole-wp' ) . ': ' . number_format( floatval( ( $service_data['usage'] / 1000 ) ), 3 ) . ' / ' . number_format( floatval( ( $service_data['quota'] / 1000 ) ), 0 ) . 'GB',
