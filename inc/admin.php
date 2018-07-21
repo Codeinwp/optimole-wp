@@ -38,7 +38,6 @@ class Optml_Admin {
 		<div id="optimole-app">
 			<app></app>
 		</div>
-		<script src="http://192.168.0.220:8098"></script>
 		<?php
 	}
 
