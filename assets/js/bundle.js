@@ -13790,8 +13790,10 @@ exports.default = {
 			});
 		},
 		enableAdminBar: function enableAdminBar() {
-			this.$store.dispatch('enableAdminBarExtension', {
-				req: 'Toggle admin bar item.'
+			this.$store.dispatch('toggleSetting', {
+				req: 'Toggle admin bar item.',
+				option_key: 'admin_bar_item',
+				type: 'toggle'
 			});
 		}
 	}
@@ -15027,17 +15029,20 @@ var disconnectOptimole = function disconnectOptimole(_ref2, data) {
 	});
 };
 
-var enableAdminBarExtension = function enableAdminBarExtension(_ref3, data) {
+var toggleSetting = function toggleSetting(_ref3, data) {
 	var commit = _ref3.commit,
 	    state = _ref3.state;
 
-	console.log(optimoleDashboardApp.root + '/update_option');
 	commit('toggleLoading', true, 'loading');
 	_vue2.default.http({
 		url: optimoleDashboardApp.root + '/update_option',
-		method: 'GET',
+		method: 'POST',
 		headers: { 'X-WP-Nonce': optimoleDashboardApp.nonce },
-		params: { 'req': data.req },
+		params: {
+			'req': data.req,
+			'option_key': data.option_key,
+			'type': data.type ? data.type : ''
+		},
 		responseType: 'json'
 	}).then(function (response) {
 		commit('toggleLoading', false);
@@ -15052,7 +15057,7 @@ var enableAdminBarExtension = function enableAdminBarExtension(_ref3, data) {
 exports.default = {
 	connectOptimole: connectOptimole,
 	disconnectOptimole: disconnectOptimole,
-	enableAdminBarExtension: enableAdminBarExtension
+	toggleSetting: toggleSetting
 };
 
 /***/ }),

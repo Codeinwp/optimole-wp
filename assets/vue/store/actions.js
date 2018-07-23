@@ -50,14 +50,17 @@ const disconnectOptimole = function ( { commit, state }, data ) {
 	} );
 };
 
-const enableAdminBarExtension = function ( { commit, state }, data ) {
-	console.log(optimoleDashboardApp.root + '/update_option');
+const toggleSetting = function ( { commit, state }, data ) {
 	commit( 'toggleLoading', true, 'loading' );
 	Vue.http( {
 		url: optimoleDashboardApp.root + '/update_option',
-		method: 'GET',
+		method: 'POST',
 		headers: { 'X-WP-Nonce': optimoleDashboardApp.nonce },
-		params: { 'req': data.req },
+		params: {
+			'req': data.req,
+			'option_key': data.option_key,
+			'type' : data.type ? data.type : ''
+		},
 		responseType: 'json'
 	} ).then( function ( response ) {
 		commit( 'toggleLoading', false );
@@ -72,5 +75,5 @@ const enableAdminBarExtension = function ( { commit, state }, data ) {
 export default {
 	connectOptimole,
 	disconnectOptimole,
-	enableAdminBarExtension,
-}
+	toggleSetting,
+};

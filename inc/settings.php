@@ -13,7 +13,7 @@ class Optml_Settings {
 	private $default_schema = array(
 		'api_key'        => '',
 		'service_data'   => '',
-		'admin_bar_item' => 'enabled'
+		'admin_bar_item' => 'enabled',
 	);
 	/**
 	 * Option key.

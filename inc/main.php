@@ -66,6 +66,7 @@ final class Optml_Main {
 
 	/**
 	 * Load the localisation file.
+	 *
 	 * @access  public
 	 * @since   1.0.0
 	 */
@@ -90,16 +91,17 @@ final class Optml_Main {
 	 * @since  1.0.0
 	 */
 	public function __clone() {
-		_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?' ), '1.0.0' );
+		_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'optimole-wp' ), '1.0.0' );
 	}
 
 	/**
 	 * Unserializing instances of this class is forbidden.
+	 *
 	 * @access public
 	 * @since  1.0.0
 	 */
 	public function __wakeup() {
-		_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?' ), '1.0.0' );
+		_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'optimole-wp' ), '1.0.0' );
 	}
 
 }

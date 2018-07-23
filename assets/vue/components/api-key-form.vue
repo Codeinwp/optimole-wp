@@ -75,8 +75,10 @@
 				} );
 			},
 			enableAdminBar: function () {
-				this.$store.dispatch( 'enableAdminBarExtension', {
+				this.$store.dispatch( 'toggleSetting', {
 					req: 'Toggle admin bar item.',
+					option_key: 'admin_bar_item',
+					type: 'toggle',
 				} );
 			},
 		}

@@ -21,6 +21,9 @@ final class Optml_Api {
 	 */
 	private $api_key;
 
+	/**
+	 * Optml_Api constructor.
+	 */
 	public function __construct() {
 		$settings      = new Optml_Settings();
 		$this->api_key = $settings->get( 'api_key' );

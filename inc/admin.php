@@ -82,6 +82,11 @@ class Optml_Admin {
 		return $args;
 	}
 
+	/**
+	 * Get all dashboard strings.
+	 *
+	 * @return array
+	 */
 	private function get_dashboard_strings() {
 		return array(
 			'optimole'            => __( 'Optimole', 'optimole-wp' ),
@@ -107,7 +112,6 @@ class Optml_Admin {
 		);
 	}
 
-
 	/**
 	 * Add top admin bar notice of traffic quota/usage.
 	 *
@@ -119,7 +123,7 @@ class Optml_Admin {
 		}
 		$settings = new Optml_Settings();
 		$service_data = $settings->get( 'service_data' );
-		if( empty ($service_data) ) {
+		if ( empty( $service_data ) ) {
 			return;
 		}
 		$should_load = $settings->get( 'admin_bar_item' );
@@ -131,7 +135,7 @@ class Optml_Admin {
 			'id'    => 'optml_image_quota',
 			'title' => 'Optimole' . __( ' Image Traffic', 'optimole-wp' ) . ': ' . number_format( floatval( ( $service_data['usage'] / 1000 ) ), 3 ) . ' / ' . number_format( floatval( ( $service_data['quota'] / 1000 ) ), 0 ) . 'GB',
 			'href'  => 'https://dashboard.optimole.com/',
-			'meta'  => array( 'target' => '_blank' )
+			'meta'  => array( 'target' => '_blank' ),
 		);
 		$wp_admin_bar->add_node( $args );
 	}

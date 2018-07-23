@@ -1,12 +1,15 @@
 <?php
 /**
  * Optimole Rest related actions.
+ *
  * @package     Optimole/Inc
  * @copyright   Copyright (c) 2017, Marius Cristea
  * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
- *
  */
 
+/**
+ * Class Optml_Rest
+ */
 class Optml_Rest {
 	/**
 	 * Rest api namespace.
@@ -40,8 +43,8 @@ class Optml_Rest {
 						'api_key' => array(
 							'type'     => 'string',
 							'required' => true,
-						)
-					)
+						),
+					),
 				),
 			)
 		);
@@ -59,11 +62,11 @@ class Optml_Rest {
 		register_rest_route(
 			$this->namespace, '/update_option', array(
 				array(
-					'methods'             => \WP_REST_Server::READABLE,
+					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'enable_admin_bar_item' ),
+					'callback'            => array( $this, 'update_option' ),
 				),
 			)
 		);
@@ -72,7 +75,7 @@ class Optml_Rest {
 	/**
 	 * Connect to optimole service.
 	 *
-	 * @param WP_REST_Request $request
+	 * @param WP_REST_Request $request connect rest request.
 	 *
 	 * @return WP_Error|WP_REST_Response
 	 */
@@ -93,9 +96,7 @@ class Optml_Rest {
 	/**
 	 * Disconnect from optimole service.
 	 *
-	 * @param WP_REST_Request $request
-	 *
-	 * @return WP_Error|WP_REST_Response
+	 * @param WP_REST_Request $request disconnect rest request.
 	 */
 	public function disconnect( WP_REST_Request $request ) {
 		$settings = new Optml_Settings();
@@ -104,27 +105,48 @@ class Optml_Rest {
 	}
 
 	/**
-	 * Enable the admin bar item.
+	 * Update options method.
 	 *
-	 * @param WP_REST_Request $request
+	 * @param WP_REST_Request $request option update rest request.
 	 */
-	public function enable_admin_bar_item( WP_REST_Request $request ) {
-		$settings = new Optml_Settings();
-		$status   = $settings->get( 'admin_bar_item' );
-		if ( $status === 'enabled' ) {
-			$status = 'disabled';
-		} else {
-			$status = 'enabled';
+	public function update_option( WP_REST_Request $request ) {
+		$option_key  = $request->get_param( 'option_key' );
+		$option_type = $request->get_param( 'type' );
+		if ( empty( $option_key ) ) {
+			wp_send_json_error( 'No option key set.' );
+		}
+		if ( empty( $option_type ) ) {
+			wp_send_json_error( 'No option type set.' );
 		}
 
-		$settings->update( 'admin_bar_item', $status );
-		wp_send_json_success( 'Admin bar item ' . $status . '.' );
+		$accepted_types = array( 'toggle' );
+
+		if ( ! in_array( $option_type, $accepted_types ) ) {
+			wp_send_json_error( 'Invalid option type.' );
+		}
+
+		$settings = new Optml_Settings();
+
+		switch ( $option_type ) {
+			case 'toggle':
+				$status = $settings->get( $option_key );
+				if ( $status === 'enabled' ) {
+					$settings->update( 'admin_bar_item', 'disabled' );
+					wp_send_json_success( $option_key . ' disabled.' );
+				} else {
+					$settings->update( 'admin_bar_item', 'enabled' );
+					wp_send_json_success( $option_key . ' enabled.' );
+				}
+				break;
+			default:
+				break;
+		}
 	}
 
 	/**
 	 * Wrapper for api response.
 	 *
-	 * @param $data
+	 * @param array $data data from api.
 	 *
 	 * @return WP_REST_Response
 	 */
