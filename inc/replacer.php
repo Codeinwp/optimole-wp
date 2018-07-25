@@ -22,7 +22,6 @@ class Optml_Replacer {
 	protected static $extensions = array(
 		'jpg',
 		'webp',
-		'gif',
 		'png',
 	);
 
@@ -116,6 +115,7 @@ class Optml_Replacer {
 
 		$cdn_key    = $service_data ['cdn_key'];
 		$cdn_secret = $service_data['cdn_secret'];
+
 		if ( empty( $cdn_key ) || empty( $cdn_secret ) ) {
 			return;
 		}
@@ -307,7 +307,6 @@ class Optml_Replacer {
 		$mimes = array(
 			'jpg|jpeg|jpe' => 'image/jpeg',
 			'png'          => 'image/png',
-			'gif'          => 'image/gif',
 			'webp'         => 'image/webp',
 		);
 
