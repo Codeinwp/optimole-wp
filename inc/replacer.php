@@ -20,9 +20,9 @@ class Optml_Replacer {
 	 * @var array
 	 */
 	protected static $extensions = array(
-		'jpg',
-		'webp',
-		'png',
+		'jpg|jpeg|jpe' => 'image/jpeg',
+		'png'          => 'image/png',
+		'webp'         => 'image/webp',
 	);
 
 	/**
@@ -97,9 +97,9 @@ class Optml_Replacer {
 	function init() {
 		$this->set_properties();
 
-		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), 10, 3 );
-		add_filter( 'the_content', array( $this, 'filter_the_content' ), 999999 );
-		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), 10, 5 );
+		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
+		add_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
+		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
 		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
 	}
 
@@ -304,15 +304,7 @@ class Optml_Replacer {
 	 */
 	protected function get_imgcdn_url( $url, $args = array( 'width' => 'auto', 'height' => 'auto' ) ) {
 
-		$mimes = array(
-			'jpg|jpeg|jpe' => 'image/jpeg',
-			'png'          => 'image/png',
-			'webp'         => 'image/webp',
-		);
-
-		$type = wp_check_filetype( $url, $mimes );
-
-		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+		if ( ! $this->check_mimetype( $url ) ) {
 			return $url;
 		}
 		// not used yet.
@@ -353,6 +345,25 @@ class Optml_Replacer {
 	}
 
 	/**
+	 * Check url mimetype.
+	 *
+	 * @param string $url Url to check.
+	 *
+	 * @return bool Is a valid image url or not.
+	 */
+	private function check_mimetype( $url ) {
+
+		$mimes = self::$extensions;
+		$type  = wp_check_filetype( $url, $mimes );
+
+		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Ensures that an url parameter can stand inside an url.
 	 *
 	 * @param string $url The required url.
@@ -382,7 +393,6 @@ class Optml_Replacer {
 		}
 
 		$image_sizes = self::image_sizes();
-
 		foreach ( $images[0] as $index => $tag ) {
 			$width   = $height = false;
 			$new_tag = $tag;
@@ -423,11 +433,14 @@ class Optml_Replacer {
 			}
 
 			$new_sizes = $this->validate_image_sizes( $width, $height );
-			$new_url   = $this->get_imgcdn_url( $src, $new_sizes );
+
+			$new_url = $this->get_imgcdn_url( $src, $new_sizes );
 
 			// replace the url in hrefs or links
 			if ( ! empty( $images['link_url'][ $index ] ) ) {
-				$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . $new_url . '\2', $tag, 1 );
+				if ( $this->check_mimetype( $images['link_url'][ $index ] ) ) {
+					$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . $new_url . '\2', $tag, 1 );
+				}
 			}
 
 			// replace the new sizes
@@ -519,8 +532,8 @@ class Optml_Replacer {
 	 */
 	public static function parse_dimensions_from_filename( $src ) {
 		$width_height_string = array();
-
-		if ( preg_match( '#-(\d+)x(\d+)\.(?:' . implode( '|', self::$extensions ) . '){1}$#i', $src, $width_height_string ) ) {
+		$extensions          = array_keys( self::$extensions );
+		if ( preg_match( '#-(\d+)x(\d+)\.(?:' . implode( '|', $extensions ) . '){1}$#i', $src, $width_height_string ) ) {
 			$width  = (int) $width_height_string[1];
 			$height = (int) $width_height_string[2];
 
@@ -568,7 +581,6 @@ class Optml_Replacer {
 		if ( empty( $url ) ) {
 			return $url;
 		}
-
 		// $url might be an array or an json encoded array with urls.
 		if ( is_array( $url ) || filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
 			$array   = $url;
