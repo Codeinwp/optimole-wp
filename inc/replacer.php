@@ -320,15 +320,17 @@ class Optml_Replacer {
 			$args['height'] = round( $args['height'], 0 );
 		}
 		$payload = array(
-			'path'     => $this->urlception_encode( $path ),
-			'scheme'   => $scheme,
-			'width'    => (string) $args['width'],
-			'height'   => (string) $args['height'],
-			'compress' => $compress_level,
-			'secret'   => $this->cdn_secret,
+			'path'    => $this->urlception_encode( $path ),
+			'scheme'  => $scheme,
+			'width'   => (string) $args['width'],
+			'height'  => (string) $args['height'],
+			'quality' => (string) $compress_level,
 		);
 		ksort( $payload );
-		$hash = md5( json_encode( $payload ) );
+
+		$values  = array_values( $payload );
+		$payload = implode( '', $values );
+		$hash    = hash_hmac( 'md5', $payload, $this->cdn_secret );
 
 		$new_url = sprintf(
 			'%s/%s/%s/%s/%s/%s/%s',
@@ -336,7 +338,7 @@ class Optml_Replacer {
 			$hash,
 			(string) $args['width'],
 			(string) $args['height'],
-			$compress_level,
+			(string) $compress_level,
 			$scheme,
 			$path
 		);
