@@ -112,7 +112,9 @@ class Optml_Replacer {
 
 		$settings     = new Optml_Settings();
 		$service_data = $settings->get( 'service_data' );
-
+		if ( ! isset( $service_data['cdn_key'] ) ) {
+			return;
+		}
 		$cdn_key    = $service_data ['cdn_key'];
 		$cdn_secret = $service_data['cdn_secret'];
 
@@ -121,19 +123,18 @@ class Optml_Replacer {
 		}
 		$this->cdn_secret = $cdn_secret;
 		$this->cdn_url    = sprintf(
-			'https://%s.%s/%s',
+			'https://%s.%s',
 			strtolower( $cdn_key ),
-			'i.optimole.com',
-			'i'
+			'i.optimole.com'
 		);
 	}
 
 	/**
 	 * This filter will replace all the images retrieved via "wp_get_image" type of functions.
 	 *
-	 * @param array        $image The filtered value.
+	 * @param array        $image         The filtered value.
 	 * @param int          $attachment_id The related attachment id.
-	 * @param array|string $size This could be the name of the thumbnail size or an array of custom dimensions.
+	 * @param array|string $size          This could be the name of the thumbnail size or an array of custom dimensions.
 	 *
 	 * @return array
 	 */
@@ -248,7 +249,7 @@ class Optml_Replacer {
 	/**
 	 * Keep the image sizes under a sane limit.
 	 *
-	 * @param string $width The width value which should be sanitized.
+	 * @param string $width  The width value which should be sanitized.
 	 * @param string $height The height value which should be sanitized.
 	 *
 	 * @return array
@@ -277,7 +278,7 @@ class Optml_Replacer {
 			// we need to remember how much in percentage the width was resized and apply the same treatment to the height.
 			$percentWidth = ( 1 - $this->max_width / $width ) * 100;
 			$width        = $this->max_width;
-			$height       = round( $height * ( ( 100 - $percentWidth ) / 100 ), 2 );
+			$height       = round( $height * ( ( 100 - $percentWidth ) / 100 ), 0 );
 		}
 
 		// now for the height
@@ -285,7 +286,7 @@ class Optml_Replacer {
 			$percentHeight = ( 1 - $this->max_height / $height ) * 100;
 			// if we reduce the height to max_height by $x percentage than we'll also reduce the width for the same amount.
 			$height = $this->max_height;
-			$width  = round( $width * ( ( 100 - $percentHeight ) / 100 ), 2 );
+			$width  = round( $width * ( ( 100 - $percentHeight ) / 100 ), 0 );
 		}
 
 		return array(
@@ -297,7 +298,7 @@ class Optml_Replacer {
 	/**
 	 * Returns a signed image url authorized to be used in our CDN.
 	 *
-	 * @param string $url The url which should be signed.
+	 * @param string $url  The url which should be signed.
 	 * @param array  $args Dimension params; Supports `width` and `height`.
 	 *
 	 * @return string
@@ -486,10 +487,10 @@ class Optml_Replacer {
 	/**
 	 * Replace image URLs in the srcset attributes and in case there is a resize in action, also replace the sizes.
 	 *
-	 * @param array $sources Array of image sources.
-	 * @param array $size_array Array of width and height values in pixels (in that order).
-	 * @param array $image_src The 'src' of the image.
-	 * @param array $image_meta The image meta data as returned by 'wp_get_attachment_metadata()'.
+	 * @param array $sources       Array of image sources.
+	 * @param array $size_array    Array of width and height values in pixels (in that order).
+	 * @param array $image_src     The 'src' of the image.
+	 * @param array $image_meta    The image meta data as returned by 'wp_get_attachment_metadata()'.
 	 * @param int   $attachment_id Image attachment ID.
 	 *
 	 * @return array
