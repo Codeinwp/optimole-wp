@@ -101,6 +101,7 @@ class Optml_Replacer {
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
 		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
+		add_action( 'init', array( $this, 'init_html_replacer' ), PHP_INT_MAX );
 	}
 
 	/**
@@ -130,11 +131,66 @@ class Optml_Replacer {
 	}
 
 	/**
+	 * Init output filter.
+	 */
+	public function init_html_replacer() {
+
+		ob_start(
+			array( &$this, 'filter_raw_content' )
+		);
+	}
+
+	/**
+	 * Replace html content urls with cdn wrapped ones.
+	 *
+	 * @param string $html Html to replace.
+	 *
+	 * @return mixed Content replaced by the cdn url.
+	 */
+	public function filter_raw_content( $html ) {
+		$urls     = wp_extract_urls( $html );
+		$cdn_url  = $this->cdn_url;
+		$site_url = get_site_url();
+		$urls     = array_filter( $urls, function ( $url ) use ( $cdn_url, $site_url ) {
+			if ( strpos( $url, $cdn_url ) !== false ) {
+				return false;
+			}
+			if ( strpos( $url, $site_url ) === false ) {
+				return false;
+			}
+
+			return $this->check_mimetype( $url );
+		} );
+		$new_urls = array_map( array( $this, 'get_imgcdn_url' ), $urls );
+
+		return str_replace( $urls, $new_urls, $html );
+	}
+
+	/**
+	 * Check url mimetype.
+	 *
+	 * @param string $url Url to check.
+	 *
+	 * @return bool Is a valid image url or not.
+	 */
+	private function check_mimetype( $url ) {
+
+		$mimes = self::$extensions;
+		$type  = wp_check_filetype( $url, $mimes );
+
+		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * This filter will replace all the images retrieved via "wp_get_image" type of functions.
 	 *
-	 * @param array        $image         The filtered value.
+	 * @param array        $image The filtered value.
 	 * @param int          $attachment_id The related attachment id.
-	 * @param array|string $size          This could be the name of the thumbnail size or an array of custom dimensions.
+	 * @param array|string $size This could be the name of the thumbnail size or an array of custom dimensions.
 	 *
 	 * @return array
 	 */
@@ -249,7 +305,7 @@ class Optml_Replacer {
 	/**
 	 * Keep the image sizes under a sane limit.
 	 *
-	 * @param string $width  The width value which should be sanitized.
+	 * @param string $width The width value which should be sanitized.
 	 * @param string $height The height value which should be sanitized.
 	 *
 	 * @return array
@@ -298,13 +354,15 @@ class Optml_Replacer {
 	/**
 	 * Returns a signed image url authorized to be used in our CDN.
 	 *
-	 * @param string $url  The url which should be signed.
+	 * @param string $url The url which should be signed.
 	 * @param array  $args Dimension params; Supports `width` and `height`.
 	 *
 	 * @return string
 	 */
 	protected function get_imgcdn_url( $url, $args = array( 'width' => 'auto', 'height' => 'auto' ) ) {
-
+		if ( is_admin() || is_preview() ) {
+			return $url;
+		}
 		if ( ! $this->check_mimetype( $url ) ) {
 			return $url;
 		}
@@ -348,25 +406,6 @@ class Optml_Replacer {
 	}
 
 	/**
-	 * Check url mimetype.
-	 *
-	 * @param string $url Url to check.
-	 *
-	 * @return bool Is a valid image url or not.
-	 */
-	private function check_mimetype( $url ) {
-
-		$mimes = self::$extensions;
-		$type  = wp_check_filetype( $url, $mimes );
-
-		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
 	 * Ensures that an url parameter can stand inside an url.
 	 *
 	 * @param string $url The required url.
@@ -380,12 +419,10 @@ class Optml_Replacer {
 	}
 
 	/**
-	 * Identify images in post content, and if images are local (uploaded to the current site), pass through Photon.
+	 * Identify images in post content.
 	 *
 	 * @param string $content The post content which will be filtered.
 	 *
-	 * @uses   self::validate_image_url, apply_filters, jetpack_photon_url, esc_url
-	 * @filter the_content<
 	 * @return string
 	 */
 	public function filter_the_content( $content ) {
@@ -487,10 +524,10 @@ class Optml_Replacer {
 	/**
 	 * Replace image URLs in the srcset attributes and in case there is a resize in action, also replace the sizes.
 	 *
-	 * @param array $sources       Array of image sources.
-	 * @param array $size_array    Array of width and height values in pixels (in that order).
-	 * @param array $image_src     The 'src' of the image.
-	 * @param array $image_meta    The image meta data as returned by 'wp_get_attachment_metadata()'.
+	 * @param array $sources Array of image sources.
+	 * @param array $size_array Array of width and height values in pixels (in that order).
+	 * @param array $image_src The 'src' of the image.
+	 * @param array $image_meta The image meta data as returned by 'wp_get_attachment_metadata()'.
 	 * @param int   $attachment_id Image attachment ID.
 	 *
 	 * @return array
