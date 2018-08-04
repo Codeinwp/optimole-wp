@@ -34,6 +34,11 @@ class Optml_Settings {
 	public function __construct() {
 		$this->namespace = OPTML_NAMESPACE . '_settings';
 		$this->options   = get_option( $this->namespace, $this->default_schema );
+		if ( defined( 'OPTIML_ENABLED_MU' ) && OPTIML_ENABLED_MU && defined( 'OPTIML_MU_SITE_ID' ) && ! empty( OPTIML_MU_SITE_ID ) ) {
+			switch_to_blog( OPTIML_MU_SITE_ID );
+			$this->options = get_option( $this->namespace, $this->default_schema );
+			restore_current_blog();
+		}
 	}
 
 	/**
@@ -80,7 +85,7 @@ class Optml_Settings {
 	/**
 	 * Update settings.
 	 *
-	 * @param string $key   Settings key.
+	 * @param string $key Settings key.
 	 * @param mixed  $value Settings value.
 	 *
 	 * @return bool Update result.
@@ -88,6 +93,12 @@ class Optml_Settings {
 	public function update( $key, $value ) {
 		if ( ! $this->is_allowed( $key ) ) {
 			return false;
+		}
+		//If we try to update from a website which is not the main OPTML blog, bail.
+		if ( defined( 'OPTIML_ENABLED_MU' ) && OPTIML_ENABLED_MU && defined( 'OPTIML_MU_SITE_ID' ) && ! empty( OPTIML_MU_SITE_ID ) ) {
+			if ( intval( OPTIML_MU_SITE_ID ) !== get_current_blog_id() ) {
+				return $this->options;
+			}
 		}
 		$options         = $this->options;
 		$options[ $key ] = $value;
