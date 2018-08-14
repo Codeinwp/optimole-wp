@@ -557,7 +557,7 @@ class Optml_Replacer {
 			}
 		}
 
-		return $sources;
+		return $new_sources;
 	}
 
 	/**
