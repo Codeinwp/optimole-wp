@@ -51,14 +51,14 @@ class Optml_Replacer {
 	 *
 	 * @var int
 	 */
-	protected $max_width = 2000;
+	protected $max_width = 3000;
 
 	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
 	 * @var int
 	 */
-	protected $max_height = 2000;
+	protected $max_height = 3000;
 
 	/**
 	 * Holds the real images sizes as an array.
@@ -130,23 +130,15 @@ class Optml_Replacer {
 		);
 	}
 
-	/**
-	 * Init output filter.
-	 */
 	public function init_html_replacer() {
-
+		if ( is_admin() ) {
+			return;
+		}
 		ob_start(
 			array( &$this, 'filter_raw_content' )
 		);
 	}
 
-	/**
-	 * Replace html content urls with cdn wrapped ones.
-	 *
-	 * @param string $html Html to replace.
-	 *
-	 * @return mixed Content replaced by the cdn url.
-	 */
 	public function filter_raw_content( $html ) {
 		$urls     = wp_extract_urls( $html );
 		$cdn_url  = $this->cdn_url;
@@ -209,8 +201,8 @@ class Optml_Replacer {
 
 			// default size
 			$sizes = array(
-				'width'  => $image_meta['width'],
-				'height' => $image_meta['height'],
+				'width'  => isset( $image_meta['width'] ) ? $image_meta['width'] : 'auto',
+				'height' => isset( $image_meta['height'] ) ? $image_meta['height'] : 'auto',
 			);
 
 			// in case there is a custom image size $size will be an array.
@@ -360,9 +352,7 @@ class Optml_Replacer {
 	 * @return string
 	 */
 	protected function get_imgcdn_url( $url, $args = array( 'width' => 'auto', 'height' => 'auto' ) ) {
-		if ( is_admin() || is_preview() ) {
-			return $url;
-		}
+
 		if ( ! $this->check_mimetype( $url ) ) {
 			return $url;
 		}
@@ -536,7 +526,8 @@ class Optml_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-
+		$used        = array();
+		$new_sources = array();
 		foreach ( $sources as $i => $source ) {
 
 			list( $width, $height ) = self::parse_dimensions_from_filename( $source['url'] );
@@ -549,14 +540,20 @@ class Optml_Replacer {
 				$height = $image_meta['height'];
 			}
 
-			$new_sizes = $this->validate_image_sizes( $width, $height );
-			$new_url   = $this->get_imgcdn_url( $source['url'], $new_sizes );
+			$new_sizes     = $this->validate_image_sizes( $width, $height );
+			$new_url       = $this->get_imgcdn_url( $source['url'], $new_sizes );
+			$url_signature = md5( $new_url );
+			if ( isset( $used[ $url_signature ] ) ) {
+				continue;
+			}
+			$used[ $url_signature ]   = true;
+			$new_sources[ $i ]        = $sources[ $i ];
+			$new_sources[ $i ]['url'] = $new_url;
 
-			$sources[ $i ]['url'] = $new_url;
-			if ( $sources[ $i ]['descriptor'] ) {
-				$sources[ $i ]['value'] = $new_sizes['width'];
+			if ( $new_sources[ $i ]['descriptor'] ) {
+				$new_sources[ $i ]['value'] = $new_sizes['width'];
 			} else {
-				$sources[ $i ]['value'] = $new_sizes['height'];
+				$new_sources[ $i ]['value'] = $new_sizes['height'];
 			}
 		}
 
