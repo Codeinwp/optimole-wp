@@ -356,6 +356,9 @@ class Optml_Replacer {
 		if ( ! $this->check_mimetype( $url ) ) {
 			return $url;
 		}
+		if ( empty( $this->cdn_url ) ) {
+			return $url;
+		}
 		// not used yet.
 		$compress_level = 55;
 		// this will authorize the image
