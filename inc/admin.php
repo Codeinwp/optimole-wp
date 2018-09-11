@@ -34,7 +34,8 @@ class Optml_Admin {
 	/**
 	 * Render dashboard page.
 	 */
-	public function render_dashboard_page() { ?>
+	public function render_dashboard_page() {
+	?>
 		<div id="optimole-app">
 			<app></app>
 		</div>

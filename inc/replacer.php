@@ -130,6 +130,9 @@ class Optml_Replacer {
 		);
 	}
 
+	/**
+	 * Init html replacer handler.
+	 */
 	public function init_html_replacer() {
 		if ( is_admin() ) {
 			return;
@@ -139,20 +142,29 @@ class Optml_Replacer {
 		);
 	}
 
+	/**
+	 * Filter raw content for urls.
+	 *
+	 * @param string $html HTML to filter.
+	 *
+	 * @return mixed Filtered content.
+	 */
 	public function filter_raw_content( $html ) {
 		$urls     = wp_extract_urls( $html );
 		$cdn_url  = $this->cdn_url;
 		$site_url = get_site_url();
-		$urls     = array_filter( $urls, function ( $url ) use ( $cdn_url, $site_url ) {
-			if ( strpos( $url, $cdn_url ) !== false ) {
-				return false;
-			}
-			if ( strpos( $url, $site_url ) === false ) {
-				return false;
-			}
+		$urls     = array_filter(
+			$urls, function ( $url ) use ( $cdn_url, $site_url ) {
+				if ( strpos( $url, $cdn_url ) !== false ) {
+					return false;
+				}
+				if ( strpos( $url, $site_url ) === false ) {
+					return false;
+				}
 
-			return $this->check_mimetype( $url );
-		} );
+				return $this->check_mimetype( $url );
+			}
+		);
 		$new_urls = array_map( array( $this, 'get_imgcdn_url' ), $urls );
 
 		return str_replace( $urls, $new_urls, $html );
