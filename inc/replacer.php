@@ -386,9 +386,6 @@ class Optml_Replacer {
 		if ( ! $this->check_mimetype( $url ) ) {
 			return $url;
 		}
-		if ( empty( $this->cdn_url ) ) {
-			return $url;
-		}
 		// not used yet.
 		$compress_level = 55;
 		// this will authorize the image
@@ -573,13 +570,13 @@ class Optml_Replacer {
 				$height = $image_meta['height'];
 			}
 
-			$new_sizes     = $this->validate_image_sizes( $width, $height );
-			$new_url       = $this->get_imgcdn_url( $source['url'], $new_sizes );
-			$url_signature = md5( $new_url );
-			if ( isset( $used[ $url_signature ] ) ) {
+			$new_sizes = $this->validate_image_sizes( $width, $height );
+			$new_url   = $this->get_imgcdn_url( $source['url'], $new_sizes );
+			if ( isset( $used[ md5( $new_url ) ] ) ) {
 				continue;
 			}
-			$used[ $url_signature ]   = true;
+
+			$used[ md5( $new_url ) ]  = true;
 			$new_sources[ $i ]        = $sources[ $i ];
 			$new_sources[ $i ]['url'] = $new_url;
 
@@ -590,7 +587,7 @@ class Optml_Replacer {
 			}
 		}
 
-		return $new_sources;
+		return $sources;
 	}
 
 	/**
