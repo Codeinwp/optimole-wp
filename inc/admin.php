@@ -35,7 +35,7 @@ class Optml_Admin {
 	 * Render dashboard page.
 	 */
 	public function render_dashboard_page() {
-	?>
+		?>
 		<div id="optimole-app">
 			<app></app>
 		</div>
@@ -53,7 +53,7 @@ class Optml_Admin {
 		if ( $current_screen->id != 'media_page_optimole' ) {
 			return;
 		}
-		wp_register_script( OPTML_NAMESPACE . '-admin', OPTML_URL . 'assets/js/bundle.min.js', array(), OPTML_VERSION );
+		wp_register_script( OPTML_NAMESPACE . '-admin', OPTML_URL . 'assets/js/bundle' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), OPTML_VERSION );
 		wp_localize_script( OPTML_NAMESPACE . '-admin', 'optimoleDashboardApp', $this->localize_dashboard_app() );
 		wp_enqueue_script( OPTML_NAMESPACE . '-admin' );
 	}
@@ -122,7 +122,7 @@ class Optml_Admin {
 		if ( ! is_user_logged_in() ) {
 			return;
 		}
-		$settings = new Optml_Settings();
+		$settings     = new Optml_Settings();
 		$service_data = $settings->get( 'service_data' );
 		if ( empty( $service_data ) ) {
 			return;
@@ -132,7 +132,7 @@ class Optml_Admin {
 			return;
 		}
 
-		$args         = array(
+		$args = array(
 			'id'    => 'optml_image_quota',
 			'title' => 'Optimole' . __( ' Image Traffic', 'optimole-wp' ) . ': ' . number_format( floatval( ( $service_data['usage'] / 1000 ) ), 3 ) . ' / ' . number_format( floatval( ( $service_data['quota'] / 1000 ) ), 0 ) . 'GB',
 			'href'  => 'https://dashboard.optimole.com/',

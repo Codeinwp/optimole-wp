@@ -46,7 +46,9 @@ function optml() {
 	define( 'OPTML_PATH', plugin_dir_path( __FILE__ ) );
 	define( 'OPTML_VERSION', '1.0.0' );
 	define( 'OPTML_NAMESPACE', 'optml' );
-
+	if( ! defined( 'OPTML_DEBUG' ) ) {
+		define( 'OPTML_DEBUG', false );
+	}
 	return Optml_Main::instance();
 }
 
