@@ -14,6 +14,7 @@ class Optml_Settings {
 		'api_key'        => '',
 		'service_data'   => '',
 		'admin_bar_item' => 'enabled',
+		'image_replacer' => 'enabled',
 	);
 	/**
 	 * Option key.
@@ -85,7 +86,7 @@ class Optml_Settings {
 	/**
 	 * Update settings.
 	 *
-	 * @param string $key Settings key.
+	 * @param string $key   Settings key.
 	 * @param mixed  $value Settings value.
 	 *
 	 * @return bool Update result.

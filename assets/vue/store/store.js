@@ -11,11 +11,13 @@ Vue.use( VueResource );
 
 const store = new Vuex.Store( {
 	state: {
+		isConnecting: false,
 		loading: false,
 		connected: optimoleDashboardApp.connection_status ? true : false,
 		apiKey: optimoleDashboardApp.api_key ? optimoleDashboardApp.api_key : '',
 		apiKeyValidity: true,
-		userData: optimoleDashboardApp.user_data ? optimoleDashboardApp.user_data : null
+		userData: optimoleDashboardApp.user_data ? optimoleDashboardApp.user_data : null,
+		optimizedImages: null,
 	},
 	mutations,
 	actions

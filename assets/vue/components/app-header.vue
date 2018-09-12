@@ -8,8 +8,9 @@
 					</figure>
 				</a>
 				<h3 class="has-text-centered has-text-grey-dark is-size-4 level-item">
-					<span class="has-text-primary has-text-weight-semibold"></span>
+					<span class="has-text-weight-semibold">
 					{{strings.image_cdn}}
+					</span>
 				</h3>
 			</div>
 			<div class="level-right">

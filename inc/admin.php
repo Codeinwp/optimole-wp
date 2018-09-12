@@ -68,6 +68,8 @@ class Optml_Admin {
 		$api_key        = $settings->get( 'api_key' );
 		$service_data   = $settings->get( 'service_data' );
 		$admin_bar_item = $settings->get( 'admin_bar_item' );
+		$image_replacer = $settings->get( 'image_replacer' );
+
 
 		$args = array(
 			'strings'           => $this->get_dashboard_strings(),
@@ -78,6 +80,8 @@ class Optml_Admin {
 			'nonce'             => wp_create_nonce( 'wp_rest' ),
 			'user_data'         => $service_data,
 			'admin_bar_item'    => $admin_bar_item,
+			'image_replacer'    => $image_replacer,
+			'home_url'          => home_url(),
 		);
 
 		return $args;
@@ -95,7 +99,6 @@ class Optml_Admin {
 			'connect_btn'         => __( 'Connect to OptiMole Service', 'optimole-wp' ),
 			'disconnect_btn'      => __( 'Disconnect', 'optimole-wp' ),
 			'api_key_placeholder' => __( 'API Key', 'optimole-wp' ),
-			'toggle_ab_item'      => __( 'Admin bar status', 'optimole-wp' ),
 			'invalid_key'         => __( 'Invalid API Key', 'optimole-wp' ),
 			'status'              => __( 'Status', 'optimole-wp' ),
 			'connected'           => __( 'Connected', 'optimole-wp' ),
@@ -104,12 +107,23 @@ class Optml_Admin {
 			'quota'               => __( 'Monthly Quota', 'optimole-wp' ),
 			'logged_in_as'        => __( 'Logged in as', 'optimole-wp' ),
 			'private_cdn_url'     => __( 'Private CDN url', 'optimole-wp' ),
-			'show'                => __( 'Show', 'optimole-wp' ),
-			'hide'                => __( 'Hide', 'optimole-wp' ),
+			'options'             => __( 'Options', 'optimole-wp' ),
 			'account_needed'      => sprintf(
 				__( 'In order to get access to free image optimization service you will need an account on %s. You will get access to our image optimization and CDN service for free in the limit of 1GB traffic per month.', 'optimole-wp' ),
 				' <a href="https://dashboard.optimole.com/register" target="_blank">optimole.com</a>'
 			),
+			'options_strings'     => array(
+				'toggle_ab_item'       => __( 'Admin bar status', 'optimole-wp' ),
+				'enable_image_replace' => __( 'Enable image replace', 'optimole-wp' ),
+				'show'                 => __( 'Show', 'optimole-wp' ),
+				'hide'                 => __( 'Hide', 'optimole-wp' ),
+				'enabled'              => __( 'Enabled', 'optimole-wp' ),
+				'disabled'             => __( 'Disabled', 'optimole-wp' ),
+			),
+			'latest_images'       => array(
+				'image'       => __( 'Image', 'optimole-wp' ),
+				'compression' => __( 'Compression', 'optimole-wp' ),
+			)
 		);
 	}
 

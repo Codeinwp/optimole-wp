@@ -43,6 +43,21 @@ final class Optml_Api {
 	}
 
 	/**
+	 * Get the optimized images from API.
+	 *
+	 * @param string $api_key the api key.
+	 *
+	 * @return array|bool
+	 */
+	public function get_optimized_images( $api_key = '' ) {
+		if( ! empty( $api_key ) ) {
+			$this->api_key = $api_key;
+		}
+
+		return $this->request( '/stats/images' );
+	}
+
+	/**
 	 * Request constructor.
 	 *
 	 * @param string $path   The request url.

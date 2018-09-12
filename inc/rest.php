@@ -70,6 +70,17 @@ class Optml_Rest {
 				),
 			)
 		);
+		register_rest_route(
+			$this->namespace, '/poll_optimized_images', array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'poll_optimized_images' ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -105,6 +116,24 @@ class Optml_Rest {
 	}
 
 	/**
+	 * Get optimized images from API.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function poll_optimized_images( WP_REST_Request $request ) {
+		$api_key = $request->get_param( 'api_key' );
+		$request = new Optml_Api();
+		$images  = $request->get_optimized_images( $api_key );
+		if ( ! isset ( $images['list'] ) || empty( $images['list'] ) ) {
+			wp_send_json( __( 'No images were optimized yet.', 'optimole-wp' ) );
+		}
+
+		return $this->response( $images['list'] );
+	}
+
+	/**
 	 * Update options method.
 	 *
 	 * @param WP_REST_Request $request option update rest request.
@@ -131,10 +160,10 @@ class Optml_Rest {
 			case 'toggle':
 				$status = $settings->get( $option_key );
 				if ( $status === 'enabled' ) {
-					$settings->update( 'admin_bar_item', 'disabled' );
+					$settings->update( $option_key, 'disabled' );
 					wp_send_json_success( $option_key . ' disabled.' );
 				} else {
-					$settings->update( 'admin_bar_item', 'enabled' );
+					$settings->update( $option_key, 'enabled' );
 					wp_send_json_success( $option_key . ' enabled.' );
 				}
 				break;

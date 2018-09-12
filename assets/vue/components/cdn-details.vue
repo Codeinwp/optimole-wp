@@ -4,13 +4,14 @@
 		<div class="account level has-text-centered">
 			<div class="level-left">
 				<span class="label level-item">{{strings.logged_in_as}}:</span>
-				<p class="details level-item tag is-rounded is-primary is-medium">
-					<img :src="userData.picture" class="image is-32x32 is-rounded" :alt="userData.display_name">{{userData.display_name}}
+				<p class="details level-item tags has-addons">
+					<span class="tag is-light">{{userData.display_name}}</span>
+					<span class="tag is-paddingless"><img :src="userData.picture" class="image is-24x24 is-rounded" :alt="userData.display_name"></span>
 				</p>
 			</div>
 			<div class="level-right">
 				<span class="label level-item">{{strings.private_cdn_url}}:</span>
-				<p class="details level-item tag is-rounded is-primary is-medium">{{userData.cdn_key}}.i.optimole.com</p>
+				<p class="details level-item tag is-light">{{userData.cdn_key}}.i.optimole.com</p>
 			</div>
 		</div>
 		<hr/>
@@ -18,19 +19,19 @@
 			<div class="level-left">
 				<div class="level-item">
 					<div class="tags has-addons">
-						<span class="tag is-medium is-light">{{strings.usage}}:</span>
-						<span class="tag is-medium is-info">{{this.userData.usage | mbToGb}} GB</span>
+						<span class="tag is-info">{{strings.usage}}:</span>
+						<span class="tag">{{this.userData.usage_pretty}}</span>
 					</div>
 				</div>
 			</div>
-			<h4 class="level-item is-size-4 is-marginless has-text-weight-bold">
+			<h4 class="level-item is-size-5 is-marginless has-text-grey">
 				{{computedPercentage()}}%
 			</h4>
 			<div class="level-right">
 				<div class="level-item">
 					<div class="tags has-addons">
-						<span class="tag is-medium is-light">{{strings.quota}}:</span>
-						<span class="tag is-medium is-primary">{{this.userData.quota | mbToGb}} GB</span>
+						<span class="tag is-info">{{strings.quota}}:</span>
+						<span class="tag">{{this.userData.quota_pretty}}</span>
 					</div>
 				</div>
 			</div>
@@ -54,10 +55,11 @@
 				return ((this.userData.usage / this.userData.quota) * 100).toFixed( 2 );
 			}
 		},
-		filters: {
-			mbToGb( value ) {
-				return (value / 1000).toFixed( 3 );
-			}
-		}
 	}
 </script>
+
+<style scoped>
+	#optimole-app .label {
+		margin-top: 0;
+	}
+</style>
