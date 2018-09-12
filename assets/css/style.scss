@@ -54,3 +54,11 @@
 {
   opacity: 0;
 }
+
+.media_page_optimole #wpbody-content > * {
+  display: none !important;
+}
+
+.media_page_optimole #wpbody-content > #optimole-app {
+  display: block !important;
+}
