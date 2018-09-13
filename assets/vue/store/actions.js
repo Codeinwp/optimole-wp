@@ -84,7 +84,12 @@ const toggleSetting = function ( { commit, state }, data ) {
 };
 
 const retrieveOptimizedImages = function ( { commit, state }, data ) {
+	let self = this;
 	setTimeout( function () {
+		if (self.state.optimizedImages.length) {
+			console.log( '%c Images already exsist.', 'color: #59B278' );
+			return false;
+		}
 		Vue.http( {
 			url: optimoleDashboardApp.root + '/poll_optimized_images',
 			method: 'GET',

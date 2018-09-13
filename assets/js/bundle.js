@@ -14219,9 +14219,7 @@ exports.default = {
 		status: status
 	},
 	mounted: function mounted() {
-		if (this.status === false) {
-			this.$store.dispatch('retrieveOptimizedImages', { waitTime: 10000, component: this });
-		}
+		this.$store.dispatch('retrieveOptimizedImages', { waitTime: 10000, component: this });
 	},
 
 	computed: {
@@ -15418,7 +15416,12 @@ var retrieveOptimizedImages = function retrieveOptimizedImages(_ref4, data) {
 	var commit = _ref4.commit,
 	    state = _ref4.state;
 
+	var self = this;
 	setTimeout(function () {
+		if (self.state.optimizedImages.length) {
+			console.log('%c Images already exsist.', 'color: #59B278');
+			return false;
+		}
 		_vue2.default.http({
 			url: optimoleDashboardApp.root + '/poll_optimized_images',
 			method: 'GET',

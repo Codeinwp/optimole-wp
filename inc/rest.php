@@ -127,9 +127,11 @@ class Optml_Rest {
 		$request = new Optml_Api();
 		$images  = $request->get_optimized_images( $api_key );
 		if ( ! isset ( $images['list'] ) || empty( $images['list'] ) ) {
-			wp_send_json_error( __( 'No images were optimized yet.', 'optimole-wp' ) );
+			return $this->response( array() );
 		}
+
 		$final_images = array_splice( $images['list'], 0, 10 );
+
 		return $this->response( $final_images );
 	}
 

@@ -34,9 +34,7 @@
 			status,
 		},
 		mounted() {
-			if ( this.status === false ) {
-				this.$store.dispatch( 'retrieveOptimizedImages', { waitTime: 10000, component: this } );
-			}
+			this.$store.dispatch( 'retrieveOptimizedImages', { waitTime: 10000, component: this } );
 		},
 		computed: {
 			imageData() {
