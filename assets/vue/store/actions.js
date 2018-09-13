@@ -31,7 +31,7 @@ const connectOptimole = function ( { commit, state }, data ) {
 	} );
 };
 
-const pingHomepage = function() {
+const pingHomepage = function () {
 	Vue.http( {
 		url: optimoleDashboardApp.home_url,
 		method: 'GET',
@@ -70,39 +70,40 @@ const toggleSetting = function ( { commit, state }, data ) {
 		params: {
 			'req': data.req,
 			'option_key': data.option_key,
-			'type' : data.type ? data.type : ''
+			'type': data.type ? data.type : ''
 		},
 		responseType: 'json'
 	} ).then( function ( response ) {
 		commit( 'toggleLoading', false );
 		if ( response.ok ) {
-			console.log( '%c '+ data.option_key +' Toggled.', 'color: #59B278' );
-			if( data.option_key === 'image_replacer' ) {
-				pingHomepage();
-			}
+			console.log( '%c ' + data.option_key + ' Toggled.', 'color: #59B278' );
 		} else {
 			console.error( response );
 		}
 	} );
 };
 
-const retrieveOptimizedImages = function( { commit, state }, component ) {
-	Vue.http( {
-		url: optimoleDashboardApp.root + '/poll_optimized_images',
-		method: 'GET',
-		headers: { 'X-WP-Nonce': optimoleDashboardApp.nonce },
-		params: { 'req': 'Get Optimized Images' },
-		responseType: 'json',
-		timeout: 10000
-	} ).then( function ( response ) {
-		if ( response.ok ) {
-			commit('updateOptimizedImages', response );
-			component.loading = false;
-			console.log( '%c Images Fetched.', 'color: #59B278' );
-		} else {
-			console.log( '%c No images available.', 'color: #E7602A' );
-		}
-	} );
+const retrieveOptimizedImages = function ( { commit, state }, data ) {
+	setTimeout( function () {
+		Vue.http( {
+			url: optimoleDashboardApp.root + '/poll_optimized_images',
+			method: 'GET',
+			headers: { 'X-WP-Nonce': optimoleDashboardApp.nonce },
+			params: { 'req': 'Get Optimized Images' },
+			responseType: 'json',
+			timeout: 10000
+		} ).then( function ( response ) {
+			if ( response.body.code === 'success' ) {
+				commit( 'updateOptimizedImages', response );
+				if ( data.component !== null ) {
+					data.component.loading = false;
+				}
+				console.log( '%c Images Fetched.', 'color: #59B278' );
+			} else {
+				console.log( '%c No images available.', 'color: #E7602A' );
+			}
+		} );
+	}, data.waitTime );
 };
 
 export default {

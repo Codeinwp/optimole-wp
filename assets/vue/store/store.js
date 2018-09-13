@@ -17,7 +17,7 @@ const store = new Vuex.Store( {
 		apiKey: optimoleDashboardApp.api_key ? optimoleDashboardApp.api_key : '',
 		apiKeyValidity: true,
 		userData: optimoleDashboardApp.user_data ? optimoleDashboardApp.user_data : null,
-		optimizedImages: null,
+		optimizedImages: [],
 	},
 	mutations,
 	actions

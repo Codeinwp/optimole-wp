@@ -12,8 +12,8 @@
     transition: all 750ms ease-in-out;
     border: 0;
     border-radius: .1875rem;
-    -webkit-box-shadow: 0 1px 15px 1px rgba(39,39,39,.1);
-    box-shadow: 0 1px 15px 1px rgba(39,39,39,.1);
+    -webkit-box-shadow: 0 1px 15px 1px rgba(39, 39, 39, .1);
+    box-shadow: 0 1px 15px 1px rgba(39, 39, 39, .1);
   }
   .logo {
     margin-bottom: 10px;
@@ -52,6 +52,18 @@
     }
     .label {
       margin-bottom: 0;
+    }
+  }
+
+  //Optimized images.
+  .optimized-images {
+    img.image {
+      max-width: 100px;
+      margin: auto;
+    }
+    table td, table th {
+      text-align: center;
+      vertical-align: middle;
     }
   }
 }

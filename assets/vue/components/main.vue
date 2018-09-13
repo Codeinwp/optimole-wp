@@ -7,11 +7,11 @@
 				<api-key-form></api-key-form>
 				<transition name="fade" mode="out-in">
 					<div v-if="this.$store.state.connected">
-					<hr/>
-					<options></options>
-					<cdn-details v-if="this.$store.state.userData"></cdn-details>
-					<hr/>
-					<last-images></last-images>
+						<hr/>
+						<options></options>
+						<cdn-details v-if="this.$store.state.userData"></cdn-details>
+						<hr/>
+						<last-images :status="fetchStatus"></last-images>
 					</div>
 				</transition>
 			</div>
@@ -34,6 +34,7 @@
 		data() {
 			return {
 				strings: optimoleDashboardApp.strings,
+				fetchStatus: false
 			}
 		},
 		components: {
@@ -42,8 +43,14 @@
 			Options,
 			CdnDetails,
 			LastImages
+		},
+		mounted() {
+			let self = this;
+			if ( this.$store.state.connected ) {
+				this.$store.dispatch( 'retrieveOptimizedImages', { waitTime: 0, component: null } );
+				self.fetchStatus = true;
+			}
 		}
-		,
 	}
 </script>
 <style lang="sass-loader">

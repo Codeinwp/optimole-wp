@@ -123,6 +123,8 @@ class Optml_Admin {
 			'latest_images'       => array(
 				'image'       => __( 'Image', 'optimole-wp' ),
 				'compression' => __( 'Compression', 'optimole-wp' ),
+				'last'        => __( 'Last', 'optimole-wp' ),
+				'optimized_images'      => __( 'optimized images', 'optimole-wp' ),
 			)
 		);
 	}
