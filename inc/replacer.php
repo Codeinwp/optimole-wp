@@ -110,6 +110,19 @@ class Optml_Replacer {
 	}
 
 	/**
+	 * Check if replacer is disabled.
+	 */
+	private function is_enabled() {
+		$settings = new Optml_Settings();
+		$status   = $settings->get( 'image_replacer' );
+		if ( $status === 'disabled' ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Set the cdn url based on the current connected user.
 	 */
 	protected function set_properties() {
@@ -133,19 +146,6 @@ class Optml_Replacer {
 			strtolower( $cdn_key ),
 			'i.optimole.com'
 		);
-	}
-
-	/**
-	 * Check if replacer is disabled.
-	 */
-	private function is_enabled() {
-		$settings = new Optml_Settings();
-		$status   = $settings->get( 'image_replacer' );
-		if ( $status === 'disabled' ) {
-			return false;
-		}
-
-		return true;
 	}
 
 	/**
@@ -210,9 +210,9 @@ class Optml_Replacer {
 	/**
 	 * This filter will replace all the images retrieved via "wp_get_image" type of functions.
 	 *
-	 * @param array        $image         The filtered value.
+	 * @param array        $image The filtered value.
 	 * @param int          $attachment_id The related attachment id.
-	 * @param array|string $size          This could be the name of the thumbnail size or an array of custom dimensions.
+	 * @param array|string $size This could be the name of the thumbnail size or an array of custom dimensions.
 	 *
 	 * @return array
 	 */
@@ -231,20 +231,19 @@ class Optml_Replacer {
 
 			// default size
 			$sizes = array(
-				'width'  => isset( $image_meta['width'] ) ? $image_meta['width'] : 'auto',
-				'height' => isset( $image_meta['height'] ) ? $image_meta['height'] : 'auto',
+				'width'  => isset( $image_meta['width'] ) ? intval( $image_meta['width'] ) : 'auto',
+				'height' => isset( $image_meta['height'] ) ? intval( $image_meta['height'] ) : 'auto',
 			);
-
 			// in case there is a custom image size $size will be an array.
 			if ( is_array( $size ) ) {
 				$sizes = array(
-					'width'  => $size[0],
-					'height' => $size[1],
+					'width'  => ( $size[0] < $sizes['width'] ? $size[0] : $sizes['width'] ),
+					'height' => ( $size[1] < $sizes['height'] ? $size[0] : $sizes['height'] ),
 				);
 			} elseif ( 'full' !== $size && isset( $image_args[ $size ] ) ) { // overwrite if there a size
 				$sizes = array(
-					'width'  => $image_args[ $size ]['width'],
-					'height' => $image_args[ $size ]['height'],
+					'width'  => $image_args[ $size ]['width'] < $sizes['width'] ? $image_args[ $size ]['width'] : $sizes['width'],
+					'height' => $image_args[ $size ]['height'] < $sizes['height'] ? $image_args[ $size ]['height'] : $sizes['height'],
 				);
 			}
 
@@ -257,7 +256,9 @@ class Optml_Replacer {
 
 			// try to get an optimized image url.
 			$new_url = $this->get_imgcdn_url( $image_url, $new_sizes );
-
+			if ( $new_url === $image_url ) {
+				return $image;
+			}
 			$return = array(
 				$new_url,
 				$sizes['width'],
@@ -327,7 +328,7 @@ class Optml_Replacer {
 	/**
 	 * Keep the image sizes under a sane limit.
 	 *
-	 * @param string $width  The width value which should be sanitized.
+	 * @param string $width The width value which should be sanitized.
 	 * @param string $height The height value which should be sanitized.
 	 *
 	 * @return array
@@ -376,7 +377,7 @@ class Optml_Replacer {
 	/**
 	 * Returns a signed image url authorized to be used in our CDN.
 	 *
-	 * @param string $url  The url which should be signed.
+	 * @param string $url The url which should be signed.
 	 * @param array  $args Dimension params; Supports `width` and `height`.
 	 *
 	 * @return string
@@ -495,7 +496,9 @@ class Optml_Replacer {
 			$new_sizes = $this->validate_image_sizes( $width, $height );
 
 			$new_url = $this->get_imgcdn_url( $src, $new_sizes );
-
+			if ( $new_url === $src ) {
+				continue;
+			}
 			// replace the url in hrefs or links
 			if ( ! empty( $images['link_url'][ $index ] ) ) {
 				if ( $this->check_mimetype( $images['link_url'][ $index ] ) ) {
@@ -544,10 +547,10 @@ class Optml_Replacer {
 	/**
 	 * Replace image URLs in the srcset attributes and in case there is a resize in action, also replace the sizes.
 	 *
-	 * @param array $sources       Array of image sources.
-	 * @param array $size_array    Array of width and height values in pixels (in that order).
-	 * @param array $image_src     The 'src' of the image.
-	 * @param array $image_meta    The image meta data as returned by 'wp_get_attachment_metadata()'.
+	 * @param array $sources Array of image sources.
+	 * @param array $size_array Array of width and height values in pixels (in that order).
+	 * @param array $image_src The 'src' of the image.
+	 * @param array $image_meta The image meta data as returned by 'wp_get_attachment_metadata()'.
 	 * @param int   $attachment_id Image attachment ID.
 	 *
 	 * @return array
@@ -559,7 +562,6 @@ class Optml_Replacer {
 		$used        = array();
 		$new_sources = array();
 		foreach ( $sources as $i => $source ) {
-
 			list( $width, $height ) = self::parse_dimensions_from_filename( $source['url'] );
 
 			if ( empty( $width ) ) {
@@ -587,7 +589,7 @@ class Optml_Replacer {
 			}
 		}
 
-		return $sources;
+		return $new_sources;
 	}
 
 	/**
