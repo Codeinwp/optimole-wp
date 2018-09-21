@@ -54,7 +54,7 @@ class Optml_Settings {
 			return null;
 		}
 
-		return $this->options[ $key ];
+		return isset ( $this->options[ $key ] ) ? $this->options[ $key ] : '' ;
 	}
 
 	/**
