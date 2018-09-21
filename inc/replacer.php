@@ -342,7 +342,7 @@ class Optml_Replacer {
 		if (
 			doing_filter( 'the_content' )
 			&& isset( $GLOBALS['content_width'] )
-			&& apply_filters( 'optml_imgcdn_allow_resize_images_from_content_width', true )
+			&& apply_filters( 'optml_imgcdn_allow_resize_images_from_content_width', false )
 		) {
 			$content_width = (int) $GLOBALS['content_width'];
 
