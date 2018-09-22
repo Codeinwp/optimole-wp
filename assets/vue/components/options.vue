@@ -3,22 +3,24 @@
 		<div class="field is-horizontal">
 			<label class="label has-text-grey-dark">{{strings.enable_image_replace}}:</label>
 			<toggle-button @change="toggleOption('image_replacer')"
-					:value="imageReplacerStatus"
-					:disabled="this.$store.state.loading"
-					:labels="{checked: strings.enabled, unchecked: strings.disabled}"
-					:width="75"
-					color="#008ec2"></toggle-button>
+			               :value="imageReplacerStatus"
+			               :disabled="this.$store.state.loading"
+			               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
+			               :width="75"
+			               color="#008ec2"></toggle-button>
 		</div>
 		<div class="field is-horizontal">
 			<label class="label has-text-grey-dark">{{strings.toggle_ab_item}}:</label>
 			<toggle-button @change="toggleOption('admin_bar_item')"
-					:value="adminBarItemStatus"
-					:disabled="this.$store.state.loading"
-					:labels="{checked: strings.show, unchecked: strings.hide}"
-					:width="60"
-					color="#008ec2"></toggle-button>
+			               v-model="adminBarItem"
+			               :disabled="this.$store.state.loading"
+			               :labels="{checked: strings.show, unchecked: strings.hide}"
+			               :width="60"
+			               color="#008ec2"></toggle-button>
 		</div>
+	
 	</div>
+
 </template>
 
 <script>
@@ -32,26 +34,21 @@
 			}
 		},
 		methods: {
-			toggleOption: function ( optionKey ) {
-				this.$store.dispatch( 'toggleSetting', {
+			toggleOption: function (optionKey) {
+				this.$store.dispatch('toggleSetting', {
 					req: 'Toggle ' + optionKey,
 					option_key: optionKey,
 					type: 'toggle',
-				} );
+				})
 			},
 		},
 		computed: {
-			adminBarItemStatus() {
-				if ( this.adminBarItem === 'disabled' ) {
-					return false;
-				}
-				return true;
+			adminBarItemStatus: function () {
+				return !(this.adminBarItem === 'disabled');
 			},
+
 			imageReplacerStatus() {
-				if ( this.imageReplacer === 'disabled' ) {
-					return false;
-				}
-				return true;
+				return !(this.imageReplacer === 'disabled');
 			}
 		}
 	}
@@ -61,7 +58,7 @@
 	.saving--option {
 		opacity: .75;
 	}
-
+	
 	.field:nth-child(even) {
 		justify-content: flex-end;
 	}

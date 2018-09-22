@@ -95,13 +95,20 @@ class Optml_Replacer {
 	 * The initialize method.
 	 */
 	function init() {
+		$settings = new Optml_Settings();
 
-		if ( ! $this->is_enabled() ) {
+		if ( ! $settings->is_connected() ) {
+			return;
+		}
+		if ( ! $settings->is_enabled() ) {
 			return;
 		}
 
 		$this->set_properties();
 
+		if ( empty( $this->cdn_url ) ) {
+			return;
+		}
 		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
@@ -109,18 +116,6 @@ class Optml_Replacer {
 		add_action( 'init', array( $this, 'init_html_replacer' ), PHP_INT_MAX );
 	}
 
-	/**
-	 * Check if replacer is disabled.
-	 */
-	private function is_enabled() {
-		$settings = new Optml_Settings();
-		$status   = $settings->get( 'image_replacer' );
-		if ( $status === 'disabled' ) {
-			return false;
-		}
-
-		return true;
-	}
 
 	/**
 	 * Set the cdn url based on the current connected user.

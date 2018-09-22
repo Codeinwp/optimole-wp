@@ -43,6 +43,23 @@ class Optml_Settings {
 	}
 
 	/**
+	 * Check if the user is connected to Optimole.
+	 *
+	 * @return bool Connection status.
+	 */
+	public function is_connected() {
+		$service_data = $this->get( 'service_data' );
+		if ( ! isset( $service_data['cdn_key'] ) ) {
+			return false;
+		}
+		if ( empty( $service_data ['cdn_key'] ) || empty( $service_data['cdn_secret'] ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Get setting value by key.
 	 *
 	 * @param string $key Key to search against.
@@ -54,7 +71,7 @@ class Optml_Settings {
 			return null;
 		}
 
-		return isset ( $this->options[ $key ] ) ? $this->options[ $key ] : '' ;
+		return isset ( $this->options[ $key ] ) ? $this->options[ $key ] : '';
 	}
 
 	/**
@@ -66,6 +83,41 @@ class Optml_Settings {
 	 */
 	private function is_allowed( $key ) {
 		return isset( $this->default_schema[ $key ] );
+	}
+
+	/**
+	 * Check if replacer is enabled.
+	 *
+	 * @return bool Replacer enabled
+	 */
+	public function is_enabled() {
+		$status = $this->get( 'image_replacer' );
+		if ( $status === 'disabled' ) {
+			return false;
+		}
+		if ( empty( $status ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Return cdn url.
+	 *
+	 * @return string CDN url.
+	 */
+	public function get_cdn_url() {
+		$service_data = $this->get( 'service_data' );
+		if ( ! isset( $service_data['cdn_key'] ) ) {
+			return '';
+		}
+
+		return sprintf(
+			'%s.%s',
+			strtolower( $service_data['cdn_key'] ),
+			'i.optimole.com'
+		);
 	}
 
 	/**
@@ -86,7 +138,7 @@ class Optml_Settings {
 	/**
 	 * Update settings.
 	 *
-	 * @param string $key   Settings key.
+	 * @param string $key Settings key.
 	 * @param mixed  $value Settings value.
 	 *
 	 * @return bool Update result.

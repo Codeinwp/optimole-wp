@@ -47,7 +47,7 @@ function optml() {
 	define( 'OPTML_VERSION', '1.0.0' );
 	define( 'OPTML_NAMESPACE', 'optml' );
 	if( ! defined( 'OPTML_DEBUG' ) ) {
-		define( 'OPTML_DEBUG', false );
+		define( 'OPTML_DEBUG', true );
 	}
 	return Optml_Main::instance();
 }

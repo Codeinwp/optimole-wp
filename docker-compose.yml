@@ -1,0 +1,24 @@
+version: '3.3'
+
+services:
+  db:
+    image: mysql:5.7
+    volumes:
+    - db_data:/var/lib/mysql
+    env_file:
+    - .env
+  wp:
+    depends_on:
+    - mysql
+    image: vertigostudio/ubuntu-nginx-wpcli-gearman-php7:latest
+    ports:
+    - 8888:80
+    command: ["init.sh"]
+    volumes:
+    - "/D/web/default/app/public/wp-content/optimole-wp:/var/www/html/wp-content/plugins/optimole-wp"
+    - "/D/web/default/app/public/wp-content/optimole-wp/init.sh:/usr/local/bin/init.sh"
+    env_file:
+    - .env
+
+volumes:
+  db_data:

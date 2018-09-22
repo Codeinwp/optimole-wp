@@ -16,12 +16,71 @@
 class Optml_Admin {
 
 	/**
+	 * Hold the settings object.
+	 *
+	 * @var Optml_Settings Settings object.
+	 */
+	public $settings;
+
+	/**
 	 * Optml_Admin constructor.
 	 */
 	public function __construct() {
+		$this->settings = new Optml_Settings();
+
 		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 		add_action( 'admin_bar_menu', array( $this, 'add_traffic_node' ), 9999 );
+		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
+		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
+		if ( ! is_admin() && $this->settings->is_connected() ) {
+			if ( ! wp_next_scheduled( 'optml_daily_sync' ) ) {
+				wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
+			}
+		}
+	}
+
+	/**
+	 * Update daily the quota routine.
+	 */
+	function daily_sync() {
+
+		$api_key = $this->settings->get( 'api_key' );
+		if ( empty( $api_key ) ) {
+			return;
+		}
+
+		$request = new Optml_Api();
+		$data    = $request->get_user_data( $api_key );
+		if ( $data === false ) {
+			return;
+		}
+
+		$this->settings->update( 'service_data', $data );
+
+	}
+
+	/**
+	 * Adds cdn url for prefetch.
+	 *
+	 * @param array  $hints Hints array.
+	 * @param string $relation_type Type of relation.
+	 *
+	 * @return array Altered hints array.
+	 */
+	public function add_dns_prefetch( $hints, $relation_type ) {
+		if ( 'dns-prefetch' !== $relation_type ) {
+			return $hints;
+		}
+		if ( ! $this->settings->is_connected() ) {
+			return $hints;
+		}
+		if ( ! $this->settings->is_enabled() ) {
+			return $hints;
+		}
+		$hints[] = sprintf( '//%s', $this->settings->get_cdn_url() );
+
+		return $hints;
 	}
 
 	/**
@@ -64,12 +123,10 @@ class Optml_Admin {
 	 * @return array
 	 */
 	private function localize_dashboard_app() {
-		$settings       = new Optml_Settings();
-		$api_key        = $settings->get( 'api_key' );
-		$service_data   = $settings->get( 'service_data' );
-		$admin_bar_item = $settings->get( 'admin_bar_item' );
-		$image_replacer = $settings->get( 'image_replacer' );
-
+		$api_key        = $this->settings->get( 'api_key' );
+		$service_data   = $this->settings->get( 'service_data' );
+		$admin_bar_item = $this->settings->get( 'admin_bar_item' );
+		$image_replacer = $this->settings->get( 'image_replacer' );
 
 		$args = array(
 			'strings'           => $this->get_dashboard_strings(),
@@ -121,10 +178,10 @@ class Optml_Admin {
 				'disabled'             => __( 'Disabled', 'optimole-wp' ),
 			),
 			'latest_images'       => array(
-				'image'       => __( 'Image', 'optimole-wp' ),
-				'compression' => __( 'Compression', 'optimole-wp' ),
-				'last'        => __( 'Last', 'optimole-wp' ),
-				'optimized_images'      => __( 'optimized images', 'optimole-wp' ),
+				'image'            => __( 'Image', 'optimole-wp' ),
+				'compression'      => __( 'Compression', 'optimole-wp' ),
+				'last'             => __( 'Last', 'optimole-wp' ),
+				'optimized_images' => __( 'optimized images', 'optimole-wp' ),
 			)
 		);
 	}
@@ -138,15 +195,15 @@ class Optml_Admin {
 		if ( ! is_user_logged_in() ) {
 			return;
 		}
-		$settings     = new Optml_Settings();
-		$service_data = $settings->get( 'service_data' );
-		if ( empty( $service_data ) ) {
+		$settings = new Optml_Settings();
+		if ( ! $settings->is_connected() ) {
 			return;
 		}
 		$should_load = $settings->get( 'admin_bar_item' );
 		if ( $should_load !== 'enabled' ) {
 			return;
 		}
+		$service_data = $this->settings->get('service_data');
 
 		$args = array(
 			'id'    => 'optml_image_quota',
