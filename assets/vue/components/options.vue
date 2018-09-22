@@ -12,7 +12,7 @@
 		<div class="field is-horizontal">
 			<label class="label has-text-grey-dark">{{strings.toggle_ab_item}}:</label>
 			<toggle-button @change="toggleOption('admin_bar_item')"
-			               v-model="adminBarItem"
+			               v-model="adminBarItemStatus"
 			               :disabled="this.$store.state.loading"
 			               :labels="{checked: strings.show, unchecked: strings.hide}"
 			               :width="60"
@@ -43,9 +43,19 @@
 			},
 		},
 		computed: {
-			adminBarItemStatus: function () {
-				return !(this.adminBarItem === 'disabled');
-			},
+			adminBarItemStatus: {
+			    set: function (value) {
+                    this.adminBarItem = value;
+                    if(value){
+                        document.getElementById("wp-admin-bar-optml_image_quota").style.display = 'block';
+					}else{
+                        document.getElementById("wp-admin-bar-optml_image_quota").style.display = 'none';
+					}
+                },
+				get: function(){
+                    return !(this.adminBarItem === 'disabled');
+				}
+            },
 
 			imageReplacerStatus() {
 				return !(this.imageReplacer === 'disabled');

@@ -63,7 +63,7 @@ class Optml_Admin {
 	/**
 	 * Adds cdn url for prefetch.
 	 *
-	 * @param array  $hints Hints array.
+	 * @param array  $hints         Hints array.
 	 * @param string $relation_type Type of relation.
 	 *
 	 * @return array Altered hints array.
@@ -95,9 +95,9 @@ class Optml_Admin {
 	 */
 	public function render_dashboard_page() {
 		?>
-		<div id="optimole-app">
-			<app></app>
-		</div>
+        <div id="optimole-app">
+            <app></app>
+        </div>
 		<?php
 	}
 
@@ -178,10 +178,14 @@ class Optml_Admin {
 				'disabled'             => __( 'Disabled', 'optimole-wp' ),
 			),
 			'latest_images'       => array(
-				'image'            => __( 'Image', 'optimole-wp' ),
-				'compression'      => __( 'Compression', 'optimole-wp' ),
-				'last'             => __( 'Last', 'optimole-wp' ),
-				'optimized_images' => __( 'optimized images', 'optimole-wp' ),
+				'image'               => __( 'Image', 'optimole-wp' ),
+				'compression'         => __( 'Optimization', 'optimole-wp' ),
+				'last'                => __( 'Last', 'optimole-wp' ),
+				'optimized_images'    => __( 'optimized images', 'optimole-wp' ),
+				'same_size'           => __( '🙉 We couldn\'t do better, this image is already optimized at maximum. ', 'optimole-wp' ),
+				'small_optimization'  => __( '😬 Not that much, just <strong>{ratio}</strong> smaller.', 'optimole-wp' ),
+				'medium_optimization' => __( '🤓 We are on the right track, <strong>{ratio}</strong> squeezed.', 'optimole-wp' ),
+				'big_optimization'    => __( '❤️❤️❤️ Our moles just nailed it, this one is <strong>{ratio}</strong> smaller.  ', 'optimole-wp' ),
 			)
 		);
 	}
@@ -200,16 +204,19 @@ class Optml_Admin {
 			return;
 		}
 		$should_load = $settings->get( 'admin_bar_item' );
-		if ( $should_load !== 'enabled' ) {
+
+		$service_data = $this->settings->get( 'service_data' );
+		if ( empty( $service_data ) ) {
 			return;
 		}
-		$service_data = $this->settings->get('service_data');
-
 		$args = array(
 			'id'    => 'optml_image_quota',
 			'title' => 'Optimole' . __( ' Image Traffic', 'optimole-wp' ) . ': ' . number_format( floatval( ( $service_data['usage'] / 1000 ) ), 3 ) . ' / ' . number_format( floatval( ( $service_data['quota'] / 1000 ) ), 0 ) . 'GB',
 			'href'  => 'https://dashboard.optimole.com/',
-			'meta'  => array( 'target' => '_blank' ),
+			'meta'  => array(
+				'target' => '_blank',
+				'class'  => $should_load !== 'enabled' ? 'hidden' : ''
+			)
 		);
 		$wp_admin_bar->add_node( $args );
 	}

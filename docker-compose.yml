@@ -15,8 +15,8 @@ services:
     - 8888:80
     command: ["init.sh"]
     volumes:
-    - "/D/web/default/app/public/wp-content/optimole-wp:/var/www/html/wp-content/plugins/optimole-wp"
-    - "/D/web/default/app/public/wp-content/optimole-wp/init.sh:/usr/local/bin/init.sh"
+    - "./:/var/www/html/wp-content/plugins/optimole-wp"
+    - "./init.sh:/usr/local/bin/init.sh"
     env_file:
     - .env
 

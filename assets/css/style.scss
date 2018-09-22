@@ -57,12 +57,8 @@
 
   //Optimized images.
   .optimized-images {
-    img.image {
-      max-width: 100px;
-      margin: auto;
-    }
+
     table td, table th {
-      text-align: center;
       vertical-align: middle;
     }
   }
@@ -84,4 +80,24 @@
 
 .media_page_optimole #wpbody-content > #optimole-app {
   display: block !important;
+}
+#optimole-app img.optml-image{
+  float:left;
+  max-width: 100px;
+  width:auto;
+  margin: auto;
+}
+.optml-ratio-feedback .emoji{
+  font-size: 1.5em;
+}
+.optml-ratio-feedback{
+  float:right;
+  padding-right: 20px;
+}
+.optml-image-heading{
+  text-align: left;
+}
+th.optml-image-ratio-heading{
+  text-align: right !important;
+  font-size: 150%;
 }

@@ -1,7 +1,7 @@
 <?php
 /**
- * Plugin Name:       Image optimization & CDN by Optimole
- * Description:        Complete handling of your website images.
+ * Plugin Name:       Optimole WP
+ * Description:       Complete handling of your website images.
  * Version:           1.0.0
  * Author:            Optimole
  * Author URI:        https://optimole.com
@@ -47,7 +47,7 @@ function optml() {
 	define( 'OPTML_VERSION', '1.0.0' );
 	define( 'OPTML_NAMESPACE', 'optml' );
 	if( ! defined( 'OPTML_DEBUG' ) ) {
-		define( 'OPTML_DEBUG', true );
+		define( 'OPTML_DEBUG', false );
 	}
 	return Optml_Main::instance();
 }
