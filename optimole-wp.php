@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Optimole WP
  * Description:       Complete handling of your website images.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:            Optimole
  * Author URI:        https://optimole.com
  * License:           GPL-2.0+
@@ -44,7 +44,7 @@ function optml_autoload( $class ) {
 function optml() {
 	define( 'OPTML_URL', plugin_dir_url( __FILE__ ) );
 	define( 'OPTML_PATH', plugin_dir_path( __FILE__ ) );
-	define( 'OPTML_VERSION', '1.0.0' );
+	define( 'OPTML_VERSION', '1.0.1' );
 	define( 'OPTML_NAMESPACE', 'optml' );
 	if( ! defined( 'OPTML_DEBUG' ) ) {
 		define( 'OPTML_DEBUG', false );

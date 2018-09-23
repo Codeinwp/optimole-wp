@@ -46,7 +46,6 @@
         methods: {
             compressionRate(oldSize, newSize) {
                 let value = ( parseFloat(oldSize / newSize * 100) - 100 ).toFixed(1);
-                console.log(value);
                 if (value < 1) {
                     return this.strings.same_size;
                 }
