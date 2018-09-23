@@ -1,4 +1,4 @@
-=== OptiMole WP ===
+=== Image optimization and CDN by Optimole ===
 Contributors: optimole
 Tags: image optmization, cdn, image compression
 Requires at least: 4.7
