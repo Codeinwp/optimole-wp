@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:       Optimole WP
+ * Plugin Name:       Image optimization and CDN by Optimole
  * Description:       Complete handling of your website images.
  * Version:           1.0.1
  * Author:            Optimole
