@@ -1,4 +1,10 @@
 
+ ### v1.0.2 - 2018-09-25 
+ **Changes:** 
+ * Improve compatibility with elementor external css files.
+* Adds generator tag.
+* Improve replacer handler hook register.
+ 
  ### v1.0.1 - 2018-09-23 
  **Changes:** 
  * Tag first stable version for wordpress.org.

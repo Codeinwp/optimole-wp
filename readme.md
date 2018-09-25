@@ -1,18 +1,18 @@
-=== Image optimization and CDN by Optimole ===
-Contributors: optimole
-Tags: image optmization, cdn, image compression
-Requires at least: 4.7
-Tested up to: 4.9
-Requires PHP: 5.4
-Stable tag: trunk
-License: GPLv3
-License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
+# Image optimization and CDN by Optimole #
+**Contributors:** [optimole](https://profiles.wordpress.org/optimole)  
+**Tags:** image optmization, cdn, image compression  
+**Requires at least:** 4.7  
+**Tested up to:** 4.9  
+**Requires PHP:** 5.4  
+**Stable tag:** trunk  
+**License:** GPLv3  
+**License URI:** https://www.gnu.org/licenses/gpl-3.0.en.html  
 
 End-to-end image processing
 With OptiMole, your site’s images will be cropped, optimized and processed on-the-fly.
 
 
-== Description ==
+## Description ##
 **Image optimization & resizing**
 Images are processed for best results with both lossless and lossy optimization and are automatically resized for any device.
 
@@ -25,30 +25,30 @@ Dynamic manipulation of images and videos (resize, compress and serve via CDN on
 **Easy tracking & monitoring**
 Check how OptiMole is improving your site from day 1. Transparent optimization stats are always available.
 
-= How does it work? =
+### How does it work? ###
 
 This plugin connects via API to OptiMole [image optimization service](https://optimole.com/) in order to send the images to its servers and crop, optimize and process them on-the-fly. The EXIF data will either be stripped and it is not stored on our servers. Optimole does not interact with the visitors on your website. We care about your privacy so check our [terms of use](https://optimole.com/terms/).
 
 The plugin will rewrite your image URLs to replace them with OptiMole URLs. Your origin images will be downloaded from your storage, processed by the OptiMole infrastructure and cached in the CDN. NO development needed. Simply set up your account and enjoy faster image loading.
 
-== Changelog ==
-= 1.0.2 - 2018-09-25  = 
+## Changelog ##
+### 1.0.2 - 2018-09-25  ###
 
 * Improve compatibility with elementor external css files.
 * Adds generator tag.
 * Improve replacer handler hook register.
 
 
-= 1.0.1 - 2018-09-23  = 
+### 1.0.1 - 2018-09-23  ###
 
 * Tag first stable version for wordpress.org.
 
 
 
-= 1.0.0 - 2018-09-22 =
+### 1.0.0 - 2018-09-22 ###
 * First version of the plugin
 
-== Installation ==
+## Installation ##
 The following are the steps to install the OptiMole plugin
 
 1. In your WordPress Administration Panels, click on Add New option under Plugins from the menu.
