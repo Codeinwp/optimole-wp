@@ -95,15 +95,10 @@ class Optml_Replacer {
 	 * The initialize method.
 	 */
 	function init() {
-		$settings = new Optml_Settings();
 
-		if ( ! $settings->is_connected() ) {
+		if ( ! $this->should_replace() ) {
 			return;
 		}
-		if ( ! $settings->is_enabled() ) {
-			return;
-		}
-
 		$this->set_properties();
 
 		if ( empty( $this->cdn_url ) ) {
@@ -113,9 +108,35 @@ class Optml_Replacer {
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
 		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
-		add_action( 'init', array( $this, 'init_html_replacer' ), PHP_INT_MAX );
+		add_action( 'template_redirect', array( $this, 'init_html_replacer' ), PHP_INT_MAX );
+		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
 	}
 
+	/**
+	 * Check if we should rewrite the urls.
+	 *
+	 * @return bool If we can replace the image.
+	 *
+	 */
+	public function should_replace() {
+
+		if ( is_admin() ) {
+			return false;
+		}
+		$settings = new Optml_Settings();
+
+		if ( ! $settings->is_connected() ) {
+			return false;
+		}
+		if ( ! $settings->is_enabled() ) {
+			false;
+		}
+		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
+			return false;
+		}
+
+		return true;
+	}
 
 	/**
 	 * Set the cdn url based on the current connected user.
@@ -151,55 +172,8 @@ class Optml_Replacer {
 			return;
 		}
 		ob_start(
-			array( &$this, 'filter_raw_content' )
+			array( &$this, 'replace_urls' )
 		);
-	}
-
-	/**
-	 * Filter raw content for urls.
-	 *
-	 * @param string $html HTML to filter.
-	 *
-	 * @return mixed Filtered content.
-	 */
-	public function filter_raw_content( $html ) {
-		$urls     = wp_extract_urls( $html );
-		$cdn_url  = $this->cdn_url;
-		$site_url = get_site_url();
-		$urls     = array_filter(
-			$urls, function ( $url ) use ( $cdn_url, $site_url ) {
-			if ( strpos( $url, $cdn_url ) !== false ) {
-				return false;
-			}
-			if ( strpos( $url, $site_url ) === false ) {
-				return false;
-			}
-
-			return $this->check_mimetype( $url );
-		}
-		);
-		$new_urls = array_map( array( $this, 'get_imgcdn_url' ), $urls );
-
-		return str_replace( $urls, $new_urls, $html );
-	}
-
-	/**
-	 * Check url mimetype.
-	 *
-	 * @param string $url Url to check.
-	 *
-	 * @return bool Is a valid image url or not.
-	 */
-	private function check_mimetype( $url ) {
-
-		$mimes = self::$extensions;
-		$type  = wp_check_filetype( $url, $mimes );
-
-		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
-			return false;
-		}
-
-		return true;
 	}
 
 	/**
@@ -419,6 +393,25 @@ class Optml_Replacer {
 		);
 
 		return $new_url;
+	}
+
+	/**
+	 * Check url mimetype.
+	 *
+	 * @param string $url Url to check.
+	 *
+	 * @return bool Is a valid image url or not.
+	 */
+	private function check_mimetype( $url ) {
+
+		$mimes = self::$extensions;
+		$type  = wp_check_filetype( $url, $mimes );
+
+		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -683,6 +676,119 @@ class Optml_Replacer {
 		$new_url = $this->get_imgcdn_url( $url );
 
 		return $new_url;
+	}
+
+	/**
+	 * Replace urls in post meta values.
+	 *
+	 * @param mixed  $metadata Metadata.
+	 * @param int    $object_id Post id.
+	 * @param string $meta_key Meta key.
+	 * @param bool   $single Is single?
+	 *
+	 * @return mixed Altered meta.
+	 */
+	function replace_meta( $metadata, $object_id, $meta_key, $single ) {
+
+		$meta_needed = '_elementor_data';
+
+		if ( isset( $meta_key ) && $meta_needed == $meta_key ) {
+			remove_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX );
+
+			$current_meta = get_post_meta( $object_id, $meta_needed, $single );
+			add_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+
+			if ( ! is_string( $current_meta ) ) {
+				return $current_meta;
+			}
+
+			return $this->replace_urls( $current_meta, 'elementor' );
+		}
+
+		// Return original if the check does not pass
+		return $metadata;
+	}
+
+	/**
+	 * Filter raw content for urls.
+	 *
+	 * @param string $html HTML to filter.
+	 *
+	 * @return mixed Filtered content.
+	 */
+	public function replace_urls( $html, $context = 'raw' ) {
+
+		switch ( $context ) {
+			case 'elementor':
+				$old_urls = $this->extract_slashed_urls( $html );
+				$urls     = array_map( 'wp_unslash', $old_urls );
+				$urls     = array_combine( $old_urls, $urls );
+				break;
+			case 'raw':
+			default:
+				$urls = wp_extract_urls( $html );
+
+				$urls = array_combine( $urls, $urls );
+				break;
+
+		}
+
+		$cdn_url  = $this->cdn_url;
+		$site_url = get_site_url();
+		$urls     = array_filter(
+			$urls, function ( $url ) use ( $cdn_url, $site_url ) {
+			if ( strpos( $url, $cdn_url ) !== false ) {
+				return false;
+			}
+			if ( strpos( $url, $site_url ) === false ) {
+				return false;
+			}
+
+			return $this->check_mimetype( $url );
+		}
+		);
+		$urls     = array_map( array( $this, 'get_imgcdn_url' ), $urls );
+
+		return str_replace( array_keys( $urls ), array_values( $urls ), $html );
+	}
+
+	/**
+	 * Extract slashed urls from content.
+	 *
+	 * @param string $content Content to parse.
+	 *
+	 * @return array Urls found.
+	 */
+	private function extract_slashed_urls( $content ) {
+		/**
+		 * Regex rule to match slashed urls, i.e -> http:\/\/optimole.com\/wp-content\/uploads\/2018\/09\/picture.jpg
+		 * Based on the extract_url patter.
+		 *
+		 * @var string Regex rule string.
+		 *
+		 */
+		$regex = "#([\"']?)("
+		         . "(?:([\w-]+:)?\\\/\\\/?)"
+		         . "[^\s()<>]+"
+		         . "[.]"
+		         . "(?:"
+		         . "\([\w\d]+\)|"
+		         . "(?:"
+		         . "[^`!()\[\]{};:'\".,<>«»“”‘’\s]|"
+		         . "(?:[:]\d+)?/\\\/?"
+		         . ")+"
+		         . ")"
+		         . ")\\1#";
+
+		preg_match_all(
+			$regex,
+			$content,
+			$urls
+		);
+
+		$urls = array_unique( array_map( 'html_entity_decode', $urls[2] ) );
+
+		return array_values( $urls );
 	}
 
 	/**

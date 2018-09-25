@@ -33,11 +33,25 @@ class Optml_Admin {
 		add_action( 'admin_bar_menu', array( $this, 'add_traffic_node' ), 9999 );
 		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
+		add_action( 'wp_head', array( $this, 'generator' ) );
 		if ( ! is_admin() && $this->settings->is_connected() ) {
 			if ( ! wp_next_scheduled( 'optml_daily_sync' ) ) {
 				wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 			}
 		}
+	}
+
+	/**
+	 * Output Generator tag.
+	 */
+	public function generator() {
+		if ( ! $this->settings->is_connected() ) {
+			return;
+		}
+		if ( ! $this->settings->is_enabled() ) {
+			return;
+		}
+		echo '<meta name="generator" content="Optimole ' . esc_attr( OPTML_VERSION ) . '">';
 	}
 
 	/**
@@ -63,7 +77,7 @@ class Optml_Admin {
 	/**
 	 * Adds cdn url for prefetch.
 	 *
-	 * @param array  $hints         Hints array.
+	 * @param array  $hints Hints array.
 	 * @param string $relation_type Type of relation.
 	 *
 	 * @return array Altered hints array.
@@ -95,9 +109,9 @@ class Optml_Admin {
 	 */
 	public function render_dashboard_page() {
 		?>
-        <div id="optimole-app">
-            <app></app>
-        </div>
+		<div id="optimole-app">
+			<app></app>
+		</div>
 		<?php
 	}
 
