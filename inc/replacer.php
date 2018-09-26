@@ -129,7 +129,7 @@ class Optml_Replacer {
 			return false;
 		}
 		if ( ! $settings->is_enabled() ) {
-			false;
+			return false;
 		}
 		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
 			return false;
@@ -699,7 +699,7 @@ class Optml_Replacer {
 			add_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
 
 			if ( ! is_string( $current_meta ) ) {
-				return $current_meta;
+				return $metadata;
 			}
 
 			return $this->replace_urls( $current_meta, 'elementor' );
@@ -723,6 +723,7 @@ class Optml_Replacer {
 				$old_urls = $this->extract_slashed_urls( $html );
 				$urls     = array_map( 'wp_unslash', $old_urls );
 				$urls     = array_combine( $old_urls, $urls );
+				//return $html;
 				break;
 			case 'raw':
 			default:
@@ -747,7 +748,8 @@ class Optml_Replacer {
 			return $this->check_mimetype( $url );
 		}
 		);
-		$urls     = array_map( array( $this, 'get_imgcdn_url' ), $urls );
+
+		$urls = array_map( array( $this, 'get_imgcdn_url' ), $urls );
 
 		return str_replace( array_keys( $urls ), array_values( $urls ), $html );
 	}
@@ -767,18 +769,7 @@ class Optml_Replacer {
 		 * @var string Regex rule string.
 		 *
 		 */
-		$regex = "#([\"']?)("
-		         . "(?:([\w-]+:)?\\\/\\\/?)"
-		         . "[^\s()<>]+"
-		         . "[.]"
-		         . "(?:"
-		         . "\([\w\d]+\)|"
-		         . "(?:"
-		         . "[^`!()\[\]{};:'\".,<>«»“”‘’\s]|"
-		         . "(?:[:]\d+)?/\\\/?"
-		         . ")+"
-		         . ")"
-		         . ")\\1#";
+		$regex = "/(http(s)*.+?)\"/";
 
 		preg_match_all(
 			$regex,
@@ -786,7 +777,11 @@ class Optml_Replacer {
 			$urls
 		);
 
-		$urls = array_unique( array_map( 'html_entity_decode', $urls[2] ) );
+		$urls = array_map( function ( $value ) {
+			return rtrim( html_entity_decode( $value ), '\\' );
+		}, $urls[1] );
+
+		$urls = array_unique( $urls );
 
 		return array_values( $urls );
 	}

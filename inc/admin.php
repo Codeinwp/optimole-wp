@@ -34,11 +34,37 @@ class Optml_Admin {
 		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
 		add_action( 'wp_head', array( $this, 'generator' ) );
+		add_action( 'admin_init', array( $this, 'maybe_redirect' ) );
 		if ( ! is_admin() && $this->settings->is_connected() ) {
 			if ( ! wp_next_scheduled( 'optml_daily_sync' ) ) {
 				wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 			}
 		}
+	}
+
+	/**
+	 * Maybe redirect to dashboard page.
+	 */
+	public function maybe_redirect() {
+		if ( ! get_transient( 'optml_fresh_install' ) ) {
+			return;
+		}
+
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			return;
+		}
+
+		delete_transient( 'optml_fresh_install' );
+
+		if ( is_network_admin() || isset( $_GET['activate-multi'] ) ) {
+			return;
+		}
+
+		if ( $this->settings->is_connected() ) {
+			return;
+		}
+		wp_safe_redirect( admin_url( 'upload.php?page=optimole' ) );
+		exit;
 	}
 
 	/**

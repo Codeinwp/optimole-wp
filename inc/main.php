@@ -42,7 +42,8 @@ final class Optml_Main {
 	 * Optml_Main constructor.
 	 */
 	public function __construct() {
-		register_activation_hook( __FILE__, array( $this, 'install' ) );
+
+		register_activation_hook( OPTML_BASEFILE, array( $this, 'activate' ) );
 	}
 
 	/**
@@ -81,7 +82,14 @@ final class Optml_Main {
 	 * @since  1.0.0
 	 */
 	public function activate() {
+
 		update_option( OPTML_NAMESPACE . '-version', OPTML_VERSION );
+
+		if ( is_multisite() ) {
+			return;
+		}
+
+		set_transient( 'optml_fresh_install', true, MINUTE_IN_SECONDS );
 	}
 
 	/**
