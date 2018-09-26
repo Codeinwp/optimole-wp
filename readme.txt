@@ -34,6 +34,8 @@ The plugin will rewrite your image URLs to replace them with OptiMole URLs. Your
 == Changelog ==
 = 1.0.3 - 2018-09-26  = 
 
+* Adds redirect on first install.
+* Improve elementor assets replacement.
 
 
 = 1.0.2 - 2018-09-25  = 

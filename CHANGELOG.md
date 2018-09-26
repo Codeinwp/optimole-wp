@@ -1,6 +1,8 @@
 
  ### v1.0.3 - 2018-09-26 
  **Changes:** 
+ * Adds redirect on first install.
+ * Improve elementor assets replacement.
   
  ### v1.0.2 - 2018-09-25 
  **Changes:** 
