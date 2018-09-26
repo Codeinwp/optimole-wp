@@ -1,4 +1,7 @@
 
+ ### v1.0.3 - 2018-09-26 
+ **Changes:** 
+  
  ### v1.0.2 - 2018-09-25 
  **Changes:** 
  * Improve compatibility with elementor external css files.

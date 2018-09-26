@@ -32,6 +32,10 @@ This plugin connects via API to OptiMole [image optimization service](https://op
 The plugin will rewrite your image URLs to replace them with OptiMole URLs. Your origin images will be downloaded from your storage, processed by the OptiMole infrastructure and cached in the CDN. NO development needed. Simply set up your account and enjoy faster image loading.
 
 ## Changelog ##
+### 1.0.3 - 2018-09-26  ###
+
+
+
 ### 1.0.2 - 2018-09-25  ###
 
 * Improve compatibility with elementor external css files.
