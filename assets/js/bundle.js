@@ -13438,7 +13438,7 @@ if (false) {(function () {  module.hot.accept()
   var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)
   if (!hotAPI.compatible) return
-  var id = "/Users/selul/Local Sites/wordpress/app/public/wp-content/plugins/optimole-wp/assets/vue/components/main.vue"
+  var id = "D:\\local\\optimolewp\\app\\public\\wp-content\\plugins\\optimole-wp\\assets\\vue\\components\\main.vue"
   if (!module.hot.data) {
     hotAPI.createRecord(id, module.exports)
   } else {
@@ -13462,8 +13462,8 @@ if(content.locals) module.exports = content.locals;
 if(false) {
 	// When the styles change, update the <style> tags
 	if(!content.locals) {
-		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-3e3bd708&file=main.vue!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./main.vue", function() {
-			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-3e3bd708&file=main.vue!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./main.vue");
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-0911b1fb&file=main.vue!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./main.vue", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-0911b1fb&file=main.vue!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./main.vue");
 			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 			update(newContent);
 		});
@@ -13589,7 +13589,7 @@ if (false) {(function () {  module.hot.accept()
   var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)
   if (!hotAPI.compatible) return
-  var id = "/Users/selul/Local Sites/wordpress/app/public/wp-content/plugins/optimole-wp/assets/vue/components/app-header.vue"
+  var id = "D:\\local\\optimolewp\\app\\public\\wp-content\\plugins\\optimole-wp\\assets\\vue\\components\\app-header.vue"
   if (!module.hot.data) {
     hotAPI.createRecord(id, module.exports)
   } else {
@@ -13613,8 +13613,8 @@ if(content.locals) module.exports = content.locals;
 if(false) {
 	// When the styles change, update the <style> tags
 	if(!content.locals) {
-		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-76eafe3c&file=app-header.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./app-header.vue", function() {
-			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-76eafe3c&file=app-header.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./app-header.vue");
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-1f2f7f0a&file=app-header.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./app-header.vue", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-1f2f7f0a&file=app-header.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./app-header.vue");
 			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 			update(newContent);
 		});
@@ -13632,7 +13632,7 @@ exports = module.exports = __webpack_require__(0)();
 
 
 // module
-exports.push([module.i, "\n\t@media ( min-width: 769px ) {\n\t\t#optimole-app hr[_v-76eafe3c] {\n\t\t\tmargin: 0;\n\t\t}\n\t}\n", ""]);
+exports.push([module.i, "\n\t@media ( min-width: 769px ) {\n\t\t#optimole-app hr[_v-1f2f7f0a] {\n\t\t\tmargin: 0;\n\t\t}\n\t}\n", ""]);
 
 // exports
 
@@ -13705,7 +13705,7 @@ exports.default = {
 /* 17 */
 /***/ (function(module, exports) {
 
-module.exports = "\n\t<div _v-76eafe3c=\"\">\n\t\t<div class=\"header has-text-centered level\" _v-76eafe3c=\"\">\n\t\t\t<div class=\"level-left\" _v-76eafe3c=\"\">\n\t\t\t\t<a class=\"logo level-item\" href=\"https://optimole.com\" target=\"_blank\" _v-76eafe3c=\"\">\n\t\t\t\t\t<figure class=\"media\" _v-76eafe3c=\"\">\n\t\t\t\t\t\t<img :src=\"logo\" :alt=\"strings.optimole + ' ' + strings.image_cdn\" _v-76eafe3c=\"\">\n\t\t\t\t\t</figure>\n\t\t\t\t</a>\n\t\t\t\t<h3 class=\"has-text-centered has-text-grey-dark is-size-4 level-item\" _v-76eafe3c=\"\">\n\t\t\t\t\t<span class=\"has-text-weight-semibold\" _v-76eafe3c=\"\">\n\t\t\t\t\t{{strings.image_cdn}}\n\t\t\t\t\t</span>\n\t\t\t\t</h3>\n\t\t\t</div>\n\t\t\t<div class=\"level-right\" _v-76eafe3c=\"\">\n\t\t\t\t<div class=\"tags has-addons level-item\" _v-76eafe3c=\"\">\n\t\t\t\t\t<span class=\"tag is-dark\" _v-76eafe3c=\"\">{{strings.status}}</span>\n\t\t\t\t\t<span v-if=\"connected\" class=\"tag is-success\" _v-76eafe3c=\"\">{{strings.connected}}</span>\n\t\t\t\t\t<span v-else=\"\" class=\"tag is-danger\" _v-76eafe3c=\"\">{{strings.not_connected}}</span>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<hr _v-76eafe3c=\"\">\n\t</div>\n";
+module.exports = "\n\t<div _v-1f2f7f0a=\"\">\n\t\t<div class=\"header has-text-centered level\" _v-1f2f7f0a=\"\">\n\t\t\t<div class=\"level-left\" _v-1f2f7f0a=\"\">\n\t\t\t\t<a class=\"logo level-item\" href=\"https://optimole.com\" target=\"_blank\" _v-1f2f7f0a=\"\">\n\t\t\t\t\t<figure class=\"media\" _v-1f2f7f0a=\"\">\n\t\t\t\t\t\t<img :src=\"logo\" :alt=\"strings.optimole + ' ' + strings.image_cdn\" _v-1f2f7f0a=\"\">\n\t\t\t\t\t</figure>\n\t\t\t\t</a>\n\t\t\t\t<h3 class=\"has-text-centered has-text-grey-dark is-size-4 level-item\" _v-1f2f7f0a=\"\">\n\t\t\t\t\t<span class=\"has-text-weight-semibold\" _v-1f2f7f0a=\"\">\n\t\t\t\t\t{{strings.image_cdn}}\n\t\t\t\t\t</span>\n\t\t\t\t</h3>\n\t\t\t</div>\n\t\t\t<div class=\"level-right\" _v-1f2f7f0a=\"\">\n\t\t\t\t<div class=\"tags has-addons level-item\" _v-1f2f7f0a=\"\">\n\t\t\t\t\t<span class=\"tag is-dark\" _v-1f2f7f0a=\"\">{{strings.status}}</span>\n\t\t\t\t\t<span v-if=\"connected\" class=\"tag is-success\" _v-1f2f7f0a=\"\">{{strings.connected}}</span>\n\t\t\t\t\t<span v-else=\"\" class=\"tag is-danger\" _v-1f2f7f0a=\"\">{{strings.not_connected}}</span>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<hr _v-1f2f7f0a=\"\">\n\t</div>\n";
 
 /***/ }),
 /* 18 */
@@ -13721,7 +13721,7 @@ if (false) {(function () {  module.hot.accept()
   var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)
   if (!hotAPI.compatible) return
-  var id = "/Users/selul/Local Sites/wordpress/app/public/wp-content/plugins/optimole-wp/assets/vue/components/api-key-form.vue"
+  var id = "D:\\local\\optimolewp\\app\\public\\wp-content\\plugins\\optimole-wp\\assets\\vue\\components\\api-key-form.vue"
   if (!module.hot.data) {
     hotAPI.createRecord(id, module.exports)
   } else {
@@ -13827,7 +13827,7 @@ if (false) {(function () {  module.hot.accept()
   var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)
   if (!hotAPI.compatible) return
-  var id = "/Users/selul/Local Sites/wordpress/app/public/wp-content/plugins/optimole-wp/assets/vue/components/cdn-details.vue"
+  var id = "D:\\local\\optimolewp\\app\\public\\wp-content\\plugins\\optimole-wp\\assets\\vue\\components\\cdn-details.vue"
   if (!module.hot.data) {
     hotAPI.createRecord(id, module.exports)
   } else {
@@ -13851,8 +13851,8 @@ if(content.locals) module.exports = content.locals;
 if(false) {
 	// When the styles change, update the <style> tags
 	if(!content.locals) {
-		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-2cb4f9a2&file=cdn-details.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./cdn-details.vue", function() {
-			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-2cb4f9a2&file=cdn-details.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./cdn-details.vue");
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-c05eee60&file=cdn-details.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./cdn-details.vue", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-c05eee60&file=cdn-details.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./cdn-details.vue");
 			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 			update(newContent);
 		});
@@ -13870,7 +13870,7 @@ exports = module.exports = __webpack_require__(0)();
 
 
 // module
-exports.push([module.i, "\n\t#optimole-app .label[_v-2cb4f9a2] {\n\t\tmargin-top: 0;\n\t}\n", ""]);
+exports.push([module.i, "\n\t#optimole-app .label[_v-c05eee60] {\n\t\tmargin-top: 0;\n\t}\n", ""]);
 
 // exports
 
@@ -13957,7 +13957,7 @@ exports.default = {
 /* 25 */
 /***/ (function(module, exports) {
 
-module.exports = "\n\t<div class=\"cdn-details\" _v-2cb4f9a2=\"\">\n\t\t<hr _v-2cb4f9a2=\"\">\n\t\t<div class=\"account level has-text-centered\" _v-2cb4f9a2=\"\">\n\t\t\t<div class=\"level-left\" _v-2cb4f9a2=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-2cb4f9a2=\"\">{{strings.logged_in_as}}:</span>\n\t\t\t\t<p class=\"details level-item tags has-addons\" _v-2cb4f9a2=\"\">\n\t\t\t\t\t<span class=\"tag is-light\" _v-2cb4f9a2=\"\">{{userData.display_name}}</span>\n\t\t\t\t\t<span class=\"tag is-paddingless\" _v-2cb4f9a2=\"\"><img :src=\"userData.picture\" class=\"image is-24x24 is-rounded\" :alt=\"userData.display_name\" _v-2cb4f9a2=\"\"></span>\n\t\t\t\t</p>\n\t\t\t</div>\n\t\t\t<div class=\"level-right\" _v-2cb4f9a2=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-2cb4f9a2=\"\">{{strings.private_cdn_url}}:</span>\n\t\t\t\t<p class=\"details level-item tag is-light\" _v-2cb4f9a2=\"\">{{userData.cdn_key}}.i.optimole.com</p>\n\t\t\t</div>\n\t\t</div>\n\t\t<hr _v-2cb4f9a2=\"\">\n\t\t<div class=\"level stats\" _v-2cb4f9a2=\"\">\n\t\t\t<div class=\"level-left\" _v-2cb4f9a2=\"\">\n\t\t\t\t<div class=\"level-item\" _v-2cb4f9a2=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-2cb4f9a2=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-2cb4f9a2=\"\">{{strings.usage}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-2cb4f9a2=\"\">{{this.userData.usage_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<h4 class=\"level-item is-size-5 is-marginless has-text-grey\" _v-2cb4f9a2=\"\">\n\t\t\t\t{{computedPercentage()}}%\n\t\t\t</h4>\n\t\t\t<div class=\"level-right\" _v-2cb4f9a2=\"\">\n\t\t\t\t<div class=\"level-item\" _v-2cb4f9a2=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-2cb4f9a2=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-2cb4f9a2=\"\">{{strings.quota}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-2cb4f9a2=\"\">{{this.userData.quota_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<progress class=\"progress is-success\" :value=\"this.userData.usage\" :max=\"this.userData.quota\" _v-2cb4f9a2=\"\">60%</progress>\n\n\t</div>\n";
+module.exports = "\n\t<div class=\"cdn-details\" _v-c05eee60=\"\">\n\t\t<hr _v-c05eee60=\"\">\n\t\t<div class=\"account level has-text-centered\" _v-c05eee60=\"\">\n\t\t\t<div class=\"level-left\" _v-c05eee60=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-c05eee60=\"\">{{strings.logged_in_as}}:</span>\n\t\t\t\t<p class=\"details level-item tags has-addons\" _v-c05eee60=\"\">\n\t\t\t\t\t<span class=\"tag is-light\" _v-c05eee60=\"\">{{userData.display_name}}</span>\n\t\t\t\t\t<span class=\"tag is-paddingless\" _v-c05eee60=\"\"><img :src=\"userData.picture\" class=\"image is-24x24 is-rounded\" :alt=\"userData.display_name\" _v-c05eee60=\"\"></span>\n\t\t\t\t</p>\n\t\t\t</div>\n\t\t\t<div class=\"level-right\" _v-c05eee60=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-c05eee60=\"\">{{strings.private_cdn_url}}:</span>\n\t\t\t\t<p class=\"details level-item tag is-light\" _v-c05eee60=\"\">{{userData.cdn_key}}.i.optimole.com</p>\n\t\t\t</div>\n\t\t</div>\n\t\t<hr _v-c05eee60=\"\">\n\t\t<div class=\"level stats\" _v-c05eee60=\"\">\n\t\t\t<div class=\"level-left\" _v-c05eee60=\"\">\n\t\t\t\t<div class=\"level-item\" _v-c05eee60=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-c05eee60=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-c05eee60=\"\">{{strings.usage}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-c05eee60=\"\">{{this.userData.usage_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<h4 class=\"level-item is-size-5 is-marginless has-text-grey\" _v-c05eee60=\"\">\n\t\t\t\t{{computedPercentage()}}%\n\t\t\t</h4>\n\t\t\t<div class=\"level-right\" _v-c05eee60=\"\">\n\t\t\t\t<div class=\"level-item\" _v-c05eee60=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-c05eee60=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-c05eee60=\"\">{{strings.quota}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-c05eee60=\"\">{{this.userData.quota_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<progress class=\"progress is-success\" :value=\"this.userData.usage\" :max=\"this.userData.quota\" _v-c05eee60=\"\">60%</progress>\n\n\t</div>\n";
 
 /***/ }),
 /* 26 */
@@ -13974,7 +13974,7 @@ if (false) {(function () {  module.hot.accept()
   var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)
   if (!hotAPI.compatible) return
-  var id = "/Users/selul/Local Sites/wordpress/app/public/wp-content/plugins/optimole-wp/assets/vue/components/options.vue"
+  var id = "D:\\local\\optimolewp\\app\\public\\wp-content\\plugins\\optimole-wp\\assets\\vue\\components\\options.vue"
   if (!module.hot.data) {
     hotAPI.createRecord(id, module.exports)
   } else {
@@ -13998,8 +13998,8 @@ if(content.locals) module.exports = content.locals;
 if(false) {
 	// When the styles change, update the <style> tags
 	if(!content.locals) {
-		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-176a95ab&file=options.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./options.vue", function() {
-			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-176a95ab&file=options.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./options.vue");
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-d718d868&file=options.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./options.vue", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-d718d868&file=options.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./options.vue");
 			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 			update(newContent);
 		});
@@ -14017,7 +14017,7 @@ exports = module.exports = __webpack_require__(0)();
 
 
 // module
-exports.push([module.i, "\n\t.saving--option[_v-176a95ab] {\n\t\topacity: .75;\n\t}\n\t\n\t.field[_v-176a95ab]:nth-child(even) {\n\t\t-ms-flex-pack: end;\n\t\t    justify-content: flex-end;\n\t}\n", ""]);
+exports.push([module.i, "\n\t.saving--option[_v-d718d868] {\n\t\topacity: .75;\n\t}\n\t\n\t.field[_v-d718d868]:nth-child(even) {\n\t\t-ms-flex-pack: end;\n\t\t    justify-content: flex-end;\n\t}\n", ""]);
 
 // exports
 
@@ -14114,7 +14114,7 @@ exports.default = {
 /* 30 */
 /***/ (function(module, exports) {
 
-module.exports = "\n\t<div class=\"field-body\" :class=\"{ 'saving--option' : this.$store.state.loading }\" _v-176a95ab=\"\">\n\t\t<div class=\"field is-horizontal\" _v-176a95ab=\"\">\n\t\t\t<label class=\"label has-text-grey-dark\" _v-176a95ab=\"\">{{strings.enable_image_replace}}:</label>\n\t\t\t<toggle-button @change=\"toggleOption('image_replacer')\" :value=\"imageReplacerStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.enabled, unchecked: strings.disabled}\" :width=\"75\" color=\"#008ec2\" _v-176a95ab=\"\"></toggle-button>\n\t\t</div>\n\t\t<div class=\"field is-horizontal\" _v-176a95ab=\"\">\n\t\t\t<label class=\"label has-text-grey-dark\" _v-176a95ab=\"\">{{strings.toggle_ab_item}}:</label>\n\t\t\t<toggle-button @change=\"toggleOption('admin_bar_item')\" v-model=\"adminBarItemStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.show, unchecked: strings.hide}\" :width=\"60\" color=\"#008ec2\" _v-176a95ab=\"\"></toggle-button>\n\t\t</div>\n\t\n\t</div>\n\n";
+module.exports = "\n\t<div class=\"field-body\" :class=\"{ 'saving--option' : this.$store.state.loading }\" _v-d718d868=\"\">\n\t\t<div class=\"field is-horizontal\" _v-d718d868=\"\">\n\t\t\t<label class=\"label has-text-grey-dark\" _v-d718d868=\"\">{{strings.enable_image_replace}}:</label>\n\t\t\t<toggle-button @change=\"toggleOption('image_replacer')\" :value=\"imageReplacerStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.enabled, unchecked: strings.disabled}\" :width=\"75\" color=\"#008ec2\" _v-d718d868=\"\"></toggle-button>\n\t\t</div>\n\t\t<div class=\"field is-horizontal\" _v-d718d868=\"\">\n\t\t\t<label class=\"label has-text-grey-dark\" _v-d718d868=\"\">{{strings.toggle_ab_item}}:</label>\n\t\t\t<toggle-button @change=\"toggleOption('admin_bar_item')\" v-model=\"adminBarItemStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.show, unchecked: strings.hide}\" :width=\"60\" color=\"#008ec2\" _v-d718d868=\"\"></toggle-button>\n\t\t</div>\n\t\n\t</div>\n\n";
 
 /***/ }),
 /* 31 */
@@ -14131,7 +14131,7 @@ if (false) {(function () {  module.hot.accept()
   var hotAPI = require("vue-hot-reload-api")
   hotAPI.install(require("vue"), true)
   if (!hotAPI.compatible) return
-  var id = "/Users/selul/Local Sites/wordpress/app/public/wp-content/plugins/optimole-wp/assets/vue/components/last-images.vue"
+  var id = "D:\\local\\optimolewp\\app\\public\\wp-content\\plugins\\optimole-wp\\assets\\vue\\components\\last-images.vue"
   if (!module.hot.data) {
     hotAPI.createRecord(id, module.exports)
   } else {
@@ -14155,8 +14155,8 @@ if(content.locals) module.exports = content.locals;
 if(false) {
 	// When the styles change, update the <style> tags
 	if(!content.locals) {
-		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-f0065cc8&file=last-images.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./last-images.vue", function() {
-			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-f0065cc8&file=last-images.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./last-images.vue");
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-3e27d73d&file=last-images.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./last-images.vue", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-3e27d73d&file=last-images.vue&scoped=true!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./last-images.vue");
 			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 			update(newContent);
 		});
@@ -14174,7 +14174,7 @@ exports = module.exports = __webpack_require__(0)();
 
 
 // module
-exports.push([module.i, "\n    .loader[_v-f0065cc8] {\n        margin: 0 auto;\n    }\n\n", ""]);
+exports.push([module.i, "\n\t.loader[_v-3e27d73d] {\n\t\tmargin: 0 auto;\n\t\tfont-size: 10em;\n\t\tborder-left: 2px solid #888 !important;\n\t\tborder-bottom: 2px solid #888 !important;\n\t\tmargin-top: 0.2em;\n\t}\n\t\n\t.progress[_v-3e27d73d]::-webkit-progress-value {\n\t\ttransition: width 0.5s ease;\n\t}\n", ""]);
 
 // exports
 
@@ -14187,81 +14187,128 @@ exports.push([module.i, "\n    .loader[_v-f0065cc8] {\n        margin: 0 auto;\n
 
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+	value: true
 });
 // <template>
-//     <div>
-//         <div class="optimized-images" v-if="imageData.length">
-//             <h3 class="has-text-centered">{{strings.last}} {{strings.optimized_images}}</h3>
-//             <table class="table is-striped is-hoverable is-fullwidth">
-//                 <thead>
-//                 <tr>
-//                     <th class="optml-image-heading">{{strings.image}}</th>
-//                     <th class="optml-image-ratio-heading">{{strings.compression}}</th>
-//                 </tr>
-//                 </thead>
-//                 <tbody>
-//                 <tr v-for="(item, index) in imageData">
-//                     <td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>
-//                     <td><p
-//                             class="optml-ratio-feedback" v-html="compressionRate(item.ex_size_raw, item.new_size_raw)"></p>
-//                     </td>
-//                 </tr>
-//                 </tbody>
-//             </table>
-//         </div>
-//         <div v-else class="loader"></div>
-//     </div>
+// 	<div>
+// 		<div class="optimized-images" v-if="! loading ">
+// 			<div v-if="!noImages">
+// 				<h3 class="has-text-centered">{{strings.last}} {{strings.optimized_images}}</h3>
+// 				<table class="table is-striped is-hoverable is-fullwidth">
+// 					<thead>
+// 					<tr>
+// 						<th class="optml-image-heading">{{strings.image}}</th>
+// 						<th class="optml-image-ratio-heading">{{strings.compression}}</th>
+// 					</tr>
+// 					</thead>
+// 					<tbody>
+// 					<tr v-for="(item, index) in imageData">
+// 						<td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>
+// 						<td><p
+// 								class="optml-ratio-feedback"
+// 								v-html="compressionRate(item.ex_size_raw, item.new_size_raw)"></p>
+// 						</td>
+// 					</tr>
+// 					</tbody>
+// 				</table>
+// 			</div>
+// 		</div>
+// 		<div v-else>
+// 			<iframe width="1" height="1" :src="home_url" style="visibility: hidden"></iframe>
+// 			<h6 class="has-text-centered">{{strings.loading_latest_images}}</h6>
+// 			<progress class="progress is-large" :value="startTime" :max="maxTime"></progress>
+// 		</div>
+// 		<table class="table is-striped is-hoverable is-fullwidth" v-if="noImages">
+// 			<thead>
+// 			<tr>
+// 				<th class="optml-image-heading has-text-centered" v-html="strings.no_images_found"></th>
+// 			</tr>
+// 			</thead>
+// 		</table>
+// 	</div>
 // </template>
 //
 // <script>
+
 exports.default = {
-    name: "last-images",
-    data: function data() {
-        return {
-            loading: true,
-            strings: optimoleDashboardApp.strings.latest_images
-        };
-    },
+	name: "last-images",
+	data: function data() {
+		return {
+			loading: true,
+			startTime: 0,
+			maxTime: 15,
+			noImages: false,
+			home_url: optimoleDashboardApp.home_url,
+			strings: optimoleDashboardApp.strings.latest_images
+		};
+	},
 
-    props: {
-        status: status
-    },
-    mounted: function mounted() {
-        this.$store.dispatch('retrieveOptimizedImages', { waitTime: 10000, component: this });
-    },
+	props: {
+		status: status
+	},
+	mounted: function mounted() {
+		this.doProgressBar();
+		this.$store.dispatch('retrieveOptimizedImages', { waitTime: this.maxTime * 1000, component: this });
+	},
 
-    computed: {
-        imageData: function imageData() {
-            return this.$store.state.optimizedImages !== null ? this.$store.state.optimizedImages : [];
-        }
-    },
-    methods: {
-        compressionRate: function compressionRate(oldSize, newSize) {
-            var value = (parseFloat(oldSize / newSize * 100) - 100).toFixed(1);
-            console.log(value);
-            if (value < 1) {
-                return this.strings.same_size;
-            }
-            if (value > 1 && value < 25) {
-                return this.strings.small_optimization.replace('{ratio}', value.toString() + '%');
-            }
-            if (value > 25 && value < 100) {
-                return this.strings.medium_optimization.replace('{ratio}', value.toString() + '%');
-            }
-            if (value > 100) {
-                return this.strings.big_optimization.replace('{ratio}', (Math.floor(value / 10 + 10) / 10).toFixed(1).toString() + 'x');
-            }
-        }
-    }
-    // </script>
-    //
-    // <style scoped>
-    //     .loader {
-    //         margin: 0 auto;
-    //     }
-    //
-    // </style>
+	watch: {
+		imageData: function imageData() {
+			var _this = this;
+
+			if (this.imageData.length > 0) {
+				this.startTime = this.maxTime;
+				setTimeout(function () {
+					_this.loading = false;
+				}, 1000);
+			}
+		}
+	},
+	computed: {
+		imageData: function imageData() {
+
+			return this.$store.state.optimizedImages !== null ? this.$store.state.optimizedImages : [];
+		}
+	},
+	methods: {
+		doProgressBar: function doProgressBar() {
+			if (this.startTime === this.maxTime) {
+				return;
+			}
+			this.startTime++;
+			console.log(this.startTime);
+			setTimeout(this.doProgressBar, 1000);
+		},
+		compressionRate: function compressionRate(oldSize, newSize) {
+			var value = (parseFloat(oldSize / newSize * 100) - 100).toFixed(1);
+			if (value < 1) {
+				return this.strings.same_size;
+			}
+			if (value > 1 && value < 25) {
+				return this.strings.small_optimization.replace('{ratio}', value.toString() + '%');
+			}
+			if (value > 25 && value < 100) {
+				return this.strings.medium_optimization.replace('{ratio}', value.toString() + '%');
+			}
+			if (value > 100) {
+				return this.strings.big_optimization.replace('{ratio}', (Math.floor(value / 10 + 10) / 10).toFixed(1).toString() + 'x');
+			}
+		}
+	}
+	// </script>
+	//
+	// <style scoped>
+	// 	.loader {
+	// 		margin: 0 auto;
+	// 		font-size: 10em;
+	// 		border-left: 2px solid #888 !important;
+	// 		border-bottom: 2px solid #888 !important;
+	// 		margin-top: 0.2em;
+	// 	}
+	//
+	// 	.progress::-webkit-progress-value {
+	// 		transition: width 0.5s ease;
+	// 	}
+	// </style>
 
 };
 
@@ -14269,7 +14316,7 @@ exports.default = {
 /* 35 */
 /***/ (function(module, exports) {
 
-module.exports = "\n    <div _v-f0065cc8=\"\">\n        <div class=\"optimized-images\" v-if=\"imageData.length\" _v-f0065cc8=\"\">\n            <h3 class=\"has-text-centered\" _v-f0065cc8=\"\">{{strings.last}} {{strings.optimized_images}}</h3>\n            <table class=\"table is-striped is-hoverable is-fullwidth\" _v-f0065cc8=\"\">\n                <thead _v-f0065cc8=\"\">\n                <tr _v-f0065cc8=\"\">\n                    <th class=\"optml-image-heading\" _v-f0065cc8=\"\">{{strings.image}}</th>\n                    <th class=\"optml-image-ratio-heading\" _v-f0065cc8=\"\">{{strings.compression}}</th>\n                </tr>\n                </thead>\n                <tbody _v-f0065cc8=\"\">\n                <tr v-for=\"(item, index) in imageData\" _v-f0065cc8=\"\">\n                    <td _v-f0065cc8=\"\"><a :href=\"item.url\" target=\"_blank\" _v-f0065cc8=\"\"><img :src=\"item.url\" class=\"optml-image\" _v-f0065cc8=\"\"></a></td>\n                    <td _v-f0065cc8=\"\"><p class=\"optml-ratio-feedback\" v-html=\"compressionRate(item.ex_size_raw, item.new_size_raw)\" _v-f0065cc8=\"\"></p>\n                    </td>\n                </tr>\n                </tbody>\n            </table>\n        </div>\n        <div v-else=\"\" class=\"loader\" _v-f0065cc8=\"\"></div>\n    </div>\n";
+module.exports = "\n\t<div _v-3e27d73d=\"\">\n\t\t<div class=\"optimized-images\" v-if=\"! loading \" _v-3e27d73d=\"\">\n\t\t\t<div v-if=\"!noImages\" _v-3e27d73d=\"\">\n\t\t\t\t<h3 class=\"has-text-centered\" _v-3e27d73d=\"\">{{strings.last}} {{strings.optimized_images}}</h3>\n\t\t\t\t<table class=\"table is-striped is-hoverable is-fullwidth\" _v-3e27d73d=\"\">\n\t\t\t\t\t<thead _v-3e27d73d=\"\">\n\t\t\t\t\t<tr _v-3e27d73d=\"\">\n\t\t\t\t\t\t<th class=\"optml-image-heading\" _v-3e27d73d=\"\">{{strings.image}}</th>\n\t\t\t\t\t\t<th class=\"optml-image-ratio-heading\" _v-3e27d73d=\"\">{{strings.compression}}</th>\n\t\t\t\t\t</tr>\n\t\t\t\t\t</thead>\n\t\t\t\t\t<tbody _v-3e27d73d=\"\">\n\t\t\t\t\t<tr v-for=\"(item, index) in imageData\" _v-3e27d73d=\"\">\n\t\t\t\t\t\t<td _v-3e27d73d=\"\"><a :href=\"item.url\" target=\"_blank\" _v-3e27d73d=\"\"><img :src=\"item.url\" class=\"optml-image\" _v-3e27d73d=\"\"></a></td>\n\t\t\t\t\t\t<td _v-3e27d73d=\"\"><p class=\"optml-ratio-feedback\" v-html=\"compressionRate(item.ex_size_raw, item.new_size_raw)\" _v-3e27d73d=\"\"></p>\n\t\t\t\t\t\t</td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t</tbody>\n\t\t\t\t</table>\n\t\t\t</div>\n\t\t</div>\n\t\t<div v-else=\"\" _v-3e27d73d=\"\">\n\t\t\t<iframe width=\"1\" height=\"1\" :src=\"home_url\" style=\"visibility: hidden\" _v-3e27d73d=\"\"></iframe>\n\t\t\t<h6 class=\"has-text-centered\" _v-3e27d73d=\"\">{{strings.loading_latest_images}}</h6>\n\t\t\t<progress class=\"progress is-large\" :value=\"startTime\" :max=\"maxTime\" _v-3e27d73d=\"\"></progress>\n\t\t</div>\n\t\t<table class=\"table is-striped is-hoverable is-fullwidth\" v-if=\"noImages\" _v-3e27d73d=\"\">\n\t\t\t<thead _v-3e27d73d=\"\">\n\t\t\t<tr _v-3e27d73d=\"\">\n\t\t\t\t<th class=\"optml-image-heading has-text-centered\" v-html=\"strings.no_images_found\" _v-3e27d73d=\"\"></th>\n\t\t\t</tr>\n\t\t\t</thead>\n\t\t</table>\n\t</div>\n";
 
 /***/ }),
 /* 36 */
@@ -15369,21 +15416,10 @@ var connectOptimole = function connectOptimole(_ref, data) {
 			commit('toggleConnectedToOptml', true);
 			commit('updateUserData', response.body.data);
 			console.log('%c OptiMole API connection successful.', 'color: #59B278');
-			pingHomepage();
 		} else {
 			commit('toggleKeyValidity', false);
 			console.log('%c Invalid API Key.', 'color: #E7602A');
 		}
-	});
-};
-
-var pingHomepage = function pingHomepage() {
-	_vue2.default.http({
-		url: optimoleDashboardApp.home_url,
-		method: 'GET',
-		headers: { 'X-WP-Nonce': optimoleDashboardApp.nonce },
-		params: { 'req': 'Ping Homepage' },
-		responseType: 'json'
 	});
 };
 
@@ -15457,9 +15493,15 @@ var retrieveOptimizedImages = function retrieveOptimizedImages(_ref4, data) {
 				commit('updateOptimizedImages', response);
 				if (data.component !== null) {
 					data.component.loading = false;
+					data.component.startTime = data.component.maxTime;
+					if (response.body.data.length === 0) {
+						data.component.noImages = true;
+					}
 				}
 				console.log('%c Images Fetched.', 'color: #59B278');
 			} else {
+				component.noImages = true;
+				data.component.loading = false;
 				console.log('%c No images available.', 'color: #E7602A');
 			}
 		});
