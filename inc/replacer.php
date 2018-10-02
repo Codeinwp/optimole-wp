@@ -353,7 +353,10 @@ class Optml_Replacer {
 	 * @return string
 	 */
 	protected function get_imgcdn_url( $url, $args = array( 'width' => 'auto', 'height' => 'auto' ) ) {
-
+		$check = apply_filters( 'optml_break_replacer', false );
+		if ( $check ) {
+			return $url;
+		}
 		if ( ! $this->check_mimetype( $url ) ) {
 			return $url;
 		}

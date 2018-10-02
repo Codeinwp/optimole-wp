@@ -8,23 +8,25 @@
 			</ul>
 		</nav>
 		<div class="section" v-if="showApiKey">
-			
+			<div class="notification is-success" v-if="from_register">
+				{{strings.notification_message_register}}
+			</div>
 			<api-key-form></api-key-form>
-			<br/>
+			<hr/>
 			<div class="columns">
 				
-				<div class="column  columns is-vcentered ">
+				<div class="column  columns is-marginless  is-vcentered ">
 					
-					<span class="dashicons dashicons-share column is-2 is-size-3"></span>
-					<div class="is-pulled-left column is-10">
-						<p class="title is-size-5">1. {{strings.step_one_api_title}}</p>
+					<span class="dashicons dashicons-share column is-2 is-size-3 is-paddingless"></span>
+					<div class="is-pulled-left column is-10 is-paddingless">
+						<p class="title is-size-5 ">1. {{strings.step_one_api_title}}</p>
 						<p class="subtitle is-size-6" v-html="strings.step_one_api_desc"></p>
 					</div>
 				</div>
-				<div class="column  columns is-vcentered ">
+				<div class="column   is columns is-vcentered is-marginless">
 					
-					<span class="dashicons dashicons-admin-plugins column is-2 is-size-3"></span>
-					<div class="is-pulled-left column is-10">
+					<span class="dashicons dashicons-admin-plugins column is-2 is-size-3 is-paddingless"></span>
+					<div class="is-pulled-left column is-10 is-paddingless">
 						<p class="title is-size-5">2. {{strings.step_two_api_title}}</p>
 						<p class="subtitle is-size-6">{{strings.step_two_api_desc}}</p>
 					</div>
@@ -32,11 +34,11 @@
 			</div>
 		
 		</div>
-		<div v-else class="columns  is-vcentered is-desktop ">
-			<div class="column   has-text-left is-fluid  is-hidden-touch">
+		<div class="columns  is-vcentered is-desktop "  v-else >
+			<div class="column  has-text-left is-fluid  is-hidden-touch">
 				<div class="hero">
 					<div class="hero-body content">
-						<p class="title">Sign-up</p>
+						<p class="title">{{strings.account_needed_heading}}</p>
 						<p class="subtitle " v-html="strings.account_needed_title"></p>
 						<div class="  is-hidden-touch">
 							<div class="columns  is-vcentered  ">
@@ -47,7 +49,7 @@
 									<p class="subtitle column is-size-6 is-vcentered has-text-left"><br/>
 										{{strings.account_needed_subtitle_1}}</p>
 								</div>
-							</div>
+	 						</div>
 							<div class="columns  is-vcentered">
 								<div class=" is-narrow is-hidden-touch column">
 									<span class="dashicons   icon dashicons-plus is-size-4 "></span>
@@ -111,6 +113,7 @@
 				strings: optimoleDashboardApp.strings,
 				showApiKey: false,
 				error: false,
+				from_register: false,
 			}
 		},
 		computed: {
@@ -121,6 +124,7 @@
 		methods: {
 			toggleApiForm: function () {
 				this.error = false;
+				this.from_register = false;
 				this.showApiKey = !this.showApiKey;
 			},
 			registerAccount: function () {
@@ -130,6 +134,7 @@
 				}).then((response) => {
 					if (response.code === 'success') {
 						this.showApiKey = true;
+						this.from_register = true;
 					} else {
 						this.error = true;
 					}
@@ -139,7 +144,8 @@
 	}
 </script>
 <style scoped>
-	input {
+	input,.notification .delete {
 		box-sizing: border-box !important;
 	}
+
 </style>

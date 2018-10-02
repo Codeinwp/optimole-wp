@@ -6,11 +6,33 @@
 				<connect-layout v-if="! this.$store.state.connected"></connect-layout>
 				<transition name="fade" mode="out-in">
 					<div v-if="this.$store.state.connected">
-						<hr/>
-						<options></options>
-						<cdn-details v-if="this.$store.state.userData"></cdn-details>
-						<hr/>
-						<last-images :status="fetchStatus"></last-images>
+						<div class="tabs is-left is-boxed is-medium">
+							<ul class="is-marginless">
+								<li :class="tab === 'dashboard' ? 'is-active' : ''">
+									<a @click="changeTab('dashboard')">
+										<span class="icon dashicons dashicons-admin-home"></span>
+										<span>{{strings.dashboard_menu_item}}</span>
+									</a>
+								</li>
+								
+								<li :class="tab === 'settings' ? 'is-active' : ''" >
+									<a @click="changeTab('settings')">
+										<span class="icon dashicons dashicons-admin-settings"></span>
+										<span>{{strings.settings_menu_item}}</span>
+									</a>
+								</li>
+							</ul>
+						</div>
+						
+						<div class="is-tab" v-show="tab === 'dashboard' ">
+							<api-key-form></api-key-form>
+							<cdn-details v-if="this.$store.state.userData"></cdn-details>
+							<hr/>
+							<last-images :status="fetchStatus"></last-images>
+						</div>
+						<div class="is-tab" v-show=" tab === 'settings'" >
+							<options></options>
+						</div>
 					</div>
 				</transition>
 			</div>
@@ -19,8 +41,10 @@
 		<div class="level-right">
 			<p class="level-item"><a href="https://optimole.com" target="_blank">Optimole v{{strings.version}}</a></p>
 			<p class="level-item"><a href="https://optimole.com/terms/" target="_blank">{{strings.terms_menu}}</a></p>
-			<p class="level-item"><a href="https://optimole.com/privacy-policy/" target="_blank">{{strings.privacy_menu}}</a></p>
-			<p class="level-item"><a :href="'https://speedtest.optimole.com/?url=' + home " target="_blank">{{strings.testdrive_menu}}</a></p>
+			<p class="level-item"><a href="https://optimole.com/privacy-policy/" target="_blank">{{strings.privacy_menu}}</a>
+			</p>
+			<p class="level-item"><a :href="'https://speedtest.optimole.com/?url=' + home " target="_blank">{{strings.testdrive_menu}}</a>
+			</p>
 		</div>
 	</div>
 </template>
@@ -29,25 +53,25 @@
 	import AppHeader from './app-header.vue';
 	import CdnDetails from './cdn-details.vue';
 	import ConnectLayout from './connect-layout.vue';
-	import Options from './options.vue';
 	import LastImages from './last-images.vue';
-
-	export default {
-		components: {ConnectLayout, LastImages}
-	}
+	import ApiKeyForm from "./api-key-form.vue";
+	import Options from "./options.vue";
+ 
 	module.exports = {
 		name: 'app',
 		data() {
 			return {
 				strings: optimoleDashboardApp.strings,
 				home: optimoleDashboardApp.home_url,
-				fetchStatus: false
+				fetchStatus: false,
+				tab: 'dashboard'
 			}
 		},
 		components: {
 			AppHeader,
 			Options,
 			ConnectLayout,
+			ApiKeyForm,
 			CdnDetails,
 			LastImages
 		},
@@ -57,10 +81,20 @@
 				this.$store.dispatch('retrieveOptimizedImages', {waitTime: 0, component: null});
 				self.fetchStatus = true;
 			}
+		},
+		methods:{
+			changeTab:function(value){
+				this.tab = value;
+				
+			}
 		}
+		
 	}
 </script>
 <style lang="sass-loader">
 	@import '../../css/style.scss';
-
+	#optimole-app .tabs a{
+		margin-bottom: -4px;
+	}
+	
 </style>

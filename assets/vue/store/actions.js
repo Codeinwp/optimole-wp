@@ -74,8 +74,8 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 };
 
 const toggleSetting = function ( {commit, state}, data ) {
-	commit( 'toggleLoading', true, 'loading' );
-	Vue.http( {
+
+	return Vue.http( {
 		url: optimoleDashboardApp.root + '/update_option',
 		method: 'POST',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
@@ -85,12 +85,21 @@ const toggleSetting = function ( {commit, state}, data ) {
 			'type': data.type ? data.type : ''
 		},
 		responseType: 'json'
+	} );
+};
+const sampleRate = function ( {commit, state}, data ) {
+
+	return Vue.http( {
+		url: optimoleDashboardApp.root + '/images-sample-rate',
+		method: 'POST',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		params: {
+			'quality':data.quality
+		},
+		responseType: 'json'
 	} ).then( function ( response ) {
-		commit( 'toggleLoading', false );
-		if ( response.ok ) {
-			console.log( '%c ' + data.option_key + ' Toggled.', 'color: #59B278' );
-		} else {
-			console.error( response );
+		if ( response.body.code === 'success' ) {
+			commit( 'updateSampleRate', response.body.data );
 		}
 	} );
 };
@@ -134,5 +143,6 @@ export default {
 	registerOptimole,
 	disconnectOptimole,
 	toggleSetting,
+	sampleRate,
 	retrieveOptimizedImages,
 };

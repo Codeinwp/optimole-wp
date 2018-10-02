@@ -98,6 +98,17 @@ class Optml_Rest {
 				),
 			)
 		);
+		register_rest_route(
+			$this->namespace, '/images-sample-rate', array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'get_sample_rate' ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -147,9 +158,39 @@ class Optml_Rest {
 			return new WP_Error( 'error', 'Error creating account.' );
 		}
 
-		return $this->response( [
-			'user' => $user
-		] );
+		return $this->response( $user );
+	}
+
+	/**
+	 * Return image samples.
+	 *
+	 * @param WP_REST_Request $request Rest request.
+	 *
+	 * @return WP_REST_Response Image urls.
+	 */
+	public function get_sample_rate( WP_REST_Request $request ) {
+		$accepted_mimes = array( 'image/jpeg', 'image/png' );
+		$args           = array(
+			'post_type'      => 'attachment',
+			'post_status'    => 'any',
+			'number'         => '5',
+			'no_found_rows'  => true,
+			'fields'         => 'ids',
+			'post_mime_type' => $accepted_mimes,
+		);
+		$image_result   = new WP_Query( $args );
+		if ( empty( $image_result->posts ) ) {
+			$this->response( array() );
+		}
+
+		$image              = array(
+			'id' => $image_result->posts [ array_rand( $image_result->posts, 1 ) ],
+		);
+		$image['optimized'] = wp_get_attachment_image_url( $image['id'], 'full' );
+		add_filter( 'optml_break_replacer', '__return_true' );
+		$image['original'] = wp_get_attachment_image_url( $image['id'], 'full' );
+
+		return $this->response( $image );
 	}
 
 	/**

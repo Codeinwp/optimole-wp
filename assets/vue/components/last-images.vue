@@ -78,7 +78,7 @@
 						return;
 					}
 					this.startTime ++;
-					console.log(this.startTime);
+					//console.log(this.startTime);
 					setTimeout(this.doProgressBar,1000);
 					
 			},

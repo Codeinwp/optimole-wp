@@ -17,6 +17,9 @@ const updateUserData = ( state, data ) => {
 const updateOptimizedImages = ( state, data ) => {
 	state.optimizedImages = data.body.data;
 };
+const updateSampleRate = ( state, data ) => {
+	state.sample_rate = data;
+};
 
 export default {
 	toggleLoading,
@@ -24,5 +27,6 @@ export default {
 	toggleKeyValidity,
 	toggleConnectedToOptml,
 	updateUserData,
+	updateSampleRate,
 	updateOptimizedImages
 };

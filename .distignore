@@ -22,6 +22,7 @@ composer.json
 composer.lock
 key.enc
 languages
+.stylelintrc
 init.sh
 docker-compose.yml
 package-lock.json

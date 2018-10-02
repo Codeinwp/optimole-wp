@@ -1,3 +1,4 @@
+
 #optimole-app {
   padding: 0 30px 0 20px;
 
@@ -15,6 +16,7 @@
     -webkit-box-shadow: 0 1px 15px 1px rgba(39, 39, 39, .1);
     box-shadow: 0 1px 15px 1px rgba(39, 39, 39, .1);
   }
+
   .logo {
     margin-bottom: 10px;
     img {
@@ -34,7 +36,7 @@
     padding-right: 20px;
   }
 
-  .api-key-label   {
+  .api-key-label {
     align-self: center;
     margin: 0.5em 10px 0.5em 0;
     font-size: 1em;
@@ -81,23 +83,28 @@
 .media_page_optimole #wpbody-content > #optimole-app {
   display: block !important;
 }
-#optimole-app img.optml-image{
-  float:left;
+
+#optimole-app img.optml-image {
+  float: left;
   max-width: 100px;
-  width:auto;
+  width: auto;
   margin: auto;
 }
-.optml-ratio-feedback .emoji{
+
+.optml-ratio-feedback .emoji {
   font-size: 1.5em;
 }
-.optml-ratio-feedback{
-  float:right;
+
+
+.optml-ratio-feedback {
+  float: right;
   padding-right: 20px;
 }
-.optml-image-heading{
+.optml-image-heading {
   text-align: left;
 }
-th.optml-image-ratio-heading{
+
+th.optml-image-ratio-heading {
   text-align: right !important;
   font-size: 150%;
 }

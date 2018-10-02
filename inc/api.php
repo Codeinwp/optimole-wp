@@ -13,7 +13,7 @@ final class Optml_Api {
 	 *
 	 * @var string Api root.
 	 */
-	private $api_root = 'http://127.0.0.1:8000/api/optml/v1/';
+	private $api_root = 'https://dashboard.optimole.com/api/optml/v1/';
 	/**
 	 * Hold the user api key.
 	 *
@@ -54,8 +54,8 @@ final class Optml_Api {
 	private function request( $path, $method = 'GET', $params = array() ) {
 
 		// Grab the url to which we'll be making the request.
-		$url = $this->api_root;
-
+		$url     = $this->api_root;
+		$headers = array();
 		if ( ! empty( $this->api_key ) ) {
 			$headers = array(
 				'Authorization' => 'Bearer ' . $this->api_key,
@@ -67,7 +67,7 @@ final class Optml_Api {
 				$url = add_query_arg( array( $key => $val ), $url );
 			}
 		}
-		$url  = untrailingslashit( $this->api_root ) . $path;
+		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
 		$args = array(
 			'url'         => $url,
 			'method'      => $method,
@@ -80,7 +80,7 @@ final class Optml_Api {
 			$args['body'] = $params;
 		}
 		$response = wp_remote_request( $url, $args );
-		//var_dump($response);
+
 		if ( is_wp_error( $response ) ) {
 			return false;
 		}
