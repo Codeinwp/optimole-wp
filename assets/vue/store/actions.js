@@ -31,6 +31,27 @@ const connectOptimole = function ( {commit, state}, data ) {
 	} );
 };
 
+const registerOptimole = function ( {commit, state}, data ) {
+
+	commit( 'toggleLoading', true );
+	return Vue.http( {
+		url: optimoleDashboardApp.root + '/register',
+		method: 'POST',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		params: {'req': data.req},
+		body: {
+			'email': data.email,
+		},
+		responseType: 'json'
+	} ).then( function ( response ) {
+		commit( 'toggleLoading', false );
+		return response.data;
+	},function( response ) {
+		commit( 'toggleLoading', false );
+		return response.data;
+	} );
+};
+
 
 const disconnectOptimole = function ( {commit, state}, data ) {
 	commit( 'toggleLoading', true, 'loading' );
@@ -110,6 +131,7 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 
 export default {
 	connectOptimole,
+	registerOptimole,
 	disconnectOptimole,
 	toggleSetting,
 	retrieveOptimizedImages,

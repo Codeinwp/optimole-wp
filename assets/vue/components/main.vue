@@ -3,8 +3,7 @@
 		<app-header></app-header>
 		<div class="card-content">
 			<div class="content">
-				<p v-html="strings.account_needed"></p>
-				<api-key-form></api-key-form>
+				<connect-layout v-if="! this.$store.state.connected"></connect-layout>
 				<transition name="fade" mode="out-in">
 					<div v-if="this.$store.state.connected">
 						<hr/>
@@ -16,38 +15,46 @@
 				</transition>
 			</div>
 		</div>
+		
+		<div class="level-right">
+			<p class="level-item"><a href="https://optimole.com" target="_blank">Optimole v{{strings.version}}</a></p>
+			<p class="level-item"><a href="https://optimole.com/terms/" target="_blank">{{strings.terms_menu}}</a></p>
+			<p class="level-item"><a href="https://optimole.com/privacy-policy/" target="_blank">{{strings.privacy_menu}}</a></p>
+			<p class="level-item"><a :href="'https://speedtest.optimole.com/?url=' + home " target="_blank">{{strings.testdrive_menu}}</a></p>
+		</div>
 	</div>
 </template>
 
 <script>
 	import AppHeader from './app-header.vue';
-	import ApiKeyForm from './api-key-form.vue';
 	import CdnDetails from './cdn-details.vue';
+	import ConnectLayout from './connect-layout.vue';
 	import Options from './options.vue';
 	import LastImages from './last-images.vue';
 
 	export default {
-		components: { LastImages }
+		components: {ConnectLayout, LastImages}
 	}
 	module.exports = {
 		name: 'app',
 		data() {
 			return {
 				strings: optimoleDashboardApp.strings,
+				home: optimoleDashboardApp.home_url,
 				fetchStatus: false
 			}
 		},
 		components: {
 			AppHeader,
-			ApiKeyForm,
 			Options,
+			ConnectLayout,
 			CdnDetails,
 			LastImages
 		},
 		mounted() {
 			let self = this;
-			if ( this.$store.state.connected ) {
-				this.$store.dispatch( 'retrieveOptimizedImages', { waitTime: 0, component: null } );
+			if (this.$store.state.connected) {
+				this.$store.dispatch('retrieveOptimizedImages', {waitTime: 0, component: null});
 				self.fetchStatus = true;
 			}
 		}

@@ -49,6 +49,23 @@ class Optml_Rest {
 			)
 		);
 		register_rest_route(
+			$this->namespace, '/register', array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'register_service' ),
+					'args'                => array(
+						'email' => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+					),
+				),
+			)
+		);
+		register_rest_route(
 			$this->namespace, '/disconnect', array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -102,6 +119,37 @@ class Optml_Rest {
 		$settings->update( 'api_key', $api_key );
 
 		return $this->response( $data );
+	}
+
+	/**
+	 * Wrapper for api response.
+	 *
+	 * @param array $data data from api.
+	 *
+	 * @return WP_REST_Response
+	 */
+	private function response( $data ) {
+		return new WP_REST_Response( array( 'data' => $data, 'code' => 'success' ), 200 );
+	}
+
+	/**
+	 * Connect to optimole service.
+	 *
+	 * @param WP_REST_Request $request connect rest request.
+	 *
+	 * @return WP_Error|WP_REST_Response
+	 */
+	public function register_service( WP_REST_Request $request ) {
+		$email = $request->get_param( 'email' );
+		$api   = new Optml_Api();
+		$user  = $api->create_account( $email );
+		if ( $user === false ) {
+			return new WP_Error( 'error', 'Error creating account.' );
+		}
+
+		return $this->response( [
+			'user' => $user
+		] );
 	}
 
 	/**
@@ -172,17 +220,6 @@ class Optml_Rest {
 			default:
 				break;
 		}
-	}
-
-	/**
-	 * Wrapper for api response.
-	 *
-	 * @param array $data data from api.
-	 *
-	 * @return WP_REST_Response
-	 */
-	private function response( $data ) {
-		return new WP_REST_Response( array( 'data' => $data, 'code' => 'success' ), 200 );
 	}
 
 }

@@ -167,8 +167,8 @@ class Optml_Admin {
 		$service_data   = $this->settings->get( 'service_data' );
 		$admin_bar_item = $this->settings->get( 'admin_bar_item' );
 		$image_replacer = $this->settings->get( 'image_replacer' );
-
-		$args = array(
+		$user           = get_userdata( get_current_user_id() );
+		$args           = array(
 			'strings'           => $this->get_dashboard_strings(),
 			'assets_url'        => OPTML_URL . 'assets/',
 			'connection_status' => empty( $service_data ) ? false : true,
@@ -176,6 +176,9 @@ class Optml_Admin {
 			'root'              => rest_url( OPTML_NAMESPACE . '/v1' ),
 			'nonce'             => wp_create_nonce( 'wp_rest' ),
 			'user_data'         => $service_data,
+			'current_user'      => array(
+				'email' => $user->user_email
+			),
 			'admin_bar_item'    => $admin_bar_item,
 			'image_replacer'    => $image_replacer,
 			'home_url'          => home_url(),
@@ -191,25 +194,45 @@ class Optml_Admin {
 	 */
 	private function get_dashboard_strings() {
 		return array(
-			'optimole'            => __( 'Optimole', 'optimole-wp' ),
-			'image_cdn'           => __( 'Image CDN', 'optimole-wp' ),
-			'connect_btn'         => __( 'Connect to OptiMole Service', 'optimole-wp' ),
-			'disconnect_btn'      => __( 'Disconnect', 'optimole-wp' ),
-			'api_key_placeholder' => __( 'API Key', 'optimole-wp' ),
-			'invalid_key'         => __( 'Invalid API Key', 'optimole-wp' ),
-			'status'              => __( 'Status', 'optimole-wp' ),
-			'connected'           => __( 'Connected', 'optimole-wp' ),
-			'not_connected'       => __( 'Not connected', 'optimole-wp' ),
-			'usage'               => __( 'Monthly Usage', 'optimole-wp' ),
-			'quota'               => __( 'Monthly Quota', 'optimole-wp' ),
-			'logged_in_as'        => __( 'Logged in as', 'optimole-wp' ),
-			'private_cdn_url'     => __( 'Private CDN url', 'optimole-wp' ),
-			'options'             => __( 'Options', 'optimole-wp' ),
-			'account_needed'      => sprintf(
-				__( 'In order to get access to free image optimization service you will need an account on %s. You will get access to our image optimization and CDN service for free in the limit of 1GB traffic per month.', 'optimole-wp' ),
+			'optimole'                  => 'Optimole',
+			'version'                   => OPTML_VERSION,
+			'terms_menu'                => __( 'Terms', 'optimole-wp' ),
+			'privacy_menu'              => __( 'Privacy', 'optimole-wp' ),
+			'testdrive_menu'            => __( 'Test Optimole', 'optimole-wp' ),
+			'service_details'           => __( 'Image optimization service', 'optimole-wp' ),
+			'connect_btn'               => __( 'Connect to OptiMole Service', 'optimole-wp' ),
+			'disconnect_btn'            => __( 'Disconnect', 'optimole-wp' ),
+			'api_key_placeholder'       => __( 'API Key', 'optimole-wp' ),
+			'invalid_key'               => __( 'Invalid API Key', 'optimole-wp' ),
+			'status'                    => __( 'Status', 'optimole-wp' ),
+			'email_address_label'       => __( 'Your email address', 'optimole-wp' ),
+			'register_btn'              => __( 'Register on optimole.com.', 'optimole-wp' ),
+			'step_one_api_title'        => __( 'Enter your API key.', 'optimole-wp' ),
+			'step_one_api_desc'         => sprintf( __( 'Copy the API key you have received via email or you can get it from %s Optimole dashboard%s. <br/>', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/" target="_blank"> ', '</a>' ),
+			'step_two_api_title'        => __( 'Connect to Optimole.', 'optimole-wp' ),
+			'step_two_api_desc'         => __( ' Fill in the upper API key field and connect to Optimole service.', 'optimole-wp' ),
+			'api_exists'                => __( 'I already have an API key.', 'optimole-wp' ),
+			'back_to_register'          => __( 'Register account', 'optimole-wp' ),
+			'back_to_connect'           => __( 'Connect account', 'optimole-wp' ),
+			'error_register'            => sprintf( __( 'Error registering account. You can try again %shere%s ', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/register" target="_blank"> ', '</a>' ),
+			'connected'                 => __( 'Connected', 'optimole-wp' ),
+			'not_connected'             => __( 'Not connected', 'optimole-wp' ),
+			'usage'                     => __( 'Monthly Usage', 'optimole-wp' ),
+			'quota'                     => __( 'Monthly Quota', 'optimole-wp' ),
+			'logged_in_as'              => __( 'Logged in as', 'optimole-wp' ),
+			'private_cdn_url'           => __( 'Private CDN url', 'optimole-wp' ),
+			'options'                   => __( 'Options', 'optimole-wp' ),
+			'account_needed_title'      => sprintf(
+				__( 'In order to get access to free image optimization service you will need an account on %s.', 'optimole-wp' ),
 				' <a href="https://dashboard.optimole.com/register" target="_blank">optimole.com</a>'
 			),
-			'options_strings'     => array(
+			'account_needed_subtitle_1' => sprintf(
+				__( 'You will get access to our image optimization service for free in the limit of 1GB traffic per month. ', 'optimole-wp' )
+			),
+			'account_needed_subtitle_2' => sprintf(
+				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using our default CDN.', 'optimole-wp' )
+			),
+			'options_strings'           => array(
 				'toggle_ab_item'       => __( 'Admin bar status', 'optimole-wp' ),
 				'enable_image_replace' => __( 'Enable image replace', 'optimole-wp' ),
 				'show'                 => __( 'Show', 'optimole-wp' ),
@@ -217,7 +240,7 @@ class Optml_Admin {
 				'enabled'              => __( 'Enabled', 'optimole-wp' ),
 				'disabled'             => __( 'Disabled', 'optimole-wp' ),
 			),
-			'latest_images'       => array(
+			'latest_images'             => array(
 				'image'                 => __( 'Image', 'optimole-wp' ),
 				'no_images_found'       => sprintf( __( 'We might have a delay finding optimized images. Meanwhile you can visit your %shomepage%s and check how our plugin performs. ', 'optimole-wp' ), '<a href="' . esc_url( home_url() ) . '" target="_blank" >', '</a>' ),
 				'compression'           => __( 'Optimization', 'optimole-wp' ),
