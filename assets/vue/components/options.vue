@@ -89,33 +89,19 @@
 		<p class="title has-text-centered is-5"> See two sample image which will help you choose the right quality of
 			the compression.</p>
 		<div class="field  columns" v-if="sample_images.id > 0">
-			<TwentyTwenty
-					offset="0.9"
-					before ="//placehold.it/350x150/0288D1/FFFFFF"
-					beforeLabel="BEFORE"
-					after ="//placehold.it/600x200/E8117F/FFFFFF"
-					afterLabel="AFTER"  />
+			<twenty-twenty
+					:before="sample_images.optimized"
+					:after="sample_images.original">
+			</twenty-twenty>
 			
-			<div class="column has-text-centered">
-				<p class="subtitle is-6">Original image</p>
-				<figure class="image  ">
-					<img :src="sample_images.original">
-				</figure>
-			</div>
-			<div class="column has-text-centered">
-				
-				<p class="subtitle is-6">Compressed image</p>
-				<figure class="image  ">
-					<img :src="sample_images.optimized">
-				</figure>
-			</div>
 		</div>
 	
 	</div>
 
 </template>
 
-<script>
+<script scoped >
+	
 	import TwentyTwenty from 'vue-twentytwenty'
 
 	export default {

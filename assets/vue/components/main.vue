@@ -24,13 +24,13 @@
 							</ul>
 						</div>
 						
-						<div class="is-tab" v-show="tab === 'dashboard' ">
+						<div class="is-tab" v-if="tab === 'dashboard' ">
 							<api-key-form></api-key-form>
 							<cdn-details v-if="this.$store.state.userData"></cdn-details>
 							<hr/>
 							<last-images :status="fetchStatus"></last-images>
 						</div>
-						<div class="is-tab" v-show=" tab === 'settings'" >
+						<div class="is-tab" v-if=" tab === 'settings'" >
 							<options></options>
 						</div>
 					</div>
@@ -91,6 +91,10 @@
 		
 	}
 </script>
+<style lang="css">
+	@import "../../css/slider.css";
+	
+</style>
 <style lang="sass-loader">
 	@import '../../css/style.scss';
 	#optimole-app .tabs a{

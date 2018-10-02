@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 7);
+/******/ 	return __webpack_require__(__webpack_require__.s = 8);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -11336,7 +11336,7 @@ Vue.compile = compileToFunctions;
 
 /* harmony default export */ __webpack_exports__["default"] = (Vue);
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(3), __webpack_require__(4), __webpack_require__(8).setImmediate))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(3), __webpack_require__(4), __webpack_require__(9).setImmediate))
 
 /***/ }),
 /* 3 */
@@ -11560,8 +11560,8 @@ module.exports = g;
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_script__, __vue_template__
-__vue_script__ = __webpack_require__(28)
-__vue_template__ = __webpack_require__(29)
+__vue_script__ = __webpack_require__(32)
+__vue_template__ = __webpack_require__(33)
 module.exports = __vue_script__ || {}
 if (module.exports.__esModule) module.exports = module.exports.default
 if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -11579,6 +11579,29 @@ if (false) {(function () {  module.hot.accept()
 
 /***/ }),
 /* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_script__, __vue_template__
+__webpack_require__(44)
+__vue_script__ = __webpack_require__(46)
+__vue_template__ = __webpack_require__(47)
+module.exports = __vue_script__ || {}
+if (module.exports.__esModule) module.exports = module.exports.default
+if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
+if (false) {(function () {  module.hot.accept()
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), true)
+  if (!hotAPI.compatible) return
+  var id = "/Users/selul/dev/optimole-wp/node_modules/vue-twentytwenty/src/TwentyTwenty.vue"
+  if (!module.hot.data) {
+    hotAPI.createRecord(id, module.exports)
+  } else {
+    hotAPI.update(id, module.exports, __vue_template__)
+  }
+})()}
+
+/***/ }),
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -12677,7 +12700,7 @@ function xhrClient (request) {
 
 function nodeClient (request) {
 
-    var client = __webpack_require__(44);
+    var client = __webpack_require__(52);
 
     return new PromiseObj(function (resolve) {
 
@@ -13145,7 +13168,7 @@ if (typeof window !== 'undefined' && window.Vue) {
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13155,19 +13178,19 @@ var _vue = __webpack_require__(2);
 
 var _vue2 = _interopRequireDefault(_vue);
 
-var _main = __webpack_require__(10);
+var _main = __webpack_require__(11);
 
 var _main2 = _interopRequireDefault(_main);
 
-var _store = __webpack_require__(42);
+var _store = __webpack_require__(50);
 
 var _store2 = _interopRequireDefault(_store);
 
-var _vueJsToggleButton = __webpack_require__(47);
+var _vueJsToggleButton = __webpack_require__(55);
 
 var _vueJsToggleButton2 = _interopRequireDefault(_vueJsToggleButton);
 
-var _vueTwentytwenty = __webpack_require__(48);
+var _vueTwentytwenty = __webpack_require__(6);
 
 var _vueTwentytwenty2 = _interopRequireDefault(_vueTwentytwenty);
 
@@ -13189,7 +13212,7 @@ window.onload = function () {
 };
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var scope = (typeof global !== "undefined" && global) ||
@@ -13245,7 +13268,7 @@ exports._unrefActive = exports.active = function(item) {
 };
 
 // setimmediate attaches itself to the global object
-__webpack_require__(9);
+__webpack_require__(10);
 // On some exotic environments, it's not clear which object `setimmediate` was
 // able to install onto.  Search each possibility in the same order as the
 // `setimmediate` library.
@@ -13259,7 +13282,7 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, process) {(function (global, undefined) {
@@ -13452,13 +13475,14 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4), __webpack_require__(3)))
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_script__, __vue_template__
-__webpack_require__(11)
-__vue_script__ = __webpack_require__(13)
-__vue_template__ = __webpack_require__(41)
+__webpack_require__(12)
+__webpack_require__(15)
+__vue_script__ = __webpack_require__(17)
+__vue_template__ = __webpack_require__(49)
 module.exports = __vue_script__ || {}
 if (module.exports.__esModule) module.exports = module.exports.default
 if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -13475,13 +13499,13 @@ if (false) {(function () {  module.hot.accept()
 })()}
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(12);
+var content = __webpack_require__(13);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
 var update = __webpack_require__(1)(content, {});
@@ -13490,8 +13514,8 @@ if(content.locals) module.exports = content.locals;
 if(false) {
 	// When the styles change, update the <style> tags
 	if(!content.locals) {
-		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-fa4107f2&file=main.vue!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./main.vue", function() {
-			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-fa4107f2&file=main.vue!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./main.vue");
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-fa4107f2&file=main.vue!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./main.vue", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-fa4107f2&file=main.vue!../../../node_modules/vue-loader/lib/selector.js?type=style&index=0!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./main.vue");
 			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
 			update(newContent);
 		});
@@ -13501,7 +13525,61 @@ if(false) {
 }
 
 /***/ }),
-/* 12 */
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)();
+// imports
+exports.i(__webpack_require__(14), "");
+
+// module
+exports.push([module.i, "\n\t\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)();
+// imports
+
+
+// module
+exports.push([module.i, "\n.twentytwenty-container {\n    position: relative;\n    overflow: hidden;\n    box-sizing: content-box\n}\n\n.twentytwenty-container img {\n    max-width: 100%;\n    position: absolute;\n    top: 0;\n    left: 0;\n    display: block;\n    -webkit-user-select: none;\n    -moz-user-select: none;\n    -ms-user-select: none;\n    user-select: none;\n    z-index: 20\n}\n\n.twentytwenty-container .twentytwenty-overlay {\n    z-index: 25;\n    width: 100%;\n    height: 100%;\n    top: 0;\n    position: absolute;\n    background: rgba(0, 0, 0, .5);\n    opacity: 0;\n    transition-property: opacity;\n    transition-duration: .5s\n}\n\n.twentytwenty-container .twentytwenty-overlay .twentytwenty-after-label, .twentytwenty-container .twentytwenty-overlay .twentytwenty-before-label {\n    -webkit-user-select: none;\n    -moz-user-select: none;\n    -ms-user-select: none;\n    user-select: none;\n    position: absolute;\n    font-size: .8em;\n    top: calc(50% - .4em - 5px);\n    padding: 10px;\n    background: hsla(0, 0%, 100%, .4);\n    color: #fff\n}\n\n.twentytwenty-container .twentytwenty-overlay .twentytwenty-before-label {\n    left: 0\n}\n\n.twentytwenty-container .twentytwenty-overlay .twentytwenty-after-label {\n    right: 0\n}\n\n.twentytwenty-container .twentytwenty-overlay:hover {\n    opacity: 1\n}\n\n.twentytwenty-container .twentytwenty-handle {\n    cursor: move;\n    z-index: 30;\n    position: absolute;\n    background: none;\n    border: 4px solid #fff;\n    border-radius: 50px;\n    margin-left: -4px;\n    margin-top: -4px;\n    -webkit-user-select: none;\n    -moz-user-select: none;\n    -ms-user-select: none;\n    user-select: none\n}\n\n.twentytwenty-container .twentytwenty-handle:after, .twentytwenty-container .twentytwenty-handle:before {\n    content: \"\";\n    border: 2px solid #fff;\n    height: 9999px;\n    position: absolute;\n    left: calc(50% - 2px)\n}\n\n.twentytwenty-container .twentytwenty-handle:before {\n    top: 40px\n}\n\n.twentytwenty-container .twentytwenty-handle:after {\n    bottom: 40px\n}\n\n.twentytwenty-container .twentytwenty-arrow-left, .twentytwenty-container .twentytwenty-arrow-right {\n    -webkit-user-select: none;\n    -moz-user-select: none;\n    -ms-user-select: none;\n    user-select: none;\n    position: relative;\n    width: 0;\n    height: 0\n}\n\n.twentytwenty-container .twentytwenty-arrow-right {\n    bottom: 10px;\n    left: 23px;\n    border-top: 10px solid transparent;\n    border-bottom: 10px solid transparent;\n    border-left: 10px solid #fff\n}\n\n.twentytwenty-container .twentytwenty-arrow-left {\n    top: 10px;\n    left: 7px;\n    border-top: 10px solid transparent;\n    border-bottom: 10px solid transparent;\n    border-right: 10px solid #fff\n} ", ""]);
+
+// exports
+
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(16);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, {});
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-fa4107f2&file=main.vue!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=style&index=1!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./main.vue", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!../../../node_modules/vue-loader/lib/style-rewriter.js?id=_v-fa4107f2&file=main.vue!../../../node_modules/sass-loader/lib/loader.js!../../../node_modules/vue-loader/lib/selector.js?type=style&index=1!../../../node_modules/eslint-loader/index.js!../../../node_modules/eslint-loader/index.js!./main.vue");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)();
@@ -13515,25 +13593,25 @@ exports.push([module.i, "#optimole-app {\n  padding: 0 30px 0 20px;\n  /*! bulma
 
 
 /***/ }),
-/* 13 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _appHeader = __webpack_require__(14);
+var _appHeader = __webpack_require__(18);
 
 var _appHeader2 = _interopRequireDefault(_appHeader);
 
-var _cdnDetails = __webpack_require__(19);
+var _cdnDetails = __webpack_require__(23);
 
 var _cdnDetails2 = _interopRequireDefault(_cdnDetails);
 
-var _connectLayout = __webpack_require__(24);
+var _connectLayout = __webpack_require__(28);
 
 var _connectLayout2 = _interopRequireDefault(_connectLayout);
 
-var _lastImages = __webpack_require__(31);
+var _lastImages = __webpack_require__(35);
 
 var _lastImages2 = _interopRequireDefault(_lastImages);
 
@@ -13541,7 +13619,7 @@ var _apiKeyForm = __webpack_require__(5);
 
 var _apiKeyForm2 = _interopRequireDefault(_apiKeyForm);
 
-var _options = __webpack_require__(36);
+var _options = __webpack_require__(40);
 
 var _options2 = _interopRequireDefault(_options);
 
@@ -13573,13 +13651,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 // 							</ul>
 // 						</div>
 //
-// 						<div class="is-tab" v-show="tab === 'dashboard' ">
+// 						<div class="is-tab" v-if="tab === 'dashboard' ">
 // 							<api-key-form></api-key-form>
 // 							<cdn-details v-if="this.$store.state.userData"></cdn-details>
 // 							<hr/>
 // 							<last-images :status="fetchStatus"></last-images>
 // 						</div>
-// 						<div class="is-tab" v-show=" tab === 'settings'" >
+// 						<div class="is-tab" v-if=" tab === 'settings'" >
 // 							<options></options>
 // 						</div>
 // 					</div>
@@ -13632,6 +13710,10 @@ module.exports = {
 		}
 	}
 	// </script>
+	// <style lang="css">
+	// 	@import "../../css/slider.css";
+	//
+	// </style>
 	// <style lang="sass-loader">
 	// 	@import '../../css/style.scss';
 	// 	#optimole-app .tabs a{
@@ -13643,13 +13725,13 @@ module.exports = {
 };
 
 /***/ }),
-/* 14 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_script__, __vue_template__
-__webpack_require__(15)
-__vue_script__ = __webpack_require__(17)
-__vue_template__ = __webpack_require__(18)
+__webpack_require__(19)
+__vue_script__ = __webpack_require__(21)
+__vue_template__ = __webpack_require__(22)
 module.exports = __vue_script__ || {}
 if (module.exports.__esModule) module.exports = module.exports.default
 if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -13666,13 +13748,13 @@ if (false) {(function () {  module.hot.accept()
 })()}
 
 /***/ }),
-/* 15 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(16);
+var content = __webpack_require__(20);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
 var update = __webpack_require__(1)(content, {});
@@ -13692,7 +13774,7 @@ if(false) {
 }
 
 /***/ }),
-/* 16 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)();
@@ -13706,7 +13788,7 @@ exports.push([module.i, "\n\t@media ( min-width: 769px ) {\n\t\t#optimole-app hr
 
 
 /***/ }),
-/* 17 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13772,19 +13854,19 @@ exports.default = {
 };
 
 /***/ }),
-/* 18 */
+/* 22 */
 /***/ (function(module, exports) {
 
 module.exports = "\n\t<div _v-42015187=\"\">\n\t\t<div class=\"header has-text-centered level\" _v-42015187=\"\">\n\t\t\t\n\t\t\t<div class=\"level-left\" _v-42015187=\"\">\n\t\t\t\t<a class=\"logo level-item\" href=\"https://optimole.com\" target=\"_blank\" _v-42015187=\"\">\n\t\t\t\t\t<figure class=\"media\" _v-42015187=\"\">\n\t\t\t\t\t\t<img :src=\"logo\" :alt=\"strings.optimole + ' ' + strings.service_details\" _v-42015187=\"\">\n\t\t\t\t\t</figure>\n\t\t\t\t</a>\n\t\t\t\t<h3 class=\"has-text-centered has-text-grey-dark is-size-4 level-item\" _v-42015187=\"\">\n\t\t\t\t\t<span class=\"has-text-weight-semibold\" _v-42015187=\"\">\n\t\t\t\t\t{{strings.service_details}}\n\t\t\t\t\t</span>\n\t\t\t\t</h3>\n\t\t\t</div>\n\t\t\t<div class=\"level-right\" _v-42015187=\"\">\n\t\t\t\t<div class=\"tags has-addons level-item\" _v-42015187=\"\">\n\t\t\t\t\t<span class=\"tag is-dark\" _v-42015187=\"\">{{strings.status}}</span>\n\t\t\t\t\t<span v-if=\"connected\" class=\"tag is-success\" _v-42015187=\"\">{{strings.connected}}</span>\n\t\t\t\t\t<span v-else=\"\" class=\"tag is-danger\" _v-42015187=\"\">{{strings.not_connected}}</span>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t\n\t\t</div>\n\t\t<hr _v-42015187=\"\">\n\t</div>\n";
 
 /***/ }),
-/* 19 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_script__, __vue_template__
-__webpack_require__(20)
-__vue_script__ = __webpack_require__(22)
-__vue_template__ = __webpack_require__(23)
+__webpack_require__(24)
+__vue_script__ = __webpack_require__(26)
+__vue_template__ = __webpack_require__(27)
 module.exports = __vue_script__ || {}
 if (module.exports.__esModule) module.exports = module.exports.default
 if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -13801,13 +13883,13 @@ if (false) {(function () {  module.hot.accept()
 })()}
 
 /***/ }),
-/* 20 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(21);
+var content = __webpack_require__(25);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
 var update = __webpack_require__(1)(content, {});
@@ -13827,7 +13909,7 @@ if(false) {
 }
 
 /***/ }),
-/* 21 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)();
@@ -13841,7 +13923,7 @@ exports.push([module.i, "\n\t#optimole-app .label[_v-fd4ccd78] {\n\t\tmargin-top
 
 
 /***/ }),
-/* 22 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -13919,19 +14001,19 @@ exports.default = {
 };
 
 /***/ }),
-/* 23 */
+/* 27 */
 /***/ (function(module, exports) {
 
 module.exports = "\n\t<div class=\"cdn-details\" _v-fd4ccd78=\"\">\n\t\t<hr _v-fd4ccd78=\"\">\n\t\t<div class=\"account level has-text-centered\" _v-fd4ccd78=\"\">\n\t\t\t<div class=\"level-left\" _v-fd4ccd78=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-fd4ccd78=\"\">{{strings.logged_in_as}}:</span>\n\t\t\t\t<p class=\"details level-item tags has-addons\" _v-fd4ccd78=\"\">\n\t\t\t\t\t<span class=\"tag is-light\" _v-fd4ccd78=\"\">{{userData.display_name}}</span>\n\t\t\t\t\t<span class=\"tag is-paddingless\" _v-fd4ccd78=\"\"><img :src=\"userData.picture\" class=\"image is-24x24 is-rounded\" :alt=\"userData.display_name\" _v-fd4ccd78=\"\"></span>\n\t\t\t\t</p>\n\t\t\t</div>\n\t\t\t<div class=\"level-right\" _v-fd4ccd78=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-fd4ccd78=\"\">{{strings.private_cdn_url}}:</span>\n\t\t\t\t<p class=\"details level-item tag is-light\" _v-fd4ccd78=\"\">{{userData.cdn_key}}.i.optimole.com</p>\n\t\t\t</div>\n\t\t</div>\n\t\t<hr _v-fd4ccd78=\"\">\n\t\t<div class=\"level stats\" _v-fd4ccd78=\"\">\n\t\t\t<div class=\"level-left\" _v-fd4ccd78=\"\">\n\t\t\t\t<div class=\"level-item\" _v-fd4ccd78=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-fd4ccd78=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-fd4ccd78=\"\">{{strings.usage}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-fd4ccd78=\"\">{{this.userData.usage_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<h4 class=\"level-item is-size-5 is-marginless has-text-grey\" _v-fd4ccd78=\"\">\n\t\t\t\t{{computedPercentage()}}%\n\t\t\t</h4>\n\t\t\t<div class=\"level-right\" _v-fd4ccd78=\"\">\n\t\t\t\t<div class=\"level-item\" _v-fd4ccd78=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-fd4ccd78=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-fd4ccd78=\"\">{{strings.quota}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-fd4ccd78=\"\">{{this.userData.quota_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<progress class=\"progress is-success\" :value=\"this.userData.usage\" :max=\"this.userData.quota\" _v-fd4ccd78=\"\">60%</progress>\n\n\t</div>\n";
 
 /***/ }),
-/* 24 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_script__, __vue_template__
-__webpack_require__(25)
-__vue_script__ = __webpack_require__(27)
-__vue_template__ = __webpack_require__(30)
+__webpack_require__(29)
+__vue_script__ = __webpack_require__(31)
+__vue_template__ = __webpack_require__(34)
 module.exports = __vue_script__ || {}
 if (module.exports.__esModule) module.exports = module.exports.default
 if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -13948,13 +14030,13 @@ if (false) {(function () {  module.hot.accept()
 })()}
 
 /***/ }),
-/* 25 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(26);
+var content = __webpack_require__(30);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
 var update = __webpack_require__(1)(content, {});
@@ -13974,7 +14056,7 @@ if(false) {
 }
 
 /***/ }),
-/* 26 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)();
@@ -13988,7 +14070,7 @@ exports.push([module.i, "\n\tinput[_v-01e6223b],.notification .delete[_v-01e6223
 
 
 /***/ }),
-/* 27 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14157,7 +14239,7 @@ exports.default = {
 // <script>
 
 /***/ }),
-/* 28 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14234,25 +14316,25 @@ exports.default = {
 };
 
 /***/ }),
-/* 29 */
+/* 33 */
 /***/ (function(module, exports) {
 
 module.exports = "\n\t<div>\n\t\t<div class=\"field has-addons api-key-field\">\n\t\t\t<label v-if=\"isConnected\"\n\t\t\t\t\tclass=\"label api-key-label has-text-grey-dark\">{{strings.api_key_placeholder}}:</label>\n\t\t\t<div class=\"control is-expanded api-key-control\">\n\t\t\t\t<input :type=\"isConnected ? 'password' : 'text'\" :disabled=\"isConnected\" name=\"api_key\" class=\"input is-small\"\n\t\t\t\t\t\t:class=\"validKey ? '' : 'is-danger'\" :placeholder=\"strings.api_key_placeholder\"\n\t\t\t\t\t\tv-model=\"apiKey\">\n\t\t\t</div>\n\t\t\t<div class=\"control\">\n\t\t\t\t<button v-if=\"! isConnected\" class=\"button button is-success is-small\"\n\t\t\t\t\t\t@click=\"connect\" :class=\"{ 'is-loading' : this.$store.state.isConnecting }\">\n\t\t\t\t\t<span class=\"icon\"><i class=\"dashicons dashicons-admin-plugins\"></i></span>\n\t\t\t\t\t<span>{{strings.connect_btn}}</span>\n\t\t\t\t</button>\n\t\t\t\t<button v-else class=\"button is-danger is-small\" @click=\"disconnect\"\n\t\t\t\t\t\t:class=\"{ 'is-loading' : this.$store.state.isConnecting }\">\n\t\t\t\t\t<span class=\"icon\"><i class=\"dashicons dashicons-dismiss\"></i></span>\n\t\t\t\t\t<span>{{strings.disconnect_btn}}</span>\n\t\t\t\t</button>\n\t\t\t</div>\n\t\t</div>\n\t\t<p v-if=\"! validKey\" class=\"help is-danger\">\n\t\t\t{{strings.invalid_key}}\n\t\t</p>\n\t</div>\n";
 
 /***/ }),
-/* 30 */
+/* 34 */
 /***/ (function(module, exports) {
 
 module.exports = "\n\t<section class=\"is-clearfix\" _v-01e6223b=\"\">\n\t\t<nav class=\"breadcrumb\" aria-label=\"breadcrumbs\" v-if=\"showApiKey\" _v-01e6223b=\"\">\n\t\t\t<ul _v-01e6223b=\"\">\n\t\t\t\t<li _v-01e6223b=\"\"><a @click=\"toggleApiForm\" href=\"#\" _v-01e6223b=\"\">{{strings.back_to_register}}</a></li>\n\t\t\t\t<li class=\"is-active is-marginless\" v-if=\"showApiKey\" _v-01e6223b=\"\"><a href=\"#\" aria-current=\"page\" _v-01e6223b=\"\">{{strings.back_to_connect}}</a>\n\t\t\t\t</li>\n\t\t\t</ul>\n\t\t</nav>\n\t\t<div class=\"section\" v-if=\"showApiKey\" _v-01e6223b=\"\">\n\t\t\t<div class=\"notification is-success\" v-if=\"from_register\" _v-01e6223b=\"\">\n\t\t\t\t{{strings.notification_message_register}}\n\t\t\t</div>\n\t\t\t<api-key-form _v-01e6223b=\"\"></api-key-form>\n\t\t\t<hr _v-01e6223b=\"\">\n\t\t\t<div class=\"columns\" _v-01e6223b=\"\">\n\t\t\t\t\n\t\t\t\t<div class=\"column  columns is-marginless  is-vcentered \" _v-01e6223b=\"\">\n\t\t\t\t\t\n\t\t\t\t\t<span class=\"dashicons dashicons-share column is-2 is-size-3 is-paddingless\" _v-01e6223b=\"\"></span>\n\t\t\t\t\t<div class=\"is-pulled-left column is-10 is-paddingless\" _v-01e6223b=\"\">\n\t\t\t\t\t\t<p class=\"title is-size-5 \" _v-01e6223b=\"\">1. {{strings.step_one_api_title}}</p>\n\t\t\t\t\t\t<p class=\"subtitle is-size-6\" v-html=\"strings.step_one_api_desc\" _v-01e6223b=\"\"></p>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"column   is columns is-vcentered is-marginless\" _v-01e6223b=\"\">\n\t\t\t\t\t\n\t\t\t\t\t<span class=\"dashicons dashicons-admin-plugins column is-2 is-size-3 is-paddingless\" _v-01e6223b=\"\"></span>\n\t\t\t\t\t<div class=\"is-pulled-left column is-10 is-paddingless\" _v-01e6223b=\"\">\n\t\t\t\t\t\t<p class=\"title is-size-5\" _v-01e6223b=\"\">2. {{strings.step_two_api_title}}</p>\n\t\t\t\t\t\t<p class=\"subtitle is-size-6\" _v-01e6223b=\"\">{{strings.step_two_api_desc}}</p>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\n\t\t</div>\n\t\t<div class=\"columns  is-vcentered is-desktop \" v-else=\"\" _v-01e6223b=\"\">\n\t\t\t<div class=\"column  has-text-left is-fluid  is-hidden-touch\" _v-01e6223b=\"\">\n\t\t\t\t<div class=\"hero\" _v-01e6223b=\"\">\n\t\t\t\t\t<div class=\"hero-body content\" _v-01e6223b=\"\">\n\t\t\t\t\t\t<p class=\"title\" _v-01e6223b=\"\">{{strings.account_needed_heading}}</p>\n\t\t\t\t\t\t<p class=\"subtitle \" v-html=\"strings.account_needed_title\" _v-01e6223b=\"\"></p>\n\t\t\t\t\t\t<div class=\"  is-hidden-touch\" _v-01e6223b=\"\">\n\t\t\t\t\t\t\t<div class=\"columns  is-vcentered  \" _v-01e6223b=\"\">\n\t\t\t\t\t\t\t\t<div class=\" is-narrow is-hidden-touch column\" _v-01e6223b=\"\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons   icon dashicons-format-image is-size-4 \" _v-01e6223b=\"\"></span>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"column\" _v-01e6223b=\"\">\n\t\t\t\t\t\t\t\t\t<p class=\"subtitle column is-size-6 is-vcentered has-text-left\" _v-01e6223b=\"\"><br _v-01e6223b=\"\">\n\t\t\t\t\t\t\t\t\t\t{{strings.account_needed_subtitle_1}}</p>\n\t\t\t\t\t\t\t\t</div>\n\t \t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t<div class=\"columns  is-vcentered\" _v-01e6223b=\"\">\n\t\t\t\t\t\t\t\t<div class=\" is-narrow is-hidden-touch column\" _v-01e6223b=\"\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons   icon dashicons-plus is-size-4 \" _v-01e6223b=\"\"></span>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"column\" _v-01e6223b=\"\">\n\t\t\t\t\t\t\t\t\t<p class=\"subtitle column is-size-6 is-vcentered has-text-left\" _v-01e6223b=\"\"><br _v-01e6223b=\"\">\n\t\t\t\t\t\t\t\t\t\t{{strings.account_needed_subtitle_2}}</p>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<div class=\"column    \" _v-01e6223b=\"\">\n\t\t\t\t<p v-html=\"strings.account_needed_title\" class=\"is-size-6 has-text-centered is-hidden-desktop\" _v-01e6223b=\"\"></p>\n\t\t\t\t<div class=\"field     \" _v-01e6223b=\"\">\n\t\t\t\t\t<label for=\"optml-email\" class=\"label title is-size-5   is-12\" _v-01e6223b=\"\">{{strings.email_address_label}}\n\t\t\t\t\t\t:</label>\n\t\t\t\t\t<div class=\"control   is-12 is-small has-icons-left \" _v-01e6223b=\"\">\n\t\t\t\t\t\t<input name=\"optml-email\" id=\"optml-email\" class=\"input is-medium is-fullwidth is-danger\" type=\"email\" v-model=\"email\" _v-01e6223b=\"\">\n\t\t\t\t\t\t<span class=\"icon is-small is-left dashicons dashicons-email\" _v-01e6223b=\"\"></span>\n\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t\t\n\t\t\t\t\t<p class=\"help is-danger\" v-if=\"error\" v-html=\"strings.error_register\" _v-01e6223b=\"\"></p>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"field   is-desktop \" _v-01e6223b=\"\">\n\t\t\t\t\t<div class=\"control columns \" _v-01e6223b=\"\">\n\t\t\t\t\t\t<div class=\"column has-text-centered-mobile\" _v-01e6223b=\"\">\n\t\t\t\t\t\t\t<button @click=\"registerAccount\" class=\"button    is-small is-primary  \" :class=\"isLoading ? 'is-loading' :'' \" _v-01e6223b=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-admin-users\" _v-01e6223b=\"\"></span>\n\t\t\t\t\t\t\t\t<span _v-01e6223b=\"\">{{strings.register_btn}}</span>\n\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"column has-text-centered-mobile has-text-right\" _v-01e6223b=\"\">\n\t\t\t\t\t\t\t<button @click=\"toggleApiForm\" class=\"button  is-small  is-outlined is-info\" _v-01e6223b=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-admin-network is-small\" _v-01e6223b=\"\"></span>\n\t\t\t\t\t\t\t\t<span _v-01e6223b=\"\">{{strings.api_exists}}</span>\n\t\t\t\t\t\t\t</button>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</section>\n";
 
 /***/ }),
-/* 31 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_script__, __vue_template__
-__webpack_require__(32)
-__vue_script__ = __webpack_require__(34)
-__vue_template__ = __webpack_require__(35)
+__webpack_require__(36)
+__vue_script__ = __webpack_require__(38)
+__vue_template__ = __webpack_require__(39)
 module.exports = __vue_script__ || {}
 if (module.exports.__esModule) module.exports = module.exports.default
 if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -14269,13 +14351,13 @@ if (false) {(function () {  module.hot.accept()
 })()}
 
 /***/ }),
-/* 32 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(33);
+var content = __webpack_require__(37);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
 var update = __webpack_require__(1)(content, {});
@@ -14295,7 +14377,7 @@ if(false) {
 }
 
 /***/ }),
-/* 33 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)();
@@ -14309,7 +14391,7 @@ exports.push([module.i, "\n\t.loader[_v-1fb0e7b1] {\n\t\tmargin: 0 auto;\n\t\tfo
 
 
 /***/ }),
-/* 34 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14442,19 +14524,19 @@ exports.default = {
 };
 
 /***/ }),
-/* 35 */
+/* 39 */
 /***/ (function(module, exports) {
 
 module.exports = "\n\t<div _v-1fb0e7b1=\"\">\n\t\t<div class=\"optimized-images\" v-if=\"! loading \" _v-1fb0e7b1=\"\">\n\t\t\t<div v-if=\"!noImages\" _v-1fb0e7b1=\"\">\n\t\t\t\t<h3 class=\"has-text-centered\" _v-1fb0e7b1=\"\">{{strings.last}} {{strings.optimized_images}}</h3>\n\t\t\t\t<table class=\"table is-striped is-hoverable is-fullwidth\" _v-1fb0e7b1=\"\">\n\t\t\t\t\t<thead _v-1fb0e7b1=\"\">\n\t\t\t\t\t<tr _v-1fb0e7b1=\"\">\n\t\t\t\t\t\t<th class=\"optml-image-heading\" _v-1fb0e7b1=\"\">{{strings.image}}</th>\n\t\t\t\t\t\t<th class=\"optml-image-ratio-heading\" _v-1fb0e7b1=\"\">{{strings.compression}}</th>\n\t\t\t\t\t</tr>\n\t\t\t\t\t</thead>\n\t\t\t\t\t<tbody _v-1fb0e7b1=\"\">\n\t\t\t\t\t<tr v-for=\"(item, index) in imageData\" _v-1fb0e7b1=\"\">\n\t\t\t\t\t\t<td _v-1fb0e7b1=\"\"><a :href=\"item.url\" target=\"_blank\" _v-1fb0e7b1=\"\"><img :src=\"item.url\" class=\"optml-image\" _v-1fb0e7b1=\"\"></a></td>\n\t\t\t\t\t\t<td _v-1fb0e7b1=\"\"><p class=\"optml-ratio-feedback\" v-html=\"compressionRate(item.ex_size_raw, item.new_size_raw)\" _v-1fb0e7b1=\"\"></p>\n\t\t\t\t\t\t</td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t</tbody>\n\t\t\t\t</table>\n\t\t\t</div>\n\t\t</div>\n\t\t<div v-else=\"\" _v-1fb0e7b1=\"\">\n\t\t\t<iframe width=\"1\" height=\"1\" :src=\"home_url\" style=\"visibility: hidden\" _v-1fb0e7b1=\"\"></iframe>\n\t\t\t<h6 class=\"has-text-centered\" _v-1fb0e7b1=\"\">{{strings.loading_latest_images}}</h6>\n\t\t\t<progress class=\"progress is-large\" :value=\"startTime\" :max=\"maxTime\" _v-1fb0e7b1=\"\"></progress>\n\t\t</div>\n\t\t<table class=\"table is-striped is-hoverable is-fullwidth\" v-if=\"noImages\" _v-1fb0e7b1=\"\">\n\t\t\t<thead _v-1fb0e7b1=\"\">\n\t\t\t<tr _v-1fb0e7b1=\"\">\n\t\t\t\t<th class=\"optml-image-heading has-text-centered\" v-html=\"strings.no_images_found\" _v-1fb0e7b1=\"\"></th>\n\t\t\t</tr>\n\t\t\t</thead>\n\t\t</table>\n\t</div>\n";
 
 /***/ }),
-/* 36 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_script__, __vue_template__
-__webpack_require__(37)
-__vue_script__ = __webpack_require__(39)
-__vue_template__ = __webpack_require__(40)
+__webpack_require__(41)
+__vue_script__ = __webpack_require__(43)
+__vue_template__ = __webpack_require__(48)
 module.exports = __vue_script__ || {}
 if (module.exports.__esModule) module.exports = module.exports.default
 if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -14471,13 +14553,13 @@ if (false) {(function () {  module.hot.accept()
 })()}
 
 /***/ }),
-/* 37 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(38);
+var content = __webpack_require__(42);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
 var update = __webpack_require__(1)(content, {});
@@ -14497,7 +14579,7 @@ if(false) {
 }
 
 /***/ }),
-/* 38 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)();
@@ -14511,7 +14593,7 @@ exports.push([module.i, "\n\t.saving--option[_v-075efe40] {\n\t\topacity: .75;\n
 
 
 /***/ }),
-/* 39 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14521,7 +14603,7 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _vueTwentytwenty = __webpack_require__(48);
+var _vueTwentytwenty = __webpack_require__(6);
 
 var _vueTwentytwenty2 = _interopRequireDefault(_vueTwentytwenty);
 
@@ -14719,48 +14801,325 @@ exports.default = {
 // 		<p class="title has-text-centered is-5"> See two sample image which will help you choose the right quality of
 // 			the compression.</p>
 // 		<div class="field  columns" v-if="sample_images.id > 0">
-// 			<TwentyTwenty
-// 					offset="0.9"
-// 					before ="//placehold.it/350x150/0288D1/FFFFFF"
-// 					beforeLabel="BEFORE"
-// 					after ="//placehold.it/600x200/E8117F/FFFFFF"
-// 					afterLabel="AFTER"  />
+// 			<twenty-twenty
+// 					:before="sample_images.optimized"
+// 					:after="sample_images.original">
+// 			</twenty-twenty>
 //
-// 			<div class="column has-text-centered">
-// 				<p class="subtitle is-6">Original image</p>
-// 				<figure class="image  ">
-// 					<img :src="sample_images.original">
-// 				</figure>
-// 			</div>
-// 			<div class="column has-text-centered">
-//
-// 				<p class="subtitle is-6">Compressed image</p>
-// 				<figure class="image  ">
-// 					<img :src="sample_images.optimized">
-// 				</figure>
-// 			</div>
 // 		</div>
 //
 // 	</div>
 //
 // </template>
 //
+// <script scoped >
+
+/***/ }),
+/* 44 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(45);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, {});
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../css-loader/index.js!../../vue-loader/lib/style-rewriter.js?id=_v-dfa55610&file=TwentyTwenty.vue!../../vue-loader/lib/selector.js?type=style&index=0!./TwentyTwenty.vue", function() {
+			var newContent = require("!!../../css-loader/index.js!../../vue-loader/lib/style-rewriter.js?id=_v-dfa55610&file=TwentyTwenty.vue!../../vue-loader/lib/selector.js?type=style&index=0!./TwentyTwenty.vue");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 45 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)();
+// imports
+
+
+// module
+exports.push([module.i, "\n.twentytwenty-container {\n  position: relative;\n  overflow: hidden;\n  box-sizing: content-box;\n}\n.twentytwenty-container img {\n  max-width: 100%;\n  position: absolute;\n  top: 0;\n  left: 0;\n  display: block;\n  -webkit-user-select: none;\n     -moz-user-select: none;\n      -ms-user-select: none;\n          user-select: none;\n  z-index: 20;\n}\n.twentytwenty-container .twentytwenty-overlay {\n  z-index: 25;\n  width: 100%;\n  height: 100%;\n  top: 0;\n  position: absolute;\n  background: rgba(0, 0, 0, 0.5);\n  opacity: 0;\n  transition-property: opacity;\n  transition-duration: 0.5s;\n}\n.twentytwenty-container .twentytwenty-overlay .twentytwenty-before-label,\n.twentytwenty-container .twentytwenty-overlay .twentytwenty-after-label {\n  -webkit-user-select: none;\n     -moz-user-select: none;\n      -ms-user-select: none;\n          user-select: none;\n  position: absolute;\n  font-size: 0.8em;\n  top: calc(50% - 0.4em - 5px);\n  padding: 10px;\n  background: rgba(255, 255, 255, 0.4);\n  color: white;\n}\n.twentytwenty-container .twentytwenty-overlay .twentytwenty-before-label {\n  left: 0;\n}\n.twentytwenty-container .twentytwenty-overlay .twentytwenty-after-label {\n  right: 0;\n}\n.twentytwenty-container .twentytwenty-overlay:hover {\n  opacity: 1;\n}\n.twentytwenty-container .twentytwenty-handle {\n  cursor: move;\n  z-index: 30;\n  position: absolute;\n  background: none;\n  border: 4px solid white;\n  border-radius: 50px;\n  margin-left: -4px;\n  margin-top: -4px;\n  -webkit-user-select: none;\n     -moz-user-select: none;\n      -ms-user-select: none;\n          user-select: none;\n}\n.twentytwenty-container .twentytwenty-handle:before, .twentytwenty-container .twentytwenty-handle:after {\n  content: \"\";\n  border: 2px solid white;\n  height: 9999px;\n  position: absolute;\n  left: calc(50% - 2px);\n}\n.twentytwenty-container .twentytwenty-handle:before {\n  top: 40px;\n}\n.twentytwenty-container .twentytwenty-handle:after {\n  bottom: 40px;\n}\n.twentytwenty-container .twentytwenty-arrow-right,\n.twentytwenty-container .twentytwenty-arrow-left {\n  -webkit-user-select: none;\n     -moz-user-select: none;\n      -ms-user-select: none;\n          user-select: none;\n  position: relative;\n  width: 0;\n  height: 0;\n}\n.twentytwenty-container .twentytwenty-arrow-right {\n  bottom: 10px;\n  left: 23px;\n  border-top: 10px solid transparent;\n  border-bottom: 10px solid transparent;\n  border-left: 10px solid white;\n}\n.twentytwenty-container .twentytwenty-arrow-left {\n  top: 10px;\n  left: 7px;\n  border-top: 10px solid transparent;\n  border-bottom: 10px solid transparent;\n  border-right: 10px solid white;\n}\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+// <template>
+//   <div class="twentytwenty-container"
+//     v-on:touchstart="startSlide"
+//     v-on:mousedown="startSlide">
+//     <img :src="after" alt="after"
+//       v-on:mousedown.prevent
+//       v-on:load="setDimensions"  @load="loaded(0)" />
+//
+//     <img :src="before" alt="before"
+//       v-on:mousedown.prevent
+//          @load="loaded(1)"
+//       v-bind:style="beforeImgStyle" />
+//     <div class="twentytwenty-overlay">
+//       <div v-if="beforeLabel" class="twentytwenty-before-label">{{beforeLabel}}</div>
+//       <div v-if="afterLabel" class="twentytwenty-after-label">{{afterLabel}}</div>
+//     </div>
+//     <div class="twentytwenty-handle"
+//       v-bind:style="handleStyle">
+//         <div class="twentytwenty-arrow-left"></div>
+//         <div class="twentytwenty-arrow-right"></div>
+//     </div>
+//   </div>
+// </template>
+//
 // <script>
+exports.default = {
+  data: function data() {
+    return {
+      imgOffset: null,
+      slideOffset: this.offset,
+      sliding: false,
+      load_1: false,
+      load_2: false,
+      containerStyle: {}
+    };
+  },
+
+
+  props: {
+    before: {
+      type: String,
+      required: true
+    },
+    beforeLabel: {
+      type: String
+    },
+    after: {
+      type: String,
+      required: true
+    },
+    afterLabel: {
+      type: String
+    },
+    offset: {
+      type: [String, Number],
+      default: 0.5,
+      validator: function validator(value) {
+        return value > 0 && value <= 1;
+      }
+    }
+  },
+
+  methods: {
+    setDimensions: function setDimensions() {
+      var img = this.$el.querySelector("img");
+      this.imgOffset = img.getBoundingClientRect();
+      console.log(img.width);
+      this.containerStyle = { width: this.w + "px", height: this.h + "px" };
+    },
+    startSlide: function startSlide(event) {
+      this.sliding = true;
+      this.moveSlide(event);
+    },
+    moveSlide: function moveSlide(event) {
+      if (this.sliding) {
+        var x = (event.touches ? event.touches[0].pageX : event.pageX) - this.imgOffset.left;
+        x = x < 0 ? 0 : x > this.w ? this.w : x;
+
+        this.slideOffset = x / this.w;
+      }
+    },
+    loaded: function loaded(no) {
+      if (no === 0) {
+        this.load_1 = true;
+      }
+      if (no === 0) {
+        this.load_2 = true;
+      }
+      console.log(no);
+      this.resize();
+    },
+    endSlide: function endSlide() {
+      this.sliding = false;
+    },
+    resize: function resize() {
+      this.containerStyle = {};
+      if (this.load_1 && this.load_2) {
+        this.setDimensions();
+      }
+    }
+  },
+
+  computed: {
+    beforeImgStyle: function beforeImgStyle() {
+      return { clip: "rect(0, " + this.x + "px, " + this.h + "px, 0)" };
+    },
+    handleStyle: function handleStyle() {
+      var size = 40;
+      return {
+        width: size + "px",
+        height: size + "px",
+        top: "calc(50% - " + size / 2 + "px)",
+        left: "calc(" + this.slideOffset * 100 + "% - " + size / 2 + "px)"
+      };
+    },
+    x: function x() {
+      return this.w * this.slideOffset;
+    },
+    w: function w() {
+      if (this.imgOffset) return this.imgOffset.width;
+    },
+    h: function h() {
+      if (this.imgOffset) return this.imgOffset.height;
+    }
+  },
+
+  mounted: function mounted() {
+    document.addEventListener("touchmove", this.moveSlide);
+    document.addEventListener("touchend", this.endSlide);
+    document.addEventListener("mousemove", this.moveSlide);
+    document.addEventListener("mouseup", this.endSlide);
+    window.addEventListener("resize", this.resize);
+  },
+  beforeDestroy: function beforeDestroy() {
+    document.removeEventListener("touchmove", this.moveSlide);
+    document.removeEventListener("touchend", this.endSlide);
+    document.removeEventListener("mousemove", this.moveSlide);
+    document.removeEventListener("mouseup", this.endSlide);
+    window.removeEventListener("resize", this.resize);
+  }
+};
+// </script>
+//
+// <style>
+// .twentytwenty-container {
+//   position: relative;
+//   overflow: hidden;
+//   box-sizing: content-box;
+// }
+// .twentytwenty-container img {
+//   max-width: 100%;
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   display: block;
+//   user-select: none;
+//   z-index: 20;
+// }
+// .twentytwenty-container .twentytwenty-overlay {
+//   z-index: 25;
+//   width: 100%;
+//   height: 100%;
+//   top: 0;
+//   position: absolute;
+//   background: rgba(0, 0, 0, 0.5);
+//   opacity: 0;
+//   transition-property: opacity;
+//   transition-duration: 0.5s;
+// }
+// .twentytwenty-container .twentytwenty-overlay .twentytwenty-before-label,
+// .twentytwenty-container .twentytwenty-overlay .twentytwenty-after-label {
+//   user-select: none;
+//   position: absolute;
+//   font-size: 0.8em;
+//   top: calc(50% - 0.4em - 5px);
+//   padding: 10px;
+//   background: rgba(255, 255, 255, 0.4);
+//   color: white;
+// }
+// .twentytwenty-container .twentytwenty-overlay .twentytwenty-before-label {
+//   left: 0;
+// }
+// .twentytwenty-container .twentytwenty-overlay .twentytwenty-after-label {
+//   right: 0;
+// }
+// .twentytwenty-container .twentytwenty-overlay:hover {
+//   opacity: 1;
+// }
+// .twentytwenty-container .twentytwenty-handle {
+//   cursor: move;
+//   z-index: 30;
+//   position: absolute;
+//   background: none;
+//   border: 4px solid white;
+//   border-radius: 50px;
+//   margin-left: -4px;
+//   margin-top: -4px;
+//   user-select: none;
+// }
+// .twentytwenty-container .twentytwenty-handle:before, .twentytwenty-container .twentytwenty-handle:after {
+//   content: "";
+//   border: 2px solid white;
+//   height: 9999px;
+//   position: absolute;
+//   left: calc(50% - 2px);
+// }
+// .twentytwenty-container .twentytwenty-handle:before {
+//   top: 40px;
+// }
+// .twentytwenty-container .twentytwenty-handle:after {
+//   bottom: 40px;
+// }
+// .twentytwenty-container .twentytwenty-arrow-right,
+// .twentytwenty-container .twentytwenty-arrow-left {
+//   user-select: none;
+//   position: relative;
+//   width: 0;
+//   height: 0;
+// }
+// .twentytwenty-container .twentytwenty-arrow-right {
+//   bottom: 10px;
+//   left: 23px;
+//   border-top: 10px solid transparent;
+//   border-bottom: 10px solid transparent;
+//   border-left: 10px solid white;
+// }
+// .twentytwenty-container .twentytwenty-arrow-left {
+//   top: 10px;
+//   left: 7px;
+//   border-top: 10px solid transparent;
+//   border-bottom: 10px solid transparent;
+//   border-right: 10px solid white;
+// }
+// </style>
+//
 
 /***/ }),
-/* 40 */
+/* 47 */
 /***/ (function(module, exports) {
 
-module.exports = "\n\t<div class=\" container \" :class=\"{ 'saving--option' : this.$store.state.loading }\" _v-075efe40=\"\">\n\t\t<div class=\"columns\" v-if=\"showNotification\" _v-075efe40=\"\">\n\t\t\t<div class=\"notification  column is-one-quarter is-success\" _v-075efe40=\"\">\n\t\t\t\t{{strings.option_saved}}\n\t\t\t</div>\n\t\t</div>\n\t\t\n\t\t<div class=\"field  columns\" _v-075efe40=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-075efe40=\"\">\n\t\t\t\t{{strings.enable_image_replace}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-075efe40=\"\">\n\t\t\t\t\t{{strings.replacer_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t<div class=\"column \" _v-075efe40=\"\">\n\t\t\t\t<toggle-button @change=\"toggleOption('image_replacer')\" :class=\"'has-text-dark'\" :value=\"imageReplacerStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.enabled, unchecked: strings.disabled}\" :width=\"80\" :height=\"25\" color=\"#008ec2\" _v-075efe40=\"\"></toggle-button>\n\t\t\t</div>\n\t\t\n\t\t</div>\n\t\t<div class=\"field  is-fullwidth columns\" _v-075efe40=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-075efe40=\"\">\n\t\t\t\t{{strings.toggle_ab_item}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-075efe40=\"\">\n\t\t\t\t\t{{strings.admin_bar_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t\n\t\t\t<div class=\"column \" _v-075efe40=\"\">\n\t\t\t\t<toggle-button :class=\"'has-text-dark'\" @change=\"toggleOption('admin_bar_item')\" v-model=\"adminBarItemStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.show, unchecked: strings.hide}\" :width=\"80\" :height=\"25\" color=\"#008ec2\" _v-075efe40=\"\"></toggle-button>\n\t\t\t</div>\n\t\t</div>\n\t\t<div class=\"field  columns\" _v-075efe40=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-075efe40=\"\">\n\t\t\t\t{{strings.quality_title}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-075efe40=\"\">\n\t\t\t\t\t{{strings.quality_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t<div class=\"column \" _v-075efe40=\"\">\n\t\t\t\t<div class=\"field has-addons\" _v-075efe40=\"\">\n\t\t\t\t\t\n\t\t\t\t\t<p class=\"control\" _v-075efe40=\"\">\n\t\t\t\t\t\t<a @click=\"changeQuality('auto')\" :class=\"{ 'is-info':( quality_saved === 'auto' ) }\" class=\"button is-small is-rounded\" _v-075efe40=\"\">\n\t\t\t\t\t\t\t<span class=\"icon is-small dashicons-admin-customizer dashicons\" _v-075efe40=\"\"></span>\n\t\t\t\t\t\t\t<span _v-075efe40=\"\">{{strings.auto_q_title}}</span>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</p>\n\t\t\t\t\t\n\t\t\t\t\t<p class=\"control\" _v-075efe40=\"\">\n\t\t\t\t\t\t<a @click=\"changeQuality('low')\" :class=\"{ 'is-info':( quality_saved === 'low' ) }\" class=\"button   is-small\" _v-075efe40=\"\">\n\t\t\t\t\t\t\t<span class=\"icon is-small dashicons dashicons-arrow-right\" _v-075efe40=\"\"></span>\n\t\t\t\t\t\t\t<span _v-075efe40=\"\">{{strings.low_q_title}}</span>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</p>\n\t\t\t\t\t\n\t\t\t\t\t<p class=\"control\" _v-075efe40=\"\">\n\t\t\t\t\t\t<a @click=\"changeQuality('medium')\" :class=\"{ 'is-info':( quality_saved === 'medium' ) }\" class=\"button   is-small\" _v-075efe40=\"\">\n\t\t\t\t\t\t\t<span class=\"icon is-small dashicons dashicons-controls-play\" _v-075efe40=\"\"></span>\n\t\t\t\t\t\t\t<span _v-075efe40=\"\">{{strings.medium_q_title}}</span>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</p>\n\t\t\t\t\t<p class=\"control\" _v-075efe40=\"\">\n\t\t\t\t\t\t<a @click=\"changeQuality('high')\" :class=\"{ 'is-info':( quality_saved === 'high' ) }\" class=\"button    is-rounded is-small\" _v-075efe40=\"\">\n\t\t\t\t\t\t\t<span class=\"icon is-small dashicons dashicons-controls-forward\" _v-075efe40=\"\"></span>\n\t\t\t\t\t\t\t<span _v-075efe40=\"\">{{strings.high_q_title}}</span>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t\n\t\t<p class=\"title has-text-centered is-5\" _v-075efe40=\"\"> See two sample image which will help you choose the right quality of\n\t\t\tthe compression.</p>\n\t\t<div class=\"field  columns\" v-if=\"sample_images.id > 0\" _v-075efe40=\"\">\n\t\t\t<twentytwenty offset=\"0.9\" before=\"//placehold.it/350x150/0288D1/FFFFFF\" beforelabel=\"BEFORE\" after=\"//placehold.it/600x200/E8117F/FFFFFF\" afterlabel=\"AFTER\" _v-075efe40=\"\">\n\t\t\t\n\t\t\t<div class=\"column has-text-centered\" _v-075efe40=\"\">\n\t\t\t\t<p class=\"subtitle is-6\" _v-075efe40=\"\">Original image</p>\n\t\t\t\t<figure class=\"image  \" _v-075efe40=\"\">\n\t\t\t\t\t<img :src=\"sample_images.original\" _v-075efe40=\"\">\n\t\t\t\t</figure>\n\t\t\t</div>\n\t\t\t<div class=\"column has-text-centered\" _v-075efe40=\"\">\n\t\t\t\t\n\t\t\t\t<p class=\"subtitle is-6\" _v-075efe40=\"\">Compressed image</p>\n\t\t\t\t<figure class=\"image  \" _v-075efe40=\"\">\n\t\t\t\t\t<img :src=\"sample_images.optimized\" _v-075efe40=\"\">\n\t\t\t\t</figure>\n\t\t\t</div>\n\t\t</twentytwenty></div>\n\t\n\t</div>\n\n";
+module.exports = "\n  <div class=\"twentytwenty-container\"\n    v-on:touchstart=\"startSlide\"\n    v-on:mousedown=\"startSlide\">\n    <img :src=\"after\" alt=\"after\"\n      v-on:mousedown.prevent\n      v-on:load=\"setDimensions\"  @load=\"loaded(0)\" />\n\t  \n    <img :src=\"before\" alt=\"before\"\n      v-on:mousedown.prevent\n         @load=\"loaded(1)\"\n      v-bind:style=\"beforeImgStyle\" />\n    <div class=\"twentytwenty-overlay\">\n      <div v-if=\"beforeLabel\" class=\"twentytwenty-before-label\">{{beforeLabel}}</div>\n      <div v-if=\"afterLabel\" class=\"twentytwenty-after-label\">{{afterLabel}}</div>\n    </div>\n    <div class=\"twentytwenty-handle\"\n      v-bind:style=\"handleStyle\">\n        <div class=\"twentytwenty-arrow-left\"></div>\n        <div class=\"twentytwenty-arrow-right\"></div>\n    </div>\n  </div>\n";
 
 /***/ }),
-/* 41 */
+/* 48 */
 /***/ (function(module, exports) {
 
-module.exports = "\n\t<div class=\"card\">\n\t\t<app-header></app-header>\n\t\t<div class=\"card-content\">\n\t\t\t<div class=\"content\">\n\t\t\t\t<connect-layout v-if=\"! this.$store.state.connected\"></connect-layout>\n\t\t\t\t<transition name=\"fade\" mode=\"out-in\">\n\t\t\t\t\t<div v-if=\"this.$store.state.connected\">\n\t\t\t\t\t\t<div class=\"tabs is-left is-boxed is-medium\">\n\t\t\t\t\t\t\t<ul class=\"is-marginless\">\n\t\t\t\t\t\t\t\t<li :class=\"tab === 'dashboard' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('dashboard')\">\n\t\t\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-admin-home\"></span>\n\t\t\t\t\t\t\t\t\t\t<span>{{strings.dashboard_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t<li :class=\"tab === 'settings' ? 'is-active' : ''\" >\n\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('settings')\">\n\t\t\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-admin-settings\"></span>\n\t\t\t\t\t\t\t\t\t\t<span>{{strings.settings_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t</ul>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\n\t\t\t\t\t\t<div class=\"is-tab\" v-show=\"tab === 'dashboard' \">\n\t\t\t\t\t\t\t<api-key-form></api-key-form>\n\t\t\t\t\t\t\t<cdn-details v-if=\"this.$store.state.userData\"></cdn-details>\n\t\t\t\t\t\t\t<hr/>\n\t\t\t\t\t\t\t<last-images :status=\"fetchStatus\"></last-images>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"is-tab\" v-show=\" tab === 'settings'\" >\n\t\t\t\t\t\t\t<options></options>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</transition>\n\t\t\t</div>\n\t\t</div>\n\t\t\n\t\t<div class=\"level-right\">\n\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com\" target=\"_blank\">Optimole v{{strings.version}}</a></p>\n\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/terms/\" target=\"_blank\">{{strings.terms_menu}}</a></p>\n\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/privacy-policy/\" target=\"_blank\">{{strings.privacy_menu}}</a>\n\t\t\t</p>\n\t\t\t<p class=\"level-item\"><a :href=\"'https://speedtest.optimole.com/?url=' + home \" target=\"_blank\">{{strings.testdrive_menu}}</a>\n\t\t\t</p>\n\t\t</div>\n\t</div>\n";
+module.exports = "\n\t<div class=\" container \" :class=\"{ 'saving--option' : this.$store.state.loading }\" _v-075efe40=\"\">\n\t\t<div class=\"columns\" v-if=\"showNotification\" _v-075efe40=\"\">\n\t\t\t<div class=\"notification  column is-one-quarter is-success\" _v-075efe40=\"\">\n\t\t\t\t{{strings.option_saved}}\n\t\t\t</div>\n\t\t</div>\n\t\t\n\t\t<div class=\"field  columns\" _v-075efe40=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-075efe40=\"\">\n\t\t\t\t{{strings.enable_image_replace}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-075efe40=\"\">\n\t\t\t\t\t{{strings.replacer_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t<div class=\"column \" _v-075efe40=\"\">\n\t\t\t\t<toggle-button @change=\"toggleOption('image_replacer')\" :class=\"'has-text-dark'\" :value=\"imageReplacerStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.enabled, unchecked: strings.disabled}\" :width=\"80\" :height=\"25\" color=\"#008ec2\" _v-075efe40=\"\"></toggle-button>\n\t\t\t</div>\n\t\t\n\t\t</div>\n\t\t<div class=\"field  is-fullwidth columns\" _v-075efe40=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-075efe40=\"\">\n\t\t\t\t{{strings.toggle_ab_item}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-075efe40=\"\">\n\t\t\t\t\t{{strings.admin_bar_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t\n\t\t\t<div class=\"column \" _v-075efe40=\"\">\n\t\t\t\t<toggle-button :class=\"'has-text-dark'\" @change=\"toggleOption('admin_bar_item')\" v-model=\"adminBarItemStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.show, unchecked: strings.hide}\" :width=\"80\" :height=\"25\" color=\"#008ec2\" _v-075efe40=\"\"></toggle-button>\n\t\t\t</div>\n\t\t</div>\n\t\t<div class=\"field  columns\" _v-075efe40=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-075efe40=\"\">\n\t\t\t\t{{strings.quality_title}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-075efe40=\"\">\n\t\t\t\t\t{{strings.quality_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t<div class=\"column \" _v-075efe40=\"\">\n\t\t\t\t<div class=\"field has-addons\" _v-075efe40=\"\">\n\t\t\t\t\t\n\t\t\t\t\t<p class=\"control\" _v-075efe40=\"\">\n\t\t\t\t\t\t<a @click=\"changeQuality('auto')\" :class=\"{ 'is-info':( quality_saved === 'auto' ) }\" class=\"button is-small is-rounded\" _v-075efe40=\"\">\n\t\t\t\t\t\t\t<span class=\"icon is-small dashicons-admin-customizer dashicons\" _v-075efe40=\"\"></span>\n\t\t\t\t\t\t\t<span _v-075efe40=\"\">{{strings.auto_q_title}}</span>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</p>\n\t\t\t\t\t\n\t\t\t\t\t<p class=\"control\" _v-075efe40=\"\">\n\t\t\t\t\t\t<a @click=\"changeQuality('low')\" :class=\"{ 'is-info':( quality_saved === 'low' ) }\" class=\"button   is-small\" _v-075efe40=\"\">\n\t\t\t\t\t\t\t<span class=\"icon is-small dashicons dashicons-arrow-right\" _v-075efe40=\"\"></span>\n\t\t\t\t\t\t\t<span _v-075efe40=\"\">{{strings.low_q_title}}</span>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</p>\n\t\t\t\t\t\n\t\t\t\t\t<p class=\"control\" _v-075efe40=\"\">\n\t\t\t\t\t\t<a @click=\"changeQuality('medium')\" :class=\"{ 'is-info':( quality_saved === 'medium' ) }\" class=\"button   is-small\" _v-075efe40=\"\">\n\t\t\t\t\t\t\t<span class=\"icon is-small dashicons dashicons-controls-play\" _v-075efe40=\"\"></span>\n\t\t\t\t\t\t\t<span _v-075efe40=\"\">{{strings.medium_q_title}}</span>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</p>\n\t\t\t\t\t<p class=\"control\" _v-075efe40=\"\">\n\t\t\t\t\t\t<a @click=\"changeQuality('high')\" :class=\"{ 'is-info':( quality_saved === 'high' ) }\" class=\"button    is-rounded is-small\" _v-075efe40=\"\">\n\t\t\t\t\t\t\t<span class=\"icon is-small dashicons dashicons-controls-forward\" _v-075efe40=\"\"></span>\n\t\t\t\t\t\t\t<span _v-075efe40=\"\">{{strings.high_q_title}}</span>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t\n\t\t<p class=\"title has-text-centered is-5\" _v-075efe40=\"\"> See two sample image which will help you choose the right quality of\n\t\t\tthe compression.</p>\n\t\t<div class=\"field  columns\" v-if=\"sample_images.id > 0\" _v-075efe40=\"\">\n\t\t\t<twenty-twenty :before=\"sample_images.optimized\" :after=\"sample_images.original\" _v-075efe40=\"\">\n\t\t\t</twenty-twenty>\n\t\t\t\n\t\t</div>\n\t\n\t</div>\n\n";
 
 /***/ }),
-/* 42 */
+/* 49 */
+/***/ (function(module, exports) {
+
+module.exports = "\n\t<div class=\"card\">\n\t\t<app-header></app-header>\n\t\t<div class=\"card-content\">\n\t\t\t<div class=\"content\">\n\t\t\t\t<connect-layout v-if=\"! this.$store.state.connected\"></connect-layout>\n\t\t\t\t<transition name=\"fade\" mode=\"out-in\">\n\t\t\t\t\t<div v-if=\"this.$store.state.connected\">\n\t\t\t\t\t\t<div class=\"tabs is-left is-boxed is-medium\">\n\t\t\t\t\t\t\t<ul class=\"is-marginless\">\n\t\t\t\t\t\t\t\t<li :class=\"tab === 'dashboard' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('dashboard')\">\n\t\t\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-admin-home\"></span>\n\t\t\t\t\t\t\t\t\t\t<span>{{strings.dashboard_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t<li :class=\"tab === 'settings' ? 'is-active' : ''\" >\n\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('settings')\">\n\t\t\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-admin-settings\"></span>\n\t\t\t\t\t\t\t\t\t\t<span>{{strings.settings_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t</ul>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\n\t\t\t\t\t\t<div class=\"is-tab\" v-if=\"tab === 'dashboard' \">\n\t\t\t\t\t\t\t<api-key-form></api-key-form>\n\t\t\t\t\t\t\t<cdn-details v-if=\"this.$store.state.userData\"></cdn-details>\n\t\t\t\t\t\t\t<hr/>\n\t\t\t\t\t\t\t<last-images :status=\"fetchStatus\"></last-images>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"is-tab\" v-if=\" tab === 'settings'\" >\n\t\t\t\t\t\t\t<options></options>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</transition>\n\t\t\t</div>\n\t\t</div>\n\t\t\n\t\t<div class=\"level-right\">\n\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com\" target=\"_blank\">Optimole v{{strings.version}}</a></p>\n\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/terms/\" target=\"_blank\">{{strings.terms_menu}}</a></p>\n\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/privacy-policy/\" target=\"_blank\">{{strings.privacy_menu}}</a>\n\t\t\t</p>\n\t\t\t<p class=\"level-item\"><a :href=\"'https://speedtest.optimole.com/?url=' + home \" target=\"_blank\">{{strings.testdrive_menu}}</a>\n\t\t\t</p>\n\t\t</div>\n\t</div>\n";
+
+/***/ }),
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -14774,19 +15133,19 @@ var _vue = __webpack_require__(2);
 
 var _vue2 = _interopRequireDefault(_vue);
 
-var _vuex = __webpack_require__(43);
+var _vuex = __webpack_require__(51);
 
 var _vuex2 = _interopRequireDefault(_vuex);
 
-var _vueResource = __webpack_require__(6);
+var _vueResource = __webpack_require__(7);
 
 var _vueResource2 = _interopRequireDefault(_vueResource);
 
-var _mutations = __webpack_require__(45);
+var _mutations = __webpack_require__(53);
 
 var _mutations2 = _interopRequireDefault(_mutations);
 
-var _actions = __webpack_require__(46);
+var _actions = __webpack_require__(54);
 
 var _actions2 = _interopRequireDefault(_actions);
 
@@ -14816,7 +15175,7 @@ var store = new _vuex2.default.Store({
 exports.default = store;
 
 /***/ }),
-/* 43 */
+/* 51 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -15763,13 +16122,13 @@ var index_esm = {
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(3)))
 
 /***/ }),
-/* 44 */
+/* 52 */
 /***/ (function(module, exports) {
 
 /* (ignored) */
 
 /***/ }),
-/* 45 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15812,7 +16171,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 46 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15826,7 +16185,7 @@ var _vue = __webpack_require__(2);
 
 var _vue2 = _interopRequireDefault(_vue);
 
-var _vueResource = __webpack_require__(6);
+var _vueResource = __webpack_require__(7);
 
 var _vueResource2 = _interopRequireDefault(_vueResource);
 
@@ -15995,7 +16354,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 47 */
+/* 55 */
 /***/ (function(module, exports, __webpack_require__) {
 
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -16794,309 +17153,6 @@ module.exports = function listToStyles (parentId, list) {
 /******/ ]);
 });
 //# sourceMappingURL=index.js.map
-
-/***/ }),
-/* 48 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __vue_script__, __vue_template__
-__webpack_require__(49)
-__vue_script__ = __webpack_require__(51)
-__vue_template__ = __webpack_require__(52)
-module.exports = __vue_script__ || {}
-if (module.exports.__esModule) module.exports = module.exports.default
-if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
-if (false) {(function () {  module.hot.accept()
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), true)
-  if (!hotAPI.compatible) return
-  var id = "/Users/selul/dev/optimole-wp/node_modules/vue-twentytwenty/src/TwentyTwenty.vue"
-  if (!module.hot.data) {
-    hotAPI.createRecord(id, module.exports)
-  } else {
-    hotAPI.update(id, module.exports, __vue_template__)
-  }
-})()}
-
-/***/ }),
-/* 49 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// style-loader: Adds some css to the DOM by adding a <style> tag
-
-// load the styles
-var content = __webpack_require__(50);
-if(typeof content === 'string') content = [[module.i, content, '']];
-// add the styles to the DOM
-var update = __webpack_require__(1)(content, {});
-if(content.locals) module.exports = content.locals;
-// Hot Module Replacement
-if(false) {
-	// When the styles change, update the <style> tags
-	if(!content.locals) {
-		module.hot.accept("!!../../css-loader/index.js!../../vue-loader/lib/style-rewriter.js?id=_v-dfa55610&file=TwentyTwenty.vue!../../vue-loader/lib/selector.js?type=style&index=0!./TwentyTwenty.vue", function() {
-			var newContent = require("!!../../css-loader/index.js!../../vue-loader/lib/style-rewriter.js?id=_v-dfa55610&file=TwentyTwenty.vue!../../vue-loader/lib/selector.js?type=style&index=0!./TwentyTwenty.vue");
-			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
-			update(newContent);
-		});
-	}
-	// When the module is disposed, remove the <style> tags
-	module.hot.dispose(function() { update(); });
-}
-
-/***/ }),
-/* 50 */
-/***/ (function(module, exports, __webpack_require__) {
-
-exports = module.exports = __webpack_require__(0)();
-// imports
-
-
-// module
-exports.push([module.i, "\n.twentytwenty-container {\n  position: relative;\n  overflow: hidden;\n  box-sizing: content-box;\n}\n.twentytwenty-container img {\n  max-width: 100%;\n  position: absolute;\n  top: 0;\n  left: 0;\n  display: block;\n  -webkit-user-select: none;\n     -moz-user-select: none;\n      -ms-user-select: none;\n          user-select: none;\n  z-index: 20;\n}\n.twentytwenty-container .twentytwenty-overlay {\n  z-index: 25;\n  width: 100%;\n  height: 100%;\n  top: 0;\n  position: absolute;\n  background: rgba(0, 0, 0, 0.5);\n  opacity: 0;\n  transition-property: opacity;\n  transition-duration: 0.5s;\n}\n.twentytwenty-container .twentytwenty-overlay .twentytwenty-before-label,\n.twentytwenty-container .twentytwenty-overlay .twentytwenty-after-label {\n  -webkit-user-select: none;\n     -moz-user-select: none;\n      -ms-user-select: none;\n          user-select: none;\n  position: absolute;\n  font-size: 0.8em;\n  top: calc(50% - 0.4em - 5px);\n  padding: 10px;\n  background: rgba(255, 255, 255, 0.4);\n  color: white;\n}\n.twentytwenty-container .twentytwenty-overlay .twentytwenty-before-label {\n  left: 0;\n}\n.twentytwenty-container .twentytwenty-overlay .twentytwenty-after-label {\n  right: 0;\n}\n.twentytwenty-container .twentytwenty-overlay:hover {\n  opacity: 1;\n}\n.twentytwenty-container .twentytwenty-handle {\n  cursor: move;\n  z-index: 30;\n  position: absolute;\n  background: none;\n  border: 4px solid white;\n  border-radius: 50px;\n  margin-left: -4px;\n  margin-top: -4px;\n  -webkit-user-select: none;\n     -moz-user-select: none;\n      -ms-user-select: none;\n          user-select: none;\n}\n.twentytwenty-container .twentytwenty-handle:before, .twentytwenty-container .twentytwenty-handle:after {\n  content: \"\";\n  border: 2px solid white;\n  height: 9999px;\n  position: absolute;\n  left: calc(50% - 2px);\n}\n.twentytwenty-container .twentytwenty-handle:before {\n  top: 40px;\n}\n.twentytwenty-container .twentytwenty-handle:after {\n  bottom: 40px;\n}\n.twentytwenty-container .twentytwenty-arrow-right,\n.twentytwenty-container .twentytwenty-arrow-left {\n  -webkit-user-select: none;\n     -moz-user-select: none;\n      -ms-user-select: none;\n          user-select: none;\n  position: relative;\n  width: 0;\n  height: 0;\n}\n.twentytwenty-container .twentytwenty-arrow-right {\n  bottom: 10px;\n  left: 23px;\n  border-top: 10px solid transparent;\n  border-bottom: 10px solid transparent;\n  border-left: 10px solid white;\n}\n.twentytwenty-container .twentytwenty-arrow-left {\n  top: 10px;\n  left: 7px;\n  border-top: 10px solid transparent;\n  border-bottom: 10px solid transparent;\n  border-right: 10px solid white;\n}\n", ""]);
-
-// exports
-
-
-/***/ }),
-/* 51 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-// <template>
-//   <div class="twentytwenty-container"
-//     v-bind:style="containerStyle"
-//     v-on:touchstart="startSlide"
-//     v-on:mousedown="startSlide">
-//     <img :src="after" alt="after"
-//       v-on:mousedown.prevent
-//       v-on:load="setDimensions" />
-//     <img :src="before" alt="before"
-//       v-on:mousedown.prevent
-//       v-bind:style="beforeImgStyle" />
-//     <div class="twentytwenty-overlay">
-//       <div v-if="beforeLabel" class="twentytwenty-before-label">{{beforeLabel}}</div>
-//       <div v-if="afterLabel" class="twentytwenty-after-label">{{afterLabel}}</div>
-//     </div>
-//     <div class="twentytwenty-handle"
-//       v-bind:style="handleStyle">
-//         <div class="twentytwenty-arrow-left"></div>
-//         <div class="twentytwenty-arrow-right"></div>
-//     </div>
-//   </div>
-// </template>
-//
-// <script>
-exports.default = {
-  data: function data() {
-    return {
-      imgOffset: null,
-      slideOffset: this.offset,
-      sliding: false,
-      containerStyle: {}
-    };
-  },
-
-
-  props: {
-    before: {
-      type: String,
-      required: true
-    },
-    beforeLabel: {
-      type: String
-    },
-    after: {
-      type: String,
-      required: true
-    },
-    afterLabel: {
-      type: String
-    },
-    offset: {
-      type: [String, Number],
-      default: 0.5,
-      validator: function validator(value) {
-        return value > 0 && value <= 1;
-      }
-    }
-  },
-
-  methods: {
-    setDimensions: function setDimensions() {
-      var img = this.$el.querySelector("img");
-      this.imgOffset = img.getBoundingClientRect();
-      this.containerStyle = { width: this.w + "px", height: this.h + "px" };
-    },
-    startSlide: function startSlide(event) {
-      this.sliding = true;
-      this.moveSlide(event);
-    },
-    moveSlide: function moveSlide(event) {
-      if (this.sliding) {
-        var x = (event.touches ? event.touches[0].pageX : event.pageX) - this.imgOffset.left;
-        x = x < 0 ? 0 : x > this.w ? this.w : x;
-
-        this.slideOffset = x / this.w;
-      }
-    },
-    endSlide: function endSlide() {
-      this.sliding = false;
-    },
-    resize: function resize() {
-      var _this = this;
-
-      this.containerStyle = {};
-      this.$nextTick(function () {
-        return _this.setDimensions();
-      });
-    }
-  },
-
-  computed: {
-    beforeImgStyle: function beforeImgStyle() {
-      return { clip: "rect(0, " + this.x + "px, " + this.h + "px, 0)" };
-    },
-    handleStyle: function handleStyle() {
-      var size = 40;
-      return {
-        width: size + "px",
-        height: size + "px",
-        top: "calc(50% - " + size / 2 + "px)",
-        left: "calc(" + this.slideOffset * 100 + "% - " + size / 2 + "px)"
-      };
-    },
-    x: function x() {
-      return this.w * this.slideOffset;
-    },
-    w: function w() {
-      if (this.imgOffset) return this.imgOffset.width;
-    },
-    h: function h() {
-      if (this.imgOffset) return this.imgOffset.height;
-    }
-  },
-
-  mounted: function mounted() {
-    document.addEventListener("touchmove", this.moveSlide);
-    document.addEventListener("touchend", this.endSlide);
-    document.addEventListener("mousemove", this.moveSlide);
-    document.addEventListener("mouseup", this.endSlide);
-    window.addEventListener("resize", this.resize);
-  },
-  beforeDestroy: function beforeDestroy() {
-    document.removeEventListener("touchmove", this.moveSlide);
-    document.removeEventListener("touchend", this.endSlide);
-    document.removeEventListener("mousemove", this.moveSlide);
-    document.removeEventListener("mouseup", this.endSlide);
-    window.removeEventListener("resize", this.resize);
-  }
-};
-// </script>
-//
-// <style>
-// .twentytwenty-container {
-//   position: relative;
-//   overflow: hidden;
-//   box-sizing: content-box;
-// }
-// .twentytwenty-container img {
-//   max-width: 100%;
-//   position: absolute;
-//   top: 0;
-//   left: 0;
-//   display: block;
-//   user-select: none;
-//   z-index: 20;
-// }
-// .twentytwenty-container .twentytwenty-overlay {
-//   z-index: 25;
-//   width: 100%;
-//   height: 100%;
-//   top: 0;
-//   position: absolute;
-//   background: rgba(0, 0, 0, 0.5);
-//   opacity: 0;
-//   transition-property: opacity;
-//   transition-duration: 0.5s;
-// }
-// .twentytwenty-container .twentytwenty-overlay .twentytwenty-before-label,
-// .twentytwenty-container .twentytwenty-overlay .twentytwenty-after-label {
-//   user-select: none;
-//   position: absolute;
-//   font-size: 0.8em;
-//   top: calc(50% - 0.4em - 5px);
-//   padding: 10px;
-//   background: rgba(255, 255, 255, 0.4);
-//   color: white;
-// }
-// .twentytwenty-container .twentytwenty-overlay .twentytwenty-before-label {
-//   left: 0;
-// }
-// .twentytwenty-container .twentytwenty-overlay .twentytwenty-after-label {
-//   right: 0;
-// }
-// .twentytwenty-container .twentytwenty-overlay:hover {
-//   opacity: 1;
-// }
-// .twentytwenty-container .twentytwenty-handle {
-//   cursor: move;
-//   z-index: 30;
-//   position: absolute;
-//   background: none;
-//   border: 4px solid white;
-//   border-radius: 50px;
-//   margin-left: -4px;
-//   margin-top: -4px;
-//   user-select: none;
-// }
-// .twentytwenty-container .twentytwenty-handle:before, .twentytwenty-container .twentytwenty-handle:after {
-//   content: "";
-//   border: 2px solid white;
-//   height: 9999px;
-//   position: absolute;
-//   left: calc(50% - 2px);
-// }
-// .twentytwenty-container .twentytwenty-handle:before {
-//   top: 40px;
-// }
-// .twentytwenty-container .twentytwenty-handle:after {
-//   bottom: 40px;
-// }
-// .twentytwenty-container .twentytwenty-arrow-right,
-// .twentytwenty-container .twentytwenty-arrow-left {
-//   user-select: none;
-//   position: relative;
-//   width: 0;
-//   height: 0;
-// }
-// .twentytwenty-container .twentytwenty-arrow-right {
-//   bottom: 10px;
-//   left: 23px;
-//   border-top: 10px solid transparent;
-//   border-bottom: 10px solid transparent;
-//   border-left: 10px solid white;
-// }
-// .twentytwenty-container .twentytwenty-arrow-left {
-//   top: 10px;
-//   left: 7px;
-//   border-top: 10px solid transparent;
-//   border-bottom: 10px solid transparent;
-//   border-right: 10px solid white;
-// }
-// </style>
-//
-
-/***/ }),
-/* 52 */
-/***/ (function(module, exports) {
-
-module.exports = "\n  <div class=\"twentytwenty-container\"\n    v-bind:style=\"containerStyle\"\n    v-on:touchstart=\"startSlide\"\n    v-on:mousedown=\"startSlide\">\n    <img :src=\"after\" alt=\"after\"\n      v-on:mousedown.prevent\n      v-on:load=\"setDimensions\" />\n    <img :src=\"before\" alt=\"before\"\n      v-on:mousedown.prevent\n      v-bind:style=\"beforeImgStyle\" />\n    <div class=\"twentytwenty-overlay\">\n      <div v-if=\"beforeLabel\" class=\"twentytwenty-before-label\">{{beforeLabel}}</div>\n      <div v-if=\"afterLabel\" class=\"twentytwenty-after-label\">{{afterLabel}}</div>\n    </div>\n    <div class=\"twentytwenty-handle\"\n      v-bind:style=\"handleStyle\">\n        <div class=\"twentytwenty-arrow-left\"></div>\n        <div class=\"twentytwenty-arrow-right\"></div>\n    </div>\n  </div>\n";
 
 /***/ })
 /******/ ]);
