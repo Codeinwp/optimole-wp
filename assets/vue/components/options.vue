@@ -49,67 +49,80 @@
 					{{strings.quality_desc}}
 				</p>
 			</label>
-			<div class="column ">
-				<div class="field has-addons">
-					
-					<p class="control">
-						<a @click="changeQuality('auto')" :class="{ 'is-info':( quality_saved === 'auto' ) }"
-						   class="button is-small is-rounded">
-							<span class="icon is-small dashicons-admin-customizer dashicons"></span>
-							<span>{{strings.auto_q_title}}</span>
-						</a>
-					</p>
-					
-					<p class="control">
-						<a @click="changeQuality('low')" :class="{ 'is-info':( quality_saved === 'low' ) }"
-						   class="button   is-small">
-							<span class="icon is-small dashicons dashicons-arrow-right"></span>
-							<span>{{strings.low_q_title}}</span>
-						</a>
-					</p>
-					
-					<p class="control">
-						<a @click="changeQuality('medium')" :class="{ 'is-info':( quality_saved === 'medium' ) }"
-						   class="button   is-small">
-							<span class="icon is-small dashicons dashicons-controls-play"></span>
-							<span>{{strings.medium_q_title}}</span>
-						</a>
-					</p>
-					<p class="control">
-						<a @click="changeQuality('high')" :class="{ 'is-info':( quality_saved === 'high' ) }"
-						   class="button    is-rounded is-small">
-							<span class="icon is-small dashicons dashicons-controls-forward"></span>
-							<span>{{strings.high_q_title}}</span>
+			<div class="column  buttons ">
+				<div class="field columns  ">
+					<div class="column  field has-addons">
+						<p class="control">
+							<a @click="changeQuality('auto')" :class="{ 'is-info':( quality_saved === 'auto' ) }"
+							   class="button is-small is-rounded">
+								<span class="icon is-small dashicons-admin-customizer dashicons"></span>
+								<span>{{strings.auto_q_title}}</span>
+							</a>
+						</p>
+						
+						<p class="control">
+							<a @click="changeQuality('low')" :class="{ 'is-info':( quality_saved === 'low' ) }"
+							   class="button   is-small">
+								<span class="icon is-small dashicons dashicons-arrow-right"></span>
+								<span>{{strings.low_q_title}}</span>
+							</a>
+						</p>
+						
+						<p class="control">
+							<a @click="changeQuality('medium')" :class="{ 'is-info':( quality_saved === 'medium' ) }"
+							   class="button   is-small">
+								<span class="icon is-small dashicons dashicons-controls-play"></span>
+								<span>{{strings.medium_q_title}}</span>
+							</a>
+						</p>
+						<p class="control">
+							<a @click="changeQuality('high')" :class="{ 'is-info':( quality_saved === 'high' ) }"
+							   class="button    is-rounded is-small">
+								<span class="icon is-small dashicons dashicons-controls-forward"></span>
+								<span>{{strings.high_q_title}}</span>
+							</a>
+						</p>
+					</div>
+					<p class="control column  " v-if="showSaveQuality">
+						<a @click="saveQuality()" class="button is-small is-success "
+						   :class="{'is-loading':loading_quality}">
+							<span class="dashicons dashicons-yes icon"></span>
+							<span>	{{strings.save_quality_btn}}</span>
 						</a>
 					</p>
 				</div>
 			</div>
 		</div>
-		
-		<p class="title has-text-centered is-5"> See two sample image which will help you choose the right quality of
-			the compression.</p>
-		<div class="field  columns" v-if="sample_images.id > 0">
-			<twenty-twenty
-					:before="sample_images.optimized"
-					:after="sample_images.original">
-			</twenty-twenty>
+		<div v-if="loading_images" class="has-text-centered subtitle ">{{strings.sample_image_loading}}<span
+				class="loader has-text-black-bis icon is-small"></span></div>
+		<div v-else-if="sample_images.id">
+			<p class="title has-text-centered is-5 is-size-6-mobile">{{strings.quality_slider_desc}}</p>
+			<div class="columns is-centered is-vcentered is-multiline is-mobile">
+				
+				<div class="column visual-compare  is-half-fullhd is-half-desktop is-three-quarters-touch is-12-mobile  ">
+					
+					<Image_diff class="is-fullwidth" value="50" :first_label="strings.image_1_label"
+					            :second_label="strings.image_2_label">
+						<img slot="first" :src="sample_images.original">
+						<img slot="second" :src="sample_images.optimized">
+					
+					</Image_diff>
+				</div>
 			
+			</div>
 		</div>
-	
+		<div v-else>
+			<p class="title has-text-centered is-5 is-size-6-mobile">{{strings.no_images_found}}</p></div>
 	</div>
 
 </template>
 
-<script scoped >
-	
-	import TwentyTwenty from 'vue-twentytwenty'
+<script>
+	import Image_diff from "./image_diff.vue";
 
 	export default {
 		name: "options",
-
-		components: {
-			TwentyTwenty
-		},
+		components: {Image_diff},
 		data() {
 			return {
 				strings: optimoleDashboardApp.strings.options_strings,
@@ -117,6 +130,8 @@
 				imageReplacer: optimoleDashboardApp.image_replacer,
 				quality_saved: optimoleDashboardApp.quality,
 				showNotification: false,
+				loading_images: false,
+				loading_quality: false,
 			}
 		},
 		mounted: function () {
@@ -124,7 +139,7 @@
 		},
 		methods: {
 			toggleOption: function (optionKey) {
-				this.$store.dispatch('toggleSetting', {
+				this.$store.dispatch('updateSetting', {
 					req: 'Toggle ' + optionKey,
 					option_key: optionKey,
 					type: 'toggle',
@@ -137,15 +152,16 @@
 				})
 			},
 			changeQuality: function (value) {
+
 				this.updateSampleImage(value);
 				this.quality_saved = value;
 			},
 			updateSampleImage: function (value) {
 				this.$store.dispatch('sampleRate', {
-					qulity: value,
+					quality: value,
+					component: this,
 				}).then(
 					(response) => {
-						this.showNotification = true;
 
 						setTimeout(() => {
 							this.showNotification = false;
@@ -155,7 +171,25 @@
 
 					}
 				);
-			}
+			},
+			saveQuality() {
+				this.loading_quality = true;
+				this.$store.dispatch('updateSetting', {
+					option_key: 'quality',
+					option_value: this.quality_saved,
+					type: 'enum',
+				}).then(
+					() => {
+						this.loading_quality = false;
+						//Force recompute of showSaveQuality
+						optimoleDashboardApp.quality = this.quality_saved;
+						this.quality_saved = '';
+						this.quality_saved = optimoleDashboardApp.quality;
+					}, () => {
+						this.loading_quality = false;
+					}
+				);
+			},
 
 		},
 		computed: {
@@ -172,7 +206,9 @@
 					return !(this.adminBarItem === 'disabled');
 				}
 			},
-
+			showSaveQuality: function () {
+				return this.quality_saved !== optimoleDashboardApp.quality;
+			},
 			sample_images() {
 				return this.$store.state.sample_rate;
 			},
@@ -196,10 +232,15 @@
 		text-align: center;
 	}
 	
+	#optimole-app .visual-compare img {
+		width: 100%;
+	}
+	
 	#optimole-app .image img {
 		
 		max-height: 300px;
 		width: auto;
+		
 	}
 	
 	.field:nth-child(even) {

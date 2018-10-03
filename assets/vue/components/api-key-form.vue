@@ -38,6 +38,9 @@
 				isLoading: false
 			}
 		},
+		mounted:function(){
+		},
+		
 		computed: {
 			validKey() {
 				return this.$store.state.apiKeyValidity;

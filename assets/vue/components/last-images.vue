@@ -55,32 +55,38 @@
 			status,
 		},
 		mounted() {
-            this.doProgressBar();
+			if ( this.$store.state.optimizedImages.length > 0) {
+				this.loading = false;
+				return;
+			}
+			this.doProgressBar();
 			this.$store.dispatch('retrieveOptimizedImages', {waitTime: this.maxTime * 1000, component: this});
 		},
-		watch:{
-			imageData:function(){
-				if(this.imageData.length > 0){
+		watch: {
+			imageData: function () {
+				if (this.imageData.length > 0) {
 					this.startTime = this.maxTime;
-					setTimeout(()=>{this.loading = false},1000);
+					setTimeout(() => {
+						this.loading = false
+					}, 1000);
 				}
 			}
 		},
 		computed: {
 			imageData() {
-				
+
 				return this.$store.state.optimizedImages !== null ? this.$store.state.optimizedImages : [];
 			},
 		},
 		methods: {
-			doProgressBar(){
-					if(this.startTime === this.maxTime){
-						return;
-					}
-					this.startTime ++;
-					//console.log(this.startTime);
-					setTimeout(this.doProgressBar,1000);
-					
+			doProgressBar() {
+				if (this.startTime === this.maxTime) {
+					return;
+				}
+				this.startTime++;
+				//console.log(this.startTime);
+				setTimeout(this.doProgressBar, 1000);
+
 			},
 			compressionRate(oldSize, newSize) {
 				let value = (parseFloat(oldSize / newSize * 100) - 100).toFixed(1);

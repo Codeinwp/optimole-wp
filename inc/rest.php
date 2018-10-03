@@ -169,6 +169,9 @@ class Optml_Rest {
 	 * @return WP_REST_Response Image urls.
 	 */
 	public function get_sample_rate( WP_REST_Request $request ) {
+
+		add_filter( 'optml_dont_replace_url', '__return_true' );
+
 		$accepted_mimes = array( 'image/jpeg', 'image/png' );
 		$args           = array(
 			'post_type'      => 'attachment',
@@ -180,15 +183,21 @@ class Optml_Rest {
 		);
 		$image_result   = new WP_Query( $args );
 		if ( empty( $image_result->posts ) ) {
-			$this->response( array() );
+			return $this->response( array() );
 		}
 
-		$image              = array(
+		$image             = array(
 			'id' => $image_result->posts [ array_rand( $image_result->posts, 1 ) ],
 		);
-		$image['optimized'] = wp_get_attachment_image_url( $image['id'], 'full' );
-		add_filter( 'optml_break_replacer', '__return_true' );
 		$image['original'] = wp_get_attachment_image_url( $image['id'], 'full' );
+
+		remove_filter( 'optml_dont_replace_url', '__return_true' );
+
+		$image['optimized'] = apply_filters( 'optml_replace_image', $image['original'], array(
+			'width'   => 'auto',
+			'height'  => 'auto',
+			'quality' => $request->get_param( 'quality' )
+		) );
 
 		return $this->response( $image );
 	}
@@ -230,8 +239,9 @@ class Optml_Rest {
 	 * @param WP_REST_Request $request option update rest request.
 	 */
 	public function update_option( WP_REST_Request $request ) {
-		$option_key  = $request->get_param( 'option_key' );
-		$option_type = $request->get_param( 'type' );
+		$option_key   = $request->get_param( 'option_key' );
+		$option_type  = $request->get_param( 'type' );
+		$option_value = $request->get_param( 'option_value' );
 		if ( empty( $option_key ) ) {
 			wp_send_json_error( 'No option key set.' );
 		}
@@ -239,7 +249,7 @@ class Optml_Rest {
 			wp_send_json_error( 'No option type set.' );
 		}
 
-		$accepted_types = array( 'toggle' );
+		$accepted_types = array( 'toggle', 'enum' );
 
 		if ( ! in_array( $option_type, $accepted_types ) ) {
 			wp_send_json_error( 'Invalid option type.' );
@@ -257,6 +267,10 @@ class Optml_Rest {
 					$settings->update( $option_key, 'enabled' );
 					wp_send_json_success( $option_key . ' enabled.' );
 				}
+				break;
+			case 'enum':
+				$settings->update( $option_key, $option_value );
+				wp_send_json_success( $option_key . ' saved to ' . $option_value );
 				break;
 			default:
 				break;

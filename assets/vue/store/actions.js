@@ -21,6 +21,7 @@ const connectOptimole = function ( {commit, state}, data ) {
 		if ( response.body.code === 'success' ) {
 			commit( 'toggleKeyValidity', true );
 			commit( 'toggleConnectedToOptml', true );
+			commit( 'updateApiKey', data.apiKey );
 			commit( 'updateUserData', response.body.data );
 			console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
 
@@ -64,6 +65,7 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 	} ).then( function ( response ) {
 		commit( 'updateUserData', null );
 		commit( 'toggleLoading', false );
+		commit( 'updateApiKey', '' );
 		if ( response.ok ) {
 			commit( 'toggleConnectedToOptml', false );
 			console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
@@ -73,7 +75,7 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 	} );
 };
 
-const toggleSetting = function ( {commit, state}, data ) {
+const updateSetting = function ( {commit, state}, data ) {
 
 	return Vue.http( {
 		url: optimoleDashboardApp.root + '/update_option',
@@ -82,6 +84,7 @@ const toggleSetting = function ( {commit, state}, data ) {
 		params: {
 			'req': data.req,
 			'option_key': data.option_key,
+			'option_value': ( data.option_value ? data.option_value : null ),
 			'type': data.type ? data.type : ''
 		},
 		responseType: 'json'
@@ -89,6 +92,7 @@ const toggleSetting = function ( {commit, state}, data ) {
 };
 const sampleRate = function ( {commit, state}, data ) {
 
+	data.component.loading_images = true;
 	return Vue.http( {
 		url: optimoleDashboardApp.root + '/images-sample-rate',
 		method: 'POST',
@@ -98,6 +102,8 @@ const sampleRate = function ( {commit, state}, data ) {
 		},
 		responseType: 'json'
 	} ).then( function ( response ) {
+
+		data.component.loading_images = false;
 		if ( response.body.code === 'success' ) {
 			commit( 'updateSampleRate', response.body.data );
 		}
@@ -106,8 +112,10 @@ const sampleRate = function ( {commit, state}, data ) {
 
 const retrieveOptimizedImages = function ( {commit, state}, data ) {
 	let self = this;
+
 	setTimeout( function () {
-		if ( self.state.optimizedImages.length ) {
+
+		if ( self.state.optimizedImages.length > 0 ) {
 			console.log( '%c Images already exsist.', 'color: #59B278' );
 			return false;
 		}
@@ -142,7 +150,7 @@ export default {
 	connectOptimole,
 	registerOptimole,
 	disconnectOptimole,
-	toggleSetting,
+	updateSetting,
 	sampleRate,
 	retrieveOptimizedImages,
 };

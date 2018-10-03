@@ -9,16 +9,16 @@
 						<div class="tabs is-left is-boxed is-medium">
 							<ul class="is-marginless">
 								<li :class="tab === 'dashboard' ? 'is-active' : ''">
-									<a @click="changeTab('dashboard')">
-										<span class="icon dashicons dashicons-admin-home"></span>
-										<span>{{strings.dashboard_menu_item}}</span>
+									<a @click="changeTab('dashboard')" class="is-size-6-mobile">
+										<span class="icon is-size-6-mobile  dashicons dashicons-admin-home"></span>
+										<span class="is-size-6-mobile ">{{strings.dashboard_menu_item}}</span>
 									</a>
 								</li>
 								
 								<li :class="tab === 'settings' ? 'is-active' : ''" >
-									<a @click="changeTab('settings')">
-										<span class="icon dashicons dashicons-admin-settings"></span>
-										<span>{{strings.settings_menu_item}}</span>
+									<a @click="changeTab('settings')" class="is-size-6-mobile">
+										<span class="icon is-size-6-mobile  dashicons dashicons-admin-settings"></span>
+										<span  class="is-size-6-mobile">{{strings.settings_menu_item}}</span>
 									</a>
 								</li>
 							</ul>
@@ -91,14 +91,12 @@
 		
 	}
 </script>
-<style lang="css">
-	@import "../../css/slider.css";
-	
-</style>
 <style lang="sass-loader">
 	@import '../../css/style.scss';
 	#optimole-app .tabs a{
 		margin-bottom: -4px;
 	}
-	
+	#optimole-app .is-tab{
+		min-height: 700px;
+	}
 </style>
