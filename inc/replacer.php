@@ -48,6 +48,13 @@ class Optml_Replacer {
 	protected $cdn_secret = null;
 
 	/**
+	 * Domains Whitelist.
+	 *
+	 * @var array
+	 */
+	protected $whitelist = array();
+
+	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
 	 * @var int
@@ -158,6 +165,7 @@ class Optml_Replacer {
 			return;
 		}
 		$this->cdn_secret = $cdn_secret;
+		$this->whitelist = isset( $service_data['whitelist'] ) ? $service_data['whitelist'] : array();
 		$this->cdn_url    = sprintf(
 			'https://%s.%s',
 			strtolower( $cdn_key ),
@@ -377,6 +385,20 @@ class Optml_Replacer {
 			'quality' => (string) $compress_level,
 		);
 		ksort( $payload );
+
+		if( ! empty( $this->whitelist ) ) {
+			$new_url = sprintf(
+				'%s/%s/%s/%s/%s/%s/%s',
+				$this->cdn_url,
+				(string) $args['width'],
+				(string) $args['height'],
+				(string) $compress_level,
+				$scheme,
+				$path
+			);
+
+			return $new_url;
+		}
 
 		$values  = array_values( $payload );
 		$payload = implode( '', $values );
