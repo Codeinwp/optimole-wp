@@ -1,4 +1,11 @@
 
+ ### v1.0.4 - 2018-10-03 
+ **Changes:** 
+ * Adds in-plugin service registration.
+* Adds image quality control.
+* Adds slider for image comparison.
+* Improvements to UX and workflow.
+ 
  ### v1.0.3 - 2018-09-26 
  **Changes:** 
  * Adds redirect on first install.
