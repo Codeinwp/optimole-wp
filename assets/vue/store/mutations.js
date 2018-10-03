@@ -14,8 +14,14 @@ const toggleConnectedToOptml = ( state, data ) => {
 const updateUserData = ( state, data ) => {
 	state.userData = data;
 };
+const updateApiKey = ( state, data ) => {
+	state.apiKey = data;
+};
 const updateOptimizedImages = ( state, data ) => {
 	state.optimizedImages = data.body.data;
+};
+const updateSampleRate = ( state, data ) => {
+	state.sample_rate = data;
 };
 
 export default {
@@ -24,5 +30,7 @@ export default {
 	toggleKeyValidity,
 	toggleConnectedToOptml,
 	updateUserData,
+	updateApiKey,
+	updateSampleRate,
 	updateOptimizedImages
 };

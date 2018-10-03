@@ -55,6 +55,13 @@ class Optml_Replacer {
 	protected $max_width = 3000;
 
 	/**
+	 * Defines the quality parameter.
+	 *
+	 * @var int
+	 */
+	protected $quality = 'auto';
+
+	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
 	 * @var int
@@ -74,6 +81,12 @@ class Optml_Replacer {
 	 * @var null
 	 */
 	protected $upload_dir = null;
+	/**
+	 * Setings handler.
+	 *
+	 * @var Optml_Settings $settings
+	 */
+	protected $settings = null;
 
 	/**
 	 * Class instance method.
@@ -97,10 +110,15 @@ class Optml_Replacer {
 	 */
 	function init() {
 
+		add_filter( 'optml_replace_image', array( $this, 'get_imgcdn_url' ), 10, 2 );
+
+		$this->settings = new Optml_Settings();
+
+		$this->set_properties();
+
 		if ( ! $this->should_replace() ) {
 			return;
 		}
-		$this->set_properties();
 
 		if ( empty( $this->cdn_url ) ) {
 			return;
@@ -114,46 +132,19 @@ class Optml_Replacer {
 	}
 
 	/**
-	 * Check if we should rewrite the urls.
-	 *
-	 * @return bool If we can replace the image.
-	 *
-	 */
-	public function should_replace() {
-
-		if ( is_admin() ) {
-			return false;
-		}
-		$settings = new Optml_Settings();
-
-		if ( ! $settings->is_connected() ) {
-			return false;
-		}
-		if ( ! $settings->is_enabled() ) {
-			return false;
-		}
-		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
 	 * Set the cdn url based on the current connected user.
 	 */
 	protected function set_properties() {
 		$this->upload_dir = wp_upload_dir();
 		$this->upload_dir = $this->upload_dir['baseurl'];
 
-		$settings     = new Optml_Settings();
-		$service_data = $settings->get( 'service_data' );
+		$service_data = $this->settings->get( 'service_data' );
 		if ( ! isset( $service_data['cdn_key'] ) ) {
 			return;
 		}
-		$cdn_key    = $service_data ['cdn_key'];
-		$cdn_secret = $service_data['cdn_secret'];
-
+		$cdn_key       = $service_data ['cdn_key'];
+		$cdn_secret    = $service_data['cdn_secret'];
+		$this->quality = $this->settings->get( 'quality' );
 		if ( empty( $cdn_key ) || empty( $cdn_secret ) ) {
 			return;
 		}
@@ -163,6 +154,33 @@ class Optml_Replacer {
 			strtolower( $cdn_key ),
 			'i.optimole.com'
 		);
+	}
+
+	/**
+	 * Check if we should rewrite the urls.
+	 *
+	 * @return bool If we can replace the image.
+	 *
+	 */
+	public function should_replace() {
+
+		if ( is_admin() ) {
+
+			return false;
+		}
+
+		if ( ! $this->settings->is_connected() ) {
+			return false;
+		}
+		if ( ! $this->settings->is_enabled() ) {
+
+			return false;
+		}
+		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -352,13 +370,20 @@ class Optml_Replacer {
 	 *
 	 * @return string
 	 */
-	protected function get_imgcdn_url( $url, $args = array( 'width' => 'auto', 'height' => 'auto' ) ) {
-
+	public function get_imgcdn_url( $url, $args = array( 'width' => 'auto', 'height' => 'auto' ) ) {
+		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
+			return $url;
+		}
 		if ( ! $this->check_mimetype( $url ) ) {
+
 			return $url;
 		}
 		// not used yet.
-		$compress_level = 55;
+		$compress_level = apply_filters( 'optml_image_quality', $this->quality );
+		if ( isset( $args['quality'] ) || ! empty( $args['quality'] ) ) {
+			$compress_level = $args['quality'];
+		}
+		$compress_level = $this->normalize_quality( $compress_level );
 		// this will authorize the image
 		$url_parts = explode( '://', $url );
 		$scheme    = $url_parts[0];
@@ -413,6 +438,35 @@ class Optml_Replacer {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Sanitize quality.
+	 *
+	 * @param string|int $quality Normalize quality
+	 *
+	 * @return int Numeric quality.
+	 */
+	private function normalize_quality( $quality ) {
+
+		if ( is_numeric( $quality ) ) {
+			return intval( $quality );
+		}
+		$quality = trim( $quality );
+		if ( $quality === 'auto' ) {
+			return 'auto';
+		}
+		if ( $quality === 'high' ) {
+			return 90;
+		}
+		if ( $quality === 'medium' ) {
+			return 60;
+		}
+		if ( $quality === 'low' ) {
+			return 30;
+		}
+
+		return 60;
 	}
 
 	/**

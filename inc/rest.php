@@ -49,6 +49,23 @@ class Optml_Rest {
 			)
 		);
 		register_rest_route(
+			$this->namespace, '/register', array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'register_service' ),
+					'args'                => array(
+						'email' => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+					),
+				),
+			)
+		);
+		register_rest_route(
 			$this->namespace, '/disconnect', array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -81,6 +98,17 @@ class Optml_Rest {
 				),
 			)
 		);
+		register_rest_route(
+			$this->namespace, '/images-sample-rate', array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'get_sample_rate' ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -102,6 +130,76 @@ class Optml_Rest {
 		$settings->update( 'api_key', $api_key );
 
 		return $this->response( $data );
+	}
+
+	/**
+	 * Wrapper for api response.
+	 *
+	 * @param array $data data from api.
+	 *
+	 * @return WP_REST_Response
+	 */
+	private function response( $data ) {
+		return new WP_REST_Response( array( 'data' => $data, 'code' => 'success' ), 200 );
+	}
+
+	/**
+	 * Connect to optimole service.
+	 *
+	 * @param WP_REST_Request $request connect rest request.
+	 *
+	 * @return WP_Error|WP_REST_Response
+	 */
+	public function register_service( WP_REST_Request $request ) {
+		$email = $request->get_param( 'email' );
+		$api   = new Optml_Api();
+		$user  = $api->create_account( $email );
+		if ( $user === false ) {
+			return new WP_Error( 'error', 'Error creating account.' );
+		}
+
+		return $this->response( $user );
+	}
+
+	/**
+	 * Return image samples.
+	 *
+	 * @param WP_REST_Request $request Rest request.
+	 *
+	 * @return WP_REST_Response Image urls.
+	 */
+	public function get_sample_rate( WP_REST_Request $request ) {
+
+		add_filter( 'optml_dont_replace_url', '__return_true' );
+
+		$accepted_mimes = array( 'image/jpeg', 'image/png' );
+		$args           = array(
+			'post_type'      => 'attachment',
+			'post_status'    => 'any',
+			'number'         => '5',
+			'no_found_rows'  => true,
+			'fields'         => 'ids',
+			'post_mime_type' => $accepted_mimes,
+		);
+		$image_result   = new WP_Query( $args );
+		if ( empty( $image_result->posts ) ) {
+			return $this->response( array() );
+		}
+
+		$image             = array(
+			'id' => $image_result->posts [ array_rand( $image_result->posts, 1 ) ],
+		);
+		$image['original'] = wp_get_attachment_image_url( $image['id'], 'full' );
+
+		remove_filter( 'optml_dont_replace_url', '__return_true' );
+
+		$image['optimized'] = apply_filters( 'optml_replace_image', $image['original'], array(
+			'width'   => 'auto',
+			'height'  => 'auto',
+			'quality' => $request->get_param( 'quality' )
+		) );
+
+		return $this->response( $image );
 	}
 
 	/**
@@ -141,8 +239,9 @@ class Optml_Rest {
 	 * @param WP_REST_Request $request option update rest request.
 	 */
 	public function update_option( WP_REST_Request $request ) {
-		$option_key  = $request->get_param( 'option_key' );
-		$option_type = $request->get_param( 'type' );
+		$option_key   = $request->get_param( 'option_key' );
+		$option_type  = $request->get_param( 'type' );
+		$option_value = $request->get_param( 'option_value' );
 		if ( empty( $option_key ) ) {
 			wp_send_json_error( 'No option key set.' );
 		}
@@ -150,7 +249,7 @@ class Optml_Rest {
 			wp_send_json_error( 'No option type set.' );
 		}
 
-		$accepted_types = array( 'toggle' );
+		$accepted_types = array( 'toggle', 'enum' );
 
 		if ( ! in_array( $option_type, $accepted_types ) ) {
 			wp_send_json_error( 'Invalid option type.' );
@@ -169,20 +268,13 @@ class Optml_Rest {
 					wp_send_json_success( $option_key . ' enabled.' );
 				}
 				break;
+			case 'enum':
+				$settings->update( $option_key, $option_value );
+				wp_send_json_success( $option_key . ' saved to ' . $option_value );
+				break;
 			default:
 				break;
 		}
-	}
-
-	/**
-	 * Wrapper for api response.
-	 *
-	 * @param array $data data from api.
-	 *
-	 * @return WP_REST_Response
-	 */
-	private function response( $data ) {
-		return new WP_REST_Response( array( 'data' => $data, 'code' => 'success' ), 200 );
 	}
 
 }

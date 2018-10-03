@@ -13,9 +13,11 @@ const store = new Vuex.Store( {
 	state: {
 		isConnecting: false,
 		loading: false,
-		connected: optimoleDashboardApp.connection_status ? true : false,
+		quality: optimoleDashboardApp.quality,
+		connected:  optimoleDashboardApp.connection_status === 'yes'  ,
 		apiKey: optimoleDashboardApp.api_key ? optimoleDashboardApp.api_key : '',
 		apiKeyValidity: true,
+		sample_rate:{},
 		userData: optimoleDashboardApp.user_data ? optimoleDashboardApp.user_data : null,
 		optimizedImages: [],
 	},

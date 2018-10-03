@@ -1,24 +1,39 @@
-version: '3.3'
+version: '3.7'
 
 services:
-  db:
+  mysql:
     image: mysql:5.7
     volumes:
-    - db_data:/var/lib/mysql
-    env_file:
-    - .env
-  wp:
-    depends_on:
-    - mysql
-    image: vertigostudio/ubuntu-nginx-wpcli-gearman-php7:latest
-    ports:
-    - 8888:80
-    command: ["init.sh"]
-    volumes:
-    - "./:/var/www/html/wp-content/plugins/optimole-wp"
-    - "./init.sh:/usr/local/bin/init.sh"
-    env_file:
-    - .env
+      - ~/optml/db_data:/var/lib/mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: wordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
 
-volumes:
-  db_data:
+  wordpress:
+    depends_on:
+      - mysql
+    image: hardeepasrani/pirate-brewery
+    ports:
+      - 8888:80
+    networks:
+      - default
+      - optml_service_net
+    volumes:
+       - ~/wpcore:/var/www/html/
+       - .:/var/www/html/wp-content/plugins/optimole-wp/
+    restart: always
+    environment:
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_ROOT_PASSWORD: wordpress
+      WORDPRESS_DEBUG: 1
+
+networks:
+  optml_service_net:
+    driver: overlay
+    attachable: true
+    name: optml_service_net
