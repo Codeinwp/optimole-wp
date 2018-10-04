@@ -186,18 +186,41 @@ class Optml_Rest {
 			return $this->response( array() );
 		}
 
-		$image             = array(
+		$image              = array(
 			'id' => $image_result->posts [ array_rand( $image_result->posts, 1 ) ],
 		);
-		$image['original'] = wp_get_attachment_image_url( $image['id'], 'full' );
+		$original_image_url = wp_get_attachment_image_url( $image['id'], 'full' );
+
+		$metadata = wp_get_attachment_metadata( $image['id'] );
+
+		$width    = 'auto';
+		$height   = 'auto';
+		$size     = 'medium_large';
+		if ( isset( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
+			$width  = $metadata['sizes'][ $size ]['width'];
+			$height = $metadata['sizes'][ $size ]['height'];
+		}
+
+		$image['original'] = wp_get_attachment_image_url( $image['id'], $size );
 
 		remove_filter( 'optml_dont_replace_url', '__return_true' );
 
-		$image['optimized'] = apply_filters( 'optml_replace_image', $image['original'], array(
-			'width'   => 'auto',
-			'height'  => 'auto',
+		$image['optimized'] = apply_filters( 'optml_replace_image', $original_image_url, array(
+			'width'   => $width,
+			'height'  => $height,
 			'quality' => $request->get_param( 'quality' )
 		) );
+		$optimized          = wp_remote_get( $image['optimized'],
+			array(
+				'headers' => array(
+					'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+				)
+			) );
+
+		$original           = wp_remote_get( $image['original'] );
+
+		$image['optimized_size'] = (int) wp_remote_retrieve_header( $optimized, 'content-length' );
+		$image['original_size']  = (int) wp_remote_retrieve_header( $original, 'content-length' );
 
 		return $this->response( $image );
 	}

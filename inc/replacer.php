@@ -457,13 +457,13 @@ class Optml_Replacer {
 			return 'auto';
 		}
 		if ( $quality === 'high' ) {
-			return 90;
+			return 85;
 		}
 		if ( $quality === 'medium' ) {
-			return 60;
+			return 55;
 		}
 		if ( $quality === 'low' ) {
-			return 30;
+			return 25;
 		}
 
 		return 60;

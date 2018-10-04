@@ -53,32 +53,36 @@
 				<div class="field columns  ">
 					<div class="column  field has-addons">
 						<p class="control">
-							<a @click="changeQuality('auto')" :class="{ 'is-info':( quality_saved === 'auto' ) }"
-							   class="button is-small is-rounded">
-								<span class="icon is-small dashicons-admin-customizer dashicons"></span>
+							<a @click="changeQuality('auto')"
+							   :class="{ 'is-info':( quality_saved === 'auto' ), '  is-selected':isPreviousQuality('auto')  }"
+							   class="button   is-small is-rounded">
+								<span class="icon dashicons dashicons-marker"></span>
 								<span>{{strings.auto_q_title}}</span>
 							</a>
 						</p>
 						
 						<p class="control">
-							<a @click="changeQuality('low')" :class="{ 'is-info':( quality_saved === 'low' ) }"
+							<a @click="changeQuality('low')"
+							   :class="{  'is-info':( quality_saved === 'low' ), ' is-selected':isPreviousQuality('low')  }"
 							   class="button   is-small">
-								<span class="icon is-small dashicons dashicons-arrow-right"></span>
+								<span class="icon dashicons dashicons-minus  "></span>
 								<span>{{strings.low_q_title}}</span>
 							</a>
 						</p>
 						
 						<p class="control">
-							<a @click="changeQuality('medium')" :class="{ 'is-info':( quality_saved === 'medium' ) }"
+							<a @click="changeQuality('medium')"
+							   :class="{  'is-info':( quality_saved === 'medium' ), '  is-selected':isPreviousQuality('medium')  }"
 							   class="button   is-small">
-								<span class="icon is-small dashicons dashicons-controls-play"></span>
-								<span>{{strings.medium_q_title}}</span>
+								<span class="icon dashicons dashicons-controls-pause"></span>
+								<span class=" ">{{strings.medium_q_title}}</span>
 							</a>
 						</p>
 						<p class="control">
-							<a @click="changeQuality('high')" :class="{ 'is-info':( quality_saved === 'high' ) }"
+							<a @click="changeQuality('high')"
+							   :class="{  'is-info':( quality_saved === 'high' ), '  is-selected':isPreviousQuality('high')   }"
 							   class="button    is-rounded is-small">
-								<span class="icon is-small dashicons dashicons-controls-forward"></span>
+								<span class="icon dashicons dashicons-menu"></span>
 								<span>{{strings.high_q_title}}</span>
 							</a>
 						</p>
@@ -103,16 +107,29 @@
 					
 					<Image_diff class="is-fullwidth" value="50" :first_label="strings.image_1_label"
 					            :second_label="strings.image_2_label">
-						<img slot="first" :src="sample_images.original">
-						<img slot="second" :src="sample_images.optimized">
+						<img slot="first" :src="sample_images.optimized">
+						<img slot="second" :src="sample_images.original">
 					
 					</Image_diff>
+					<div class="is-full">
+						<hr/>
+						<progress class="  progress is-large is-success "
+						          :value="compressionRatio"
+						          :max="100">
+						</progress>
+						<p class="subtitle is-size-6 has-text-centered" v-if="compressionRatio < 100">
+							<strong>{{compressionRatio }}%</strong> smaller </p>
+						<p class="subtitle is-size-6 has-text-centered" v-else>
+							{{all_strings.latest_images.same_size}}
+						</p>
+					</div>
 				</div>
 			
 			</div>
 		</div>
 		<div v-else>
 			<p class="title has-text-centered is-5 is-size-6-mobile">{{strings.no_images_found}}</p></div>
+	
 	</div>
 
 </template>
@@ -126,6 +143,7 @@
 		data() {
 			return {
 				strings: optimoleDashboardApp.strings.options_strings,
+				all_strings: optimoleDashboardApp.strings,
 				adminBarItem: optimoleDashboardApp.admin_bar_item,
 				imageReplacer: optimoleDashboardApp.image_replacer,
 				quality_saved: optimoleDashboardApp.quality,
@@ -172,6 +190,9 @@
 					}
 				);
 			},
+			isPreviousQuality(q) {
+				return optimoleDashboardApp.quality === q && optimoleDashboardApp.quality !== this.quality_saved;
+			},
 			saveQuality() {
 				this.loading_quality = true;
 				this.$store.dispatch('updateSetting', {
@@ -189,7 +210,7 @@
 						this.loading_quality = false;
 					}
 				);
-			},
+			}
 
 		},
 		computed: {
@@ -205,6 +226,9 @@
 				get: function () {
 					return !(this.adminBarItem === 'disabled');
 				}
+			},
+			compressionRatio() {
+				return (parseFloat(this.sample_images.optimized_size / this.sample_images.original_size) * 100).toFixed(0);
 			},
 			showSaveQuality: function () {
 				return this.quality_saved !== optimoleDashboardApp.quality;
@@ -236,6 +260,10 @@
 		width: 100%;
 	}
 	
+	#optimole-app .icon.dashicons.dashicons-controls-pause {
+		transform: rotate(90deg);
+	}
+	
 	#optimole-app .image img {
 		
 		max-height: 300px;
@@ -245,5 +273,9 @@
 	
 	.field:nth-child(even) {
 		justify-content: flex-end;
+	}
+	
+	#optimole-app .button.is-selected span {
+		color: #008ec2;
 	}
 </style>
