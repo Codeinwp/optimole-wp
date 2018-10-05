@@ -38,6 +38,42 @@
 			</div>
 		</div>
 		
+		<div class="field  is-fullwidth columns n">
+			<label class="label is-half column has-text-grey-dark no-padding-right ">
+				{{strings.size_title}}
+				<p class="is-italic has-text-weight-normal">
+					{{strings.size_desc}}
+				</p>
+			</label>
+			
+			<div class="column is-paddingless">
+				<div class="columns">
+					<div class="field column is-narrow has-addons">
+						<p class="control">
+							<a class="button is-small is-static">
+								{{strings.width_field}}
+							</a>
+						</p>
+						<p class="control ">
+							<input v-model="widthStatus" class="input is-small" type="number" min="100"
+							       max="10000">
+						</p>
+					</div>
+					<div class="field column is-small has-addons">
+						<p class="control">
+							<a class="button is-small is-static">
+								{{strings.height_field}}
+							</a>
+						</p>
+						<p class="control  ">
+							<input v-model="heightStatus" class="input is-small" type="number" min="100"
+							       max="10000">
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+		
 		<div class="field  columns">
 			<label class="label column has-text-grey-dark">
 				{{strings.quality_title}}

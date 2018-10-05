@@ -163,7 +163,6 @@ class Optml_Replacer {
 	 * Check if we should rewrite the urls.
 	 *
 	 * @return bool If we can replace the image.
-	 *
 	 */
 	public function should_replace() {
 
@@ -463,7 +462,7 @@ class Optml_Replacer {
 	/**
 	 * Sanitize quality.
 	 *
-	 * @param string|int $quality Normalize quality
+	 * @param string|int $quality Normalize quality.
 	 *
 	 * @return int Numeric quality.
 	 */
@@ -688,7 +687,8 @@ class Optml_Replacer {
 		$theme_slug = get_option( 'stylesheet' );
 
 		$options_list = apply_filters(
-			'optml_imgcdn_options_with_url', array(
+			'optml_imgcdn_options_with_url',
+			array(
 				"theme_mods_$theme_slug",
 			)
 		);
@@ -759,7 +759,7 @@ class Optml_Replacer {
 	 * @param mixed  $metadata Metadata.
 	 * @param int    $object_id Post id.
 	 * @param string $meta_key Meta key.
-	 * @param bool   $single Is single?
+	 * @param bool   $single Is single.
 	 *
 	 * @return mixed Altered meta.
 	 */
@@ -798,7 +798,7 @@ class Optml_Replacer {
 				$old_urls = $this->extract_slashed_urls( $html );
 				$urls     = array_map( 'wp_unslash', $old_urls );
 				$urls     = array_combine( $old_urls, $urls );
-				//return $html;
+				// return $html;
 				break;
 			case 'raw':
 			default:
@@ -812,16 +812,17 @@ class Optml_Replacer {
 		$cdn_url  = $this->cdn_url;
 		$site_url = get_site_url();
 		$urls     = array_filter(
-			$urls, function ( $url ) use ( $cdn_url, $site_url ) {
-			if ( strpos( $url, $cdn_url ) !== false ) {
-				return false;
-			}
-			if ( strpos( $url, $site_url ) === false ) {
-				return false;
-			}
+			$urls,
+			function ( $url ) use ( $cdn_url, $site_url ) {
+				if ( strpos( $url, $cdn_url ) !== false ) {
+					return false;
+				}
+				if ( strpos( $url, $site_url ) === false ) {
+					return false;
+				}
 
-			return $this->check_mimetype( $url );
-		}
+				return $this->check_mimetype( $url );
+			}
 		);
 
 		$urls = array_map( array( $this, 'get_imgcdn_url' ), $urls );
@@ -842,9 +843,8 @@ class Optml_Replacer {
 		 * Based on the extract_url patter.
 		 *
 		 * @var string Regex rule string.
-		 *
 		 */
-		$regex = "/(http(s)*.+?)\"/";
+		$regex = '/(http(s)*.+?)"/';
 
 		preg_match_all(
 			$regex,
@@ -852,9 +852,12 @@ class Optml_Replacer {
 			$urls
 		);
 
-		$urls = array_map( function ( $value ) {
-			return rtrim( html_entity_decode( $value ), '\\' );
-		}, $urls[1] );
+		$urls = array_map(
+			function ( $value ) {
+					return rtrim( html_entity_decode( $value ), '\\' );
+			},
+			$urls[1]
+		);
 
 		$urls = array_unique( $urls );
 

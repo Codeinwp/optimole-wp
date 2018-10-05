@@ -32,7 +32,9 @@ class Optml_Rest {
 	public function register() {
 
 		register_rest_route(
-			$this->namespace, '/connect', array(
+			$this->namespace,
+			'/connect',
+			array(
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
@@ -49,7 +51,9 @@ class Optml_Rest {
 			)
 		);
 		register_rest_route(
-			$this->namespace, '/register', array(
+			$this->namespace,
+			'/register',
+			array(
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
@@ -66,7 +70,9 @@ class Optml_Rest {
 			)
 		);
 		register_rest_route(
-			$this->namespace, '/disconnect', array(
+			$this->namespace,
+			'/disconnect',
+			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
 					'permission_callback' => function () {
@@ -77,7 +83,9 @@ class Optml_Rest {
 			)
 		);
 		register_rest_route(
-			$this->namespace, '/update_option', array(
+			$this->namespace,
+			'/update_option',
+			array(
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
@@ -88,7 +96,9 @@ class Optml_Rest {
 			)
 		);
 		register_rest_route(
-			$this->namespace, '/poll_optimized_images', array(
+			$this->namespace,
+			'/poll_optimized_images',
+			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
 					'permission_callback' => function () {
@@ -99,7 +109,9 @@ class Optml_Rest {
 			)
 		);
 		register_rest_route(
-			$this->namespace, '/images-sample-rate', array(
+			$this->namespace,
+			'/images-sample-rate',
+			array(
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
@@ -205,18 +217,24 @@ class Optml_Rest {
 
 		remove_filter( 'optml_dont_replace_url', '__return_true' );
 
-		$image['optimized'] = apply_filters( 'optml_replace_image', $original_image_url, array(
-			'width'   => $width,
-			'height'  => $height,
-			'quality' => $request->get_param( 'quality' )
-		) );
-		$optimized          = wp_remote_get( $image['optimized'],
+		$image['optimized'] = apply_filters(
+			'optml_replace_image',
+			$original_image_url,
+			array(
+				'width'   => $width,
+				'height'  => $height,
+				'quality' => $request->get_param( 'quality' ),
+			)
+		);
+		$optimized          = wp_remote_get(
+			$image['optimized'],
 			array(
 				'timeout' => 10,
 				'headers' => array(
 					'Accept' => 'text/html,application/xhtml+xml,image/webp,image/apng ',
-				)
-			) );
+				),
+			)
+		);
 
 		$original = wp_remote_get( $image['original'] );
 
@@ -248,7 +266,7 @@ class Optml_Rest {
 		$api_key = $request->get_param( 'api_key' );
 		$request = new Optml_Api();
 		$images  = $request->get_optimized_images( $api_key );
-		if ( ! isset ( $images['list'] ) || empty( $images['list'] ) ) {
+		if ( ! isset( $images['list'] ) || empty( $images['list'] ) ) {
 			return $this->response( array() );
 		}
 
@@ -270,7 +288,7 @@ class Optml_Rest {
 		}
 
 		$settings = new Optml_Settings();
-		//TODO Move validation in settings model.
+		// TODO Move validation in settings model.
 		$sanitized = array();
 		foreach ( $new_settings as $key => $value ) {
 			switch ( $key ) {

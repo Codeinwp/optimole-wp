@@ -78,6 +78,16 @@ class Optml_Admin {
 			return;
 		}
 		echo '<meta name="generator" content="Optimole ' . esc_attr( OPTML_VERSION ) . '">';
+
+		if ( ! current_theme_supports( 'custom-logo' ) ) {
+			return;
+		}
+		$custom_logo_id = get_theme_mod( 'custom_logo' );
+		$image          = wp_get_attachment_image_src( $custom_logo_id, 'full' );
+		if ( empty( $image ) ) {
+			return;
+		}
+		echo '<link rel="preload" href="' . esc_url( $image[0] ) . '" as="image">';
 	}
 
 	/**
@@ -175,7 +185,7 @@ class Optml_Admin {
 			'nonce'             => wp_create_nonce( 'wp_rest' ),
 			'user_data'         => $service_data,
 			'current_user'      => array(
-				'email' => $user->user_email
+				'email' => $user->user_email,
 			),
 			'site_settings'     => $this->settings->get_site_settings(),
 			'home_url'          => home_url(),
@@ -206,13 +216,13 @@ class Optml_Admin {
 			'email_address_label'           => __( 'Your email address', 'optimole-wp' ),
 			'register_btn'                  => __( 'Register & Email API key', 'optimole-wp' ),
 			'step_one_api_title'            => __( 'Enter your API key.', 'optimole-wp' ),
-			'step_one_api_desc'             => sprintf( __( 'Copy the API key you have received via email or you can get it from %s Optimole dashboard%s. <br/>', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/" target="_blank"> ', '</a>' ),
+			'step_one_api_desc'             => sprintf( __( 'Copy the API key you have received via email or you can get it from %1$s Optimole dashboard%2$s. <br/>', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/" target="_blank"> ', '</a>' ),
 			'step_two_api_title'            => __( 'Connect to Optimole.', 'optimole-wp' ),
 			'step_two_api_desc'             => __( ' Fill in the upper API key field and connect to Optimole service.', 'optimole-wp' ),
 			'api_exists'                    => __( 'I already have an API key.', 'optimole-wp' ),
 			'back_to_register'              => __( 'Register account', 'optimole-wp' ),
 			'back_to_connect'               => __( 'Connect account', 'optimole-wp' ),
-			'error_register'                => sprintf( __( 'Error registering account. You can try again %shere%s ', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/register" target="_blank"> ', '</a>' ),
+			'error_register'                => sprintf( __( 'Error registering account. You can try again %1$shere%2$s ', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/register" target="_blank"> ', '</a>' ),
 			'connected'                     => __( 'Connected', 'optimole-wp' ),
 			'not_connected'                 => __( 'Not connected', 'optimole-wp' ),
 			'usage'                         => __( 'Monthly Usage', 'optimole-wp' ),
@@ -253,7 +263,7 @@ class Optml_Admin {
 				'disabled'             => __( 'Disabled', 'optimole-wp' ),
 				'image_1_label'        => __( 'Original', 'optimole-wp' ),
 				'image_2_label'        => __( 'Optimized', 'optimole-wp' ),
-				'save_changes'     => __( 'Save changes', 'optimole-wp' ),
+				'save_changes'         => __( 'Save changes', 'optimole-wp' ),
 				'sample_image_loading' => __( ' Loading a sample image. ', 'optimole-wp' ),
 				'no_images_found'      => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
 				'quality_slider_desc'  => __( ' See one sample image which will help you choose the right quality of the compression.', 'optimole-wp' ),
@@ -262,7 +272,7 @@ class Optml_Admin {
 			),
 			'latest_images'                 => array(
 				'image'                 => __( 'Image', 'optimole-wp' ),
-				'no_images_found'       => sprintf( __( 'We might have a delay finding optimized images. Meanwhile you can visit your %shomepage%s and check how our plugin performs. ', 'optimole-wp' ), '<a href="' . esc_url( home_url() ) . '" target="_blank" >', '</a>' ),
+				'no_images_found'       => sprintf( __( 'We might have a delay finding optimized images. Meanwhile you can visit your %1$shomepage%2$s and check how our plugin performs. ', 'optimole-wp' ), '<a href="' . esc_url( home_url() ) . '" target="_blank" >', '</a>' ),
 				'compression'           => __( 'Optimization', 'optimole-wp' ),
 				'loading_latest_images' => __( 'Loading your optimized images...', 'optimole-wp' ),
 				'last'                  => __( 'Last', 'optimole-wp' ),
@@ -271,7 +281,7 @@ class Optml_Admin {
 				'small_optimization'    => __( '😬 Not that much, just <strong>{ratio}</strong> smaller.', 'optimole-wp' ),
 				'medium_optimization'   => __( '🤓 We are on the right track, <strong>{ratio}</strong> squeezed.', 'optimole-wp' ),
 				'big_optimization'      => __( '❤️❤️❤️ Our moles just nailed it, this one is <strong>{ratio}</strong> smaller.  ', 'optimole-wp' ),
-			)
+			),
 		);
 	}
 
@@ -300,8 +310,8 @@ class Optml_Admin {
 			'href'  => 'https://dashboard.optimole.com/',
 			'meta'  => array(
 				'target' => '_blank',
-				'class'  => $should_load !== 'enabled' ? 'hidden' : ''
-			)
+				'class'  => $should_load !== 'enabled' ? 'hidden' : '',
+			),
 		);
 		$wp_admin_bar->add_node( $args );
 	}
