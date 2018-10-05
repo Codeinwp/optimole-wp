@@ -19,7 +19,7 @@ class Optml_Replacer {
 	 *
 	 * @var array
 	 */
-	protected static $extensions = array(
+	public static $extensions = array(
 		'jpg|jpeg|jpe' => 'image/jpeg',
 		'png'          => 'image/png',
 		'webp'         => 'image/webp',
@@ -148,6 +148,9 @@ class Optml_Replacer {
 		if ( empty( $cdn_key ) || empty( $cdn_secret ) ) {
 			return;
 		}
+		$this->max_height = $this->settings->get( 'max_height' );
+		$this->max_width  = $this->settings->get( 'max_width' );
+
 		$this->cdn_secret = $cdn_secret;
 		$this->cdn_url    = sprintf(
 			'https://%s.%s',
@@ -389,17 +392,23 @@ class Optml_Replacer {
 		$url_parts = explode( '://', $url );
 		$scheme    = $url_parts[0];
 		$path      = $url_parts[1];
-
 		if ( $args['width'] !== 'auto' ) {
 			$args['width'] = round( $args['width'], 0 );
 			if ( $args['width'] > $this->max_width ) {
 				$args['width'] = $this->max_width;
+			}
+
+			if ( $args['width'] == 0 ) {
+				$args['width'] = 'auto';
 			}
 		}
 		if ( $args['height'] !== 'auto' ) {
 			$args['height'] = round( $args['height'], 0 );
 			if ( $args['height'] > $this->max_height ) {
 				$args['height'] = $this->max_height;
+			}
+			if ( $args['height'] == 0 ) {
+				$args['height'] = 'auto';
 			}
 		}
 		if ( $args['width'] !== 'auto' && $args['height'] !== 'auto' ) {

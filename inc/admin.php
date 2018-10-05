@@ -163,12 +163,10 @@ class Optml_Admin {
 	 * @return array
 	 */
 	private function localize_dashboard_app() {
-		$api_key        = $this->settings->get( 'api_key' );
-		$service_data   = $this->settings->get( 'service_data' );
-		$admin_bar_item = $this->settings->get( 'admin_bar_item' );
-		$image_replacer = $this->settings->get( 'image_replacer' );
-		$user           = get_userdata( get_current_user_id() );
-		$args           = array(
+		$api_key      = $this->settings->get( 'api_key' );
+		$service_data = $this->settings->get( 'service_data' );
+		$user         = get_userdata( get_current_user_id() );
+		$args         = array(
 			'strings'           => $this->get_dashboard_strings(),
 			'assets_url'        => OPTML_URL . 'assets/',
 			'connection_status' => empty( $service_data ) ? 'no' : 'yes',
@@ -176,12 +174,10 @@ class Optml_Admin {
 			'root'              => rest_url( OPTML_NAMESPACE . '/v1' ),
 			'nonce'             => wp_create_nonce( 'wp_rest' ),
 			'user_data'         => $service_data,
-			'quality'           => $this->settings->get( 'quality' ),
 			'current_user'      => array(
 				'email' => $user->user_email
 			),
-			'admin_bar_item'    => $admin_bar_item,
-			'image_replacer'    => $image_replacer,
+			'site_settings'     => $this->settings->get_site_settings(),
 			'home_url'          => home_url(),
 		);
 
@@ -244,6 +240,10 @@ class Optml_Admin {
 				'hide'                 => __( 'Hide', 'optimole-wp' ),
 				'high_q_title'         => __( 'High', 'optimole-wp' ),
 				'medium_q_title'       => __( 'Medium', 'optimole-wp' ),
+				'size_title'           => __( 'Resize large images.', 'optimole-wp' ),
+				'size_desc'            => __( 'We will resize all images with sizes greater than this values.', 'optimole-wp' ),
+				'width_field'          => __( 'Width', 'optimole-wp' ),
+				'height_field'         => __( 'Height', 'optimole-wp' ),
 				'low_q_title'          => __( 'Low', 'optimole-wp' ),
 				'auto_q_title'         => __( 'Auto', 'optimole-wp' ),
 				'quality_title'        => __( 'Compression quality', 'optimole-wp' ),
@@ -253,8 +253,8 @@ class Optml_Admin {
 				'disabled'             => __( 'Disabled', 'optimole-wp' ),
 				'image_1_label'        => __( 'Original', 'optimole-wp' ),
 				'image_2_label'        => __( 'Optimized', 'optimole-wp' ),
-				'save_quality_btn'     => __( 'Save', 'optimole-wp' ),
-				'sample_image_loading'     => __( ' Loading a sample image. ', 'optimole-wp' ),
+				'save_changes'     => __( 'Save changes', 'optimole-wp' ),
+				'sample_image_loading' => __( ' Loading a sample image. ', 'optimole-wp' ),
 				'no_images_found'      => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
 				'quality_slider_desc'  => __( ' See one sample image which will help you choose the right quality of the compression.', 'optimole-wp' ),
 				'replacer_desc'        => __( 'Replace all the image urls from your website with the ones optimized by Optimole.', 'optimole-wp' ),

@@ -10,14 +10,15 @@ Vue.use( Vuex );
 Vue.use( VueResource );
 
 const store = new Vuex.Store( {
+	strict: true,
 	state: {
 		isConnecting: false,
 		loading: false,
-		quality: optimoleDashboardApp.quality,
-		connected:  optimoleDashboardApp.connection_status === 'yes'  ,
+		site_settings: optimoleDashboardApp.site_settings,
+		connected: optimoleDashboardApp.connection_status === 'yes',
 		apiKey: optimoleDashboardApp.api_key ? optimoleDashboardApp.api_key : '',
 		apiKeyValidity: true,
-		sample_rate:{},
+		sample_rate: {},
 		userData: optimoleDashboardApp.user_data ? optimoleDashboardApp.user_data : null,
 		optimizedImages: [],
 	},

@@ -75,19 +75,24 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 	} );
 };
 
-const updateSetting = function ( {commit, state}, data ) {
-
+const saveSettings = function ( {commit, state}, data ) {
+	commit( 'updateSettings', data.settings );
+	commit( 'toggleLoading', true );
 	return Vue.http( {
 		url: optimoleDashboardApp.root + '/update_option',
 		method: 'POST',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		params: {
-			'req': data.req,
-			'option_key': data.option_key,
-			'option_value': ( data.option_value ? data.option_value : null ),
-			'type': data.type ? data.type : ''
+		body: {
+			'settings': data.settings
 		},
 		responseType: 'json'
+	} ).then( function ( response ) {
+		if ( response.body.code === 'success' ) {
+			commit( 'updateSettings', response.body.data );
+		}
+		commit( 'toggleLoading', false );
+
+
 	} );
 };
 const sampleRate = function ( {commit, state}, data ) {
@@ -150,7 +155,7 @@ export default {
 	connectOptimole,
 	registerOptimole,
 	disconnectOptimole,
-	updateSetting,
+	saveSettings,
 	sampleRate,
 	retrieveOptimizedImages,
 };

@@ -263,42 +263,47 @@ class Optml_Rest {
 	 * @param WP_REST_Request $request option update rest request.
 	 */
 	public function update_option( WP_REST_Request $request ) {
-		$option_key   = $request->get_param( 'option_key' );
-		$option_type  = $request->get_param( 'type' );
-		$option_value = $request->get_param( 'option_value' );
-		if ( empty( $option_key ) ) {
+		$new_settings = $request->get_param( 'settings' );
+
+		if ( empty( $new_settings ) ) {
 			wp_send_json_error( 'No option key set.' );
-		}
-		if ( empty( $option_type ) ) {
-			wp_send_json_error( 'No option type set.' );
-		}
-
-		$accepted_types = array( 'toggle', 'enum' );
-
-		if ( ! in_array( $option_type, $accepted_types ) ) {
-			wp_send_json_error( 'Invalid option type.' );
 		}
 
 		$settings = new Optml_Settings();
+		//TODO Move validation in settings model.
+		$sanitized = array();
+		foreach ( $new_settings as $key => $value ) {
+			switch ( $key ) {
+				case 'admin_bar_item':
+				case 'image_replacer':
+					$sanitized_value = ( $value === 'enabled' || $value === 'disabled' ) ? $value : 'enabled';
+					break;
+				case 'max_width':
+				case 'max_height':
+					$sanitized_value = absint( $value );
+					if ( $sanitized_value < 100 ) {
+						$sanitized_value = 100;
+					}
+					if ( $sanitized_value > 5000 ) {
+						$sanitized_value = 5000;
+					}
 
-		switch ( $option_type ) {
-			case 'toggle':
-				$status = $settings->get( $option_key );
-				if ( $status === 'enabled' ) {
-					$settings->update( $option_key, 'disabled' );
-					wp_send_json_success( $option_key . ' disabled.' );
-				} else {
-					$settings->update( $option_key, 'enabled' );
-					wp_send_json_success( $option_key . ' enabled.' );
-				}
-				break;
-			case 'enum':
-				$settings->update( $option_key, $option_value );
-				wp_send_json_success( $option_key . ' saved to ' . $option_value );
-				break;
-			default:
-				break;
+					break;
+				case 'quality':
+					$sanitized_value = ( $value === 'low' || $value === 'medium' || $value === 'auto' || $value === 'high' ) ? $value : 'auto';
+					break;
+				default:
+					$sanitized_value = '';
+					break;
+			}
+			if ( empty( $sanitized_value ) ) {
+				continue;
+			}
+			$sanitized[ $key ] = $sanitized_value;
+			$settings->update( $key, $sanitized_value );
 		}
+
+		return $this->response( $sanitized );
 	}
 
 }

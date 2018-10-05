@@ -23,6 +23,11 @@ const updateOptimizedImages = ( state, data ) => {
 const updateSampleRate = ( state, data ) => {
 	state.sample_rate = data;
 };
+const updateSettings = ( state, data ) => {
+
+	for ( var setting in data ) { state.site_settings[setting] = data[setting]; }
+ 
+};
 
 export default {
 	toggleLoading,
@@ -32,5 +37,6 @@ export default {
 	updateUserData,
 	updateApiKey,
 	updateSampleRate,
+	updateSettings,
 	updateOptimizedImages
 };

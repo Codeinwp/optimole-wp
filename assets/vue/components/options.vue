@@ -1,10 +1,5 @@
 <template>
 	<div class=" container " :class="{ 'saving--option' : this.$store.state.loading }">
-		<div class="columns" v-if="showNotification">
-			<div class="notification  column is-one-quarter is-success">
-				{{strings.option_saved}}
-			</div>
-		</div>
 		
 		<div class="field  columns">
 			<label class="label column has-text-grey-dark">
@@ -14,8 +9,8 @@
 				</p>
 			</label>
 			<div class="column ">
-				<toggle-button @change="toggleOption('image_replacer')" :class="'has-text-dark'"
-				               :value="imageReplacerStatus"
+				<toggle-button :class="'has-text-dark'"
+				               v-model="getReplacerStatus"
 				               :disabled="this.$store.state.loading"
 				               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
 				               :width="80"
@@ -33,7 +28,7 @@
 			</label>
 			
 			<div class="column ">
-				<toggle-button :class="'has-text-dark'" @change="toggleOption('admin_bar_item')"
+				<toggle-button :class="'has-text-dark'"
 				               v-model="adminBarItemStatus"
 				               :disabled="this.$store.state.loading"
 				               :labels="{checked: strings.show, unchecked: strings.hide}"
@@ -42,6 +37,7 @@
 				               color="#008ec2"></toggle-button>
 			</div>
 		</div>
+		
 		<div class="field  columns">
 			<label class="label column has-text-grey-dark">
 				{{strings.quality_title}}
@@ -54,7 +50,7 @@
 					<div class="column  field has-addons">
 						<p class="control">
 							<a @click="changeQuality('auto')"
-							   :class="{ 'is-info':( quality_saved === 'auto' ), '  is-selected':isPreviousQuality('auto')  }"
+							   :class="{ 'is-info':isActiveQuality ( 'auto'), '  is-selected':site_settings.quality === 'auto'  }"
 							   class="button   is-small is-rounded">
 								<span class="icon dashicons dashicons-marker"></span>
 								<span>{{strings.auto_q_title}}</span>
@@ -63,7 +59,7 @@
 						
 						<p class="control">
 							<a @click="changeQuality('low')"
-							   :class="{  'is-info':( quality_saved === 'low' ), ' is-selected':isPreviousQuality('low')  }"
+							   :class="{  'is-info':isActiveQuality( 'low' ), ' is-selected':site_settings.quality === 'low'  }"
 							   class="button   is-small">
 								<span class="icon dashicons dashicons-minus  "></span>
 								<span>{{strings.low_q_title}}</span>
@@ -72,7 +68,7 @@
 						
 						<p class="control">
 							<a @click="changeQuality('medium')"
-							   :class="{  'is-info':( quality_saved === 'medium' ), '  is-selected':isPreviousQuality('medium')  }"
+							   :class="{  'is-info': isActiveQuality( 'medium' ), '  is-selected':site_settings.quality === 'medium'  }"
 							   class="button   is-small">
 								<span class="icon dashicons dashicons-controls-pause"></span>
 								<span class=" ">{{strings.medium_q_title}}</span>
@@ -80,18 +76,18 @@
 						</p>
 						<p class="control">
 							<a @click="changeQuality('high')"
-							   :class="{  'is-info':( quality_saved === 'high' ), '  is-selected':isPreviousQuality('high')   }"
+							   :class="{  'is-info': isActiveQuality ('high'), 'is-selected':site_settings.quality === 'high'   }"
 							   class="button    is-rounded is-small">
 								<span class="icon dashicons dashicons-menu"></span>
 								<span>{{strings.high_q_title}}</span>
 							</a>
 						</p>
 					</div>
-					<p class="control column  " v-if="showSaveQuality">
-						<a @click="saveQuality()" class="button is-small is-success "
-						   :class="{'is-loading':loading_quality}">
+					<p class="control column has-text-centered-desktop has-text-left-touch  ">
+						<a @click="saveChanges()" class="button is-small is-success "
+						   :class="{'is-loading':loading}">
 							<span class="dashicons dashicons-yes icon"></span>
-							<span>	{{strings.save_quality_btn}}</span>
+							<span>	{{strings.save_changes}}</span>
 						</a>
 					</p>
 				</div>
@@ -107,7 +103,7 @@
 					<div class="is-full progress-wrapper">
 						
 						<p class="subtitle is-size-6 compress-optimization-ratio-done has-text-centered"
-						   v-if="compressionRatio > 100">
+						   v-if="compressionRatio > 0">
 							<strong>{{( 100 - compressionRatio )}}%</strong> smaller </p>
 						<p class="subtitle  compress-optimization-ratio-nothing is-size-6 has-text-centered" v-else>
 							{{all_strings.latest_images.same_size}}
@@ -142,40 +138,26 @@
 
 	export default {
 		name: "options",
-		components: {Image_diff},
+		components: { Image_diff},
 		data() {
 			return {
 				strings: optimoleDashboardApp.strings.options_strings,
 				all_strings: optimoleDashboardApp.strings,
-				adminBarItem: optimoleDashboardApp.admin_bar_item,
-				imageReplacer: optimoleDashboardApp.image_replacer,
-				quality_saved: optimoleDashboardApp.quality,
 				showNotification: false,
 				loading_images: false,
-				loading_quality: false,
+				showSave: false,
+				new_data: {},
+
 			}
 		},
 		mounted: function () {
-			this.updateSampleImage(this.quality_saved);
+			this.updateSampleImage(this.site_settings.quality);
 		},
 		methods: {
-			toggleOption: function (optionKey) {
-				this.$store.dispatch('updateSetting', {
-					req: 'Toggle ' + optionKey,
-					option_key: optionKey,
-					type: 'toggle',
-				}).then((response) => {
-					this.showNotification = true;
-					setTimeout(() => {
-						this.showNotification = false;
-					}, 1000)
-				}, (response) => {
-				})
-			},
-			changeQuality: function (value) {
 
+			changeQuality: function (value) {
 				this.updateSampleImage(value);
-				this.quality_saved = value;
+				this.qualityStatus = value;
 			},
 			updateSampleImage: function (value) {
 				this.$store.dispatch('sampleRate', {
@@ -193,33 +175,34 @@
 					}
 				);
 			},
-			isPreviousQuality(q) {
-				return optimoleDashboardApp.quality === q && optimoleDashboardApp.quality !== this.quality_saved;
+			saveChanges: function () {
+				this.$store.dispatch('saveSettings', {
+					settings: this.new_data
+				});
 			},
-			saveQuality() {
-				this.loading_quality = true;
-				this.$store.dispatch('updateSetting', {
-					option_key: 'quality',
-					option_value: this.quality_saved,
-					type: 'enum',
-				}).then(
-					() => {
-						this.loading_quality = false;
-						//Force recompute of showSaveQuality
-						optimoleDashboardApp.quality = this.quality_saved;
-						this.quality_saved = '';
-						this.quality_saved = optimoleDashboardApp.quality;
-					}, () => {
-						this.loading_quality = false;
-					}
-				);
-			}
+			isActiveQuality(q) {
+				if (this.new_data && this.new_data.quality) {
+					return this.new_data.quality === q;
+				}
+				return this.site_settings.quality === q;
+			},
 
 		},
 		computed: {
+			site_settings() {
+				return this.$store.state.site_settings;
+			},
+			getReplacerStatus: {
+				get: function () {
+					return !(this.site_settings.image_replacer === 'disabled');
+				},
+				set: function (value) {
+					this.new_data.image_replacer = value ? 'enabled' : 'disabled'
+				}
+			},
 			adminBarItemStatus: {
 				set: function (value) {
-					this.adminBarItem = value;
+					this.new_data.admin_bar_item = value ? 'enabled' : 'disabled';
 					if (value) {
 						document.getElementById("wp-admin-bar-optml_image_quota").style.display = 'block';
 					} else {
@@ -227,21 +210,47 @@
 					}
 				},
 				get: function () {
-					return !(this.adminBarItem === 'disabled');
+					return !(this.site_settings.admin_bar_item === 'disabled');
+				}
+			},
+			widthStatus: {
+				set: function (value) {
+					this.new_data.max_width = value;
+
+				},
+				get: function () {
+
+					return (this.site_settings.max_width);
+				}
+			},
+			heightStatus: {
+				set: function (value) {
+					this.new_data.max_height = value;
+
+				},
+				get: function () {
+
+					return (this.site_settings.max_height);
+				}
+			},
+			qualityStatus: {
+				set: function (value) {
+					this.new_data.quality = value;
+				},
+				get: function () {
+					return (this.site_settings.quality);
 				}
 			},
 			compressionRatio() {
 				return (parseFloat(this.sample_images.optimized_size / this.sample_images.original_size) * 100).toFixed(0);
 			},
-			showSaveQuality: function () {
-				return this.quality_saved !== optimoleDashboardApp.quality;
-			},
 			sample_images() {
 				return this.$store.state.sample_rate;
 			},
-			imageReplacerStatus() {
-				return !(this.imageReplacer === 'disabled');
+			loading() {
+				return this.$store.state.loading;
 			}
+
 		}
 	}
 </script>
@@ -278,11 +287,11 @@
 		justify-content: flex-end;
 	}
 	
-	#optimole-app .button.is-selected span {
+	#optimole-app .button.is-selected:not(.is-info) span {
 		color: #008ec2;
 	}
 	
-	#optimole-app p.compress-optimization-ratio-done strong{
+	#optimole-app p.compress-optimization-ratio-done strong {
 		
 		color: #44464e;
 	}
@@ -297,10 +306,11 @@
 		line-height: 1.4rem;
 	}
 	
-	#optimole-app p.compress-optimization-ratio-nothing{
-		color:#fff;
-		left:20px;
+	#optimole-app p.compress-optimization-ratio-nothing {
+		color: #fff;
+		left: 20px;
 	}
+	
 	#optimole-app .progress-wrapper {
 		position: relative;
 	}
