@@ -111,10 +111,14 @@ final class Optml_Api {
 	 * @return array|bool Api response.
 	 */
 	public function create_account( $email ) {
-		return $this->request( 'user/register-remote', 'POST', array(
-			'email' => $email,
-			'site'  => get_site_url()
-		) );
+		return $this->request(
+			'user/register-remote',
+			'POST',
+			array(
+				'email' => $email,
+				'site'  => get_site_url(),
+			)
+		);
 	}
 
 	/**

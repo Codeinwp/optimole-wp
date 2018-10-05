@@ -1,4 +1,4 @@
-=== Image optimization and CDN by Optimole ===
+=== Image optimization service by Optimole ===
 Contributors: optimole
 Tags: image optmization, cdn, image compression
 Requires at least: 4.7
@@ -17,7 +17,7 @@ With OptiMole, your site’s images will be cropped, optimized and processed on-
 Images are processed for best results with both lossless and lossy optimization and are automatically resized for any device.
 
 **Image acceleration through CDN**
-Images are served in any location, with our top providers covering up to 110 server locations worldwide.
+If you dont use a CDN, we got you covered, we will serve the images using our default CDN. You already have one, just let us know and we can integrate yours.
 
 **On-the-fly image handling**
 Dynamic manipulation of images and videos (resize, compress and serve via CDN on the fly).

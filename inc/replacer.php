@@ -19,7 +19,7 @@ class Optml_Replacer {
 	 *
 	 * @var array
 	 */
-	protected static $extensions = array(
+	public static $extensions = array(
 		'jpg|jpeg|jpe' => 'image/jpeg',
 		'png'          => 'image/png',
 		'webp'         => 'image/webp',
@@ -148,6 +148,9 @@ class Optml_Replacer {
 		if ( empty( $cdn_key ) || empty( $cdn_secret ) ) {
 			return;
 		}
+		$this->max_height = $this->settings->get( 'max_height' );
+		$this->max_width  = $this->settings->get( 'max_width' );
+
 		$this->cdn_secret = $cdn_secret;
 		$this->cdn_url    = sprintf(
 			'https://%s.%s',
@@ -160,7 +163,6 @@ class Optml_Replacer {
 	 * Check if we should rewrite the urls.
 	 *
 	 * @return bool If we can replace the image.
-	 *
 	 */
 	public function should_replace() {
 
@@ -383,6 +385,7 @@ class Optml_Replacer {
 		if ( isset( $args['quality'] ) || ! empty( $args['quality'] ) ) {
 			$compress_level = $args['quality'];
 		}
+
 		$compress_level = $this->normalize_quality( $compress_level );
 		// this will authorize the image
 		$url_parts = explode( '://', $url );
@@ -390,9 +393,25 @@ class Optml_Replacer {
 		$path      = $url_parts[1];
 		if ( $args['width'] !== 'auto' ) {
 			$args['width'] = round( $args['width'], 0 );
+			if ( $args['width'] > $this->max_width ) {
+				$args['width'] = $this->max_width;
+			}
+
+			if ( $args['width'] == 0 ) {
+				$args['width'] = 'auto';
+			}
 		}
 		if ( $args['height'] !== 'auto' ) {
 			$args['height'] = round( $args['height'], 0 );
+			if ( $args['height'] > $this->max_height ) {
+				$args['height'] = $this->max_height;
+			}
+			if ( $args['height'] == 0 ) {
+				$args['height'] = 'auto';
+			}
+		}
+		if ( $args['width'] !== 'auto' && $args['height'] !== 'auto' ) {
+			$path = str_replace( '-' . $args['width'] . 'x' . $args['height'] . '.', '.', $path );
 		}
 		$payload = array(
 			'path'    => $this->urlception_encode( $path ),
@@ -443,7 +462,7 @@ class Optml_Replacer {
 	/**
 	 * Sanitize quality.
 	 *
-	 * @param string|int $quality Normalize quality
+	 * @param string|int $quality Normalize quality.
 	 *
 	 * @return int Numeric quality.
 	 */
@@ -457,13 +476,13 @@ class Optml_Replacer {
 			return 'auto';
 		}
 		if ( $quality === 'high' ) {
-			return 90;
+			return 85;
 		}
 		if ( $quality === 'medium' ) {
-			return 60;
+			return 55;
 		}
 		if ( $quality === 'low' ) {
-			return 30;
+			return 25;
 		}
 
 		return 60;
@@ -668,7 +687,8 @@ class Optml_Replacer {
 		$theme_slug = get_option( 'stylesheet' );
 
 		$options_list = apply_filters(
-			'optml_imgcdn_options_with_url', array(
+			'optml_imgcdn_options_with_url',
+			array(
 				"theme_mods_$theme_slug",
 			)
 		);
@@ -739,7 +759,7 @@ class Optml_Replacer {
 	 * @param mixed  $metadata Metadata.
 	 * @param int    $object_id Post id.
 	 * @param string $meta_key Meta key.
-	 * @param bool   $single Is single?
+	 * @param bool   $single Is single.
 	 *
 	 * @return mixed Altered meta.
 	 */
@@ -778,7 +798,7 @@ class Optml_Replacer {
 				$old_urls = $this->extract_slashed_urls( $html );
 				$urls     = array_map( 'wp_unslash', $old_urls );
 				$urls     = array_combine( $old_urls, $urls );
-				//return $html;
+				// return $html;
 				break;
 			case 'raw':
 			default:
@@ -792,16 +812,17 @@ class Optml_Replacer {
 		$cdn_url  = $this->cdn_url;
 		$site_url = get_site_url();
 		$urls     = array_filter(
-			$urls, function ( $url ) use ( $cdn_url, $site_url ) {
-			if ( strpos( $url, $cdn_url ) !== false ) {
-				return false;
-			}
-			if ( strpos( $url, $site_url ) === false ) {
-				return false;
-			}
+			$urls,
+			function ( $url ) use ( $cdn_url, $site_url ) {
+				if ( strpos( $url, $cdn_url ) !== false ) {
+					return false;
+				}
+				if ( strpos( $url, $site_url ) === false ) {
+					return false;
+				}
 
-			return $this->check_mimetype( $url );
-		}
+				return $this->check_mimetype( $url );
+			}
 		);
 
 		$urls = array_map( array( $this, 'get_imgcdn_url' ), $urls );
@@ -822,9 +843,8 @@ class Optml_Replacer {
 		 * Based on the extract_url patter.
 		 *
 		 * @var string Regex rule string.
-		 *
 		 */
-		$regex = "/(http(s)*.+?)\"/";
+		$regex = '/(http(s)*.+?)"/';
 
 		preg_match_all(
 			$regex,
@@ -832,9 +852,12 @@ class Optml_Replacer {
 			$urls
 		);
 
-		$urls = array_map( function ( $value ) {
-			return rtrim( html_entity_decode( $value ), '\\' );
-		}, $urls[1] );
+		$urls = array_map(
+			function ( $value ) {
+					return rtrim( html_entity_decode( $value ), '\\' );
+			},
+			$urls[1]
+		);
 
 		$urls = array_unique( $urls );
 

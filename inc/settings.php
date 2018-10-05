@@ -13,6 +13,8 @@ class Optml_Settings {
 	private $default_schema = array(
 		'api_key'        => '',
 		'service_data'   => '',
+		'max_height'     => 3000,
+		'max_width'      => 3000,
 		'admin_bar_item' => 'enabled',
 		'quality'        => 'auto',
 		'image_replacer' => 'enabled',
@@ -72,7 +74,7 @@ class Optml_Settings {
 			return null;
 		}
 
-		return isset ( $this->options[ $key ] ) ? $this->options[ $key ] : '';
+		return isset( $this->options[ $key ] ) ? $this->options[ $key ] : '';
 	}
 
 	/**
@@ -84,6 +86,22 @@ class Optml_Settings {
 	 */
 	private function is_allowed( $key ) {
 		return isset( $this->default_schema[ $key ] );
+	}
+
+	/**
+	 * Return site settings.
+	 *
+	 * @return array Site settings.
+	 */
+	public function get_site_settings() {
+
+		return array(
+			'quality'        => $this->get( 'quality' ),
+			'admin_bar_item' => $this->get( 'admin_bar_item' ),
+			'image_replacer' => $this->get( 'image_replacer' ),
+			'max_width'      => $this->get( 'max_width' ),
+			'max_height'     => $this->get( 'max_height' ),
+		);
 	}
 
 	/**

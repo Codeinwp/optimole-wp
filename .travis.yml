@@ -19,9 +19,7 @@ install:
 - chmod +x bin/install-dependencies.sh
 - ". ./bin/install-dependencies.sh"
 script:
-- phpunit --version;
-- php  -v;
-- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then phpunit -v && npm run phpunit && npm run phpcs; fi;
+- if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then  grunt travis; fi;
 before_deploy:
 - chmod +x bin/prepare-deploy.sh
 - ". ./bin/prepare-deploy.sh"

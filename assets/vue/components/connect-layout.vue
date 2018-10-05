@@ -34,7 +34,7 @@
 			</div>
 		
 		</div>
-		<div class="columns  is-vcentered is-desktop "  v-else >
+		<div class="columns   is-vcentered is-desktop " v-else>
 			<div class="column  has-text-left is-fluid  is-hidden-touch">
 				<div class="hero">
 					<div class="hero-body content">
@@ -49,7 +49,7 @@
 									<p class="subtitle column is-size-6 is-vcentered has-text-left"><br/>
 										{{strings.account_needed_subtitle_1}}</p>
 								</div>
-	 						</div>
+							</div>
 							<div class="columns  is-vcentered">
 								<div class=" is-narrow is-hidden-touch column">
 									<span class="dashicons   icon dashicons-plus is-size-4 "></span>
@@ -63,9 +63,9 @@
 					</div>
 				</div>
 			</div>
-			<div class="column    ">
+			<div class="column is-4-desktop is-full-touch  ">
 				<p v-html="strings.account_needed_title" class="is-size-6 has-text-centered is-hidden-desktop"></p>
-				<div class="field     ">
+				<div class="field     " v-show="showRegisterField">
 					<label for="optml-email" class="label title is-size-5   is-12">{{strings.email_address_label}}
 						:</label>
 					<div class="control   is-12 is-small has-icons-left ">
@@ -78,17 +78,18 @@
 					
 					<p class="help is-danger" v-if="error" v-html="strings.error_register"></p>
 				</div>
-				<div class="field   is-desktop ">
-					<div class="control columns ">
-						<div class="column has-text-centered-mobile">
-							<button @click="registerAccount" class="button    is-small is-primary  "
+				<div class="field   ">
+					<div class="control ">
+						<div class="    has-text-centered-mobile">
+							<button @click="registerAccount" class="button is-fullwidth is-medium is-primary  "
 							        :class="isLoading ? 'is-loading' :'' ">
 								<span class="icon dashicons dashicons-admin-users"></span>
 								<span>{{strings.register_btn}}</span>
 							</button>
 						</div>
-						<div class="column has-text-centered-mobile has-text-right">
-							<button @click="toggleApiForm" class="button  is-small  is-outlined is-info">
+						<hr/>
+						<div class="   is-right has-text-centered-mobile has-text-right">
+							<button @click="toggleApiForm" class="button  is-fullwidth is-medium  is-outlined is-info">
 								<span class="icon dashicons dashicons-admin-network is-small"></span>
 								<span>{{strings.api_exists}}</span>
 							</button>
@@ -113,6 +114,7 @@
 				strings: optimoleDashboardApp.strings,
 				showApiKey: false,
 				error: false,
+				showRegisterField: false,
 				from_register: false,
 			}
 		},
@@ -128,6 +130,10 @@
 				this.showApiKey = !this.showApiKey;
 			},
 			registerAccount: function () {
+				if (!this.showRegisterField) {
+					this.showRegisterField = true;
+					return;
+				}
 				this.error = false;
 				this.$store.dispatch('registerOptimole', {
 					email: this.email,
@@ -144,7 +150,7 @@
 	}
 </script>
 <style scoped>
-	input,.notification .delete {
+	input, .notification .delete, button {
 		box-sizing: border-box !important;
 	}
 
