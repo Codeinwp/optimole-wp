@@ -7,8 +7,8 @@
         convertWarningsToExceptions="true"
 >
     <testsuites>
-        <testsuite>
-            <directory prefix="test-" suffix=".php">./tests/</directory>
+        <testsuite name="selector">
+            <directory>./tests/test-generic.php</directory>
         </testsuite>
     </testsuites>
 </phpunit>
