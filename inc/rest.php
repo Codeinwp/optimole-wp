@@ -213,7 +213,7 @@ class Optml_Rest {
 		$optimized          = wp_remote_get( $image['optimized'],
 			array(
 				'headers' => array(
-					'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+					'Accept' => 'text/html,application/xhtml+xml,image/webp,image/apng ',
 				)
 			) );
 

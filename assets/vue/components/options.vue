@@ -99,7 +99,7 @@
 		</div>
 		<div v-if="loading_images" class="has-text-centered subtitle ">{{strings.sample_image_loading}}<span
 				class="loader has-text-black-bis icon is-small"></span></div>
-		<div v-else-if="sample_images.id">
+		<div v-else-if="sample_images.id && sample_images.original_size > 0">
 			<p class="title has-text-centered is-5 is-size-6-mobile">{{strings.quality_slider_desc}}</p>
 			<div class="columns is-centered is-vcentered is-multiline is-mobile">
 				
@@ -127,7 +127,7 @@
 			
 			</div>
 		</div>
-		<div v-else>
+		<div v-else-if=" sample_images.id < 0">
 			<p class="title has-text-centered is-5 is-size-6-mobile">{{strings.no_images_found}}</p></div>
 	
 	</div>
