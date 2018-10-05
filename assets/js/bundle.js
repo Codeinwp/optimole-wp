@@ -14519,7 +14519,7 @@ exports = module.exports = __webpack_require__(0)();
 
 
 // module
-exports.push([module.i, "\n\t.saving--option[_v-d718d868] {\n\t\topacity: .75;\n\t}\n\t\n\t#optimole-app .notification[_v-d718d868] {\n\t\tpadding: 0.5rem;\n\t}\n\t\n\t#optimole-app .image[_v-d718d868] {\n\t\ttext-align: center;\n\t}\n\t\n\t#optimole-app .visual-compare img[_v-d718d868] {\n\t\twidth: 100%;\n\t}\n\t\n\t#optimole-app .icon.dashicons.dashicons-controls-pause[_v-d718d868] {\n\t\ttransform: rotate(90deg);\n\t}\n\t\n\t#optimole-app .image img[_v-d718d868] {\n\t\t\n\t\tmax-height: 300px;\n\t\twidth: auto;\n\t\t\n\t}\n\t\n\t.field[_v-d718d868]:nth-child(even) {\n\t\t-ms-flex-pack: end;\n\t\t    justify-content: flex-end;\n\t}\n\t\n\t#optimole-app .button.is-selected span[_v-d718d868] {\n\t\tcolor: #008ec2;\n\t}\n", ""]);
+exports.push([module.i, "\n\t.saving--option[_v-d718d868] {\n\t\topacity: .75;\n\t}\n\t\n\t#optimole-app .notification[_v-d718d868] {\n\t\tpadding: 0.5rem;\n\t}\n\t\n\t#optimole-app .image[_v-d718d868] {\n\t\ttext-align: center;\n\t}\n\t\n\t#optimole-app .visual-compare img[_v-d718d868] {\n\t\twidth: 100%;\n\t}\n\t\n\t#optimole-app .icon.dashicons.dashicons-controls-pause[_v-d718d868] {\n\t\ttransform: rotate(90deg);\n\t}\n\t\n\t#optimole-app .image img[_v-d718d868] {\n\t\t\n\t\tmax-height: 300px;\n\t\twidth: auto;\n\t\t\n\t}\n\t\n\t.field[_v-d718d868]:nth-child(even) {\n\t\t-ms-flex-pack: end;\n\t\t    justify-content: flex-end;\n\t}\n\t\n\t#optimole-app .button.is-selected span[_v-d718d868] {\n\t\tcolor: #008ec2;\n\t}\n\t\n\t#optimole-app p.compress-optimization-ratio-done strong[_v-d718d868]{\n\t\t\n\t\tcolor: #44464e;\n\t}\n\t\n\t#optimole-app p.compress-optimization-ratio-nothing[_v-d718d868],\n\t#optimole-app p.compress-optimization-ratio-done[_v-d718d868] {\n\t\tposition: absolute;\n\t\tright: 10px;\n\t\tcolor: #44464e;\n\t\t\n\t\tfont-size: 0.9rem !important;\n\t\tline-height: 1.4rem;\n\t}\n\t\n\t#optimole-app p.compress-optimization-ratio-nothing[_v-d718d868]{\n\t\tcolor:#fff;\n\t\tleft:20px;\n\t}\n\t#optimole-app .progress-wrapper[_v-d718d868] {\n\t\tposition: relative;\n\t}\n", ""]);
 
 // exports
 
@@ -14680,6 +14680,29 @@ exports.default = {
 	// 	#optimole-app .button.is-selected span {
 	// 		color: #008ec2;
 	// 	}
+	//
+	// 	#optimole-app p.compress-optimization-ratio-done strong{
+	//
+	// 		color: #44464e;
+	// 	}
+	//
+	// 	#optimole-app p.compress-optimization-ratio-nothing,
+	// 	#optimole-app p.compress-optimization-ratio-done {
+	// 		position: absolute;
+	// 		right: 10px;
+	// 		color: #44464e;
+	//
+	// 		font-size: 0.9rem !important;
+	// 		line-height: 1.4rem;
+	// 	}
+	//
+	// 	#optimole-app p.compress-optimization-ratio-nothing{
+	// 		color:#fff;
+	// 		left:20px;
+	// 	}
+	// 	#optimole-app .progress-wrapper {
+	// 		position: relative;
+	// 	}
 	// </style>
 
 }; // <template>
@@ -14783,35 +14806,38 @@ exports.default = {
 // 		</div>
 // 		<div v-if="loading_images" class="has-text-centered subtitle ">{{strings.sample_image_loading}}<span
 // 				class="loader has-text-black-bis icon is-small"></span></div>
-// 		<div v-else-if="sample_images.id">
+// 		<div v-else-if="sample_images.id && sample_images.original_size > 0">
 // 			<p class="title has-text-centered is-5 is-size-6-mobile">{{strings.quality_slider_desc}}</p>
 // 			<div class="columns is-centered is-vcentered is-multiline is-mobile">
 //
 // 				<div class="column visual-compare  is-half-fullhd is-half-desktop is-three-quarters-touch is-12-mobile  ">
+// 					<div class="is-full progress-wrapper">
 //
+// 						<p class="subtitle is-size-6 compress-optimization-ratio-done has-text-centered"
+// 						   v-if="compressionRatio > 100">
+// 							<strong>{{( 100 - compressionRatio )}}%</strong> smaller </p>
+// 						<p class="subtitle  compress-optimization-ratio-nothing is-size-6 has-text-centered" v-else>
+// 							{{all_strings.latest_images.same_size}}
+// 						</p>
+// 						<progress class="  progress is-large is-success "
+// 						          :value="compressionRatio"
+// 						          :max="100">
+// 						</progress>
+// 						<hr/>
+//
+// 					</div>
 // 					<Image_diff class="is-fullwidth" value="50" :first_label="strings.image_1_label"
 // 					            :second_label="strings.image_2_label">
 // 						<img slot="first" :src="sample_images.optimized">
 // 						<img slot="second" :src="sample_images.original">
 //
 // 					</Image_diff>
-// 					<div class="is-full">
-// 						<hr/>
-// 						<progress class="  progress is-large is-success "
-// 						          :value="compressionRatio"
-// 						          :max="100">
-// 						</progress>
-// 						<p class="subtitle is-size-6 has-text-centered" v-if="compressionRatio < 100">
-// 							<strong>{{compressionRatio }}%</strong> smaller </p>
-// 						<p class="subtitle is-size-6 has-text-centered" v-else>
-// 							{{all_strings.latest_images.same_size}}
-// 						</p>
-// 					</div>
+//
 // 				</div>
 //
 // 			</div>
 // 		</div>
-// 		<div v-else>
+// 		<div v-else-if=" sample_images.id < 0">
 // 			<p class="title has-text-centered is-5 is-size-6-mobile">{{strings.no_images_found}}</p></div>
 //
 // 	</div>
@@ -15137,7 +15163,7 @@ module.exports = "\n\t<div class=\"compare-wrapper\" @mouseenter=\"removeInitial
 /* 45 */
 /***/ (function(module, exports) {
 
-module.exports = "\n\t<div class=\" container \" :class=\"{ 'saving--option' : this.$store.state.loading }\" _v-d718d868=\"\">\n\t\t<div class=\"columns\" v-if=\"showNotification\" _v-d718d868=\"\">\n\t\t\t<div class=\"notification  column is-one-quarter is-success\" _v-d718d868=\"\">\n\t\t\t\t{{strings.option_saved}}\n\t\t\t</div>\n\t\t</div>\n\t\t\n\t\t<div class=\"field  columns\" _v-d718d868=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-d718d868=\"\">\n\t\t\t\t{{strings.enable_image_replace}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-d718d868=\"\">\n\t\t\t\t\t{{strings.replacer_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t<div class=\"column \" _v-d718d868=\"\">\n\t\t\t\t<toggle-button @change=\"toggleOption('image_replacer')\" :class=\"'has-text-dark'\" :value=\"imageReplacerStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.enabled, unchecked: strings.disabled}\" :width=\"80\" :height=\"25\" color=\"#008ec2\" _v-d718d868=\"\"></toggle-button>\n\t\t\t</div>\n\t\t\n\t\t</div>\n\t\t<div class=\"field  is-fullwidth columns\" _v-d718d868=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-d718d868=\"\">\n\t\t\t\t{{strings.toggle_ab_item}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-d718d868=\"\">\n\t\t\t\t\t{{strings.admin_bar_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t\n\t\t\t<div class=\"column \" _v-d718d868=\"\">\n\t\t\t\t<toggle-button :class=\"'has-text-dark'\" @change=\"toggleOption('admin_bar_item')\" v-model=\"adminBarItemStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.show, unchecked: strings.hide}\" :width=\"80\" :height=\"25\" color=\"#008ec2\" _v-d718d868=\"\"></toggle-button>\n\t\t\t</div>\n\t\t</div>\n\t\t<div class=\"field  columns\" _v-d718d868=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-d718d868=\"\">\n\t\t\t\t{{strings.quality_title}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-d718d868=\"\">\n\t\t\t\t\t{{strings.quality_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t<div class=\"column  buttons \" _v-d718d868=\"\">\n\t\t\t\t<div class=\"field columns  \" _v-d718d868=\"\">\n\t\t\t\t\t<div class=\"column  field has-addons\" _v-d718d868=\"\">\n\t\t\t\t\t\t<p class=\"control\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t<a @click=\"changeQuality('auto')\" :class=\"{ 'is-info':( quality_saved === 'auto' ), '  is-selected':isPreviousQuality('auto')  }\" class=\"button   is-small is-rounded\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-marker\" _v-d718d868=\"\"></span>\n\t\t\t\t\t\t\t\t<span _v-d718d868=\"\">{{strings.auto_q_title}}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\n\t\t\t\t\t\t<p class=\"control\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t<a @click=\"changeQuality('low')\" :class=\"{  'is-info':( quality_saved === 'low' ), ' is-selected':isPreviousQuality('low')  }\" class=\"button   is-small\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-minus  \" _v-d718d868=\"\"></span>\n\t\t\t\t\t\t\t\t<span _v-d718d868=\"\">{{strings.low_q_title}}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\n\t\t\t\t\t\t<p class=\"control\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t<a @click=\"changeQuality('medium')\" :class=\"{  'is-info':( quality_saved === 'medium' ), '  is-selected':isPreviousQuality('medium')  }\" class=\"button   is-small\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-controls-pause\" _v-d718d868=\"\"></span>\n\t\t\t\t\t\t\t\t<span class=\" \" _v-d718d868=\"\">{{strings.medium_q_title}}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t\t<p class=\"control\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t<a @click=\"changeQuality('high')\" :class=\"{  'is-info':( quality_saved === 'high' ), '  is-selected':isPreviousQuality('high')   }\" class=\"button    is-rounded is-small\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-menu\" _v-d718d868=\"\"></span>\n\t\t\t\t\t\t\t\t<span _v-d718d868=\"\">{{strings.high_q_title}}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t</div>\n\t\t\t\t\t<p class=\"control column  \" v-if=\"showSaveQuality\" _v-d718d868=\"\">\n\t\t\t\t\t\t<a @click=\"saveQuality()\" class=\"button is-small is-success \" :class=\"{'is-loading':loading_quality}\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-yes icon\" _v-d718d868=\"\"></span>\n\t\t\t\t\t\t\t<span _v-d718d868=\"\">\t{{strings.save_quality_btn}}</span>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<div v-if=\"loading_images\" class=\"has-text-centered subtitle \" _v-d718d868=\"\">{{strings.sample_image_loading}}<span class=\"loader has-text-black-bis icon is-small\" _v-d718d868=\"\"></span></div>\n\t\t<div v-else-if=\"sample_images.id\" _v-d718d868=\"\">\n\t\t\t<p class=\"title has-text-centered is-5 is-size-6-mobile\" _v-d718d868=\"\">{{strings.quality_slider_desc}}</p>\n\t\t\t<div class=\"columns is-centered is-vcentered is-multiline is-mobile\" _v-d718d868=\"\">\n\t\t\t\t\n\t\t\t\t<div class=\"column visual-compare  is-half-fullhd is-half-desktop is-three-quarters-touch is-12-mobile  \" _v-d718d868=\"\">\n\t\t\t\t\t\n\t\t\t\t\t<image_diff class=\"is-fullwidth\" value=\"50\" :first_label=\"strings.image_1_label\" :second_label=\"strings.image_2_label\" _v-d718d868=\"\">\n\t\t\t\t\t\t<img slot=\"first\" :src=\"sample_images.optimized\" _v-d718d868=\"\">\n\t\t\t\t\t\t<img slot=\"second\" :src=\"sample_images.original\" _v-d718d868=\"\">\n\t\t\t\t\t\n\t\t\t\t\t</image_diff>\n\t\t\t\t\t<div class=\"is-full\" _v-d718d868=\"\">\n\t\t\t\t\t\t<hr _v-d718d868=\"\">\n\t\t\t\t\t\t<progress class=\"  progress is-large is-success \" :value=\"compressionRatio\" :max=\"100\" _v-d718d868=\"\">\n\t\t\t\t\t\t</progress>\n\t\t\t\t\t\t<p class=\"subtitle is-size-6 has-text-centered\" v-if=\"compressionRatio < 100\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t<strong _v-d718d868=\"\">{{compressionRatio }}%</strong> smaller </p>\n\t\t\t\t\t\t<p class=\"subtitle is-size-6 has-text-centered\" v-else=\"\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t{{all_strings.latest_images.same_size}}\n\t\t\t\t\t\t</p>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\n\t\t\t</div>\n\t\t</div>\n\t\t<div v-else=\"\" _v-d718d868=\"\">\n\t\t\t<p class=\"title has-text-centered is-5 is-size-6-mobile\" _v-d718d868=\"\">{{strings.no_images_found}}</p></div>\n\t\n\t</div>\n\n";
+module.exports = "\n\t<div class=\" container \" :class=\"{ 'saving--option' : this.$store.state.loading }\" _v-d718d868=\"\">\n\t\t<div class=\"columns\" v-if=\"showNotification\" _v-d718d868=\"\">\n\t\t\t<div class=\"notification  column is-one-quarter is-success\" _v-d718d868=\"\">\n\t\t\t\t{{strings.option_saved}}\n\t\t\t</div>\n\t\t</div>\n\t\t\n\t\t<div class=\"field  columns\" _v-d718d868=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-d718d868=\"\">\n\t\t\t\t{{strings.enable_image_replace}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-d718d868=\"\">\n\t\t\t\t\t{{strings.replacer_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t<div class=\"column \" _v-d718d868=\"\">\n\t\t\t\t<toggle-button @change=\"toggleOption('image_replacer')\" :class=\"'has-text-dark'\" :value=\"imageReplacerStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.enabled, unchecked: strings.disabled}\" :width=\"80\" :height=\"25\" color=\"#008ec2\" _v-d718d868=\"\"></toggle-button>\n\t\t\t</div>\n\t\t\n\t\t</div>\n\t\t<div class=\"field  is-fullwidth columns\" _v-d718d868=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-d718d868=\"\">\n\t\t\t\t{{strings.toggle_ab_item}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-d718d868=\"\">\n\t\t\t\t\t{{strings.admin_bar_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t\n\t\t\t<div class=\"column \" _v-d718d868=\"\">\n\t\t\t\t<toggle-button :class=\"'has-text-dark'\" @change=\"toggleOption('admin_bar_item')\" v-model=\"adminBarItemStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.show, unchecked: strings.hide}\" :width=\"80\" :height=\"25\" color=\"#008ec2\" _v-d718d868=\"\"></toggle-button>\n\t\t\t</div>\n\t\t</div>\n\t\t<div class=\"field  columns\" _v-d718d868=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-d718d868=\"\">\n\t\t\t\t{{strings.quality_title}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-d718d868=\"\">\n\t\t\t\t\t{{strings.quality_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t<div class=\"column  buttons \" _v-d718d868=\"\">\n\t\t\t\t<div class=\"field columns  \" _v-d718d868=\"\">\n\t\t\t\t\t<div class=\"column  field has-addons\" _v-d718d868=\"\">\n\t\t\t\t\t\t<p class=\"control\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t<a @click=\"changeQuality('auto')\" :class=\"{ 'is-info':( quality_saved === 'auto' ), '  is-selected':isPreviousQuality('auto')  }\" class=\"button   is-small is-rounded\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-marker\" _v-d718d868=\"\"></span>\n\t\t\t\t\t\t\t\t<span _v-d718d868=\"\">{{strings.auto_q_title}}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\n\t\t\t\t\t\t<p class=\"control\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t<a @click=\"changeQuality('low')\" :class=\"{  'is-info':( quality_saved === 'low' ), ' is-selected':isPreviousQuality('low')  }\" class=\"button   is-small\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-minus  \" _v-d718d868=\"\"></span>\n\t\t\t\t\t\t\t\t<span _v-d718d868=\"\">{{strings.low_q_title}}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\n\t\t\t\t\t\t<p class=\"control\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t<a @click=\"changeQuality('medium')\" :class=\"{  'is-info':( quality_saved === 'medium' ), '  is-selected':isPreviousQuality('medium')  }\" class=\"button   is-small\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-controls-pause\" _v-d718d868=\"\"></span>\n\t\t\t\t\t\t\t\t<span class=\" \" _v-d718d868=\"\">{{strings.medium_q_title}}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t\t<p class=\"control\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t<a @click=\"changeQuality('high')\" :class=\"{  'is-info':( quality_saved === 'high' ), '  is-selected':isPreviousQuality('high')   }\" class=\"button    is-rounded is-small\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-menu\" _v-d718d868=\"\"></span>\n\t\t\t\t\t\t\t\t<span _v-d718d868=\"\">{{strings.high_q_title}}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t</div>\n\t\t\t\t\t<p class=\"control column  \" v-if=\"showSaveQuality\" _v-d718d868=\"\">\n\t\t\t\t\t\t<a @click=\"saveQuality()\" class=\"button is-small is-success \" :class=\"{'is-loading':loading_quality}\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-yes icon\" _v-d718d868=\"\"></span>\n\t\t\t\t\t\t\t<span _v-d718d868=\"\">\t{{strings.save_quality_btn}}</span>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<div v-if=\"loading_images\" class=\"has-text-centered subtitle \" _v-d718d868=\"\">{{strings.sample_image_loading}}<span class=\"loader has-text-black-bis icon is-small\" _v-d718d868=\"\"></span></div>\n\t\t<div v-else-if=\"sample_images.id &amp;&amp; sample_images.original_size > 0\" _v-d718d868=\"\">\n\t\t\t<p class=\"title has-text-centered is-5 is-size-6-mobile\" _v-d718d868=\"\">{{strings.quality_slider_desc}}</p>\n\t\t\t<div class=\"columns is-centered is-vcentered is-multiline is-mobile\" _v-d718d868=\"\">\n\t\t\t\t\n\t\t\t\t<div class=\"column visual-compare  is-half-fullhd is-half-desktop is-three-quarters-touch is-12-mobile  \" _v-d718d868=\"\">\n\t\t\t\t\t<div class=\"is-full progress-wrapper\" _v-d718d868=\"\">\n\t\t\t\t\t\t\n\t\t\t\t\t\t<p class=\"subtitle is-size-6 compress-optimization-ratio-done has-text-centered\" v-if=\"compressionRatio > 100\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t<strong _v-d718d868=\"\">{{( 100 - compressionRatio )}}%</strong> smaller </p>\n\t\t\t\t\t\t<p class=\"subtitle  compress-optimization-ratio-nothing is-size-6 has-text-centered\" v-else=\"\" _v-d718d868=\"\">\n\t\t\t\t\t\t\t{{all_strings.latest_images.same_size}}\n\t\t\t\t\t\t</p>\n\t\t\t\t\t\t<progress class=\"  progress is-large is-success \" :value=\"compressionRatio\" :max=\"100\" _v-d718d868=\"\">\n\t\t\t\t\t\t</progress>\n\t\t\t\t\t\t<hr _v-d718d868=\"\">\n\t\t\t\t\t\n\t\t\t\t\t</div>\n\t\t\t\t\t<image_diff class=\"is-fullwidth\" value=\"50\" :first_label=\"strings.image_1_label\" :second_label=\"strings.image_2_label\" _v-d718d868=\"\">\n\t\t\t\t\t\t<img slot=\"first\" :src=\"sample_images.optimized\" _v-d718d868=\"\">\n\t\t\t\t\t\t<img slot=\"second\" :src=\"sample_images.original\" _v-d718d868=\"\">\n\t\t\t\t\t\n\t\t\t\t\t</image_diff>\n\t\t\t\t\n\t\t\t\t</div>\n\t\t\t\n\t\t\t</div>\n\t\t</div>\n\t\t<div v-else-if=\" sample_images.id < 0\" _v-d718d868=\"\">\n\t\t\t<p class=\"title has-text-centered is-5 is-size-6-mobile\" _v-d718d868=\"\">{{strings.no_images_found}}</p></div>\n\t\n\t</div>\n\n";
 
 /***/ }),
 /* 46 */

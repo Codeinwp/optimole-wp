@@ -104,25 +104,28 @@
 			<div class="columns is-centered is-vcentered is-multiline is-mobile">
 				
 				<div class="column visual-compare  is-half-fullhd is-half-desktop is-three-quarters-touch is-12-mobile  ">
+					<div class="is-full progress-wrapper">
+						
+						<p class="subtitle is-size-6 compress-optimization-ratio-done has-text-centered"
+						   v-if="compressionRatio > 100">
+							<strong>{{( 100 - compressionRatio )}}%</strong> smaller </p>
+						<p class="subtitle  compress-optimization-ratio-nothing is-size-6 has-text-centered" v-else>
+							{{all_strings.latest_images.same_size}}
+						</p>
+						<progress class="  progress is-large is-success "
+						          :value="compressionRatio"
+						          :max="100">
+						</progress>
+						<hr/>
 					
+					</div>
 					<Image_diff class="is-fullwidth" value="50" :first_label="strings.image_1_label"
 					            :second_label="strings.image_2_label">
 						<img slot="first" :src="sample_images.optimized">
 						<img slot="second" :src="sample_images.original">
 					
 					</Image_diff>
-					<div class="is-full">
-						<hr/>
-						<progress class="  progress is-large is-success "
-						          :value="compressionRatio"
-						          :max="100">
-						</progress>
-						<p class="subtitle is-size-6 has-text-centered" v-if="compressionRatio < 100">
-							<strong>{{compressionRatio }}%</strong> smaller </p>
-						<p class="subtitle is-size-6 has-text-centered" v-else>
-							{{all_strings.latest_images.same_size}}
-						</p>
-					</div>
+				
 				</div>
 			
 			</div>
@@ -277,5 +280,28 @@
 	
 	#optimole-app .button.is-selected span {
 		color: #008ec2;
+	}
+	
+	#optimole-app p.compress-optimization-ratio-done strong{
+		
+		color: #44464e;
+	}
+	
+	#optimole-app p.compress-optimization-ratio-nothing,
+	#optimole-app p.compress-optimization-ratio-done {
+		position: absolute;
+		right: 10px;
+		color: #44464e;
+		
+		font-size: 0.9rem !important;
+		line-height: 1.4rem;
+	}
+	
+	#optimole-app p.compress-optimization-ratio-nothing{
+		color:#fff;
+		left:20px;
+	}
+	#optimole-app .progress-wrapper {
+		position: relative;
 	}
 </style>

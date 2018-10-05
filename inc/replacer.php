@@ -383,16 +383,27 @@ class Optml_Replacer {
 		if ( isset( $args['quality'] ) || ! empty( $args['quality'] ) ) {
 			$compress_level = $args['quality'];
 		}
+
 		$compress_level = $this->normalize_quality( $compress_level );
 		// this will authorize the image
 		$url_parts = explode( '://', $url );
 		$scheme    = $url_parts[0];
 		$path      = $url_parts[1];
+
 		if ( $args['width'] !== 'auto' ) {
 			$args['width'] = round( $args['width'], 0 );
+			if ( $args['width'] > $this->max_width ) {
+				$args['width'] = $this->max_width;
+			}
 		}
 		if ( $args['height'] !== 'auto' ) {
 			$args['height'] = round( $args['height'], 0 );
+			if ( $args['height'] > $this->max_height ) {
+				$args['height'] = $this->max_height;
+			}
+		}
+		if ( $args['width'] !== 'auto' && $args['height'] !== 'auto' ) {
+			$path = str_replace( '-' . $args['width'] . 'x' . $args['height'] . '.', '.', $path );
 		}
 		$payload = array(
 			'path'    => $this->urlception_encode( $path ),

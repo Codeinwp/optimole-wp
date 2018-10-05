@@ -193,9 +193,9 @@ class Optml_Rest {
 
 		$metadata = wp_get_attachment_metadata( $image['id'] );
 
-		$width    = 'auto';
-		$height   = 'auto';
-		$size     = 'medium_large';
+		$width  = 'auto';
+		$height = 'auto';
+		$size   = 'medium_large';
 		if ( isset( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
 			$width  = $metadata['sizes'][ $size ]['width'];
 			$height = $metadata['sizes'][ $size ]['height'];
@@ -212,12 +212,13 @@ class Optml_Rest {
 		) );
 		$optimized          = wp_remote_get( $image['optimized'],
 			array(
+				'timeout' => 10,
 				'headers' => array(
 					'Accept' => 'text/html,application/xhtml+xml,image/webp,image/apng ',
 				)
 			) );
 
-		$original           = wp_remote_get( $image['original'] );
+		$original = wp_remote_get( $image['original'] );
 
 		$image['optimized_size'] = (int) wp_remote_retrieve_header( $optimized, 'content-length' );
 		$image['original_size']  = (int) wp_remote_retrieve_header( $original, 'content-length' );
