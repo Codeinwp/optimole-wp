@@ -32,6 +32,14 @@ This plugin connects via API to OptiMole [image optimization service](https://op
 The plugin will rewrite your image URLs to replace them with OptiMole URLs. Your origin images will be downloaded from your storage, processed by the OptiMole infrastructure and cached in the CDN. NO development needed. Simply set up your account and enjoy faster image loading.
 
 == Changelog ==
+= 1.0.5 - 2018-10-05  = 
+
+* Adds max width/height option.
+* Improves registration workflow.
+* Adds image comparison slider ratio.
+* Adds logo on link preload.
+
+
 = 1.0.4 - 2018-10-03  = 
 
 * Adds in-plugin service registration.
