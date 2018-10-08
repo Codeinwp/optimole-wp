@@ -8,13 +8,6 @@
  */
 class Optml_Replacer {
 	/**
-	 * Cached object instance.
-	 *
-	 * @var Optml_Replacer
-	 */
-	protected static $instance = null;
-
-	/**
 	 * A list of allowd extensions.
 	 *
 	 * @var array
@@ -25,7 +18,12 @@ class Optml_Replacer {
 		'webp'         => 'image/webp',
 		'svg'          => 'image/svg+xml',
 	);
-
+	/**
+	 * Cached object instance.
+	 *
+	 * @var Optml_Replacer
+	 */
+	protected static $instance = null;
 	/**
 	 * Holds an array of image sizes.
 	 *
@@ -410,9 +408,7 @@ class Optml_Replacer {
 				$args['height'] = 'auto';
 			}
 		}
-		if ( $args['width'] !== 'auto' && $args['height'] !== 'auto' ) {
-			$path = str_replace( '-' . $args['width'] . 'x' . $args['height'] . '.', '.', $path );
-		}
+		$path    = $this->strip_size_from_path( $path, $args['width'], $args['height'] );
 		$payload = array(
 			'path'    => $this->urlception_encode( $path ),
 			'scheme'  => $scheme,
@@ -489,6 +485,23 @@ class Optml_Replacer {
 	}
 
 	/**
+	 * Strip sizes attributes from url path.
+	 *
+	 * @param string $path Raw path.
+	 * @param int    $width Width.
+	 * @param int    $height Height.
+	 *
+	 * @return mixed Stripped path.
+	 */
+	private function strip_size_from_path( $path, $width, $height ) {
+		if ( $width !== 'auto' && $height !== 'auto' ) {
+			$path = str_replace( '-' . $width . 'x' . $height . '.', '.', $path );
+		}
+
+		return $path;
+	}
+
+	/**
 	 * Ensures that an url parameter can stand inside an url.
 	 *
 	 * @param string $url The required url.
@@ -514,7 +527,6 @@ class Optml_Replacer {
 		if ( empty( $images ) ) {
 			return $content; // simple. no images
 		}
-
 		$image_sizes = self::image_sizes();
 		foreach ( $images[0] as $index => $tag ) {
 			$width   = $height = false;
@@ -609,20 +621,21 @@ class Optml_Replacer {
 	/**
 	 * Replace image URLs in the srcset attributes and in case there is a resize in action, also replace the sizes.
 	 *
-	 * @param array $sources Array of image sources.
-	 * @param array $size_array Array of width and height values in pixels (in that order).
-	 * @param array $image_src The 'src' of the image.
-	 * @param array $image_meta The image meta data as returned by 'wp_get_attachment_metadata()'.
-	 * @param int   $attachment_id Image attachment ID.
+	 * @param array  $sources Array of image sources.
+	 * @param array  $size_array Array of width and height values in pixels (in that order).
+	 * @param string $image_src The 'src' of the image.
+	 * @param array  $image_meta The image meta data as returned by 'wp_get_attachment_metadata()'.
+	 * @param int    $attachment_id Image attachment ID.
 	 *
 	 * @return array
 	 */
-	public function filter_srcset_attr( $sources = array(), $size_array = array(), $image_src = array(), $image_meta = array(), $attachment_id = 0 ) {
+	public function filter_srcset_attr( $sources = array(), $size_array = array(), $image_src = '', $image_meta = array(), $attachment_id = 0 ) {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
 		$used        = array();
 		$new_sources = array();
+		var_dump($sources);
 		foreach ( $sources as $i => $source ) {
 			list( $width, $height ) = self::parse_dimensions_from_filename( $source['url'] );
 
@@ -634,8 +647,9 @@ class Optml_Replacer {
 				$height = $image_meta['height'];
 			}
 
-			$new_sizes = $this->validate_image_sizes( $width, $height );
-			$new_url   = $this->get_imgcdn_url( $source['url'], $new_sizes );
+			$source['url'] = $this->strip_size_from_path( $source['url'], $width, $height );
+			$new_sizes     = $this->validate_image_sizes( $width, $height );
+			$new_url       = $this->get_imgcdn_url( $source['url'], $new_sizes );
 			if ( isset( $used[ md5( $new_url ) ] ) ) {
 				continue;
 			}
