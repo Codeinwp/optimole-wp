@@ -207,7 +207,7 @@ class Optml_Rest {
 
 		$width  = 'auto';
 		$height = 'auto';
-		$size   = 'medium_large';
+		$size   = 'full';
 		if ( isset( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
 			$width  = $metadata['sizes'][ $size ]['width'];
 			$height = $metadata['sizes'][ $size ]['height'];

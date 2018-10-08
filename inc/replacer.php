@@ -635,7 +635,6 @@ class Optml_Replacer {
 		}
 		$used        = array();
 		$new_sources = array();
-		var_dump($sources);
 		foreach ( $sources as $i => $source ) {
 			list( $width, $height ) = self::parse_dimensions_from_filename( $source['url'] );
 
