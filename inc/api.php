@@ -13,7 +13,8 @@ final class Optml_Api {
 	 *
 	 * @var string Api root.
 	 */
-	private $api_root = 'https://dashboard.optimole.com/api/optml/v1/';
+	//private $api_root = 'https://dashboard.optimole.com/api/optml/v1/';
+	private $api_root = 'http://localhost:8000/api/optml/v1/';
 	/**
 	 * Hold the user api key.
 	 *

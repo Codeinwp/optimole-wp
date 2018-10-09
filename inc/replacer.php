@@ -54,6 +54,8 @@ class Optml_Replacer {
 	 */
 	protected $whitelist = array();
 
+	protected $lazyload = true;
+
 	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
@@ -118,6 +120,8 @@ class Optml_Replacer {
 		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
 		add_action( 'template_redirect', array( $this, 'init_html_replacer' ), PHP_INT_MAX );
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+
+		wp_enqueue_script( 'test_opt', OPTML_URL . 'assets/replacer.js', array(), false, true );
 	}
 
 	/**
@@ -166,11 +170,13 @@ class Optml_Replacer {
 		}
 		$this->cdn_secret = $cdn_secret;
 		$this->whitelist = isset( $service_data['whitelist'] ) ? $service_data['whitelist'] : array();
-		$this->cdn_url    = sprintf(
-			'https://%s.%s',
-			strtolower( $cdn_key ),
-			'i.optimole.com'
-		);
+//		$this->cdn_url    = sprintf(
+//			'https://%s.%s',
+//			strtolower( $cdn_key ),
+//			'i.optimole.com'
+//		);
+
+		$this->cdn_url = 'http://test.opt.loc';
 	}
 
 	/**
@@ -369,7 +375,7 @@ class Optml_Replacer {
 		$compress_level = 55;
 		// this will authorize the image
 		$url_parts = explode( '://', $url );
-		$scheme    = $url_parts[0];
+		$scheme    = trim( $url_parts[0] );
 		$path      = $url_parts[1];
 		if ( $args['width'] !== 'auto' ) {
 			$args['width'] = round( $args['width'], 0 );
@@ -403,6 +409,11 @@ class Optml_Replacer {
 		$values  = array_values( $payload );
 		$payload = implode( '', $values );
 		$hash    = hash_hmac( 'md5', $payload, $this->cdn_secret );
+
+//		if ( $this->lazyload ) {
+//			$args['width'] = 1;
+//			$args['height'] = 1;
+//		}
 
 		$new_url = sprintf(
 			'%s/%s/%s/%s/%s/%s/%s',
@@ -459,6 +470,7 @@ class Optml_Replacer {
 	 */
 	public function filter_the_content( $content ) {
 		$images = self::parse_images_from_html( $content );
+		//var_dump( $images ); die();
 
 		if ( empty( $images ) ) {
 			return $content; // simple. no images
@@ -474,14 +486,14 @@ class Optml_Replacer {
 				continue;
 			}
 
-			if ( false !== strpos( $src, 'i.optimole.com' ) ) {
-				continue; // we already have this
-			}
-
-			// we handle only images uploaded to this site.
-			if ( false === strpos( $src, $this->upload_dir ) ) {
-				continue;
-			}
+//			if ( false !== strpos( $src, 'i.optimole.com' ) ) {
+//				continue; // we already have this
+//			}
+//
+//			// we handle only images uploaded to this site.
+//			if ( false === strpos( $src, $this->upload_dir ) ) {
+//				continue;
+//			}
 
 			// try to get the declared sizes from the img tag
 			if ( preg_match( '#width=["|\']?([\d%]+)["|\']?#i', $images['img_tag'][ $index ], $width_string ) ) {
@@ -517,11 +529,20 @@ class Optml_Replacer {
 				}
 			}
 
-			// replace the new sizes
-			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '"', $new_tag );
-			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
-			// replace the new url
-			$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $new_url . '"', $new_tag );
+			if ( $this->lazyload ) {
+				$one_px_url = $this->get_imgcdn_url( $src, [ 'width' => 1, 'height' => 1 ] );
+				// replace the new sizes
+				$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '" data-opt-width="' . $width . '"', $new_tag );
+				$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '" data-opt-height="' . $height . '"', $new_tag );
+				// replace the new url
+				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $one_px_url . '" data-opt-src="'. $new_url .'"', $new_tag );
+			} else {
+				// replace the new sizes
+				$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '"', $new_tag );
+				$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
+				// replace the new url
+				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $new_url . '"', $new_tag );
+			}
 
 			$content = str_replace( $tag, $new_tag, $content );
 		}
@@ -569,6 +590,9 @@ class Optml_Replacer {
 	public function filter_srcset_attr( $sources = array(), $size_array = array(), $image_src = array(), $image_meta = array(), $attachment_id = 0 ) {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
+		}
+		if ( $this->lazyload ) {
+			return array();
 		}
 		$used        = array();
 		$new_sources = array();
@@ -773,7 +797,6 @@ class Optml_Replacer {
 		);
 
 		$urls = array_map( array( $this, 'get_imgcdn_url' ), $urls );
-
 		return str_replace( array_keys( $urls ), array_values( $urls ), $html );
 	}
 
