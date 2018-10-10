@@ -200,13 +200,13 @@ class Optml_Replacer {
 		}
 		$this->cdn_secret = $cdn_secret;
 		$this->whitelist = isset( $service_data['whitelist'] ) ? $service_data['whitelist'] : array();
-//		$this->cdn_url    = sprintf(
-//			'https://%s.%s',
-//			strtolower( $cdn_key ),
-//			'i.optimole.com'
-//		);
+		$this->cdn_url    = sprintf(
+			'https://%s.%s',
+			strtolower( $cdn_key ),
+			'i.optimole.com'
+		);
 
-		$this->cdn_url = 'http://test.opt.loc';
+		//$this->cdn_url = 'http://test.opt.loc';
 	}
 
 	/**
@@ -564,12 +564,12 @@ class Optml_Replacer {
 				continue;
 			}
 
-			//if ( false !== strpos( $src, 'i.optimole.com' ) ) {
-//			if ( false !== strpos( $src, 'opt.loc' ) ) {
-//				continue; // we already have this
-//			}
+			if ( false !== strpos( $src, 'i.optimole.com' ) ) {
+				continue; // we already have this
+			}
 
-//			// we handle only images uploaded to this site.
+			// we handle only images uploaded to this site.
+			// @NOTE This breaks lazyload, and I suspect it never goes beyond this point in any case.
 //			if ( false === strpos( $src, $this->upload_dir ) ) {
 //				continue;
 //			}
@@ -609,6 +609,7 @@ class Optml_Replacer {
 			}
 
 			if ( $this->lazyload ) {
+				// This is a 1px gray gif image base64 encoded. It is 43B headers included.
 				$one_px_url = "data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==";
 
 				// replace the new sizes
