@@ -4,8 +4,8 @@ let images = document.getElementsByTagName('img');
 for( let image of images ) {
 
 	let containerWidth = image.clientWidth
-	let optWidth = image.dataset.optWidth
-	let optHeight = image.dataset.optHeight
+	let optWidth = image.attributes.width.value
+	let optHeight = image.attributes.height.value
 
 	let containerHeight = parseInt( optHeight/optWidth * containerWidth )
 
@@ -14,14 +14,21 @@ for( let image of images ) {
 
 	let optSrc = image.dataset.optSrc
 
-	console.log( optSrc );
+	console.log( containerWidth );
+	console.log( containerHeight );
+	console.log( optWidth );
+	console.log( optHeight );
 
 	let downloadingImage = new Image();
 
-	downloadingImage.onload = function(){
+	downloadingImage.onload = async function(){
 		if ( this.complete ) {
+			image.classList.add('optml_lazyload_img');
 			image.src = this.src;
 		}
 	};
+	optSrc = optSrc.replace(`/${optWidth}/`, `/${containerWidth}/`)
+	optSrc = optSrc.replace(`/${optHeight}/`, `/${containerHeight}/`)
+	console.log( optSrc );
 	downloadingImage.src = optSrc;
 }

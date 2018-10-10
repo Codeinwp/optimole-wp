@@ -1,0 +1,12 @@
+.optml_lazyload_img {
+    animation: lazyloadTransition 1s;
+}
+
+@-webkit-keyframes lazyloadTransition {
+    0%   {
+        filter: grayscale(0.9) blur(10px);
+    }
+    100% {
+        filter: grayscale(0) blur(0);
+    }
+}

@@ -122,6 +122,7 @@ class Optml_Replacer {
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
 
 		wp_enqueue_script( 'test_opt', OPTML_URL . 'assets/replacer.js', array(), false, true );
+		wp_enqueue_style( 'test_opt_style', OPTML_URL . 'assets/replacer.css' );
 	}
 
 	/**
@@ -394,7 +395,7 @@ class Optml_Replacer {
 
 		if( ! empty( $this->whitelist ) ) {
 			$new_url = sprintf(
-				'%s/%s/%s/%s/%s/%s/%s',
+				'%s/%s/%s/%s/%s/%s',
 				$this->cdn_url,
 				(string) $args['width'],
 				(string) $args['height'],
@@ -486,10 +487,11 @@ class Optml_Replacer {
 				continue;
 			}
 
-//			if ( false !== strpos( $src, 'i.optimole.com' ) ) {
+			//if ( false !== strpos( $src, 'i.optimole.com' ) ) {
+//			if ( false !== strpos( $src, 'opt.loc' ) ) {
 //				continue; // we already have this
 //			}
-//
+
 //			// we handle only images uploaded to this site.
 //			if ( false === strpos( $src, $this->upload_dir ) ) {
 //				continue;
@@ -530,10 +532,11 @@ class Optml_Replacer {
 			}
 
 			if ( $this->lazyload ) {
-				$one_px_url = $this->get_imgcdn_url( $src, [ 'width' => 1, 'height' => 1 ] );
+				$one_px_url = "data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==";
+
 				// replace the new sizes
-				$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '" data-opt-width="' . $width . '"', $new_tag );
-				$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '" data-opt-height="' . $height . '"', $new_tag );
+				$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '"', $new_tag );
+				$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
 				// replace the new url
 				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $one_px_url . '" data-opt-src="'. $new_url .'"', $new_tag );
 			} else {
