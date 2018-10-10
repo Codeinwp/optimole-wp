@@ -54,7 +54,12 @@ class Optml_Replacer {
 	 */
 	protected $whitelist = array();
 
-	protected $lazyload = true;
+	/**
+	 * Lazyload setting.
+	 *
+	 * @var bool
+	 */
+	protected $lazyload = false;
 
 	/**
 	 * Defines which is the maximum width accepted in the optimization process.
@@ -132,6 +137,11 @@ class Optml_Replacer {
 		if ( empty( $this->cdn_url ) ) {
 			return;
 		}
+
+		if( $this->settings->use_lazyload() ) {
+			$this->lazyload = true;
+		}
+
 		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
@@ -139,8 +149,10 @@ class Optml_Replacer {
 		add_action( 'template_redirect', array( $this, 'init_html_replacer' ), PHP_INT_MAX );
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
 
-		wp_enqueue_script( 'test_opt', OPTML_URL . 'assets/replacer.js', array(), false, true );
-		wp_enqueue_style( 'test_opt_style', OPTML_URL . 'assets/replacer.css' );
+		if ( $this->lazyload ) {
+			wp_enqueue_script( 'optm_lazyload_replacer_js', OPTML_URL . 'assets/replacer.js', array(), false, true );
+			wp_enqueue_style( 'optm_lazyload_replacer_css', OPTML_URL . 'assets/replacer.css' );
+		}
 	}
 
 	/**

@@ -293,6 +293,7 @@ class Optml_Rest {
 		foreach ( $new_settings as $key => $value ) {
 			switch ( $key ) {
 				case 'admin_bar_item':
+				case 'lazyload':
 				case 'image_replacer':
 					$sanitized_value = ( $value === 'enabled' || $value === 'disabled' ) ? $value : 'enabled';
 					break;
