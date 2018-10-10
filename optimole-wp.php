@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name:       Image optimization and CDN by Optimole
+ * Plugin Name:       Image optimization service by Optimole
  * Description:       Complete handling of your website images.
- * Version:           1.0.3
+ * Version:           1.0.5
  * Author:            Optimole
  * Author URI:        https://optimole.com
  * License:           GPL-2.0+
@@ -44,12 +44,13 @@ function optml_autoload( $class ) {
 function optml() {
 	define( 'OPTML_URL', plugin_dir_url( __FILE__ ) );
 	define( 'OPTML_PATH', plugin_dir_path( __FILE__ ) );
-	define( 'OPTML_VERSION', '1.0.3' );
+	define( 'OPTML_VERSION', '1.0.5' );
 	define( 'OPTML_NAMESPACE', 'optml' );
 	define( 'OPTML_BASEFILE', __FILE__ );
-	if( ! defined( 'OPTML_DEBUG' ) ) {
-		define( 'OPTML_DEBUG', false );
+	if ( ! defined( 'OPTML_DEBUG' ) ) {
+		define( 'OPTML_DEBUG', ( defined( 'TEST_GROUND' ) && TEST_GROUND ) ? true : false );
 	}
+
 	return Optml_Main::instance();
 }
 

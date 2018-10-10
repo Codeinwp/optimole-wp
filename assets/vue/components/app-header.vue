@@ -1,15 +1,16 @@
 <template>
 	<div>
 		<div class="header has-text-centered level">
+			
 			<div class="level-left">
 				<a class="logo level-item" href="https://optimole.com" target="_blank">
 					<figure class="media">
-						<img :src="logo" :alt="strings.optimole + ' ' + strings.image_cdn">
+						<img :src="logo" :alt="strings.optimole + ' ' + strings.service_details">
 					</figure>
 				</a>
 				<h3 class="has-text-centered has-text-grey-dark is-size-4 level-item">
 					<span class="has-text-weight-semibold">
-					{{strings.image_cdn}}
+					{{strings.service_details}}
 					</span>
 				</h3>
 			</div>
@@ -20,6 +21,7 @@
 					<span v-else class="tag is-danger">{{strings.not_connected}}</span>
 				</div>
 			</div>
+			
 		</div>
 		<hr/>
 	</div>

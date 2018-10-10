@@ -44,24 +44,9 @@ final class Optml_Api {
 	}
 
 	/**
-	 * Get the optimized images from API.
-	 *
-	 * @param string $api_key the api key.
-	 *
-	 * @return array|bool
-	 */
-	public function get_optimized_images( $api_key = '' ) {
-		if( ! empty( $api_key ) ) {
-			$this->api_key = $api_key;
-		}
-
-		return $this->request( '/stats/images' );
-	}
-
-	/**
 	 * Request constructor.
 	 *
-	 * @param string $path   The request url.
+	 * @param string $path The request url.
 	 * @param string $method The request method type.
 	 * @param array  $params The request method type.
 	 *
@@ -70,10 +55,12 @@ final class Optml_Api {
 	private function request( $path, $method = 'GET', $params = array() ) {
 
 		// Grab the url to which we'll be making the request.
-		$url = $this->api_root;
-
-		if ( empty( $this->api_key ) ) {
-			return false;
+		$url     = $this->api_root;
+		$headers = array();
+		if ( ! empty( $this->api_key ) ) {
+			$headers = array(
+				'Authorization' => 'Bearer ' . $this->api_key,
+			);
 		}
 		// If there is a extra, add that as a url var.
 		if ( 'GET' === $method && ! empty( $params ) ) {
@@ -81,16 +68,14 @@ final class Optml_Api {
 				$url = add_query_arg( array( $key => $val ), $url );
 			}
 		}
-		$url  = untrailingslashit( $this->api_root ) . $path;
+		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
 		$args = array(
 			'url'         => $url,
 			'method'      => $method,
 			'timeout'     => 45,
 			'httpversion' => 'Optimle WP (v' . OPTML_VERSION . ') ',
 			'sslverify'   => false,
-			'headers'     => array(
-				'Authorization' => 'Bearer ' . $this->api_key,
-			),
+			'headers'     => $headers,
 		);
 		if ( $method !== 'GET' ) {
 			$args['body'] = $params;
@@ -117,6 +102,39 @@ final class Optml_Api {
 
 		return $response['data'];
 
+	}
+
+	/**
+	 * Register user remotely on optimole.com.
+	 *
+	 * @param string $email User email.
+	 *
+	 * @return array|bool Api response.
+	 */
+	public function create_account( $email ) {
+		return $this->request(
+			'user/register-remote',
+			'POST',
+			array(
+				'email' => $email,
+				'site'  => get_site_url(),
+			)
+		);
+	}
+
+	/**
+	 * Get the optimized images from API.
+	 *
+	 * @param string $api_key the api key.
+	 *
+	 * @return array|bool
+	 */
+	public function get_optimized_images( $api_key = '' ) {
+		if ( ! empty( $api_key ) ) {
+			$this->api_key = $api_key;
+		}
+
+		return $this->request( '/stats/images' );
 	}
 
 	/**

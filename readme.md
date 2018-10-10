@@ -1,4 +1,4 @@
-# Image optimization and CDN by Optimole #
+# Image optimization service by Optimole #
 **Contributors:** [optimole](https://profiles.wordpress.org/optimole)  
 **Tags:** image optmization, cdn, image compression  
 **Requires at least:** 4.7  
@@ -17,7 +17,7 @@ With OptiMole, your site’s images will be cropped, optimized and processed on-
 Images are processed for best results with both lossless and lossy optimization and are automatically resized for any device.
 
 **Image acceleration through CDN**
-Images are served in any location, with our top providers covering up to 110 server locations worldwide.
+If you dont use a CDN, we got you covered, we will serve the images using our default CDN. You already have one, just let us know and we can integrate yours.
 
 **On-the-fly image handling**
 Dynamic manipulation of images and videos (resize, compress and serve via CDN on the fly).
@@ -32,8 +32,26 @@ This plugin connects via API to OptiMole [image optimization service](https://op
 The plugin will rewrite your image URLs to replace them with OptiMole URLs. Your origin images will be downloaded from your storage, processed by the OptiMole infrastructure and cached in the CDN. NO development needed. Simply set up your account and enjoy faster image loading.
 
 ## Changelog ##
+### 1.0.5 - 2018-10-05  ###
+
+* Adds max width/height option.
+* Improves registration workflow.
+* Adds image comparison slider ratio.
+* Adds logo on link preload.
+
+
+### 1.0.4 - 2018-10-03  ###
+
+* Adds in-plugin service registration.
+* Adds image quality control.
+* Adds slider for image comparison.
+* Improvements to UX and workflow.
+
+
 ### 1.0.3 - 2018-09-26  ###
 
+* Adds redirect on first install.
+* Improve elementor assets replacement.
 
 
 ### 1.0.2 - 2018-09-25  ###

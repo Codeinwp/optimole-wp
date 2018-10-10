@@ -1,4 +1,18 @@
 
+ ### v1.0.5 - 2018-10-05 
+ **Changes:** 
+ * Adds max width/height option.
+* Improves registration workflow.
+* Adds image comparison slider ratio.
+* Adds logo on link preload.
+ 
+ ### v1.0.4 - 2018-10-03 
+ **Changes:** 
+ * Adds in-plugin service registration.
+* Adds image quality control.
+* Adds slider for image comparison.
+* Improvements to UX and workflow.
+ 
  ### v1.0.3 - 2018-09-26 
  **Changes:** 
  * Adds redirect on first install.

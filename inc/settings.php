@@ -13,7 +13,10 @@ class Optml_Settings {
 	private $default_schema = array(
 		'api_key'        => '',
 		'service_data'   => '',
+		'max_height'     => 3000,
+		'max_width'      => 3000,
 		'admin_bar_item' => 'enabled',
+		'quality'        => 'auto',
 		'image_replacer' => 'enabled',
 	);
 	/**
@@ -34,10 +37,10 @@ class Optml_Settings {
 	 */
 	public function __construct() {
 		$this->namespace = OPTML_NAMESPACE . '_settings';
-		$this->options   = get_option( $this->namespace, $this->default_schema );
+		$this->options   = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 		if ( defined( 'OPTIML_ENABLED_MU' ) && OPTIML_ENABLED_MU && defined( 'OPTIML_MU_SITE_ID' ) && ! empty( OPTIML_MU_SITE_ID ) ) {
 			switch_to_blog( OPTIML_MU_SITE_ID );
-			$this->options = get_option( $this->namespace, $this->default_schema );
+			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 			restore_current_blog();
 		}
 	}
@@ -71,7 +74,7 @@ class Optml_Settings {
 			return null;
 		}
 
-		return isset ( $this->options[ $key ] ) ? $this->options[ $key ] : '';
+		return isset( $this->options[ $key ] ) ? $this->options[ $key ] : '';
 	}
 
 	/**
@@ -83,6 +86,22 @@ class Optml_Settings {
 	 */
 	private function is_allowed( $key ) {
 		return isset( $this->default_schema[ $key ] );
+	}
+
+	/**
+	 * Return site settings.
+	 *
+	 * @return array Site settings.
+	 */
+	public function get_site_settings() {
+
+		return array(
+			'quality'        => $this->get( 'quality' ),
+			'admin_bar_item' => $this->get( 'admin_bar_item' ),
+			'image_replacer' => $this->get( 'image_replacer' ),
+			'max_width'      => $this->get( 'max_width' ),
+			'max_height'     => $this->get( 'max_height' ),
+		);
 	}
 
 	/**

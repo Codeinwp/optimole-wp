@@ -21,6 +21,7 @@ const connectOptimole = function ( {commit, state}, data ) {
 		if ( response.body.code === 'success' ) {
 			commit( 'toggleKeyValidity', true );
 			commit( 'toggleConnectedToOptml', true );
+			commit( 'updateApiKey', data.apiKey );
 			commit( 'updateUserData', response.body.data );
 			console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
 
@@ -28,6 +29,27 @@ const connectOptimole = function ( {commit, state}, data ) {
 			commit( 'toggleKeyValidity', false );
 			console.log( '%c Invalid API Key.', 'color: #E7602A' );
 		}
+	} );
+};
+
+const registerOptimole = function ( {commit, state}, data ) {
+
+	commit( 'toggleLoading', true );
+	return Vue.http( {
+		url: optimoleDashboardApp.root + '/register',
+		method: 'POST',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		params: {'req': data.req},
+		body: {
+			'email': data.email,
+		},
+		responseType: 'json'
+	} ).then( function ( response ) {
+		commit( 'toggleLoading', false );
+		return response.data;
+	},function( response ) {
+		commit( 'toggleLoading', false );
+		return response.data;
 	} );
 };
 
@@ -43,6 +65,7 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 	} ).then( function ( response ) {
 		commit( 'updateUserData', null );
 		commit( 'toggleLoading', false );
+		commit( 'updateApiKey', '' );
 		if ( response.ok ) {
 			commit( 'toggleConnectedToOptml', false );
 			console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
@@ -52,32 +75,52 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 	} );
 };
 
-const toggleSetting = function ( {commit, state}, data ) {
-	commit( 'toggleLoading', true, 'loading' );
-	Vue.http( {
+const saveSettings = function ( {commit, state}, data ) {
+	commit( 'updateSettings', data.settings );
+	commit( 'toggleLoading', true );
+	return Vue.http( {
 		url: optimoleDashboardApp.root + '/update_option',
 		method: 'POST',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		params: {
-			'req': data.req,
-			'option_key': data.option_key,
-			'type': data.type ? data.type : ''
+		body: {
+			'settings': data.settings
 		},
 		responseType: 'json'
 	} ).then( function ( response ) {
+		if ( response.body.code === 'success' ) {
+			commit( 'updateSettings', response.body.data );
+		}
 		commit( 'toggleLoading', false );
-		if ( response.ok ) {
-			console.log( '%c ' + data.option_key + ' Toggled.', 'color: #59B278' );
-		} else {
-			console.error( response );
+
+
+	} );
+};
+const sampleRate = function ( {commit, state}, data ) {
+
+	data.component.loading_images = true;
+	return Vue.http( {
+		url: optimoleDashboardApp.root + '/images-sample-rate',
+		method: 'POST',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		params: {
+			'quality':data.quality
+		},
+		responseType: 'json'
+	} ).then( function ( response ) {
+
+		data.component.loading_images = false;
+		if ( response.body.code === 'success' ) {
+			commit( 'updateSampleRate', response.body.data );
 		}
 	} );
 };
 
 const retrieveOptimizedImages = function ( {commit, state}, data ) {
 	let self = this;
+
 	setTimeout( function () {
-		if ( self.state.optimizedImages.length ) {
+
+		if ( self.state.optimizedImages.length > 0 ) {
 			console.log( '%c Images already exsist.', 'color: #59B278' );
 			return false;
 		}
@@ -110,7 +153,9 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 
 export default {
 	connectOptimole,
+	registerOptimole,
 	disconnectOptimole,
-	toggleSetting,
+	saveSettings,
+	sampleRate,
 	retrieveOptimizedImages,
 };
