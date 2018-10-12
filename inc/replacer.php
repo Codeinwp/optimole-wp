@@ -206,7 +206,7 @@ class Optml_Replacer {
 			'i.optimole.com'
 		);
 
-		//$this->cdn_url = 'http://test.opt.loc';
+		$this->cdn_url = 'http://test.opt.loc';
 	}
 
 	/**
@@ -548,7 +548,6 @@ class Optml_Replacer {
 	 */
 	public function filter_the_content( $content ) {
 		$images = self::parse_images_from_html( $content );
-		//var_dump( $images ); die();
 
 		if ( empty( $images ) ) {
 			return $content; // simple. no images
@@ -871,6 +870,7 @@ class Optml_Replacer {
 				if ( strpos( $url, $cdn_url ) !== false ) {
 					return false;
 				}
+				error_log( 'URL: ' . $url );
 				if ( strpos( $url, $site_url ) === false ) {
 					return false;
 				}
@@ -879,6 +879,7 @@ class Optml_Replacer {
 			}
 		);
 
+		error_log( '#### URLS: ' . json_encode( $urls ) );
 		$urls = array_map( array( $this, 'get_imgcdn_url' ), $urls );
 		return str_replace( array_keys( $urls ), array_values( $urls ), $html );
 	}
