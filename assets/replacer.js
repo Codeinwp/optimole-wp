@@ -2,6 +2,10 @@
 let lastX = window.innerWidth;
 let lastY = window.innerHeight;
 
+/**
+ * Resize listener for when window changes sizes
+ * We check if we need a better quality image.
+ */
 document.addEventListener( 'DOMContentLoaded', function() {
 	let resizeEnd;
 	window.addEventListener( 'resize', function() {
@@ -27,6 +31,9 @@ window.addEventListener( 'resize-end', function() {
 
 } );
 
+/**
+ * Update images
+ */
 function updateImages() {
 	let images = document.getElementsByTagName( 'img' );
 	for( let image of images ) {
@@ -34,6 +41,12 @@ function updateImages() {
 	}
 }
 
+/**
+ * Load remaining images after images listed by the IntersectionObserver
+ * have been loaded.
+ *
+ * @param entries
+ */
 function deferImages( entries ) {
 	let loaded = 0;
 	let inView = 0;
@@ -56,6 +69,13 @@ function deferImages( entries ) {
 	}
 }
 
+/**
+ * Check if the available image is of worst quality than required
+ * by the client sizes.
+ *
+ * @param image
+ * @returns {boolean}
+ */
 function requiresBetterQuality( image ) {
 	if ( image.dataset.optOtimizedWidth === undefined || image.dataset.optOptimizedHeight === undefined ) {
 		return true;
@@ -71,6 +91,12 @@ function requiresBetterQuality( image ) {
 	return false
 }
 
+/**
+ * Lazy load image, replace src once new image is available.
+ *
+ * @param image
+ * @param entries
+ */
 function lazyLoadImage( image, entries = null ) {
 	let containerWidth = image.clientWidth
 	let optWidth = image.attributes.width.value
@@ -105,6 +131,12 @@ function lazyLoadImage( image, entries = null ) {
 	}
 }
 
+/**
+ * Method invoked when object intersects with the observer.
+ *
+ * @param entries
+ * @param observer
+ */
 function handleIntersect( entries, observer ) {
 	entries.forEach( function( entry ) {
 		let isLazyLoaded = entry.target.dataset.optLazyLoaded;
@@ -114,6 +146,27 @@ function handleIntersect( entries, observer ) {
 	} );
 }
 
+/**
+ * Method invoked when object changes MutationObserver's targetNode.
+ *
+ * @param mutationsList
+ * @param observer
+ */
+function handleMutation( mutationsList, observer ) {
+	for( let mutation of mutationsList ) {
+		if ( mutation.type === 'childList' ) { // A child node has been added or removed
+			updateImages();
+		}
+	}
+}
+
+/**
+ * Boilerplate to build threshold array
+ * change the numSteps from 0 to 100
+ * translates in a list of thresholds from 0 to 1
+ *
+ * @returns {Array}
+ */
 function buildThresholdList() {
 	let thresholds = [];
 	let numSteps = 5;
@@ -127,7 +180,10 @@ function buildThresholdList() {
 	return thresholds;
 }
 
-function createObserver() {
+/**
+ * Builds the intersection Observer
+ */
+function createIntersectionObserver() {
 	let observer;
 
 	let options = {
@@ -144,4 +200,13 @@ function createObserver() {
 	}
 }
 
-createObserver();
+function createMutationObserver() {
+	let targetNode = document.getElementsByTagName( 'body' )[0];
+	let config = { attributes: false, childList: true, subtree: true };
+
+	let observer = new MutationObserver( handleMutation );
+	observer.observe( targetNode, config );
+}
+
+createIntersectionObserver();
+createMutationObserver();
