@@ -539,6 +539,10 @@ class Optml_Replacer {
 		return urlencode( $new_url );
 	}
 
+	protected function is_amp() {
+		return function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
+	}
+
 	/**
 	 * Identify images in post content.
 	 *
@@ -558,6 +562,10 @@ class Optml_Replacer {
 			$width   = $height = false;
 			$new_tag = $tag;
 			$src     = $images['img_url'][ $index ];
+
+			if ( $this->is_amp() ) {
+				continue;
+			}
 
 			if ( apply_filters( 'optml_imgcdn_disable_optimization_for_link', false, $src ) ) {
 				continue;
@@ -609,7 +617,7 @@ class Optml_Replacer {
 				}
 			}
 
-			if ( $this->lazyload ) {
+			if ( $this->lazyload && ! $this->is_amp() ) {
 				// This is a 1px gray gif image base64 encoded. It is 43B headers included.
 				$one_px_url = "data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==";
 
@@ -673,7 +681,7 @@ class Optml_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-		if ( $this->lazyload ) {
+		if ( $this->lazyload && ! $this->is_amp() ) {
 			return array();
 		}
 		$used        = array();
