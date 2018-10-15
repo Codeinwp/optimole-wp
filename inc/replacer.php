@@ -185,7 +185,7 @@ class Optml_Replacer {
 	 */
 	protected function set_properties() {
 		$this->upload_dir = wp_upload_dir();
-		$this->upload_dir = $this->upload_dir['baseurl'];
+		$this->upload_dir = trim($this->upload_dir['baseurl']);
 
 		$settings     = new Optml_Settings();
 		$service_data = $settings->get( 'service_data' );
@@ -567,11 +567,13 @@ class Optml_Replacer {
 				continue; // we already have this
 			}
 
-			// we handle only images uploaded to this site.
-			// @NOTE This breaks lazyload, and I suspect it never goes beyond this point in any case.
-//			if ( false === strpos( $src, $this->upload_dir ) ) {
-//				continue;
-//			}
+			if ( $src === "data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" ) {
+				continue;
+			}
+
+			if ( false === strpos( $src, $this->upload_dir ) ) {
+				continue;
+			}
 
 			// try to get the declared sizes from the img tag
 			if ( preg_match( '#width=["|\']?([\d%]+)["|\']?#i', $images['img_tag'][ $index ], $width_string ) ) {
@@ -845,7 +847,6 @@ class Optml_Replacer {
 	 * @return mixed Filtered content.
 	 */
 	public function replace_urls( $html, $context = 'raw' ) {
-
 		switch ( $context ) {
 			case 'elementor':
 				$old_urls = $this->extract_slashed_urls( $html );
@@ -870,7 +871,7 @@ class Optml_Replacer {
 				if ( strpos( $url, $cdn_url ) !== false ) {
 					return false;
 				}
-				error_log( 'URL: ' . $url );
+
 				if ( strpos( $url, $site_url ) === false ) {
 					return false;
 				}
@@ -879,7 +880,6 @@ class Optml_Replacer {
 			}
 		);
 
-		error_log( '#### URLS: ' . json_encode( $urls ) );
 		$urls = array_map( array( $this, 'get_imgcdn_url' ), $urls );
 		return str_replace( array_keys( $urls ), array_values( $urls ), $html );
 	}
