@@ -6,6 +6,7 @@ const path = require( 'path' );
 let appName = '';
 const entryPoint = {
 	bundle: './assets/vue/app.js',
+	optimole_lib: './jsReplaceLibrary/optimole_lib.js'
 };
 const exportPath = path.resolve( __dirname, './assets/js' );
 
@@ -56,7 +57,15 @@ module.exports = {
 				exclude: /(node_modules|bower_components)/,
 				loader: 'babel-loader',
 				query: {
-					presets: [ 'es2015' ]
+					presets: [ 'es2015', 'stage-0' ],
+					plugins: [
+						["transform-runtime", {
+							"helpers": false,
+							"polyfill": false,
+							"regenerator": true,
+							"moduleName": "babel-runtime"
+						}]
+					]
 				}
 			},
 			{
