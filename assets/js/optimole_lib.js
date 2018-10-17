@@ -242,11 +242,7 @@ var _class = function () {
 				return true;
 			}
 
-			if (parseInt(image.dataset.optOtimizedHeight) <= parseInt(image.clientHeight)) {
-				return true;
-			}
-
-			return false;
+			return parseInt(image.dataset.optOtimizedHeight) <= parseInt(image.clientHeight);
 		}
 
 		/**
@@ -264,6 +260,8 @@ var _class = function () {
 
 			var self = this;
 
+			var originalImageInlineStyle = image.style;
+			var pixelRatio = window.devicePixelRatio;
 			var containerWidth = image.clientWidth;
 			var optWidth = image.attributes.width ? image.attributes.width.value : 'auto';
 			var optHeight = image.attributes.height ? image.attributes.height.value : 'auto';
@@ -277,6 +275,8 @@ var _class = function () {
 				image.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
 			}
 
+			containerWidth = parseInt(containerWidth * pixelRatio);
+			containerHeight = parseInt(containerHeight * pixelRatio);
 			if (image.dataset.optSrc !== undefined && this.requiresBetterQuality(image)) {
 				var optSrc = this.getImageCDNUrl(image.dataset.optSrc, { "width": containerWidth, "height": containerHeight });
 				var downloadingImage = new Image();
@@ -291,12 +291,14 @@ var _class = function () {
 										image.src = this.src;
 										image.style.removeProperty('width');
 										image.style.removeProperty('height');
-										image.dataset.optOtimizedWidth = "" + containerWidth;
-										image.dataset.optOptimizedHeight = "" + containerHeight;
 										image.dataset.optLazyLoaded = "true";
+										image.style = originalImageInlineStyle;
 										if (entries != null) {
 											self.deferImages(entries);
 										}
+
+										image.dataset.optOtimizedWidth = "" + containerWidth;
+										image.dataset.optOptimizedHeight = "" + containerHeight;
 									}
 
 								case 1:
@@ -309,6 +311,9 @@ var _class = function () {
 				optSrc = optSrc.replace("/" + optWidth + "/", "/" + containerWidth + "/");
 				optSrc = optSrc.replace("/" + optHeight + "/", "/" + containerHeight + "/");
 				downloadingImage.src = optSrc;
+			}
+			if (image.dataset.optLazyLoaded) {
+				image.style = originalImageInlineStyle;
 			}
 		}
 	}]);
