@@ -150,7 +150,7 @@ class Optml_Replacer {
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
 
 		if ( $this->lazyload ) {
-			wp_enqueue_script( 'optm_lazyload_replacer_js', OPTML_URL . 'assets/js/optimole_lib' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), false, true );
+			wp_enqueue_script( 'optm_lazyload_replacer_js', OPTML_JS_CDN . 'latest/optimole_lib' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), false, true );
 		}
 	}
 

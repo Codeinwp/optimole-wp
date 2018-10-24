@@ -6,7 +6,6 @@ const path = require( 'path' );
 let appName = '';
 const entryPoint = {
 	bundle: './assets/vue/app.js',
-	optimole_lib: './jsReplaceLibrary/optimole_lib.js'
 };
 const exportPath = path.resolve( __dirname, './assets/js' );
 
