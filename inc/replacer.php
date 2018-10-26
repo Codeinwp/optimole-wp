@@ -149,9 +149,6 @@ class Optml_Replacer {
 		add_action( 'template_redirect', array( $this, 'init_html_replacer' ), PHP_INT_MAX );
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
 
-		if ( $this->lazyload ) {
-			wp_enqueue_script( 'optm_lazyload_replacer_js', OPTML_JS_CDN . 'latest/optimole_lib' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), false, true );
-		}
 	}
 
 	/**
@@ -205,7 +202,7 @@ class Optml_Replacer {
 			'i.optimole.com'
 		);
 
-		$this->cdn_url = 'http://test.opt.loc';
+
 	}
 
 	/**

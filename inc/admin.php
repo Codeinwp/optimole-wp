@@ -30,6 +30,7 @@ class Optml_Admin {
 
 		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
 		add_action( 'admin_bar_menu', array( $this, 'add_traffic_node' ), 9999 );
 		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
@@ -39,6 +40,16 @@ class Optml_Admin {
 			if ( ! wp_next_scheduled( 'optml_daily_sync' ) ) {
 				wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 			}
+		}
+	}
+
+	/**
+	 * Enqueue frontend scripts.
+	 */
+	public function frontend_scripts() {
+
+		if ( $this->settings->use_lazyload() ) {
+			wp_enqueue_script( 'optm_lazyload_replacer_js', OPTML_JS_CDN . 'latest/optimole_lib' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), false, true );
 		}
 	}
 
@@ -270,7 +281,7 @@ class Optml_Admin {
 				'quality_slider_desc'  => __( ' See one sample image which will help you choose the right quality of the compression.', 'optimole-wp' ),
 				'replacer_desc'        => __( 'Replace all the image urls from your website with the ones optimized by Optimole.', 'optimole-wp' ),
 				'admin_bar_desc'       => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),
-				'lazyload_desc'       => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload.', 'optimole-wp' ),
+				'lazyload_desc'        => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload.', 'optimole-wp' ),
 			),
 			'latest_images'                 => array(
 				'image'                 => __( 'Image', 'optimole-wp' ),
