@@ -13,8 +13,8 @@ class Optml_Settings {
 	private $default_schema = array(
 		'api_key'        => '',
 		'service_data'   => '',
-		'max_height'     => 3000,
-		'max_width'      => 3000,
+		'max_height'     => 1500,
+		'max_width'      => 2000,
 		'admin_bar_item' => 'enabled',
 		'lazyload'       => 'disabled',
 		'quality'        => 'auto',

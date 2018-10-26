@@ -56,11 +56,11 @@ final class Optml_Api {
 
 		// Grab the url to which we'll be making the request.
 		$url     = $this->api_root;
-		$headers = array();
+		$headers = array(
+			'Optml-Site' => get_site_url()
+		);
 		if ( ! empty( $this->api_key ) ) {
-			$headers = array(
-				'Authorization' => 'Bearer ' . $this->api_key,
-			);
+			$headers['Authorization'] = 'Bearer ' . $this->api_key;
 		}
 		// If there is a extra, add that as a url var.
 		if ( 'GET' === $method && ! empty( $params ) ) {
