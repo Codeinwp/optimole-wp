@@ -612,21 +612,14 @@ class Optml_Replacer {
 					$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . $new_url . '\2', $tag, 1 );
 				}
 			}
+			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '"', $new_tag );
+			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
 
 			if ( $this->lazyload && ! $this->is_amp() ) {
 				// This is a 1px gray gif image base64 encoded. It is 43B headers included.
 				$one_px_url = "data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==";
-
-				// replace the new sizes
-				$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '"', $new_tag );
-				$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
-				// replace the new url
 				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $one_px_url . '" data-opt-src="'. $new_url .'"', $new_tag );
 			} else {
-				// replace the new sizes
-				$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '"', $new_tag );
-				$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
-				// replace the new url
 				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $new_url . '"', $new_tag );
 			}
 
