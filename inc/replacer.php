@@ -567,7 +567,7 @@ class Optml_Replacer {
 				continue; // we already have this
 			}
 
-			if ( $src === "data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" ) {
+			if ( $src === 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==' ) {
 				continue;
 			}
 
@@ -613,7 +613,7 @@ class Optml_Replacer {
 
 			if ( $this->lazyload && ! $this->is_amp() ) {
 				// This is a 1px gray gif image base64 encoded. It is 43B headers included.
-				$one_px_url = "data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==";
+				$one_px_url = 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
 				$new_tag    = str_replace( 'src="' . $src . '"', 'src="' . $one_px_url . '" data-opt-src="' . $new_url . '"', $new_tag );
 			} else {
 				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $new_url . '"', $new_tag );
@@ -651,6 +651,11 @@ class Optml_Replacer {
 		return array();
 	}
 
+	/**
+	 * Check if we are on a amp endpoint.
+	 *
+	 * @return bool
+	 */
 	protected function is_amp() {
 		return function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
 	}
