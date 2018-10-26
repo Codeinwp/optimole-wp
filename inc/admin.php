@@ -245,7 +245,7 @@ class Optml_Admin {
 			'settings_menu_item'            => __( 'Settings', 'optimole-wp' ),
 			'options_strings'               => array(
 				'toggle_ab_item'       => __( 'Admin bar status', 'optimole-wp' ),
-				'toggle_lazyload'      => __( 'Lazyload Images', 'optimole-wp' ),
+				'toggle_lazyload'      => __( 'Javascript replacement & Lazy load', 'optimole-wp' ),
 				'enable_image_replace' => __( 'Enable image replacement', 'optimole-wp' ),
 				'show'                 => __( 'Show', 'optimole-wp' ),
 				'hide'                 => __( 'Hide', 'optimole-wp' ),
@@ -270,7 +270,7 @@ class Optml_Admin {
 				'quality_slider_desc'  => __( ' See one sample image which will help you choose the right quality of the compression.', 'optimole-wp' ),
 				'replacer_desc'        => __( 'Replace all the image urls from your website with the ones optimized by Optimole.', 'optimole-wp' ),
 				'admin_bar_desc'       => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),
-				'lazyload_desc'       => __( 'Lazy load Images for better speed on low network connections.', 'optimole-wp' ),
+				'lazyload_desc'       => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload.', 'optimole-wp' ),
 			),
 			'latest_images'                 => array(
 				'image'                 => __( 'Image', 'optimole-wp' ),
