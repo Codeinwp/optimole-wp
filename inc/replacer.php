@@ -8,13 +8,6 @@
  */
 class Optml_Replacer {
 	/**
-	 * Cached object instance.
-	 *
-	 * @var Optml_Replacer
-	 */
-	protected static $instance = null;
-
-	/**
 	 * A list of allowd extensions.
 	 *
 	 * @var array
@@ -25,7 +18,12 @@ class Optml_Replacer {
 		'webp'         => 'image/webp',
 		'svg'          => 'image/svg+xml',
 	);
-
+	/**
+	 * Cached object instance.
+	 *
+	 * @var Optml_Replacer
+	 */
+	protected static $instance = null;
 	/**
 	 * Holds an array of image sizes.
 	 *
@@ -138,7 +136,7 @@ class Optml_Replacer {
 			return;
 		}
 
-		if( $this->settings->use_lazyload() ) {
+		if ( $this->settings->use_lazyload() ) {
 			$this->lazyload = true;
 		}
 
@@ -148,6 +146,37 @@ class Optml_Replacer {
 		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
 		add_action( 'template_redirect', array( $this, 'init_html_replacer' ), PHP_INT_MAX );
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+
+	}
+
+	/**
+	 * Set the cdn url based on the current connected user.
+	 */
+	protected function set_properties() {
+		$this->upload_dir = wp_upload_dir();
+		$this->upload_dir = trim( $this->upload_dir['baseurl'] );
+
+		$settings     = new Optml_Settings();
+		$service_data = $settings->get( 'service_data' );
+		if ( ! isset( $service_data['cdn_key'] ) ) {
+			return;
+		}
+		$cdn_key    = $service_data ['cdn_key'];
+		$cdn_secret = $service_data['cdn_secret'];
+
+		if ( empty( $cdn_key ) || empty( $cdn_secret ) ) {
+			return;
+		}
+		$this->cdn_secret = $cdn_secret;
+		$this->whitelist  = isset( $service_data['whitelist'] ) ? $service_data['whitelist'] : array();
+		$this->cdn_url    = sprintf(
+			'https://%s.%s',
+			strtolower( $cdn_key ),
+			'i.optimole.com'
+		);
+		if ( defined( 'OPTML_CUSTOM_DOMAIN' ) && ! empty( OPTML_CUSTOM_DOMAIN ) ) {
+			$this->cdn_url = OPTML_CUSTOM_DOMAIN;
+		}
 
 	}
 
@@ -174,35 +203,6 @@ class Optml_Replacer {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Set the cdn url based on the current connected user.
-	 */
-	protected function set_properties() {
-		$this->upload_dir = wp_upload_dir();
-		$this->upload_dir = trim($this->upload_dir['baseurl']);
-
-		$settings     = new Optml_Settings();
-		$service_data = $settings->get( 'service_data' );
-		if ( ! isset( $service_data['cdn_key'] ) ) {
-			return;
-		}
-		$cdn_key    = $service_data ['cdn_key'];
-		$cdn_secret = $service_data['cdn_secret'];
-
-		if ( empty( $cdn_key ) || empty( $cdn_secret ) ) {
-			return;
-		}
-		$this->cdn_secret = $cdn_secret;
-		$this->whitelist = isset( $service_data['whitelist'] ) ? $service_data['whitelist'] : array();
-		$this->cdn_url    = sprintf(
-			'https://%s.%s',
-			strtolower( $cdn_key ),
-			'i.optimole.com'
-		);
-
-
 	}
 
 	/**
@@ -442,7 +442,7 @@ class Optml_Replacer {
 		);
 		ksort( $payload );
 
-		if( ! empty( $this->whitelist ) ) {
+		if ( ! empty( $this->whitelist ) ) {
 			$new_url = sprintf(
 				'%s/%s/%s/%s/%s/%s',
 				$this->cdn_url,
@@ -535,10 +535,6 @@ class Optml_Replacer {
 		return urlencode( $new_url );
 	}
 
-	protected function is_amp() {
-		return function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
-	}
-
 	/**
 	 * Identify images in post content.
 	 *
@@ -618,7 +614,7 @@ class Optml_Replacer {
 			if ( $this->lazyload && ! $this->is_amp() ) {
 				// This is a 1px gray gif image base64 encoded. It is 43B headers included.
 				$one_px_url = "data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==";
-				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $one_px_url . '" data-opt-src="'. $new_url .'"', $new_tag );
+				$new_tag    = str_replace( 'src="' . $src . '"', 'src="' . $one_px_url . '" data-opt-src="' . $new_url . '"', $new_tag );
 			} else {
 				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $new_url . '"', $new_tag );
 			}
@@ -653,6 +649,10 @@ class Optml_Replacer {
 		}
 
 		return array();
+	}
+
+	protected function is_amp() {
+		return function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
 	}
 
 	/**
@@ -878,6 +878,7 @@ class Optml_Replacer {
 		);
 
 		$urls = array_map( array( $this, 'get_imgcdn_url' ), $urls );
+
 		return str_replace( array_keys( $urls ), array_values( $urls ), $html );
 	}
 
@@ -905,7 +906,7 @@ class Optml_Replacer {
 
 		$urls = array_map(
 			function ( $value ) {
-					return rtrim( html_entity_decode( $value ), '\\' );
+				return rtrim( html_entity_decode( $value ), '\\' );
 			},
 			$urls[1]
 		);

@@ -16,7 +16,7 @@ class Optml_Settings {
 		'max_height'     => 3000,
 		'max_width'      => 3000,
 		'admin_bar_item' => 'enabled',
-		'lazyload'       => 'enabled',
+		'lazyload'       => 'disabled',
 		'quality'        => 'auto',
 		'image_replacer' => 'enabled',
 	);
