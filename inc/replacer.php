@@ -46,6 +46,20 @@ class Optml_Replacer {
 	protected $cdn_secret = null;
 
 	/**
+	 * Domains Whitelist.
+	 *
+	 * @var array
+	 */
+	protected $whitelist = array();
+
+	/**
+	 * Lazyload setting.
+	 *
+	 * @var bool
+	 */
+	protected $lazyload = false;
+
+	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
 	 * @var int
@@ -121,12 +135,18 @@ class Optml_Replacer {
 		if ( empty( $this->cdn_url ) ) {
 			return;
 		}
+
+		if ( $this->settings->use_lazyload() ) {
+			$this->lazyload = true;
+		}
+
 		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
 		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
 		add_action( 'template_redirect', array( $this, 'init_html_replacer' ), PHP_INT_MAX );
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+
 	}
 
 	/**
@@ -134,27 +154,30 @@ class Optml_Replacer {
 	 */
 	protected function set_properties() {
 		$this->upload_dir = wp_upload_dir();
-		$this->upload_dir = $this->upload_dir['baseurl'];
+		$this->upload_dir = trim( $this->upload_dir['baseurl'] );
 
-		$service_data = $this->settings->get( 'service_data' );
+		$settings     = new Optml_Settings();
+		$service_data = $settings->get( 'service_data' );
 		if ( ! isset( $service_data['cdn_key'] ) ) {
 			return;
 		}
-		$cdn_key       = $service_data ['cdn_key'];
-		$cdn_secret    = $service_data['cdn_secret'];
-		$this->quality = $this->settings->get( 'quality' );
+		$cdn_key    = $service_data ['cdn_key'];
+		$cdn_secret = $service_data['cdn_secret'];
+
 		if ( empty( $cdn_key ) || empty( $cdn_secret ) ) {
 			return;
 		}
-		$this->max_height = $this->settings->get( 'max_height' );
-		$this->max_width  = $this->settings->get( 'max_width' );
-
 		$this->cdn_secret = $cdn_secret;
+		$this->whitelist  = isset( $service_data['whitelist'] ) ? $service_data['whitelist'] : array();
 		$this->cdn_url    = sprintf(
 			'https://%s.%s',
 			strtolower( $cdn_key ),
 			'i.optimole.com'
 		);
+		if ( defined( 'OPTML_CUSTOM_DOMAIN' ) && ! empty( OPTML_CUSTOM_DOMAIN ) ) {
+			$this->cdn_url = OPTML_CUSTOM_DOMAIN;
+		}
+
 	}
 
 	/**
@@ -173,7 +196,6 @@ class Optml_Replacer {
 			return false;
 		}
 		if ( ! $this->settings->is_enabled() ) {
-
 			return false;
 		}
 		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
@@ -387,7 +409,7 @@ class Optml_Replacer {
 		$compress_level = $this->normalize_quality( $compress_level );
 		// this will authorize the image
 		$url_parts = explode( '://', $url );
-		$scheme    = $url_parts[0];
+		$scheme    = trim( $url_parts[0] );
 		$path      = $url_parts[1];
 		if ( $args['width'] !== 'auto' ) {
 			$args['width'] = round( $args['width'], 0 );
@@ -417,6 +439,20 @@ class Optml_Replacer {
 			'quality' => (string) $compress_level,
 		);
 		ksort( $payload );
+
+		if ( ! empty( $this->whitelist ) ) {
+			$new_url = sprintf(
+				'%s/%s/%s/%s/%s/%s',
+				$this->cdn_url,
+				(string) $args['width'],
+				(string) $args['height'],
+				(string) $compress_level,
+				$scheme,
+				$path
+			);
+
+			return $new_url;
+		}
 
 		$values  = array_values( $payload );
 		$payload = implode( '', $values );
@@ -533,6 +569,10 @@ class Optml_Replacer {
 			$new_tag = $tag;
 			$src     = $images['img_url'][ $index ];
 
+			if ( $this->is_amp() ) {
+				continue;
+			}
+
 			if ( apply_filters( 'optml_imgcdn_disable_optimization_for_link', false, $src ) ) {
 				continue;
 			}
@@ -541,7 +581,10 @@ class Optml_Replacer {
 				continue; // we already have this
 			}
 
-			// we handle only images uploaded to this site.
+			if ( $src === 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==' ) {
+				continue;
+			}
+
 			if ( false === strpos( $src, $this->upload_dir ) ) {
 				continue;
 			}
@@ -579,12 +622,16 @@ class Optml_Replacer {
 					$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . $new_url . '\2', $tag, 1 );
 				}
 			}
-
-			// replace the new sizes
 			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '"', $new_tag );
 			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
-			// replace the new url
-			$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $new_url . '"', $new_tag );
+
+			if ( $this->lazyload && ! $this->is_amp() ) {
+				// This is a 1px gray gif image base64 encoded. It is 43B headers included.
+				$one_px_url = 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
+				$new_tag    = str_replace( 'src="' . $src . '"', 'src="' . $one_px_url . '" data-opt-src="' . $new_url . '"', $new_tag );
+			} else {
+				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $new_url . '"', $new_tag );
+			}
 
 			$content = str_replace( $tag, $new_tag, $content );
 		}
@@ -619,6 +666,15 @@ class Optml_Replacer {
 	}
 
 	/**
+	 * Check if we are on a amp endpoint.
+	 *
+	 * @return bool
+	 */
+	protected function is_amp() {
+		return function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
+	}
+
+	/**
 	 * Replace image URLs in the srcset attributes and in case there is a resize in action, also replace the sizes.
 	 *
 	 * @param array  $sources Array of image sources.
@@ -632,6 +688,9 @@ class Optml_Replacer {
 	public function filter_srcset_attr( $sources = array(), $size_array = array(), $image_src = '', $image_meta = array(), $attachment_id = 0 ) {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
+		}
+		if ( $this->lazyload && ! $this->is_amp() ) {
+			return array();
 		}
 		$used        = array();
 		$new_sources = array();
@@ -805,7 +864,6 @@ class Optml_Replacer {
 	 * @return mixed Filtered content.
 	 */
 	public function replace_urls( $html, $context = 'raw' ) {
-
 		switch ( $context ) {
 			case 'elementor':
 				$old_urls = $this->extract_slashed_urls( $html );
@@ -830,6 +888,7 @@ class Optml_Replacer {
 				if ( strpos( $url, $cdn_url ) !== false ) {
 					return false;
 				}
+
 				if ( strpos( $url, $site_url ) === false ) {
 					return false;
 				}
@@ -867,7 +926,7 @@ class Optml_Replacer {
 
 		$urls = array_map(
 			function ( $value ) {
-					return rtrim( html_entity_decode( $value ), '\\' );
+				return rtrim( html_entity_decode( $value ), '\\' );
 			},
 			$urls[1]
 		);

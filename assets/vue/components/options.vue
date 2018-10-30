@@ -37,6 +37,25 @@
 				               color="#008ec2"></toggle-button>
 			</div>
 		</div>
+
+		<div class="field  is-fullwidth columns">
+			<label class="label column has-text-grey-dark">
+				{{strings.toggle_lazyload}}
+				<p class="is-italic has-text-weight-normal">
+					{{strings.lazyload_desc}}
+				</p>
+			</label>
+
+			<div class="column ">
+				<toggle-button :class="'has-text-dark'"
+							   v-model="lazyLoadStatus"
+							   :disabled="this.$store.state.loading"
+							   :labels="{checked: strings.enabled, unchecked: strings.disabled}"
+							   :width="80"
+							   :height="25"
+							   color="#008ec2"></toggle-button>
+			</div>
+		</div>
 		
 		<div class="field  is-fullwidth columns n">
 			<label class="label is-half column has-text-grey-dark no-padding-right ">
@@ -247,6 +266,14 @@
 				},
 				get: function () {
 					return !(this.site_settings.admin_bar_item === 'disabled');
+				}
+			},
+			lazyLoadStatus: {
+				set: function (value) {
+					this.new_data.lazyload = value ? 'enabled' : 'disabled';
+				},
+				get: function () {
+					return !(this.site_settings.lazyload === 'disabled');
 				}
 			},
 			widthStatus: {
