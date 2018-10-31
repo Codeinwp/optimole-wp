@@ -70,12 +70,12 @@ final class Optml_Api {
 		}
 		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
 		$args = array(
-			'url'         => $url,
-			'method'      => $method,
-			'timeout'     => 45,
-			'httpversion' => 'Optimle WP (v' . OPTML_VERSION . ') ',
-			'sslverify'   => false,
-			'headers'     => $headers,
+			'url'        => $url,
+			'method'     => $method,
+			'timeout'    => 45,
+			'user-agent' => 'Optimle WP (v' . OPTML_VERSION . ') ',
+			'sslverify'  => false,
+			'headers'    => $headers,
 		);
 		if ( $method !== 'GET' ) {
 			$args['body'] = $params;

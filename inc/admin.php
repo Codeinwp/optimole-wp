@@ -49,7 +49,7 @@ class Optml_Admin {
 	public function frontend_scripts() {
 
 		if ( $this->settings->use_lazyload() ) {
-			wp_enqueue_script( 'optm_lazyload_replacer_js', OPTML_JS_CDN . 'latest/optimole_lib' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), false, true );
+			wp_enqueue_script( 'optm_lazyload_replacer_js', "https://" . OPTML_JS_CDN . '/latest/optimole_lib' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), false, true );
 		}
 	}
 
@@ -140,6 +140,7 @@ class Optml_Admin {
 			return $hints;
 		}
 		$hints[] = sprintf( '//%s', $this->settings->get_cdn_url() );
+		$hints[] = sprintf( '//%s', OPTML_JS_CDN );
 
 		return $hints;
 	}
