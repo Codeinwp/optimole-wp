@@ -19,6 +19,12 @@ class Optml_Replacer {
 		'svg'          => 'image/svg+xml',
 	);
 	/**
+	 * One pixel image code.
+	 *
+	 * @var string Base64 image.
+	 */
+	public static $one_px_url = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+	/**
 	 * Cached object instance.
 	 *
 	 * @var Optml_Replacer
@@ -29,64 +35,67 @@ class Optml_Replacer {
 	 *
 	 * @var array
 	 */
-	protected static $image_sizes;
-
+	protected static $image_sizes = array();
+	/**
+	 * Site url.
+	 *
+	 * @var string $siteurl
+	 */
+	protected static $siteurl = null;
+	/**
+	 * Site mirror, if any, usually CDN url.
+	 *
+	 * @var string $site_mirror
+	 */
+	protected static $site_mirror = null;
 	/**
 	 * Te cdn url, it will be build on the run.
 	 *
 	 * @var null
 	 */
 	protected $cdn_url = null;
-
 	/**
 	 * A secret key to encode payload.
 	 *
 	 * @var null
 	 */
 	protected $cdn_secret = null;
-
 	/**
 	 * Domains Whitelist.
 	 *
 	 * @var array
 	 */
 	protected $whitelist = array();
-
 	/**
 	 * Lazyload setting.
 	 *
 	 * @var bool
 	 */
 	protected $lazyload = false;
-
 	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
 	 * @var int
 	 */
 	protected $max_width = 3000;
-
 	/**
 	 * Defines the quality parameter.
 	 *
 	 * @var int
 	 */
 	protected $quality = 'auto';
-
 	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
 	 * @var int
 	 */
 	protected $max_height = 3000;
-
 	/**
 	 * Holds the real images sizes as an array.
 	 *
 	 * @var null
 	 */
 	protected $img_real_sizes = null;
-
 	/**
 	 * A cached version of `wp_upload_dir`
 	 *
@@ -112,6 +121,8 @@ class Optml_Replacer {
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
 			self::$instance->init();
+			self::$site_mirror = defined( "OPTML_SITE_MIRROR" ) ? OPTML_SITE_MIRROR : "";
+			self::$siteurl     = get_site_url();
 		}
 
 		return self::$instance;
@@ -199,6 +210,10 @@ class Optml_Replacer {
 			return false;
 		}
 		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
+			return false;
+		}
+
+		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
 			return false;
 		}
 
@@ -403,6 +418,9 @@ class Optml_Replacer {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
+		if ( strpos( $url, $this->cdn_url ) !== false ) {
+			return $url;
+		}
 		if ( ! $this->check_mimetype( $url ) ) {
 
 			return $url;
@@ -415,9 +433,19 @@ class Optml_Replacer {
 
 		$compress_level = $this->normalize_quality( $compress_level );
 		// this will authorize the image
+		if ( ! empty( self::$site_mirror ) ) {
+			$url = str_replace( self::$siteurl, self::$site_mirror, $url );
+		}
+
 		$url_parts = explode( '://', $url );
-		$scheme    = trim( $url_parts[0] );
-		$path      = $url_parts[1];
+		if ( count( $url_parts ) != 2 ) {
+			return $url;
+		}
+
+		$scheme = trim( $url_parts[0] );
+
+		$path = $url_parts[1];
+
 		if ( $args['width'] !== 'auto' ) {
 			$args['width'] = round( $args['width'], 0 );
 			if ( $args['width'] > $this->max_width ) {
@@ -437,7 +465,7 @@ class Optml_Replacer {
 				$args['height'] = 'auto';
 			}
 		}
-		$path    = $this->strip_size_from_path( $path, $args['width'], $args['height'] );
+
 		$payload = array(
 			'path'    => $this->urlception_encode( $path ),
 			'scheme'  => $scheme,
@@ -446,27 +474,14 @@ class Optml_Replacer {
 			'quality' => (string) $compress_level,
 		);
 		ksort( $payload );
-
-		if ( ! empty( $this->whitelist ) ) {
-			$new_url = sprintf(
-				'%s/%s/%s/%s/%s/%s',
-				$this->cdn_url,
-				(string) $args['width'],
-				(string) $args['height'],
-				(string) $compress_level,
-				$scheme,
-				$path
-			);
-
-			return $new_url;
+		$hash = '';
+		if ( empty( $this->whitelist ) ) {
+			$values  = array_values( $payload );
+			$payload = implode( '', $values );
+			$hash    = sprintf( "/%s", hash_hmac( 'md5', $payload, $this->cdn_secret ) );
 		}
-
-		$values  = array_values( $payload );
-		$payload = implode( '', $values );
-		$hash    = hash_hmac( 'md5', $payload, $this->cdn_secret );
-
 		$new_url = sprintf(
-			'%s/%s/%s/%s/%s/%s/%s',
+			'%s%s/%s/%s/%s/%s/%s',
 			$this->cdn_url,
 			$hash,
 			(string) $args['width'],
@@ -528,23 +543,6 @@ class Optml_Replacer {
 	}
 
 	/**
-	 * Strip sizes attributes from url path.
-	 *
-	 * @param string $path Raw path.
-	 * @param int    $width Width.
-	 * @param int    $height Height.
-	 *
-	 * @return mixed Stripped path.
-	 */
-	private function strip_size_from_path( $path, $width, $height ) {
-		if ( $width !== 'auto' && $height !== 'auto' ) {
-			$path = str_replace( '-' . $width . 'x' . $height . '.', '.', $path );
-		}
-
-		return $path;
-	}
-
-	/**
 	 * Ensures that an url parameter can stand inside an url.
 	 *
 	 * @param string $url The required url.
@@ -555,121 +553,6 @@ class Optml_Replacer {
 		$new_url = rtrim( $url, '/' );
 
 		return urlencode( $new_url );
-	}
-
-	/**
-	 * Identify images in post content.
-	 *
-	 * @param string $content The post content which will be filtered.
-	 *
-	 * @return string
-	 */
-	public function filter_the_content( $content ) {
-		$images = self::parse_images_from_html( $content );
-
-		if ( empty( $images ) ) {
-			return $content; // simple. no images
-		}
-
-		$image_sizes = self::image_sizes();
-		foreach ( $images[0] as $index => $tag ) {
-			$width   = $height = false;
-			$new_tag = $tag;
-			$src     = $images['img_url'][ $index ];
-
-			if ( $this->is_amp() ) {
-				continue;
-			}
-
-			if ( apply_filters( 'optml_imgcdn_disable_optimization_for_link', false, $src ) ) {
-				continue;
-			}
-
-			if ( false !== strpos( $src, 'i.optimole.com' ) ) {
-				continue; // we already have this
-			}
-
-			if ( $src === 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==' ) {
-				continue;
-			}
-
-			if ( false === strpos( $src, $this->upload_dir ) ) {
-				continue;
-			}
-
-			// try to get the declared sizes from the img tag
-			if ( preg_match( '#width=["|\']?([\d%]+)["|\']?#i', $images['img_tag'][ $index ], $width_string ) ) {
-				$width = $width_string[1];
-			}
-
-			if ( preg_match( '#height=["|\']?([\d%]+)["|\']?#i', $images['img_tag'][ $index ], $height_string ) ) {
-				$height = $height_string[1];
-			}
-
-			// Detect WP registered image size from HTML class
-			if ( preg_match( '#class=["|\']?[^"\']*size-([^"\'\s]+)[^"\']*["|\']?#i', $images['img_tag'][ $index ], $size ) ) {
-				$size = array_pop( $size );
-
-				if ( false === $width && false === $height && 'full' != $size && array_key_exists( $size, $image_sizes ) ) {
-					$width  = (int) $image_sizes[ $size ]['width'];
-					$height = (int) $image_sizes[ $size ]['height'];
-				}
-			} else {
-				unset( $size );
-			}
-			$new_sizes = $this->validate_image_sizes( $width, $height );
-
-			$new_url = $this->get_imgcdn_url( $src, $new_sizes );
-			if ( $new_url === $src ) {
-				continue;
-			}
-			// replace the url in hrefs or links
-			if ( ! empty( $images['link_url'][ $index ] ) ) {
-				if ( $this->check_mimetype( $images['link_url'][ $index ] ) ) {
-					$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . $new_url . '\2', $tag, 1 );
-				}
-			}
-			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '"', $new_tag );
-			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
-
-			if ( $this->lazyload ) {
-				// This is a 1px gray gif image base64 encoded. It is 43B headers included.
-				$one_px_url = 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
-				$new_tag    = str_replace( 'src="' . $src . '"', 'src="' . $one_px_url . '" data-opt-src="' . $new_url . '"', $new_tag );
-			} else {
-				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $new_url . '"', $new_tag );
-			}
-
-			$content = str_replace( $tag, $new_tag, $content );
-		}
-
-		return $content;
-	}
-
-	/**
-	 * Match all images and any relevant <a> tags in a block of HTML.
-	 *
-	 * @param string $content Some HTML.
-	 *
-	 * @return array An array of $images matches, where $images[0] is
-	 *         an array of full matches, and the link_url, img_tag,
-	 *         and img_url keys are arrays of those matches.
-	 */
-	protected static function parse_images_from_html( $content ) {
-		$images = array();
-
-		if ( preg_match_all( '#(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src=["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*</a>)?#is', $content, $images ) ) {
-			foreach ( $images as $key => $unused ) {
-				// Simplify the output as much as possible, mostly for confirming test results.
-				if ( is_numeric( $key ) && $key > 0 ) {
-					unset( $images[ $key ] );
-				}
-			}
-
-			return $images;
-		}
-
-		return array();
 	}
 
 	/**
@@ -703,7 +586,7 @@ class Optml_Replacer {
 				$height = $image_meta['height'];
 			}
 
-			$source['url'] = $this->strip_size_from_path( $source['url'], $width, $height );
+			$source['url'] = $this->strip_image_size_maybe( $source['url'] );
 			$new_sizes     = $this->validate_image_sizes( $width, $height );
 			$new_url       = $this->get_imgcdn_url( $source['url'], $new_sizes );
 			if ( isset( $used[ md5( $new_url ) ] ) ) {
@@ -744,6 +627,31 @@ class Optml_Replacer {
 		}
 
 		return array( false, false );
+	}
+
+	/**
+	 * Checks if the file is a image size and return the full url.
+	 *
+	 * @param string $src The image URL
+	 *
+	 * @return string
+	 **/
+	protected function strip_image_size_maybe( $src ) {
+		$stripped_src = $src;
+		if ( preg_match( '#(-\d+x\d+)\.(' . implode( '|', array_keys( self::$extensions ) ) . '){1}$#i', $src, $src_parts ) ) {
+			$stripped_src = str_replace( $src_parts[1], '', $src );
+			$upload_dir   = wp_get_upload_dir();
+			// Extracts the file path to the image minus the base url
+			if ( ! empty( self::$site_mirror ) ) {
+				$upload_dir['baseurl'] = str_replace( self::$siteurl, self::$site_mirror, $upload_dir['baseurl'] );
+			}
+			$file_path = substr( $stripped_src, strlen( $upload_dir['baseurl'] ) );
+			if ( file_exists( $upload_dir["basedir"] . $file_path ) ) {
+				$src = $stripped_src;
+			}
+		}
+
+		return $src;
 	}
 
 	/**
@@ -862,40 +770,33 @@ class Optml_Replacer {
 	 * @return mixed Filtered content.
 	 */
 	public function replace_urls( $html, $context = 'raw' ) {
+
 		switch ( $context ) {
 			case 'elementor':
-				$old_urls = $this->extract_slashed_urls( $html );
+				$old_urls = $this->extract_non_replaced_urls( $html );
 				$urls     = array_map( 'wp_unslash', $old_urls );
 				$urls     = array_combine( $old_urls, $urls );
 				// return $html;
 				break;
 			case 'raw':
 			default:
-				$urls = wp_extract_urls( $html );
-
+				$html = $this->filter_the_content( $html );
+				$urls = $this->extract_non_replaced_urls( $html );
 				$urls = array_combine( $urls, $urls );
 				break;
 
 		}
-
-		$cdn_url  = $this->cdn_url;
-		$site_url = get_site_url();
-		$urls     = array_filter(
-			$urls,
-			function ( $url ) use ( $cdn_url, $site_url ) {
-				if ( strpos( $url, $cdn_url ) !== false ) {
-					return false;
+		$urls = array_map(
+			function ( $url ) {
+				$tmp_new_url = $this->strip_image_size_maybe( $url );
+				$new_url     = $this->get_imgcdn_url( $tmp_new_url );
+				if ( $tmp_new_url == $new_url ) {
+					return $url;
 				}
 
-				if ( strpos( $url, $site_url ) === false ) {
-					return false;
-				}
-
-				return $this->check_mimetype( $url );
-			}
+				return $new_url;
+			}, $urls
 		);
-
-		$urls = array_map( array( $this, 'get_imgcdn_url' ), $urls );
 
 		return str_replace( array_keys( $urls ), array_values( $urls ), $html );
 	}
@@ -907,15 +808,14 @@ class Optml_Replacer {
 	 *
 	 * @return array Urls found.
 	 */
-	private function extract_slashed_urls( $content ) {
+	private function extract_non_replaced_urls( $content ) {
 		/**
 		 * Regex rule to match slashed urls, i.e -> http:\/\/optimole.com\/wp-content\/uploads\/2018\/09\/picture.jpg
 		 * Based on the extract_url patter.
 		 *
 		 * @var string Regex rule string.
 		 */
-		$regex = '/(http(s)*.+?)"/';
-
+		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-](?!i.optimole.com))*\.(?:' . implode( '|', array_keys( self::$extensions ) ) . ')/';
 		preg_match_all(
 			$regex,
 			$content,
@@ -926,12 +826,123 @@ class Optml_Replacer {
 			function ( $value ) {
 				return rtrim( html_entity_decode( $value ), '\\' );
 			},
-			$urls[1]
+			$urls[0]
 		);
 
 		$urls = array_unique( $urls );
 
 		return array_values( $urls );
+	}
+
+	/**
+	 * Identify images in post content.
+	 *
+	 * @param string $content The post content which will be filtered.
+	 *
+	 * @return string
+	 */
+	public function filter_the_content( $content ) {
+		$images = self::parse_images_from_html( $content );
+
+		if ( empty( $images ) ) {
+			return $content; // simple. no images
+		}
+		$image_sizes = self::image_sizes();
+		foreach ( $images[0] as $index => $tag ) {
+			$width   = $height = false;
+			$new_tag = $tag;
+			$src     = $tmp = $images['img_url'][ $index ];
+
+			if ( $this->is_amp() ) {
+				continue;
+			}
+			if ( apply_filters( 'optml_imgcdn_disable_optimization_for_link', false, $src ) ) {
+				continue;
+			}
+
+			if ( false !== strpos( $src, 'i.optimole.com' ) ) {
+				continue; // we already have this
+			}
+			if ( $src === self::$one_px_url ) {
+				continue;
+			}
+
+			if ( false === strpos( $src, self::$siteurl ) ) {
+				continue;
+			}
+
+			// try to get the declared sizes from the img tag
+			if ( preg_match( '#width=["|\']?([\d%]+)["|\']?#i', $images['img_tag'][ $index ], $width_string ) ) {
+				$width = $width_string[1];
+			}
+
+			if ( preg_match( '#height=["|\']?([\d%]+)["|\']?#i', $images['img_tag'][ $index ], $height_string ) ) {
+				$height = $height_string[1];
+			}
+
+			// Detect WP registered image size from HTML class
+			if ( preg_match( '#class=["|\']?[^"\']*size-([^"\'\s]+)[^"\']*["|\']?#i', $images['img_tag'][ $index ], $size ) ) {
+				$size = array_pop( $size );
+
+				if ( false === $width && false === $height && 'full' != $size && array_key_exists( $size, $image_sizes ) ) {
+					$width  = (int) $image_sizes[ $size ]['width'];
+					$height = (int) $image_sizes[ $size ]['height'];
+				}
+			} else {
+				unset( $size );
+			}
+			$new_sizes = $this->validate_image_sizes( $width, $height );
+			$tmp       = $this->strip_image_size_maybe( $tmp );
+
+			$new_url = $this->get_imgcdn_url( $tmp, $new_sizes );
+			if ( $new_url === $tmp ) {
+				continue;
+			}
+			// replace the url in hrefs or links
+			if ( ! empty( $images['link_url'][ $index ] ) ) {
+				if ( $this->check_mimetype( $images['link_url'][ $index ] ) ) {
+					$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . $new_url . '\2', $tag, 1 );
+				}
+			}
+			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '"', $new_tag );
+			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
+
+			if ( $this->lazyload ) {
+				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . self::$one_px_url . '" data-opt-src="' . $new_url . '"', $new_tag );
+			} else {
+				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $new_url . '"', $new_tag );
+			}
+
+			$content = str_replace( $tag, $new_tag, $content );
+		}
+
+		return $content;
+	}
+
+	/**
+	 * Match all images and any relevant <a> tags in a block of HTML.
+	 *
+	 * @param string $content Some HTML.
+	 *
+	 * @return array An array of $images matches, where $images[0] is
+	 *         an array of full matches, and the link_url, img_tag,
+	 *         and img_url keys are arrays of those matches.
+	 */
+	protected static function parse_images_from_html( $content ) {
+		$images = array();
+
+		if ( preg_match_all( '#(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src=["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*</a>)?#is', $content, $images ) ) {
+			foreach ( $images as $key => $unused ) {
+				// Simplify the output as much as possible, mostly for confirming test results.
+				if ( is_numeric( $key ) && $key > 0 ) {
+					unset( $images[ $key ] );
+				}
+			}
+
+			return $images;
+		}
+
+		return array();
 	}
 
 	/**
