@@ -136,7 +136,7 @@ class Optml_Replacer {
 			return;
 		}
 
-		if ( $this->settings->use_lazyload() ) {
+		if ( $this->settings->use_lazyload() && ! $this->is_amp() ) {
 			$this->lazyload = true;
 		}
 
@@ -203,6 +203,15 @@ class Optml_Replacer {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Check if we are on a amp endpoint.
+	 *
+	 * @return bool
+	 */
+	protected function is_amp() {
+		return function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
 	}
 
 	/**
@@ -360,8 +369,6 @@ class Optml_Replacer {
 				$this->max_width = $content_width;
 			}
 		}
-
-		$percentWidth = $percentHeight = null;
 
 		if ( $width > $this->max_width ) {
 			// we need to remember how much in percentage the width was resized and apply the same treatment to the height.
@@ -563,6 +570,7 @@ class Optml_Replacer {
 		if ( empty( $images ) ) {
 			return $content; // simple. no images
 		}
+
 		$image_sizes = self::image_sizes();
 		foreach ( $images[0] as $index => $tag ) {
 			$width   = $height = false;
@@ -609,7 +617,6 @@ class Optml_Replacer {
 			} else {
 				unset( $size );
 			}
-
 			$new_sizes = $this->validate_image_sizes( $width, $height );
 
 			$new_url = $this->get_imgcdn_url( $src, $new_sizes );
@@ -625,7 +632,7 @@ class Optml_Replacer {
 			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '"', $new_tag );
 			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
 
-			if ( $this->lazyload && ! $this->is_amp() ) {
+			if ( $this->lazyload ) {
 				// This is a 1px gray gif image base64 encoded. It is 43B headers included.
 				$one_px_url = 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==';
 				$new_tag    = str_replace( 'src="' . $src . '"', 'src="' . $one_px_url . '" data-opt-src="' . $new_url . '"', $new_tag );
@@ -666,15 +673,6 @@ class Optml_Replacer {
 	}
 
 	/**
-	 * Check if we are on a amp endpoint.
-	 *
-	 * @return bool
-	 */
-	protected function is_amp() {
-		return function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
-	}
-
-	/**
 	 * Replace image URLs in the srcset attributes and in case there is a resize in action, also replace the sizes.
 	 *
 	 * @param array  $sources Array of image sources.
@@ -689,7 +687,7 @@ class Optml_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-		if ( $this->lazyload && ! $this->is_amp() ) {
+		if ( $this->lazyload ) {
 			return array();
 		}
 		$used        = array();
