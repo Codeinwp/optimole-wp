@@ -121,8 +121,6 @@ class Optml_Replacer {
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
 			self::$instance->init();
-			self::$site_mirror = defined( "OPTML_SITE_MIRROR" ) ? OPTML_SITE_MIRROR : "";
-			self::$siteurl     = get_site_url();
 		}
 
 		return self::$instance;
@@ -151,6 +149,8 @@ class Optml_Replacer {
 			$this->lazyload = true;
 		}
 
+		self::$site_mirror = defined( "OPTML_SITE_MIRROR" ) ? OPTML_SITE_MIRROR : "";
+		self::$siteurl     = get_site_url();
 		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
@@ -163,12 +163,11 @@ class Optml_Replacer {
 	/**
 	 * Set the cdn url based on the current connected user.
 	 */
-	protected function set_properties() {
+	public function set_properties() {
 		$this->upload_dir = wp_upload_dir();
 		$this->upload_dir = trim( $this->upload_dir['baseurl'] );
 
-		$settings     = new Optml_Settings();
-		$service_data = $settings->get( 'service_data' );
+		$service_data = $this->settings->get( 'service_data' );
 		if ( ! isset( $service_data['cdn_key'] ) ) {
 			return;
 		}
@@ -188,7 +187,6 @@ class Optml_Replacer {
 		if ( defined( 'OPTML_CUSTOM_DOMAIN' ) && ! empty( OPTML_CUSTOM_DOMAIN ) ) {
 			$this->cdn_url = OPTML_CUSTOM_DOMAIN;
 		}
-
 	}
 
 	/**
@@ -646,6 +644,7 @@ class Optml_Replacer {
 				$upload_dir['baseurl'] = str_replace( self::$siteurl, self::$site_mirror, $upload_dir['baseurl'] );
 			}
 			$file_path = substr( $stripped_src, strlen( $upload_dir['baseurl'] ) );
+
 			if ( file_exists( $upload_dir["basedir"] . $file_path ) ) {
 				$src = $stripped_src;
 			}
@@ -842,12 +841,14 @@ class Optml_Replacer {
 	 * @return string
 	 */
 	public function filter_the_content( $content ) {
+
 		$images = self::parse_images_from_html( $content );
 
 		if ( empty( $images ) ) {
-			return $content; // simple. no images
+			return $content;
 		}
 		$image_sizes = self::image_sizes();
+
 		foreach ( $images[0] as $index => $tag ) {
 			$width   = $height = false;
 			$new_tag = $tag;
@@ -866,7 +867,6 @@ class Optml_Replacer {
 			if ( $src === self::$one_px_url ) {
 				continue;
 			}
-
 			if ( false === strpos( $src, self::$siteurl ) ) {
 				continue;
 			}
@@ -928,7 +928,7 @@ class Optml_Replacer {
 	 *         an array of full matches, and the link_url, img_tag,
 	 *         and img_url keys are arrays of those matches.
 	 */
-	protected static function parse_images_from_html( $content ) {
+	public static function parse_images_from_html( $content ) {
 		$images = array();
 
 		if ( preg_match_all( '#(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src=["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*</a>)?#is', $content, $images ) ) {
