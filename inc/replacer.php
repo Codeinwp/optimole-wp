@@ -23,7 +23,7 @@ class Optml_Replacer {
 	 *
 	 * @var string Base64 image.
 	 */
-	public static $one_px_url = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+	public static $one_px_url = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 	/**
 	 * Cached object instance.
 	 *
@@ -149,7 +149,7 @@ class Optml_Replacer {
 			$this->lazyload = true;
 		}
 
-		self::$site_mirror = defined( "OPTML_SITE_MIRROR" ) ? OPTML_SITE_MIRROR : "";
+		self::$site_mirror = defined( 'OPTML_SITE_MIRROR' ) ? OPTML_SITE_MIRROR : '';
 		self::$siteurl     = get_site_url();
 		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
@@ -476,7 +476,7 @@ class Optml_Replacer {
 		if ( empty( $this->whitelist ) ) {
 			$values  = array_values( $payload );
 			$payload = implode( '', $values );
-			$hash    = sprintf( "/%s", hash_hmac( 'md5', $payload, $this->cdn_secret ) );
+			$hash    = sprintf( '/%s', hash_hmac( 'md5', $payload, $this->cdn_secret ) );
 		}
 		$new_url = sprintf(
 			'%s%s/%s/%s/%s/%s/%s',
@@ -630,7 +630,7 @@ class Optml_Replacer {
 	/**
 	 * Checks if the file is a image size and return the full url.
 	 *
-	 * @param string $src The image URL
+	 * @param string $src The image URL.
 	 *
 	 * @return string
 	 **/
@@ -645,7 +645,7 @@ class Optml_Replacer {
 			}
 			$file_path = substr( $stripped_src, strlen( $upload_dir['baseurl'] ) );
 
-			if ( file_exists( $upload_dir["basedir"] . $file_path ) ) {
+			if ( file_exists( $upload_dir['basedir'] . $file_path ) ) {
 				$src = $stripped_src;
 			}
 		}
@@ -794,7 +794,8 @@ class Optml_Replacer {
 				}
 
 				return $new_url;
-			}, $urls
+			},
+			$urls
 		);
 
 		return str_replace( array_keys( $urls ), array_values( $urls ), $html );

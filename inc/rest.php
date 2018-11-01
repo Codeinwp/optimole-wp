@@ -140,7 +140,7 @@ class Optml_Rest {
 		$settings = new Optml_Settings();
 		$settings->update( 'service_data', $data );
 		$settings->update( 'api_key', $api_key );
-		
+
 		return $this->response( $data );
 	}
 

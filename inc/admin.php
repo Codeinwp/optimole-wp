@@ -51,7 +51,7 @@ class Optml_Admin {
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
-		wp_enqueue_script( 'optm_lazyload_replacer_js', "https://" . OPTML_JS_CDN . '/latest/optimole_lib' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), OPTML_VERSION, true );
+		wp_enqueue_script( 'optm_lazyload_replacer_js', 'https://' . OPTML_JS_CDN . '/latest/optimole_lib' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), OPTML_VERSION, true );
 
 	}
 
