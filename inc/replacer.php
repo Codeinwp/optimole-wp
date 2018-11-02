@@ -234,6 +234,8 @@ class Optml_Replacer {
 		if ( is_admin() ) {
 			return;
 		}
+		//We no longer need this if the handler was started.
+		remove_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
 		ob_start(
 			array( &$this, 'replace_urls' )
 		);
@@ -253,7 +255,9 @@ class Optml_Replacer {
 		if ( is_admin() ) {
 			return $image;
 		}
-
+		if ( $this->lazyload ) {
+			return $image;
+		}
 		$image_url = wp_get_attachment_url( $attachment_id );
 
 		if ( $image_url ) {
@@ -464,16 +468,16 @@ class Optml_Replacer {
 			}
 		}
 
-		$payload = array(
-			'path'    => $this->urlception_encode( $path ),
-			'scheme'  => $scheme,
-			'width'   => (string) $args['width'],
-			'height'  => (string) $args['height'],
-			'quality' => (string) $compress_level,
-		);
-		ksort( $payload );
 		$hash = '';
 		if ( empty( $this->whitelist ) ) {
+			$payload = array(
+				'path'    => $this->urlception_encode( $path ),
+				'scheme'  => $scheme,
+				'width'   => (string) $args['width'],
+				'height'  => (string) $args['height'],
+				'quality' => (string) $compress_level,
+			);
+			ksort( $payload );
 			$values  = array_values( $payload );
 			$payload = implode( '', $values );
 			$hash    = sprintf( '/%s', hash_hmac( 'md5', $payload, $this->cdn_secret ) );
@@ -769,21 +773,14 @@ class Optml_Replacer {
 	 * @return mixed Filtered content.
 	 */
 	public function replace_urls( $html, $context = 'raw' ) {
-
+		$html     = $this->filter_the_content( $html );
+		$old_urls = $this->extract_non_replaced_urls( $html );
+		$urls     = array_combine( $old_urls, $old_urls );
 		switch ( $context ) {
 			case 'elementor':
-				$old_urls = $this->extract_non_replaced_urls( $html );
-				$urls     = array_map( 'wp_unslash', $old_urls );
-				$urls     = array_combine( $old_urls, $urls );
+				$urls = array_map( 'wp_unslash', $urls );
 				// return $html;
 				break;
-			case 'raw':
-			default:
-				$html = $this->filter_the_content( $html );
-				$urls = $this->extract_non_replaced_urls( $html );
-				$urls = array_combine( $urls, $urls );
-				break;
-
 		}
 		$urls = array_map(
 			function ( $url ) {
@@ -802,39 +799,6 @@ class Optml_Replacer {
 	}
 
 	/**
-	 * Extract slashed urls from content.
-	 *
-	 * @param string $content Content to parse.
-	 *
-	 * @return array Urls found.
-	 */
-	private function extract_non_replaced_urls( $content ) {
-		/**
-		 * Regex rule to match slashed urls, i.e -> http:\/\/optimole.com\/wp-content\/uploads\/2018\/09\/picture.jpg
-		 * Based on the extract_url patter.
-		 *
-		 * @var string Regex rule string.
-		 */
-		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-](?!i.optimole.com))*\.(?:' . implode( '|', array_keys( self::$extensions ) ) . ')/';
-		preg_match_all(
-			$regex,
-			$content,
-			$urls
-		);
-
-		$urls = array_map(
-			function ( $value ) {
-				return rtrim( html_entity_decode( $value ), '\\' );
-			},
-			$urls[0]
-		);
-
-		$urls = array_unique( $urls );
-
-		return array_values( $urls );
-	}
-
-	/**
 	 * Identify images in post content.
 	 *
 	 * @param string $content The post content which will be filtered.
@@ -842,7 +806,9 @@ class Optml_Replacer {
 	 * @return string
 	 */
 	public function filter_the_content( $content ) {
-
+		if ( $this->is_amp() ) {
+			return $content;
+		}
 		$images = self::parse_images_from_html( $content );
 
 		if ( empty( $images ) ) {
@@ -853,11 +819,8 @@ class Optml_Replacer {
 		foreach ( $images[0] as $index => $tag ) {
 			$width   = $height = false;
 			$new_tag = $tag;
-			$src     = $tmp = $images['img_url'][ $index ];
+			$src     = $tmp = wp_unslash( $images['img_url'][ $index ] );
 
-			if ( $this->is_amp() ) {
-				continue;
-			}
 			if ( apply_filters( 'optml_imgcdn_disable_optimization_for_link', false, $src ) ) {
 				continue;
 			}
@@ -909,9 +872,15 @@ class Optml_Replacer {
 			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
 
 			if ( $this->lazyload ) {
-				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . self::$one_px_url . '" data-opt-src="' . $new_url . '"', $new_tag );
+				$new_tag = str_replace( array(
+					'src="' . $images['img_url'][ $index ] . '"',
+					'src=\"' . $images['img_url'][ $index ] . '"'
+				), array(
+					'src="' . self::$one_px_url . '" data-opt-src="' . $new_url . '"',
+					wp_slash( 'src="' . self::$one_px_url . '" data-opt-src="' . $new_url . '"' )
+				), $new_tag );
 			} else {
-				$new_tag = str_replace( 'src="' . $src . '"', 'src="' . $new_url . '"', $new_tag );
+				$new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
 			}
 
 			$content = str_replace( $tag, $new_tag, $content );
@@ -932,7 +901,7 @@ class Optml_Replacer {
 	public static function parse_images_from_html( $content ) {
 		$images = array();
 
-		if ( preg_match_all( '#(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src=["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*</a>)?#is', $content, $images ) ) {
+		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*<\/a>)?/ism', $content, $images ) ) {
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.
 				if ( is_numeric( $key ) && $key > 0 ) {
@@ -944,6 +913,38 @@ class Optml_Replacer {
 		}
 
 		return array();
+	}
+
+	/**
+	 * Extract slashed urls from content.
+	 *
+	 * @param string $content Content to parse.
+	 *
+	 * @return array Urls found.
+	 */
+	private function extract_non_replaced_urls( $content ) {
+		/**
+		 * Based on the extract_url patter.
+		 *
+		 * @var string Regex rule string.
+		 */
+		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-](?!i.optimole.com))*\.(?:' . implode( '|', array_keys( self::$extensions ) ) . ')/';
+		preg_match_all(
+			$regex,
+			$content,
+			$urls
+		);
+
+		$urls = array_map(
+			function ( $value ) {
+				return rtrim( html_entity_decode( $value ), '\\' );
+			},
+			$urls[0]
+		);
+
+		$urls = array_unique( $urls );
+
+		return array_values( $urls );
 	}
 
 	/**
