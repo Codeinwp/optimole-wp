@@ -29,7 +29,10 @@ class Optml_Admin {
 		$this->settings = new Optml_Settings();
 
 		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), PHP_INT_MIN );
+		add_action( 'admin_notices', array( $this, 'add_notice' ) );
+		add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
+
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
 		add_action( 'admin_bar_menu', array( $this, 'add_traffic_node' ), 9999 );
 		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
@@ -41,6 +44,87 @@ class Optml_Admin {
 				wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 			}
 		}
+	}
+
+	/**
+	 * Adds optimole optin class.
+	 *
+	 * @return string Optimole class.
+	 */
+	public function add_body_class( $classes ) {
+
+		if ( ! $this->should_show_notice() ) {
+			return $classes;
+		}
+		$classes .= ' optimole-optin-show ';
+
+		return $classes;
+	}
+
+	/**
+	 * Check if we should show the notice.
+	 *
+	 * @return bool Should show?
+	 */
+	public function should_show_notice() {
+
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			return false;
+		}
+
+		if ( is_network_admin() ) {
+			return false;
+		}
+
+		if ( $this->settings->is_connected() ) {
+			return false;
+		}
+		$current_screen = get_current_screen();
+		if ( empty( $current_screen ) ) {
+			return false;
+		}
+		static $allowed_base = array(
+			'plugins' => true,
+			'upload'  => true,
+			'media'   => true,
+			'themes'   => true,
+			'appearance_page_tgmpa-install-plugins'   => true,
+		);
+		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
+
+		if ( empty( $screen_slug ) ||
+			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
+			return false;
+		}
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return false;
+		}
+		if ( ( get_option( 'optml_notice_optin', 'no' ) === 'yes' ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+
+	/**
+	 * Adds optin notice.
+	 */
+	public function add_notice() {
+		if ( ! $this->should_show_notice() ) {
+			return;
+		}
+		?>
+		<div class="notice notice-success optml-notice-optin">
+			<p> <?php printf( __( 'Welcome to %1$sOptiMole%2$s, the easiest way to optimize your website images. Your users will enjoy a %3$sfaster%4$s website after you connect it with our service.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>' ); ?></p>
+			<p>
+				<a href="<?php echo esc_url( admin_url( 'upload.php?page=optimole' ) ); ?>"
+				   class="button button-primary"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?></a>
+				<a class="button"
+				   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_optin' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?></a>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
@@ -59,6 +143,11 @@ class Optml_Admin {
 	 * Maybe redirect to dashboard page.
 	 */
 	public function maybe_redirect() {
+
+		if ( isset( $_GET['optml_nonce'] ) && isset( $_GET['optml_hide_optin'] ) && $_GET['optml_hide_optin'] === 'yes' && wp_verify_nonce( $_GET['optml_nonce'], 'hide_nonce' ) ) {
+			update_option( 'optml_notice_optin', 'yes' );
+		}
+
 		if ( ! get_transient( 'optml_fresh_install' ) ) {
 			return;
 		}
@@ -158,6 +247,9 @@ class Optml_Admin {
 	 * Render dashboard page.
 	 */
 	public function render_dashboard_page() {
+		if ( get_option( 'optml_notice_optin', 'no' ) !== 'yes' ) {
+			update_option( 'optml_notice_optin', 'yes' );
+		}
 		?>
 		<div id="optimole-app">
 			<app></app>
@@ -169,6 +261,7 @@ class Optml_Admin {
 	 * Enqueue scripts needed for admin functionality.
 	 */
 	public function enqueue() {
+
 		$current_screen = get_current_screen();
 		if ( ! isset( $current_screen->id ) ) {
 			return;
