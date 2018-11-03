@@ -27,7 +27,7 @@ class Optml_Admin {
 	 */
 	public function __construct() {
 		$this->settings = new Optml_Settings();
-
+		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), array( $this, 'add_action_links' ) );
 		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), PHP_INT_MIN );
 		add_action( 'admin_notices', array( $this, 'add_notice' ) );
@@ -44,6 +44,23 @@ class Optml_Admin {
 				wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 			}
 		}
+	}
+
+	/**
+	 * Add settings links in the plugin listing page.
+	 *
+	 * @param array $links Old plugin links.
+	 *
+	 * @return array Altered links.
+	 */
+	function add_action_links( $links ) {
+		if ( ! is_array( $links ) ) {
+			return $links;
+		}
+
+		return array_merge( $links, array(
+			'<a href="' . admin_url( 'upload.php?page=optimole' ) . '">' . __( 'Settings', 'optimole-wp' ) . '</a>',
+		) );
 	}
 
 	/**
@@ -93,7 +110,7 @@ class Optml_Admin {
 		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
 
 		if ( empty( $screen_slug ) ||
-			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
+		     ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
 			return false;
 		}
 		if ( ! current_user_can( 'manage_options' ) ) {
