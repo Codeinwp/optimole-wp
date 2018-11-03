@@ -234,7 +234,7 @@ class Optml_Replacer {
 		if ( is_admin() ) {
 			return;
 		}
-		//We no longer need this if the handler was started.
+		// We no longer need this if the handler was started.
 		remove_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
 		ob_start(
 			array( &$this, 'replace_urls' )
@@ -872,13 +872,17 @@ class Optml_Replacer {
 			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
 
 			if ( $this->lazyload ) {
-				$new_tag = str_replace( array(
-					'src="' . $images['img_url'][ $index ] . '"',
-					'src=\"' . $images['img_url'][ $index ] . '"'
-				), array(
-					'src="' . self::$one_px_url . '" data-opt-src="' . $new_url . '"',
-					wp_slash( 'src="' . self::$one_px_url . '" data-opt-src="' . $new_url . '"' )
-				), $new_tag );
+				$new_tag = str_replace(
+					array(
+						'src="' . $images['img_url'][ $index ] . '"',
+						'src=\"' . $images['img_url'][ $index ] . '"',
+					),
+					array(
+						'src="' . self::$one_px_url . '" data-opt-src="' . $new_url . '"',
+						wp_slash( 'src="' . self::$one_px_url . '" data-opt-src="' . $new_url . '"' ),
+					),
+					$new_tag
+				);
 			} else {
 				$new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
 			}

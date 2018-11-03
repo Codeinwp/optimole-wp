@@ -84,11 +84,11 @@ class Optml_Admin {
 			return false;
 		}
 		static $allowed_base = array(
-			'plugins' => true,
-			'upload'  => true,
-			'media'   => true,
-			'themes'   => true,
-			'appearance_page_tgmpa-install-plugins'   => true,
+			'plugins'                               => true,
+			'upload'                                => true,
+			'media'                                 => true,
+			'themes'                                => true,
+			'appearance_page_tgmpa-install-plugins' => true,
 		);
 		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
 
@@ -416,7 +416,7 @@ class Optml_Admin {
 		$args = array(
 			'id'    => 'optml_image_quota',
 			'title' => 'Optimole' . __( ' Image Traffic', 'optimole-wp' ) . ': ' . number_format( floatval( ( $service_data['usage'] / 1000 ) ), 3 ) . ' / ' . number_format( floatval( ( $service_data['quota'] / 1000 ) ), 0 ) . 'GB',
-			'href'  => 'https://dashboard.optimole.com/',
+			'href'  => admin_url( 'upload.php?page=optimole' ),
 			'meta'  => array(
 				'target' => '_blank',
 				'class'  => $should_load !== 'enabled' ? 'hidden' : '',
