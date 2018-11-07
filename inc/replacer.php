@@ -8,7 +8,7 @@
  */
 class Optml_Replacer {
 	/**
-	 * A list of allowd extensions.
+	 * A list of allowed extensions.
 	 *
 	 * @var array
 	 */
@@ -18,12 +18,6 @@ class Optml_Replacer {
 		'webp'         => 'image/webp',
 		'svg'          => 'image/svg+xml',
 	);
-	/**
-	 * One pixel image code.
-	 *
-	 * @var string Base64 image.
-	 */
-	public static $one_px_url = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 	/**
 	 * Cached object instance.
 	 *
@@ -103,7 +97,7 @@ class Optml_Replacer {
 	 */
 	protected $upload_dir = null;
 	/**
-	 * Setings handler.
+	 * Settings handler.
 	 *
 	 * @var Optml_Settings $settings
 	 */
@@ -416,7 +410,7 @@ class Optml_Replacer {
 	 *
 	 * @return string
 	 */
-	public function get_imgcdn_url( $url, $args = array( 'width' => 'auto', 'height' => 'auto' ) ) {
+	public function get_imgcdn_url( $url, $args = array( 'width' => 'auto', 'height' => 'auto', 'quality' => 'auto' ) ) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
@@ -528,6 +522,9 @@ class Optml_Replacer {
 			return intval( $quality );
 		}
 		$quality = trim( $quality );
+		if ( $quality === 'eco' ) {
+			return 'eco';
+		}
 		if ( $quality === 'auto' ) {
 			return 'auto';
 		}
@@ -828,9 +825,6 @@ class Optml_Replacer {
 			if ( false !== strpos( $src, 'i.optimole.com' ) ) {
 				continue; // we already have this
 			}
-			if ( $src === self::$one_px_url ) {
-				continue;
-			}
 			if ( false === strpos( $src, self::$siteurl ) ) {
 				continue;
 			}
@@ -872,17 +866,33 @@ class Optml_Replacer {
 			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
 
 			if ( $this->lazyload ) {
+				$new_sizes['quality'] = 'eco';
+				$low_url       = $this->get_imgcdn_url( $tmp, $new_sizes );
+
+				$noscript_tag = str_replace(
+					array(
+						'src="' . $images['img_url'][ $index ] . '"',
+						'src=\"' . $images['img_url'][ $index ] . '"',
+					),
+					array(
+						'src="' . $new_url . '"',
+						wp_slash( 'src="' . $new_url . '"' ),
+					),
+					$new_tag
+				);
 				$new_tag = str_replace(
 					array(
 						'src="' . $images['img_url'][ $index ] . '"',
 						'src=\"' . $images['img_url'][ $index ] . '"',
 					),
 					array(
-						'src="' . self::$one_px_url . '" data-opt-src="' . $new_url . '"',
-						wp_slash( 'src="' . self::$one_px_url . '" data-opt-src="' . $new_url . '"' ),
+						'src="' . $low_url . '" data-opt-src="' . $new_url . '"',
+						wp_slash( 'src="' . $low_url . '" data-opt-src="' . $new_url . '"' ),
 					),
 					$new_tag
 				);
+
+				$new_tag .= '<noscript>' . $noscript_tag . '</noscript>';
 			} else {
 				$new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
 			}
