@@ -892,7 +892,7 @@ class Optml_Replacer {
 					$new_tag
 				);
 
-				$new_tag .= '<noscript>' . $noscript_tag . '</noscript>';
+				$new_tag = '<noscript>' . $noscript_tag . '</noscript>' . $new_tag;
 			} else {
 				$new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
 			}
