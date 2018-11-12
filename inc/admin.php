@@ -50,6 +50,13 @@ class Optml_Admin {
 		}
 	}
 
+	/**
+	 * Adds body class  for no-js.
+	 *
+	 * @param array $classes No js class.
+	 *
+	 * @return array
+	 */
 	public function optimole_body_classes( $classes ) {
 		$classes[] = 'optimole-no-script';
 		return $classes;
@@ -67,9 +74,12 @@ class Optml_Admin {
 			return $links;
 		}
 
-		return array_merge( $links, array(
-			'<a href="' . admin_url( 'upload.php?page=optimole' ) . '">' . __( 'Settings', 'optimole-wp' ) . '</a>',
-		) );
+		return array_merge(
+			$links,
+			array(
+				'<a href="' . admin_url( 'upload.php?page=optimole' ) . '">' . __( 'Settings', 'optimole-wp' ) . '</a>',
+			)
+		);
 	}
 
 	/**
@@ -119,7 +129,7 @@ class Optml_Admin {
 		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
 
 		if ( empty( $screen_slug ) ||
-		     ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
+			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
 			return false;
 		}
 		if ( ! current_user_can( 'manage_options' ) ) {
