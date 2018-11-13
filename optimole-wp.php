@@ -43,7 +43,7 @@ function optml_autoload( $class ) {
  */
 function optml() {
 	define( 'OPTML_URL', plugin_dir_url( __FILE__ ) );
-	define( 'OPTML_JS_CDN', 's3.amazonaws.com/optimole-js-lib' );
+	define( 'OPTML_JS_CDN', 'd5jmkjjpb7yfg.cloudfront.net' );
 	define( 'OPTML_PATH', plugin_dir_path( __FILE__ ) );
 	define( 'OPTML_VERSION', '1.1.0' );
 	define( 'OPTML_NAMESPACE', 'optml' );
