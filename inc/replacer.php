@@ -114,7 +114,7 @@ class Optml_Replacer {
 	public static function instance() {
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
-			self::$instance->init();
+			add_action( 'init', array( self::$instance, 'init' ) );
 		}
 
 		return self::$instance;
@@ -410,7 +410,11 @@ class Optml_Replacer {
 	 *
 	 * @return string
 	 */
-	public function get_imgcdn_url( $url, $args = array( 'width' => 'auto', 'height' => 'auto', 'quality' => 'auto' ) ) {
+	public function get_imgcdn_url( $url, $args = array( 'width'   => 'auto',
+														 'height'  => 'auto',
+														 'quality' => 'auto',
+	)
+	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
@@ -867,7 +871,7 @@ class Optml_Replacer {
 
 			if ( $this->lazyload ) {
 				$new_sizes['quality'] = 'eco';
-				$low_url       = $this->get_imgcdn_url( $tmp, $new_sizes );
+				$low_url              = $this->get_imgcdn_url( $tmp, $new_sizes );
 
 				$noscript_tag = str_replace(
 					array(
@@ -880,7 +884,7 @@ class Optml_Replacer {
 					),
 					$new_tag
 				);
-				$new_tag = str_replace(
+				$new_tag      = str_replace(
 					array(
 						'src="' . $images['img_url'][ $index ] . '"',
 						'src=\"' . $images['img_url'][ $index ] . '"',
