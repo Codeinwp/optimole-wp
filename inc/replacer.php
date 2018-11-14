@@ -908,6 +908,20 @@ class Optml_Replacer {
 	}
 
 	/**
+	 * Matches the header tag and removes it.
+	 *
+	 * @param string $content Some HTML.
+	 *
+	 * @return string The HTML without the <header/> tag
+	 */
+	public static function strip_header_from_content( $content ) {
+		if ( preg_match('/<header.*<\/header>/ism', $content, $matches) !== 1 ) {
+			return $content;
+		}
+		return str_replace( $matches[0], '', $content );
+	}
+
+	/**
 	 * Match all images and any relevant <a> tags in a block of HTML.
 	 *
 	 * @param string $content Some HTML.
@@ -919,10 +933,7 @@ class Optml_Replacer {
 	public static function parse_images_from_html( $content ) {
 		$images = array();
 
-		if ( preg_match('/<header.*<\/header>/', $content, $matches) ) {
-			$filter_header = str_replace( $matches[0], '', $content );
-			$content = $filter_header;
-		}
+		$content = self::strip_header_from_content( $content );
 
 		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*<\/a>)?/ism', $content, $images ) ) {
 			foreach ( $images as $key => $unused ) {
