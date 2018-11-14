@@ -114,7 +114,7 @@ class Optml_Replacer {
 	public static function instance() {
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
-			add_action( 'init', array( self::$instance, 'init' ) );
+			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
 		}
 
 		return self::$instance;
@@ -134,17 +134,15 @@ class Optml_Replacer {
 		if ( ! $this->should_replace() ) {
 			return;
 		}
-
 		if ( empty( $this->cdn_url ) ) {
 			return;
 		}
 
-		if ( $this->settings->use_lazyload() && ! $this->is_amp() ) {
-			$this->lazyload = true;
-		}
-
+		$this->lazyload    = $this->settings->use_lazyload();
 		self::$site_mirror = defined( 'OPTML_SITE_MIRROR' ) ? OPTML_SITE_MIRROR : '';
 		self::$siteurl     = get_site_url();
+
+
 		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
@@ -208,29 +206,15 @@ class Optml_Replacer {
 		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
 			return false;
 		}
-		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
-			return false;
-		}
 
-		if ( is_customize_preview() ) {
-			return false;
-		}
 		return true;
-	}
-
-	/**
-	 * Check if we are on a amp endpoint.
-	 *
-	 * @return bool
-	 */
-	protected function is_amp() {
-		return function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
 	}
 
 	/**
 	 * Init html replacer handler.
 	 */
 	public function init_html_replacer() {
+
 		if ( is_admin() ) {
 			return;
 		}
@@ -255,7 +239,7 @@ class Optml_Replacer {
 		if ( is_admin() ) {
 			return $image;
 		}
-		if ( $this->lazyload ) {
+		if ( $this->lazyload && ! $this->is_amp() ) {
 			return $image;
 		}
 		$image_url = wp_get_attachment_url( $attachment_id );
@@ -307,6 +291,25 @@ class Optml_Replacer {
 
 		// in case something wrong comes, well return the default.
 		return $image;
+	}
+
+	/**
+	 * Check if we are on a amp endpoint.
+	 *
+	 * IMPORTANT: This needs to be  used after parse_query hook, otherwise will return false positives.
+	 *
+	 * @return bool
+	 */
+	protected function is_amp() {
+
+		if ( function_exists( 'is_amp_endpoint' ) ) {
+			return is_amp_endpoint();
+		}
+		if ( function_exists( 'ampforwp_is_amp_endpoint' ) ) {
+			return ampforwp_is_amp_endpoint();
+		}
+
+		return false;
 	}
 
 	/**
@@ -416,10 +419,12 @@ class Optml_Replacer {
 	 *
 	 * @return string
 	 */
-	public function get_imgcdn_url( $url, $args = array( 'width'   => 'auto',
-														 'height'  => 'auto',
-														 'quality' => 'auto',
-	)
+	public function get_imgcdn_url(
+		$url, $args = array(
+			'width'   => 'auto',
+			'height'  => 'auto',
+			'quality' => 'auto',
+		)
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
@@ -579,7 +584,7 @@ class Optml_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-		if ( $this->lazyload ) {
+		if ( $this->lazyload && ! $this->is_amp() ) {
 			return array();
 		}
 		$used        = array();
@@ -914,20 +919,6 @@ class Optml_Replacer {
 	}
 
 	/**
-	 * Matches the header tag and removes it.
-	 *
-	 * @param string $content Some HTML.
-	 *
-	 * @return string The HTML without the <header/> tag
-	 */
-	public static function strip_header_from_content( $content ) {
-		if ( preg_match('/<header.*<\/header>/ism', $content, $matches) !== 1 ) {
-			return $content;
-		}
-		return str_replace( $matches[0], '', $content );
-	}
-
-	/**
 	 * Match all images and any relevant <a> tags in a block of HTML.
 	 *
 	 * @param string $content Some HTML.
@@ -953,6 +944,21 @@ class Optml_Replacer {
 		}
 
 		return array();
+	}
+
+	/**
+	 * Matches the header tag and removes it.
+	 *
+	 * @param string $content Some HTML.
+	 *
+	 * @return string The HTML without the <header/> tag
+	 */
+	public static function strip_header_from_content( $content ) {
+		if ( preg_match( '/<header.*<\/header>/ism', $content, $matches ) !== 1 ) {
+			return $content;
+		}
+
+		return str_replace( $matches[0], '', $content );
 	}
 
 	/**
