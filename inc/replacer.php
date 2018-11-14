@@ -142,7 +142,6 @@ class Optml_Replacer {
 		self::$site_mirror = defined( 'OPTML_SITE_MIRROR' ) ? OPTML_SITE_MIRROR : '';
 		self::$siteurl     = get_site_url();
 
-
 		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
@@ -421,10 +420,10 @@ class Optml_Replacer {
 	 */
 	public function get_imgcdn_url(
 		$url, $args = array(
-			'width'   => 'auto',
-			'height'  => 'auto',
-			'quality' => 'auto',
-		)
+		'width'   => 'auto',
+		'height'  => 'auto',
+		'quality' => 'auto',
+	)
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
@@ -840,7 +839,7 @@ class Optml_Replacer {
 			if ( false !== strpos( $src, 'i.optimole.com' ) ) {
 				continue; // we already have this
 			}
-			if ( false === strpos( $src, self::$siteurl ) ) {
+			if ( false === strpos( $src, self::$siteurl ) && ( empty( self::$site_mirror ) || false === strpos( $src, self::$site_mirror ) ) ) {
 				continue;
 			}
 
