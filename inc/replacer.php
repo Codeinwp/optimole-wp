@@ -205,6 +205,13 @@ class Optml_Replacer {
 		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
 			return false;
 		}
+		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
+			return false;
+		}
+
+		if ( is_customize_preview() ) {
+			return false;
+		}
 
 		return true;
 	}
