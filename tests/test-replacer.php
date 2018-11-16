@@ -12,7 +12,8 @@
  * Class Test_Generic.
  */
 class Test_Replacer extends WP_UnitTestCase {
-	const IMG_TAGS = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" /></div></div>';
+	const IMG_TAGS = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" /></div></div> ';
+	const IMG_TAGS_PNG = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.png" width="2000" height="1200" alt="Test" /></div></div>';
 	const IMG_URLS = '
 	http://example.org/wp-content/themes/test/assets/images/header.png 
 	http://example.org/wp-content/themes/test/assets/images/header.jpeg

@@ -662,7 +662,6 @@ class Optml_Replacer {
 			$stripped_src = str_replace( $src_parts[1], '', $src );
 			$upload_dir   = wp_get_upload_dir();
 			// Extracts the file path to the image minus the base url
-			 
 			$file_path = substr( $stripped_src, strlen( $upload_dir['baseurl'] ) );
 
 			if ( file_exists( $upload_dir['basedir'] . $file_path ) ) {
@@ -874,7 +873,7 @@ class Optml_Replacer {
 			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '"', $new_tag );
 			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
 
-			if ( $this->lazyload ) {
+			if ( $this->lazyload && $this->can_lazyload( $tmp ) ) {
 				$new_sizes['quality'] = 'eco';
 				$low_url              = $this->get_imgcdn_url( $tmp, $new_sizes );
 
@@ -948,11 +947,38 @@ class Optml_Replacer {
 	 * @return string The HTML without the <header/> tag
 	 */
 	public static function strip_header_from_content( $content ) {
-		if ( preg_match('/<header.*<\/header>/ismU', $content, $matches) !== 1 ) {
+		if ( preg_match( '/<header.*<\/header>/ismU', $content, $matches ) !== 1 ) {
 			return $content;
 		}
-		
+
 		return str_replace( $matches[0], '', $content );
+	}
+
+	/**
+	 * Check if the lazyload is allowed for this url.
+	 *
+	 * @param string $url Url.
+	 *
+	 * @return bool We can lazyload?
+	 */
+	public function can_lazyload( $url ) {
+		if ( ! defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) ) {
+			return true;
+		}
+		if ( ! OPTML_DISABLE_PNG_LAZYLOAD ) {
+			return true;
+		}
+		$type = wp_check_filetype(
+			basename( $url ),
+			array(
+				'png' => 'image/png',
+			)
+		);
+		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

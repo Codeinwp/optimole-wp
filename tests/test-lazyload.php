@@ -40,4 +40,15 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertNotContains( 'http://example.org', $replaced_content );
 	}
 
+
+	public function test_lazy_load_off() {
+
+		define( 'OPTML_DISABLE_PNG_LAZYLOAD', true );
+
+		$replaced_content = Optml_Replacer::instance()->filter_the_content( Test_Replacer::IMG_TAGS_PNG );
+
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertNotContains( 'data-opt-src', $replaced_content );
+
+	}
 }
