@@ -662,9 +662,7 @@ class Optml_Replacer {
 			$stripped_src = str_replace( $src_parts[1], '', $src );
 			$upload_dir   = wp_get_upload_dir();
 			// Extracts the file path to the image minus the base url
-			if ( ! empty( self::$site_mirror ) ) {
-				$upload_dir['baseurl'] = str_replace( self::$siteurl, self::$site_mirror, $upload_dir['baseurl'] );
-			}
+			 
 			$file_path = substr( $stripped_src, strlen( $upload_dir['baseurl'] ) );
 
 			if ( file_exists( $upload_dir['basedir'] . $file_path ) ) {
