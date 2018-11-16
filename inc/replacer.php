@@ -114,7 +114,7 @@ class Optml_Replacer {
 	public static function instance() {
 		if ( is_null( self::$instance ) ) {
 			self::$instance = new self();
-			add_action( 'init', array( self::$instance, 'init' ) );
+			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
 		}
 
 		return self::$instance;
@@ -134,17 +134,14 @@ class Optml_Replacer {
 		if ( ! $this->should_replace() ) {
 			return;
 		}
-
 		if ( empty( $this->cdn_url ) ) {
 			return;
 		}
 
-		if ( $this->settings->use_lazyload() && ! $this->is_amp() ) {
-			$this->lazyload = true;
-		}
-
+		$this->lazyload    = $this->settings->use_lazyload();
 		self::$site_mirror = defined( 'OPTML_SITE_MIRROR' ) ? OPTML_SITE_MIRROR : '';
 		self::$siteurl     = get_site_url();
+
 		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
 		add_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
@@ -208,23 +205,22 @@ class Optml_Replacer {
 		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
 			return false;
 		}
+		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
+			return false;
+		}
+
+		if ( is_customize_preview() ) {
+			return false;
+		}
 
 		return true;
-	}
-
-	/**
-	 * Check if we are on a amp endpoint.
-	 *
-	 * @return bool
-	 */
-	protected function is_amp() {
-		return function_exists( 'is_amp_endpoint' ) && is_amp_endpoint();
 	}
 
 	/**
 	 * Init html replacer handler.
 	 */
 	public function init_html_replacer() {
+
 		if ( is_admin() ) {
 			return;
 		}
@@ -249,7 +245,7 @@ class Optml_Replacer {
 		if ( is_admin() ) {
 			return $image;
 		}
-		if ( $this->lazyload ) {
+		if ( $this->lazyload && ! $this->is_amp() ) {
 			return $image;
 		}
 		$image_url = wp_get_attachment_url( $attachment_id );
@@ -268,7 +264,7 @@ class Optml_Replacer {
 			if ( is_array( $size ) ) {
 				$sizes = array(
 					'width'  => ( $size[0] < $sizes['width'] ? $size[0] : $sizes['width'] ),
-					'height' => ( $size[1] < $sizes['height'] ? $size[0] : $sizes['height'] ),
+					'height' => ( $size[1] < $sizes['height'] ? $size[1] : $sizes['height'] ),
 				);
 			} elseif ( 'full' !== $size && isset( $image_args[ $size ] ) ) { // overwrite if there a size
 				$sizes = array(
@@ -301,6 +297,25 @@ class Optml_Replacer {
 
 		// in case something wrong comes, well return the default.
 		return $image;
+	}
+
+	/**
+	 * Check if we are on a amp endpoint.
+	 *
+	 * IMPORTANT: This needs to be  used after parse_query hook, otherwise will return false positives.
+	 *
+	 * @return bool
+	 */
+	protected function is_amp() {
+
+		if ( function_exists( 'is_amp_endpoint' ) ) {
+			return is_amp_endpoint();
+		}
+		if ( function_exists( 'ampforwp_is_amp_endpoint' ) ) {
+			return ampforwp_is_amp_endpoint();
+		}
+
+		return false;
 	}
 
 	/**
@@ -410,9 +425,11 @@ class Optml_Replacer {
 	 *
 	 * @return string
 	 */
-	public function get_imgcdn_url( $url, $args = array( 'width'   => 'auto',
-														 'height'  => 'auto',
-														 'quality' => 'auto',
+	public function get_imgcdn_url(
+		$url, $args = array(
+		'width'   => 'auto',
+		'height'  => 'auto',
+		'quality' => 'auto',
 	)
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
@@ -573,7 +590,7 @@ class Optml_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-		if ( $this->lazyload ) {
+		if ( $this->lazyload && ! $this->is_amp() ) {
 			return array();
 		}
 		$used        = array();
@@ -640,7 +657,7 @@ class Optml_Replacer {
 	 * @return string
 	 **/
 	protected function strip_image_size_maybe( $src ) {
-		$stripped_src = $src;
+
 		if ( preg_match( '#(-\d+x\d+)\.(' . implode( '|', array_keys( self::$extensions ) ) . '){1}$#i', $src, $src_parts ) ) {
 			$stripped_src = str_replace( $src_parts[1], '', $src );
 			$upload_dir   = wp_get_upload_dir();
@@ -666,20 +683,16 @@ class Optml_Replacer {
 		 * `optml_imgcdn_options_with_url` is a filter that allows themes or plugins to select which option
 		 * holds an url and needs an optimization.
 		 */
-		$theme_slug = get_option( 'stylesheet' );
-
 		$options_list = apply_filters(
 			'optml_imgcdn_options_with_url',
 			array(
-				"theme_mods_$theme_slug",
+				"theme_mods_" . get_option( 'stylesheet' ),
+				"theme_mods_" . get_option( 'template' ),
 			)
 		);
 
 		foreach ( $options_list as $option ) {
 			add_filter( "option_$option", array( $this, 'replace_option_url' ) );
-
-			// this one will not work for theme mods, since get_theme_mod('header_image', $default) has its own default.
-			// add_filter( "default_option_$option", array( $this, 'replace_option_url' ) );
 		}
 
 	}
@@ -724,12 +737,6 @@ class Optml_Replacer {
 			}
 		}
 
-		// we handle only images uploaded to this site./
-		// @TODO this is still wrong, not all the images are coming from the uploads folder.
-		// if ( false === strpos( $url, $this->upload_dir ) ) {
-		// return $url;
-		// }
-		// get the optimized url.
 		$new_url = $this->get_imgcdn_url( $url );
 
 		return $new_url;
@@ -829,7 +836,7 @@ class Optml_Replacer {
 			if ( false !== strpos( $src, 'i.optimole.com' ) ) {
 				continue; // we already have this
 			}
-			if ( false === strpos( $src, self::$siteurl ) ) {
+			if ( false === strpos( $src, self::$siteurl ) && ( empty( self::$site_mirror ) || false === strpos( $src, self::$site_mirror ) ) ) {
 				continue;
 			}
 
@@ -947,6 +954,21 @@ class Optml_Replacer {
 		}
 
 		return array();
+	}
+
+	/**
+	 * Matches the header tag and removes it.
+	 *
+	 * @param string $content Some HTML.
+	 *
+	 * @return string The HTML without the <header/> tag
+	 */
+	public static function strip_header_from_content( $content ) {
+		if ( preg_match( '/<header.*<\/header>/ism', $content, $matches ) !== 1 ) {
+			return $content;
+		}
+
+		return str_replace( $matches[0], '', $content );
 	}
 
 	/**

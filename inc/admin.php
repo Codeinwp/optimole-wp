@@ -171,8 +171,7 @@ class Optml_Admin {
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
-		//wp_enqueue_script( 'optm_lazyload_replacer_js', 'https://' . OPTML_JS_CDN . '/latest/optimole_lib' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), OPTML_VERSION, false );
-		wp_enqueue_script( 'optm_lazyload_replacer_js', 'https://s3.amazonaws.com/optimole-js-lib/tags/connection_optimizations/v1.2.4/optimole_lib.min.js', array(), OPTML_VERSION, false );
+		wp_enqueue_script( 'optm_lazyload_replacer_js', 'https://' . OPTML_JS_CDN . '/latest/optimole_lib' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), OPTML_VERSION, false );
 		wp_add_inline_script( 'optm_lazyload_replacer_js', 'document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );' );
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
