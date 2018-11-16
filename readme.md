@@ -32,6 +32,18 @@ This plugin connects via API to OptiMole [image optimization service](https://op
 The plugin will rewrite your image URLs to replace them with OptiMole URLs. Your origin images will be downloaded from your storage, processed by the OptiMole infrastructure and cached in the CDN. NO development needed. Simply set up your account and enjoy faster image loading.
 
 ## Changelog ##
+### 1.1.0 - 2018-11-16  ###
+
+* Integrates lazy load feature with support for low-quality placeholders ( LQIP ). 
+* Integrates Javascript library which delivers images at the right size for each device, including Retina.
+* Improve image replacement algorithm.
+* Improves compatibility with Elementor and Gutenberg. 
+* Adds support for Custom CNAME and Client hints.
+* Improves support for custom CDN. 
+* Improves AMP support. 
+* Improves compatibility with WordPress Multisites.
+
+
 ### 1.0.5 - 2018-10-05  ###
 
 * Adds max width/height option.

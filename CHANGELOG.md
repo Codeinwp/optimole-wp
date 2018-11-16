@@ -1,4 +1,15 @@
 
+ ### v1.1.0 - 2018-11-16 
+ **Changes:** 
+ * Integrates lazy load feature with support for low-quality placeholders ( LQIP ). 
+* Integrates Javascript library which delivers images at the right size for each device, including Retina.
+* Improve image replacement algorithm.
+* Improves compatibility with Elementor and Gutenberg. 
+* Adds support for Custom CNAME and Client hints.
+* Improves support for custom CDN. 
+* Improves AMP support. 
+* Improves compatibility with WordPress Multisites.
+ 
  ### v1.0.5 - 2018-10-05 
  **Changes:** 
  * Adds max width/height option.
