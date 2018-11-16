@@ -38,6 +38,12 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'data-opt-src', $replaced_content );
 		$this->assertNotContains( 'http://example.org', $replaced_content );
+
+		$replaced_content = Optml_Replacer::instance()->replace_urls( Test_Replacer::IMG_TAGS_PNG );
+
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'data-opt-src', $replaced_content );
+		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
 	}
 
 
@@ -45,10 +51,11 @@ class Test_Lazyload extends WP_UnitTestCase {
 
 		define( 'OPTML_DISABLE_PNG_LAZYLOAD', true );
 
-		$replaced_content = Optml_Replacer::instance()->filter_the_content( Test_Replacer::IMG_TAGS_PNG );
+		$replaced_content = Optml_Replacer::instance()->filter_the_content( Test_Replacer::IMG_TAGS_PNG . Test_Replacer::IMG_TAGS );
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( 'data-opt-src', $replaced_content );
+		$this->assertContains( 'data-opt-src', $replaced_content );
+		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
 
 	}
 }
