@@ -950,10 +950,10 @@ class Optml_Replacer {
 	 * @return string The HTML without the <header/> tag
 	 */
 	public static function strip_header_from_content( $content ) {
-		if ( preg_match( '/<header.*<\/header>/ism', $content, $matches ) !== 1 ) {
+		if ( preg_match('/<header.*<\/header>/ismU', $content, $matches) !== 1 ) {
 			return $content;
 		}
-
+		
 		return str_replace( $matches[0], '', $content );
 	}
 
