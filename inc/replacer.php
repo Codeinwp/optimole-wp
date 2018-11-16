@@ -427,10 +427,10 @@ class Optml_Replacer {
 	 */
 	public function get_imgcdn_url(
 		$url, $args = array(
-		'width'   => 'auto',
-		'height'  => 'auto',
-		'quality' => 'auto',
-	)
+			'width'   => 'auto',
+			'height'  => 'auto',
+			'quality' => 'auto',
+		)
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
@@ -686,8 +686,8 @@ class Optml_Replacer {
 		$options_list = apply_filters(
 			'optml_imgcdn_options_with_url',
 			array(
-				"theme_mods_" . get_option( 'stylesheet' ),
-				"theme_mods_" . get_option( 'template' ),
+				'theme_mods_' . get_option( 'stylesheet' ),
+				'theme_mods_' . get_option( 'template' ),
 			)
 		);
 
