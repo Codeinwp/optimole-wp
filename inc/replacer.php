@@ -264,7 +264,7 @@ class Optml_Replacer {
 			if ( is_array( $size ) ) {
 				$sizes = array(
 					'width'  => ( $size[0] < $sizes['width'] ? $size[0] : $sizes['width'] ),
-					'height' => ( $size[1] < $sizes['height'] ? $size[0] : $sizes['height'] ),
+					'height' => ( $size[1] < $sizes['height'] ? $size[1] : $sizes['height'] ),
 				);
 			} elseif ( 'full' !== $size && isset( $image_args[ $size ] ) ) { // overwrite if there a size
 				$sizes = array(
@@ -657,7 +657,7 @@ class Optml_Replacer {
 	 * @return string
 	 **/
 	protected function strip_image_size_maybe( $src ) {
-		$stripped_src = $src;
+
 		if ( preg_match( '#(-\d+x\d+)\.(' . implode( '|', array_keys( self::$extensions ) ) . '){1}$#i', $src, $src_parts ) ) {
 			$stripped_src = str_replace( $src_parts[1], '', $src );
 			$upload_dir   = wp_get_upload_dir();
@@ -683,20 +683,16 @@ class Optml_Replacer {
 		 * `optml_imgcdn_options_with_url` is a filter that allows themes or plugins to select which option
 		 * holds an url and needs an optimization.
 		 */
-		$theme_slug = get_option( 'stylesheet' );
-
 		$options_list = apply_filters(
 			'optml_imgcdn_options_with_url',
 			array(
-				"theme_mods_$theme_slug",
+				"theme_mods_" . get_option( 'stylesheet' ),
+				"theme_mods_" . get_option( 'template' ),
 			)
 		);
 
 		foreach ( $options_list as $option ) {
 			add_filter( "option_$option", array( $this, 'replace_option_url' ) );
-
-			// this one will not work for theme mods, since get_theme_mod('header_image', $default) has its own default.
-			// add_filter( "default_option_$option", array( $this, 'replace_option_url' ) );
 		}
 
 	}
@@ -741,12 +737,6 @@ class Optml_Replacer {
 			}
 		}
 
-		// we handle only images uploaded to this site./
-		// @TODO this is still wrong, not all the images are coming from the uploads folder.
-		// if ( false === strpos( $url, $this->upload_dir ) ) {
-		// return $url;
-		// }
-		// get the optimized url.
 		$new_url = $this->get_imgcdn_url( $url );
 
 		return $new_url;
