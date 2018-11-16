@@ -13,9 +13,10 @@ class Optml_Settings {
 	private $default_schema = array(
 		'api_key'        => '',
 		'service_data'   => '',
-		'max_height'     => 3000,
-		'max_width'      => 3000,
+		'max_height'     => 1500,
+		'max_width'      => 2000,
 		'admin_bar_item' => 'enabled',
+		'lazyload'       => 'disabled',
 		'quality'        => 'auto',
 		'image_replacer' => 'enabled',
 	);
@@ -98,6 +99,7 @@ class Optml_Settings {
 		return array(
 			'quality'        => $this->get( 'quality' ),
 			'admin_bar_item' => $this->get( 'admin_bar_item' ),
+			'lazyload'       => $this->get( 'lazyload' ),
 			'image_replacer' => $this->get( 'image_replacer' ),
 			'max_width'      => $this->get( 'max_width' ),
 			'max_height'     => $this->get( 'max_height' ),
@@ -111,6 +113,23 @@ class Optml_Settings {
 	 */
 	public function is_enabled() {
 		$status = $this->get( 'image_replacer' );
+		if ( $status === 'disabled' ) {
+			return false;
+		}
+		if ( empty( $status ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Check if lazyload is enabled.
+	 *
+	 * @return bool Lazyload enabled
+	 */
+	public function use_lazyload() {
+		$status = $this->get( 'lazyload' );
 		if ( $status === 'disabled' ) {
 			return false;
 		}
@@ -169,7 +188,7 @@ class Optml_Settings {
 		// If we try to update from a website which is not the main OPTML blog, bail.
 		if ( defined( 'OPTIML_ENABLED_MU' ) && OPTIML_ENABLED_MU && defined( 'OPTIML_MU_SITE_ID' ) && ! empty( OPTIML_MU_SITE_ID ) ) {
 			if ( intval( OPTIML_MU_SITE_ID ) !== get_current_blog_id() ) {
-				return $this->options;
+				return false;
 			}
 		}
 		$options         = $this->options;

@@ -207,7 +207,7 @@ class Optml_Rest {
 
 		$width  = 'auto';
 		$height = 'auto';
-		$size   = 'medium_large';
+		$size   = 'full';
 		if ( isset( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
 			$width  = $metadata['sizes'][ $size ]['width'];
 			$height = $metadata['sizes'][ $size ]['height'];
@@ -293,6 +293,7 @@ class Optml_Rest {
 		foreach ( $new_settings as $key => $value ) {
 			switch ( $key ) {
 				case 'admin_bar_item':
+				case 'lazyload':
 				case 'image_replacer':
 					$sanitized_value = ( $value === 'enabled' || $value === 'disabled' ) ? $value : 'enabled';
 					break;

@@ -5,12 +5,12 @@
 			<div class="level-left">
 				<a class="logo level-item" href="https://optimole.com" target="_blank">
 					<figure class="media">
-						<img :src="logo" :alt="strings.optimole + ' ' + strings.service_details">
+						<img :src="logo" :alt="strings.optimole + ' ' + strings.service_details" width="75" height="75">
 					</figure>
 				</a>
 				<h3 class="has-text-centered has-text-grey-dark is-size-4 level-item">
 					<span class="has-text-weight-semibold">
-					{{strings.service_details}}
+					OptiMole - {{strings.service_details}}
 					</span>
 				</h3>
 			</div>

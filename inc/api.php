@@ -14,6 +14,7 @@ final class Optml_Api {
 	 * @var string Api root.
 	 */
 	private $api_root = 'https://dashboard.optimole.com/api/optml/v1/';
+	// private $api_root = 'http://localhost:8000/api/optml/v1/';
 	/**
 	 * Hold the user api key.
 	 *
@@ -55,11 +56,11 @@ final class Optml_Api {
 
 		// Grab the url to which we'll be making the request.
 		$url     = $this->api_root;
-		$headers = array();
+		$headers = array(
+			'Optml-Site' => get_site_url(),
+		);
 		if ( ! empty( $this->api_key ) ) {
-			$headers = array(
-				'Authorization' => 'Bearer ' . $this->api_key,
-			);
+			$headers['Authorization'] = 'Bearer ' . $this->api_key;
 		}
 		// If there is a extra, add that as a url var.
 		if ( 'GET' === $method && ! empty( $params ) ) {
@@ -69,12 +70,12 @@ final class Optml_Api {
 		}
 		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
 		$args = array(
-			'url'         => $url,
-			'method'      => $method,
-			'timeout'     => 45,
-			'httpversion' => 'Optimle WP (v' . OPTML_VERSION . ') ',
-			'sslverify'   => false,
-			'headers'     => $headers,
+			'url'        => $url,
+			'method'     => $method,
+			'timeout'    => 45,
+			'user-agent' => 'Optimle WP (v' . OPTML_VERSION . ') ',
+			'sslverify'  => false,
+			'headers'    => $headers,
 		);
 		if ( $method !== 'GET' ) {
 			$args['body'] = $params;
