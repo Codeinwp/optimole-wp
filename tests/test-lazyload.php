@@ -12,6 +12,8 @@
  * Class Test_Generic.
  */
 class Test_Lazyload extends WP_UnitTestCase {
+	const HTML_TAGS_HEADER = 'Test sample <header id="header"><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header2.jpg" width="2000" height="1200" alt="Test" /></div></div> </header><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" /></div></div>';
+	const HTML_TAGS_HEADER_MULTIPLE = 'Test sample <header id="header"><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header2.jpg" width="2000" height="1200" alt="Test" /></div></div> </header><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" /></div></div>Test sample <header id="header"><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header3.jpg" width="2000" height="1200" alt="Test" /></div></div> </header><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header4.jpg" width="2000" height="1200" alt="Test" /></div></div>';
 
 	public function setUp() {
 		parent::setUp();
@@ -57,5 +59,29 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertContains( 'data-opt-src', $replaced_content );
 		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
 
+	}
+
+	public function test_lazy_dont_lazy_load_headers() {
+		$replaced_content = Optml_Replacer::instance()->replace_urls( self::HTML_TAGS_HEADER );
+
+		$this->assertContains( 'data-opt-src', $replaced_content );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertNotContains( 'http://example.org', $replaced_content );
+		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
+	}
+
+	public function test_lazy_load_just_first_header() {
+		$replaced_content = Optml_Replacer::instance()->replace_urls( self::HTML_TAGS_HEADER_MULTIPLE );
+
+		$this->assertContains( 'data-opt-src', $replaced_content );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertNotContains( 'http://example.org', $replaced_content );
+		$this->assertEquals( 3, substr_count( $replaced_content, 'data-opt-src' ) );
+	}
+	public function test_check_no_script() {
+		$replaced_content = Optml_Replacer::instance()->replace_urls( self::HTML_TAGS_HEADER );
+
+		$this->assertContains( '<noscript>', $replaced_content );
+		$this->assertEquals( 1, substr_count( $replaced_content, '<noscript>' ) );
 	}
 }
