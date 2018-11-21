@@ -111,30 +111,30 @@
 								<span>{{strings.auto_q_title}}</span>
 							</a>
 						</p>
-						
 						<p class="control">
-							<a @click="changeQuality('low')"
-							   :class="{  'is-info':isActiveQuality( 'low' ), ' is-selected':site_settings.quality === 'low'  }"
-							   class="button   is-small">
-								<span class="icon dashicons dashicons-minus  "></span>
-								<span>{{strings.low_q_title}}</span>
+							<a @click="changeQuality('high_c')"
+							   :class="{  'is-info': isActiveQuality ('high_c'), 'is-selected':site_settings.quality === 'high_c'   }"
+							   class="button    is-rounded is-small">
+								<span class="icon dashicons dashicons-menu"></span>
+								<span>{{strings.high_q_title}}</span>
 							</a>
 						</p>
 						
 						<p class="control">
-							<a @click="changeQuality('medium')"
-							   :class="{  'is-info': isActiveQuality( 'medium' ), '  is-selected':site_settings.quality === 'medium'  }"
+							<a @click="changeQuality('medium_c')"
+							   :class="{  'is-info': isActiveQuality( 'medium_c' ), '  is-selected':site_settings.quality === 'medium_c'  }"
 							   class="button   is-small">
 								<span class="icon dashicons dashicons-controls-pause"></span>
 								<span class=" ">{{strings.medium_q_title}}</span>
 							</a>
 						</p>
+						
 						<p class="control">
-							<a @click="changeQuality('high')"
-							   :class="{  'is-info': isActiveQuality ('high'), 'is-selected':site_settings.quality === 'high'   }"
-							   class="button    is-rounded is-small">
-								<span class="icon dashicons dashicons-menu"></span>
-								<span>{{strings.high_q_title}}</span>
+							<a @click="changeQuality('low_c')"
+							   :class="{  'is-info':isActiveQuality( 'low_c' ), ' is-selected':site_settings.quality === 'low_c'  }"
+							   class="button   is-small">
+								<span class="icon dashicons dashicons-minus  "></span>
+								<span>{{strings.low_q_title}}</span>
 							</a>
 						</p>
 					</div>

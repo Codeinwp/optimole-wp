@@ -309,7 +309,7 @@ class Optml_Rest {
 
 					break;
 				case 'quality':
-					$sanitized_value = ( $value === 'low' || $value === 'medium' || $value === 'auto' || $value === 'high' ) ? $value : 'auto';
+					$sanitized_value = ( $value === 'low_c' || $value === 'medium_c' || $value === 'auto' || $value === 'high_c' ) ? $value : 'auto';
 					break;
 				default:
 					$sanitized_value = '';
