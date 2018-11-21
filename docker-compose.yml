@@ -11,7 +11,6 @@ services:
       MYSQL_DATABASE: wordpress
       MYSQL_USER: wordpress
       MYSQL_PASSWORD: wordpress
-
   wordpress:
     depends_on:
       - mysql
@@ -20,7 +19,6 @@ services:
       - 8888:80
     networks:
       - default
-      - optml_service_net
     volumes:
        - ~/wpcore:/var/www/html/
        - .:/var/www/html/wp-content/plugins/optimole-wp/

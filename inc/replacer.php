@@ -139,6 +139,7 @@ class Optml_Replacer {
 		}
 
 		$this->lazyload    = $this->settings->use_lazyload();
+		$this->quality     = $this->settings->get_quality();
 		self::$site_mirror = defined( 'OPTML_SITE_MIRROR' ) ? OPTML_SITE_MIRROR : '';
 		self::$siteurl     = get_site_url();
 
@@ -429,7 +430,7 @@ class Optml_Replacer {
 		$url, $args = array(
 			'width'   => 'auto',
 			'height'  => 'auto',
-			'quality' => 'auto',
+			'quality' => '',
 		)
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
@@ -444,7 +445,7 @@ class Optml_Replacer {
 		}
 		// not used yet.
 		$compress_level = apply_filters( 'optml_image_quality', $this->quality );
-		if ( isset( $args['quality'] ) || ! empty( $args['quality'] ) ) {
+		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) ) {
 			$compress_level = $args['quality'];
 		}
 
@@ -549,16 +550,17 @@ class Optml_Replacer {
 		if ( $quality === 'auto' ) {
 			return 'auto';
 		}
-		if ( $quality === 'high' ) {
-			return 85;
-		}
-		if ( $quality === 'medium' ) {
+		if ( $quality === 'high_c' ) {
 			return 55;
 		}
-		if ( $quality === 'low' ) {
-			return 25;
+		if ( $quality === 'medium_c' ) {
+			return 75;
+		}
+		if ( $quality === 'low_c' ) {
+			return 90;
 		}
 
+		// Legacy values.
 		return 60;
 	}
 
