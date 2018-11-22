@@ -184,7 +184,7 @@ class Optml_Rest {
 
 		add_filter( 'optml_dont_replace_url', '__return_true' );
 
-		$accepted_mimes = array( 'image/jpeg', 'image/png' );
+		$accepted_mimes = array( 'image/jpeg' );
 		$args           = array(
 			'post_type'      => 'attachment',
 			'post_status'    => 'any',
@@ -192,10 +192,42 @@ class Optml_Rest {
 			'no_found_rows'  => true,
 			'fields'         => 'ids',
 			'post_mime_type' => $accepted_mimes,
+			'post_parent__not_in'    => array( 0 )
 		);
 		$image_result   = new WP_Query( $args );
 		if ( empty( $image_result->posts ) ) {
-			return $this->response( array() );
+			$rand_id = rand( 1,  3 );
+			$original_image_url = OPTML_URL . 'assets/img/' . $rand_id . '.jpg';
+			$image['id'] = $rand_id;
+			$image['original'] = $original_image_url;
+			$width  = '700';
+			$height = '467';
+			remove_filter( 'optml_dont_replace_url', '__return_true' );
+			$image['optimized'] = apply_filters(
+				'optml_replace_image',
+				$original_image_url,
+				array(
+					'width'   => $width,
+					'height'  => $height,
+					'quality' => $request->get_param( 'quality' ),
+				)
+			);
+			$optimized          = wp_remote_get(
+				$image['optimized'],
+				array(
+					'timeout' => 10,
+					'headers' => array(
+						'Accept' => 'text/html,application/xhtml+xml,image/webp,image/apng ',
+					),
+				)
+			);
+
+			$original = wp_remote_get( $image['original'] );
+
+			$image['optimized_size'] = (int) wp_remote_retrieve_header( $optimized, 'content-length' );
+			$image['original_size']  = (int) wp_remote_retrieve_header( $original, 'content-length' );
+
+			return $this->response( $image );
 		}
 
 		$image              = array(
