@@ -246,7 +246,7 @@ class Optml_Replacer {
 		if ( is_admin() ) {
 			return $image;
 		}
-		if ( $this->lazyload && ! $this->is_amp() ) {
+		if ( $this->lazyload && ! $this->ignore_lazyload() ) {
 			return $image;
 		}
 		$image_url = wp_get_attachment_url( $attachment_id );
@@ -307,7 +307,7 @@ class Optml_Replacer {
 	 *
 	 * @return bool
 	 */
-	protected function is_amp() {
+	protected function ignore_lazyload() {
 
 		if ( function_exists( 'is_amp_endpoint' ) ) {
 			return is_amp_endpoint();
@@ -315,7 +315,9 @@ class Optml_Replacer {
 		if ( function_exists( 'ampforwp_is_amp_endpoint' ) ) {
 			return ampforwp_is_amp_endpoint();
 		}
-
+		if ( is_feed() ) {
+			return true;
+		}
 		return false;
 	}
 
@@ -592,7 +594,7 @@ class Optml_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-		if ( $this->lazyload && ! $this->is_amp() ) {
+		if ( $this->lazyload && ! $this->ignore_lazyload() ) {
 			return array();
 		}
 		$used        = array();
@@ -813,7 +815,7 @@ class Optml_Replacer {
 	 * @return string
 	 */
 	public function filter_the_content( $content ) {
-		if ( $this->is_amp() ) {
+		if ( $this->ignore_lazyload() ) {
 			return $content;
 		}
 		$images = self::parse_images_from_html( $content );
