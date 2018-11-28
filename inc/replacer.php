@@ -435,10 +435,10 @@ class Optml_Replacer {
 	 */
 	public function get_imgcdn_url(
 		$url, $args = array(
-		'width'   => 'auto',
-		'height'  => 'auto',
-		'quality' => '',
-	)
+			'width'   => 'auto',
+			'height'  => 'auto',
+			'quality' => '',
+		)
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
