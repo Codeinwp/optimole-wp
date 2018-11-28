@@ -60,7 +60,8 @@ class Optml_Admin {
 
 		$min = ! OPTML_DEBUG ? '.min' : '';
 
-		$output = sprintf( ' 
+		$output = sprintf(
+			' 
 		<script type="application/javascript">
 			        (function(w, d){ 
 				        var b = d.getElementsByTagName("head")[0];
@@ -71,7 +72,10 @@ class Optml_Admin {
 				        b.appendChild(s);
 			        }(window, document));
 			        document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
-		</script>', esc_url( $domain ), $min );
+		</script>',
+			esc_url( $domain ),
+			$min
+		);
 		echo $output;
 	}
 
@@ -155,7 +159,7 @@ class Optml_Admin {
 		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
 
 		if ( empty( $screen_slug ) ||
-		     ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
+			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
 			return false;
 		}
 		if ( ! current_user_can( 'manage_options' ) ) {
