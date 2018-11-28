@@ -103,7 +103,8 @@ const sampleRate = function ( {commit, state}, data ) {
 		method: 'POST',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 		params: {
-			'quality':data.quality
+			'quality':data.quality,
+			'force':data.force
 		},
 		responseType: 'json'
 	} ).then( function ( response ) {

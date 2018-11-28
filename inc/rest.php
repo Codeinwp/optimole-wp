@@ -182,23 +182,27 @@ class Optml_Rest {
 	 */
 	public function get_sample_rate( WP_REST_Request $request ) {
 
-		add_filter( 'optml_dont_replace_url', '__return_true' );
-		$image_sample = $this->fetch_sample_image();
+		$image = get_transient( 'optimole_sample_image' );
+		if ( $image === false || $request->get_param( 'force' ) === 'yes' ) {
+			add_filter( 'optml_dont_replace_url', '__return_true' );
+			$image_sample = $this->fetch_sample_image();
 
-		$image = array( 'id' => $image_sample['id'] );
+			$image = array( 'id' => $image_sample['id'] );
 
-		$image['original'] = $image_sample['url'];
+			$image['original'] = $image_sample['url'];
 
-		remove_filter( 'optml_dont_replace_url', '__return_true' );
-		$image['optimized'] = apply_filters(
-			'optml_replace_image',
-			$image['original'],
-			array(
-				'width'   => $image_sample['width'],
-				'height'  => $image_sample['height'],
-				'quality' => $request->get_param( 'quality' ),
-			)
-		);
+			remove_filter( 'optml_dont_replace_url', '__return_true' );
+
+			$image['optimized'] = apply_filters(
+				'optml_replace_image',
+				$image['original'],
+				array(
+					'width'   => $image_sample['width'],
+					'height'  => $image_sample['height'],
+					'quality' => $request->get_param( 'quality' ),
+				)
+			);
+		}
 
 		$optimized = wp_remote_get(
 			$image['optimized'],
@@ -215,6 +219,7 @@ class Optml_Rest {
 		$image['optimized_size'] = (int) wp_remote_retrieve_header( $optimized, 'content-length' );
 		$image['original_size']  = (int) wp_remote_retrieve_header( $original, 'content-length' );
 
+		set_transient( 'optimole_sample_image', $image, 30 );
 		return $this->response( $image );
 	}
 
