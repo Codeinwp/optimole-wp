@@ -48,7 +48,31 @@ class Optml_Admin {
 		if ( $this->settings->use_lazyload() ) {
 			add_filter( 'body_class', array( $this, 'optimole_body_classes' ) );
 		}
+
+		add_action( 'wp_head',array( $this, 'optimole_inline_bootstrap_script' ) );
 	}
+
+	public function optimole_inline_bootstrap_script() {
+        $domain = 'https://' . OPTML_JS_CDN;
+        $min =  !OPTML_DEBUG ? '.min' : '';
+        $output = <<<EOT
+<script type="application/javascript">
+	        (function(w, d){
+	        	var domain = '$domain';
+	        	var min = '$min';
+		        var b = d.getElementsByTagName('head')[0];
+		        var s = d.createElement("script");
+		        var v = ("IntersectionObserver" in w) ? "_no_poly" : "";
+		        s.async = true; // This includes the script as async. See the "recipes" section for more information about async loading of LazyLoad.
+		        s.src = domain + "/latest/optimole_lib" + v + min + ".js";
+		        w.lazyLoadOptions = {/* Your options here */};
+		        b.appendChild(s);
+	        }(window, document));
+	        document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
+</script>
+EOT;
+        echo $output;
+    }
 
 	/**
 	 * Adds body class  for no-js.
@@ -171,8 +195,6 @@ class Optml_Admin {
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
-		wp_enqueue_script( 'optm_lazyload_replacer_js', 'https://' . OPTML_JS_CDN . '/latest/optimole_lib' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), OPTML_VERSION, false );
-		wp_add_inline_script( 'optm_lazyload_replacer_js', 'document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );' );
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
 		wp_add_inline_style( 'optm_lazyload_noscript_style', '.optimole-no-script img[data-opt-src] { display: none !important; }' );
