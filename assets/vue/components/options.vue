@@ -155,6 +155,10 @@
             <div v-else-if="sample_images.id && sample_images.original_size > 0">
                 <p class="title has-text-centered is-5 is-size-6-mobile">{{strings.quality_slider_desc}}</p>
                 <div class="columns is-centered is-vcentered is-multiline is-mobile">
+                    <a @click="newSample()"
+                       class="button is-small is-pulled-right">
+                        <span class="icon dashicons dashicons-image-rotate"></span>
+                    </a>
                     <div class="column visual-compare  is-half-fullhd is-half-desktop is-three-quarters-touch is-12-mobile  ">
                         <div class="is-full progress-wrapper">
                             <p class="subtitle is-size-6 compress-optimization-ratio-done has-text-centered"
@@ -208,7 +212,9 @@
 			this.updateSampleImage(this.site_settings.quality);
 		},
 		methods: {
-
+			newSample: function() {
+				this.updateSampleImage( this.new_data.quality, 'yes' );
+            },
 			changeQuality: function (value) {
 				if ( this.showComparison !== true ) {
 					this.showComparison = true
@@ -216,9 +222,10 @@
 				this.updateSampleImage(value);
 				this.qualityStatus = value;
 			},
-			updateSampleImage: function (value) {
+			updateSampleImage: function (value, force = 'no') {
 				this.$store.dispatch('sampleRate', {
 					quality: value,
+                    force: force,
 					component: this,
 				}).then(
 					(response) => {
