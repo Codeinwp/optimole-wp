@@ -47,32 +47,33 @@ class Optml_Admin {
 
 		if ( $this->settings->use_lazyload() ) {
 			add_filter( 'body_class', array( $this, 'optimole_body_classes' ) );
+			add_action( 'wp_head', array( $this, 'optimole_inline_bootstrap_script' ) );
 		}
 
-		add_action( 'wp_head',array( $this, 'optimole_inline_bootstrap_script' ) );
 	}
 
+	/**
+	 * Adds script for lazyload/js replacement.
+	 */
 	public function optimole_inline_bootstrap_script() {
-        $domain = 'https://' . OPTML_JS_CDN;
-        $min =  !OPTML_DEBUG ? '.min' : '';
-        $output = <<<EOT
-<script type="application/javascript">
-	        (function(w, d){
-	        	var domain = '$domain';
-	        	var min = '$min';
-		        var b = d.getElementsByTagName('head')[0];
-		        var s = d.createElement("script");
-		        var v = ("IntersectionObserver" in w) ? "_no_poly" : "";
-		        s.async = true; // This includes the script as async. See the "recipes" section for more information about async loading of LazyLoad.
-		        s.src = domain + "/latest/optimole_lib" + v + min + ".js";
-		        w.lazyLoadOptions = {/* Your options here */};
-		        b.appendChild(s);
-	        }(window, document));
-	        document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
-</script>
-EOT;
-        echo $output;
-    }
+		$domain = 'https://' . OPTML_JS_CDN;
+
+		$min = ! OPTML_DEBUG ? '.min' : '';
+
+		$output = sprintf( ' 
+		<script type="application/javascript">
+			        (function(w, d){ 
+				        var b = d.getElementsByTagName("head")[0];
+				        var s = d.createElement("script");
+				        var v = ("IntersectionObserver" in w) ? "_no_poly" : "";
+				        s.async = true;  
+				        s.src = "%s/latest/optimole_lib" + v  + "%s.js"; 
+				        b.appendChild(s);
+			        }(window, document));
+			        document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
+		</script>', esc_url( $domain ), $min );
+		echo $output;
+	}
 
 	/**
 	 * Adds body class  for no-js.
@@ -83,6 +84,7 @@ EOT;
 	 */
 	public function optimole_body_classes( $classes ) {
 		$classes[] = 'optimole-no-script';
+
 		return $classes;
 	}
 
@@ -153,7 +155,7 @@ EOT;
 		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
 
 		if ( empty( $screen_slug ) ||
-			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
+		     ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
 			return false;
 		}
 		if ( ! current_user_can( 'manage_options' ) ) {
