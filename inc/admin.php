@@ -61,17 +61,30 @@ class Optml_Admin {
 		$min = ! OPTML_DEBUG ? '.min' : '';
 
 		$output = sprintf(
-			' 
+			'
+		<style type="text/css">
+			img[data-opt-src] {
+				transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
+				-webkit-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
+				-moz-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
+				-o-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
+			}
+			img[data-opt-src].optml_lazyload_img {
+				opacity: .5;
+				filter: blur(5px);
+				border-radius: 5%;
+			}
+		</style>
 		<script type="application/javascript">
-			        (function(w, d){ 
-				        var b = d.getElementsByTagName("head")[0];
-				        var s = d.createElement("script");
-				        var v = ("IntersectionObserver" in w) ? "_no_poly" : "";
-				        s.async = true;  
-				        s.src = "%s/latest/optimole_lib" + v  + "%s.js"; 
-				        b.appendChild(s);
-			        }(window, document));
-			        document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
+					(function(w, d){ 
+						var b = d.getElementsByTagName("head")[0];
+						var s = d.createElement("script");
+						var v = ("IntersectionObserver" in w) ? "_no_poly" : "";
+						s.async = true;  
+						s.src = "%s/latest/optimole_lib" + v  + "%s.js"; 
+						b.appendChild(s);
+					}(window, document));
+					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
 		</script>',
 			esc_url( $domain ),
 			$min
