@@ -2,7 +2,7 @@
 Contributors: optimole
 Tags: image optmization, cdn, image compression
 Requires at least: 4.7
-Tested up to: 4.9
+Tested up to: 5.0
 Requires PHP: 5.4
 Stable tag: trunk
 License: GPLv3

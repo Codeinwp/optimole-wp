@@ -172,7 +172,7 @@ class Optml_Admin {
 		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
 
 		if ( empty( $screen_slug ) ||
-			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
+		     ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
 			return false;
 		}
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -423,10 +423,22 @@ class Optml_Admin {
 				' <a href="https://dashboard.optimole.com/register" target="_blank">optimole.com</a>'
 			),
 			'account_needed_subtitle_1'     => sprintf(
-				__( 'You will get access to our image optimization service for free in the limit of 1GB traffic per month. ', 'optimole-wp' )
+				__( 'You will get access to our image optimization service for %sFREE%s in the limit of %s1GB%s traffic per month. ', 'optimole-wp' ),
+				'<strong>',
+				'</strong>',
+				'<strong>',
+				'</strong>'
 			),
 			'account_needed_subtitle_2'     => sprintf(
 				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using our default CDN.', 'optimole-wp' )
+			),
+			'notice_just_activated'         =>  $this->settings->is_connected() ?
+				sprintf( __( '%sImage optimisation is currently running.%s Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You can relax, we\'ll take it from here', 'optimole-wp' ), '<strong>', '</strong>' )
+				: '',
+			'notice_api_not_working' =>  __(
+				'It seems there is an issue with your WordPress configuration and the core REST API functionality is not available. This is crucial as Optimole relies on this functionality in order to work.<br/>
+The root cause might be either a security plugin which blocks this feature or some faulty server configuration which constrain this WordPress feature.You can try to disable any of the security plugins that you use in order to see if the issue persists or ask the hosting company to further investigate.',
+				'optimole-wp'
 			),
 			'dashboard_menu_item'           => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'            => __( 'Settings', 'optimole-wp' ),
