@@ -46,8 +46,8 @@ class Optml_Admin {
 		}
 
 		if ( $this->settings->use_lazyload() ) {
-			add_filter( 'body_class', array( $this, 'optimole_body_classes' ) );
-			add_action( 'wp_head', array( $this, 'optimole_inline_bootstrap_script' ) );
+			add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
+			add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 		}
 
 	}
@@ -55,7 +55,7 @@ class Optml_Admin {
 	/**
 	 * Adds script for lazyload/js replacement.
 	 */
-	public function optimole_inline_bootstrap_script() {
+	public function inline_bootstrap_script() {
 		$domain = 'https://' . OPTML_JS_CDN;
 
 		$min = ! OPTML_DEBUG ? '.min' : '';
@@ -72,7 +72,7 @@ class Optml_Admin {
 			img[data-opt-src].optml_lazyload_img {
 				opacity: .5;
 				filter: blur(5px);
-				border-radius: 5%;
+				border-radius: 5%%;
 			}
 		</style>
 		<script type="application/javascript">
@@ -83,7 +83,9 @@ class Optml_Admin {
 						s.async = true;  
 						s.src = "%s/latest/optimole_lib" + v  + "%s.js"; 
 						b.appendChild(s);
+						
 					}(window, document));
+					
 					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
 		</script>',
 			esc_url( $domain ),
@@ -99,7 +101,7 @@ class Optml_Admin {
 	 *
 	 * @return array
 	 */
-	public function optimole_body_classes( $classes ) {
+	public function adds_body_classes( $classes ) {
 		$classes[] = 'optimole-no-script';
 
 		return $classes;
@@ -172,7 +174,7 @@ class Optml_Admin {
 		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
 
 		if ( empty( $screen_slug ) ||
-			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
+		     ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
 			return false;
 		}
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -435,7 +437,7 @@ class Optml_Admin {
 			'notice_just_activated'         => ! $this->settings->is_connected() ?
 				sprintf( __( '%1$sImage optimisation is currently running.%2$s Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You can relax, we\'ll take it from here', 'optimole-wp' ), '<strong>', '</strong>' )
 				: '',
-			'notice_api_not_working' => __(
+			'notice_api_not_working'        => __(
 				'It seems there is an issue with your WordPress configuration and the core REST API functionality is not available. This is crucial as Optimole relies on this functionality in order to work.<br/>
 The root cause might be either a security plugin which blocks this feature or some faulty server configuration which constrain this WordPress feature.You can try to disable any of the security plugins that you use in order to see if the issue persists or ask the hosting company to further investigate.',
 				'optimole-wp'
