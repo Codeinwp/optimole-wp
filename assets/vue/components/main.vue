@@ -15,22 +15,23 @@
 									</a>
 								</li>
 								
-								<li :class="tab === 'settings' ? 'is-active' : ''" >
+								<li :class="tab === 'settings' ? 'is-active' : ''">
 									<a @click="changeTab('settings')" class="is-size-6-mobile">
 										<span class="icon is-size-6-mobile  dashicons dashicons-admin-settings"></span>
-										<span  class="is-size-6-mobile">{{strings.settings_menu_item}}</span>
+										<span class="is-size-6-mobile">{{strings.settings_menu_item}}</span>
 									</a>
 								</li>
 							</ul>
 						</div>
 						
 						<div class="is-tab" v-if="tab === 'dashboard' ">
+							<div class="notification is-success" v-if="strings.notice_just_activated.length > 0" v-html="strings.notice_just_activated"></div>
 							<api-key-form></api-key-form>
 							<cdn-details v-if="this.$store.state.userData"></cdn-details>
 							<hr/>
 							<last-images :status="fetchStatus"></last-images>
 						</div>
-						<div class="is-tab" v-if=" tab === 'settings'" >
+						<div class="is-tab" v-if=" tab === 'settings'">
 							<options></options>
 						</div>
 					</div>
@@ -56,7 +57,7 @@
 	import LastImages from './last-images.vue';
 	import ApiKeyForm from "./api-key-form.vue";
 	import Options from "./options.vue";
- 
+
 	module.exports = {
 		name: 'app',
 		data() {
@@ -64,6 +65,7 @@
 				strings: optimoleDashboardApp.strings,
 				home: optimoleDashboardApp.home_url,
 				fetchStatus: false,
+				
 				tab: 'dashboard'
 			}
 		},
@@ -82,21 +84,23 @@
 				self.fetchStatus = true;
 			}
 		},
-		methods:{
-			changeTab:function(value){
+		methods: {
+			changeTab: function (value) {
 				this.tab = value;
-				
+
 			}
 		}
-		
+
 	}
 </script>
 <style lang="sass-loader">
 	@import '../../css/style.scss';
-	#optimole-app .tabs a{
+	
+	#optimole-app .tabs a {
 		margin-bottom: -4px;
 	}
-	#optimole-app .is-tab{
+	
+	#optimole-app .is-tab {
 		min-height: 700px;
 	}
 </style>

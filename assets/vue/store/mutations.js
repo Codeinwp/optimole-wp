@@ -23,10 +23,13 @@ const updateOptimizedImages = ( state, data ) => {
 const updateSampleRate = ( state, data ) => {
 	state.sample_rate = data;
 };
+const restApiNotWorking = ( state, data ) => {
+	state.apiError = data;
+};
 const updateSettings = ( state, data ) => {
 
 	for ( var setting in data ) { state.site_settings[setting] = data[setting]; }
- 
+
 };
 
 export default {
@@ -37,6 +40,7 @@ export default {
 	updateUserData,
 	updateApiKey,
 	updateSampleRate,
+	restApiNotWorking,
 	updateSettings,
 	updateOptimizedImages
 };

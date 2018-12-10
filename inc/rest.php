@@ -183,50 +183,28 @@ class Optml_Rest {
 	public function get_sample_rate( WP_REST_Request $request ) {
 
 		add_filter( 'optml_dont_replace_url', '__return_true' );
-
-		$accepted_mimes = array( 'image/jpeg', 'image/png' );
-		$args           = array(
-			'post_type'      => 'attachment',
-			'post_status'    => 'any',
-			'number'         => '5',
-			'no_found_rows'  => true,
-			'fields'         => 'ids',
-			'post_mime_type' => $accepted_mimes,
-		);
-		$image_result   = new WP_Query( $args );
-		if ( empty( $image_result->posts ) ) {
-			return $this->response( array() );
+		$image_sample = get_transient( 'optimole_sample_image' );
+		if ( $image_sample === false || $request->get_param( 'force' ) === 'yes' ) {
+			$image_sample = $this->fetch_sample_image();
+			set_transient( 'optimole_sample_image', $image_sample );
 		}
+		$image = array( 'id' => $image_sample['id'] );
 
-		$image              = array(
-			'id' => $image_result->posts [ array_rand( $image_result->posts, 1 ) ],
-		);
-		$original_image_url = wp_get_attachment_image_url( $image['id'], 'full' );
-
-		$metadata = wp_get_attachment_metadata( $image['id'] );
-
-		$width  = 'auto';
-		$height = 'auto';
-		$size   = 'full';
-		if ( isset( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
-			$width  = $metadata['sizes'][ $size ]['width'];
-			$height = $metadata['sizes'][ $size ]['height'];
-		}
-
-		$image['original'] = wp_get_attachment_image_url( $image['id'], $size );
+		$image['original'] = $image_sample['url'];
 
 		remove_filter( 'optml_dont_replace_url', '__return_true' );
 
 		$image['optimized'] = apply_filters(
 			'optml_replace_image',
-			$original_image_url,
+			$image['original'],
 			array(
-				'width'   => $width,
-				'height'  => $height,
+				'width'   => $image_sample['width'],
+				'height'  => $image_sample['height'],
 				'quality' => $request->get_param( 'quality' ),
 			)
 		);
-		$optimized          = wp_remote_get(
+
+		$optimized = wp_remote_get(
 			$image['optimized'],
 			array(
 				'timeout' => 10,
@@ -242,6 +220,56 @@ class Optml_Rest {
 		$image['original_size']  = (int) wp_remote_retrieve_header( $original, 'content-length' );
 
 		return $this->response( $image );
+	}
+
+	/**
+	 * Return sample image data.
+	 *
+	 * @return array Image data.
+	 */
+	private function fetch_sample_image() {
+		$accepted_mimes = array( 'image/jpeg' );
+		$args           = array(
+			'post_type'           => 'attachment',
+			'post_status'         => 'any',
+			'number'              => '5',
+			'no_found_rows'       => true,
+			'fields'              => 'ids',
+			'post_mime_type'      => $accepted_mimes,
+			'post_parent__not_in' => array( 0 ),
+		);
+		$image_result   = new WP_Query( $args );
+		if ( empty( $image_result->posts ) ) {
+			$rand_id            = rand( 1, 3 );
+			$original_image_url = OPTML_URL . 'assets/img/' . $rand_id . '.jpg';
+
+			return array(
+				'url'    => $original_image_url,
+				'width'  => '700',
+				'height' => '465',
+				'id'     => - 1,
+			);
+		}
+		$id = $image_result->posts[ array_rand( $image_result->posts, 1 ) ];
+
+		$original_image_url = wp_get_attachment_image_url( $id, 'full' );
+
+		$metadata = wp_get_attachment_metadata( $id );
+
+		$width  = 'auto';
+		$height = 'auto';
+		$size   = 'full';
+		if ( isset( $metadata['sizes'] ) && isset( $metadata['sizes'][ $size ] ) ) {
+			$width  = $metadata['sizes'][ $size ]['width'];
+			$height = $metadata['sizes'][ $size ]['height'];
+		}
+
+		return array(
+			'url'    => $original_image_url,
+			'id'     => $id,
+			'width'  => $width,
+			'height' => $height,
+		);
 	}
 
 	/**
@@ -309,7 +337,7 @@ class Optml_Rest {
 
 					break;
 				case 'quality':
-					$sanitized_value = ( $value === 'low' || $value === 'medium' || $value === 'auto' || $value === 'high' ) ? $value : 'auto';
+					$sanitized_value = ( $value === 'low_c' || $value === 'medium_c' || $value === 'auto' || $value === 'high_c' ) ? $value : 'auto';
 					break;
 				default:
 					$sanitized_value = '';

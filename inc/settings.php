@@ -97,13 +97,35 @@ class Optml_Settings {
 	public function get_site_settings() {
 
 		return array(
-			'quality'        => $this->get( 'quality' ),
+			'quality'        => $this->get_quality(),
 			'admin_bar_item' => $this->get( 'admin_bar_item' ),
 			'lazyload'       => $this->get( 'lazyload' ),
 			'image_replacer' => $this->get( 'image_replacer' ),
 			'max_width'      => $this->get( 'max_width' ),
 			'max_height'     => $this->get( 'max_height' ),
 		);
+	}
+
+	/**
+	 * Return quality factor.
+	 *
+	 * @return string Quality factor.
+	 */
+	public function get_quality() {
+		$quality = $this->get( 'quality' );
+		// Legacy compat.
+		if ( $quality === 'low' ) {
+			return 'high_c';
+		}
+		if ( $quality === 'medium' ) {
+			return 'medium_c';
+		}
+
+		if ( $quality === 'high' ) {
+			return 'low_c';
+		}
+
+		return $quality;
 	}
 
 	/**

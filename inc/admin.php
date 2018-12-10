@@ -46,8 +46,52 @@ class Optml_Admin {
 		}
 
 		if ( $this->settings->use_lazyload() ) {
-			add_filter( 'body_class', array( $this, 'optimole_body_classes' ) );
+			add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
+			add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 		}
+
+	}
+
+	/**
+	 * Adds script for lazyload/js replacement.
+	 */
+	public function inline_bootstrap_script() {
+		$domain = 'https://' . OPTML_JS_CDN;
+
+		$min = ! OPTML_DEBUG ? '.min' : '';
+
+		$output = sprintf(
+			'
+		<style type="text/css">
+			img[data-opt-src] {
+				transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
+				-webkit-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
+				-moz-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
+				-o-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
+			}
+			img[data-opt-src].optml_lazyload_img {
+				opacity: .5;
+				filter: blur(5px);
+				border-radius: 5%%;
+			}
+		</style>
+		<script type="application/javascript">
+					(function(w, d){ 
+						var b = d.getElementsByTagName("head")[0];
+						var s = d.createElement("script");
+						var v = ("IntersectionObserver" in w) ? "_no_poly" : "";
+						s.async = true;  
+						s.src = "%s/latest/optimole_lib" + v  + "%s.js"; 
+						b.appendChild(s);
+						
+					}(window, document));
+					
+					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
+		</script>',
+			esc_url( $domain ),
+			$min
+		);
+		echo $output;
 	}
 
 	/**
@@ -57,8 +101,9 @@ class Optml_Admin {
 	 *
 	 * @return array
 	 */
-	public function optimole_body_classes( $classes ) {
+	public function adds_body_classes( $classes ) {
 		$classes[] = 'optimole-no-script';
+
 		return $classes;
 	}
 
@@ -129,7 +174,7 @@ class Optml_Admin {
 		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
 
 		if ( empty( $screen_slug ) ||
-			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
+		     ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
 			return false;
 		}
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -171,8 +216,6 @@ class Optml_Admin {
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
-		wp_enqueue_script( 'optm_lazyload_replacer_js', 'https://' . OPTML_JS_CDN . '/latest/optimole_lib' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), OPTML_VERSION, false );
-		wp_add_inline_script( 'optm_lazyload_replacer_js', 'document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );' );
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
 		wp_add_inline_style( 'optm_lazyload_noscript_style', '.optimole-no-script img[data-opt-src] { display: none !important; }' );
@@ -382,10 +425,22 @@ class Optml_Admin {
 				' <a href="https://dashboard.optimole.com/register" target="_blank">optimole.com</a>'
 			),
 			'account_needed_subtitle_1'     => sprintf(
-				__( 'You will get access to our image optimization service for free in the limit of 1GB traffic per month. ', 'optimole-wp' )
+				__( 'You will get access to our image optimization service for %1$sFREE%2$s in the limit of %3$s1GB%4$s traffic per month. ', 'optimole-wp' ),
+				'<strong>',
+				'</strong>',
+				'<strong>',
+				'</strong>'
 			),
 			'account_needed_subtitle_2'     => sprintf(
 				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using our default CDN.', 'optimole-wp' )
+			),
+			'notice_just_activated'         => ! $this->settings->is_connected() ?
+				sprintf( __( '%1$sImage optimisation is currently running.%2$s Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You can relax, we\'ll take it from here', 'optimole-wp' ), '<strong>', '</strong>' )
+				: '',
+			'notice_api_not_working'        => __(
+				'It seems there is an issue with your WordPress configuration and the core REST API functionality is not available. This is crucial as Optimole relies on this functionality in order to work.<br/>
+The root cause might be either a security plugin which blocks this feature or some faulty server configuration which constrain this WordPress feature.You can try to disable any of the security plugins that you use in order to see if the issue persists or ask the hosting company to further investigate.',
+				'optimole-wp'
 			),
 			'dashboard_menu_item'           => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'            => __( 'Settings', 'optimole-wp' ),
@@ -403,8 +458,8 @@ class Optml_Admin {
 				'height_field'         => __( 'Height', 'optimole-wp' ),
 				'low_q_title'          => __( 'Low', 'optimole-wp' ),
 				'auto_q_title'         => __( 'Auto', 'optimole-wp' ),
-				'quality_title'        => __( 'Compression quality', 'optimole-wp' ),
-				'quality_desc'         => __( 'Select how much would like to compress the images.', 'optimole-wp' ),
+				'quality_title'        => __( 'Compression level', 'optimole-wp' ),
+				'quality_desc'         => __( 'A higher compression might result in a small loss of image quality. Select the most appropriate value for your images.', 'optimole-wp' ),
 				'enabled'              => __( 'Enabled', 'optimole-wp' ),
 				'option_saved'         => __( 'Option saved.', 'optimole-wp' ),
 				'disabled'             => __( 'Disabled', 'optimole-wp' ),

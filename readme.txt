@@ -2,7 +2,7 @@
 Contributors: optimole
 Tags: image optmization, cdn, image compression
 Requires at least: 4.7
-Tested up to: 4.9
+Tested up to: 5.0
 Requires PHP: 5.4
 Stable tag: trunk
 License: GPLv3
@@ -30,6 +30,14 @@ Check how OptiMole is improving your site from day 1. Transparent optimization s
 This plugin connects via API to OptiMole [image optimization service](https://optimole.com/) in order to send the images to its servers and crop, optimize and process them on-the-fly. The EXIF data will either be stripped and it is not stored on our servers. Optimole does not interact with the visitors on your website. We care about your privacy so check our [terms of use](https://optimole.com/terms/).
 
 The plugin will rewrite your image URLs to replace them with OptiMole URLs. Your origin images will be downloaded from your storage, processed by the OptiMole infrastructure and cached in the CDN. NO development needed. Simply set up your account and enjoy faster image loading.
+
+
+== Screenshots ==
+
+1. Welcome screen
+2. Plugin dashboard
+3. Plugin settings
+
 
 == Changelog ==
 = 1.1.0 - 2018-11-16  = 

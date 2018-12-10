@@ -95,7 +95,7 @@ class Optml_Replacer {
 	 *
 	 * @var null
 	 */
-	protected $upload_dir = null;
+	protected $upload_resource = null;
 	/**
 	 * Settings handler.
 	 *
@@ -139,6 +139,7 @@ class Optml_Replacer {
 		}
 
 		$this->lazyload    = $this->settings->use_lazyload();
+		$this->quality     = $this->settings->get_quality();
 		self::$site_mirror = defined( 'OPTML_SITE_MIRROR' ) ? OPTML_SITE_MIRROR : '';
 		self::$siteurl     = get_site_url();
 
@@ -155,8 +156,6 @@ class Optml_Replacer {
 	 * Set the cdn url based on the current connected user.
 	 */
 	public function set_properties() {
-		$this->upload_dir = wp_upload_dir();
-		$this->upload_dir = trim( $this->upload_dir['baseurl'] );
 
 		$service_data = $this->settings->get( 'service_data' );
 		if ( ! isset( $service_data['cdn_key'] ) ) {
@@ -168,13 +167,20 @@ class Optml_Replacer {
 		if ( empty( $cdn_key ) || empty( $cdn_secret ) ) {
 			return;
 		}
-		$this->cdn_secret = $cdn_secret;
-		$this->whitelist  = isset( $service_data['whitelist'] ) ? $service_data['whitelist'] : array();
-		$this->cdn_url    = sprintf(
+		$this->cdn_secret               = $cdn_secret;
+		$this->whitelist                = isset( $service_data['whitelist'] ) ? $service_data['whitelist'] : array();
+		$this->cdn_url                  = sprintf(
 			'https://%s.%s',
 			strtolower( $cdn_key ),
 			'i.optimole.com'
 		);
+		$upload_data                    = wp_upload_dir();
+		$this->upload_resource               = array(
+			'url'       => str_replace( array( 'https://', 'http://' ), '', $upload_data['baseurl'] ),
+			'directory' => $upload_data['basedir'],
+		);
+		$this->upload_resource['url_length'] = strlen( $this->upload_resource['url'] );
+
 		if ( defined( 'OPTML_CUSTOM_DOMAIN' ) && ! empty( OPTML_CUSTOM_DOMAIN ) ) {
 			$this->cdn_url = OPTML_CUSTOM_DOMAIN;
 		}
@@ -245,7 +251,7 @@ class Optml_Replacer {
 		if ( is_admin() ) {
 			return $image;
 		}
-		if ( $this->lazyload && ! $this->is_amp() ) {
+		if ( $this->lazyload && ! $this->ignore_lazyload() ) {
 			return $image;
 		}
 		$image_url = wp_get_attachment_url( $attachment_id );
@@ -306,7 +312,7 @@ class Optml_Replacer {
 	 *
 	 * @return bool
 	 */
-	protected function is_amp() {
+	protected function ignore_lazyload() {
 
 		if ( function_exists( 'is_amp_endpoint' ) ) {
 			return is_amp_endpoint();
@@ -314,7 +320,9 @@ class Optml_Replacer {
 		if ( function_exists( 'ampforwp_is_amp_endpoint' ) ) {
 			return ampforwp_is_amp_endpoint();
 		}
-
+		if ( is_feed() ) {
+			return true;
+		}
 		return false;
 	}
 
@@ -429,7 +437,7 @@ class Optml_Replacer {
 		$url, $args = array(
 			'width'   => 'auto',
 			'height'  => 'auto',
-			'quality' => 'auto',
+			'quality' => '',
 		)
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
@@ -444,7 +452,7 @@ class Optml_Replacer {
 		}
 		// not used yet.
 		$compress_level = apply_filters( 'optml_image_quality', $this->quality );
-		if ( isset( $args['quality'] ) || ! empty( $args['quality'] ) ) {
+		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) ) {
 			$compress_level = $args['quality'];
 		}
 
@@ -549,16 +557,17 @@ class Optml_Replacer {
 		if ( $quality === 'auto' ) {
 			return 'auto';
 		}
-		if ( $quality === 'high' ) {
-			return 85;
-		}
-		if ( $quality === 'medium' ) {
+		if ( $quality === 'high_c' ) {
 			return 55;
 		}
-		if ( $quality === 'low' ) {
-			return 25;
+		if ( $quality === 'medium_c' ) {
+			return 75;
+		}
+		if ( $quality === 'low_c' ) {
+			return 90;
 		}
 
+		// Legacy values.
 		return 60;
 	}
 
@@ -590,7 +599,7 @@ class Optml_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-		if ( $this->lazyload && ! $this->is_amp() ) {
+		if ( $this->lazyload && ! $this->ignore_lazyload() ) {
 			return array();
 		}
 		$used        = array();
@@ -660,11 +669,9 @@ class Optml_Replacer {
 
 		if ( preg_match( '#(-\d+x\d+)\.(' . implode( '|', array_keys( self::$extensions ) ) . '){1}$#i', $src, $src_parts ) ) {
 			$stripped_src = str_replace( $src_parts[1], '', $src );
-			$upload_dir   = wp_get_upload_dir();
 			// Extracts the file path to the image minus the base url
-			$file_path = substr( $stripped_src, strlen( $upload_dir['baseurl'] ) );
-
-			if ( file_exists( $upload_dir['basedir'] . $file_path ) ) {
+			$file_path = substr( $stripped_src, strpos( $stripped_src, $this->upload_resource['url'] ) + $this->upload_resource['url_length'] );
+			if ( file_exists( $this->upload_resource['directory'] . $file_path ) ) {
 				$src = $stripped_src;
 			}
 		}
@@ -811,7 +818,7 @@ class Optml_Replacer {
 	 * @return string
 	 */
 	public function filter_the_content( $content ) {
-		if ( $this->is_amp() ) {
+		if ( $this->ignore_lazyload() ) {
 			return $content;
 		}
 		$images = self::parse_images_from_html( $content );

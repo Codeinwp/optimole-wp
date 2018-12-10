@@ -7,6 +7,7 @@
 				</li>
 			</ul>
 		</nav>
+		<div class="notification is-danger" v-if="isRestApiWorking" v-html="strings.notice_api_not_working"></div>
 		<div class="section" v-if="showApiKey">
 			<div class="notification is-success" v-if="from_register">
 				{{strings.notification_message_register}}
@@ -46,8 +47,8 @@
 									<span class="dashicons   icon dashicons-format-image is-size-4 "></span>
 								</div>
 								<div class="column">
-									<p class="subtitle column is-size-6 is-vcentered has-text-left"><br/>
-										{{strings.account_needed_subtitle_1}}</p>
+									<p class="subtitle column is-size-6 is-vcentered has-text-left"
+									   v-html="strings.account_needed_subtitle_1"></p>
 								</div>
 							</div>
 							<div class="columns  is-vcentered">
@@ -55,8 +56,8 @@
 									<span class="dashicons   icon dashicons-plus is-size-4 "></span>
 								</div>
 								<div class="column">
-									<p class="subtitle column is-size-6 is-vcentered has-text-left"><br/>
-										{{strings.account_needed_subtitle_2}}</p>
+									<p class="subtitle column is-size-6 is-vcentered has-text-left"
+									   v-html="strings.account_needed_subtitle_2"></p>
 								</div>
 							</div>
 						</div>
@@ -116,11 +117,15 @@
 				error: false,
 				showRegisterField: false,
 				from_register: false,
+
 			}
 		},
 		computed: {
 			isLoading: function () {
 				return this.$store.state.loading;
+			},
+			isRestApiWorking: function () {
+				return this.$store.state.apiError;
 			}
 		},
 		methods: {
