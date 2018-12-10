@@ -21,6 +21,13 @@
 										<span  class="is-size-6-mobile">{{strings.settings_menu_item}}</span>
 									</a>
 								</li>
+
+                                <li :class="tab === 'watermarks' ? 'is-active' : ''" >
+                                    <a @click="changeTab('watermarks')" class="is-size-6-mobile">
+                                        <span class="icon is-size-6-mobile  dashicons dashicons-admin-settings"></span>
+                                        <span  class="is-size-6-mobile">{{strings.watermarks_menu_item}}</span>
+                                    </a>
+                                </li>
 							</ul>
 						</div>
 						
@@ -33,6 +40,9 @@
 						<div class="is-tab" v-if=" tab === 'settings'" >
 							<options></options>
 						</div>
+                        <div class="is-tab" v-if=" tab === 'watermarks'" >
+                            <watermarks></watermarks>
+                        </div>
 					</div>
 				</transition>
 			</div>
@@ -56,7 +66,8 @@
 	import LastImages from './last-images.vue';
 	import ApiKeyForm from "./api-key-form.vue";
 	import Options from "./options.vue";
- 
+	import Watermarks from "./watermarks.vue";
+
 	module.exports = {
 		name: 'app',
 		data() {
@@ -70,6 +81,7 @@
 		components: {
 			AppHeader,
 			Options,
+			Watermarks,
 			ConnectLayout,
 			ApiKeyForm,
 			CdnDetails,

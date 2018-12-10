@@ -144,12 +144,41 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 				}
 				console.log( '%c Images Fetched.', 'color: #59B278' );
 			} else {
-				component.noImages = true;
+				data.component.noImages = true;
 				data.component.loading = false;
 				console.log( '%c No images available.', 'color: #E7602A' );
 			}
 		} );
 	}, data.waitTime );
+};
+
+const retrieveWatermarks = function ( {commit, state}, data ) {
+	let self = this;
+
+	//setTimeout( function () {
+	Vue.http( {
+		url: optimoleDashboardApp.root + '/poll_watermarks',
+		method: 'GET',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		params: {'req': 'Get Watermarks'},
+		responseType: 'json',
+		timeout: 10000
+	} ).then( function ( response ) {
+		if( response.status === 200 ) {
+			data.component.watermarkData = [];
+			for( let row in response.data.data ) {
+				let tmp = response.data.data[row];
+				let item = {
+					ID: tmp.ID,
+					post_title: tmp.post_title,
+					post_mime_type: tmp.post_mime_type,
+					guid: tmp.post_content || tmp.guid,
+				}
+				data.component.watermarkData.push( item )
+			}
+		}
+	} );
+	//}, data.waitTime );
 };
 
 export default {
@@ -159,4 +188,5 @@ export default {
 	saveSettings,
 	sampleRate,
 	retrieveOptimizedImages,
+	retrieveWatermarks,
 };

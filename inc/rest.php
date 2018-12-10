@@ -121,6 +121,19 @@ class Optml_Rest {
 				),
 			)
 		);
+		register_rest_route(
+			$this->namespace,
+			'/poll_watermarks',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'poll_watermarks' ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -299,6 +312,26 @@ class Optml_Rest {
 		}
 
 		$final_images = array_splice( $images['list'], 0, 10 );
+
+		return $this->response( $final_images );
+	}
+
+	/**
+	 * Get optimized images from API.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function poll_watermarks( WP_REST_Request $request ) {
+		$api_key = $request->get_param( 'api_key' );
+		$request = new Optml_Api();
+		$watermarks  = $request->get_watermarks( $api_key );
+		if ( ! isset( $watermarks['watermarks'] ) || empty( $watermarks['watermarks'] ) ) {
+			return $this->response( array() );
+		}
+
+		$final_images = array_splice( $watermarks['watermarks'], 0, 10 );
 
 		return $this->response( $final_images );
 	}

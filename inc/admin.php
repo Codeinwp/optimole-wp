@@ -349,7 +349,8 @@ class Optml_Admin {
 		if ( $current_screen->id != 'media_page_optimole' ) {
 			return;
 		}
-		wp_register_script( OPTML_NAMESPACE . '-admin', OPTML_URL . 'assets/js/bundle' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), OPTML_VERSION );
+		//wp_register_script( OPTML_NAMESPACE . '-admin', OPTML_URL . 'assets/js/bundle' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), OPTML_VERSION );
+		wp_register_script( OPTML_NAMESPACE . '-admin', OPTML_URL . 'assets/js/bundle.js', array(), OPTML_VERSION );
 		wp_localize_script( OPTML_NAMESPACE . '-admin', 'optimoleDashboardApp', $this->localize_dashboard_app() );
 		wp_enqueue_script( OPTML_NAMESPACE . '-admin' );
 	}
@@ -430,6 +431,7 @@ class Optml_Admin {
 			),
 			'dashboard_menu_item'           => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'            => __( 'Settings', 'optimole-wp' ),
+			'watermarks_menu_item'          => __( 'Watermarks', 'optimole-wp' ),
 			'options_strings'               => array(
 				'toggle_ab_item'       => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'      => __( 'Javascript replacement & Lazy load', 'optimole-wp' ),
@@ -459,6 +461,14 @@ class Optml_Admin {
 				'admin_bar_desc'       => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),
 				'lazyload_desc'        => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload.', 'optimole-wp' ),
 			),
+			'watermarks' => array(
+				'image'                 => __( 'Image', 'optimole-wp' ),
+				'id'                    => __( 'ID', 'optimole-wp' ),
+				'name'                  => __( 'Name', 'optimole-wp' ),
+				'type'                  => __( 'Type', 'optimole-wp' ),
+				'action'                => __( 'Action', 'optimole-wp' ),
+				'upload'                => __( 'Upload', 'optimole-wp' ),
+            ),
 			'latest_images'                 => array(
 				'image'                 => __( 'Image', 'optimole-wp' ),
 				'no_images_found'       => sprintf( __( 'We might have a delay finding optimized images. Meanwhile you can visit your %1$shomepage%2$s and check how our plugin performs. ', 'optimole-wp' ), '<a href="' . esc_url( home_url() ) . '" target="_blank" >', '</a>' ),
