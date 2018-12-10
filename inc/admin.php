@@ -432,7 +432,7 @@ class Optml_Admin {
 			'account_needed_subtitle_2'     => sprintf(
 				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using our default CDN.', 'optimole-wp' )
 			),
-			'notice_just_activated'         =>  $this->settings->is_connected() ?
+			'notice_just_activated'         => ! $this->settings->is_connected() ?
 				sprintf( __( '%sImage optimisation is currently running.%s Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You can relax, we\'ll take it from here', 'optimole-wp' ), '<strong>', '</strong>' )
 				: '',
 			'notice_api_not_working' =>  __(
