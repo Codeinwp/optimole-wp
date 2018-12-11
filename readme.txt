@@ -35,9 +35,9 @@ The plugin will rewrite your image URLs to replace them with OptiMole URLs. Your
 == Screenshots ==
 
 1. Welcome screen
-2. Plugin dashboard
-3. Plugin settings
-
+2. Connect screen
+3. Plugin dashboard
+4. Plugin settings
 
 == Changelog ==
 = 1.1.1 - 2018-12-10  = 

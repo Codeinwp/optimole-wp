@@ -64,10 +64,10 @@ class Optml_Admin {
 			'
 		<style type="text/css">
 			img[data-opt-src] {
-				transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
-				-webkit-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
-				-moz-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
-				-o-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
+				transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
+				-webkit-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
+				-moz-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
+				-o-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 			}
 			img[data-opt-src].optml_lazyload_img {
 				opacity: .5;
