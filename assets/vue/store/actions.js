@@ -154,15 +154,12 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 
 const retrieveWatermarks = function ( {commit, state}, data ) {
 	let self = this;
-
-	//setTimeout( function () {
 	Vue.http( {
 		url: optimoleDashboardApp.root + '/poll_watermarks',
 		method: 'GET',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 		params: {'req': 'Get Watermarks'},
 		responseType: 'json',
-		timeout: 10000
 	} ).then( function ( response ) {
 		if( response.status === 200 ) {
 			data.component.watermarkData = [];
@@ -175,10 +172,25 @@ const retrieveWatermarks = function ( {commit, state}, data ) {
 					guid: tmp.post_content || tmp.guid,
 				}
 				data.component.watermarkData.push( item )
+				data.component.noImages = false;
 			}
 		}
 	} );
-	//}, data.waitTime );
+};
+
+const removeWatermark = function ( {commit, state}, data ) {
+	let self = this;
+	data.component.loading = true
+	Vue.http( {
+		url: optimoleDashboardApp.root + '/remove_watermark',
+		method: 'POST',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		params: {'req': 'Get Watermarks' , 'postID': data.postID },
+		responseType: 'json',
+	} ).then( function ( response ) {
+		data.component.loading = false;
+		retrieveWatermarks( {commit, state}, data );
+	} );
 };
 
 export default {
@@ -189,4 +201,5 @@ export default {
 	sampleRate,
 	retrieveOptimizedImages,
 	retrieveWatermarks,
+	removeWatermark
 };

@@ -152,6 +152,46 @@ final class Optml_Api {
 		return $this->request( '/settings/watermark' );
 	}
 
+	public function remove_watermark( $post_id, $api_key = '' ) {
+		if ( ! empty( $api_key ) ) {
+			$this->api_key = $api_key;
+		}
+
+		return $this->request( '/settings/watermark', 'DELETE', array( 'watermark' => $post_id ) );
+	}
+
+	public function add_watermark( $file, $api_key = '' ) {
+		if ( ! empty( $api_key ) ) {
+			$this->api_key = $api_key;
+		}
+
+		// Grab the url to which we'll be making the request.
+		$url     = str_replace( 'optml/v1/','wp/v2/', $this->api_root ) . 'media';
+		$headers = array(
+			'Optml-Site' => get_site_url(),
+		);
+		if ( ! empty( $this->api_key ) ) {
+			$headers['Authorization'] = 'Bearer ' . $this->api_key;
+			$headers['Content-Disposition'] = 'attachment; filename=' . $file['file']['name'];
+		}
+		$args = array(
+			'url'        => $url,
+			'method'     => 'POST',
+			'timeout'    => 45,
+			'user-agent' => 'Optimle WP (v' . OPTML_VERSION . ') ',
+			'sslverify'  => false,
+			'headers'    => $headers,
+			'body'       => file_get_contents($file['file']['tmp_name'] ),
+		);
+		$response = wp_remote_request( $url, $args );
+
+		if ( is_wp_error( $response ) ) {
+			return false;
+		}
+
+		return json_decode( wp_remote_retrieve_body( $response ), true );
+	}
+
 	/**
 	 * Throw error on object clone
 	 *

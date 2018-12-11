@@ -468,6 +468,7 @@ class Optml_Admin {
 				'type'                  => __( 'Type', 'optimole-wp' ),
 				'action'                => __( 'Action', 'optimole-wp' ),
 				'upload'                => __( 'Upload', 'optimole-wp' ),
+				'add_desc'              => __( 'Add new watermark', 'optimole-wp' ),
             ),
 			'latest_images'                 => array(
 				'image'                 => __( 'Image', 'optimole-wp' ),

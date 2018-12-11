@@ -134,6 +134,34 @@ class Optml_Rest {
 				),
 			)
 		);
+
+		register_rest_route(
+			$this->namespace,
+			'/add_watermark',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'add_watermark' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/remove_watermark',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'remove_watermark' ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -334,6 +362,20 @@ class Optml_Rest {
 		$final_images = array_splice( $watermarks['watermarks'], 0, 10 );
 
 		return $this->response( $final_images );
+	}
+
+	public function add_watermark( WP_REST_Request $request ) {
+		$file = $request->get_file_params();
+		$api_key = $request->get_param( 'api_key' );
+		$request = new Optml_Api();
+		return $this->response( $request->add_watermark( $file, $api_key ) );
+	}
+
+	public function remove_watermark( WP_REST_Request $request ) {
+		$post_id = $request->get_param( 'postID' );
+		$api_key = $request->get_param( 'api_key' );
+		$request = new Optml_Api();
+		return $this->response( $request->remove_watermark( $post_id, $api_key ) );
 	}
 
 	/**
