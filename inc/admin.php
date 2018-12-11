@@ -174,7 +174,7 @@ class Optml_Admin {
 		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
 
 		if ( empty( $screen_slug ) ||
-		     ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
+			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
 			return false;
 		}
 		if ( ! current_user_can( 'manage_options' ) ) {
