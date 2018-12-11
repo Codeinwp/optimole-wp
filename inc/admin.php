@@ -313,8 +313,10 @@ class Optml_Admin {
 			return $hints;
 		}
 		$hints[] = sprintf( '//%s', $this->settings->get_cdn_url() );
-		$hints[] = sprintf( '//%s', OPTML_JS_CDN );
 
+		if ( ! $this->settings->use_lazyload() ) {
+			$hints[] = sprintf( '//%s', OPTML_JS_CDN );
+		}
 		return $hints;
 	}
 
