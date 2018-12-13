@@ -7,6 +7,7 @@ Vue.use( VueResource );
 
 const connectOptimole = function ( {commit, state}, data ) {
 	commit( 'toggleConnecting', true );
+	commit( 'restApiNotWorking', false );
 	Vue.http( {
 		url: optimoleDashboardApp.root + '/connect',
 		method: 'POST',
@@ -15,7 +16,8 @@ const connectOptimole = function ( {commit, state}, data ) {
 		body: {
 			'api_key': data.apiKey,
 		},
-		responseType: 'json'
+		responseType: 'json',
+		emulateJSON: true,
 	} ).then( function ( response ) {
 		commit( 'toggleConnecting', false );
 		if ( response.body.code === 'success' ) {
@@ -29,11 +31,15 @@ const connectOptimole = function ( {commit, state}, data ) {
 			commit( 'toggleKeyValidity', false );
 			console.log( '%c Invalid API Key.', 'color: #E7602A' );
 		}
+	}, function () {
+		commit( 'toggleConnecting', false );
+		commit( 'restApiNotWorking', true );
 	} );
 };
 
 const registerOptimole = function ( {commit, state}, data ) {
 
+	commit( 'restApiNotWorking', false );
 	commit( 'toggleLoading', true );
 	return Vue.http( {
 		url: optimoleDashboardApp.root + '/register',
@@ -43,12 +49,14 @@ const registerOptimole = function ( {commit, state}, data ) {
 		body: {
 			'email': data.email,
 		},
+		emulateJSON: true,
 		responseType: 'json'
 	} ).then( function ( response ) {
 		commit( 'toggleLoading', false );
 		return response.data;
-	},function( response ) {
+	}, function ( response ) {
 		commit( 'toggleLoading', false );
+		commit( 'restApiNotWorking', true );
 		return response.data;
 	} );
 };
@@ -61,6 +69,7 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 		method: 'GET',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 		params: {'req': data.req},
+		emulateJSON: true,
 		responseType: 'json'
 	} ).then( function ( response ) {
 		commit( 'updateUserData', null );
@@ -82,6 +91,7 @@ const saveSettings = function ( {commit, state}, data ) {
 		url: optimoleDashboardApp.root + '/update_option',
 		method: 'POST',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		emulateJSON: true,
 		body: {
 			'settings': data.settings
 		},
@@ -101,10 +111,11 @@ const sampleRate = function ( {commit, state}, data ) {
 	return Vue.http( {
 		url: optimoleDashboardApp.root + '/images-sample-rate',
 		method: 'POST',
+		emulateJSON: true,
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 		params: {
-			'quality':data.quality,
-			'force':data.force
+			'quality': data.quality,
+			'force': data.force
 		},
 		responseType: 'json'
 	} ).then( function ( response ) {
@@ -128,6 +139,7 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 		Vue.http( {
 			url: optimoleDashboardApp.root + '/poll_optimized_images',
 			method: 'GET',
+			emulateJSON: true,
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			params: {'req': 'Get Optimized Images'},
 			responseType: 'json',

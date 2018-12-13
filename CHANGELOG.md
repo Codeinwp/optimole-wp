@@ -1,4 +1,14 @@
 
+ ### v1.1.1 - 2018-12-10 
+ **Changes:** 
+ * Improve the lazy loading mechanism and adds compatibility with the new javascript library. 
+* Improve sample images and quality selector integration. 
+* Adds a notice when the Rest API is not available. 
+* Adds notice for new users on how the plugin works. 
+* Tested up with WordPress 5.0, all working smooth. 
+* Fix possible issues with thumbnails when the original image is available on a different url scheme.
+* Ignore lazyload replacement on feed/amp pages.
+ 
  ### v1.1.0 - 2018-11-16 
  **Changes:** 
  * Integrates lazy load feature with support for low-quality placeholders ( LQIP ). 

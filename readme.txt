@@ -2,7 +2,7 @@
 Contributors: optimole
 Tags: image optmization, cdn, image compression
 Requires at least: 4.7
-Tested up to: 4.9
+Tested up to: 5.0
 Requires PHP: 5.4
 Stable tag: trunk
 License: GPLv3
@@ -31,7 +31,26 @@ This plugin connects via API to OptiMole [image optimization service](https://op
 
 The plugin will rewrite your image URLs to replace them with OptiMole URLs. Your origin images will be downloaded from your storage, processed by the OptiMole infrastructure and cached in the CDN. NO development needed. Simply set up your account and enjoy faster image loading.
 
+
+== Screenshots ==
+
+1. Welcome screen
+2. Connect screen
+3. Plugin dashboard
+4. Plugin settings
+
 == Changelog ==
+= 1.1.1 - 2018-12-10  = 
+
+* Improve the lazy loading mechanism and adds compatibility with the new javascript library. 
+* Improve sample images and quality selector integration. 
+* Adds a notice when the Rest API is not available. 
+* Adds notice for new users on how the plugin works. 
+* Tested up with WordPress 5.0, all working smooth. 
+* Fix possible issues with thumbnails when the original image is available on a different url scheme.
+* Ignore lazyload replacement on feed/amp pages.
+
+
 = 1.1.0 - 2018-11-16  = 
 
 * Integrates lazy load feature with support for low-quality placeholders ( LQIP ). 

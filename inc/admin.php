@@ -46,8 +46,8 @@ class Optml_Admin {
 		}
 
 		if ( $this->settings->use_lazyload() ) {
-			add_filter( 'body_class', array( $this, 'optimole_body_classes' ) );
-			add_action( 'wp_head', array( $this, 'optimole_inline_bootstrap_script' ) );
+			add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
+			add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 		}
 
 	}
@@ -55,7 +55,7 @@ class Optml_Admin {
 	/**
 	 * Adds script for lazyload/js replacement.
 	 */
-	public function optimole_inline_bootstrap_script() {
+	public function inline_bootstrap_script() {
 		$domain = 'https://' . OPTML_JS_CDN;
 
 		$min = ! OPTML_DEBUG ? '.min' : '';
@@ -64,15 +64,15 @@ class Optml_Admin {
 			'
 		<style type="text/css">
 			img[data-opt-src] {
-				transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
-				-webkit-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
-				-moz-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
-				-o-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
+				transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
+				-webkit-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
+				-moz-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
+				-o-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 			}
 			img[data-opt-src].optml_lazyload_img {
 				opacity: .5;
 				filter: blur(5px);
-				border-radius: 5%;
+				border-radius: 5%%;
 			}
 		</style>
 		<script type="application/javascript">
@@ -83,7 +83,9 @@ class Optml_Admin {
 						s.async = true;  
 						s.src = "%s/latest/optimole_lib" + v  + "%s.js"; 
 						b.appendChild(s);
+						
 					}(window, document));
+					
 					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
 		</script>',
 			esc_url( $domain ),
@@ -99,7 +101,7 @@ class Optml_Admin {
 	 *
 	 * @return array
 	 */
-	public function optimole_body_classes( $classes ) {
+	public function adds_body_classes( $classes ) {
 		$classes[] = 'optimole-no-script';
 
 		return $classes;
@@ -311,8 +313,10 @@ class Optml_Admin {
 			return $hints;
 		}
 		$hints[] = sprintf( '//%s', $this->settings->get_cdn_url() );
-		$hints[] = sprintf( '//%s', OPTML_JS_CDN );
 
+		if ( ! $this->settings->use_lazyload() ) {
+			$hints[] = sprintf( '//%s', OPTML_JS_CDN );
+		}
 		return $hints;
 	}
 
@@ -424,10 +428,22 @@ class Optml_Admin {
 				' <a href="https://dashboard.optimole.com/register" target="_blank">optimole.com</a>'
 			),
 			'account_needed_subtitle_1'     => sprintf(
-				__( 'You will get access to our image optimization service for free in the limit of 1GB traffic per month. ', 'optimole-wp' )
+				__( 'You will get access to our image optimization service for %1$sFREE%2$s in the limit of %3$s1GB%4$s traffic per month. ', 'optimole-wp' ),
+				'<strong>',
+				'</strong>',
+				'<strong>',
+				'</strong>'
 			),
 			'account_needed_subtitle_2'     => sprintf(
 				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using our default CDN.', 'optimole-wp' )
+			),
+			'notice_just_activated'         => ! $this->settings->is_connected() ?
+				sprintf( __( '%1$sImage optimisation is currently running.%2$s Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You can relax, we\'ll take it from here', 'optimole-wp' ), '<strong>', '</strong>' )
+				: '',
+			'notice_api_not_working'        => __(
+				'It seems there is an issue with your WordPress configuration and the core REST API functionality is not available. This is crucial as Optimole relies on this functionality in order to work.<br/>
+The root cause might be either a security plugin which blocks this feature or some faulty server configuration which constrain this WordPress feature.You can try to disable any of the security plugins that you use in order to see if the issue persists or ask the hosting company to further investigate.',
+				'optimole-wp'
 			),
 			'dashboard_menu_item'           => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'            => __( 'Settings', 'optimole-wp' ),
