@@ -6,7 +6,7 @@
  * @package    \Optml\Inc
  * @author     Optimole <friends@optimole.com>
  */
-class Optml_Replacer {
+final class Optml_Replacer {
 	/**
 	 * A list of allowed extensions.
 	 *
@@ -31,65 +31,17 @@ class Optml_Replacer {
 	 */
 	protected static $image_sizes = array();
 	/**
-	 * Site url.
-	 *
-	 * @var string $siteurl
-	 */
-	protected static $siteurl = null;
-	/**
-	 * Site mirror, if any, usually CDN url.
-	 *
-	 * @var string $site_mirror
-	 */
-	protected static $site_mirror = null;
-	/**
-	 * Te cdn url, it will be build on the run.
-	 *
-	 * @var null
-	 */
-	protected $cdn_url = null;
-	/**
-	 * A secret key to encode payload.
-	 *
-	 * @var null
-	 */
-	protected $cdn_secret = null;
-	/**
-	 * Domains Whitelist.
-	 *
-	 * @var array
-	 */
-	protected $whitelist = array();
-	/**
-	 * Lazyload setting.
-	 *
-	 * @var bool
-	 */
-	protected $lazyload = false;
-	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
 	 * @var int
 	 */
 	protected $max_width = 3000;
 	/**
-	 * Defines the quality parameter.
-	 *
-	 * @var int
-	 */
-	protected $quality = 'auto';
-	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
 	 * @var int
 	 */
 	protected $max_height = 3000;
-	/**
-	 * Holds the real images sizes as an array.
-	 *
-	 * @var null
-	 */
-	protected $img_real_sizes = null;
 	/**
 	 * A cached version of `wp_upload_dir`
 	 *
@@ -102,6 +54,35 @@ class Optml_Replacer {
 	 * @var Optml_Settings $settings
 	 */
 	protected $settings = null;
+
+	/**
+	 * Possible domain sources to optimize.
+	 *
+	 * @var array Domains.
+	 */
+	protected $possible_sources = array();
+
+	/**
+	 * Whitelisted domains sources to optimize from, according to optimole service.
+	 *
+	 * @var array Domains.
+	 */
+	protected $allowed_sources = array();
+
+	/**
+	 * Holds site mapping array,
+	 * if there is already a cdn and we want to fetch the images from there
+	 * and not from he original site.
+	 *
+	 * @var array Site mappings.
+	 */
+	protected $site_mappings = array();
+	/**
+	 * Whether the site is whitelisted or not. Used when signing the urls..
+	 *
+	 * @var bool Domains.
+	 */
+	protected $is_allowed_site = array();
 
 	/**
 	 * Class instance method.
@@ -125,65 +106,24 @@ class Optml_Replacer {
 	 */
 	function init() {
 
-		add_filter( 'optml_replace_image', array( $this, 'get_imgcdn_url' ), 10, 2 );
+		add_filter( 'optml_replace_image', array( $this, 'get_image_url' ), 10, 2 );
 
 		$this->settings = new Optml_Settings();
-
-		$this->set_properties();
 
 		if ( ! $this->should_replace() ) {
 			return;
 		}
-		if ( empty( $this->cdn_url ) ) {
-			return;
-		}
+		$this->set_properties();
 
-		$this->lazyload    = $this->settings->use_lazyload();
-		$this->quality     = $this->settings->get_quality();
-		self::$site_mirror = defined( 'OPTML_SITE_MIRROR' ) ? OPTML_SITE_MIRROR : '';
-		self::$siteurl     = get_site_url();
-
-		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
-		add_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
-		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
+		add_filter( 'the_content', array( $this, 'filter_image_tags' ), PHP_INT_MAX );
 		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
 		add_action( 'template_redirect', array( $this, 'init_html_replacer' ), PHP_INT_MAX );
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
 
-	}
+		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
+		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
+		add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes_attr' ), 1, 2 );
 
-	/**
-	 * Set the cdn url based on the current connected user.
-	 */
-	public function set_properties() {
-
-		$service_data = $this->settings->get( 'service_data' );
-		if ( ! isset( $service_data['cdn_key'] ) ) {
-			return;
-		}
-		$cdn_key    = $service_data ['cdn_key'];
-		$cdn_secret = $service_data['cdn_secret'];
-
-		if ( empty( $cdn_key ) || empty( $cdn_secret ) ) {
-			return;
-		}
-		$this->cdn_secret               = $cdn_secret;
-		$this->whitelist                = isset( $service_data['whitelist'] ) ? $service_data['whitelist'] : array();
-		$this->cdn_url                  = sprintf(
-			'https://%s.%s',
-			strtolower( $cdn_key ),
-			'i.optimole.com'
-		);
-		$upload_data                    = wp_upload_dir();
-		$this->upload_resource               = array(
-			'url'       => str_replace( array( 'https://', 'http://' ), '', $upload_data['baseurl'] ),
-			'directory' => $upload_data['basedir'],
-		);
-		$this->upload_resource['url_length'] = strlen( $this->upload_resource['url'] );
-
-		if ( defined( 'OPTML_CUSTOM_DOMAIN' ) && ! empty( OPTML_CUSTOM_DOMAIN ) ) {
-			$this->cdn_url = OPTML_CUSTOM_DOMAIN;
-		}
 	}
 
 	/**
@@ -194,7 +134,6 @@ class Optml_Replacer {
 	public function should_replace() {
 
 		if ( is_admin() ) {
-
 			return false;
 		}
 
@@ -223,17 +162,77 @@ class Optml_Replacer {
 	}
 
 	/**
+	 * Set the cdn url based on the current connected user.
+	 */
+	public function set_properties() {
+
+		$upload_data                         = wp_upload_dir();
+		$this->upload_resource               = array(
+			'url'       => str_replace( array( 'https://', 'http://' ), '', $upload_data['baseurl'] ),
+			'directory' => $upload_data['basedir'],
+		);
+		$this->upload_resource['url_length'] = strlen( $this->upload_resource['url'] );
+
+		$service_data = $this->settings->get( 'service_data' );
+
+		Optml_Config::init( array(
+			'key'    => $service_data['cdn_key'],
+			'secret' => $service_data['cdn_secret'],
+		) );
+
+		if ( defined( 'OPTML_SITE_MIRROR' ) && ! empty( OPTML_SITE_MIRROR ) ) {
+			$this->site_mappings = array(
+				rtrim( get_site_url(), '/' ) => rtrim( OPTML_SITE_MIRROR, '/' ),
+			);
+		}
+
+		$this->possible_sources = $this->extract_domain_from_urls( array_merge(
+			array( get_site_url() ),
+			array_values( $this->site_mappings )
+		) );
+
+		$this->allowed_sources = $this->extract_domain_from_urls( $service_data['whitelist'] );
+
+		$this->is_allowed_site = count( array_diff_key( $this->possible_sources, $this->allowed_sources ) ) > 0;
+
+		$this->max_height = $this->settings->get( 'max_height' );
+		$this->max_width  = $this->settings->get( 'max_width' );
+	}
+
+	/**
+	 * Extract domains and use them as keys for fast processing.
+	 *
+	 * @param array $urls Input urls.
+	 *
+	 * @return array Array of domains as keys.
+	 */
+	private function extract_domain_from_urls( $urls = array() ) {
+		if ( ! is_array( $urls ) ) {
+			return $urls;
+		}
+
+		$urls = array_map( function ( $value ) {
+			$parts = parse_url( $value );
+
+			return isset( $parts['host'] ) ? $parts['host'] : '';
+		}, $urls );
+		$urls = array_filter( $urls );
+		$urls = array_unique( $urls );
+		$urls = array_fill_keys( array_keys( $urls ), true );
+
+		return $urls;
+	}
+
+	/**
 	 * Init html replacer handler.
 	 */
 	public function init_html_replacer() {
 
-		if ( is_admin() ) {
-			return;
-		}
 		// We no longer need this if the handler was started.
-		remove_filter( 'the_content', array( $this, 'filter_the_content' ), PHP_INT_MAX );
+		remove_filter( 'the_content', array( $this, 'filter_image_tags' ), PHP_INT_MAX );
+
 		ob_start(
-			array( &$this, 'replace_urls' )
+			array( &$this, 'replace_content' )
 		);
 	}
 
@@ -247,83 +246,54 @@ class Optml_Replacer {
 	 * @return array
 	 */
 	public function filter_image_downsize( $image, $attachment_id, $size ) {
-		// we don't run optimizations on dashboard side
-		if ( is_admin() ) {
+
+		if ( $this->settings->use_lazyload() ) {
 			return $image;
 		}
-		if ( $this->lazyload && ! $this->ignore_lazyload() ) {
-			return $image;
-		}
+
 		$image_url = wp_get_attachment_url( $attachment_id );
 
-		if ( $image_url ) {
-			// $image_meta = image_get_intermediate_size( $attachment_id, $size );
-			$image_meta = wp_get_attachment_metadata( $attachment_id );
-			$image_args = self::image_sizes();
-
-			// default size
-			$sizes = array(
-				'width'  => isset( $image_meta['width'] ) ? intval( $image_meta['width'] ) : 'auto',
-				'height' => isset( $image_meta['height'] ) ? intval( $image_meta['height'] ) : 'auto',
-			);
-			// in case there is a custom image size $size will be an array.
-			if ( is_array( $size ) ) {
-				$sizes = array(
-					'width'  => ( $size[0] < $sizes['width'] ? $size[0] : $sizes['width'] ),
-					'height' => ( $size[1] < $sizes['height'] ? $size[1] : $sizes['height'] ),
-				);
-			} elseif ( 'full' !== $size && isset( $image_args[ $size ] ) ) { // overwrite if there a size
-				$sizes = array(
-					'width'  => $image_args[ $size ]['width'] < $sizes['width'] ? $image_args[ $size ]['width'] : $sizes['width'],
-					'height' => $image_args[ $size ]['height'] < $sizes['height'] ? $image_args[ $size ]['height'] : $sizes['height'],
-				);
-			}
-
-			$new_sizes = $this->validate_image_sizes( $sizes['width'], $sizes['height'] );
-
-			// resized thumbnails will have their own filenames. we should get those instead of the full image one
-			if ( is_string( $size ) && ! empty( $image_meta['sizes'] ) && ! empty( $image_meta['sizes'][ $size ] ) ) {
-				$image_url = str_replace( basename( $image_url ), $image_meta['sizes'][ $size ]['file'], $image_url );
-			}
-
-			// try to get an optimized image url.
-			$new_url = $this->get_imgcdn_url( $image_url, $new_sizes );
-			if ( $new_url === $image_url ) {
-				return $image;
-			}
-			$return = array(
-				$new_url,
-				$sizes['width'],
-				$sizes['height'],
-				false,
-			);
-
-			return $return;
+		if ( $image_url === false ) {
+			return $image;
 		}
 
-		// in case something wrong comes, well return the default.
-		return $image;
-	}
+		// $image_meta = image_get_intermediate_size( $attachment_id, $size );
+		$image_meta = wp_get_attachment_metadata( $attachment_id );
+		$image_args = self::image_sizes();
 
-	/**
-	 * Check if we are on a amp endpoint.
-	 *
-	 * IMPORTANT: This needs to be  used after parse_query hook, otherwise will return false positives.
-	 *
-	 * @return bool
-	 */
-	protected function ignore_lazyload() {
+		// default size
+		$sizes = array(
+			'width'  => isset( $image_meta['width'] ) ? intval( $image_meta['width'] ) : 'auto',
+			'height' => isset( $image_meta['height'] ) ? intval( $image_meta['height'] ) : 'auto',
+			'resize' => Optml_Image::RESIZE_FIT
+		);
 
-		if ( function_exists( 'is_amp_endpoint' ) ) {
-			return is_amp_endpoint();
+		// in case there is a custom image size $size will be an array.
+		if ( is_array( $size ) ) {
+
+			$sizes['width']  = ( $size[0] < $sizes['width'] ? $size[0] : $sizes['width'] );
+			$sizes['height'] = ( $size[1] < $sizes['height'] ? $size[1] : $sizes['height'] );
+
+		} elseif ( 'full' !== $size && isset( $image_args[ $size ] ) ) { // overwrite if there a size
+			$sizes['width']  = $image_args[ $size ]['width'] < $sizes['width'] ? $image_args[ $size ]['width'] : $sizes['width'];
+			$sizes['height'] = $image_args[ $size ]['height'] < $sizes['height'] ? $image_args[ $size ]['height'] : $sizes['height'];
+			$sizes           = array_merge( $sizes, $this->wp_crop_to_optml( $image_args[ $size ]['crop'] ) );
 		}
-		if ( function_exists( 'ampforwp_is_amp_endpoint' ) ) {
-			return ampforwp_is_amp_endpoint();
+
+		$new_sizes = $this->validate_image_sizes( $sizes['width'], $sizes['height'] );
+		$image_url = $this->strip_image_size_maybe( $image_url );
+		$new_url   = $this->get_image_url( $image_url, $new_sizes );
+
+		if ( $new_url === $image_url ) {
+			return $image;
 		}
-		if ( is_feed() ) {
-			return true;
-		}
-		return false;
+
+		return array(
+			$new_url,
+			$sizes['width'],
+			$sizes['height'],
+			false,
+		);
 	}
 
 	/**
@@ -337,45 +307,129 @@ class Optml_Replacer {
 	 * @return array
 	 */
 	protected static function image_sizes() {
-		if ( null == self::$image_sizes ) {
-			global $_wp_additional_image_sizes;
 
-			// Populate an array matching the data structure of $_wp_additional_image_sizes so we have a consistent structure for image sizes
-			$images = array(
-				'thumb'  => array(
-					'width'  => intval( get_option( 'thumbnail_size_w' ) ),
-					'height' => intval( get_option( 'thumbnail_size_h' ) ),
-					'crop'   => (bool) get_option( 'thumbnail_crop' ),
-				),
-				'medium' => array(
-					'width'  => intval( get_option( 'medium_size_w' ) ),
-					'height' => intval( get_option( 'medium_size_h' ) ),
-					'crop'   => false,
-				),
-				'large'  => array(
-					'width'  => intval( get_option( 'large_size_w' ) ),
-					'height' => intval( get_option( 'large_size_h' ) ),
-					'crop'   => false,
-				),
-				'full'   => array(
-					'width'  => null,
-					'height' => null,
-					'crop'   => false,
-				),
-			);
+		if ( null != self::$image_sizes && is_array( self::$image_sizes ) ) {
+			return self::$image_sizes;
+		}
 
-			// Compatibility mapping as found in wp-includes/media.php
-			$images['thumbnail'] = $images['thumb'];
+		global $_wp_additional_image_sizes;
 
-			// Update class variable, merging in $_wp_additional_image_sizes if any are set
-			if ( is_array( $_wp_additional_image_sizes ) && ! empty( $_wp_additional_image_sizes ) ) {
-				self::$image_sizes = array_merge( $images, $_wp_additional_image_sizes );
-			} else {
-				self::$image_sizes = $images;
-			}
+		// Populate an array matching the data structure of $_wp_additional_image_sizes so we have a consistent structure for image sizes
+		$images = array(
+			'thumb'  => array(
+				'width'  => intval( get_option( 'thumbnail_size_w' ) ),
+				'height' => intval( get_option( 'thumbnail_size_h' ) ),
+				'crop'   => get_option( 'thumbnail_crop', false ),
+			),
+			'medium' => array(
+				'width'  => intval( get_option( 'medium_size_w' ) ),
+				'height' => intval( get_option( 'medium_size_h' ) ),
+				'crop'   => false,
+			),
+			'large'  => array(
+				'width'  => intval( get_option( 'large_size_w' ) ),
+				'height' => intval( get_option( 'large_size_h' ) ),
+				'crop'   => false,
+			),
+			'full'   => array(
+				'width'  => null,
+				'height' => null,
+				'crop'   => false,
+			),
+		);
+
+		// Compatibility mapping as found in wp-includes/media.php
+		$images['thumbnail'] = $images['thumb'];
+
+		// Update class variable, merging in $_wp_additional_image_sizes if any are set
+		if ( is_array( $_wp_additional_image_sizes ) && ! empty( $_wp_additional_image_sizes ) ) {
+			self::$image_sizes = array_merge( $images, $_wp_additional_image_sizes );
+		} else {
+			self::$image_sizes = $images;
 		}
 
 		return is_array( self::$image_sizes ) ? self::$image_sizes : array();
+	}
+
+	/**
+	 * Convert wordpress cropping strategy to optimole schema.
+	 *
+	 * @param array $crop_args Wordpress args.
+	 *
+	 * @return array|string Gravity position for optimole.
+	 */
+	private function wp_crop_to_optml( $crop_args = array() ) {
+		if ( $crop_args === false ) {
+			return array();
+		}
+		if ( $crop_args === true ) {
+			return array(
+				'resize'  => Optml_Image::RESIZE_FILL,
+				'gravity' => Optml_Image::GRAVITY_CENTER,
+			);
+		}
+		if ( ! is_array( $crop_args ) ) {
+			return array();
+		}
+
+		if ( empty( $crop_args ) || count( $crop_args ) != 2 ) {
+			return array(
+				'resize'  => Optml_Image::RESIZE_FILL,
+				'gravity' => Optml_Image::GRAVITY_CENTER,
+			);
+		}
+		switch ( strval( $crop_args[0] ) . strval( $crop_args[1] ) ) {
+			case 'left':
+				$gravity = Optml_Image::GRAVITY_WEST;
+				break;
+			case 'right':
+				$gravity = Optml_Image::GRAVITY_EAST;
+				break;
+			case 'top':
+				$gravity = Optml_Image::GRAVITY_NORTH;
+				break;
+			case 'bottom':
+				$gravity = Optml_Image::GRAVITY_SOUTH;
+				break;
+			case 'center':
+				$gravity = Optml_Image::GRAVITY_CENTER;
+				break;
+
+			case 'left_top':
+				$gravity = Optml_Image::GRAVITY_NORTH_WEST;
+				break;
+			case 'left_bottom':
+				$gravity = Optml_Image::GRAVITY_SOUTH_WEST;
+				break;
+
+			case 'right_top':
+				$gravity = Optml_Image::GRAVITY_NORTH_EAST;
+				break;
+			case 'right_bottom':
+				$gravity = Optml_Image::GRAVITY_SOUTH_EAST;
+				break;
+			case 'center_top':
+				$gravity = array( 0.5, 0 );
+				break;
+			case 'center_bottom':
+				$gravity = array( 0.5, 1 );
+				break;
+			case 'left_center':
+				$gravity = array( 0, 0.5 );
+				break;
+			case 'right_center':
+				$gravity = array( 1, 0.5 );
+				break;
+			case 'center_center':
+			default:
+				$gravity = Optml_Image::GRAVITY_CENTER;
+				break;
+		}
+
+		return array(
+			'resize'  => Optml_Image::RESIZE_FILL,
+			'gravity' => $gravity
+		);
 	}
 
 	/**
@@ -426,6 +480,27 @@ class Optml_Replacer {
 	}
 
 	/**
+	 * Checks if the file is a image size and return the full url.
+	 *
+	 * @param string $src The image URL.
+	 *
+	 * @return string
+	 **/
+	protected function strip_image_size_maybe( $src ) {
+
+		if ( preg_match( '#(-\d+x\d+)\.(' . implode( '|', array_keys( self::$extensions ) ) . '){1}$#i', $src, $src_parts ) ) {
+			$stripped_src = str_replace( $src_parts[1], '', $src );
+			// Extracts the file path to the image minus the base url
+			$file_path = substr( $stripped_src, strpos( $stripped_src, $this->upload_resource['url'] ) + $this->upload_resource['url_length'] );
+			if ( file_exists( $this->upload_resource['directory'] . $file_path ) ) {
+				$src = $stripped_src;
+			}
+		}
+
+		return $src;
+	}
+
+	/**
 	 * Returns a signed image url authorized to be used in our CDN.
 	 *
 	 * @param string $url The url which should be signed.
@@ -433,90 +508,36 @@ class Optml_Replacer {
 	 *
 	 * @return string
 	 */
-	public function get_imgcdn_url(
+	public function get_image_url(
 		$url, $args = array(
-			'width'   => 'auto',
-			'height'  => 'auto',
-			'quality' => '',
-		)
+		'width'   => 'auto',
+		'height'  => 'auto',
+		'quality' => '',
+	)
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
-		if ( strpos( $url, $this->cdn_url ) !== false ) {
+		if ( strpos( $url, Optml_Config::$service_url ) !== false ) {
 			return $url;
 		}
 		if ( ! $this->check_mimetype( $url ) ) {
-
 			return $url;
 		}
-		// not used yet.
-		$compress_level = apply_filters( 'optml_image_quality', $this->quality );
+
+		$compress_level = apply_filters( 'optml_image_quality', $this->settings->get_quality() );
 		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) ) {
 			$compress_level = $args['quality'];
 		}
 
-		$compress_level = $this->normalize_quality( $compress_level );
+		$args['quality'] = $this->normalize_quality( $compress_level );
+
 		// this will authorize the image
-		if ( ! empty( self::$site_mirror ) ) {
-			$url = str_replace( self::$siteurl, self::$site_mirror, $url );
+		if ( ! empty( $this->site_mappings ) ) {
+			$url = str_replace( array_keys( $this->site_mappings ), array_values( $this->site_mappings ), $url );
 		}
 
-		$url_parts = explode( '://', $url );
-		if ( count( $url_parts ) != 2 ) {
-			return $url;
-		}
-
-		$scheme = trim( $url_parts[0] );
-
-		$path = $url_parts[1];
-
-		if ( $args['width'] !== 'auto' ) {
-			$args['width'] = round( $args['width'], 0 );
-			if ( $args['width'] > $this->max_width ) {
-				$args['width'] = $this->max_width;
-			}
-
-			if ( $args['width'] == 0 ) {
-				$args['width'] = 'auto';
-			}
-		}
-		if ( $args['height'] !== 'auto' ) {
-			$args['height'] = round( $args['height'], 0 );
-			if ( $args['height'] > $this->max_height ) {
-				$args['height'] = $this->max_height;
-			}
-			if ( $args['height'] == 0 ) {
-				$args['height'] = 'auto';
-			}
-		}
-
-		$hash = '';
-		if ( empty( $this->whitelist ) ) {
-			$payload = array(
-				'path'    => $this->urlception_encode( $path ),
-				'scheme'  => $scheme,
-				'width'   => (string) $args['width'],
-				'height'  => (string) $args['height'],
-				'quality' => (string) $compress_level,
-			);
-			ksort( $payload );
-			$values  = array_values( $payload );
-			$payload = implode( '', $values );
-			$hash    = sprintf( '/%s', hash_hmac( 'md5', $payload, $this->cdn_secret ) );
-		}
-		$new_url = sprintf(
-			'%s%s/%s/%s/%s/%s/%s',
-			$this->cdn_url,
-			$hash,
-			(string) $args['width'],
-			(string) $args['height'],
-			(string) $compress_level,
-			$scheme,
-			$path
-		);
-
-		return $new_url;
+		return ( new Optml_Image( $url, $args ) )->get_url( $this->is_allowed_site );
 	}
 
 	/**
@@ -572,16 +593,28 @@ class Optml_Replacer {
 	}
 
 	/**
-	 * Ensures that an url parameter can stand inside an url.
+	 * Filters sizes attribute of the images.
 	 *
-	 * @param string $url The required url.
+	 * @param array $sizes An array of media query breakpoints.
+	 * @param array $size Width and height of the image
 	 *
-	 * @return string
+	 * @return mixed An array of media query breakpoints.
 	 */
-	protected function urlception_encode( $url ) {
-		$new_url = rtrim( $url, '/' );
+	public function filter_sizes( $sizes, $size ) {
+		if ( ! doing_filter( 'the_content' ) ) {
+			return $sizes;
+		}
 
-		return urlencode( $new_url );
+		$content_width = isset( $GLOBALS['content_width'] ) ? $GLOBALS['content_width'] : false;
+		if ( ! $content_width ) {
+			$content_width = 1000;
+		}
+
+		if ( ( is_array( $size ) && $size[0] < $content_width ) ) {
+			return $sizes;
+		}
+
+		return sprintf( '(max-width: %1$dpx) 100vw, %1$dpx', $content_width );
 	}
 
 	/**
@@ -599,13 +632,13 @@ class Optml_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-		if ( $this->lazyload && ! $this->ignore_lazyload() ) {
+		//If lazyload is enabled and we are not in AMP/feed context we should drop this.
+		if ( $this->settings->use_lazyload() && ! $this->should_ignore_image_tags() ) {
 			return array();
 		}
-		$used        = array();
-		$new_sources = array();
 		foreach ( $sources as $i => $source ) {
-			list( $width, $height ) = self::parse_dimensions_from_filename( $source['url'] );
+			$url = $source['url'];
+			list( $width, $height ) = self::parse_dimensions_from_filename( $url );
 
 			if ( empty( $width ) ) {
 				$width = $image_meta['width'];
@@ -615,25 +648,48 @@ class Optml_Replacer {
 				$height = $image_meta['height'];
 			}
 
-			$source['url'] = $this->strip_image_size_maybe( $source['url'] );
-			$new_sizes     = $this->validate_image_sizes( $width, $height );
-			$new_url       = $this->get_imgcdn_url( $source['url'], $new_sizes );
-			if ( isset( $used[ md5( $new_url ) ] ) ) {
-				continue;
-			}
-
-			$used[ md5( $new_url ) ]  = true;
-			$new_sources[ $i ]        = $sources[ $i ];
-			$new_sources[ $i ]['url'] = $new_url;
-
-			if ( $new_sources[ $i ]['descriptor'] ) {
-				$new_sources[ $i ]['value'] = $new_sizes['width'];
+			if ( ! empty( $attachment_id ) ) {
+				$url = wp_get_attachment_url( $attachment_id );
 			} else {
-				$new_sources[ $i ]['value'] = $new_sizes['height'];
+				$url = $this->strip_image_size_maybe( $source['url'] );
 			}
+			$args = array();
+			if ( 'w' === $source['descriptor'] ) {
+				if ( $height && ( $source['value'] == $width ) ) {
+					$args['width']  = $width;
+					$args['height'] = $height;
+				} else {
+					$args['width'] = $source['value'];
+				}
+			}
+			$sources[ $i ]['url'] = $this->get_image_url( $url, $args );
 		}
 
-		return $new_sources;
+		return $sources;
+	}
+
+	/**
+	 * Check if we are on a amp endpoint.
+	 *
+	 * IMPORTANT: This needs to be  used after parse_query hook, otherwise will return false positives.
+	 *
+	 * @return bool
+	 */
+	protected function should_ignore_image_tags() {
+		//Ignore image tags replacement in amp context as they are not available.
+		if ( function_exists( 'is_amp_endpoint' ) ) {
+			return is_amp_endpoint();
+		}
+		if ( function_exists( 'ampforwp_is_amp_endpoint' ) ) {
+			return ampforwp_is_amp_endpoint();
+		}
+
+		//Ignore image tag replacement in feed context as we don't need it.
+		if ( is_feed() ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
@@ -656,27 +712,6 @@ class Optml_Replacer {
 		}
 
 		return array( false, false );
-	}
-
-	/**
-	 * Checks if the file is a image size and return the full url.
-	 *
-	 * @param string $src The image URL.
-	 *
-	 * @return string
-	 **/
-	protected function strip_image_size_maybe( $src ) {
-
-		if ( preg_match( '#(-\d+x\d+)\.(' . implode( '|', array_keys( self::$extensions ) ) . '){1}$#i', $src, $src_parts ) ) {
-			$stripped_src = str_replace( $src_parts[1], '', $src );
-			// Extracts the file path to the image minus the base url
-			$file_path = substr( $stripped_src, strpos( $stripped_src, $this->upload_resource['url'] ) + $this->upload_resource['url_length'] );
-			if ( file_exists( $this->upload_resource['directory'] . $file_path ) ) {
-				$src = $stripped_src;
-			}
-		}
-
-		return $src;
 	}
 
 	/**
@@ -741,7 +776,7 @@ class Optml_Replacer {
 			}
 		}
 
-		$new_url = $this->get_imgcdn_url( $url );
+		$new_url = $this->get_image_url( $url );
 
 		return $new_url;
 	}
@@ -770,7 +805,7 @@ class Optml_Replacer {
 				return $metadata;
 			}
 
-			return $this->replace_urls( $current_meta, 'elementor' );
+			return $this->replace_content( $current_meta, 'elementor' );
 		}
 
 		// Return original if the check does not pass
@@ -784,20 +819,20 @@ class Optml_Replacer {
 	 *
 	 * @return mixed Filtered content.
 	 */
-	public function replace_urls( $html, $context = 'raw' ) {
-		$html     = $this->filter_the_content( $html );
+	public function replace_content( $html, $context = 'raw' ) {
+		$html     = $this->filter_image_tags( $html );
 		$old_urls = $this->extract_non_replaced_urls( $html );
 		$urls     = array_combine( $old_urls, $old_urls );
 		switch ( $context ) {
 			case 'elementor':
 				$urls = array_map( 'wp_unslash', $urls );
-				// return $html;
 				break;
 		}
 		$urls = array_map(
 			function ( $url ) {
+
 				$tmp_new_url = $this->strip_image_size_maybe( $url );
-				$new_url     = $this->get_imgcdn_url( $tmp_new_url );
+				$new_url     = $this->get_image_url( $tmp_new_url );
 				if ( $tmp_new_url == $new_url ) {
 					return $url;
 				}
@@ -811,14 +846,14 @@ class Optml_Replacer {
 	}
 
 	/**
-	 * Identify images in post content.
+	 * Identify image tags in html.
 	 *
-	 * @param string $content The post content which will be filtered.
+	 * @param string $content The html which will be filtered.
 	 *
 	 * @return string
 	 */
-	public function filter_the_content( $content ) {
-		if ( $this->ignore_lazyload() ) {
+	public function filter_image_tags( $content ) {
+		if ( $this->should_ignore_image_tags() ) {
 			return $content;
 		}
 		$images = self::parse_images_from_html( $content );
@@ -830,17 +865,19 @@ class Optml_Replacer {
 
 		foreach ( $images[0] as $index => $tag ) {
 			$width   = $height = false;
+			$resize  = array( 'resize' => Optml_Image::RESIZE_FIT );
 			$new_tag = $tag;
 			$src     = $tmp = wp_unslash( $images['img_url'][ $index ] );
 
-			if ( apply_filters( 'optml_imgcdn_disable_optimization_for_link', false, $src ) ) {
+			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ) {
 				continue;
 			}
 
-			if ( false !== strpos( $src, 'i.optimole.com' ) ) {
+			if ( false !== strpos( $src, Optml_Config::$service_url ) ) {
 				continue; // we already have this
 			}
-			if ( false === strpos( $src, self::$siteurl ) && ( empty( self::$site_mirror ) || false === strpos( $src, self::$site_mirror ) ) ) {
+
+			if ( ! $this->can_replace_url( $src ) ) {
 				continue;
 			}
 
@@ -853,64 +890,74 @@ class Optml_Replacer {
 				$height = $height_string[1];
 			}
 
-			// Detect WP registered image size from HTML class
 			if ( preg_match( '#class=["|\']?[^"\']*size-([^"\'\s]+)[^"\']*["|\']?#i', $images['img_tag'][ $index ], $size ) ) {
 				$size = array_pop( $size );
 
 				if ( false === $width && false === $height && 'full' != $size && array_key_exists( $size, $image_sizes ) ) {
 					$width  = (int) $image_sizes[ $size ]['width'];
 					$height = (int) $image_sizes[ $size ]['height'];
+					$resize = $this->wp_crop_to_optml( $image_sizes[ $size ]['crop'] );
 				}
 			} else {
 				unset( $size );
 			}
-			$new_sizes = $this->validate_image_sizes( $width, $height );
-			$tmp       = $this->strip_image_size_maybe( $tmp );
 
-			$new_url = $this->get_imgcdn_url( $tmp, $new_sizes );
+			if ( false === $width && false === $height ) {
+				list( $width, $height ) = self::parse_dimensions_from_filename( $tmp );
+			}
+
+			$optml_args = $this->validate_image_sizes( $width, $height );
+
+			$tmp        = $this->strip_image_size_maybe( $tmp );
+			$optml_args = array_merge( $optml_args, $resize );
+
 			if ( $new_url === $tmp ) {
 				continue;
 			}
+
 			// replace the url in hrefs or links
 			if ( ! empty( $images['link_url'][ $index ] ) ) {
 				if ( $this->check_mimetype( $images['link_url'][ $index ] ) ) {
-					$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . $new_url . '\2', $tag, 1 );
+					$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . $this->get_image_url( $tmp ) . '\2', $tag, 1 );
 				}
 			}
-			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $new_sizes['width'] . '"', $new_tag );
-			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $new_sizes['height'] . '"', $new_tag );
 
-			if ( $this->lazyload && $this->can_lazyload( $tmp ) ) {
-				$new_sizes['quality'] = 'eco';
-				$low_url              = $this->get_imgcdn_url( $tmp, $new_sizes );
+			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $optml_args['width'] . '"', $new_tag );
+			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $optml_args['height'] . '"', $new_tag );
 
-				$noscript_tag = str_replace(
-					array(
-						'src="' . $images['img_url'][ $index ] . '"',
-						'src=\"' . $images['img_url'][ $index ] . '"',
-					),
-					array(
-						'src="' . $new_url . '"',
-						wp_slash( 'src="' . $new_url . '"' ),
-					),
-					$new_tag
-				);
-				$new_tag      = str_replace(
-					array(
-						'src="' . $images['img_url'][ $index ] . '"',
-						'src=\"' . $images['img_url'][ $index ] . '"',
-					),
-					array(
-						'src="' . $low_url . '" data-opt-src="' . $new_url . '"',
-						wp_slash( 'src="' . $low_url . '" data-opt-src="' . $new_url . '"' ),
-					),
-					$new_tag
-				);
+			$new_tag = apply_filters( 'optml_image_tag_replacement', $new_tag, $original_url, str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag ) );
 
-				$new_tag = '<noscript>' . $noscript_tag . '</noscript>' . $new_tag;
-			} else {
-				$new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
-			}
+//			if ( $this->lazyload && $this->can_lazyload_for( $tmp ) ) {
+//				$new_sizes['quality'] = 'eco';
+//				$low_url              = $this->get_image_url( $tmp, $new_sizes );
+//
+//				$noscript_tag = str_replace(
+//					array(
+//						'src="' . $images['img_url'][ $index ] . '"',
+//						'src=\"' . $images['img_url'][ $index ] . '"',
+//					),
+//					array(
+//						'src="' . $new_url . '"',
+//						wp_slash( 'src="' . $new_url . '"' ),
+//					),
+//					$new_tag
+//				);
+//				$new_tag      = str_replace(
+//					array(
+//						'src="' . $images['img_url'][ $index ] . '"',
+//						'src=\"' . $images['img_url'][ $index ] . '"',
+//					),
+//					array(
+//						'src="' . $low_url . '" data-opt-src="' . $new_url . '"',
+//						wp_slash( 'src="' . $low_url . '" data-opt-src="' . $new_url . '"' ),
+//					),
+//					$new_tag
+//				);
+//
+//				$new_tag = '<noscript>' . $noscript_tag . '</noscript>' . $new_tag;
+//			} else {
+//				$new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
+//			}
 
 			$content = str_replace( $tag, $new_tag, $content );
 		}
@@ -962,30 +1009,19 @@ class Optml_Replacer {
 	}
 
 	/**
-	 * Check if the lazyload is allowed for this url.
+	 * Check if we can replace the url.
 	 *
-	 * @param string $url Url.
+	 * @param string $url Url to change.
 	 *
-	 * @return bool We can lazyload?
+	 * @return bool Either we can replace this url or not.
 	 */
-	public function can_lazyload( $url ) {
-		if ( ! defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) ) {
-			return true;
+	public function can_replace_url( $url ) {
+		if ( ! is_string( $url ) ) {
+			return false;
 		}
-		if ( ! OPTML_DISABLE_PNG_LAZYLOAD ) {
-			return true;
-		}
-		$type = wp_check_filetype(
-			basename( $url ),
-			array(
-				'png' => 'image/png',
-			)
-		);
-		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
-			return true;
-		}
+		$url = @parse_url( $url );
 
-		return false;
+		return isset( $this->possible_sources[ $url['host'] ] );
 	}
 
 	/**
@@ -1018,6 +1054,33 @@ class Optml_Replacer {
 		$urls = array_unique( $urls );
 
 		return array_values( $urls );
+	}
+
+	/**
+	 * Check if the lazyload is allowed for this url.
+	 *
+	 * @param string $url Url.
+	 *
+	 * @return bool We can lazyload?
+	 */
+	public function can_lazyload_for( $url ) {
+		if ( ! defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) ) {
+			return true;
+		}
+		if ( ! OPTML_DISABLE_PNG_LAZYLOAD ) {
+			return true;
+		}
+		$type = wp_check_filetype(
+			basename( $url ),
+			array(
+				'png' => 'image/png',
+			)
+		);
+		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**
