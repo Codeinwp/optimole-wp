@@ -827,6 +827,7 @@ final class Optml_Replacer {
 	 * @return mixed Filtered content.
 	 */
 	public function replace_content( $html, $context = 'raw' ) {
+		//return $html;
 		$html     = $this->filter_image_tags( $html );
 		$old_urls = $this->extract_non_replaced_urls( $html );
 		$urls     = array_combine( $old_urls, $old_urls );

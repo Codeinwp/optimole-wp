@@ -4,6 +4,7 @@
 .travis.yml
 .jshintrc
 Gruntfile.js
+code_quality
 grunt
 phpcs.xml
 node_modules

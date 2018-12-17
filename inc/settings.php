@@ -46,6 +46,55 @@ class Optml_Settings {
 		}
 	}
 
+	private function sanitize_enabled_disabled( $value ) {
+		return ( $value === 'enabled' || $value === 'disabled' ) ? $value : 'enabled';
+	}
+
+	private function sanitize_size( $value ) {
+		$sanitized_value = absint( $value );
+		if ( $sanitized_value < 100 ) {
+			$sanitized_value = 100;
+		}
+		if ( $sanitized_value > 5000 ) {
+			$sanitized_value = 5000;
+		}
+		return $sanitized_value;
+	}
+
+	private function sanitize_quality( $value ) {
+		return ( $value === 'low_c' || $value === 'medium_c' || $value === 'auto' || $value === 'high_c' ) ? $value : 'auto';
+	}
+
+	public function parse_settings( $new_settings ) {
+		$sanitized = array();
+		foreach ( $new_settings as $key => $value ) {
+			switch ( $key ) {
+				case 'admin_bar_item':
+				case 'lazyload':
+				case 'image_replacer':
+					$sanitized_value = $this->sanitize_enabled_disabled( $value );
+					break;
+				case 'max_width':
+				case 'max_height':
+					$sanitized_value = $this->sanitize_size( $value );
+
+					break;
+				case 'quality':
+					$sanitized_value = $this->sanitize_quality( $value );
+					break;
+				default:
+					$sanitized_value = '';
+					break;
+			}
+			if ( empty( $sanitized_value ) ) {
+				continue;
+			}
+			$sanitized[ $key ] = $sanitized_value;
+			$this->update( $key, $sanitized_value );
+		}
+		return $sanitized;
+	}
+
 	/**
 	 * Check if the user is connected to Optimole.
 	 *

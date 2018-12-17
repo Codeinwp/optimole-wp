@@ -250,11 +250,11 @@ class Optml_Rest {
 				'id'     => - 1,
 			);
 		}
-		$id = $image_result->posts[ array_rand( $image_result->posts, 1 ) ];
+		$attachment_id = $image_result->posts[ array_rand( $image_result->posts, 1 ) ];
 
-		$original_image_url = wp_get_attachment_image_url( $id, 'full' );
+		$original_image_url = wp_get_attachment_image_url( $attachment_id, 'full' );
 
-		$metadata = wp_get_attachment_metadata( $id );
+		$metadata = wp_get_attachment_metadata( $attachment_id );
 
 		$width  = 'auto';
 		$height = 'auto';
@@ -266,7 +266,7 @@ class Optml_Rest {
 
 		return array(
 			'url'    => $original_image_url,
-			'id'     => $id,
+			'id'     => $attachment_id,
 			'width'  => $width,
 			'height' => $height,
 		);
@@ -275,6 +275,7 @@ class Optml_Rest {
 	/**
 	 * Disconnect from optimole service.
 	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 * @param WP_REST_Request $request disconnect rest request.
 	 */
 	public function disconnect( WP_REST_Request $request ) {
@@ -307,6 +308,7 @@ class Optml_Rest {
 	 * Update options method.
 	 *
 	 * @param WP_REST_Request $request option update rest request.
+	 * @return WP_REST_Response
 	 */
 	public function update_option( WP_REST_Request $request ) {
 		$new_settings = $request->get_param( 'settings' );
@@ -316,39 +318,8 @@ class Optml_Rest {
 		}
 
 		$settings = new Optml_Settings();
-		// TODO Move validation in settings model.
-		$sanitized = array();
-		foreach ( $new_settings as $key => $value ) {
-			switch ( $key ) {
-				case 'admin_bar_item':
-				case 'lazyload':
-				case 'image_replacer':
-					$sanitized_value = ( $value === 'enabled' || $value === 'disabled' ) ? $value : 'enabled';
-					break;
-				case 'max_width':
-				case 'max_height':
-					$sanitized_value = absint( $value );
-					if ( $sanitized_value < 100 ) {
-						$sanitized_value = 100;
-					}
-					if ( $sanitized_value > 5000 ) {
-						$sanitized_value = 5000;
-					}
+		$sanitized = $settings->parse_settings( $new_settings );
 
-					break;
-				case 'quality':
-					$sanitized_value = ( $value === 'low_c' || $value === 'medium_c' || $value === 'auto' || $value === 'high_c' ) ? $value : 'auto';
-					break;
-				default:
-					$sanitized_value = '';
-					break;
-			}
-			if ( empty( $sanitized_value ) ) {
-				continue;
-			}
-			$sanitized[ $key ] = $sanitized_value;
-			$settings->update( $key, $sanitized_value );
-		}
 
 		return $this->response( $sanitized );
 	}

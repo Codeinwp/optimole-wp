@@ -20,6 +20,7 @@
     "commitmsg": "commitlint -e .git/COMMIT_EDITMSG",
     "dev": "cross-env WEBPACK_ENV=dev webpack --progress --colors --watch",
     "build": "cross-env WEBPACK_ENV=production webpack",
+    "report": ".\"/vendor/bin/phpmetrics\" --report-html=code_quality . || true",
     "phpcbf": ".\"/vendor/bin/phpcbf\" || true",
     "phpcs": ".\"/vendor/bin/phpcs\"",
     "phpmd": ".\"/vendor/phpmd/phpmd/src/bin/phpmd\" inc text phpmd.xml",
@@ -28,7 +29,8 @@
   "pre-commit": [
     "phpcbf",
     "phpcs",
-    "phpmd"
+    "phpmd",
+    "report"
   ],
   "devDependencies": {
     "@commitlint/cli": "^7.0.0",

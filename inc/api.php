@@ -44,6 +44,32 @@ final class Optml_Api {
 	}
 
 	/**
+	 * Builds Request arguments array.
+	 *
+	 * @param string $method Request method (GET | POST | PUT | UPDATE | DELETE).
+	 * @param string $url    Request URL.
+	 * @param array $headers Headers Array.
+	 * @param array $params  Additional params for the Request.
+	 *
+	 * @return array
+	 */
+	private function build_args( $method, $url, $headers, $params ) {
+		$args = array(
+			'url'        => $url,
+			'method'     => $method,
+			'timeout'    => 45,
+			'user-agent' => 'Optimle WP (v' . OPTML_VERSION . ') ',
+			'sslverify'  => false,
+			'headers'    => $headers,
+		);
+		if ( $method !== 'GET' ) {
+			$args['body'] = $params;
+		}
+
+		return $args;
+	}
+
+	/**
 	 * Request constructor.
 	 *
 	 * @param string $path The request url.
@@ -69,17 +95,8 @@ final class Optml_Api {
 			}
 		}
 		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
-		$args = array(
-			'url'        => $url,
-			'method'     => $method,
-			'timeout'    => 45,
-			'user-agent' => 'Optimle WP (v' . OPTML_VERSION . ') ',
-			'sslverify'  => false,
-			'headers'    => $headers,
-		);
-		if ( $method !== 'GET' ) {
-			$args['body'] = $params;
-		}
+		$args = $this->build_args( $method, $url, $headers, $params );
+
 		$response = wp_remote_request( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
