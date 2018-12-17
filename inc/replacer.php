@@ -175,10 +175,12 @@ final class Optml_Replacer {
 
 		$service_data = $this->settings->get( 'service_data' );
 
-		Optml_Config::init( array(
-			'key'    => $service_data['cdn_key'],
-			'secret' => $service_data['cdn_secret'],
-		) );
+		Optml_Config::init(
+			array(
+				'key'    => $service_data['cdn_key'],
+				'secret' => $service_data['cdn_secret'],
+			)
+		);
 
 		if ( defined( 'OPTML_SITE_MIRROR' ) && ! empty( OPTML_SITE_MIRROR ) ) {
 			$this->site_mappings = array(
@@ -186,10 +188,12 @@ final class Optml_Replacer {
 			);
 		}
 
-		$this->possible_sources = $this->extract_domain_from_urls( array_merge(
-			array( get_site_url() ),
-			array_values( $this->site_mappings )
-		) );
+		$this->possible_sources = $this->extract_domain_from_urls(
+			array_merge(
+				array( get_site_url() ),
+				array_values( $this->site_mappings )
+			)
+		);
 
 		$this->allowed_sources = $this->extract_domain_from_urls( $service_data['whitelist'] );
 
@@ -211,11 +215,14 @@ final class Optml_Replacer {
 			return $urls;
 		}
 
-		$urls = array_map( function ( $value ) {
-			$parts = parse_url( $value );
+		$urls = array_map(
+			function ( $value ) {
+					$parts = parse_url( $value );
 
-			return isset( $parts['host'] ) ? $parts['host'] : '';
-		}, $urls );
+					return isset( $parts['host'] ) ? $parts['host'] : '';
+			},
+			$urls
+		);
 		$urls = array_filter( $urls );
 		$urls = array_unique( $urls );
 		$urls = array_fill_keys( array_keys( $urls ), true );
@@ -265,7 +272,7 @@ final class Optml_Replacer {
 		$sizes = array(
 			'width'  => isset( $image_meta['width'] ) ? intval( $image_meta['width'] ) : 'auto',
 			'height' => isset( $image_meta['height'] ) ? intval( $image_meta['height'] ) : 'auto',
-			'resize' => Optml_Image::RESIZE_FIT
+			'resize' => Optml_Image::RESIZE_FIT,
 		);
 
 		// in case there is a custom image size $size will be an array.
@@ -352,9 +359,9 @@ final class Optml_Replacer {
 	}
 
 	/**
-	 * Convert wordpress cropping strategy to optimole schema.
+	 * Convert WordPress cropping strategy to optimole schema.
 	 *
-	 * @param array $crop_args Wordpress args.
+	 * @param array $crop_args WordPress args.
 	 *
 	 * @return array|string Gravity position for optimole.
 	 */
@@ -428,7 +435,7 @@ final class Optml_Replacer {
 
 		return array(
 			'resize'  => Optml_Image::RESIZE_FILL,
-			'gravity' => $gravity
+			'gravity' => $gravity,
 		);
 	}
 
@@ -510,10 +517,10 @@ final class Optml_Replacer {
 	 */
 	public function get_image_url(
 		$url, $args = array(
-		'width'   => 'auto',
-		'height'  => 'auto',
-		'quality' => '',
-	)
+			'width'   => 'auto',
+			'height'  => 'auto',
+			'quality' => '',
+		)
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
@@ -632,7 +639,7 @@ final class Optml_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-		//If lazyload is enabled and we are not in AMP/feed context we should drop this.
+		// If lazyload is enabled and we are not in AMP/feed context we should drop this.
 		if ( $this->settings->use_lazyload() && ! $this->should_ignore_image_tags() ) {
 			return array();
 		}
@@ -676,7 +683,7 @@ final class Optml_Replacer {
 	 * @return bool
 	 */
 	protected function should_ignore_image_tags() {
-		//Ignore image tags replacement in amp context as they are not available.
+		// Ignore image tags replacement in amp context as they are not available.
 		if ( function_exists( 'is_amp_endpoint' ) ) {
 			return is_amp_endpoint();
 		}
@@ -684,7 +691,7 @@ final class Optml_Replacer {
 			return ampforwp_is_amp_endpoint();
 		}
 
-		//Ignore image tag replacement in feed context as we don't need it.
+		// Ignore image tag replacement in feed context as we don't need it.
 		if ( is_feed() ) {
 			return true;
 		}
@@ -927,38 +934,37 @@ final class Optml_Replacer {
 
 			$new_tag = apply_filters( 'optml_image_tag_replacement', $new_tag, $original_url, str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag ) );
 
-//			if ( $this->lazyload && $this->can_lazyload_for( $tmp ) ) {
-//				$new_sizes['quality'] = 'eco';
-//				$low_url              = $this->get_image_url( $tmp, $new_sizes );
-//
-//				$noscript_tag = str_replace(
-//					array(
-//						'src="' . $images['img_url'][ $index ] . '"',
-//						'src=\"' . $images['img_url'][ $index ] . '"',
-//					),
-//					array(
-//						'src="' . $new_url . '"',
-//						wp_slash( 'src="' . $new_url . '"' ),
-//					),
-//					$new_tag
-//				);
-//				$new_tag      = str_replace(
-//					array(
-//						'src="' . $images['img_url'][ $index ] . '"',
-//						'src=\"' . $images['img_url'][ $index ] . '"',
-//					),
-//					array(
-//						'src="' . $low_url . '" data-opt-src="' . $new_url . '"',
-//						wp_slash( 'src="' . $low_url . '" data-opt-src="' . $new_url . '"' ),
-//					),
-//					$new_tag
-//				);
-//
-//				$new_tag = '<noscript>' . $noscript_tag . '</noscript>' . $new_tag;
-//			} else {
-//				$new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
-//			}
-
+			// if ( $this->lazyload && $this->can_lazyload_for( $tmp ) ) {
+			// $new_sizes['quality'] = 'eco';
+			// $low_url              = $this->get_image_url( $tmp, $new_sizes );
+			//
+			// $noscript_tag = str_replace(
+			// array(
+			// 'src="' . $images['img_url'][ $index ] . '"',
+			// 'src=\"' . $images['img_url'][ $index ] . '"',
+			// ),
+			// array(
+			// 'src="' . $new_url . '"',
+			// wp_slash( 'src="' . $new_url . '"' ),
+			// ),
+			// $new_tag
+			// );
+			// $new_tag      = str_replace(
+			// array(
+			// 'src="' . $images['img_url'][ $index ] . '"',
+			// 'src=\"' . $images['img_url'][ $index ] . '"',
+			// ),
+			// array(
+			// 'src="' . $low_url . '" data-opt-src="' . $new_url . '"',
+			// wp_slash( 'src="' . $low_url . '" data-opt-src="' . $new_url . '"' ),
+			// ),
+			// $new_tag
+			// );
+			//
+			// $new_tag = '<noscript>' . $noscript_tag . '</noscript>' . $new_tag;
+			// } else {
+			// $new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
+			// }
 			$content = str_replace( $tag, $new_tag, $content );
 		}
 

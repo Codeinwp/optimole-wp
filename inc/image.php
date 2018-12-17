@@ -119,7 +119,7 @@ class Optml_Image {
 	 */
 	public function __construct( $url = '', $args = array() ) {
 		if ( empty( $url ) ) {
-			throw new \InvalidArgumentException( "Optimole image builder requires the source url to optimize." );
+			throw new \InvalidArgumentException( 'Optimole image builder requires the source url to optimize.' );
 		}
 		$this->set_defaults();
 		if ( isset( $args['width'] ) && ! empty( $args['width'] ) && is_numeric( $args['width'] ) ) {
@@ -165,15 +165,15 @@ class Optml_Image {
 	public function get_url( $signed = false ) {
 		$path_parts = array();
 		if ( $this->width > 0 ) {
-			$path_parts[] = sprintf( "w:%s", $this->width );
+			$path_parts[] = sprintf( 'w:%s', $this->width );
 		}
 		if ( $this->height > 0 ) {
-			$path_parts[] = sprintf( "h:%s", $this->height );
+			$path_parts[] = sprintf( 'h:%s', $this->height );
 		}
 		if ( $this->quality > 0 ) {
-			$path_parts[] = sprintf( "q:%s", $this->quality );
+			$path_parts[] = sprintf( 'q:%s', $this->quality );
 		}
-		$path = "/" . $this->source_url;
+		$path = '/' . $this->source_url;
 
 		if ( ! empty( $path_parts ) ) {
 			$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );

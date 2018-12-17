@@ -28,7 +28,8 @@ const restApiNotWorking = ( state, data ) => {
 };
 const updateSettings = ( state, data ) => {
 
-	for ( var setting in data ) { state.site_settings[setting] = data[setting]; }
+	for ( var setting in data ) {
+		state.site_settings[setting] = data[setting]; }
 
 };
 

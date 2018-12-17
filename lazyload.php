@@ -35,7 +35,6 @@ final class Optml_Lazyload {
 	 */
 	function init() {
 
-
 	}
 
 	/**

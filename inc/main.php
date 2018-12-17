@@ -60,7 +60,7 @@ final class Optml_Main {
 			self::$_instance->replacer = Optml_Replacer::instance();
 			self::$_instance->rest     = new Optml_Rest();
 			self::$_instance->admin    = new Optml_Admin();
-			 
+
 		}
 
 		return self::$_instance;

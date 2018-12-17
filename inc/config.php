@@ -31,18 +31,18 @@ class Optml_Config {
 	public static function init( $service_settings = array() ) {
 
 		if ( empty( $service_settings['key'] ) && ! defined( 'OPTML_KEY' ) ) {
-			throw new \InvalidArgumentException( "Optimole SDK requires service api key." );
+			throw new \InvalidArgumentException( 'Optimole SDK requires service api key.' );
 		}
 		if ( empty( $service_settings['secret'] ) && ! defined( 'OPTML_SECRET' ) ) {
-			throw new \InvalidArgumentException( "Optimole SDK requires service secret key." );
+			throw new \InvalidArgumentException( 'Optimole SDK requires service secret key.' );
 		}
 
-		if ( ! empty ( $service_settings['key'] ) ) {
+		if ( ! empty( $service_settings['key'] ) ) {
 			self::$key = trim( $service_settings['key'] );
 		} else {
 			self::$key = OPTML_KEY;
 		}
-		if ( ! empty ( $service_settings['secret'] ) ) {
+		if ( ! empty( $service_settings['secret'] ) ) {
 			self::$secret = trim( $service_settings['secret'] );
 		} else {
 			self::$secret = OPTML_SECRET;
@@ -50,13 +50,11 @@ class Optml_Config {
 
 		if ( isset( $service_settings['domain'] ) && ! empty( $service_settings['domain'] ) ) {
 			self::$service_url = $service_settings['domain'];
-		} else if ( defined( 'OPTML_CUSTOM_DOMAIN' ) && ! empty( OPTML_CUSTOM_DOMAIN ) ) {
+		} elseif ( defined( 'OPTML_CUSTOM_DOMAIN' ) && ! empty( OPTML_CUSTOM_DOMAIN ) ) {
 			self::$service_url = OPTML_CUSTOM_DOMAIN;
 		} else {
 			self::$service_url = sprintf( '%s.i.optimole.com', self::$key );
 		}
-
-
 
 	}
 }

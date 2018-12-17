@@ -17,10 +17,24 @@
     "url": "https://github.com/Codeinwp/optimole-wp/issues"
   },
   "scripts": {
+    "commitmsg": "commitlint -e .git/COMMIT_EDITMSG",
     "dev": "cross-env WEBPACK_ENV=dev webpack --progress --colors --watch",
-    "build": "cross-env WEBPACK_ENV=production webpack"
+    "build": "cross-env WEBPACK_ENV=production webpack",
+    "phpcbf": ".\"/vendor/bin/phpcbf\" || true",
+    "phpcs": ".\"/vendor/bin/phpcs\"",
+    "phpmd": ".\"/vendor/phpmd/phpmd/src/bin/phpmd\" inc text phpmd.xml",
+    "phpunit": ".\"/vendor/phpunit/phpunit/phpunit\" --configuration phpunit.xml --coverage-text"
   },
+  "pre-commit": [
+    "phpcbf",
+    "phpcs",
+    "phpmd"
+  ],
   "devDependencies": {
+    "@commitlint/cli": "^7.0.0",
+    "@commitlint/config-conventional": "^7.0.1",
+    "pre-commit": "^1.2.2",
+    "husky": "^0.14.3",
     "babel-core": "^6.26.0",
     "babel-eslint": "^8.0.1",
     "babel-loader": "^7.1.2",

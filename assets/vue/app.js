@@ -13,11 +13,13 @@ Vue.use( VueResize );
 
 
 window.onload = function () {
-	new Vue ( {
-		el: '#optimole-app',
-		store,
-		components: {
-			App
-		},
-	} );
+	new Vue(
+		{
+			el: '#optimole-app',
+				store,
+			components: {
+				App
+			},
+		}
+	);
 };
