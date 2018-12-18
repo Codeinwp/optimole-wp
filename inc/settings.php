@@ -40,7 +40,7 @@ class Optml_Settings {
 	public function __construct() {
 		$this->namespace = OPTML_NAMESPACE . '_settings';
 		$this->options   = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
-		if ( $this->to_boolean( constant('OPTIML_ENABLED_MU') ) && constant('OPTIML_MU_SITE_ID') ) {
+		if ( defined( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && $this->to_boolean( constant('OPTIML_ENABLED_MU') ) && constant('OPTIML_MU_SITE_ID') ) {
 			switch_to_blog( constant('OPTIML_MU_SITE_ID') );
 			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 			restore_current_blog();

@@ -1,6 +1,6 @@
 <?php
 
-class Optml_Manager {
+final class Optml_Manager {
 
 	/**
 	 * Cached object instance.
@@ -9,13 +9,217 @@ class Optml_Manager {
 	 */
 	protected static $instance = null;
 
+	/**
+	 * A list of allowed extensions.
+	 *
+	 * @var array
+	 */
+	public static $extensions = array(
+		'jpg|jpeg|jpe' => 'image/jpeg',
+		'png'          => 'image/png',
+		'webp'         => 'image/webp',
+		'svg'          => 'image/svg+xml',
+	);
+
 
 	public function init() {
+		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
 		add_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
+		add_action( 'template_redirect', array( $this, 'process_template_redirect_content' ), PHP_INT_MAX );
+		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+	}
+
+	/**
+	 * Handles the url replacement in options and theme mods.
+	 */
+	public function filter_options_and_mods() {
+		/**
+		 * `optml_imgcdn_options_with_url` is a filter that allows themes or plugins to select which option
+		 * holds an url and needs an optimization.
+		 */
+		$options_list = apply_filters(
+			'optml_imgcdn_options_with_url',
+			array(
+				'theme_mods_' . get_option( 'stylesheet' ),
+				'theme_mods_' . get_option( 'template' ),
+			)
+		);
+
+		foreach ( $options_list as $option ) {
+			add_filter( "option_$option", array( $this, 'replace_option_url' ) );
+		}
+
+	}
+
+	/**
+	 * A filter which turns a local url into an optimized CDN image url or an array of image urls.
+	 *
+	 * @param string $url The url which should be replaced.
+	 *
+	 * @return string Replaced url.
+	 */
+	public function replace_option_url( $url ) {
+		if ( empty( $url ) ) {
+			return $url;
+		}
+		// $url might be an array or an json encoded array with urls.
+		if ( is_array( $url ) || filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
+			$array   = $url;
+			$encoded = false;
+
+			// it might a json encoded array
+			if ( is_string( $url ) ) {
+				$array   = json_decode( $url, true );
+				$encoded = true;
+			}
+
+			// in case there is an array, apply it recursively.
+			if ( is_array( $array ) ) {
+				foreach ( $array as $index => $value ) {
+					$array[ $index ] = $this->replace_option_url( $value );
+				}
+
+				if ( $encoded ) {
+					return json_encode( $array );
+				}
+				return $array;
+			}
+
+			if ( filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
+				return $url;
+			}
+		}
+
+		return apply_filters( 'optml_content_url', $url );
+	}
+
+	/**
+	 * Replace urls in post meta values.
+	 *
+	 * @param mixed  $metadata Metadata.
+	 * @param int    $object_id Post id.
+	 * @param string $meta_key Meta key.
+	 * @param bool   $single Is single.
+	 *
+	 * @return mixed Altered meta.
+	 */
+	public function replace_meta( $metadata, $object_id, $meta_key, $single ) {
+
+		$meta_needed = '_elementor_data';
+
+		if ( isset( $meta_key ) && $meta_needed == $meta_key ) {
+			remove_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX );
+
+			$current_meta = get_post_meta( $object_id, $meta_needed, $single );
+			add_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+
+			if ( ! is_string( $current_meta ) ) {
+				return $metadata;
+			}
+
+			return $this->replace_content( $current_meta, 'elementor' );
+		}
+
+		// Return original if the check does not pass
+		return $metadata;
+	}
+
+	/**
+	 * Init html replacer handler.
+	 */
+	public function process_template_redirect_content() {
+		// We no longer need this if the handler was started.
+		remove_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
+
+		ob_start(
+			array( &$this, 'replace_content' )
+		);
 	}
 
 	public function process_images_from_content( $content ) {
-		return $content;
+		if ( $this->should_ignore_image_tags() ) {
+			return $content;
+		}
+		$images = self::parse_images_from_html( $content );
+
+		if ( empty( $images ) ) {
+			return $content;
+		}
+
+		error_log( 'BEFORE optml_content_images_tags FILTER' );
+		return apply_filters( 'optml_content_images_tags', $content, $images );
+	}
+
+	public function extract_image_urls_from_content( $content ) {
+		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( self::$extensions ) ) . ')/';
+		preg_match_all(
+			$regex,
+			$content,
+			$urls
+		);
+
+		$urls = array_map(
+			function ( $value ) {
+				return rtrim( html_entity_decode( $value ), '\\' );
+			},
+			$urls[0]
+		);
+
+		$urls = array_unique( $urls );
+
+		return array_values( $urls );
+	}
+
+	/**
+	 * Filter raw content for urls.
+	 *
+	 * @param string $html HTML to filter.
+	 * @param string $context
+	 *
+	 * @return mixed Filtered content.
+	 */
+	public function replace_content( $html, $context = 'raw' ) {
+		error_log( 'IN REPLACE CONTENT HTML' );
+		$extracted_urls     = $this->extract_image_urls_from_content( $html );
+		error_log( 'BEFORE optml_extracted_urls FILTER' );
+		$extracted_urls     = apply_filters( 'optml_extracted_urls', $extracted_urls );
+		$urls     = array_combine( $extracted_urls, $extracted_urls );
+		if ( $context == 'elementor' ) {
+			$urls = array_map( 'wp_unslash', $urls );
+		}
+		$urls = array_map(
+			function ( $url ) {
+				return apply_filters( 'optml_content_url', $url );
+			},
+			$urls
+		);
+
+		$html     = $this->process_images_from_content( $html );
+		return str_replace( array_keys( $urls ), array_values( $urls ), $html );
+	}
+
+	/**
+	 * Check if we are on a amp endpoint.
+	 *
+	 * IMPORTANT: This needs to be  used after parse_query hook, otherwise will return false positives.
+	 *
+	 * @return bool
+	 */
+	protected function should_ignore_image_tags() {
+		// Ignore image tags replacement in amp context as they are not available.
+		if ( function_exists( 'is_amp_endpoint' ) ) {
+			return is_amp_endpoint();
+		}
+		if ( function_exists( 'ampforwp_is_amp_endpoint' ) ) {
+			return ampforwp_is_amp_endpoint();
+		}
+
+		// Ignore image tag replacement in feed context as we don't need it.
+		if ( is_feed() ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

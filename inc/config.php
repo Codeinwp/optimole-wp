@@ -37,12 +37,18 @@ class Optml_Config {
 			throw new \InvalidArgumentException( 'Optimole SDK requires service secret key.' );
 		}
 
-		self::$key = constant( 'OPTML_KEY' ) ?? '';
+		if ( defined( 'OPTML_KEY' ) ) {
+			self::$key = constant( 'OPTML_KEY' ) ?? '';
+		}
+
+		if ( defined( 'OPTML_SECRET' ) ) {
+			self::$secret = constant( 'OPTML_SECRET' ) ?? '';
+		}
+
 		if ( ! empty( $service_settings['key'] ) ) {
 			self::$key = trim( $service_settings['key'] );
 		}
 
-		self::$secret = constant( 'OPTML_SECRET' ) ?? '';
 		if ( ! empty( $service_settings['secret'] ) ) {
 			self::$secret = trim( $service_settings['secret'] );
 		}

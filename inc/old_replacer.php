@@ -6,7 +6,7 @@
  * @package    \Optml\Inc
  * @author     Optimole <friends@optimole.com>
  */
-final class Optml_Replacer {
+final class Optml_Old_Replacer {
 	/**
 	 * A list of allowed extensions.
 	 *
