@@ -96,16 +96,10 @@ final class Optml_Url_Replacer {
 	 */
 	public function should_replace() {
 
-		if ( is_admin() ) {
+		if ( is_admin() || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
 			return false;
 		}
 
-		if ( ! $this->settings->is_connected() ) {
-			return false;
-		}
-		if ( ! $this->settings->is_enabled() ) {
-			return false;
-		}
 		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
 			return false;
 		}
@@ -117,10 +111,6 @@ final class Optml_Url_Replacer {
 			return false;
 		}
 
-		if ( is_customize_preview() ) {
-			return false;
-		}
-
 		return true;
 	}
 
@@ -128,7 +118,6 @@ final class Optml_Url_Replacer {
 	 * Set the cdn url based on the current connected user.
 	 */
 	public function set_properties() {
-
 		$upload_data                         = wp_upload_dir();
 		$this->upload_resource               = array(
 			'url'       => str_replace( array( 'https://', 'http://' ), '', $upload_data['baseurl'] ),
@@ -145,9 +134,9 @@ final class Optml_Url_Replacer {
 			)
 		);
 
-		if ( defined( 'OPTML_SITE_MIRROR' ) && ! empty( OPTML_SITE_MIRROR ) ) {
+		if ( defined( 'OPTML_SITE_MIRROR' ) && ! empty( constant('OPTML_SITE_MIRROR' ) ) ) {
 			$this->site_mappings = array(
-				rtrim( get_site_url(), '/' ) => rtrim( OPTML_SITE_MIRROR, '/' ),
+				rtrim( get_site_url(), '/' ) => rtrim( constant('OPTML_SITE_MIRROR' ), '/' ),
 			);
 		}
 
