@@ -21,7 +21,7 @@ final class Optml_Old_Replacer {
 	/**
 	 * Cached object instance.
 	 *
-	 * @var Optml_Replacer
+	 * @var Optml_Old_Replacer
 	 */
 	protected static $instance = null;
 	/**
@@ -90,7 +90,7 @@ final class Optml_Old_Replacer {
 	 * @static
 	 * @since  1.0.0
 	 * @access public
-	 * @return Optml_Replacer
+	 * @return Optml_Old_Replacer
 	 */
 	public static function instance() {
 		if ( is_null( self::$instance ) ) {
@@ -115,132 +115,10 @@ final class Optml_Old_Replacer {
 		}
 		$this->set_properties();
 
-		add_filter( 'the_content', array( $this, 'filter_image_tags' ), PHP_INT_MAX );
-		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
-		add_action( 'template_redirect', array( $this, 'init_html_replacer' ), PHP_INT_MAX );
-		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
-
 		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
 		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
 		add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes_attr' ), 1, 2 );
 
-	}
-
-	/**
-	 * Check if we should rewrite the urls.
-	 *
-	 * @return bool If we can replace the image.
-	 */
-	public function should_replace() {
-
-		if ( is_admin() ) {
-			return false;
-		}
-
-		if ( ! $this->settings->is_connected() ) {
-			return false;
-		}
-		if ( ! $this->settings->is_enabled() ) {
-			return false;
-		}
-		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
-			return false;
-		}
-
-		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
-			return false;
-		}
-		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
-			return false;
-		}
-
-		if ( is_customize_preview() ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Set the cdn url based on the current connected user.
-	 */
-	public function set_properties() {
-
-		$upload_data                         = wp_upload_dir();
-		$this->upload_resource               = array(
-			'url'       => str_replace( array( 'https://', 'http://' ), '', $upload_data['baseurl'] ),
-			'directory' => $upload_data['basedir'],
-		);
-		$this->upload_resource['url_length'] = strlen( $this->upload_resource['url'] );
-
-		$service_data = $this->settings->get( 'service_data' );
-
-		Optml_Config::init(
-			array(
-				'key'    => $service_data['cdn_key'],
-				'secret' => $service_data['cdn_secret'],
-			)
-		);
-
-		if ( defined( 'OPTML_SITE_MIRROR' ) && ! empty( OPTML_SITE_MIRROR ) ) {
-			$this->site_mappings = array(
-				rtrim( get_site_url(), '/' ) => rtrim( OPTML_SITE_MIRROR, '/' ),
-			);
-		}
-
-		$this->possible_sources = $this->extract_domain_from_urls(
-			array_merge(
-				array( get_site_url() ),
-				array_values( $this->site_mappings )
-			)
-		);
-
-		$this->allowed_sources = $this->extract_domain_from_urls( $service_data['whitelist'] );
-
-		$this->is_allowed_site = count( array_diff_key( $this->possible_sources, $this->allowed_sources ) ) > 0;
-
-		$this->max_height = $this->settings->get( 'max_height' );
-		$this->max_width  = $this->settings->get( 'max_width' );
-	}
-
-	/**
-	 * Extract domains and use them as keys for fast processing.
-	 *
-	 * @param array $urls Input urls.
-	 *
-	 * @return array Array of domains as keys.
-	 */
-	private function extract_domain_from_urls( $urls = array() ) {
-		if ( ! is_array( $urls ) ) {
-			return $urls;
-		}
-
-		$urls = array_map(
-			function ( $value ) {
-					$parts = parse_url( $value );
-
-					return isset( $parts['host'] ) ? $parts['host'] : '';
-			},
-			$urls
-		);
-		$urls = array_filter( $urls );
-		$urls = array_unique( $urls );
-		$urls = array_fill_keys( array_keys( $urls ), true );
-
-		return $urls;
-	}
-
-	/**
-	 * Init html replacer handler.
-	 */
-	public function init_html_replacer() {
-
-		// We no longer need this if the handler was started.
-		remove_filter( 'the_content', array( $this, 'filter_image_tags' ), PHP_INT_MAX );
-
-		ob_start(
-			array( &$this, 'replace_content' )
-		);
 	}
 
 	/**
@@ -548,58 +426,6 @@ final class Optml_Old_Replacer {
 	}
 
 	/**
-	 * Check url mimetype.
-	 *
-	 * @param string $url Url to check.
-	 *
-	 * @return bool Is a valid image url or not.
-	 */
-	private function check_mimetype( $url ) {
-
-		$mimes = self::$extensions;
-		$type  = wp_check_filetype( $url, $mimes );
-
-		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Sanitize quality.
-	 *
-	 * @param string|int $quality Normalize quality.
-	 *
-	 * @return int Numeric quality.
-	 */
-	private function normalize_quality( $quality ) {
-
-		if ( is_numeric( $quality ) ) {
-			return intval( $quality );
-		}
-		$quality = trim( $quality );
-		if ( $quality === 'eco' ) {
-			return 'eco';
-		}
-		if ( $quality === 'auto' ) {
-			return 'auto';
-		}
-		if ( $quality === 'high_c' ) {
-			return 55;
-		}
-		if ( $quality === 'medium_c' ) {
-			return 75;
-		}
-		if ( $quality === 'low_c' ) {
-			return 90;
-		}
-
-		// Legacy values.
-		return 60;
-	}
-
-	/**
 	 * Filters sizes attribute of the images.
 	 *
 	 * @param array $sizes An array of media query breakpoints.
@@ -722,138 +548,6 @@ final class Optml_Old_Replacer {
 	}
 
 	/**
-	 * Handles the url replacement in options and theme mods.
-	 */
-	public function filter_options_and_mods() {
-		/**
-		 * `optml_imgcdn_options_with_url` is a filter that allows themes or plugins to select which option
-		 * holds an url and needs an optimization.
-		 */
-		$options_list = apply_filters(
-			'optml_imgcdn_options_with_url',
-			array(
-				'theme_mods_' . get_option( 'stylesheet' ),
-				'theme_mods_' . get_option( 'template' ),
-			)
-		);
-
-		foreach ( $options_list as $option ) {
-			add_filter( "option_$option", array( $this, 'replace_option_url' ) );
-		}
-
-	}
-
-	/**
-	 * A filter which turns a local url into an optimized CDN image url or an array of image urls.
-	 *
-	 * @param string $url The url which should be replaced.
-	 *
-	 * @return string Replaced url.
-	 */
-	public function replace_option_url( $url ) {
-		if ( empty( $url ) ) {
-			return $url;
-		}
-		// $url might be an array or an json encoded array with urls.
-		if ( is_array( $url ) || filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
-			$array   = $url;
-			$encoded = false;
-
-			// it might a json encoded array
-			if ( is_string( $url ) ) {
-				$array   = json_decode( $url, true );
-				$encoded = true;
-			}
-
-			// in case there is an array, apply it recursively.
-			if ( is_array( $array ) ) {
-				foreach ( $array as $index => $value ) {
-					$array[ $index ] = $this->replace_option_url( $value );
-				}
-
-				if ( $encoded ) {
-					return json_encode( $array );
-				} else {
-					return $array;
-				}
-			}
-
-			if ( filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
-				return $url;
-			}
-		}
-
-		$new_url = $this->get_image_url( $url );
-
-		return $new_url;
-	}
-
-	/**
-	 * Replace urls in post meta values.
-	 *
-	 * @param mixed  $metadata Metadata.
-	 * @param int    $object_id Post id.
-	 * @param string $meta_key Meta key.
-	 * @param bool   $single Is single.
-	 *
-	 * @return mixed Altered meta.
-	 */
-	function replace_meta( $metadata, $object_id, $meta_key, $single ) {
-
-		$meta_needed = '_elementor_data';
-
-		if ( isset( $meta_key ) && $meta_needed == $meta_key ) {
-			remove_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX );
-
-			$current_meta = get_post_meta( $object_id, $meta_needed, $single );
-			add_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
-
-			if ( ! is_string( $current_meta ) ) {
-				return $metadata;
-			}
-
-			return $this->replace_content( $current_meta, 'elementor' );
-		}
-
-		// Return original if the check does not pass
-		return $metadata;
-	}
-
-	/**
-	 * Filter raw content for urls.
-	 *
-	 * @param string $html HTML to filter.
-	 *
-	 * @return mixed Filtered content.
-	 */
-	public function replace_content( $html, $context = 'raw' ) {
-		//return $html;
-		$html     = $this->filter_image_tags( $html );
-		$old_urls = $this->extract_non_replaced_urls( $html );
-		$urls     = array_combine( $old_urls, $old_urls );
-		switch ( $context ) {
-			case 'elementor':
-				$urls = array_map( 'wp_unslash', $urls );
-				break;
-		}
-		$urls = array_map(
-			function ( $url ) {
-
-				$tmp_new_url = $this->strip_image_size_maybe( $url );
-				$new_url     = $this->get_image_url( $tmp_new_url );
-				if ( $tmp_new_url == $new_url ) {
-					return $url;
-				}
-
-				return $new_url;
-			},
-			$urls
-		);
-
-		return str_replace( array_keys( $urls ), array_values( $urls ), $html );
-	}
-
-	/**
 	 * Identify image tags in html.
 	 *
 	 * @param string $content The html which will be filtered.
@@ -973,49 +667,6 @@ final class Optml_Old_Replacer {
 	}
 
 	/**
-	 * Match all images and any relevant <a> tags in a block of HTML.
-	 *
-	 * @param string $content Some HTML.
-	 *
-	 * @return array An array of $images matches, where $images[0] is
-	 *         an array of full matches, and the link_url, img_tag,
-	 *         and img_url keys are arrays of those matches.
-	 */
-	public static function parse_images_from_html( $content ) {
-		$images = array();
-
-		$content = self::strip_header_from_content( $content );
-
-		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*<\/a>)?/ism', $content, $images ) ) {
-			foreach ( $images as $key => $unused ) {
-				// Simplify the output as much as possible, mostly for confirming test results.
-				if ( is_numeric( $key ) && $key > 0 ) {
-					unset( $images[ $key ] );
-				}
-			}
-
-			return $images;
-		}
-
-		return array();
-	}
-
-	/**
-	 * Matches the header tag and removes it.
-	 *
-	 * @param string $content Some HTML.
-	 *
-	 * @return string The HTML without the <header/> tag
-	 */
-	public static function strip_header_from_content( $content ) {
-		if ( preg_match( '/<header.*<\/header>/ismU', $content, $matches ) !== 1 ) {
-			return $content;
-		}
-
-		return str_replace( $matches[0], '', $content );
-	}
-
-	/**
 	 * Check if we can replace the url.
 	 *
 	 * @param string $url Url to change.
@@ -1088,33 +739,6 @@ final class Optml_Old_Replacer {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Throw error on object clone
-	 *
-	 * The whole idea of the singleton design pattern is that there is a single
-	 * object therefore, we don't want the object to be cloned.
-	 *
-	 * @access public
-	 * @since  1.0.0
-	 * @return void
-	 */
-	public function __clone() {
-		// Cloning instances of the class is forbidden.
-		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'optimole-wp' ), '1.0.0' );
-	}
-
-	/**
-	 * Disable unserializing of the class
-	 *
-	 * @access public
-	 * @since  1.0.0
-	 * @return void
-	 */
-	public function __wakeup() {
-		// Unserializing instances of the class is forbidden.
-		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'optimole-wp' ), '1.0.0' );
 	}
 
 }

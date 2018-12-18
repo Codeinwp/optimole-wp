@@ -34,4 +34,29 @@ trait Optml_Normalizer {
 		}
 		return $default;
 	}
+
+	public function to_accepted_quality( $value ) {
+		if ( is_numeric( $value ) ) {
+			return intval( $value );
+		}
+		$value = trim( $value );
+		if ( $value === 'eco' ) {
+			return 'eco';
+		}
+		if ( $value === 'auto' ) {
+			return 'auto';
+		}
+		if ( $value === 'high_c' ) {
+			return 55;
+		}
+		if ( $value === 'medium_c' ) {
+			return 75;
+		}
+		if ( $value === 'low_c' ) {
+			return 90;
+		}
+
+		// Legacy values.
+		return 60;
+	}
 }
