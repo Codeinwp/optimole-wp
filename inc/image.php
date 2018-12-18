@@ -1,6 +1,10 @@
 <?php
 
 class Optml_Image {
+
+	use Optml_Validator;
+	use Optml_Normalizer;
+
 	/**
 	 * Signature size.
 	 */
@@ -122,19 +126,16 @@ class Optml_Image {
 			throw new \InvalidArgumentException( 'Optimole image builder requires the source url to optimize.' );
 		}
 		$this->set_defaults();
-		if ( isset( $args['width'] ) && ! empty( $args['width'] ) && is_numeric( $args['width'] ) ) {
-			$width       = intval( $args['width'] );
-			$this->width = $width > 0 ? $width : 0;
+		if ( $this->is_valid_numeric( $args['width'] ) ) {
+			$this->width = $this->to_positive_integer( $args['width'] );
 		}
 
-		if ( isset( $args['height'] ) && ! empty( $args['height'] ) && is_numeric( $args['height'] ) ) {
-			$height       = intval( $args['height'] );
-			$this->height = $height > 0 ? $height : 0;
+		if ( $this->is_valid_numeric( $args['height'] ) ) {
+			$this->height = $this->to_positive_integer( $args['height'] );
 		}
 
-		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) && is_numeric( $args['height'] ) ) {
-			$quality       = intval( $args['quality'] );
-			$this->quality = $quality > 0 && $quality <= 100 ? $quality : 0;
+		if ( $this->is_valid_numeric( $args['quality'] ) ) {
+			$this->quality = $this->to_bound_integer( $args['quality'], 0, 100 );
 		}
 		if ( $args['quality'] === 'eco' ) {
 			$this->quality = 'eco';

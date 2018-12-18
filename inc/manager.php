@@ -11,7 +11,11 @@ class Optml_Manager {
 
 
 	public function init() {
+		add_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
+	}
 
+	public function process_images_from_content( $content ) {
+		return $content;
 	}
 
 	/**

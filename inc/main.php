@@ -21,14 +21,25 @@ final class Optml_Main {
 	 * @var Optml_Replacer Replacer instance.
 	 */
 	public $replacer;
+
 	/**
-	 * Holds the replacer class.
+	 * Holds the manager class.
 	 *
 	 * @access  public
 	 * @since   1.0.0
-	 * @var Optml_Rest Replacer instance.
+	 * @var Optml_Manager Manager instance.
+	 */
+	public $manager;
+
+	/**
+	 * Holds the rest class.
+	 *
+	 * @access  public
+	 * @since   1.0.0
+	 * @var Optml_Rest REST instance.
 	 */
 	public $rest;
+
 	/**
 	 * Holds the admin class.
 	 *
@@ -57,7 +68,8 @@ final class Optml_Main {
 	public static function instance() {
 		if ( is_null( self::$_instance ) ) {
 			self::$_instance           = new self();
-			self::$_instance->replacer = Optml_Replacer::instance();
+			//self::$_instance->replacer = Optml_Replacer::instance();
+			self::$_instance->manager  = Optml_Manager::instance();
 			self::$_instance->rest     = new Optml_Rest();
 			self::$_instance->admin    = new Optml_Admin();
 

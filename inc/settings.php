@@ -4,6 +4,7 @@
  * Class Optml_Settings.
  */
 class Optml_Settings {
+	use Optml_Normalizer;
 
 	/**
 	 * Default settings schema.
@@ -39,30 +40,11 @@ class Optml_Settings {
 	public function __construct() {
 		$this->namespace = OPTML_NAMESPACE . '_settings';
 		$this->options   = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
-		if ( defined( 'OPTIML_ENABLED_MU' ) && OPTIML_ENABLED_MU && defined( 'OPTIML_MU_SITE_ID' ) && ! empty( OPTIML_MU_SITE_ID ) ) {
-			switch_to_blog( OPTIML_MU_SITE_ID );
+		if ( $this->to_boolean( constant('OPTIML_ENABLED_MU') ) && constant('OPTIML_MU_SITE_ID') ) {
+			switch_to_blog( constant('OPTIML_MU_SITE_ID') );
 			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 			restore_current_blog();
 		}
-	}
-
-	private function sanitize_enabled_disabled( $value ) {
-		return ( $value === 'enabled' || $value === 'disabled' ) ? $value : 'enabled';
-	}
-
-	private function sanitize_size( $value ) {
-		$sanitized_value = absint( $value );
-		if ( $sanitized_value < 100 ) {
-			$sanitized_value = 100;
-		}
-		if ( $sanitized_value > 5000 ) {
-			$sanitized_value = 5000;
-		}
-		return $sanitized_value;
-	}
-
-	private function sanitize_quality( $value ) {
-		return ( $value === 'low_c' || $value === 'medium_c' || $value === 'auto' || $value === 'high_c' ) ? $value : 'auto';
 	}
 
 	public function parse_settings( $new_settings ) {
@@ -72,15 +54,15 @@ class Optml_Settings {
 				case 'admin_bar_item':
 				case 'lazyload':
 				case 'image_replacer':
-					$sanitized_value = $this->sanitize_enabled_disabled( $value );
+					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
 					break;
 				case 'max_width':
 				case 'max_height':
-					$sanitized_value = $this->sanitize_size( $value );
+					$sanitized_value = $this->to_bound_integer( $value, 100, 5000 );
 
 					break;
 				case 'quality':
-					$sanitized_value = $this->sanitize_quality( $value );
+					$sanitized_value = $this->to_map_values( $value, array( 'low_c', 'medium_c', 'high_c', 'auto' ), 'auto' );
 					break;
 				default:
 					$sanitized_value = '';
@@ -184,14 +166,7 @@ class Optml_Settings {
 	 */
 	public function is_enabled() {
 		$status = $this->get( 'image_replacer' );
-		if ( $status === 'disabled' ) {
-			return false;
-		}
-		if ( empty( $status ) ) {
-			return false;
-		}
-
-		return true;
+		return $this->to_boolean( $status );
 	}
 
 	/**
@@ -201,14 +176,7 @@ class Optml_Settings {
 	 */
 	public function use_lazyload() {
 		$status = $this->get( 'lazyload' );
-		if ( $status === 'disabled' ) {
-			return false;
-		}
-		if ( empty( $status ) ) {
-			return false;
-		}
-
-		return true;
+		return $this->to_boolean( $status );
 	}
 
 	/**
@@ -235,7 +203,6 @@ class Optml_Settings {
 	 * @return bool Reset action status.
 	 */
 	public function reset() {
-
 		$update = update_option( $this->namespace, $this->default_schema );
 		if ( $update ) {
 			$this->options = $this->default_schema;

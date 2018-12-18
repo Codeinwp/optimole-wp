@@ -37,12 +37,12 @@ class Optml_Config {
 			throw new \InvalidArgumentException( 'Optimole SDK requires service secret key.' );
 		}
 
-		self::$key = OPTML_KEY;
+		self::$key = constant( 'OPTML_KEY' ) ?? '';
 		if ( ! empty( $service_settings['key'] ) ) {
 			self::$key = trim( $service_settings['key'] );
 		}
 
-		self::$secret = OPTML_SECRET;
+		self::$secret = constant( 'OPTML_SECRET' ) ?? '';
 		if ( ! empty( $service_settings['secret'] ) ) {
 			self::$secret = trim( $service_settings['secret'] );
 		}
@@ -50,8 +50,8 @@ class Optml_Config {
 		self::$service_url = sprintf( 'https://%s.i.optimole.com', self::$key );
 		if ( isset( $service_settings['domain'] ) && ! empty( $service_settings['domain'] ) ) {
 			self::$service_url = $service_settings['domain'];
-		} elseif ( defined( 'OPTML_CUSTOM_DOMAIN' ) && ! empty( OPTML_CUSTOM_DOMAIN ) ) {
-			self::$service_url = OPTML_CUSTOM_DOMAIN;
+		} elseif (  defined( 'OPTML_CUSTOM_DOMAIN' ) && ! empty( OPTML_CUSTOM_DOMAIN ) ) {
+			self::$service_url = constant( 'OPTML_CUSTOM_DOMAIN' );
 		}
 	}
 }

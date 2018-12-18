@@ -189,7 +189,7 @@ class Optml_Admin {
 
 
 	/**
-	 * Adds optin notice.
+	 * Adds opt in notice.
 	 */
 	public function add_notice() {
 		if ( ! $this->should_show_notice() ) {
