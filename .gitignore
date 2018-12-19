@@ -8,3 +8,4 @@ bin
 composer.lock
 package-lock.json
 code_quality
+build

@@ -85,15 +85,13 @@ final class Optml_Main {
 	 */
 	public static function instance() {
 		if ( is_null( self::$_instance ) ) {
-			self::$_instance           = new self();
-			// self::$_instance->replacer = Optml_Replacer::instance();
-			self::$_instance->url_replacer  = Optml_Url_Replacer::instance();
-			self::$_instance->tag_replacer  = Optml_Tag_Replacer::instance();
+			self::$_instance                     = new self();
+			self::$_instance->url_replacer       = Optml_Url_Replacer::instance();
+			self::$_instance->tag_replacer       = Optml_Tag_Replacer::instance();
 			self::$_instance->lazyload_replacer  = Optml_Lazyload_Replacer::instance();
-			self::$_instance->manager  = Optml_Manager::instance();
-			self::$_instance->rest     = new Optml_Rest();
-			self::$_instance->admin    = new Optml_Admin();
-
+			self::$_instance->manager            = Optml_Manager::instance();
+			self::$_instance->rest               = new Optml_Rest();
+			self::$_instance->admin              = new Optml_Admin();
 		}
 
 		return self::$_instance;

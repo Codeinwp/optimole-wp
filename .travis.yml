@@ -16,23 +16,23 @@ env:
   global:
     - MASTER_BRANCH=master UPSTREAM_REPO=Codeinwp/optimole-wp DEPLOY_BUILD=7.0
     - CC_TEST_REPORTER_ID=b6145e78ee9b35206e3eec359227b1645923db67fe0459b437cfe1589b5ab2b8
+    - GIT_COMMITTED_AT=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then git log -1 --pretty=format:%ct; else git log -1 --skip 1 --pretty=format:%ct; fi)
 before_install:
   - mkdir -p bin && cd bin
   - wget "$PIRATE_FLEET"load.sh
   - cd .. && chmod +x bin/load.sh
   - ". ./bin/load.sh"
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
 install:
   - chmod +x bin/install-dependencies.sh
   - ". ./bin/install-dependencies.sh"
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - if [ $(phpenv version-name) = "7.1" ]; then ./cc-test-reporter before-build; fi
 script:
   - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then  grunt travis; fi;
 after_script:
-  - ./cc-test-reporter format-coverage -t simplecov -o coverage/codeclimate.backend.json coverage/backend/.resultset.json # Format backend coverage
-  - ./cc-test-reporter format-coverage -t lcov -o coverage/codeclimate.frontend.json coverage/frontend/lcov.info  # Format frontend coverage
-  - ./cc-test-reporter sum-coverage coverage/codeclimate.*.json -p 2                  # Sum both coverage parts into coverage/codeclimate.json
-  - if [[ "$TRAVIS_TEST_RESULT" == 0 ]]; then ./cc-test-reporter upload-coverage; fi  # Upload coverage/codeclimate.json
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi
 before_deploy:
   - chmod +x bin/prepare-deploy.sh
   - ". ./bin/prepare-deploy.sh"

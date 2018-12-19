@@ -15,6 +15,9 @@
             <directory suffix=".php">./inc/</directory>
         </whitelist>
     </filter>
+    <logging>
+        <log type="coverage-clover" target="build/logs/clover.xml"/>
+    </logging>
     <testsuites>
         <testsuite name="selector">
             <directory>./tests/test-generic.php</directory>
