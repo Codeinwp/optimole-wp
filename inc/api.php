@@ -48,8 +48,8 @@ final class Optml_Api {
 	 *
 	 * @param string $method Request method (GET | POST | PUT | UPDATE | DELETE).
 	 * @param string $url    Request URL.
-	 * @param array $headers Headers Array.
-	 * @param array $params  Additional params for the Request.
+	 * @param array  $headers Headers Array.
+	 * @param array  $params  Additional params for the Request.
 	 *
 	 * @return array
 	 */

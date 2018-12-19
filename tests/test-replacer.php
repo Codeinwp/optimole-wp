@@ -49,6 +49,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		Optml_Manager::instance()->init();
 		Optml_Url_Replacer::instance()->init();
+		Optml_Tag_Replacer::instance()->init();
 
 		self::$sample_post        = self::factory()->post->create( [
 				'post_title'   => 'Test post',
@@ -69,10 +70,10 @@ class Test_Replacer extends WP_UnitTestCase {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( '/2000/', $replaced_content );
-		$this->assertContains( '/1200/', $replaced_content );
+		$this->assertContains( '/w:2000/', $replaced_content );
+		$this->assertContains( '/h:1200/', $replaced_content );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( 'http://example.org', $replaced_content );
+		$this->assertContains( 'http://example.org', $replaced_content );
 	}
 
 //	public function test_optimization_url() {

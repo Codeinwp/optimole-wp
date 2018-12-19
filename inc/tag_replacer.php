@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * The class handles the img tag replacements.
+ *
+ * @package    \Optml\Inc
+ * @author     Optimole <friends@optimole.com>
+ */
 final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	use Optml_Normalizer;
 	use Optml_Validator;
@@ -10,6 +17,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	protected static $instance = null;
 
+	/**
+	 * The initialize method.
+	 */
 	public function init() {
 
 		if ( ! parent::init() ) {
@@ -19,6 +29,15 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		add_filter( 'optml_content_images_tags', array( $this, 'process_image_tags' ), 1, 2 );
 	}
 
+	/**
+	 * Extract image dimensions from img tag.
+	 *
+	 * @param string $tag The HTML img tag.
+	 * @param array  $image_sizes WordPress supported image sizes.
+	 * @param array  $args Default args to use.
+	 *
+	 * @return array
+	 */
 	private function parse_dimensions_from_tag( $tag, $image_sizes, $args = array() ) {
 		if ( preg_match( '#width=["|\']?([\d%]+)["|\']?#i', $tag, $width_string ) ) {
 			$args['width'] = $width_string[1];
@@ -60,6 +79,14 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		return array( false, false );
 	}
 
+	/**
+	 * Called by hook to replace image tags in content.
+	 *
+	 * @param string $content The content to process.
+	 * @param array  $images List of image tags.
+	 *
+	 * @return mixed
+	 */
 	public function process_image_tags( $content, $images = array() ) {
 		$image_sizes = self::image_sizes();
 		foreach ( $images[0] as $index => $tag ) {
@@ -99,44 +126,41 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				}
 			}
 
-			error_log( $new_url );
 			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $optml_args['width'] . '"', $new_tag );
 			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $optml_args['height'] . '"', $new_tag );
 			$new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
 
-			error_log( $new_tag );
-
-//			if ( $this->lazyload && $this->can_lazyload_for( $tmp ) ) {
-//				$new_sizes['quality'] = 'eco';
-//				$low_url              = $this->get_image_url( $tmp, $new_sizes );
-//
-//				$noscript_tag = str_replace(
-//					array(
-//						'src="' . $images['img_url'][ $index ] . '"',
-//						'src=\"' . $images['img_url'][ $index ] . '"',
-//					),
-//					array(
-//						'src="' . $new_url . '"',
-//						wp_slash( 'src="' . $new_url . '"' ),
-//					),
-//					$new_tag
-//				);
-//				$new_tag      = str_replace(
-//					array(
-//						'src="' . $images['img_url'][ $index ] . '"',
-//						'src=\"' . $images['img_url'][ $index ] . '"',
-//					),
-//					array(
-//						'src="' . $low_url . '" data-opt-src="' . $new_url . '"',
-//						wp_slash( 'src="' . $low_url . '" data-opt-src="' . $new_url . '"' ),
-//					),
-//					$new_tag
-//				);
-//
-//				$new_tag = '<noscript>' . $noscript_tag . '</noscript>' . $new_tag;
-//			} else {
-//				$new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
-//			}
+			// if ( $this->lazyload && $this->can_lazyload_for( $tmp ) ) {
+			// $new_sizes['quality'] = 'eco';
+			// $low_url              = $this->get_image_url( $tmp, $new_sizes );
+			//
+			// $noscript_tag = str_replace(
+			// array(
+			// 'src="' . $images['img_url'][ $index ] . '"',
+			// 'src=\"' . $images['img_url'][ $index ] . '"',
+			// ),
+			// array(
+			// 'src="' . $new_url . '"',
+			// wp_slash( 'src="' . $new_url . '"' ),
+			// ),
+			// $new_tag
+			// );
+			// $new_tag      = str_replace(
+			// array(
+			// 'src="' . $images['img_url'][ $index ] . '"',
+			// 'src=\"' . $images['img_url'][ $index ] . '"',
+			// ),
+			// array(
+			// 'src="' . $low_url . '" data-opt-src="' . $new_url . '"',
+			// wp_slash( 'src="' . $low_url . '" data-opt-src="' . $new_url . '"' ),
+			// ),
+			// $new_tag
+			// );
+			//
+			// $new_tag = '<noscript>' . $noscript_tag . '</noscript>' . $new_tag;
+			// } else {
+			// $new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
+			// }
 			$content = str_replace( $tag, $new_tag, $content );
 		}
 		return $content;

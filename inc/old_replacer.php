@@ -429,7 +429,7 @@ final class Optml_Old_Replacer {
 	 * Filters sizes attribute of the images.
 	 *
 	 * @param array $sizes An array of media query breakpoints.
-	 * @param array $size Width and height of the image
+	 * @param array $size Width and height of the image.
 	 *
 	 * @return mixed An array of media query breakpoints.
 	 */

@@ -1,4 +1,11 @@
 <?php
+
+/**
+ * The class handles the url replacements.
+ *
+ * @package    \Optml\Inc
+ * @author     Optimole <friends@optimole.com>
+ */
 final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 	use Optml_Validator;
@@ -11,6 +18,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 */
 	protected static $instance = null;
 
+	/**
+	 * The initialize method.
+	 */
 	public function init() {
 
 		add_filter( 'optml_replace_image', array( $this, 'build_image_url' ), 10, 2 );
@@ -32,10 +42,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 */
 	public function build_image_url(
 		$url, $args = array(
-		'width'   => 'auto',
-		'height'  => 'auto',
-		'quality' => '',
-	)
+			'width'   => 'auto',
+			'height'  => 'auto',
+			'quality' => '',
+		)
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;

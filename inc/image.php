@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * The class maps settings and options from imageproxy.
+ *
+ * @package    \Optml\Inc
+ * @author     Optimole <friends@optimole.com>
+ */
 class Optml_Image {
 
 	use Optml_Validator;
@@ -119,7 +125,7 @@ class Optml_Image {
 	 * @param string $url Source image url.
 	 * @param array  $args Transformation arguments.
 	 *
-	 * @throws InvalidArgumentException in case that the url is not provided.
+	 * @throws \InvalidArgumentException In case that the url is not provided.
 	 */
 	public function __construct( $url = '', $args = array() ) {
 		if ( empty( $url ) ) {
@@ -187,6 +193,13 @@ class Optml_Image {
 
 	}
 
+	/**
+	 * Return the url signature.
+	 *
+	 * @param string $path The path from url.
+	 *
+	 * @return bool|string
+	 */
 	public function get_signature( $path = '' ) {
 
 		$full_signature = hash_hmac( 'sha256', Optml_Config::$key . $path, Optml_Config::$secret, true );

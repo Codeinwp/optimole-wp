@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Class Optml_Config holds configuration for the service.
+ *
+ * @package    \Optml\Inc
+ * @author     Optimole <friends@optimole.com>
+ */
 class Optml_Config {
 
 	/**
@@ -38,7 +44,7 @@ class Optml_Config {
 	 *
 	 * @param array $service_settings Service settings.
 	 *
-	 * @throws InvalidArgumentException in case that key or secret is not provided.
+	 * @throws \InvalidArgumentException In case that key or secret is not provided.
 	 */
 	public static function init( $service_settings = array() ) {
 
@@ -68,7 +74,7 @@ class Optml_Config {
 		self::$service_url = sprintf( 'https://%s.i.optimole.com', self::$key );
 		if ( isset( $service_settings['domain'] ) && ! empty( $service_settings['domain'] ) ) {
 			self::$service_url = $service_settings['domain'];
-		} elseif (  defined( 'OPTML_CUSTOM_DOMAIN' ) && ! empty( OPTML_CUSTOM_DOMAIN ) ) {
+		} elseif ( defined( 'OPTML_CUSTOM_DOMAIN' ) && ! empty( OPTML_CUSTOM_DOMAIN ) ) {
 			self::$service_url = constant( 'OPTML_CUSTOM_DOMAIN' );
 		}
 	}

@@ -320,7 +320,6 @@ class Optml_Rest {
 		$settings = new Optml_Settings();
 		$sanitized = $settings->parse_settings( $new_settings );
 
-
 		return $this->response( $sanitized );
 	}
 

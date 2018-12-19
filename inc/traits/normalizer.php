@@ -1,5 +1,20 @@
 <?php
+
+/**
+ * Normalization traits.
+ *
+ * @package    \Optml\Inc\Traits
+ * @author     Optimole <friends@optimole.com>
+ */
 trait Optml_Normalizer {
+
+	/**
+	 * Normalize value to boolean.
+	 *
+	 * @param mixed $value Value to process.
+	 *
+	 * @return bool
+	 */
 	public function to_boolean( $value ) {
 		if ( in_array( $value, array( 'yes', 'enabled', 'true', '1' ) ) ) {
 			return true;
@@ -12,6 +27,15 @@ trait Optml_Normalizer {
 		return boolval( $value );
 	}
 
+	/**
+	 * Normalize value to an integer within bounds.
+	 *
+	 * @param mixed   $value Value to process.
+	 * @param integer $min Lower bound.
+	 * @param integer $max Upper bound.
+	 *
+	 * @return integer
+	 */
 	public function to_bound_integer( $value, $min, $max ) {
 		$integer = absint( $value );
 		if ( $integer < $min ) {
@@ -23,25 +47,48 @@ trait Optml_Normalizer {
 		return $integer;
 	}
 
+	/**
+	 * Normalize value to positive integer.
+	 *
+	 * @param mixed $value Value to process.
+	 *
+	 * @return integer
+	 */
 	public function to_positive_integer( $value ) {
 		$integer = intval( $value );
 		return ( $integer > 0 ) ? $integer : 0;
 	}
 
-	public function  to_map_values( $value, $map, $default ) {
+	/**
+	 * Normalize value to map.
+	 *
+	 * @param mixed $value Value to process.
+	 * @param array $map Associative list from witch to return.
+	 * @param mixed $default Default.
+	 *
+	 * @return mixed
+	 */
+	public function to_map_values( $value, $map, $default ) {
 		if ( in_array( $value, $map ) ) {
 			return $value;
 		}
 		return $default;
 	}
 
+	/**
+	 * Normalize value to an accepted quality.
+	 *
+	 * @param mixed $value Value to process.
+	 *
+	 * @return mixed
+	 */
 	public function to_accepted_quality( $value ) {
 		if ( is_numeric( $value ) ) {
 			return intval( $value );
 		}
 		$value = trim( $value );
 
-		if ( $value === 'eco' ||  $value === 'auto' ) {
+		if ( $value === 'eco' || $value === 'auto' ) {
 			return $value;
 		}
 
@@ -52,13 +99,23 @@ trait Optml_Normalizer {
 		);
 
 		if ( array_key_exists( $value, $accepted_qualities ) ) {
-			return $accepted_qualities[$value];
+			return $accepted_qualities[ $value ];
 		}
 
 		// Legacy values.
 		return 60;
 	}
 
+	/**
+	 * Normalize dimensions to bounds.
+	 *
+	 * @param mixed   $width Width.
+	 * @param mixed   $height Height.
+	 * @param integer $max_width Max width.
+	 * @param integer $max_height Max height.
+	 *
+	 * @return array
+	 */
 	public function to_optml_dimensions_bound( $width, $height, $max_width, $max_height ) {
 		global $content_width;
 
@@ -95,64 +152,44 @@ trait Optml_Normalizer {
 		);
 	}
 
+	/**
+	 * Normalize arguments for crop.
+	 *
+	 * @param array $crop_args Crop arguments.
+	 *
+	 * @return array
+	 */
 	public function to_optml_crop( $crop_args = array() ) {
-		if ( $crop_args === false ||  ! is_array( $crop_args ) ) {
+		if ( $crop_args === false || ! is_array( $crop_args ) ) {
 			return array();
 		}
 
-		if ( $crop_args === true ||  empty( $crop_args ) || count( $crop_args ) != 2 ) {
+		if ( $crop_args === true || empty( $crop_args ) || count( $crop_args ) != 2 ) {
 			return array(
 				'resize'  => Optml_Image::RESIZE_FILL,
 				'gravity' => Optml_Image::GRAVITY_CENTER,
 			);
 		}
 
-		switch ( strval( $crop_args[0] ) . strval( $crop_args[1] ) ) {
-			case 'left':
-				$gravity = Optml_Image::GRAVITY_WEST;
-				break;
-			case 'right':
-				$gravity = Optml_Image::GRAVITY_EAST;
-				break;
-			case 'top':
-				$gravity = Optml_Image::GRAVITY_NORTH;
-				break;
-			case 'bottom':
-				$gravity = Optml_Image::GRAVITY_SOUTH;
-				break;
-			case 'center':
-				$gravity = Optml_Image::GRAVITY_CENTER;
-				break;
+		$allowed_gravities = array(
+			'left' => Optml_Image::GRAVITY_WEST,
+			'right' => Optml_Image::GRAVITY_EAST,
+			'top' => Optml_Image::GRAVITY_NORTH,
+			'bottom' => Optml_Image::GRAVITY_SOUTH,
+			'left_top' => Optml_Image::GRAVITY_NORTH_WEST,
+			'left_bottom' => Optml_Image::GRAVITY_SOUTH_WEST,
+			'right_top' => Optml_Image::GRAVITY_NORTH_EAST,
+			'right_bottom' => Optml_Image::GRAVITY_SOUTH_EAST,
+			'center_top' => array( 0.5, 0 ),
+			'center_bottom' => array( 0.5, 1 ),
+			'left_center' => array( 0, 0.5 ),
+			'right_center' => array( 1, 0.5 ),
+		);
 
-			case 'left_top':
-				$gravity = Optml_Image::GRAVITY_NORTH_WEST;
-				break;
-			case 'left_bottom':
-				$gravity = Optml_Image::GRAVITY_SOUTH_WEST;
-				break;
-
-			case 'right_top':
-				$gravity = Optml_Image::GRAVITY_NORTH_EAST;
-				break;
-			case 'right_bottom':
-				$gravity = Optml_Image::GRAVITY_SOUTH_EAST;
-				break;
-			case 'center_top':
-				$gravity = array( 0.5, 0 );
-				break;
-			case 'center_bottom':
-				$gravity = array( 0.5, 1 );
-				break;
-			case 'left_center':
-				$gravity = array( 0, 0.5 );
-				break;
-			case 'right_center':
-				$gravity = array( 1, 0.5 );
-				break;
-			case 'center_center':
-			default:
-				$gravity = Optml_Image::GRAVITY_CENTER;
-				break;
+		$gravity = Optml_Image::GRAVITY_CENTER;
+		$key_search = strval( $crop_args[0] ) . strval( $crop_args[1] );
+		if ( array_key_exists( $key_search, $allowed_gravities ) ) {
+			$gravity = $allowed_gravities[ $key_search ];
 		}
 
 		return array(

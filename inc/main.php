@@ -68,7 +68,7 @@ final class Optml_Main {
 	public static function instance() {
 		if ( is_null( self::$_instance ) ) {
 			self::$_instance           = new self();
-			//self::$_instance->replacer = Optml_Replacer::instance();
+			// self::$_instance->replacer = Optml_Replacer::instance();
 			self::$_instance->url_replacer  = Optml_Url_Replacer::instance();
 			self::$_instance->tag_replacer  = Optml_Tag_Replacer::instance();
 			self::$_instance->manager  = Optml_Manager::instance();

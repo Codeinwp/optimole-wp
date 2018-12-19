@@ -1,5 +1,11 @@
 <?php
 
+/**
+ * Class Optml_Manager. Adds hooks for processing tags and urls.
+ *
+ * @package    \Optml\Inc
+ * @author     Optimole <friends@optimole.com>
+ */
 final class Optml_Manager {
 
 	/**
@@ -21,7 +27,9 @@ final class Optml_Manager {
 		'svg'          => 'image/svg+xml',
 	);
 
-
+	/**
+	 * The initialize method.
+	 */
 	public function init() {
 		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
 		add_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
@@ -136,6 +144,13 @@ final class Optml_Manager {
 		);
 	}
 
+	/**
+	 * Adds a filter with detected images tags and the content.
+	 *
+	 * @param string $content The HTML content.
+	 *
+	 * @return mixed
+	 */
 	public function process_images_from_content( $content ) {
 		if ( $this->should_ignore_image_tags() ) {
 			return $content;
@@ -146,10 +161,16 @@ final class Optml_Manager {
 			return $content;
 		}
 
-		error_log( 'BEFORE optml_content_images_tags FILTER' );
 		return apply_filters( 'optml_content_images_tags', $content, $images );
 	}
 
+	/**
+	 * Method to extract images from content.
+	 *
+	 * @param string $content The HTML content.
+	 *
+	 * @return array
+	 */
 	public function extract_image_urls_from_content( $content ) {
 		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( self::$extensions ) ) . ')/';
 		preg_match_all(
@@ -174,14 +195,12 @@ final class Optml_Manager {
 	 * Filter raw content for urls.
 	 *
 	 * @param string $html HTML to filter.
-	 * @param string $context
+	 * @param string $context Context for $html.
 	 *
 	 * @return mixed Filtered content.
 	 */
 	public function replace_content( $html, $context = 'raw' ) {
-		error_log( 'IN REPLACE CONTENT HTML' );
 		$extracted_urls     = $this->extract_image_urls_from_content( $html );
-		error_log( 'BEFORE optml_extracted_urls FILTER' );
 		$extracted_urls     = apply_filters( 'optml_extracted_urls', $extracted_urls );
 		$urls     = array_combine( $extracted_urls, $extracted_urls );
 		if ( $context == 'elementor' ) {

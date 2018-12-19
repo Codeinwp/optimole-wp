@@ -1,5 +1,12 @@
 <?php
-abstract class Optml_App_replacer {
+
+/**
+ * Class Optml_App_Replacer
+ *
+ * @package    \Optml\Inc
+ * @author     Optimole <friends@optimole.com>
+ */
+abstract class Optml_App_Replacer {
 
 	/**
 	 * Settings handler.
@@ -65,6 +72,9 @@ abstract class Optml_App_replacer {
 	 */
 	protected $is_allowed_site = array();
 
+	/**
+	 * The initialize method.
+	 */
 	public function init() {
 		$this->settings = new Optml_Settings();
 
@@ -121,9 +131,9 @@ abstract class Optml_App_replacer {
 			)
 		);
 
-		if ( defined( 'OPTML_SITE_MIRROR' ) && ! empty( constant('OPTML_SITE_MIRROR' ) ) ) {
+		if ( defined( 'OPTML_SITE_MIRROR' ) && ! empty( constant( 'OPTML_SITE_MIRROR' ) ) ) {
 			$this->site_mappings = array(
-				rtrim( get_site_url(), '/' ) => rtrim( constant('OPTML_SITE_MIRROR' ), '/' ),
+				rtrim( get_site_url(), '/' ) => rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' ),
 			);
 		}
 
