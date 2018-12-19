@@ -25,23 +25,26 @@ class Test_Lazyload extends WP_UnitTestCase {
 
 		] );
 		$settings->update( 'lazyload', 'enabled' );
-		Optml_Replacer::instance()->init();
+		Optml_Url_Replacer::instance()->init();
+		Optml_Tag_Replacer::instance()->init();
+		Optml_Lazyload_Replacer::instance()->init();
+		Optml_Manager::instance()->init();
 
 	}
 
 	public function test_lazy_load() {
 
-		$replaced_content = Optml_Replacer::instance()->filter_the_content( Test_Replacer::IMG_TAGS );
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'data-opt-src', $replaced_content );
 		$this->assertNotContains( 'http://example.org', $replaced_content );
 
-		$replaced_content = Optml_Replacer::instance()->replace_urls( Test_Replacer::IMG_TAGS . Test_Replacer::IMG_URLS );
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS . Test_Replacer::IMG_URLS );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'data-opt-src', $replaced_content );
-		$this->assertNotContains( 'http://example.org', $replaced_content );
+		$this->assertContains( 'http://example.org', $replaced_content ); // Does not touch other URL's
 
-		$replaced_content = Optml_Replacer::instance()->replace_urls( Test_Replacer::IMG_TAGS_PNG );
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS_PNG );
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'data-opt-src', $replaced_content );
@@ -49,37 +52,36 @@ class Test_Lazyload extends WP_UnitTestCase {
 	}
 
 
-	public function test_lazy_load_off() {
-
-		define( 'OPTML_DISABLE_PNG_LAZYLOAD', true );
-
-		$replaced_content = Optml_Replacer::instance()->filter_the_content( Test_Replacer::IMG_TAGS_PNG . Test_Replacer::IMG_TAGS );
-
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( 'data-opt-src', $replaced_content );
-		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
-
-	}
+//	public function test_lazy_load_off() {
+//
+//		define( 'OPTML_DISABLE_PNG_LAZYLOAD', true );
+//
+//		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS_PNG . Test_Replacer::IMG_TAGS );
+//		$this->assertContains( 'i.optimole.com', $replaced_content );
+//		$this->assertContains( 'data-opt-src', $replaced_content );
+//		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
+//
+//	}
 
 	public function test_lazy_dont_lazy_load_headers() {
-		$replaced_content = Optml_Replacer::instance()->replace_urls( self::HTML_TAGS_HEADER );
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::HTML_TAGS_HEADER );
 
 		$this->assertContains( 'data-opt-src', $replaced_content );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( 'http://example.org', $replaced_content );
+		$this->assertContains( 'http://example.org', $replaced_content );
 		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
 	}
 
 	public function test_lazy_load_just_first_header() {
-		$replaced_content = Optml_Replacer::instance()->replace_urls( self::HTML_TAGS_HEADER_MULTIPLE );
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::HTML_TAGS_HEADER_MULTIPLE );
 
 		$this->assertContains( 'data-opt-src', $replaced_content );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( 'http://example.org', $replaced_content );
+		$this->assertContains( 'http://example.org', $replaced_content );
 		$this->assertEquals( 3, substr_count( $replaced_content, 'data-opt-src' ) );
 	}
 	public function test_check_no_script() {
-		$replaced_content = Optml_Replacer::instance()->replace_urls( self::HTML_TAGS_HEADER );
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::HTML_TAGS_HEADER );
 
 		$this->assertContains( '<noscript>', $replaced_content );
 		$this->assertEquals( 1, substr_count( $replaced_content, '<noscript>' ) );

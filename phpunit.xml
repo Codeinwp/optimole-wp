@@ -19,7 +19,7 @@
         <testsuite name="selector">
             <directory>./tests/test-generic.php</directory>
             <directory>./tests/test-replacer.php</directory>
-            <!--<directory>./tests/test-lazyload.php</directory>-->
+            <directory>./tests/test-lazyload.php</directory>
         </testsuite>
     </testsuites>
 </phpunit>
