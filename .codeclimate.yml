@@ -1,11 +1,11 @@
 version: "2"         # required to adjust maintainability checks
 plugins:
   phpcodesniffer:
-    enabled: true
+    enabled: false
   phpmd:
-    enabled: true
+    enabled: false
   sonar-php:
-    enabled: true
+    enabled: false
 checks:
   argument-count:
     config:
