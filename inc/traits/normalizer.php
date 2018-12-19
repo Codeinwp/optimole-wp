@@ -40,24 +40,59 @@ trait Optml_Normalizer {
 			return intval( $value );
 		}
 		$value = trim( $value );
-		if ( $value === 'eco' ) {
-			return 'eco';
+
+		if ( $value === 'eco' ||  $value === 'auto' ) {
+			return $value;
 		}
-		if ( $value === 'auto' ) {
-			return 'auto';
-		}
-		if ( $value === 'high_c' ) {
-			return 55;
-		}
-		if ( $value === 'medium_c' ) {
-			return 75;
-		}
-		if ( $value === 'low_c' ) {
-			return 90;
+
+		$accepted_qualities = array(
+			'high_c' => 55,
+			'medium_c' => 75,
+			'low_c' => 90,
+		);
+
+		if ( array_key_exists( $value, $accepted_qualities ) ) {
+			return $accepted_qualities[$value];
 		}
 
 		// Legacy values.
 		return 60;
+	}
+
+	public function to_optml_dimensions_bound( $width, $height, $max_width, $max_height ) {
+		global $content_width;
+
+		if (
+			doing_filter( 'the_content' )
+			&& isset( $GLOBALS['content_width'] )
+			&& apply_filters( 'optml_imgcdn_allow_resize_images_from_content_width', false )
+		) {
+			$content_width = (int) $GLOBALS['content_width'];
+
+			if ( $max_width > $content_width ) {
+				$max_width = $content_width;
+			}
+		}
+
+		if ( $width > $max_width ) {
+			// we need to remember how much in percentage the width was resized and apply the same treatment to the height.
+			$percentWidth = ( 1 - $max_width / $width ) * 100;
+			$width        = $max_width;
+			$height       = round( $height * ( ( 100 - $percentWidth ) / 100 ), 0 );
+		}
+
+		// now for the height
+		if ( $height > $max_height ) {
+			$percentHeight = ( 1 - $max_height / $height ) * 100;
+			// if we reduce the height to max_height by $x percentage than we'll also reduce the width for the same amount.
+			$height = $max_height;
+			$width  = round( $width * ( ( 100 - $percentHeight ) / 100 ), 0 );
+		}
+
+		return array(
+			'width'  => $width,
+			'height' => $height,
+		);
 	}
 
 	public function to_optml_crop( $crop_args = array() ) {

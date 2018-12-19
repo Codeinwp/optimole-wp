@@ -149,7 +149,7 @@ abstract class Optml_App_replacer {
 	 *
 	 * @return array Array of domains as keys.
 	 */
-	private function extract_domain_from_urls( $urls = array() ) {
+	protected function extract_domain_from_urls( $urls = array() ) {
 		if ( ! is_array( $urls ) ) {
 			return $urls;
 		}
@@ -164,9 +164,30 @@ abstract class Optml_App_replacer {
 		);
 		$urls = array_filter( $urls );
 		$urls = array_unique( $urls );
-		$urls = array_fill_keys( array_keys( $urls ), true );
+		$urls = array_fill_keys( $urls, true );
 
 		return $urls;
+	}
+
+	/**
+	 * Checks if the file is a image size and return the full url.
+	 *
+	 * @param string $url The image URL.
+	 *
+	 * @return string
+	 **/
+	protected function strip_image_size_from_url( $url ) {
+
+		if ( preg_match( '#(-\d+x\d+)\.(' . implode( '|', array_keys( Optml_Config::$extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
+			$stripped_url = str_replace( $src_parts[1], '', $url );
+			// Extracts the file path to the image minus the base url
+			$file_path = substr( $stripped_url, strpos( $stripped_url, $this->upload_resource['url'] ) + $this->upload_resource['url_length'] );
+			if ( file_exists( $this->upload_resource['directory'] . $file_path ) ) {
+				$url = $stripped_url;
+			}
+		}
+
+		return $url;
 	}
 
 	/**

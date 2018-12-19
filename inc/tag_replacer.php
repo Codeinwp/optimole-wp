@@ -1,6 +1,7 @@
 <?php
 final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	use Optml_Normalizer;
+	use Optml_Validator;
 
 	/**
 	 * Cached object instance.
@@ -18,7 +19,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		add_filter( 'optml_content_images_tags', array( $this, 'process_image_tags' ), 1, 2 );
 	}
 
-	private function parse_size_from_tag( $tag, $image_sizes, $args = array() ) {
+	private function parse_dimensions_from_tag( $tag, $image_sizes, $args = array() ) {
 		if ( preg_match( '#width=["|\']?([\d%]+)["|\']?#i', $tag, $width_string ) ) {
 			$args['width'] = $width_string[1];
 		}
@@ -37,6 +38,28 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		return array( $args['width'], $args['height'], $args['resize'] );
 	}
 
+	/**
+	 * Try to determine height and width from strings WP appends to resized image filenames.
+	 *
+	 * @param string $src The image URL.
+	 *
+	 * @return array An array consisting of width and height.
+	 */
+	public static function parse_dimensions_from_filename( $src ) {
+		$width_height_string = array();
+		$extensions          = array_keys( Optml_Config::$extensions );
+		if ( preg_match( '#-(\d+)x(\d+)\.(?:' . implode( '|', $extensions ) . '){1}$#i', $src, $width_height_string ) ) {
+			$width  = (int) $width_height_string[1];
+			$height = (int) $width_height_string[2];
+
+			if ( $width && $height ) {
+				return array( $width, $height );
+			}
+		}
+
+		return array( false, false );
+	}
+
 	public function process_image_tags( $content, $images = array() ) {
 		$image_sizes = self::image_sizes();
 		foreach ( $images[0] as $index => $tag ) {
@@ -47,33 +70,42 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ) {
 				continue;
 			}
+
 			if ( false !== strpos( $src, Optml_Config::$service_url ) ) {
 				continue; // we already have this
 			}
+
 			if ( ! $this->can_replace_url( $src ) ) {
 				continue;
 			}
 
-			list( $width, $height, $resize ) = $this->parse_size_from_tag( $images['img_tag'][ $index ], $image_sizes, array( 'width' => $width, 'height' => $height, 'resize' => $resize ) );
-
+			list( $width, $height, $resize ) = self::parse_dimensions_from_tag( $images['img_tag'][ $index ], $image_sizes, array( 'width' => $width, 'height' => $height, 'resize' => $resize ) );
 			if ( false === $width && false === $height ) {
 				list( $width, $height ) = self::parse_dimensions_from_filename( $tmp );
 			}
-//			$optml_args = $this->validate_image_sizes( $width, $height );
-//			$tmp        = $this->strip_image_size_maybe( $tmp );
-//			$optml_args = array_merge( $optml_args, $resize );
-//			if ( $new_url === $tmp ) {
-//				continue;
-//			}
-//			// replace the url in hrefs or links
-//			if ( ! empty( $images['link_url'][ $index ] ) ) {
-//				if ( $this->check_mimetype( $images['link_url'][ $index ] ) ) {
-//					$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . $this->get_image_url( $tmp ) . '\2', $tag, 1 );
-//				}
-//			}
-//			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $optml_args['width'] . '"', $new_tag );
-//			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $optml_args['height'] . '"', $new_tag );
-//			$new_tag = apply_filters( 'optml_image_tag_replacement', $new_tag, $original_url, str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag ) );
+			$optml_args = $this->to_optml_dimensions_bound( $width, $height, $this->max_width, $this->max_height );
+			$tmp        = $this->strip_image_size_from_url( $tmp );
+			$optml_args = array_merge( $optml_args, $resize );
+
+			$new_url = apply_filters( 'optml_content_url', $tmp, $optml_args );
+
+			if ( $new_url === $tmp ) {
+				continue;
+			}
+			// replace the url in hrefs or links
+			if ( ! empty( $images['link_url'][ $index ] ) ) {
+				if ( $this->is_valid_mimetype_from_url( $images['link_url'][ $index ] ) ) {
+					$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . apply_filters( 'optml_content_url', $tmp, $optml_args ) . '\2', $tag, 1 );
+				}
+			}
+
+			error_log( $new_url );
+			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $optml_args['width'] . '"', $new_tag );
+			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $optml_args['height'] . '"', $new_tag );
+			$new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
+
+			error_log( $new_tag );
+
 //			if ( $this->lazyload && $this->can_lazyload_for( $tmp ) ) {
 //				$new_sizes['quality'] = 'eco';
 //				$low_url              = $this->get_image_url( $tmp, $new_sizes );

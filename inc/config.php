@@ -3,6 +3,18 @@
 class Optml_Config {
 
 	/**
+	 * A list of allowed extensions.
+	 *
+	 * @var array
+	 */
+	public static $extensions = array(
+		'jpg|jpeg|jpe' => 'image/jpeg',
+		'png'          => 'image/png',
+		'webp'         => 'image/webp',
+		'svg'          => 'image/svg+xml',
+	);
+
+	/**
 	 * Service api key.
 	 *
 	 * @var string Service key.
