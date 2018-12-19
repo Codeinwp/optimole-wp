@@ -131,7 +131,7 @@ abstract class Optml_App_Replacer {
 			)
 		);
 
-		if ( defined( 'OPTML_SITE_MIRROR' ) && ! empty( constant( 'OPTML_SITE_MIRROR' ) ) ) {
+		if ( defined( 'OPTML_SITE_MIRROR' ) && constant( 'OPTML_SITE_MIRROR' ) ) {
 			$this->site_mappings = array(
 				rtrim( get_site_url(), '/' ) => rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' ),
 			);

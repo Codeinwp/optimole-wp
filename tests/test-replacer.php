@@ -47,9 +47,9 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		] );
 
-		Optml_Manager::instance()->init();
 		Optml_Url_Replacer::instance()->init();
 		Optml_Tag_Replacer::instance()->init();
+		Optml_Manager::instance()->init();
 
 		self::$sample_post        = self::factory()->post->create( [
 				'post_title'   => 'Test post',
@@ -76,42 +76,41 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertContains( 'http://example.org', $replaced_content );
 	}
 
-//	public function test_optimization_url() {
-//		$replaced_content = Optml_Replacer::instance()->replace_urls( self::IMG_TAGS );
-//
-//		$this->assertContains( 'i.optimole.com', $replaced_content );
-//		$this->assertNotContains( 'http://example.org', $replaced_content );
-//
-//		$replaced_content = Optml_Replacer::instance()->replace_urls( self::IMG_URLS );
-//
-//		$this->assertEquals( substr_count( $replaced_content, 'i.optimole.com' ), 3 );
-//	}
-//
-//	public function test_style_replacement() {
-//		$replaced_content = Optml_Replacer::instance()->replace_urls( self::CSS_STYLE );
-//
-//		$this->assertContains( 'i.optimole.com', $replaced_content );
-//		$this->assertNotContains( 'http://example.org', $replaced_content );
-//
-//	}
-//
-//	public function test_non_allowed_extensions() {
-//		$replaced_content = Optml_Replacer::instance()->replace_urls( ( self::CSS_STYLE . self::IMG_TAGS . self::WRONG_EXTENSION ) );
-//		$this->assertContains( 'i.optimole.com', $replaced_content );
-//		//Test if wrong extension is still present in the output.
-//		$this->assertContains( 'http://example.org/wp-content/themes/twentyseventeen/assets/images/header.gif', $replaced_content );
-//
-//	}
-//
-//	public function test_elementor_data() {
-//		$replaced_content = Optml_Replacer::instance()->replace_urls( ( self::ELEMENTOR_DATA ), 'elementor' );
-//		$this->assertContains( 'i.optimole.com', $replaced_content );
-//		//Test if wrong extension is still present in the output.
-//		$this->assertNotContains( "https:\/\/www.codeinwp.com\/wp-content", $replaced_content );
-//	}
-//
+	public function test_optimization_url() {
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
+
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'http://example.org', $replaced_content );
+
+		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
+
+		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
+	}
+
+	public function test_style_replacement() {
+		$replaced_content = Optml_Manager::instance()->replace_content( self::CSS_STYLE );
+
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'http://example.org', $replaced_content );
+
+	}
+
+	public function test_non_allowed_extensions() {
+		$replaced_content = Optml_Manager::instance()->replace_content( ( self::CSS_STYLE . self::IMG_TAGS . self::WRONG_EXTENSION ) );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		//Test if wrong extension is still present in the output.
+		$this->assertContains( 'http://example.org/wp-content/themes/twentyseventeen/assets/images/header.gif', $replaced_content );
+	}
+
+	public function test_elementor_data() {
+		$replaced_content = Optml_Manager::instance()->replace_content( ( self::ELEMENTOR_DATA ), 'elementor' );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		//Test if wrong extension is still present in the output.
+		$this->assertNotContains( "https:\/\/www.codeinwp.com\/wp-content", $replaced_content );
+	}
+
 //	public function test_max_size_height() {
-//		$new_url = Optml_Replacer::instance()->get_imgcdn_url( 'http://example.org/wp-content/themes/test/assets/images/header.png', [
+//		$new_url = Optml_Url_Replacer::instance()->build_image_url( 'http://example.org/wp-content/themes/test/assets/images/header.png', [
 //			'width'  => 99999,
 //			'height' => 99999
 //		] );
@@ -121,41 +120,40 @@ class Test_Replacer extends WP_UnitTestCase {
 //
 //	}
 //
-//	public function test_post_content() {
-//		Optml_Replacer::instance()->init();
-//
-//		$content = apply_filters( 'the_content', get_post_field( 'post_content', self::$sample_post ) );
-//
-//		$this->assertContains( 'i.optimole.com', $content );
-//	}
-//
-//	public function test_strip_image_size() {
-//		$replaced_content = Optml_Replacer::instance()->replace_urls( self::IMAGE_SIZE_DATA );
-//
-//		//Test fake sample image size.
-//		$this->assertContains( 'i.optimole.com', $replaced_content );
-//		$this->assertContains( '282x123', $replaced_content );
-//
-//		//Test valid wordpress image size, it should strip the size suffix.
-//		$attachement_url  = wp_get_attachment_image_src( self::$sample_attachement, 'medium' );
-//		$replaced_content = Optml_Replacer::instance()->replace_urls( $attachement_url[0] );
-//
-//		$this->assertNotContains( '282x123', $replaced_content );
-//	}
-//
-//
-//	public function test_custom_domain() {
-//		define( 'OPTML_SITE_MIRROR', 'https://mycnd.com' );
-//		Optml_Replacer::instance()->init();
-//
-//		$replaced_content = Optml_Replacer::instance()->replace_urls( self::IMG_TAGS );
-//
-//		//Test custom source.
-//		$this->assertContains( 'i.optimole.com', $replaced_content );
-//		$this->assertNotContains( 'http://example.org', $replaced_content );
-//		$this->assertNotContains( 'example.org', $replaced_content );
-//		$this->assertContains( 'mycnd.com', $replaced_content );
-//
-//	}
+	public function test_post_content() {
+		$content = apply_filters( 'the_content', get_post_field( 'post_content', self::$sample_post ) );
+
+		$this->assertContains( 'i.optimole.com', $content );
+	}
+
+	public function test_strip_image_size() {
+		$replaced_content = Optml_Manager::instance()->replace_content( self::IMAGE_SIZE_DATA );
+
+		//Test fake sample image size.
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( '282x123', $replaced_content );
+
+		//Test valid wordpress image size, it should strip the size suffix.
+		$attachement_url  = wp_get_attachment_image_src( self::$sample_attachement, 'medium' );
+		$replaced_content = Optml_Manager::instance()->replace_content( $attachement_url[0] );
+
+		$this->assertNotContains( '282x123', $replaced_content );
+	}
+
+	public function test_custom_domain() {
+		define( 'OPTML_SITE_MIRROR', 'https://mycnd.com' );
+		Optml_Url_Replacer::instance()->init();
+		Optml_Tag_Replacer::instance()->init();
+		Optml_Manager::instance()->init();
+
+		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_TAGS );
+
+		//Test custom source.
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertNotContains( 'http://example.org', $replaced_content );
+		$this->assertNotContains( 'example.org', $replaced_content );
+		$this->assertContains( 'mycnd.com', $replaced_content );
+
+	}
 
 }
