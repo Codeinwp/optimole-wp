@@ -74,7 +74,7 @@ class Optml_Config {
 		self::$service_url = sprintf( 'https://%s.i.optimole.com', self::$key );
 		if ( isset( $service_settings['domain'] ) && ! empty( $service_settings['domain'] ) ) {
 			self::$service_url = $service_settings['domain'];
-		} elseif ( defined( 'OPTML_CUSTOM_DOMAIN' ) && ! empty( OPTML_CUSTOM_DOMAIN ) ) {
+		} elseif ( defined( 'OPTML_CUSTOM_DOMAIN' ) && constant( 'OPTML_CUSTOM_DOMAIN' ) ) {
 			self::$service_url = constant( 'OPTML_CUSTOM_DOMAIN' );
 		}
 	}
