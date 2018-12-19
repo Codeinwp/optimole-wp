@@ -177,7 +177,7 @@ class Optml_Image {
 		if ( $this->height > 0 ) {
 			$path_parts[] = sprintf( 'h:%s', $this->height );
 		}
-		if ( $this->quality > 0 ) {
+		if ( $this->quality > 0 || $this->quality === 'eco' ) {
 			$path_parts[] = sprintf( 'q:%s', $this->quality );
 		}
 		$path = '/' . $this->source_url;

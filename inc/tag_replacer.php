@@ -27,6 +27,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		}
 
 		add_filter( 'optml_content_images_tags', array( $this, 'process_image_tags' ), 1, 2 );
+
+		if ( ! $this->settings->use_lazyload() ) {
+			add_filter( 'optml_tag_replace', array( $this, 'regular_tag_replace' ), 1, 4 );
+		}
 	}
 
 	/**
@@ -128,42 +132,25 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $optml_args['width'] . '"', $new_tag );
 			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $optml_args['height'] . '"', $new_tag );
-			$new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
+			$new_tag = apply_filters( 'optml_tag_replace', $new_tag, $images['img_url'][ $index ], $new_url, $optml_args );
 
-			// if ( $this->lazyload && $this->can_lazyload_for( $tmp ) ) {
-			// $new_sizes['quality'] = 'eco';
-			// $low_url              = $this->get_image_url( $tmp, $new_sizes );
-			//
-			// $noscript_tag = str_replace(
-			// array(
-			// 'src="' . $images['img_url'][ $index ] . '"',
-			// 'src=\"' . $images['img_url'][ $index ] . '"',
-			// ),
-			// array(
-			// 'src="' . $new_url . '"',
-			// wp_slash( 'src="' . $new_url . '"' ),
-			// ),
-			// $new_tag
-			// );
-			// $new_tag      = str_replace(
-			// array(
-			// 'src="' . $images['img_url'][ $index ] . '"',
-			// 'src=\"' . $images['img_url'][ $index ] . '"',
-			// ),
-			// array(
-			// 'src="' . $low_url . '" data-opt-src="' . $new_url . '"',
-			// wp_slash( 'src="' . $low_url . '" data-opt-src="' . $new_url . '"' ),
-			// ),
-			// $new_tag
-			// );
-			//
-			// $new_tag = '<noscript>' . $noscript_tag . '</noscript>' . $new_tag;
-			// } else {
-			// $new_tag = str_replace( 'src="' . $images['img_url'][ $index ] . '"', 'src="' . $new_url . '"', $new_tag );
-			// }
 			$content = str_replace( $tag, $new_tag, $content );
 		}
 		return $content;
+	}
+
+	/**
+	 * Replaces the tags by default.
+	 *
+	 * @param string $new_tag The new tag.
+	 * @param string $original_url The original URL.
+	 * @param string $new_url The optimized URL.
+	 * @param array  $optml_args Options passed for URL optimization.
+	 *
+	 * @return string
+	 */
+	public function regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args ) {
+		return str_replace( 'src="' . $original_url . '"', 'src="' . $new_url . '"', $new_tag );
 	}
 
 	/**

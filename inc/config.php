@@ -59,7 +59,7 @@ class Optml_Config {
 			self::$key = constant( 'OPTML_KEY' );
 		}
 
-		if ( defined( 'OPTML_SECRET' ) &&  constant( 'OPTML_SECRET' ) ) {
+		if ( defined( 'OPTML_SECRET' ) && constant( 'OPTML_SECRET' ) ) {
 			self::$secret = constant( 'OPTML_SECRET' );
 		}
 

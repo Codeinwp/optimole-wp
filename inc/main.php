@@ -14,13 +14,31 @@ final class Optml_Main {
 	private static $_instance = null;
 
 	/**
-	 * Holds the replacer class.
+	 * Holds the url replacer class.
 	 *
 	 * @access  public
 	 * @since   1.0.0
-	 * @var Optml_Replacer Replacer instance.
+	 * @var Optml_Url_Replacer Replacer instance.
 	 */
-	public $replacer;
+	public $url_replacer;
+
+	/**
+	 * Holds the tag replacer class.
+	 *
+	 * @access  public
+	 * @since   1.0.0
+	 * @var Optml_Tag_Replacer Replacer instance.
+	 */
+	public $tag_replacer;
+
+	/**
+	 * Holds the lazyload replacer class.
+	 *
+	 * @access  public
+	 * @since   1.0.0
+	 * @var Optml_Lazyload_Replacer Replacer instance.
+	 */
+	public $lazyload_replacer;
 
 	/**
 	 * Holds the manager class.
@@ -71,6 +89,7 @@ final class Optml_Main {
 			// self::$_instance->replacer = Optml_Replacer::instance();
 			self::$_instance->url_replacer  = Optml_Url_Replacer::instance();
 			self::$_instance->tag_replacer  = Optml_Tag_Replacer::instance();
+			self::$_instance->lazyload_replacer  = Optml_Lazyload_Replacer::instance();
 			self::$_instance->manager  = Optml_Manager::instance();
 			self::$_instance->rest     = new Optml_Rest();
 			self::$_instance->admin    = new Optml_Admin();

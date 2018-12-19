@@ -16,18 +16,6 @@ final class Optml_Manager {
 	protected static $instance = null;
 
 	/**
-	 * A list of allowed extensions.
-	 *
-	 * @var array
-	 */
-	public static $extensions = array(
-		'jpg|jpeg|jpe' => 'image/jpeg',
-		'png'          => 'image/png',
-		'webp'         => 'image/webp',
-		'svg'          => 'image/svg+xml',
-	);
-
-	/**
 	 * The initialize method.
 	 */
 	public function init() {
@@ -172,7 +160,7 @@ final class Optml_Manager {
 	 * @return array
 	 */
 	public function extract_image_urls_from_content( $content ) {
-		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( self::$extensions ) ) . ')/';
+		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')/';
 		preg_match_all(
 			$regex,
 			$content,
