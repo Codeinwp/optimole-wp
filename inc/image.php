@@ -129,7 +129,7 @@ class Optml_Image {
 	 */
 	public function __construct( $url = '', $args = array() ) {
 		if ( empty( $url ) ) {
-			throw new \InvalidArgumentException( 'Optimole image builder requires the source url to optimize.' );
+			throw new \InvalidArgumentException( 'Optimole image builder requires the source url to optimize.' ); // @codeCoverageIgnore
 		}
 		$this->set_defaults();
 		if ( $this->is_valid_numeric( $args['width'] ) ) {

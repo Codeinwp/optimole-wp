@@ -102,15 +102,15 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$new_tag = $tag;
 			$src     = $tmp = wp_unslash( $images['img_url'][ $index ] );
 			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ) {
-				continue;
+				continue; // @codeCoverageIgnore
 			}
 
 			if ( false !== strpos( $src, Optml_Config::$service_url ) ) {
-				continue; // we already have this
+				continue; // we already have this @codeCoverageIgnore
 			}
 
 			if ( ! $this->can_replace_url( $src ) ) {
-				continue;
+				continue; // @codeCoverageIgnore
 			}
 
 			list( $width, $height, $resize ) = self::parse_dimensions_from_tag( $images['img_tag'][ $index ], $image_sizes, array( 'width' => $width, 'height' => $height, 'resize' => $resize ) );
@@ -124,7 +124,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$new_url = apply_filters( 'optml_content_url', $tmp, $optml_args );
 
 			if ( $new_url === $tmp ) {
-				continue;
+				continue; // @codeCoverageIgnore
 			}
 			// replace the url in hrefs or links
 			if ( ! empty( $images['link_url'][ $index ] ) ) {
@@ -288,6 +288,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	/**
 	 * Class instance method.
 	 *
+	 * @codeCoverageIgnore
 	 * @static
 	 * @since  1.0.0
 	 * @access public
@@ -308,6 +309,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * The whole idea of the singleton design pattern is that there is a single
 	 * object therefore, we don't want the object to be cloned.
 	 *
+	 * @codeCoverageIgnore
 	 * @access public
 	 * @since  1.0.0
 	 * @return void
@@ -320,6 +322,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	/**
 	 * Disable unserializing of the class
 	 *
+	 * @codeCoverageIgnore
 	 * @access public
 	 * @since  1.0.0
 	 * @return void

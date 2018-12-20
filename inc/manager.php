@@ -275,6 +275,7 @@ final class Optml_Manager {
 	/**
 	 * Class instance method.
 	 *
+	 * @codeCoverageIgnore
 	 * @static
 	 * @since  1.0.0
 	 * @access public
@@ -295,6 +296,7 @@ final class Optml_Manager {
 	 * The whole idea of the singleton design pattern is that there is a single
 	 * object therefore, we don't want the object to be cloned.
 	 *
+	 * @codeCoverageIgnore
 	 * @access public
 	 * @since  1.0.0
 	 * @return void
@@ -307,6 +309,7 @@ final class Optml_Manager {
 	/**
 	 * Disable unserializing of the class
 	 *
+	 * @codeCoverageIgnore
 	 * @access public
 	 * @since  1.0.0
 	 * @return void

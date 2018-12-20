@@ -9,6 +9,7 @@
 
 /**
  * Class Optml_Rest
+ * @codeCoverageIgnore
  */
 class Optml_Rest {
 	/**

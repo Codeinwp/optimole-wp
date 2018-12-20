@@ -3,6 +3,7 @@
 /**
  * The class defines way of connecting this user to the Optimole Dashboard.
  *
+ * @codeCoverageIgnore
  * @package    \Optimole\Inc
  * @author     Optimole <friends@optimole.com>
  */

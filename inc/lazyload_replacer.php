@@ -23,7 +23,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	public function init() {
 
 		if ( ! parent::init() ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		if ( $this->settings->use_lazyload() ) {
@@ -90,7 +90,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return true;
 		}
 		if ( ! OPTML_DISABLE_PNG_LAZYLOAD ) {
-			return true;
+			return true; // @codeCoverageIgnore
 		}
 		$type = wp_check_filetype(
 			basename( $url ),
@@ -108,6 +108,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	/**
 	 * Class instance method.
 	 *
+	 * @codeCoverageIgnore
 	 * @static
 	 * @since  1.0.0
 	 * @access public
@@ -128,6 +129,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * The whole idea of the singleton design pattern is that there is a single
 	 * object therefore, we don't want the object to be cloned.
 	 *
+	 * @codeCoverageIgnore
 	 * @access public
 	 * @since  1.0.0
 	 * @return void
@@ -140,6 +142,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	/**
 	 * Disable unserializing of the class
 	 *
+	 * @codeCoverageIgnore
 	 * @access public
 	 * @since  1.0.0
 	 * @return void

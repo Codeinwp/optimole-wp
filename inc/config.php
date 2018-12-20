@@ -49,10 +49,10 @@ class Optml_Config {
 	public static function init( $service_settings = array() ) {
 
 		if ( empty( $service_settings['key'] ) && ! defined( 'OPTML_KEY' ) ) {
-			throw new \InvalidArgumentException( 'Optimole SDK requires service api key.' );
+			throw new \InvalidArgumentException( 'Optimole SDK requires service api key.' ); // @codeCoverageIgnore
 		}
 		if ( empty( $service_settings['secret'] ) && ! defined( 'OPTML_SECRET' ) ) {
-			throw new \InvalidArgumentException( 'Optimole SDK requires service secret key.' );
+			throw new \InvalidArgumentException( 'Optimole SDK requires service secret key.' ); // @codeCoverageIgnore
 		}
 
 		if ( defined( 'OPTML_KEY' ) && constant( 'OPTML_KEY' ) ) {

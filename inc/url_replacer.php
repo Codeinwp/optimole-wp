@@ -26,7 +26,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		add_filter( 'optml_replace_image', array( $this, 'build_image_url' ), 10, 2 );
 
 		if ( ! parent::init() ) {
-			return;
+			return; // @codeCoverageIgnore
 		}
 
 		add_filter( 'optml_content_url', array( $this, 'build_image_url' ), 1, 2 );
@@ -75,6 +75,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	/**
 	 * Class instance method.
 	 *
+	 * @codeCoverageIgnore
 	 * @static
 	 * @since  1.0.0
 	 * @access public
@@ -95,6 +96,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 * The whole idea of the singleton design pattern is that there is a single
 	 * object therefore, we don't want the object to be cloned.
 	 *
+	 * @codeCoverageIgnore
 	 * @access public
 	 * @since  1.0.0
 	 * @return void
@@ -107,6 +109,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	/**
 	 * Disable unserializing of the class
 	 *
+	 * @codeCoverageIgnore
 	 * @access public
 	 * @since  1.0.0
 	 * @return void

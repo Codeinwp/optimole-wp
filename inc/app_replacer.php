@@ -79,7 +79,7 @@ abstract class Optml_App_Replacer {
 		$this->settings = new Optml_Settings();
 
 		if ( ! $this->should_replace() ) {
-			return false;
+			return false; // @codeCoverageIgnore
 		}
 		$this->set_properties();
 
@@ -94,18 +94,18 @@ abstract class Optml_App_Replacer {
 	public function should_replace() {
 
 		if ( is_admin() || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
-			return false;
+			return false; // @codeCoverageIgnore
 		}
 
 		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
-			return false;
+			return false; // @codeCoverageIgnore
 		}
 
 		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
-			return false;
+			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
-			return false;
+			return false; // @codeCoverageIgnore
 		}
 
 		return true;
@@ -264,7 +264,7 @@ abstract class Optml_App_Replacer {
 	 */
 	public function can_replace_url( $url ) {
 		if ( ! is_string( $url ) ) {
-			return false;
+			return false; // @codeCoverageIgnore
 		}
 		$url = @parse_url( $url );
 
