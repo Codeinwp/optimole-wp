@@ -1,4 +1,11 @@
 version: "2"         # required to adjust maintainability checks
+engines:
+  duplication:
+    enabled: true
+    config:
+      languages:
+        php:
+          mass_threshold: 95
 plugins:
   phpcodesniffer:
     enabled: false

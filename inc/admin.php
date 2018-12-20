@@ -172,9 +172,9 @@ class Optml_Admin {
 
 		if ( empty( $screen_slug ) ||
 			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ||
-		     ! current_user_can( 'manage_options' ) ||
-		     ( get_option( 'optml_notice_optin', 'no' ) === 'yes' )
-        ) {
+			 ! current_user_can( 'manage_options' ) ||
+			 ( get_option( 'optml_notice_optin', 'no' ) === 'yes' )
+		) {
 			return false;
 		}
 
