@@ -39,10 +39,8 @@ class Optml_Admin {
 		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
 		add_action( 'wp_head', array( $this, 'generator' ) );
 		add_action( 'admin_init', array( $this, 'maybe_redirect' ) );
-		if ( ! is_admin() && $this->settings->is_connected() ) {
-			if ( ! wp_next_scheduled( 'optml_daily_sync' ) ) {
-				wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
-			}
+		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
+			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 		}
 
 		if ( $this->settings->use_lazyload() ) {
@@ -137,9 +135,7 @@ class Optml_Admin {
 		if ( ! $this->should_show_notice() ) {
 			return $classes;
 		}
-		$classes .= ' optimole-optin-show ';
-
-		return $classes;
+		return $classes . ' optimole-optin-show ';
 	}
 
 	/**
@@ -149,18 +145,15 @@ class Optml_Admin {
 	 */
 	public function should_show_notice() {
 
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			return false;
-		}
-
-		if ( is_network_admin() || $this->settings->is_connected() ) {
-			return false;
-		}
-
 		$current_screen = get_current_screen();
-		if ( empty( $current_screen ) ) {
+		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ||
+			 is_network_admin() ||
+			 $this->settings->is_connected() ||
+			 empty( $current_screen )
+		) {
 			return false;
 		}
+
 		static $allowed_base = array(
 			'plugins'                               => true,
 			'upload'                                => true,
@@ -168,7 +161,15 @@ class Optml_Admin {
 			'themes'                                => true,
 			'appearance_page_tgmpa-install-plugins' => true,
 		);
-		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
+
+		$screen_slug = '';
+		if ( isset( $current_screen->base ) ) {
+			$screen_slug = $current_screen->base;
+		}
+
+		if ( isset( $current_screen->parent_base ) ) {
+			$screen_slug = $current_screen->parent_base;
+		}
 
 		if ( empty( $screen_slug ) ||
 			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ||
@@ -364,7 +365,7 @@ class Optml_Admin {
 		$api_key      = $this->settings->get( 'api_key' );
 		$service_data = $this->settings->get( 'service_data' );
 		$user         = get_userdata( get_current_user_id() );
-		$args         = array(
+		return array(
 			'strings'           => $this->get_dashboard_strings(),
 			'assets_url'        => OPTML_URL . 'assets/',
 			'connection_status' => empty( $service_data ) ? 'no' : 'yes',
@@ -378,8 +379,6 @@ class Optml_Admin {
 			'site_settings'     => $this->settings->get_site_settings(),
 			'home_url'          => home_url(),
 		);
-
-		return $args;
 	}
 
 	/**
@@ -497,11 +496,11 @@ The root cause might be either a security plugin which blocks this feature or so
 		if ( ! is_user_logged_in() ) {
 			return;
 		}
-		$settings = new Optml_Settings();
-		if ( ! $settings->is_connected() ) {
+		$this->settings = new Optml_Settings();
+		if ( ! $this->settings->is_connected() ) {
 			return;
 		}
-		$should_load = $settings->get( 'admin_bar_item' );
+		$should_load = $this->settings->get( 'admin_bar_item' );
 
 		$service_data = $this->settings->get( 'service_data' );
 		if ( empty( $service_data ) ) {

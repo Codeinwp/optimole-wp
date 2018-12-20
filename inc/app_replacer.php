@@ -174,9 +174,7 @@ abstract class Optml_App_Replacer {
 		);
 		$urls = array_filter( $urls );
 		$urls = array_unique( $urls );
-		$urls = array_fill_keys( $urls, true );
-
-		return $urls;
+		return array_fill_keys( $urls, true );
 	}
 
 	/**

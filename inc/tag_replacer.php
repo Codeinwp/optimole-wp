@@ -101,15 +101,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$resize  = array( 'resize' => Optml_Image::RESIZE_FIT );
 			$new_tag = $tag;
 			$src     = $tmp = wp_unslash( $images['img_url'][ $index ] );
-			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ) {
-				continue; // @codeCoverageIgnore
-			}
-
-			if ( false !== strpos( $src, Optml_Config::$service_url ) ) {
-				continue; // we already have this @codeCoverageIgnore
-			}
-
-			if ( ! $this->can_replace_url( $src ) ) {
+			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
+				 false !== strpos( $src, Optml_Config::$service_url ) ||
+				 ! $this->can_replace_url( $src )
+			) {
 				continue; // @codeCoverageIgnore
 			}
 
@@ -127,10 +122,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				continue; // @codeCoverageIgnore
 			}
 			// replace the url in hrefs or links
-			if ( ! empty( $images['link_url'][ $index ] ) ) {
-				if ( $this->is_valid_mimetype_from_url( $images['link_url'][ $index ] ) ) {
-					$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . apply_filters( 'optml_content_url', $tmp, $optml_args ) . '\2', $tag, 1 );
-				}
+			if ( ! empty( $images['link_url'][ $index ] ) && $this->is_valid_mimetype_from_url( $images['link_url'][ $index ] ) ) {
+				$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . apply_filters( 'optml_content_url', $tmp, $optml_args ) . '\2', $tag, 1 );
 			}
 
 			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $optml_args['width'] . '"', $new_tag );
@@ -184,11 +177,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$height = $image_meta['height'];
 			}
 
+			$url = $this->strip_image_size_from_url( $source['url'] );
 			if ( ! empty( $attachment_id ) ) {
 				$url = wp_get_attachment_url( $attachment_id );
-			} else {
-				$url = $this->strip_image_size_from_url( $source['url'] );
 			}
+
 			$args = array();
 			if ( 'w' === $source['descriptor'] ) {
 				if ( $height && ( $source['value'] == $width ) ) {
@@ -217,12 +210,16 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return $sizes;
 		}
 
-		$content_width = isset( $GLOBALS['content_width'] ) ? $GLOBALS['content_width'] : false;
+		$content_width = false;
+		if ( isset( $GLOBALS['content_width'] ) ) {
+			$content_width = $GLOBALS['content_width'];
+		}
+
 		if ( ! $content_width ) {
 			$content_width = 1000;
 		}
 
-		if ( ( is_array( $size ) && $size[0] < $content_width ) ) {
+		if ( is_array( $size ) && $size[0] < $content_width ) {
 			return $sizes;
 		}
 
@@ -246,7 +243,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return $image;
 		}
 
-		// $image_meta = image_get_intermediate_size( $attachment_id, $size );
 		$image_meta = wp_get_attachment_metadata( $attachment_id );
 		$image_args = self::image_sizes();
 

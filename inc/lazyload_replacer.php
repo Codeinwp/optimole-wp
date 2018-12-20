@@ -73,9 +73,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			$new_tag
 		);
 
-		 $new_tag = '<noscript>' . $no_script_tag . '</noscript>' . $new_tag;
-
-		return $new_tag;
+		 return '<noscript>' . $no_script_tag . '</noscript>' . $new_tag;
 	}
 
 	/**

@@ -88,14 +88,12 @@ trait Optml_Normalizer {
 		}
 		$value = trim( $value );
 
-		if ( $value === 'eco' || $value === 'auto' ) {
-			return $value;
-		}
-
 		$accepted_qualities = array(
-			'high_c' => 55,
+			'eco'      => 'eco',
+			'auto'     => 'auto',
+			'high_c'   => 55,
 			'medium_c' => 75,
-			'low_c' => 90,
+			'low_c'    => 90,
 		);
 
 		if ( array_key_exists( $value, $accepted_qualities ) ) {
