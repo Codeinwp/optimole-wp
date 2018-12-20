@@ -337,7 +337,8 @@ class Optml_Admin {
 
 	/**
 	 * Enqueue scripts needed for admin functionality.
-     * @codeCoverageIgnore
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function enqueue() {
 
@@ -356,7 +357,7 @@ class Optml_Admin {
 	/**
 	 * Localize the dashboard app.
 	 *
-     * @codeCoverageIgnore
+	 * @codeCoverageIgnore
 	 * @return array
 	 */
 	private function localize_dashboard_app() {
@@ -384,7 +385,7 @@ class Optml_Admin {
 	/**
 	 * Get all dashboard strings.
 	 *
-     * @codeCoverageIgnore
+	 * @codeCoverageIgnore
 	 * @return array
 	 */
 	private function get_dashboard_strings() {
