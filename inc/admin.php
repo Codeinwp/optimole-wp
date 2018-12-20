@@ -153,13 +153,10 @@ class Optml_Admin {
 			return false;
 		}
 
-		if ( is_network_admin() ) {
+		if ( is_network_admin() || $this->settings->is_connected() ) {
 			return false;
 		}
 
-		if ( $this->settings->is_connected() ) {
-			return false;
-		}
 		$current_screen = get_current_screen();
 		if ( empty( $current_screen ) ) {
 			return false;
@@ -174,13 +171,10 @@ class Optml_Admin {
 		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
 
 		if ( empty( $screen_slug ) ||
-			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
-			return false;
-		}
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return false;
-		}
-		if ( ( get_option( 'optml_notice_optin', 'no' ) === 'yes' ) ) {
+			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ||
+		     ! current_user_can( 'manage_options' ) ||
+		     ( get_option( 'optml_notice_optin', 'no' ) === 'yes' )
+        ) {
 			return false;
 		}
 

@@ -9,7 +9,7 @@ plugins:
 checks:
   argument-count:
     config:
-      threshold: 4
+      threshold: 5
   complex-logic:
     config:
       threshold: 4
@@ -18,7 +18,7 @@ checks:
       threshold: 500
   method-complexity:
     config:
-      threshold: 10
+      threshold: 25
   method-count:
     config:
       threshold: 20

@@ -33,9 +33,7 @@ class Optml_Rest {
 
 		$this->register_service_routes();
 
-		register_rest_route(
-			$this->namespace,
-			'/update_option',
+		register_rest_route( $this->namespace, '/update_option',
 			array(
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
@@ -54,9 +52,7 @@ class Optml_Rest {
 	 * Method to register service specific routes.
 	 */
 	public function register_service_routes() {
-		register_rest_route(
-			$this->namespace,
-			'/connect',
+		register_rest_route( $this->namespace, '/connect',
 			array(
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
@@ -73,9 +69,7 @@ class Optml_Rest {
 				),
 			)
 		);
-		register_rest_route(
-			$this->namespace,
-			'/register',
+		register_rest_route( $this->namespace, '/register',
 			array(
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
@@ -92,9 +86,7 @@ class Optml_Rest {
 				),
 			)
 		);
-		register_rest_route(
-			$this->namespace,
-			'/disconnect',
+		register_rest_route( $this->namespace, '/disconnect',
 			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -111,9 +103,7 @@ class Optml_Rest {
 	 * Method to register image specific routes.
 	 */
 	public function register_image_routes() {
-		register_rest_route(
-			$this->namespace,
-			'/poll_optimized_images',
+		register_rest_route( $this->namespace, '/poll_optimized_images',
 			array(
 				array(
 					'methods'             => \WP_REST_Server::READABLE,
@@ -124,9 +114,7 @@ class Optml_Rest {
 				),
 			)
 		);
-		register_rest_route(
-			$this->namespace,
-			'/images-sample-rate',
+		register_rest_route( $this->namespace, '/images-sample-rate',
 			array(
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
