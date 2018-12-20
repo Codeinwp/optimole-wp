@@ -42,6 +42,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return string
 	 */
 	public function lazyload_tag_replace( $new_tag, $original_url, $new_url, $optml_args ) {
+
+		if ( ! $this->can_lazyload_for( $original_url ) ) {
+			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args );
+		}
+
 		$optml_args['quality'] = 'eco';
 		$low_url = apply_filters( 'optml_content_url', $original_url, $optml_args );
 
@@ -71,6 +76,33 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		 $new_tag = '<noscript>' . $no_script_tag . '</noscript>' . $new_tag;
 
 		return $new_tag;
+	}
+
+	/**
+	 * Check if the lazyload is allowed for this url.
+	 *
+	 * @param string $url Url.
+	 *
+	 * @return bool We can lazyload?
+	 */
+	public function can_lazyload_for( $url ) {
+		if ( ! defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) ) {
+			return true;
+		}
+		if ( ! OPTML_DISABLE_PNG_LAZYLOAD ) {
+			return true;
+		}
+		$type = wp_check_filetype(
+			basename( $url ),
+			array(
+				'png' => 'image/png',
+			)
+		);
+		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

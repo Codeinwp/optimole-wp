@@ -30,6 +30,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		if ( ! $this->settings->use_lazyload() ) {
 			add_filter( 'optml_tag_replace', array( $this, 'regular_tag_replace' ), 1, 4 );
+			add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
+			add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
+			add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes_attr' ), 1, 2 );
 		}
 	}
 
@@ -151,6 +154,135 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args ) {
 		return str_replace( 'src="' . $original_url . '"', 'src="' . $new_url . '"', $new_tag );
+	}
+
+	/**
+	 * Replace image URLs in the srcset attributes and in case there is a resize in action, also replace the sizes.
+	 *
+	 * @param array  $sources Array of image sources.
+	 * @param array  $size_array Array of width and height values in pixels (in that order).
+	 * @param string $image_src The 'src' of the image.
+	 * @param array  $image_meta The image meta data as returned by 'wp_get_attachment_metadata()'.
+	 * @param int    $attachment_id Image attachment ID.
+	 *
+	 * @return array
+	 */
+	public function filter_srcset_attr( $sources = array(), $size_array = array(), $image_src = '', $image_meta = array(), $attachment_id = 0 ) {
+		if ( ! is_array( $sources ) ) {
+			return $sources;
+		}
+
+		foreach ( $sources as $i => $source ) {
+			$url = $source['url'];
+			list( $width, $height ) = self::parse_dimensions_from_filename( $url );
+
+			if ( empty( $width ) ) {
+				$width = $image_meta['width'];
+			}
+
+			if ( empty( $height ) ) {
+				$height = $image_meta['height'];
+			}
+
+			if ( ! empty( $attachment_id ) ) {
+				$url = wp_get_attachment_url( $attachment_id );
+			} else {
+				$url = $this->strip_image_size_from_url( $source['url'] );
+			}
+			$args = array();
+			if ( 'w' === $source['descriptor'] ) {
+				if ( $height && ( $source['value'] == $width ) ) {
+					$args['width']  = $width;
+					$args['height'] = $height;
+				} else {
+					$args['width'] = $source['value'];
+				}
+			}
+			$sources[ $i ]['url'] = apply_filters( 'optml_content_url', $url, $args );
+		}
+
+		return $sources;
+	}
+
+	/**
+	 * Filters sizes attribute of the images.
+	 *
+	 * @param array $sizes An array of media query breakpoints.
+	 * @param array $size Width and height of the image.
+	 *
+	 * @return mixed An array of media query breakpoints.
+	 */
+	public function filter_sizes_attr( $sizes, $size ) {
+		if ( ! doing_filter( 'the_content' ) ) {
+			return $sizes;
+		}
+
+		$content_width = isset( $GLOBALS['content_width'] ) ? $GLOBALS['content_width'] : false;
+		if ( ! $content_width ) {
+			$content_width = 1000;
+		}
+
+		if ( ( is_array( $size ) && $size[0] < $content_width ) ) {
+			return $sizes;
+		}
+
+		return sprintf( '(max-width: %1$dpx) 100vw, %1$dpx', $content_width );
+	}
+
+	/**
+	 * This filter will replace all the images retrieved via "wp_get_image" type of functions.
+	 *
+	 * @param array        $image The filtered value.
+	 * @param int          $attachment_id The related attachment id.
+	 * @param array|string $size This could be the name of the thumbnail size or an array of custom dimensions.
+	 *
+	 * @return array
+	 */
+	public function filter_image_downsize( $image, $attachment_id, $size ) {
+
+		$image_url = wp_get_attachment_url( $attachment_id );
+
+		if ( $image_url === false ) {
+			return $image;
+		}
+
+		// $image_meta = image_get_intermediate_size( $attachment_id, $size );
+		$image_meta = wp_get_attachment_metadata( $attachment_id );
+		$image_args = self::image_sizes();
+
+		// default size
+		$sizes = array(
+			'width'  => isset( $image_meta['width'] ) ? intval( $image_meta['width'] ) : 'auto',
+			'height' => isset( $image_meta['height'] ) ? intval( $image_meta['height'] ) : 'auto',
+			'resize' => Optml_Image::RESIZE_FIT,
+		);
+
+		// in case there is a custom image size $size will be an array.
+		if ( is_array( $size ) ) {
+
+			$sizes['width']  = ( $size[0] < $sizes['width'] ? $size[0] : $sizes['width'] );
+			$sizes['height'] = ( $size[1] < $sizes['height'] ? $size[1] : $sizes['height'] );
+
+		} elseif ( 'full' !== $size && isset( $image_args[ $size ] ) ) { // overwrite if there a size
+			$sizes['width']  = $image_args[ $size ]['width'] < $sizes['width'] ? $image_args[ $size ]['width'] : $sizes['width'];
+			$sizes['height'] = $image_args[ $size ]['height'] < $sizes['height'] ? $image_args[ $size ]['height'] : $sizes['height'];
+			$sizes           = array_merge( $sizes, $this->to_optml_crop( $image_args[ $size ]['crop'] ) );
+		}
+
+		$new_sizes = $this->to_optml_dimensions_bound( $sizes['width'], $sizes['height'], $this->max_width, $this->max_height );
+		$image_url = $this->strip_image_size_from_url( $image_url );
+		$new_url   = apply_filters( 'optml_content_url', $image_url, $new_sizes );
+
+		if ( $new_url === $image_url ) {
+			return $image;
+		}
+
+		return array(
+			$new_url,
+			$sizes['width'],
+			$sizes['height'],
+			false,
+		);
 	}
 
 	/**

@@ -31,6 +31,29 @@ class Optml_Rest {
 	 */
 	public function register() {
 
+		$this->register_service_routes();
+
+		register_rest_route(
+			$this->namespace,
+			'/update_option',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'update_option' ),
+				),
+			)
+		);
+
+		$this->register_image_routes();
+	}
+
+	/**
+	 * Method to register service specific routes.
+	 */
+	public function register_service_routes() {
 		register_rest_route(
 			$this->namespace,
 			'/connect',
@@ -82,19 +105,12 @@ class Optml_Rest {
 				),
 			)
 		);
-		register_rest_route(
-			$this->namespace,
-			'/update_option',
-			array(
-				array(
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => array( $this, 'update_option' ),
-				),
-			)
-		);
+	}
+
+	/**
+	 * Method to register image specific routes.
+	 */
+	public function register_image_routes() {
 		register_rest_route(
 			$this->namespace,
 			'/poll_optimized_images',
