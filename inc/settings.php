@@ -231,8 +231,8 @@ class Optml_Settings {
 			return false;
 		}
 		// If we try to update from a website which is not the main OPTML blog, bail.
-		if ( defined( 'OPTIML_ENABLED_MU' ) && OPTIML_ENABLED_MU && defined( 'OPTIML_MU_SITE_ID' ) && ! empty( OPTIML_MU_SITE_ID ) ) {
-			if ( intval( OPTIML_MU_SITE_ID ) !== get_current_blog_id() ) {
+		if ( defined( 'OPTIML_ENABLED_MU' ) && constant( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && constant( 'OPTIML_MU_SITE_ID' ) ) {
+			if ( intval( constant( 'OPTIML_MU_SITE_ID' ) ) !== get_current_blog_id() ) {
 				return false;
 			}
 		}
