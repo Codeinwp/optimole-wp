@@ -130,7 +130,7 @@ trait Optml_Normalizer {
 		}
 
 		if ( $width > $max_width ) {
-			// we need to remember how much in percentage the width was resized and apply the same treatment to the height.
+			// we need to remember how much in percentage the width was rescaled and apply the same treatment to the height.
 			$percentWidth = ( 1 - $max_width / $width ) * 100;
 			$width        = $max_width;
 			$height       = round( $height * ( ( 100 - $percentWidth ) / 100 ), 0 );
@@ -193,6 +193,35 @@ trait Optml_Normalizer {
 		return array(
 			'resize'  => Optml_Image::RESIZE_FILL,
 			'gravity' => $gravity,
+		);
+	}
+
+	/**
+	 * Normalize arguments for watermark.
+	 *
+	 * @param array $watermark_args Watermark arguments.
+	 *
+	 * @return array
+	 */
+	public function to_optml_watermark( $watermark_args = array() ) {
+		$allowed_gravities = array(
+			'left' => Optml_Image::GRAVITY_WEST,
+			'right' => Optml_Image::GRAVITY_EAST,
+			'top' => Optml_Image::GRAVITY_NORTH,
+			'bottom' => Optml_Image::GRAVITY_SOUTH,
+			'left_top' => Optml_Image::GRAVITY_NORTH_WEST,
+			'left_bottom' => Optml_Image::GRAVITY_SOUTH_WEST,
+			'right_top' => Optml_Image::GRAVITY_NORTH_EAST,
+			'right_bottom' => Optml_Image::GRAVITY_SOUTH_EAST,
+		);
+		$gravity = Optml_Image::GRAVITY_CENTER;
+		if ( isset( $watermark_args['position'] ) && array_key_exists( $watermark_args['position'], $allowed_gravities ) ) {
+			$gravity = $allowed_gravities[ $watermark_args['position'] ];
+		}
+
+		return array(
+			'opacity'  => 1,
+			'position' => $gravity,
 		);
 	}
 }

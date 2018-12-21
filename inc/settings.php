@@ -19,6 +19,12 @@ class Optml_Settings {
 		'admin_bar_item' => 'enabled',
 		'lazyload'       => 'disabled',
 		'quality'        => 'auto',
+		'wm_id'          => null,
+		'wm_opacity'     => 1,
+		'wm_position'    => Optml_Image::GRAVITY_CENTER,
+		'wm_x'           => 0,
+		'wm_y'           => 0,
+		'wm_scale'       => 0,
 		'image_replacer' => 'enabled',
 	);
 	/**

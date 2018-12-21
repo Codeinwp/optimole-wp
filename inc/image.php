@@ -97,21 +97,21 @@ class Optml_Image {
 	/**
 	 * Quality of the resulting image.
 	 *
-	 * @var int Quality;
+	 * @var Optml_Quality Quality;
 	 */
-	private $quality = '';
+	private $quality = null;
 	/**
 	 * Width of the resulting image.
 	 *
-	 * @var mixed Width.
+	 * @var Optml_Width Width.
 	 */
-	private $width = '';
+	private $width = null;
 	/**
 	 * Height of the resulting image.
 	 *
-	 * @var mixed Height.
+	 * @var Optml_Height Height.
 	 */
-	private $height = '';
+	private $height = null;
 	/**
 	 * Source image url.
 	 *
@@ -132,20 +132,9 @@ class Optml_Image {
 			throw new \InvalidArgumentException( 'Optimole image builder requires the source url to optimize.' ); // @codeCoverageIgnore
 		}
 		$this->set_defaults();
-		if ( $this->is_valid_numeric( $args['width'] ) ) {
-			$this->width = $this->to_positive_integer( $args['width'] );
-		}
-
-		if ( $this->is_valid_numeric( $args['height'] ) ) {
-			$this->height = $this->to_positive_integer( $args['height'] );
-		}
-
-		if ( $this->is_valid_numeric( $args['quality'] ) ) {
-			$this->quality = $this->to_bound_integer( $args['quality'], 0, 100 );
-		}
-		if ( $args['quality'] === 'eco' ) {
-			$this->quality = 'eco';
-		}
+		$this->width->set( $args['width'] );
+		$this->height->set( $args['height'] );
+		$this->quality->set( $args['quality'] );
 
 		$this->source_url = $url;
 
@@ -155,9 +144,9 @@ class Optml_Image {
 	 * Set defaults for image transformations.
 	 */
 	private function set_defaults() {
-		$this->width         = 'auto';
-		$this->height        = 'auto';
-		$this->quality       = 'auto';
+		$this->width         = new Optml_Width( 'auto' );
+		$this->height        = new Optml_Height( 'auto' );
+		$this->quality       = new Optml_Quality( 'auto' );
 		$this->focus_point_x = 0;
 		$this->focus_point_y = 0;
 	}
@@ -171,14 +160,17 @@ class Optml_Image {
 	 */
 	public function get_url( $signed = false ) {
 		$path_parts = array();
-		if ( $this->width > 0 ) {
-			$path_parts[] = sprintf( 'w:%s', $this->width );
+		if ( $this->width->get() > 0 ) {
+			$path_parts[] = $this->width->toString();
 		}
-		if ( $this->height > 0 ) {
-			$path_parts[] = sprintf( 'h:%s', $this->height );
+		if ( $this->height->get() > 0 ) {
+			$path_parts[] = $this->height->toString();
 		}
-		if ( $this->quality > 0 || $this->quality === 'eco' ) {
-			$path_parts[] = sprintf( 'q:%s', $this->quality );
+		if ( $this->quality->get() > 0 || $this->quality->get() === 'eco' ) {
+			$path_parts[] = $this->quality->toString();
+		}
+		if ( ! empty( $this->watermark ) && is_array( $this->watermark ) ) {
+			$path_parts[] = sprintf( 'wm:%s', $this->watermark->toString() );
 		}
 		$path = '/' . $this->source_url;
 
