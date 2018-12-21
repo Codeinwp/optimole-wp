@@ -23,9 +23,10 @@ const store = new Vuex.Store(
 			apiError: false,
 			userData: optimoleDashboardApp.user_data ? optimoleDashboardApp.user_data : null,
 			optimizedImages: [],
+			watermarks: [],
 		},
-			mutations,
-			actions
+		mutations,
+		actions
 	}
 );
 

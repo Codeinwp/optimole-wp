@@ -22,7 +22,7 @@ const connectOptimole = function ( {commit, state}, data ) {
 		}
 	).then(
 		function ( response ) {
-				commit( 'toggleConnecting', false );
+			commit( 'toggleConnecting', false );
 			if ( response.body.code === 'success' ) {
 				  commit( 'toggleKeyValidity', true );
 				  commit( 'toggleConnectedToOptml', true );
@@ -36,8 +36,8 @@ const connectOptimole = function ( {commit, state}, data ) {
 			}
 		},
 		function () {
-				commit( 'toggleConnecting', false );
-				commit( 'restApiNotWorking', true );
+			commit( 'toggleConnecting', false );
+			commit( 'restApiNotWorking', true );
 		}
 	);
 };
@@ -60,13 +60,13 @@ const registerOptimole = function ( {commit, state}, data ) {
 		}
 	).then(
 		function ( response ) {
-				commit( 'toggleLoading', false );
-				return response.data;
+			commit( 'toggleLoading', false );
+			return response.data;
 		},
 		function ( response ) {
-				commit( 'toggleLoading', false );
-				commit( 'restApiNotWorking', true );
-				return response.data;
+			commit( 'toggleLoading', false );
+			commit( 'restApiNotWorking', true );
+			return response.data;
 		}
 	);
 };
@@ -85,9 +85,9 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 		}
 	).then(
 		function ( response ) {
-				commit( 'updateUserData', null );
-				commit( 'toggleLoading', false );
-				commit( 'updateApiKey', '' );
+			commit( 'updateUserData', null );
+			commit( 'toggleLoading', false );
+			commit( 'updateApiKey', '' );
 			if ( response.ok ) {
 				  commit( 'toggleConnectedToOptml', false );
 				  console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
@@ -117,7 +117,7 @@ const saveSettings = function ( {commit, state}, data ) {
 			if ( response.body.code === 'success' ) {
 				  commit( 'updateSettings', response.body.data );
 			}
-				commit( 'toggleLoading', false );
+			commit( 'toggleLoading', false );
 
 		}
 	);
@@ -140,7 +140,7 @@ const sampleRate = function ( {commit, state}, data ) {
 	).then(
 		function ( response ) {
 
-				data.component.loading_images = false;
+			data.component.loading_images = false;
 			if ( response.body.code === 'success' ) {
 				  commit( 'updateSampleRate', response.body.data );
 			}
@@ -153,43 +153,83 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 
 	setTimeout(
 		function () {
-
 			if ( self.state.optimizedImages.length > 0 ) {
 				  console.log( '%c Images already exsist.', 'color: #59B278' );
 				  return false;
 			}
-				Vue.http(
-					{
-						url: optimoleDashboardApp.root + '/poll_optimized_images',
-						method: 'GET',
-						emulateJSON: true,
-						headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-						params: {'req': 'Get Optimized Images'},
-						responseType: 'json',
-						timeout: 10000
-					}
-				).then(
-					function ( response ) {
-						if ( response.body.code === 'success' ) {
+			Vue.http(
+				{
+					url: optimoleDashboardApp.root + '/poll_optimized_images',
+					method: 'GET',
+					emulateJSON: true,
+					headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+					params: {'req': 'Get Optimized Images'},
+					responseType: 'json',
+					timeout: 10000
+				}
+			).then(
+				function ( response ) {
+					if ( response.body.code === 'success' ) {
 							  commit( 'updateOptimizedImages', response );
-							if ( data.component !== null ) {
-								data.component.loading = false;
-								data.component.startTime = data.component.maxTime;
-								if ( response.body.data.length === 0 ) {
+						if ( data.component !== null ) {
+							data.component.loading = false;
+							data.component.startTime = data.component.maxTime;
+							if ( response.body.data.length === 0 ) {
 									  data.component.noImages = true;
-								}
 							}
-							console.log( '%c Images Fetched.', 'color: #59B278' );
-						} else {
+						}
+						console.log( '%c Images Fetched.', 'color: #59B278' );
+					} else {
 							  component.noImages = true;
 							  data.component.loading = false;
 							  console.log( '%c No images available.', 'color: #E7602A' );
-						}
 					}
-				);
+				}
+			);
 		},
 		data.waitTime
 	);
+};
+
+const retrieveWatermarks = function ( {commit, state}, data ) {
+	let self = this;
+	Vue.http( {
+		url: optimoleDashboardApp.root + '/poll_watermarks',
+		method: 'GET',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		params: {'req': 'Get Watermarks'},
+		responseType: 'json',
+	} ).then( function ( response ) {
+		if( response.status === 200 ) {
+			data.component.watermarkData = [];
+			for( let row in response.data.data ) {
+				let tmp = response.data.data[row];
+				let item = {
+					ID: tmp.ID,
+					post_title: tmp.post_title,
+					post_mime_type: tmp.post_mime_type,
+					guid: tmp.post_content || tmp.guid,
+				}
+				data.component.watermarkData.push( item )
+				data.component.noImages = false;
+			}
+		}
+	} );
+};
+
+const removeWatermark = function ( {commit, state}, data ) {
+	let self = this;
+	data.component.loading = true
+	Vue.http( {
+		url: optimoleDashboardApp.root + '/remove_watermark',
+		method: 'POST',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		params: {'req': 'Get Watermarks' , 'postID': data.postID },
+		responseType: 'json',
+	} ).then( function ( response ) {
+		data.component.loading = false;
+		retrieveWatermarks( {commit, state}, data );
+	} );
 };
 
 export default {
@@ -199,4 +239,6 @@ export default {
 	saveSettings,
 	sampleRate,
 	retrieveOptimizedImages,
+	retrieveWatermarks,
+	removeWatermark
 };

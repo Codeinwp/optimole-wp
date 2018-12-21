@@ -443,6 +443,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			),
 			'dashboard_menu_item'           => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'            => __( 'Settings', 'optimole-wp' ),
+			'watermarks_menu_item'          => __( 'Watermarks', 'optimole-wp' ),
 			'options_strings'               => array(
 				'toggle_ab_item'       => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'      => __( 'Javascript replacement & Lazy load', 'optimole-wp' ),
@@ -471,6 +472,15 @@ The root cause might be either a security plugin which blocks this feature or so
 				'replacer_desc'        => __( 'Replace all the image urls from your website with the ones optimized by Optimole.', 'optimole-wp' ),
 				'admin_bar_desc'       => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),
 				'lazyload_desc'        => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload.', 'optimole-wp' ),
+			),
+			'watermarks' => array(
+				'image'                 => __( 'Image', 'optimole-wp' ),
+				'id'                    => __( 'ID', 'optimole-wp' ),
+				'name'                  => __( 'Name', 'optimole-wp' ),
+				'type'                  => __( 'Type', 'optimole-wp' ),
+				'action'                => __( 'Action', 'optimole-wp' ),
+				'upload'                => __( 'Upload', 'optimole-wp' ),
+				'add_desc'              => __( 'Add new watermark', 'optimole-wp' ),
 			),
 			'latest_images'                 => array(
 				'image'                 => __( 'Image', 'optimole-wp' ),

@@ -50,6 +50,7 @@ class Optml_Rest {
 		);
 
 		$this->register_image_routes();
+		$this->register_watermark_routes();
 	}
 
 	/**
@@ -136,6 +137,51 @@ class Optml_Rest {
 						return current_user_can( 'manage_options' );
 					},
 					'callback'            => array( $this, 'get_sample_rate' ),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Method to register watermark specific routes.
+	 */
+	public function register_watermark_routes() {
+		register_rest_route(
+			$this->namespace,
+			'/poll_watermarks',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'poll_watermarks' ),
+				),
+			)
+		);
+		register_rest_route(
+			$this->namespace,
+			'/add_watermark',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'add_watermark' ),
+				),
+			)
+		);
+		register_rest_route(
+			$this->namespace,
+			'/remove_watermark',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'remove_watermark' ),
 				),
 			)
 		);
@@ -320,6 +366,52 @@ class Optml_Rest {
 		$final_images = array_splice( $images['list'], 0, 10 );
 
 		return $this->response( $final_images );
+	}
+
+	/**
+	 * Get watermarks from API.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function poll_watermarks( WP_REST_Request $request ) {
+		$api_key = $request->get_param( 'api_key' );
+		$request = new Optml_Api();
+		$watermarks  = $request->get_watermarks( $api_key );
+		if ( ! isset( $watermarks['watermarks'] ) || empty( $watermarks['watermarks'] ) ) {
+			return $this->response( array() );
+		}
+		$final_images = array_splice( $watermarks['watermarks'], 0, 10 );
+		return $this->response( $final_images );
+	}
+
+	/**
+	 * Add watermark.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function add_watermark( WP_REST_Request $request ) {
+		$file = $request->get_file_params();
+		$api_key = $request->get_param( 'api_key' );
+		$request = new Optml_Api();
+		return $this->response( $request->add_watermark( $file, $api_key ) );
+	}
+
+	/**
+	 * Remove watermark.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function remove_watermark( WP_REST_Request $request ) {
+		$post_id = $request->get_param( 'postID' );
+		$api_key = $request->get_param( 'api_key' );
+		$request = new Optml_Api();
+		return $this->response( $request->remove_watermark( $post_id, $api_key ) );
 	}
 
 	/**

@@ -109,16 +109,16 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertNotContains( "https:\/\/www.codeinwp.com\/wp-content", $replaced_content );
 	}
 
-//	public function test_max_size_height() {
-//		$new_url = Optml_Url_Replacer::instance()->build_image_url( 'http://example.org/wp-content/themes/test/assets/images/header.png', [
-//			'width'  => 99999,
-//			'height' => 99999
-//		] );
-//		$this->assertContains( 'i.optimole.com', $new_url );
-//		//Test if wrong extension is still present in the output.
-//		$this->assertNotContains( '99999', $new_url );
-//
-//	}
+	public function test_max_size_height() {
+		$new_url = Optml_Manager::instance()->replace_content( 'http://example.org/wp-content/themes/test/assets/images/header.png', [
+			'width'  => 99999,
+			'height' => 99999
+		] );
+		$this->assertContains( 'i.optimole.com', $new_url );
+		//Test if wrong extension is still present in the output.
+		$this->assertNotContains( '99999', $new_url );
+
+	}
 //
 	public function test_post_content() {
 		$content = apply_filters( 'the_content', get_post_field( 'post_content', self::$sample_post ) );
@@ -154,6 +154,31 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertNotContains( 'example.org', $replaced_content );
 		$this->assertContains( 'mycnd.com', $replaced_content );
 
+	}
+
+	public function test_filter_sizes_attr() {
+
+		global $wp_current_filter;
+		$wp_current_filter = array( 'the_content' );
+
+		$sizes = array(
+			'width' => 1000,
+			'height' => 1000
+		);
+		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
+		$this->assertContains('(max-width: 1000px) 100vw, 1000px', $response);
+		$wp_current_filter = array();
+		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
+		$this->assertTrue( ! empty( $response ) );
+		$this->assertTrue( is_array( $response ) );
+
+		global $content_width;
+		$content_width = 5000;
+		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 1 ) );
+		$this->assertTrue( ! empty( $response ) );
+		$this->assertTrue( is_array( $response ) );
+
+		var_dump( $response );
 	}
 
 }
