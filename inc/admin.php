@@ -45,7 +45,7 @@ class Optml_Admin {
 			}
 		}
 
-		if ( $this->settings->use_lazyload() ) {
+		if ( $this->settings->is_connected() && $this->settings->use_lazyload() ) {
 			add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
 			add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 		}
@@ -64,10 +64,10 @@ class Optml_Admin {
 			'
 		<style type="text/css">
 			img[data-opt-src] {
-				transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
-				-webkit-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
-				-moz-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
-				-o-transition: .3s filter linear, .3s opacity linear, .3s border-radius linear;
+				transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
+				-webkit-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
+				-moz-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
+				-o-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 			}
 			img[data-opt-src].optml_lazyload_img {
 				opacity: .5;
@@ -174,7 +174,7 @@ class Optml_Admin {
 		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
 
 		if ( empty( $screen_slug ) ||
-		     ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
+			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
 			return false;
 		}
 		if ( ! current_user_can( 'manage_options' ) ) {
@@ -313,8 +313,10 @@ class Optml_Admin {
 			return $hints;
 		}
 		$hints[] = sprintf( '//%s', $this->settings->get_cdn_url() );
-		$hints[] = sprintf( '//%s', OPTML_JS_CDN );
 
+		if ( ! $this->settings->use_lazyload() ) {
+			$hints[] = sprintf( '//%s', OPTML_JS_CDN );
+		}
 		return $hints;
 	}
 

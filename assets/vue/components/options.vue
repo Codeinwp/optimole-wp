@@ -1,5 +1,5 @@
 <template>
-	<div class=" container " :class="{ 'saving--option' : this.$store.state.loading }">
+	<div  :class="{ 'saving--option' : this.$store.state.loading }">
 		
 		<div class="field  columns">
 			<label class="label column has-text-grey-dark">
