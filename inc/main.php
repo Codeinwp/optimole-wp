@@ -56,6 +56,12 @@ final class Optml_Main {
 	 */
 	public static function instance() {
 		if ( is_null( self::$_instance ) ) {
+			add_filter( 'themeisle_sdk_products', array( __CLASS__, 'register_sdk' ) );
+			add_filter( 'optimole-wp_uninstall_feedback_icon', array( __CLASS__, 'change_icon' ) );
+			add_filter( 'optimole_wp_uninstall_feedback_after_css', array( __CLASS__, 'adds_uf_css' ) );
+			add_filter( 'optimole_wp_feedback_review_message', array( __CLASS__, 'change_review_message' ) );
+			add_filter( 'optimole_wp_logger_heading', array( __CLASS__, 'change_review_message' ) );
+			add_filter( 'optml_default_settings', array( __CLASS__, 'change_lazyload_default' ) );
 			self::$_instance           = new self();
 			self::$_instance->replacer = Optml_Replacer::instance();
 			self::$_instance->rest     = new Optml_Rest();
@@ -65,13 +71,27 @@ final class Optml_Main {
 		if ( is_readable( $vendor_file ) ) {
 			include_once $vendor_file;
 		}
-		add_filter( 'themeisle_sdk_products', array( __CLASS__, 'register_sdk' ) );
-		add_filter( 'optimole-wp_uninstall_feedback_icon', array( __CLASS__, 'change_icon' ) );
-		add_filter( 'optimole_wp_uninstall_feedback_after_css', array( __CLASS__, 'adds_uf_css' ) );
-		add_filter( 'optimole_wp_feedback_review_message', array( __CLASS__, 'change_review_message' ) );
-		add_filter( 'optimole_wp_logger_heading', array( __CLASS__, 'change_review_message' ) );
 
 		return self::$_instance;
+	}
+
+	/**
+	 * Change lazyload default for new users.
+	 *
+	 * @param array $defaults Old defaults.
+	 *
+	 * @return array New defaults.
+	 */
+	public static function change_lazyload_default( $defaults ) {
+		$install_time = get_option( 'optimole_wp_install', 0 );
+
+		if ( $install_time < 1545652321 ) {
+			return $defaults;
+		}
+
+		$defaults['lazyload'] = 'enabled';
+
+		return $defaults;
 	}
 
 	/**
@@ -84,6 +104,7 @@ final class Optml_Main {
 	public static function change_review_message( $message ) {
 		return str_replace( '{product}', 'Optimole', $message );
 	}
+
 	/**
 	 * Register product into SDK.
 	 *
@@ -107,13 +128,15 @@ final class Optml_Main {
 				background-position: 30px 10px;
 				background-size: 80px;
 			}
+
 			body.plugins-php .optimole_wp-container input.button:hover,
-			body.plugins-php .optimole_wp-container input.button{
-			background:#5080C1;
+			body.plugins-php .optimole_wp-container input.button {
+				background: #5080C1;
 			}
 		</style>
 		<?php
 	}
+
 	/**
 	 * Change icon for uninstall feedback.
 	 *
