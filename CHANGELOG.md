@@ -1,4 +1,10 @@
 
+ ### v1.1.2 - 2018-12-24 
+ **Changes:** 
+ * Minor fixes to Optimole dashboard page.
+* Fixes DNS prefetch call when lazyload is off.
+* Enable lazyload and javascript replacement by default for new users.
+ 
  ### v1.1.1 - 2018-12-10 
  **Changes:** 
  * Improve the lazy loading mechanism and adds compatibility with the new javascript library. 
