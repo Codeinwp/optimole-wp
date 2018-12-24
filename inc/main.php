@@ -61,13 +61,29 @@ final class Optml_Main {
 			self::$_instance->rest     = new Optml_Rest();
 			self::$_instance->admin    = new Optml_Admin();
 		}
-
+		$vendor_file = OPTML_PATH . 'vendor/autoload.php';
+		if ( is_readable( $vendor_file ) ) {
+			include_once $vendor_file;
+		}
 		add_filter( 'themeisle_sdk_products', array( __CLASS__, 'register_sdk' ) );
 		add_filter( 'optimole-wp_uninstall_feedback_icon', array( __CLASS__, 'change_icon' ) );
+		add_filter( 'optimole_wp_uninstall_feedback_after_css', array( __CLASS__, 'adds_uf_css' ) );
+		add_filter( 'optimole_wp_feedback_review_message', array( __CLASS__, 'change_review_message' ) );
+		add_filter( 'optimole_wp_logger_heading', array( __CLASS__, 'change_review_message' ) );
 
 		return self::$_instance;
 	}
 
+	/**
+	 * Change review message.
+	 *
+	 * @param string $message Old review message.
+	 *
+	 * @return string New review message.
+	 */
+	public static function change_review_message( $message ) {
+		return str_replace( '{product}', 'Optimole', $message );
+	}
 	/**
 	 * Register product into SDK.
 	 *
@@ -82,14 +98,30 @@ final class Optml_Main {
 	}
 
 	/**
+	 * Adds aditional CSS for uninstall feedback popup.
+	 */
+	public static function adds_uf_css() {
+		?>
+		<style type="text/css">
+			body.plugins-php .optimole_wp-container #TB_title {
+				background-position: 30px 10px;
+				background-size: 80px;
+			}
+			body.plugins-php .optimole_wp-container input.button:hover,
+			body.plugins-php .optimole_wp-container input.button{
+			background:#5080C1;
+			}
+		</style>
+		<?php
+	}
+	/**
 	 * Change icon for uninstall feedback.
-	 *
 	 *
 	 * @return string Registered product.
 	 */
 	public static function change_icon( $old_icon ) {
 
-		return OPTML_URL . 'assets/logo.png';
+		return OPTML_URL . 'assets/img/logo.png';
 	}
 
 	/**
