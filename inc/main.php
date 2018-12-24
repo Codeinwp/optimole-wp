@@ -62,7 +62,34 @@ final class Optml_Main {
 			self::$_instance->admin    = new Optml_Admin();
 		}
 
+		add_filter( 'themeisle_sdk_products', array( __CLASS__, 'register_sdk' ) );
+		add_filter( 'optimole-wp_uninstall_feedback_icon', array( __CLASS__, 'change_icon' ) );
+
 		return self::$_instance;
+	}
+
+	/**
+	 * Register product into SDK.
+	 *
+	 * @param array $products All products.
+	 *
+	 * @return array Registered product.
+	 */
+	public static function register_sdk( $products ) {
+		$products[] = OPTML_BASEFILE;
+
+		return $products;
+	}
+
+	/**
+	 * Change icon for uninstall feedback.
+	 *
+	 *
+	 * @return string Registered product.
+	 */
+	public static function change_icon( $old_icon ) {
+
+		return OPTML_URL . 'assets/logo.png';
 	}
 
 	/**

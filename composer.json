@@ -1,0 +1,26 @@
+{
+  "name": "codeinwp/optimole-wp",
+  "description": "Image optimization WordPress.",
+  "homepage": "https://optimole.com",
+  "license": "GPL-2.0+",
+  "authors": [
+    {
+      "name": "ThemeIsle Team",
+      "email": "friends@themeisle.com.com",
+      "homepage": "https://themeisle.com"
+    }
+  ],
+  "type": "wordpress-plugin",
+  "support": {
+    "issues": "https://github.com/Codeinwp/optimole-wp/issues",
+    "source": "https://github.com/Codeinwp/optimole-wp"
+  },
+  "autoload": {
+    "files": [
+      "vendor/codeinwp/themeisle-sdk/load.php"
+    ]
+  },
+  "require": {
+    "codeinwp/themeisle-sdk": "^3.0"
+  }
+}

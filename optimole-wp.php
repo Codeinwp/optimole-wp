@@ -48,6 +48,7 @@ function optml() {
 	define( 'OPTML_VERSION', '1.1.1' );
 	define( 'OPTML_NAMESPACE', 'optml' );
 	define( 'OPTML_BASEFILE', __FILE__ );
+
 	if ( ! defined( 'OPTML_DEBUG' ) ) {
 		define( 'OPTML_DEBUG', ( defined( 'TEST_GROUND' ) && TEST_GROUND ) ? true : false );
 	}
