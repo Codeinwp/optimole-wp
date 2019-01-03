@@ -74,6 +74,224 @@
             </tr>
             </thead>
         </table>
+        <div class="box">
+            <div class="field  is-fullwidth columns n">
+                <label class="label is-half column has-text-grey-dark no-padding-right ">
+                    {{strings.wm_title}}
+                    <p class="is-italic has-text-weight-normal">
+                        {{strings.wm_desc}}
+                    </p>
+                </label>
+
+                <div class="column is-paddingless">
+                    <div class="columns">
+                        <div class="field column is-narrow">
+                            <div class="select">
+                                <select title="Watermark Selection" v-model="watermarkSettings.id" @change="selectWatermark()">
+                                    <option value="0">No watermark</option>
+                                    <option v-for="(item, index) in watermarkData" :value="item.ID">{{item.post_title}}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field  is-fullwidth columns n">
+                <label class="label is-half column has-text-grey-dark no-padding-right ">
+                    {{strings.opacity_title}}
+                    <p class="is-italic has-text-weight-normal">
+                        {{strings.opacity_desc}}
+                    </p>
+                </label>
+
+                <div class="column is-paddingless">
+                    <div class="columns">
+                        <div class="field column is-narrow has-addons">
+                            <p class="control">
+                                <a class="button is-small is-static">
+                                    {{strings.opacity_field}}
+                                </a>
+                            </p>
+                            <p class="control ">
+                                <input v-model="watermarkOpacity" class="input is-small" type="number" min="0"
+                                       max="100">
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field  columns">
+                <label class="label column has-text-grey-dark">
+                    {{strings.position_title}}
+                    <p class="is-italic has-text-weight-normal">
+                        {{strings.position_desc}}
+                    </p>
+                </label>
+                <div class="column  buttons ">
+                    <div class="field columns is-gapless is-multiline">
+                        <div class="column is-one-third">
+                            <p class="control">
+                                <a @click="changePosition('nowe')"
+                                   :class="{ 'is-info':isActivePosition ('nowe'), '  is-selected':watermarkSettings.position === 'nowe'  }"
+                                   class="button is-small is-rounded">
+                                    <span class="icon dashicons dashicons-arrow-left plus-45deg"></span>
+                                    <span>{{strings.pos_nowe_title}}</span>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="column is-one-third">
+                            <p class="control">
+                                <a @click="changePosition('no')"
+                                   :class="{ 'is-info':isActivePosition ('no'), '  is-selected':watermarkSettings.position === 'no'  }"
+                                   class="button is-small is-rounded">
+                                    <span class="icon dashicons dashicons-arrow-up"></span>
+                                    <span>{{strings.pos_no_title}}</span>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="column is-one-third">
+                            <p class="control">
+                                <a @click="changePosition('noea')"
+                                   :class="{ 'is-info':isActivePosition ('noea'), '  is-selected':watermarkSettings.position === 'noea'  }"
+                                   class="button is-small is-rounded">
+                                    <span class="icon dashicons dashicons-arrow-right minus-45deg"></span>
+                                    <span>{{strings.pos_noea_title}}</span>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="column is-one-third">
+                            <p class="control">
+                                <a @click="changePosition('we')"
+                                   :class="{ 'is-info':isActivePosition ('we'), '  is-selected':watermarkSettings.position === 'we'  }"
+                                   class="button is-small is-rounded">
+                                    <span class="icon dashicons dashicons-arrow-left"></span>
+                                    <span>{{strings.pos_we_title}}</span>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="column is-one-third">
+                            <p class="control">
+                                <a @click="changePosition('ce')"
+                                   :class="{ 'is-info':isActivePosition ('ce'), '  is-selected':watermarkSettings.position === 'ce'  }"
+                                   class="button is-small is-rounded">
+                                    <span class="icon dashicons dashicons-marker"></span>
+                                    <span>{{strings.pos_ce_title}}</span>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="column is-one-third">
+                            <p class="control">
+                                <a @click="changePosition('ea')"
+                                   :class="{ 'is-info':isActivePosition ('ea'), '  is-selected':watermarkSettings.position === 'ea'  }"
+                                   class="button is-small is-rounded">
+                                    <span class="icon dashicons dashicons-arrow-right"></span>
+                                    <span>{{strings.pos_ea_title}}</span>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="column is-one-third">
+                            <p class="control">
+                                <a @click="changePosition('sowe')"
+                                   :class="{ 'is-info':isActivePosition ('sowe'), '  is-selected':watermarkSettings.position === 'sowe'  }"
+                                   class="button is-small is-rounded">
+                                    <span class="icon dashicons dashicons-arrow-left minus-45deg"></span>
+                                    <span>{{strings.pos_sowe_title}}</span>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="column is-one-third">
+                            <p class="control">
+                                <a @click="changePosition('so')"
+                                   :class="{ 'is-info':isActivePosition ('so'), '  is-selected':watermarkSettings.position === 'so'  }"
+                                   class="button is-small is-rounded">
+                                    <span class="icon dashicons dashicons-arrow-down"></span>
+                                    <span>{{strings.pos_so_title}}</span>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="column is-one-third">
+                            <p class="control">
+                                <a @click="changePosition('soea')"
+                                   :class="{ 'is-info':isActivePosition ('soea'), '  is-selected':watermarkSettings.position === 'soea'  }"
+                                   class="button is-small is-rounded">
+                                    <span class="icon dashicons dashicons-arrow-right plus-45deg"></span>
+                                    <span>{{strings.pos_soea_title}}</span>
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field  is-fullwidth columns n">
+                <label class="label is-half column has-text-grey-dark no-padding-right ">
+                    {{strings.offset_title}}
+                    <p class="is-italic has-text-weight-normal">
+                        {{strings.offset_desc}}
+                    </p>
+                </label>
+
+                <div class="column is-paddingless">
+                    <div class="columns">
+                        <div class="field column is-narrow has-addons">
+                            <p class="control">
+                                <a class="button is-small is-static">
+                                    {{strings.offset_x_field}}
+                                </a>
+                            </p>
+                            <p class="control ">
+                                <input v-model="watermarkSettings.offset_x" class="input is-small" type="number">
+                            </p>
+                        </div>
+                        <div class="field column is-narrow has-addons">
+                            <p class="control">
+                                <a class="button is-small is-static">
+                                    {{strings.offset_y_field}}
+                                </a>
+                            </p>
+                            <p class="control ">
+                                <input v-model="watermarkSettings.offset_y" class="input is-small" type="number">
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field  is-fullwidth columns n">
+                <label class="label is-half column has-text-grey-dark no-padding-right ">
+                    {{strings.scale_title}}
+                    <p class="is-italic has-text-weight-normal">
+                        {{strings.scale_desc}}
+                    </p>
+                </label>
+
+                <div class="column is-paddingless">
+                    <div class="columns">
+                        <div class="field column is-narrow has-addons">
+                            <p class="control">
+                                <a class="button is-small is-static">
+                                    {{strings.scale_field}}
+                                </a>
+                            </p>
+                            <p class="control ">
+                                <input v-model="watermarkScale" class="input is-small" type="number" min="0"
+                                       max="100">
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="control column has-text-centered-desktop has-text-left-touch  ">
+                <a @click="saveChanges()" class="button is-small is-success "
+                   :class="{'is-loading':loading}">
+                    <span class="dashicons dashicons-yes icon"></span>
+                    <span>	{{strings.save_changes}}</span>
+                </a>
+            </p>
+        </div>
     </div>
 </template>
 
@@ -99,7 +317,16 @@
 					post_title: '',
 					post_mime_type: '',
 					guid: '',
-				},]
+				},],
+                watermarkSettings: {
+					id: 0,
+					opacity: 1,
+                    position: 'ce',
+                    offset_x: 0,
+                    offset_y: 0,
+                    scale: 1
+                },
+                newData: {}
 			}
 		},
 		mounted() {
@@ -110,7 +337,64 @@
 			//this.doProgressBar();
 			this.$store.dispatch('retrieveWatermarks', {component: this});
 		},
+        computed: {
+	        watermarkOpacity: {
+	        	set( value ) {
+	        		if ( parseInt( value ) < 0 ) {
+	        			this.watermarkSettings.opacity = 0;
+	        			this.newData.wm_opacity = this.watermarkSettings.opacity
+	        			return;
+                    }
+			        if ( parseInt( value ) > 100 ) {
+				        this.watermarkSettings.opacity = 1;
+				        this.newData.wm_opacity = this.watermarkSettings.opacity
+				        return;
+			        }
+
+			        this.watermarkSettings.opacity = parseFloat( parseInt( value ) / 100 );
+			        this.newData.wm_opacity = this.watermarkSettings.opacity
+                },
+                get() {
+                    return Math.round( this.watermarkSettings.opacity * 100 )
+                }
+            },
+	        watermarkScale: {
+		        set( value ) {
+			        if ( parseInt( value ) < 0 ) {
+				        this.watermarkSettings.scale = 0;
+				        this.newData.wm_scale = this.watermarkSettings.scale
+				        return;
+			        }
+			        if ( parseInt( value ) > 300 ) {
+				        this.watermarkSettings.scale = 3;
+				        this.newData.wm_scale = this.watermarkSettings.scale
+				        return;
+			        }
+
+			        this.watermarkSettings.scale = parseFloat( parseInt( value ) / 100 );
+			        this.newData.wm_scale = this.watermarkSettings.scale
+		        },
+		        get() {
+			        return Math.round( this.watermarkSettings.scale * 100 )
+		        }
+	        }
+        },
 		methods: {
+			saveChanges: function () {
+				this.$store.dispatch('saveSettings', {
+					settings: this.newData
+				});
+			},
+			changePosition: function (value) {
+				this.watermarkSettings.position = value;
+				this.newData.wm_position = this.watermarkSettings.position;
+			},
+            selectWatermark: function() {
+	            this.newData.wm_id = this.watermarkSettings.id;
+            },
+			isActivePosition(pos) {
+				return this.watermarkSettings.position === pos;
+			},
 			inputFilter(newFile, oldFile, prevent) {
 				if (newFile && !oldFile) {
 					// Before adding a file
@@ -152,9 +436,15 @@
 			removeWatermark( postID ) {
 				this.$store.dispatch('removeWatermark', { postID: postID, component: this});
 			}
-		}
+		},
 	}
 </script>
 
 <style scoped>
+    .plus-45deg {
+        transform: rotate(45deg);
+    }
+    .minus-45deg {
+        transform: rotate(-45deg);
+    }
 </style>

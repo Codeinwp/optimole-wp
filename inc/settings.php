@@ -72,10 +72,12 @@ class Optml_Settings {
 				case 'max_width':
 				case 'max_height':
 					$sanitized_value = $this->to_bound_integer( $value, 100, 5000 );
-
 					break;
 				case 'quality':
 					$sanitized_value = $this->to_map_values( $value, array( 'low_c', 'medium_c', 'high_c', 'auto' ), 'auto' );
+					break;
+				case 'wm_id':
+					$sanitized_value = $this->to_positive_integer( $value );
 					break;
 				default:
 					$sanitized_value = '';
@@ -147,6 +149,23 @@ class Optml_Settings {
 			'image_replacer' => $this->get( 'image_replacer' ),
 			'max_width'      => $this->get( 'max_width' ),
 			'max_height'     => $this->get( 'max_height' ),
+			'watermark'      => $this->get_watermark(),
+		);
+	}
+
+	/**
+	 * Return an watermark array.
+	 *
+	 * @return array
+	 */
+	public function get_watermark() {
+		return array(
+			'id'       => $this->get( 'wm_id' ),
+			'opacity'  => $this->get( 'wm_opacity' ),
+			'position' => $this->get( 'wm_position' ),
+			'x_offset' => $this->get( 'wm_x' ),
+			'y_offset' => $this->get( 'wm_y' ),
+			'scale'    => $this->get( 'wm_scale' ),
 		);
 	}
 

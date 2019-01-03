@@ -17585,7 +17585,7 @@ exports = module.exports = __webpack_require__(0)();
 
 
 // module
-exports.push([module.i, "\n", ""]);
+exports.push([module.i, "\n    .plus-45deg[_v-e1cd007a] {\n        transform: rotate(45deg);\n    }\n    .minus-45deg[_v-e1cd007a] {\n        transform: rotate(-45deg);\n    }\n", ""]);
 
 // exports
 
@@ -17627,7 +17627,16 @@ exports.default = {
 				post_title: '',
 				post_mime_type: '',
 				guid: ''
-			}]
+			}],
+			watermarkSettings: {
+				id: 0,
+				opacity: 1,
+				position: 'ce',
+				offset_x: 0,
+				offset_y: 0,
+				scale: 1
+			},
+			newData: {}
 		};
 	},
 	mounted: function mounted() {
@@ -17639,7 +17648,64 @@ exports.default = {
 		this.$store.dispatch('retrieveWatermarks', { component: this });
 	},
 
+	computed: {
+		watermarkOpacity: {
+			set: function set(value) {
+				if (parseInt(value) < 0) {
+					this.watermarkSettings.opacity = 0;
+					this.newData.wm_opacity = this.watermarkSettings.opacity;
+					return;
+				}
+				if (parseInt(value) > 100) {
+					this.watermarkSettings.opacity = 1;
+					this.newData.wm_opacity = this.watermarkSettings.opacity;
+					return;
+				}
+
+				this.watermarkSettings.opacity = parseFloat(parseInt(value) / 100);
+				this.newData.wm_opacity = this.watermarkSettings.opacity;
+			},
+			get: function get() {
+				return Math.round(this.watermarkSettings.opacity * 100);
+			}
+		},
+		watermarkScale: {
+			set: function set(value) {
+				if (parseInt(value) < 0) {
+					this.watermarkSettings.scale = 0;
+					this.newData.wm_scale = this.watermarkSettings.scale;
+					return;
+				}
+				if (parseInt(value) > 300) {
+					this.watermarkSettings.scale = 3;
+					this.newData.wm_scale = this.watermarkSettings.scale;
+					return;
+				}
+
+				this.watermarkSettings.scale = parseFloat(parseInt(value) / 100);
+				this.newData.wm_scale = this.watermarkSettings.scale;
+			},
+			get: function get() {
+				return Math.round(this.watermarkSettings.scale * 100);
+			}
+		}
+	},
 	methods: {
+		saveChanges: function saveChanges() {
+			this.$store.dispatch('saveSettings', {
+				settings: this.newData
+			});
+		},
+		changePosition: function changePosition(value) {
+			this.watermarkSettings.position = value;
+			this.newData.wm_position = this.watermarkSettings.position;
+		},
+		selectWatermark: function selectWatermark() {
+			this.newData.wm_id = this.watermarkSettings.id;
+		},
+		isActivePosition: function isActivePosition(pos) {
+			return this.watermarkSettings.position === pos;
+		},
 		inputFilter: function inputFilter(newFile, oldFile, prevent) {
 			if (newFile && !oldFile) {
 				// Before adding a file
@@ -17685,6 +17751,12 @@ exports.default = {
 	// </script>
 	//
 	// <style scoped>
+	//     .plus-45deg {
+	//         transform: rotate(45deg);
+	//     }
+	//     .minus-45deg {
+	//         transform: rotate(-45deg);
+	//     }
 	// </style>
 
 }; // <template>
@@ -17763,6 +17835,224 @@ exports.default = {
 //             </tr>
 //             </thead>
 //         </table>
+//         <div class="box">
+//             <div class="field  is-fullwidth columns n">
+//                 <label class="label is-half column has-text-grey-dark no-padding-right ">
+//                     {{strings.wm_title}}
+//                     <p class="is-italic has-text-weight-normal">
+//                         {{strings.wm_desc}}
+//                     </p>
+//                 </label>
+//
+//                 <div class="column is-paddingless">
+//                     <div class="columns">
+//                         <div class="field column is-narrow">
+//                             <div class="select">
+//                                 <select title="Watermark Selection" v-model="watermarkSettings.id" @change="selectWatermark()">
+//                                     <option value="0">No watermark</option>
+//                                     <option v-for="(item, index) in watermarkData" :value="item.ID">{{item.post_title}}</option>
+//                                 </select>
+//                             </div>
+//                         </div>
+//                     </div>
+//                 </div>
+//             </div>
+//
+//             <div class="field  is-fullwidth columns n">
+//                 <label class="label is-half column has-text-grey-dark no-padding-right ">
+//                     {{strings.opacity_title}}
+//                     <p class="is-italic has-text-weight-normal">
+//                         {{strings.opacity_desc}}
+//                     </p>
+//                 </label>
+//
+//                 <div class="column is-paddingless">
+//                     <div class="columns">
+//                         <div class="field column is-narrow has-addons">
+//                             <p class="control">
+//                                 <a class="button is-small is-static">
+//                                     {{strings.opacity_field}}
+//                                 </a>
+//                             </p>
+//                             <p class="control ">
+//                                 <input v-model="watermarkOpacity" class="input is-small" type="number" min="0"
+//                                        max="100">
+//                             </p>
+//                         </div>
+//                     </div>
+//                 </div>
+//             </div>
+//
+//             <div class="field  columns">
+//                 <label class="label column has-text-grey-dark">
+//                     {{strings.position_title}}
+//                     <p class="is-italic has-text-weight-normal">
+//                         {{strings.position_desc}}
+//                     </p>
+//                 </label>
+//                 <div class="column  buttons ">
+//                     <div class="field columns is-gapless is-multiline">
+//                         <div class="column is-one-third">
+//                             <p class="control">
+//                                 <a @click="changePosition('nowe')"
+//                                    :class="{ 'is-info':isActivePosition ('nowe'), '  is-selected':watermarkSettings.position === 'nowe'  }"
+//                                    class="button is-small is-rounded">
+//                                     <span class="icon dashicons dashicons-arrow-left plus-45deg"></span>
+//                                     <span>{{strings.pos_nowe_title}}</span>
+//                                 </a>
+//                             </p>
+//                         </div>
+//                         <div class="column is-one-third">
+//                             <p class="control">
+//                                 <a @click="changePosition('no')"
+//                                    :class="{ 'is-info':isActivePosition ('no'), '  is-selected':watermarkSettings.position === 'no'  }"
+//                                    class="button is-small is-rounded">
+//                                     <span class="icon dashicons dashicons-arrow-up"></span>
+//                                     <span>{{strings.pos_no_title}}</span>
+//                                 </a>
+//                             </p>
+//                         </div>
+//                         <div class="column is-one-third">
+//                             <p class="control">
+//                                 <a @click="changePosition('noea')"
+//                                    :class="{ 'is-info':isActivePosition ('noea'), '  is-selected':watermarkSettings.position === 'noea'  }"
+//                                    class="button is-small is-rounded">
+//                                     <span class="icon dashicons dashicons-arrow-right minus-45deg"></span>
+//                                     <span>{{strings.pos_noea_title}}</span>
+//                                 </a>
+//                             </p>
+//                         </div>
+//                         <div class="column is-one-third">
+//                             <p class="control">
+//                                 <a @click="changePosition('we')"
+//                                    :class="{ 'is-info':isActivePosition ('we'), '  is-selected':watermarkSettings.position === 'we'  }"
+//                                    class="button is-small is-rounded">
+//                                     <span class="icon dashicons dashicons-arrow-left"></span>
+//                                     <span>{{strings.pos_we_title}}</span>
+//                                 </a>
+//                             </p>
+//                         </div>
+//                         <div class="column is-one-third">
+//                             <p class="control">
+//                                 <a @click="changePosition('ce')"
+//                                    :class="{ 'is-info':isActivePosition ('ce'), '  is-selected':watermarkSettings.position === 'ce'  }"
+//                                    class="button is-small is-rounded">
+//                                     <span class="icon dashicons dashicons-marker"></span>
+//                                     <span>{{strings.pos_ce_title}}</span>
+//                                 </a>
+//                             </p>
+//                         </div>
+//                         <div class="column is-one-third">
+//                             <p class="control">
+//                                 <a @click="changePosition('ea')"
+//                                    :class="{ 'is-info':isActivePosition ('ea'), '  is-selected':watermarkSettings.position === 'ea'  }"
+//                                    class="button is-small is-rounded">
+//                                     <span class="icon dashicons dashicons-arrow-right"></span>
+//                                     <span>{{strings.pos_ea_title}}</span>
+//                                 </a>
+//                             </p>
+//                         </div>
+//                         <div class="column is-one-third">
+//                             <p class="control">
+//                                 <a @click="changePosition('sowe')"
+//                                    :class="{ 'is-info':isActivePosition ('sowe'), '  is-selected':watermarkSettings.position === 'sowe'  }"
+//                                    class="button is-small is-rounded">
+//                                     <span class="icon dashicons dashicons-arrow-left minus-45deg"></span>
+//                                     <span>{{strings.pos_sowe_title}}</span>
+//                                 </a>
+//                             </p>
+//                         </div>
+//                         <div class="column is-one-third">
+//                             <p class="control">
+//                                 <a @click="changePosition('so')"
+//                                    :class="{ 'is-info':isActivePosition ('so'), '  is-selected':watermarkSettings.position === 'so'  }"
+//                                    class="button is-small is-rounded">
+//                                     <span class="icon dashicons dashicons-arrow-down"></span>
+//                                     <span>{{strings.pos_so_title}}</span>
+//                                 </a>
+//                             </p>
+//                         </div>
+//                         <div class="column is-one-third">
+//                             <p class="control">
+//                                 <a @click="changePosition('soea')"
+//                                    :class="{ 'is-info':isActivePosition ('soea'), '  is-selected':watermarkSettings.position === 'soea'  }"
+//                                    class="button is-small is-rounded">
+//                                     <span class="icon dashicons dashicons-arrow-right plus-45deg"></span>
+//                                     <span>{{strings.pos_soea_title}}</span>
+//                                 </a>
+//                             </p>
+//                         </div>
+//                     </div>
+//                 </div>
+//             </div>
+//
+//             <div class="field  is-fullwidth columns n">
+//                 <label class="label is-half column has-text-grey-dark no-padding-right ">
+//                     {{strings.offset_title}}
+//                     <p class="is-italic has-text-weight-normal">
+//                         {{strings.offset_desc}}
+//                     </p>
+//                 </label>
+//
+//                 <div class="column is-paddingless">
+//                     <div class="columns">
+//                         <div class="field column is-narrow has-addons">
+//                             <p class="control">
+//                                 <a class="button is-small is-static">
+//                                     {{strings.offset_x_field}}
+//                                 </a>
+//                             </p>
+//                             <p class="control ">
+//                                 <input v-model="watermarkSettings.offset_x" class="input is-small" type="number">
+//                             </p>
+//                         </div>
+//                         <div class="field column is-narrow has-addons">
+//                             <p class="control">
+//                                 <a class="button is-small is-static">
+//                                     {{strings.offset_y_field}}
+//                                 </a>
+//                             </p>
+//                             <p class="control ">
+//                                 <input v-model="watermarkSettings.offset_y" class="input is-small" type="number">
+//                             </p>
+//                         </div>
+//                     </div>
+//                 </div>
+//             </div>
+//
+//             <div class="field  is-fullwidth columns n">
+//                 <label class="label is-half column has-text-grey-dark no-padding-right ">
+//                     {{strings.scale_title}}
+//                     <p class="is-italic has-text-weight-normal">
+//                         {{strings.scale_desc}}
+//                     </p>
+//                 </label>
+//
+//                 <div class="column is-paddingless">
+//                     <div class="columns">
+//                         <div class="field column is-narrow has-addons">
+//                             <p class="control">
+//                                 <a class="button is-small is-static">
+//                                     {{strings.scale_field}}
+//                                 </a>
+//                             </p>
+//                             <p class="control ">
+//                                 <input v-model="watermarkScale" class="input is-small" type="number" min="0"
+//                                        max="100">
+//                             </p>
+//                         </div>
+//                     </div>
+//                 </div>
+//             </div>
+//
+//             <p class="control column has-text-centered-desktop has-text-left-touch  ">
+//                 <a @click="saveChanges()" class="button is-small is-success "
+//                    :class="{'is-loading':loading}">
+//                     <span class="dashicons dashicons-yes icon"></span>
+//                     <span>	{{strings.save_changes}}</span>
+//                 </a>
+//             </p>
+//         </div>
 //     </div>
 // </template>
 //
@@ -17772,7 +18062,7 @@ exports.default = {
 /* 58 */
 /***/ (function(module, exports) {
 
-module.exports = "\n    <div _v-e1cd007a=\"\">\n        <h4 _v-e1cd007a=\"\">{{strings.add_desc}}</h4>\n        <div class=\"field  columns\" _v-e1cd007a=\"\">\n            <div class=\"column\" v-for=\"file in files\" _v-e1cd007a=\"\">\n                <span class=\"tag\" _v-e1cd007a=\"\">\n                    <i _v-e1cd007a=\"\">{{file.name}}</i>\n                    <i v-if=\"!file.active &amp;&amp; !file.success &amp;&amp; file.error === ''\" class=\"dashicons dashicons-yes icon has-text-grey-light\" _v-e1cd007a=\"\"></i>\n                    <i v-else-if=\"file.active\" class=\"dashicons dashicons-marker icon spin has-text-warning\" _v-e1cd007a=\"\"></i>\n                    <i v-else-if=\"!file.active &amp;&amp; file.success\" class=\"dashicons dashicons-yes icon has-text-success\" _v-e1cd007a=\"\"></i>\n                    <i v-else=\"\" class=\"dashicons dashicons-no-alt icon has-text-danger\" _v-e1cd007a=\"\"></i>\n                </span>\n            </div>\n        </div>\n        <div class=\"column \" _v-e1cd007a=\"\">\n            <file-upload class=\"button is-secondary is-rounded\" :post-action=\" global.root + '/add_watermark'\" :headers=\"{'X-WP-Nonce': global.nonce}\" extensions=\"gif,jpg,jpeg,png,webp\" accept=\"image/png,image/gif,image/jpeg,image/webp\" :multiple=\"true\" :size=\"1024 * 1024 * 10\" v-model=\"files\" @input-filter=\"inputFilter\" @input-file=\"inputFile\" :disabled=\"loading\" ref=\"upload\" _v-e1cd007a=\"\">\n                <i class=\"dashicons dashicons-plus icon\" _v-e1cd007a=\"\"></i>\n                {{strings.upload}}\n            </file-upload>\n        </div>\n        <div class=\"notification is-danger\" v-if=\"is_error\" _v-e1cd007a=\"\">{{error_message}}</div>\n        <hr _v-e1cd007a=\"\">\n        <div class=\"optimized-images\" v-if=\"! loading \" _v-e1cd007a=\"\">\n            <div v-if=\"!noImages\" _v-e1cd007a=\"\">\n                <h3 class=\"has-text-centered\" _v-e1cd007a=\"\">{{strings.last}} {{strings.optimized_images}}</h3>\n                <table class=\"table is-striped is-hoverable is-fullwidth\" _v-e1cd007a=\"\">\n                    <thead _v-e1cd007a=\"\">\n                    <tr _v-e1cd007a=\"\">\n                        <th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.id}}</th>\n                        <th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.image}}</th>\n                        <th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.name}}</th>\n                        <th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.type}}</th>\n                        <th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.action}}</th>\n                    </tr>\n                    </thead>\n                    <tbody _v-e1cd007a=\"\">\n                    <tr v-for=\"(item, index) in watermarkData\" _v-e1cd007a=\"\">\n                        <td _v-e1cd007a=\"\">{{item.ID}}</td>\n                        <td _v-e1cd007a=\"\"><img :src=\"item.guid\" class=\"optml-image\" _v-e1cd007a=\"\"></td>\n                        <td _v-e1cd007a=\"\">{{item.post_title}}</td>\n                        <td _v-e1cd007a=\"\">{{item.post_mime_type}}</td>\n                        <td _v-e1cd007a=\"\">\n                            <a @click=\"removeWatermark(item.ID)\" class=\"button is-small is-danger is-rounded\" :class=\"{'is-loading':loading}\" _v-e1cd007a=\"\">\n                                <span class=\"dashicons dashicons-no-alt icon\" _v-e1cd007a=\"\"></span>\n                            </a>\n                        </td>\n                    </tr>\n                    </tbody>\n                </table>\n            </div>\n        </div>\n        <div v-else=\"\" _v-e1cd007a=\"\">\n            <iframe width=\"1\" height=\"1\" :src=\"home_url\" style=\"visibility: hidden\" _v-e1cd007a=\"\"></iframe>\n            <h6 class=\"has-text-centered\" _v-e1cd007a=\"\">{{strings.loading_latest_images}}</h6>\n            <progress class=\"progress is-large\" :value=\"startTime\" :max=\"maxTime\" _v-e1cd007a=\"\"></progress>\n        </div>\n        <table class=\"table is-striped is-hoverable is-fullwidth\" v-if=\"noImages\" _v-e1cd007a=\"\">\n            <thead _v-e1cd007a=\"\">\n            <tr _v-e1cd007a=\"\">\n                <th class=\"optml-image-heading has-text-centered\" v-html=\"strings.no_images_found\" _v-e1cd007a=\"\"></th>\n            </tr>\n            </thead>\n        </table>\n    </div>\n";
+module.exports = "\n    <div _v-e1cd007a=\"\">\n        <h4 _v-e1cd007a=\"\">{{strings.add_desc}}</h4>\n        <div class=\"field  columns\" _v-e1cd007a=\"\">\n            <div class=\"column\" v-for=\"file in files\" _v-e1cd007a=\"\">\n                <span class=\"tag\" _v-e1cd007a=\"\">\n                    <i _v-e1cd007a=\"\">{{file.name}}</i>\n                    <i v-if=\"!file.active &amp;&amp; !file.success &amp;&amp; file.error === ''\" class=\"dashicons dashicons-yes icon has-text-grey-light\" _v-e1cd007a=\"\"></i>\n                    <i v-else-if=\"file.active\" class=\"dashicons dashicons-marker icon spin has-text-warning\" _v-e1cd007a=\"\"></i>\n                    <i v-else-if=\"!file.active &amp;&amp; file.success\" class=\"dashicons dashicons-yes icon has-text-success\" _v-e1cd007a=\"\"></i>\n                    <i v-else=\"\" class=\"dashicons dashicons-no-alt icon has-text-danger\" _v-e1cd007a=\"\"></i>\n                </span>\n            </div>\n        </div>\n        <div class=\"column \" _v-e1cd007a=\"\">\n            <file-upload class=\"button is-secondary is-rounded\" :post-action=\" global.root + '/add_watermark'\" :headers=\"{'X-WP-Nonce': global.nonce}\" extensions=\"gif,jpg,jpeg,png,webp\" accept=\"image/png,image/gif,image/jpeg,image/webp\" :multiple=\"true\" :size=\"1024 * 1024 * 10\" v-model=\"files\" @input-filter=\"inputFilter\" @input-file=\"inputFile\" :disabled=\"loading\" ref=\"upload\" _v-e1cd007a=\"\">\n                <i class=\"dashicons dashicons-plus icon\" _v-e1cd007a=\"\"></i>\n                {{strings.upload}}\n            </file-upload>\n        </div>\n        <div class=\"notification is-danger\" v-if=\"is_error\" _v-e1cd007a=\"\">{{error_message}}</div>\n        <hr _v-e1cd007a=\"\">\n        <div class=\"optimized-images\" v-if=\"! loading \" _v-e1cd007a=\"\">\n            <div v-if=\"!noImages\" _v-e1cd007a=\"\">\n                <h3 class=\"has-text-centered\" _v-e1cd007a=\"\">{{strings.last}} {{strings.optimized_images}}</h3>\n                <table class=\"table is-striped is-hoverable is-fullwidth\" _v-e1cd007a=\"\">\n                    <thead _v-e1cd007a=\"\">\n                    <tr _v-e1cd007a=\"\">\n                        <th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.id}}</th>\n                        <th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.image}}</th>\n                        <th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.name}}</th>\n                        <th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.type}}</th>\n                        <th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.action}}</th>\n                    </tr>\n                    </thead>\n                    <tbody _v-e1cd007a=\"\">\n                    <tr v-for=\"(item, index) in watermarkData\" _v-e1cd007a=\"\">\n                        <td _v-e1cd007a=\"\">{{item.ID}}</td>\n                        <td _v-e1cd007a=\"\"><img :src=\"item.guid\" class=\"optml-image\" _v-e1cd007a=\"\"></td>\n                        <td _v-e1cd007a=\"\">{{item.post_title}}</td>\n                        <td _v-e1cd007a=\"\">{{item.post_mime_type}}</td>\n                        <td _v-e1cd007a=\"\">\n                            <a @click=\"removeWatermark(item.ID)\" class=\"button is-small is-danger is-rounded\" :class=\"{'is-loading':loading}\" _v-e1cd007a=\"\">\n                                <span class=\"dashicons dashicons-no-alt icon\" _v-e1cd007a=\"\"></span>\n                            </a>\n                        </td>\n                    </tr>\n                    </tbody>\n                </table>\n            </div>\n        </div>\n        <div v-else=\"\" _v-e1cd007a=\"\">\n            <iframe width=\"1\" height=\"1\" :src=\"home_url\" style=\"visibility: hidden\" _v-e1cd007a=\"\"></iframe>\n            <h6 class=\"has-text-centered\" _v-e1cd007a=\"\">{{strings.loading_latest_images}}</h6>\n            <progress class=\"progress is-large\" :value=\"startTime\" :max=\"maxTime\" _v-e1cd007a=\"\"></progress>\n        </div>\n        <table class=\"table is-striped is-hoverable is-fullwidth\" v-if=\"noImages\" _v-e1cd007a=\"\">\n            <thead _v-e1cd007a=\"\">\n            <tr _v-e1cd007a=\"\">\n                <th class=\"optml-image-heading has-text-centered\" v-html=\"strings.no_images_found\" _v-e1cd007a=\"\"></th>\n            </tr>\n            </thead>\n        </table>\n        <div class=\"box\" _v-e1cd007a=\"\">\n            <div class=\"field  is-fullwidth columns n\" _v-e1cd007a=\"\">\n                <label class=\"label is-half column has-text-grey-dark no-padding-right \" _v-e1cd007a=\"\">\n                    {{strings.wm_title}}\n                    <p class=\"is-italic has-text-weight-normal\" _v-e1cd007a=\"\">\n                        {{strings.wm_desc}}\n                    </p>\n                </label>\n\n                <div class=\"column is-paddingless\" _v-e1cd007a=\"\">\n                    <div class=\"columns\" _v-e1cd007a=\"\">\n                        <div class=\"field column is-narrow\" _v-e1cd007a=\"\">\n                            <div class=\"select\" _v-e1cd007a=\"\">\n                                <select title=\"Watermark Selection\" v-model=\"watermarkSettings.id\" @change=\"selectWatermark()\" _v-e1cd007a=\"\">\n                                    <option value=\"0\" _v-e1cd007a=\"\">No watermark</option>\n                                    <option v-for=\"(item, index) in watermarkData\" :value=\"item.ID\" _v-e1cd007a=\"\">{{item.post_title}}</option>\n                                </select>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n            </div>\n\n            <div class=\"field  is-fullwidth columns n\" _v-e1cd007a=\"\">\n                <label class=\"label is-half column has-text-grey-dark no-padding-right \" _v-e1cd007a=\"\">\n                    {{strings.opacity_title}}\n                    <p class=\"is-italic has-text-weight-normal\" _v-e1cd007a=\"\">\n                        {{strings.opacity_desc}}\n                    </p>\n                </label>\n\n                <div class=\"column is-paddingless\" _v-e1cd007a=\"\">\n                    <div class=\"columns\" _v-e1cd007a=\"\">\n                        <div class=\"field column is-narrow has-addons\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a class=\"button is-small is-static\" _v-e1cd007a=\"\">\n                                    {{strings.opacity_field}}\n                                </a>\n                            </p>\n                            <p class=\"control \" _v-e1cd007a=\"\">\n                                <input v-model=\"watermarkOpacity\" class=\"input is-small\" type=\"number\" min=\"0\" max=\"100\" _v-e1cd007a=\"\">\n                            </p>\n                        </div>\n                    </div>\n                </div>\n            </div>\n\n            <div class=\"field  columns\" _v-e1cd007a=\"\">\n                <label class=\"label column has-text-grey-dark\" _v-e1cd007a=\"\">\n                    {{strings.position_title}}\n                    <p class=\"is-italic has-text-weight-normal\" _v-e1cd007a=\"\">\n                        {{strings.position_desc}}\n                    </p>\n                </label>\n                <div class=\"column  buttons \" _v-e1cd007a=\"\">\n                    <div class=\"field columns is-gapless is-multiline\" _v-e1cd007a=\"\">\n                        <div class=\"column is-one-third\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a @click=\"changePosition('nowe')\" :class=\"{ 'is-info':isActivePosition ('nowe'), '  is-selected':watermarkSettings.position === 'nowe'  }\" class=\"button is-small is-rounded\" _v-e1cd007a=\"\">\n                                    <span class=\"icon dashicons dashicons-arrow-left plus-45deg\" _v-e1cd007a=\"\"></span>\n                                    <span _v-e1cd007a=\"\">{{strings.pos_nowe_title}}</span>\n                                </a>\n                            </p>\n                        </div>\n                        <div class=\"column is-one-third\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a @click=\"changePosition('no')\" :class=\"{ 'is-info':isActivePosition ('no'), '  is-selected':watermarkSettings.position === 'no'  }\" class=\"button is-small is-rounded\" _v-e1cd007a=\"\">\n                                    <span class=\"icon dashicons dashicons-arrow-up\" _v-e1cd007a=\"\"></span>\n                                    <span _v-e1cd007a=\"\">{{strings.pos_no_title}}</span>\n                                </a>\n                            </p>\n                        </div>\n                        <div class=\"column is-one-third\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a @click=\"changePosition('noea')\" :class=\"{ 'is-info':isActivePosition ('noea'), '  is-selected':watermarkSettings.position === 'noea'  }\" class=\"button is-small is-rounded\" _v-e1cd007a=\"\">\n                                    <span class=\"icon dashicons dashicons-arrow-right minus-45deg\" _v-e1cd007a=\"\"></span>\n                                    <span _v-e1cd007a=\"\">{{strings.pos_noea_title}}</span>\n                                </a>\n                            </p>\n                        </div>\n                        <div class=\"column is-one-third\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a @click=\"changePosition('we')\" :class=\"{ 'is-info':isActivePosition ('we'), '  is-selected':watermarkSettings.position === 'we'  }\" class=\"button is-small is-rounded\" _v-e1cd007a=\"\">\n                                    <span class=\"icon dashicons dashicons-arrow-left\" _v-e1cd007a=\"\"></span>\n                                    <span _v-e1cd007a=\"\">{{strings.pos_we_title}}</span>\n                                </a>\n                            </p>\n                        </div>\n                        <div class=\"column is-one-third\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a @click=\"changePosition('ce')\" :class=\"{ 'is-info':isActivePosition ('ce'), '  is-selected':watermarkSettings.position === 'ce'  }\" class=\"button is-small is-rounded\" _v-e1cd007a=\"\">\n                                    <span class=\"icon dashicons dashicons-marker\" _v-e1cd007a=\"\"></span>\n                                    <span _v-e1cd007a=\"\">{{strings.pos_ce_title}}</span>\n                                </a>\n                            </p>\n                        </div>\n                        <div class=\"column is-one-third\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a @click=\"changePosition('ea')\" :class=\"{ 'is-info':isActivePosition ('ea'), '  is-selected':watermarkSettings.position === 'ea'  }\" class=\"button is-small is-rounded\" _v-e1cd007a=\"\">\n                                    <span class=\"icon dashicons dashicons-arrow-right\" _v-e1cd007a=\"\"></span>\n                                    <span _v-e1cd007a=\"\">{{strings.pos_ea_title}}</span>\n                                </a>\n                            </p>\n                        </div>\n                        <div class=\"column is-one-third\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a @click=\"changePosition('sowe')\" :class=\"{ 'is-info':isActivePosition ('sowe'), '  is-selected':watermarkSettings.position === 'sowe'  }\" class=\"button is-small is-rounded\" _v-e1cd007a=\"\">\n                                    <span class=\"icon dashicons dashicons-arrow-left minus-45deg\" _v-e1cd007a=\"\"></span>\n                                    <span _v-e1cd007a=\"\">{{strings.pos_sowe_title}}</span>\n                                </a>\n                            </p>\n                        </div>\n                        <div class=\"column is-one-third\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a @click=\"changePosition('so')\" :class=\"{ 'is-info':isActivePosition ('so'), '  is-selected':watermarkSettings.position === 'so'  }\" class=\"button is-small is-rounded\" _v-e1cd007a=\"\">\n                                    <span class=\"icon dashicons dashicons-arrow-down\" _v-e1cd007a=\"\"></span>\n                                    <span _v-e1cd007a=\"\">{{strings.pos_so_title}}</span>\n                                </a>\n                            </p>\n                        </div>\n                        <div class=\"column is-one-third\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a @click=\"changePosition('soea')\" :class=\"{ 'is-info':isActivePosition ('soea'), '  is-selected':watermarkSettings.position === 'soea'  }\" class=\"button is-small is-rounded\" _v-e1cd007a=\"\">\n                                    <span class=\"icon dashicons dashicons-arrow-right plus-45deg\" _v-e1cd007a=\"\"></span>\n                                    <span _v-e1cd007a=\"\">{{strings.pos_soea_title}}</span>\n                                </a>\n                            </p>\n                        </div>\n                    </div>\n                </div>\n            </div>\n\n            <div class=\"field  is-fullwidth columns n\" _v-e1cd007a=\"\">\n                <label class=\"label is-half column has-text-grey-dark no-padding-right \" _v-e1cd007a=\"\">\n                    {{strings.offset_title}}\n                    <p class=\"is-italic has-text-weight-normal\" _v-e1cd007a=\"\">\n                        {{strings.offset_desc}}\n                    </p>\n                </label>\n\n                <div class=\"column is-paddingless\" _v-e1cd007a=\"\">\n                    <div class=\"columns\" _v-e1cd007a=\"\">\n                        <div class=\"field column is-narrow has-addons\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a class=\"button is-small is-static\" _v-e1cd007a=\"\">\n                                    {{strings.offset_x_field}}\n                                </a>\n                            </p>\n                            <p class=\"control \" _v-e1cd007a=\"\">\n                                <input v-model=\"watermarkSettings.offset_x\" class=\"input is-small\" type=\"number\" _v-e1cd007a=\"\">\n                            </p>\n                        </div>\n                        <div class=\"field column is-narrow has-addons\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a class=\"button is-small is-static\" _v-e1cd007a=\"\">\n                                    {{strings.offset_y_field}}\n                                </a>\n                            </p>\n                            <p class=\"control \" _v-e1cd007a=\"\">\n                                <input v-model=\"watermarkSettings.offset_y\" class=\"input is-small\" type=\"number\" _v-e1cd007a=\"\">\n                            </p>\n                        </div>\n                    </div>\n                </div>\n            </div>\n\n            <div class=\"field  is-fullwidth columns n\" _v-e1cd007a=\"\">\n                <label class=\"label is-half column has-text-grey-dark no-padding-right \" _v-e1cd007a=\"\">\n                    {{strings.scale_title}}\n                    <p class=\"is-italic has-text-weight-normal\" _v-e1cd007a=\"\">\n                        {{strings.scale_desc}}\n                    </p>\n                </label>\n\n                <div class=\"column is-paddingless\" _v-e1cd007a=\"\">\n                    <div class=\"columns\" _v-e1cd007a=\"\">\n                        <div class=\"field column is-narrow has-addons\" _v-e1cd007a=\"\">\n                            <p class=\"control\" _v-e1cd007a=\"\">\n                                <a class=\"button is-small is-static\" _v-e1cd007a=\"\">\n                                    {{strings.scale_field}}\n                                </a>\n                            </p>\n                            <p class=\"control \" _v-e1cd007a=\"\">\n                                <input v-model=\"watermarkScale\" class=\"input is-small\" type=\"number\" min=\"0\" max=\"100\" _v-e1cd007a=\"\">\n                            </p>\n                        </div>\n                    </div>\n                </div>\n            </div>\n\n            <p class=\"control column has-text-centered-desktop has-text-left-touch  \" _v-e1cd007a=\"\">\n                <a @click=\"saveChanges()\" class=\"button is-small is-success \" :class=\"{'is-loading':loading}\" _v-e1cd007a=\"\">\n                    <span class=\"dashicons dashicons-yes icon\" _v-e1cd007a=\"\"></span>\n                    <span _v-e1cd007a=\"\">\t{{strings.save_changes}}</span>\n                </a>\n            </p>\n        </div>\n    </div>\n";
 
 /***/ }),
 /* 59 */
