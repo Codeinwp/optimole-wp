@@ -43,7 +43,7 @@ class Optml_Admin {
 			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 		}
 
-		if ( $this->settings->use_lazyload() ) {
+		if ( $this->settings->is_connected() && $this->settings->use_lazyload() ) {
 			add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
 			add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 		}
