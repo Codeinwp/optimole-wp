@@ -27,7 +27,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		if ( $this->settings->use_lazyload() ) {
-			add_filter( 'max_srcset_image_width', function() { return 1; } );
+			add_filter(
+				'max_srcset_image_width',
+				function() {
+					return 1;
+				}
+			);
 			add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 1, 4 );
 		}
 	}
