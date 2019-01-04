@@ -16,7 +16,6 @@ final class Optml_Api {
 	 */
 	private $api_root = 'http://127.0.0.1:8000/api/optml/v1/';
 	// private $api_root = 'https://dashboard.optimole.com/api/optml/v1/';
-
 	/**
 	 * Hold the user api key.
 	 *

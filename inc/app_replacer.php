@@ -264,7 +264,7 @@ abstract class Optml_App_Replacer {
 		if ( ! is_string( $url ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		$url = @parse_url( $url );
+		$url = parse_url( $url );
 
 		return isset( $this->possible_sources[ $url['host'] ] );
 	}
