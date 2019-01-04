@@ -43,7 +43,7 @@ class Optml_Admin {
 			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 		}
 
-		if ( $this->settings->is_connected() && $this->settings->use_lazyload() ) {
+		if ( $this->settings->use_lazyload() ) {
 			add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
 			add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 		}
@@ -79,14 +79,14 @@ class Optml_Admin {
 						var s = d.createElement("script");
 						var v = ("IntersectionObserver" in w) ? "_no_poly" : "";
 						s.async = true;  
-						s.src = "%s/latest/optimole_lib" + v  + "%s.js"; 
+						s.src = "http://b676acef.ngrok.io/optimole_js_lib/dist/optimole_lib" + v  + "%s.js"; 
 						b.appendChild(s);
 						
 					}(window, document));
 					
 					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
 		</script>',
-			esc_url( $domain ),
+			//esc_url( $domain ),
 			$min
 		);
 		echo $output;

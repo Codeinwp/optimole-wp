@@ -179,10 +179,10 @@ class Optml_Image {
 		if ( $this->quality->get() > 0 || $this->quality->get() === 'eco' ) {
 			$path_parts[] = $this->quality->toString();
 		}
-		 if ( ! empty( $this->watermark->get() ) && is_array( $this->watermark->get() ) && isset( $this->watermark->get()['id'] ) && $this->watermark->get()['id'] != 0 ) {
-		 $path_parts[] = $this->watermark->toString();
-		 }
-		$path = '/' . $this->source_url;
+		if ( ! empty( $this->watermark->get() ) && is_array( $this->watermark->get() ) && isset( $this->watermark->get()['id'] ) && $this->watermark->get()['id'] != 0 ) {
+			$path_parts[] = $this->watermark->toString();
+		}
+		$path = '/plain/' . $this->source_url;
 
 		if ( ! empty( $path_parts ) ) {
 			$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
