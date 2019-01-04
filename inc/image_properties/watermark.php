@@ -36,7 +36,7 @@ class Optml_Watermark extends Optml_Property_Type {
 	 */
 	public function set( $value ) {
 		if ( $this->is_valid_numeric( $value ) ) {
-			$this->width = $this->to_positive_integer( $value );
+			$this->watermark['id'] = $this->to_positive_integer( $value );
 		}
 	}
 
@@ -46,6 +46,14 @@ class Optml_Watermark extends Optml_Property_Type {
 	 * @return mixed
 	 */
 	public function toString() {
-		return sprintf( 'w:%s', $this->width );
+		return sprintf(
+			'wm:%s',
+			$this->watermark['id'] . ':' .
+			$this->watermark['opacity'] . ':' .
+			$this->watermark['position'] . ':' .
+			$this->watermark['x_offset'] . ':' .
+			$this->watermark['y_offset'] . ':' .
+			$this->watermark['scale']
+		);
 	}
 }

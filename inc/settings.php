@@ -19,7 +19,7 @@ class Optml_Settings {
 		'admin_bar_item' => 'enabled',
 		'lazyload'       => 'disabled',
 		'quality'        => 'auto',
-		'wm_id'          => null,
+		'wm_id'          => 0,
 		'wm_opacity'     => 1,
 		'wm_position'    => Optml_Image::GRAVITY_CENTER,
 		'wm_x'           => 0,
@@ -72,13 +72,21 @@ class Optml_Settings {
 					break;
 				case 'max_width':
 				case 'max_height':
+				case 'max_height':
+				case 'max_height':
 					$sanitized_value = $this->to_bound_integer( $value, 100, 5000 );
 					break;
 				case 'quality':
 					$sanitized_value = $this->to_map_values( $value, array( 'low_c', 'medium_c', 'high_c', 'auto' ), 'auto' );
 					break;
 				case 'wm_id':
-					$sanitized_value = $this->to_positive_integer( $value );
+					$sanitized_value = intval( $value );
+					break;
+				case 'wm_opacity':
+				case 'wm_scale':
+				case 'wm_x':
+				case 'wm_y':
+					$sanitized_value = floatval( $value );
 					break;
 				default:
 					$sanitized_value = '';
@@ -262,11 +270,11 @@ class Optml_Settings {
 		) {
 			return false;
 		}
-		$options         = $this->options;
-		$options[ $key ] = $value;
-		$update          = update_option( $this->namespace, $options );
+		$opt         = $this->options;
+		$opt[ $key ] = $value;
+		$update          = update_option( $this->namespace, $opt, false );
 		if ( $update ) {
-			$this->options = $options;
+			$this->options = $opt;
 		}
 
 		return $update;

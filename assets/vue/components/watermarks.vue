@@ -87,7 +87,7 @@
                     <div class="columns">
                         <div class="field column is-narrow">
                             <div class="select">
-                                <select title="Watermark Selection" v-model="watermarkSettings.id" @change="selectWatermark()">
+                                <select title="Watermark Selection" v-model="selectedWatermark" @change="selectWatermark()">
                                     <option value="0">No watermark</option>
                                     <option v-for="(item, index) in watermarkData" :value="item.ID">{{item.post_title}}</option>
                                 </select>
@@ -242,7 +242,7 @@
                                 </a>
                             </p>
                             <p class="control ">
-                                <input v-model="watermarkSettings.offset_x" class="input is-small" type="number">
+                                <input v-model="watermarkX" class="input is-small" type="number">
                             </p>
                         </div>
                         <div class="field column is-narrow has-addons">
@@ -252,7 +252,7 @@
                                 </a>
                             </p>
                             <p class="control ">
-                                <input v-model="watermarkSettings.offset_y" class="input is-small" type="number">
+                                <input v-model="watermarkY" class="input is-small" type="number">
                             </p>
                         </div>
                     </div>
@@ -312,20 +312,14 @@
 				error_message: '',
 				home_url: optimoleDashboardApp.home_url,
 				strings: optimoleDashboardApp.strings.watermarks,
+				selectedWatermark: 0,
 				watermarkData: [{
 					ID: 1,
 					post_title: '',
 					post_mime_type: '',
 					guid: '',
 				},],
-                watermarkSettings: {
-					id: 0,
-					opacity: 1,
-                    position: 'ce',
-                    offset_x: 0,
-                    offset_y: 0,
-                    scale: 1
-                },
+                watermarkSettings: this.$store.state.site_settings.watermark,
                 newData: {}
 			}
 		},
@@ -334,6 +328,7 @@
 				this.loading = false;
 				return;
 			}
+			this.selectedWatermark = this.watermarkSettings.id
 			//this.doProgressBar();
 			this.$store.dispatch('retrieveWatermarks', {component: this});
 		},
@@ -341,17 +336,18 @@
 	        watermarkOpacity: {
 	        	set( value ) {
 	        		if ( parseInt( value ) < 0 ) {
-	        			this.watermarkSettings.opacity = 0;
+				        this.$store.commit('updateWatermark', { opacity: 0 })
 	        			this.newData.wm_opacity = this.watermarkSettings.opacity
 	        			return;
                     }
 			        if ( parseInt( value ) > 100 ) {
-				        this.watermarkSettings.opacity = 1;
+				        opacity = 1;
+				        this.$store.commit('updateWatermark', { opacity: 1 })
 				        this.newData.wm_opacity = this.watermarkSettings.opacity
 				        return;
 			        }
 
-			        this.watermarkSettings.opacity = parseFloat( parseInt( value ) / 100 );
+			        this.$store.commit('updateWatermark', { opacity: parseFloat( parseInt( value ) / 100 ) })
 			        this.newData.wm_opacity = this.watermarkSettings.opacity
                 },
                 get() {
@@ -361,23 +357,41 @@
 	        watermarkScale: {
 		        set( value ) {
 			        if ( parseInt( value ) < 0 ) {
-				        this.watermarkSettings.scale = 0;
+				        this.$store.commit('updateWatermark', { scale: 0 })
 				        this.newData.wm_scale = this.watermarkSettings.scale
 				        return;
 			        }
 			        if ( parseInt( value ) > 300 ) {
-				        this.watermarkSettings.scale = 3;
+				        this.$store.commit('updateWatermark', { scale: 3 })
 				        this.newData.wm_scale = this.watermarkSettings.scale
 				        return;
 			        }
 
-			        this.watermarkSettings.scale = parseFloat( parseInt( value ) / 100 );
+			        this.$store.commit('updateWatermark', { scale: parseFloat( parseInt( value ) / 100 ) })
 			        this.newData.wm_scale = this.watermarkSettings.scale
 		        },
 		        get() {
 			        return Math.round( this.watermarkSettings.scale * 100 )
 		        }
-	        }
+	        },
+            watermarkX: {
+	            set( value ) {
+		            this.$store.commit('updateWatermark', { x_offset: parseInt( value ) })
+		            this.newData.wm_x = this.watermarkSettings.x_offset
+	            },
+	            get() {
+		            return this.watermarkSettings.x_offset
+	            }
+            },
+            watermarkY: {
+	            set( value ) {
+		            this.$store.commit('updateWatermark', { y_offset: parseInt( value ) })
+		            this.newData.wm_y = this.watermarkSettings.y_offset
+	            },
+	            get() {
+		            return this.watermarkSettings.y_offset
+	            }
+            }
         },
 		methods: {
 			saveChanges: function () {
@@ -386,11 +400,14 @@
 				});
 			},
 			changePosition: function (value) {
-				this.watermarkSettings.position = value;
+				this.$store.commit('updateWatermark', { position: value })
 				this.newData.wm_position = this.watermarkSettings.position;
 			},
             selectWatermark: function() {
 	            this.newData.wm_id = this.watermarkSettings.id;
+            },
+            isSelectedWatermark(id) {
+				return this.$store.state.site_settings.watermark.id === id
             },
 			isActivePosition(pos) {
 				return this.watermarkSettings.position === pos;

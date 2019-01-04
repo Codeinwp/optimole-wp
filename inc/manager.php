@@ -201,8 +201,14 @@ final class Optml_Manager {
 			$urls
 		);
 
-		$html     = $this->process_images_from_content( $html );
-		return str_replace( array_keys( $urls ), array_values( $urls ), $html );
+		$html = $this->process_images_from_content( $html );
+
+		foreach ( $urls as $origin => $replace ) {
+			if ( strpos( $html, '/' . $origin ) === false ) {
+				$html = str_replace( $origin, $replace, $html );
+			}
+		}
+		return $html;
 	}
 
 	/**

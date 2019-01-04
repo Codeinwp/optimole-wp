@@ -113,6 +113,12 @@ class Optml_Image {
 	 */
 	private $height = null;
 	/**
+	 * Watermark for the image.
+	 *
+	 * @var Optml_Watermark Watermark.
+	 */
+	private $watermark = null;
+	/**
 	 * Source image url.
 	 *
 	 * @var string Source image.
@@ -135,6 +141,9 @@ class Optml_Image {
 		$this->width->set( $args['width'] );
 		$this->height->set( $args['height'] );
 		$this->quality->set( $args['quality'] );
+		if ( isset( $args['watermark_id'] ) && $args['watermark_id'] != 0 ) {
+			$this->watermark->set( $args['watermark_id'] );
+		}
 
 		$this->source_url = $url;
 
@@ -147,6 +156,7 @@ class Optml_Image {
 		$this->width         = new Optml_Width( 'auto' );
 		$this->height        = new Optml_Height( 'auto' );
 		$this->quality       = new Optml_Quality( 'auto' );
+		$this->watermark       = new Optml_Watermark();
 		$this->focus_point_x = 0;
 		$this->focus_point_y = 0;
 	}
@@ -169,9 +179,9 @@ class Optml_Image {
 		if ( $this->quality->get() > 0 || $this->quality->get() === 'eco' ) {
 			$path_parts[] = $this->quality->toString();
 		}
-		if ( ! empty( $this->watermark ) && is_array( $this->watermark ) ) {
-			$path_parts[] = sprintf( 'wm:%s', $this->watermark->toString() );
-		}
+		// if ( ! empty( $this->watermark->get() ) && is_array( $this->watermark->get() ) && isset( $this->watermark->get()['id'] ) && $this->watermark->get()['id'] != 0 ) {
+		// $path_parts[] = $this->watermark->toString();
+		// }
 		$path = '/' . $this->source_url;
 
 		if ( ! empty( $path_parts ) ) {

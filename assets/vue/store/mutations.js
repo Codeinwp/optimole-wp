@@ -33,6 +33,13 @@ const updateSettings = ( state, data ) => {
 
 };
 
+const updateWatermark = ( state, data ) => {
+
+	for ( var key in data ) {
+		state.site_settings.watermark[key] = data[key]; }
+
+};
+
 export default {
 	toggleLoading,
 	toggleConnecting,
@@ -43,5 +50,6 @@ export default {
 	updateSampleRate,
 	restApiNotWorking,
 	updateSettings,
+	updateWatermark,
 	updateOptimizedImages
 };

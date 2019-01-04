@@ -177,8 +177,6 @@ class Test_Replacer extends WP_UnitTestCase {
 		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 1 ) );
 		$this->assertTrue( ! empty( $response ) );
 		$this->assertTrue( is_array( $response ) );
-
-		var_dump( $response );
 	}
 
 }
