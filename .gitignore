@@ -7,3 +7,6 @@ vendor
 bin
 composer.lock
 package-lock.json
+code_quality
+build
+cc-test-reporter

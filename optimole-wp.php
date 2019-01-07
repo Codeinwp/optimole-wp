@@ -26,14 +26,14 @@ function optml_autoload( $class ) {
 	if ( strpos( $class, $prefix ) !== 0 ) {
 		return;
 	}
-	$file = str_replace( $prefix . '_', '', $class );
-
-	$file = strtolower( $file );
-	$file = dirname( __FILE__ ) . '/inc/' . $file . '.php';
-	if ( file_exists( $file ) ) {
-		require $file;
+	foreach ( array( '/inc/', '/inc/traits/', '/inc/image_properties/' ) as $folder ) {
+		$file = str_replace( $prefix . '_', '', $class );
+		$file = strtolower( $file );
+		$file = dirname( __FILE__ ) . $folder . $file . '.php';
+		if ( file_exists( $file ) ) {
+			require $file;
+		}
 	}
-
 }
 
 /**

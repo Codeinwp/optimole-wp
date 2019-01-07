@@ -9,6 +9,8 @@
 
 /**
  * Class Optml_Rest
+ *
+ * @codeCoverageIgnore
  */
 class Optml_Rest {
 	/**
@@ -31,6 +33,30 @@ class Optml_Rest {
 	 */
 	public function register() {
 
+		$this->register_service_routes();
+
+		register_rest_route(
+			$this->namespace,
+			'/update_option',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'update_option' ),
+				),
+			)
+		);
+
+		$this->register_image_routes();
+		$this->register_watermark_routes();
+	}
+
+	/**
+	 * Method to register service specific routes.
+	 */
+	public function register_service_routes() {
 		register_rest_route(
 			$this->namespace,
 			'/connect',
@@ -82,19 +108,12 @@ class Optml_Rest {
 				),
 			)
 		);
-		register_rest_route(
-			$this->namespace,
-			'/update_option',
-			array(
-				array(
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => array( $this, 'update_option' ),
-				),
-			)
-		);
+	}
+
+	/**
+	 * Method to register image specific routes.
+	 */
+	public function register_image_routes() {
 		register_rest_route(
 			$this->namespace,
 			'/poll_optimized_images',
@@ -118,6 +137,51 @@ class Optml_Rest {
 						return current_user_can( 'manage_options' );
 					},
 					'callback'            => array( $this, 'get_sample_rate' ),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Method to register watermark specific routes.
+	 */
+	public function register_watermark_routes() {
+		register_rest_route(
+			$this->namespace,
+			'/poll_watermarks',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'poll_watermarks' ),
+				),
+			)
+		);
+		register_rest_route(
+			$this->namespace,
+			'/add_watermark',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'add_watermark' ),
+				),
+			)
+		);
+		register_rest_route(
+			$this->namespace,
+			'/remove_watermark',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'remove_watermark' ),
 				),
 			)
 		);
@@ -250,11 +314,11 @@ class Optml_Rest {
 				'id'     => - 1,
 			);
 		}
-		$id = $image_result->posts[ array_rand( $image_result->posts, 1 ) ];
+		$attachment_id = $image_result->posts[ array_rand( $image_result->posts, 1 ) ];
 
-		$original_image_url = wp_get_attachment_image_url( $id, 'full' );
+		$original_image_url = wp_get_attachment_image_url( $attachment_id, 'full' );
 
-		$metadata = wp_get_attachment_metadata( $id );
+		$metadata = wp_get_attachment_metadata( $attachment_id );
 
 		$width  = 'auto';
 		$height = 'auto';
@@ -266,7 +330,7 @@ class Optml_Rest {
 
 		return array(
 			'url'    => $original_image_url,
-			'id'     => $id,
+			'id'     => $attachment_id,
 			'width'  => $width,
 			'height' => $height,
 		);
@@ -275,6 +339,7 @@ class Optml_Rest {
 	/**
 	 * Disconnect from optimole service.
 	 *
+	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 * @param WP_REST_Request $request disconnect rest request.
 	 */
 	public function disconnect( WP_REST_Request $request ) {
@@ -304,9 +369,56 @@ class Optml_Rest {
 	}
 
 	/**
+	 * Get watermarks from API.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function poll_watermarks( WP_REST_Request $request ) {
+		$api_key = $request->get_param( 'api_key' );
+		$request = new Optml_Api();
+		$watermarks  = $request->get_watermarks( $api_key );
+		if ( ! isset( $watermarks['watermarks'] ) || empty( $watermarks['watermarks'] ) ) {
+			return $this->response( array() );
+		}
+		$final_images = array_splice( $watermarks['watermarks'], 0, 10 );
+		return $this->response( $final_images );
+	}
+
+	/**
+	 * Add watermark.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function add_watermark( WP_REST_Request $request ) {
+		$file = $request->get_file_params();
+		$api_key = $request->get_param( 'api_key' );
+		$request = new Optml_Api();
+		return $this->response( $request->add_watermark( $file, $api_key ) );
+	}
+
+	/**
+	 * Remove watermark.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function remove_watermark( WP_REST_Request $request ) {
+		$post_id = $request->get_param( 'postID' );
+		$api_key = $request->get_param( 'api_key' );
+		$request = new Optml_Api();
+		return $this->response( $request->remove_watermark( $post_id, $api_key ) );
+	}
+
+	/**
 	 * Update options method.
 	 *
 	 * @param WP_REST_Request $request option update rest request.
+	 * @return WP_REST_Response
 	 */
 	public function update_option( WP_REST_Request $request ) {
 		$new_settings = $request->get_param( 'settings' );
@@ -316,39 +428,7 @@ class Optml_Rest {
 		}
 
 		$settings = new Optml_Settings();
-		// TODO Move validation in settings model.
-		$sanitized = array();
-		foreach ( $new_settings as $key => $value ) {
-			switch ( $key ) {
-				case 'admin_bar_item':
-				case 'lazyload':
-				case 'image_replacer':
-					$sanitized_value = ( $value === 'enabled' || $value === 'disabled' ) ? $value : 'enabled';
-					break;
-				case 'max_width':
-				case 'max_height':
-					$sanitized_value = absint( $value );
-					if ( $sanitized_value < 100 ) {
-						$sanitized_value = 100;
-					}
-					if ( $sanitized_value > 5000 ) {
-						$sanitized_value = 5000;
-					}
-
-					break;
-				case 'quality':
-					$sanitized_value = ( $value === 'low_c' || $value === 'medium_c' || $value === 'auto' || $value === 'high_c' ) ? $value : 'auto';
-					break;
-				default:
-					$sanitized_value = '';
-					break;
-			}
-			if ( empty( $sanitized_value ) ) {
-				continue;
-			}
-			$sanitized[ $key ] = $sanitized_value;
-			$settings->update( $key, $sanitized_value );
-		}
+		$sanitized = $settings->parse_settings( $new_settings );
 
 		return $this->response( $sanitized );
 	}

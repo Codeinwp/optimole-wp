@@ -47,7 +47,9 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		] );
 
-		Optml_Replacer::instance()->init();
+		Optml_Url_Replacer::instance()->init();
+		Optml_Tag_Replacer::instance()->init();
+		Optml_Manager::instance()->init();
 
 		self::$sample_post        = self::factory()->post->create( [
 				'post_title'   => 'Test post',
@@ -60,56 +62,55 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	public function test_image_tags() {
 
-		$found_images = Optml_Replacer::parse_images_from_html( self::IMG_TAGS );
+		$found_images = Optml_Manager::parse_images_from_html( self::IMG_TAGS );
 
 		$this->assertCount( 4, $found_images );
 		$this->assertCount( 1, $found_images['img_url'] );
 
-		$replaced_content = Optml_Replacer::instance()->filter_the_content( self::IMG_TAGS );
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( '/2000/', $replaced_content );
-		$this->assertContains( '/1200/', $replaced_content );
+		$this->assertContains( '/w:2000/', $replaced_content );
+		$this->assertContains( '/h:1200/', $replaced_content );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( 'http://example.org', $replaced_content );
+		$this->assertContains( 'http://example.org', $replaced_content );
 	}
 
 	public function test_optimization_url() {
-		$replaced_content = Optml_Replacer::instance()->replace_urls( self::IMG_TAGS );
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( 'http://example.org', $replaced_content );
+		$this->assertContains( 'http://example.org', $replaced_content );
 
-		$replaced_content = Optml_Replacer::instance()->replace_urls( self::IMG_URLS );
+		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
 
-		$this->assertEquals( substr_count( $replaced_content, 'i.optimole.com' ), 3 );
+		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
 	}
 
 	public function test_style_replacement() {
-		$replaced_content = Optml_Replacer::instance()->replace_urls( self::CSS_STYLE );
+		$replaced_content = Optml_Manager::instance()->replace_content( self::CSS_STYLE );
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( 'http://example.org', $replaced_content );
+		$this->assertContains( 'http://example.org', $replaced_content );
 
 	}
 
 	public function test_non_allowed_extensions() {
-		$replaced_content = Optml_Replacer::instance()->replace_urls( ( self::CSS_STYLE . self::IMG_TAGS . self::WRONG_EXTENSION ) );
+		$replaced_content = Optml_Manager::instance()->replace_content( ( self::CSS_STYLE . self::IMG_TAGS . self::WRONG_EXTENSION ) );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		//Test if wrong extension is still present in the output.
 		$this->assertContains( 'http://example.org/wp-content/themes/twentyseventeen/assets/images/header.gif', $replaced_content );
-
 	}
 
 	public function test_elementor_data() {
-		$replaced_content = Optml_Replacer::instance()->replace_urls( ( self::ELEMENTOR_DATA ), 'elementor' );
+		$replaced_content = Optml_Manager::instance()->replace_content( ( self::ELEMENTOR_DATA ), 'elementor' );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		//Test if wrong extension is still present in the output.
 		$this->assertNotContains( "https:\/\/www.codeinwp.com\/wp-content", $replaced_content );
 	}
 
 	public function test_max_size_height() {
-		$new_url = Optml_Replacer::instance()->get_imgcdn_url( 'http://example.org/wp-content/themes/test/assets/images/header.png', [
+		$new_url = Optml_Manager::instance()->replace_content( 'http://example.org/wp-content/themes/test/assets/images/header.png', [
 			'width'  => 99999,
 			'height' => 99999
 		] );
@@ -118,17 +119,15 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertNotContains( '99999', $new_url );
 
 	}
-
+//
 	public function test_post_content() {
-		Optml_Replacer::instance()->init();
-
 		$content = apply_filters( 'the_content', get_post_field( 'post_content', self::$sample_post ) );
 
 		$this->assertContains( 'i.optimole.com', $content );
 	}
 
 	public function test_strip_image_size() {
-		$replaced_content = Optml_Replacer::instance()->replace_urls( self::IMAGE_SIZE_DATA );
+		$replaced_content = Optml_Manager::instance()->replace_content( self::IMAGE_SIZE_DATA );
 
 		//Test fake sample image size.
 		$this->assertContains( 'i.optimole.com', $replaced_content );
@@ -136,17 +135,18 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		//Test valid wordpress image size, it should strip the size suffix.
 		$attachement_url  = wp_get_attachment_image_src( self::$sample_attachement, 'medium' );
-		$replaced_content = Optml_Replacer::instance()->replace_urls( $attachement_url[0] );
+		$replaced_content = Optml_Manager::instance()->replace_content( $attachement_url[0] );
 
 		$this->assertNotContains( '282x123', $replaced_content );
 	}
 
-
 	public function test_custom_domain() {
 		define( 'OPTML_SITE_MIRROR', 'https://mycnd.com' );
-		Optml_Replacer::instance()->init();
+		Optml_Url_Replacer::instance()->init();
+		Optml_Tag_Replacer::instance()->init();
+		Optml_Manager::instance()->init();
 
-		$replaced_content = Optml_Replacer::instance()->replace_urls( self::IMG_TAGS );
+		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_TAGS );
 
 		//Test custom source.
 		$this->assertContains( 'i.optimole.com', $replaced_content );
@@ -154,6 +154,29 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertNotContains( 'example.org', $replaced_content );
 		$this->assertContains( 'mycnd.com', $replaced_content );
 
+	}
+
+	public function test_filter_sizes_attr() {
+
+		global $wp_current_filter;
+		$wp_current_filter = array( 'the_content' );
+
+		$sizes = array(
+			'width' => 1000,
+			'height' => 1000
+		);
+		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
+		$this->assertContains('(max-width: 1000px) 100vw, 1000px', $response);
+		$wp_current_filter = array();
+		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
+		$this->assertTrue( ! empty( $response ) );
+		$this->assertTrue( is_array( $response ) );
+
+		global $content_width;
+		$content_width = 5000;
+		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 1 ) );
+		$this->assertTrue( ! empty( $response ) );
+		$this->assertTrue( is_array( $response ) );
 	}
 
 }

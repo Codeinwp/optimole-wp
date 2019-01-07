@@ -4,6 +4,7 @@
  * Class Optml_Settings.
  */
 class Optml_Settings {
+	use Optml_Normalizer;
 
 	/**
 	 * Default settings schema.
@@ -18,6 +19,12 @@ class Optml_Settings {
 		'admin_bar_item' => 'enabled',
 		'lazyload'       => 'disabled',
 		'quality'        => 'auto',
+		'wm_id'          => 0,
+		'wm_opacity'     => 1,
+		'wm_position'    => Optml_Image::GRAVITY_CENTER,
+		'wm_x'           => 0,
+		'wm_y'           => 0,
+		'wm_scale'       => 0,
 		'image_replacer' => 'enabled',
 	);
 	/**
@@ -40,11 +47,58 @@ class Optml_Settings {
 		$this->namespace = OPTML_NAMESPACE . '_settings';
 		$this->default_schema = apply_filters( 'optml_default_settings', $this->default_schema );
 		$this->options   = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
-		if ( defined( 'OPTIML_ENABLED_MU' ) && OPTIML_ENABLED_MU && defined( 'OPTIML_MU_SITE_ID' ) && ! empty( OPTIML_MU_SITE_ID ) ) {
-			switch_to_blog( OPTIML_MU_SITE_ID );
+		if ( defined( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && $this->to_boolean( constant( 'OPTIML_ENABLED_MU' ) ) && constant( 'OPTIML_MU_SITE_ID' ) ) {
+			switch_to_blog( constant( 'OPTIML_MU_SITE_ID' ) );
 			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 			restore_current_blog();
 		}
+	}
+
+	/**
+	 * Process settings.
+	 *
+	 * @param array $new_settings List of settings.
+	 *
+	 * @return array
+	 */
+	public function parse_settings( $new_settings ) {
+		$sanitized = array();
+		foreach ( $new_settings as $key => $value ) {
+			switch ( $key ) {
+				case 'admin_bar_item':
+				case 'lazyload':
+				case 'image_replacer':
+					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
+					break;
+				case 'max_width':
+				case 'max_height':
+				case 'max_height':
+				case 'max_height':
+					$sanitized_value = $this->to_bound_integer( $value, 100, 5000 );
+					break;
+				case 'quality':
+					$sanitized_value = $this->to_map_values( $value, array( 'low_c', 'medium_c', 'high_c', 'auto' ), 'auto' );
+					break;
+				case 'wm_id':
+					$sanitized_value = intval( $value );
+					break;
+				case 'wm_opacity':
+				case 'wm_scale':
+				case 'wm_x':
+				case 'wm_y':
+					$sanitized_value = floatval( $value );
+					break;
+				default:
+					$sanitized_value = '';
+					break;
+			}
+			if ( empty( $sanitized_value ) ) {
+				continue;
+			}
+			$sanitized[ $key ] = $sanitized_value;
+			$this->update( $key, $sanitized_value );
+		}
+		return $sanitized;
 	}
 
 	/**
@@ -104,6 +158,23 @@ class Optml_Settings {
 			'image_replacer' => $this->get( 'image_replacer' ),
 			'max_width'      => $this->get( 'max_width' ),
 			'max_height'     => $this->get( 'max_height' ),
+			'watermark'      => $this->get_watermark(),
+		);
+	}
+
+	/**
+	 * Return an watermark array.
+	 *
+	 * @return array
+	 */
+	public function get_watermark() {
+		return array(
+			'id'       => $this->get( 'wm_id' ),
+			'opacity'  => $this->get( 'wm_opacity' ),
+			'position' => $this->get( 'wm_position' ),
+			'x_offset' => $this->get( 'wm_x' ),
+			'y_offset' => $this->get( 'wm_y' ),
+			'scale'    => $this->get( 'wm_scale' ),
 		);
 	}
 
@@ -136,14 +207,7 @@ class Optml_Settings {
 	 */
 	public function is_enabled() {
 		$status = $this->get( 'image_replacer' );
-		if ( $status === 'disabled' ) {
-			return false;
-		}
-		if ( empty( $status ) ) {
-			return false;
-		}
-
-		return true;
+		return $this->to_boolean( $status );
 	}
 
 	/**
@@ -153,14 +217,7 @@ class Optml_Settings {
 	 */
 	public function use_lazyload() {
 		$status = $this->get( 'lazyload' );
-		if ( $status === 'disabled' ) {
-			return false;
-		}
-		if ( empty( $status ) ) {
-			return false;
-		}
-
-		return true;
+		return $this->to_boolean( $status );
 	}
 
 	/**
@@ -187,7 +244,6 @@ class Optml_Settings {
 	 * @return bool Reset action status.
 	 */
 	public function reset() {
-
 		$update = update_option( $this->namespace, $this->default_schema );
 		if ( $update ) {
 			$this->options = $this->default_schema;
@@ -209,16 +265,16 @@ class Optml_Settings {
 			return false;
 		}
 		// If we try to update from a website which is not the main OPTML blog, bail.
-		if ( defined( 'OPTIML_ENABLED_MU' ) && OPTIML_ENABLED_MU && defined( 'OPTIML_MU_SITE_ID' ) && ! empty( OPTIML_MU_SITE_ID ) ) {
-			if ( intval( OPTIML_MU_SITE_ID ) !== get_current_blog_id() ) {
-				return false;
-			}
+		if ( defined( 'OPTIML_ENABLED_MU' ) && constant( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && constant( 'OPTIML_MU_SITE_ID' ) &&
+			 intval( constant( 'OPTIML_MU_SITE_ID' ) ) !== get_current_blog_id()
+		) {
+			return false;
 		}
-		$options         = $this->options;
-		$options[ $key ] = $value;
-		$update          = update_option( $this->namespace, $options );
+		$opt         = $this->options;
+		$opt[ $key ] = $value;
+		$update          = update_option( $this->namespace, $opt, false );
 		if ( $update ) {
-			$this->options = $options;
+			$this->options = $opt;
 		}
 
 		return $update;

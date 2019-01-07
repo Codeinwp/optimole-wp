@@ -50,7 +50,7 @@ module.exports = {
 					'css-loader',
 					'sass-loader'
 				]
-			},
+		},
 			{
 				test: /\.js$/,
 				exclude: /(node_modules|bower_components)/,
@@ -63,20 +63,20 @@ module.exports = {
 							"polyfill": false,
 							"regenerator": true,
 							"moduleName": "babel-runtime"
-						}]
+					}]
 					]
 				}
-			},
+		},
 			{
 				enforce: 'pre',
 				test: /\.vue$/,
 				loader: 'eslint-loader',
 				exclude: /node_modules/
-			},
+		},
 			{
 				test: /\.vue$/,
 				loader: 'vue-loader'
-			}
+		}
 		]
 	},
 
