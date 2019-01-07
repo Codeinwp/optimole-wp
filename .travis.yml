@@ -18,7 +18,7 @@ jobs:
       php: 7.1
       name: "Code climate"
       env:
-        - CC_TEST_REPORTER_ID= b6145e78ee9b35206e3eec359227b1645923db67fe0459b437cfe1589b5ab2b8
+        - CC_TEST_REPORTER_ID=b6145e78ee9b35206e3eec359227b1645923db67fe0459b437cfe1589b5ab2b8
         - GIT_COMMITTED_AT=$(git log -1 --pretty=format:%ct);
       before_script:
         - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
