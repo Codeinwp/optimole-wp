@@ -17,6 +17,7 @@ Dockerfile
 vue_src
 tests
 phpunit.xml
+phpunit-cc.xml
 npm-debug.log
 dist
 artifact

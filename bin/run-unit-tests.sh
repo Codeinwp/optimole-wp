@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-composer global require "phpunit/phpunit=4.8.*|5.7.*"
-bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
+#composer global require "phpunit/phpunit=4.8.*|5.7.*"
+#bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
 phpunit --version
 php -v
-NO_COVERAGE=$([ -z $CC_TEST_REPORTER_ID ] && echo " --no-coverage" || echo "")
+PHPUNIT_FILE=$([ -z $CC_TEST_REPORTER_ID ] && echo " phpunit.xml" || echo "phpunit-cc.xml --coverage-text")
 
-phpunit  --configuration phpunit.xml --coverage-text $NO_COVERAGE || exit 1
-WP_MULTISITE=1 phpunit  --configuration phpunit.xml --coverage-text $NO_COVERAGE || exit 1
+phpunit --configuration $PHPUNIT_FILE || exit 1
+WP_MULTISITE=1 phpunit  --configuration $PHPUNIT_FILE || exit 1
