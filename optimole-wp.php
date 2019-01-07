@@ -16,6 +16,7 @@
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
+
 function optml_autoload( $class ) {
 	$prefix = 'Optml';
 	if ( strpos( $class, $prefix ) !== 0 ) {
