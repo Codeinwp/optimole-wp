@@ -1,16 +1,16 @@
 {
   "name": "codeinwp/optimole-wp",
-  "description": "Image optimization WordPress.",
+  "description": "Cloud-based image optimization service -  WordPress Integration",
   "homepage": "https://optimole.com",
   "license": "GPL-2.0+",
+  "version": "1.1.2",
   "authors": [
     {
-      "name": "ThemeIsle Team",
-      "email": "friends@themeisle.com.com",
-      "homepage": "https://themeisle.com"
+      "name": "Optimole Team",
+      "email": "friends@optimole.com.com",
+      "homepage": "https://optimole.com"
     }
   ],
-  "type": "wordpress-plugin",
   "support": {
     "issues": "https://github.com/Codeinwp/optimole-wp/issues",
     "source": "https://github.com/Codeinwp/optimole-wp"
@@ -21,11 +21,16 @@
     ]
   },
   "require-dev": {
-      "phpmd/phpmd": "^2.6",
-      "squizlabs/php_codesniffer": "^3.3",
-      "wp-coding-standards/wpcs": "^1.2",
-      "phpunit/phpunit": "5.7.9",
-      "dealerdirect/phpcodesniffer-composer-installer": "^0.5.0"
+    "phpmd/phpmd": "^2.6",
+    "squizlabs/php_codesniffer": "^3.3",
+    "wp-coding-standards/wpcs": "^1.2",
+    "dealerdirect/phpcodesniffer-composer-installer": "^0.5.0"
+  },
+  "scripts": {
+    "format": "phpcbf --standard=phpcs.xml --report-summary --report-source",
+    "phpcs": "phpcs --standard=phpcs.xml",
+    "phpmd": "phpmd inc text phpmd.xml",
+    "lint": "composer run-script phpcs"
   },
   "require": {
     "codeinwp/themeisle-sdk": "^3.0"

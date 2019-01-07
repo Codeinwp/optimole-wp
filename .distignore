@@ -10,6 +10,7 @@ phpcs.xml
 node_modules
 logs
 package.json
+package-lock.json
 bin
 Dockerfile
 .env

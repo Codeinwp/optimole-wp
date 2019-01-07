@@ -1,0 +1,74 @@
+{
+  "plugins": [
+    [
+      "@semantic-release/commit-analyzer",
+      {
+        "config": "conventional-changelog-themeisle",
+        "releaseRules": [
+          {
+            "header": "/Release minor/",
+            "release": "minor"
+          },
+          {
+            "header": "/Release major/",
+            "release": "major"
+          },
+          {
+            "header": "/Release/",
+            "release": "patch"
+          },
+          {
+            "type": "feat",
+            "release": "patch"
+          }
+        ]
+      }
+    ],
+    [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "themeisle"
+      }
+    ],
+    [
+      "@semantic-release/changelog",
+      {
+        "changelogFile": "CHANGELOG.md"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": " replace-in-file \"== Changelog ==\" \"== Changelog ==\n\n${nextRelease.notes}\" readme.txt"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
+        "prepareCmd": "grunt version::${nextRelease.version}"
+      }
+    ],
+    [
+      "@semantic-release/git",
+      {
+        "assets": [
+          "CHANGELOG.md",
+          "composer.json",
+          "package-lock.json",
+          "readme.txt",
+          "optimole-wp.php",
+          "package.json"
+        ]
+      }
+    ],
+    "@semantic-release/github",
+    {
+      "assets": [
+        {
+          "path": "artifact/optimole-wp.zip",
+          "label": "Zip file"
+        }
+      ]
+    }
+  ]
+}

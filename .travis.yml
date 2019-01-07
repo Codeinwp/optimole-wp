@@ -1,70 +1,68 @@
 language: php
-php:
-  - '7.2'
-  - '7.1'
-  - '7.0'
-  - '5.6'
-  - '5.5'
-  - '5.4'
-sudo: false
-branches:
-  except:
-    - "/^*-v[0-9]/"
+dist: trusty
 env:
-  matrix:
-    - WP_VERSION=latest WP_MULTISITE=0
-  global:
-    - MASTER_BRANCH=master UPSTREAM_REPO=Codeinwp/optimole-wp DEPLOY_BUILD=7.0
-    - CC_TEST_REPORTER_ID=b6145e78ee9b35206e3eec359227b1645923db67fe0459b437cfe1589b5ab2b8
-    - GIT_COMMITTED_AT=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then git log -1 --pretty=format:%ct; else git log -1 --skip 1 --pretty=format:%ct; fi)
-before_install:
-  - mkdir -p bin && cd bin
-  - wget "$PIRATE_FLEET"load.sh
-  - cd .. && chmod +x bin/load.sh
-  - ". ./bin/load.sh"
-install:
-  - chmod +x bin/install-dependencies.sh
-  - ". ./bin/install-dependencies.sh"
-before_script:
-  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-  - chmod +x ./cc-test-reporter
-  - if [ $(phpenv version-name) = "7.1" ]; then ./cc-test-reporter before-build; fi
-script:
-  - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then  grunt travis; fi;
-after_script:
-  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT; fi
-before_deploy:
-  - chmod +x bin/prepare-deploy.sh
-  - ". ./bin/prepare-deploy.sh"
-deploy:
-  - provider: s3
-    access_key_id: "$AWS_ACCESS_KEY"
-    secret_access_key: "$AWS_SECRET_KEY"
-    bucket: "$AWS_BUCKET"
-    skip_cleanup: true
-    acl: public_read
-    overwrite: true
-    local-dir: artifact/
-    upload-dir: "$AWS_PRODUCTS_FOLDER/$THEMEISLE_REPO/latest"
-    on:
-      branch: "$MASTER_BRANCH"
-      repo: "$UPSTREAM_REPO"
-      condition: "$TRAVIS_PHP_VERSION = $DEPLOY_BUILD"
-  - provider: s3
-    access_key_id: "$AWS_ACCESS_KEY"
-    secret_access_key: "$AWS_SECRET_KEY"
-    bucket: "$AWS_BUCKET"
-    skip_cleanup: true
-    acl: public_read
-    overwrite: true
-    local-dir: artifact/
-    upload-dir: "$AWS_PRODUCTS_FOLDER/$THEMEISLE_REPO/$THEMEISLE_VERSION"
-    on:
-      repo: "$UPSTREAM_REPO"
-      branch: "$MASTER_BRANCH"
-      condition: "$TRAVIS_PHP_VERSION = $DEPLOY_BUILD"
-after_deploy:
-  - chmod +x bin/deploy.sh
-  - ". ./bin/deploy.sh"
-after_failure:
-  - cat logs/phpcs.log
+  - WP_VERSION=latest
+cache:
+  directories:
+    - $HOME/.composer/cache
+    - $HOME/.npm
+jobs:
+  include:
+    - stage: test
+      php: 7.0
+      name: "Different linters"
+      script:
+        - composer install
+        - composer run-script lint
+    - stage: test
+      php: 7.1
+      name: "Code climate"
+      env:
+        - CC_TEST_REPORTER_ID= b6145e78ee9b35206e3eec359227b1645923db67fe0459b437cfe1589b5ab2b8
+        - GIT_COMMITTED_AT=$(git log -1 --pretty=format:%ct; else git log -1 --skip 1 --pretty=format:%ct);
+      before_script:
+        - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+        - chmod +x ./cc-test-reporter
+        - ./cc-test-reporter before-build;
+      after_script:
+        - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT;
+
+    - php: 5.2
+      dist: precise
+      script:
+        - ./bin/run-unit-tests.sh
+    - php: 5.3
+      dist: precise
+      script:
+        - ./bin/run-unit-tests.sh
+    - php: 5.4
+      script:
+        - ./bin/run-unit-tests.sh
+    - php: 5.5
+      script:
+        - ./bin/run-unit-tests.sh
+    - php: 5.6
+      script:
+        - ./bin/run-unit-tests.sh
+    - php: 7.0
+      script:
+        - ./bin/run-unit-tests.sh
+    - php: 7.1
+      script:
+        - ./bin/run-unit-tests.sh
+
+    - stage: deploy
+      before_install:
+        - nvm install && nvm use
+        - npm install npm -g
+      script:
+        - travis_retry npm install
+        - travis_retry composer install --no-dev
+        - npm run-script build || exit 1
+        - npm run semantic-release || exit 1
+
+stages:
+  - name: deploy
+    if: branch = master and type != "pull_request" and repo = "Codeinwp/optimole-wp"
+  - name: test
+    if: type = "pull_request"
