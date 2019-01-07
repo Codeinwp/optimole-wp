@@ -14,22 +14,9 @@ jobs:
       script:
         - composer install
         - composer run-script lint
-    - stage: test
-      php: 7.1
-      name: "Code climate"
-      env:
-        - CC_TEST_REPORTER_ID=b6145e78ee9b35206e3eec359227b1645923db67fe0459b437cfe1589b5ab2b8
-        - GIT_COMMITTED_AT=$(git log -1 --skip 1 --pretty=format:%ct);
-      before_script:
-        - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
-        - chmod +x ./cc-test-reporter
-        - ./cc-test-reporter before-build
-      script: skip
-      after_script:
-        - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
-
     - php: 5.2
       dist: precise
+      before_script:
       script:
         - ./bin/run-unit-tests.sh
     - php: 5.3
@@ -49,8 +36,17 @@ jobs:
       script:
         - ./bin/run-unit-tests.sh
     - php: 7.1
+      env:
+        - CC_TEST_REPORTER_ID=b6145e78ee9b35206e3eec359227b1645923db67fe0459b437cfe1589b5ab2b8
+        - GIT_COMMITTED_AT=$(git log -1 --skip 1 --pretty=format:%ct)
+      before_script:
+        - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+        - chmod +x ./cc-test-reporter
+        - ./cc-test-reporter before-build
       script:
         - ./bin/run-unit-tests.sh
+      after_script:
+        - ./cc-test-reporter before-build --exit-code $TRAVIS_TEST_RESULT;
 
     - stage: deploy
       before_install:
