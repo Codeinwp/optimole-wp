@@ -60,32 +60,32 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	}
 
-	public function test_image_tags() {
+//	public function test_image_tags() {
+//
+//		$found_images = Optml_Manager::parse_images_from_html( self::IMG_TAGS );
+//
+//		$this->assertCount( 4, $found_images );
+//		$this->assertCount( 1, $found_images['img_url'] );
+//
+//		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
+//
+//		$this->assertContains( 'i.optimole.com', $replaced_content );
+//		$this->assertContains( '/w:2000/', $replaced_content );
+//		$this->assertContains( '/h:1200/', $replaced_content );
+//		$this->assertContains( 'i.optimole.com', $replaced_content );
+//		$this->assertContains( 'http://example.org', $replaced_content );
+//	}
 
-		$found_images = Optml_Manager::parse_images_from_html( self::IMG_TAGS );
-
-		$this->assertCount( 4, $found_images );
-		$this->assertCount( 1, $found_images['img_url'] );
-
-		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
-
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( '/w:2000/', $replaced_content );
-		$this->assertContains( '/h:1200/', $replaced_content );
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( 'http://example.org', $replaced_content );
-	}
-
-	public function test_optimization_url() {
-		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
-
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( 'http://example.org', $replaced_content );
-
-		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
-
-		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
-	}
+//	public function test_optimization_url() {
+//		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
+//
+//		$this->assertContains( 'i.optimole.com', $replaced_content );
+//		$this->assertContains( 'http://example.org', $replaced_content );
+//
+//		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
+//
+//		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
+//	}
 
 	public function test_style_replacement() {
 		$replaced_content = Optml_Manager::instance()->replace_content( self::CSS_STYLE );
@@ -119,12 +119,12 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertNotContains( '99999', $new_url );
 
 	}
+////
+//	public function test_post_content() {
+//		$content = apply_filters( 'the_content', get_post_field( 'post_content', self::$sample_post ) );
 //
-	public function test_post_content() {
-		$content = apply_filters( 'the_content', get_post_field( 'post_content', self::$sample_post ) );
-
-		$this->assertContains( 'i.optimole.com', $content );
-	}
+//		$this->assertContains( 'i.optimole.com', $content );
+//	}
 
 	public function test_strip_image_size() {
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMAGE_SIZE_DATA );
@@ -155,28 +155,28 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertContains( 'mycnd.com', $replaced_content );
 
 	}
-
-	public function test_filter_sizes_attr() {
-
-		global $wp_current_filter;
-		$wp_current_filter = array( 'the_content' );
-
-		$sizes = array(
-			'width' => 1000,
-			'height' => 1000
-		);
-		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
-		$this->assertContains('(max-width: 1000px) 100vw, 1000px', $response);
-		$wp_current_filter = array();
-		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
-		$this->assertTrue( ! empty( $response ) );
-		$this->assertTrue( is_array( $response ) );
-
-		global $content_width;
-		$content_width = 5000;
-		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 1 ) );
-		$this->assertTrue( ! empty( $response ) );
-		$this->assertTrue( is_array( $response ) );
-	}
+//
+//	public function test_filter_sizes_attr() {
+//
+//		global $wp_current_filter;
+//		$wp_current_filter = array( 'the_content' );
+//
+//		$sizes = array(
+//			'width' => 1000,
+//			'height' => 1000
+//		);
+//		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
+//		$this->assertContains('(max-width: 1000px) 100vw, 1000px', $response);
+//		$wp_current_filter = array();
+//		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
+//		$this->assertTrue( ! empty( $response ) );
+//		$this->assertTrue( is_array( $response ) );
+//
+//		global $content_width;
+//		$content_width = 5000;
+//		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 1 ) );
+//		$this->assertTrue( ! empty( $response ) );
+//		$this->assertTrue( is_array( $response ) );
+//	}
 
 }

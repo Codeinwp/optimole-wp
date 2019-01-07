@@ -6,7 +6,6 @@
         convertNoticesToExceptions="true"
         convertWarningsToExceptions="true"
 >
-
     <filter>
         <whitelist
                 addUncoveredFilesFromWhitelist="true"
@@ -18,11 +17,15 @@
     <logging>
         <log type="coverage-clover" target="build/logs/clover.xml"/>
     </logging>
-    <testsuites>
-        <testsuite name="selector">
-            <directory>./tests/test-generic.php</directory>
-            <directory>./tests/test-replacer.php</directory>
-            <directory>./tests/test-lazyload.php</directory>
+    <testsuites name="General Unit tests ( Requires PHP 5.4) ">
+        <testsuite >
+            <directory phpVersion="5.4.0" phpVersionOperator=">=" prefix="test-"  suffix=".php">./tests/</directory>
+        </testsuite>
+    </testsuites>
+
+    <testsuites name="Bail lower php versions( For PHP lower than 5.4) ">
+        <testsuite>
+            <directory phpVersion="5.4.0" phpVersionOperator="lt" prefix="old-"  suffix=".php">./tests/old/</directory>
         </testsuite>
     </testsuites>
 </phpunit>
