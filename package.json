@@ -22,12 +22,11 @@
     "dev": "cross-env WEBPACK_ENV=dev webpack --progress --colors --watch",
     "readme": "grunt wp_readme_to_markdown:optimole",
     "prebuild": "cross-env WEBPACK_ENV=production webpack && npm run readme",
-    "validate": "composer run-script lint || exit 1",
     "build": "npm run prebuild && grunt deploy"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "validate"
+      "pre-commit": "composer run-script lint || exit 1"
     }
   },
   "devDependencies": {
@@ -63,7 +62,7 @@
     "grunt-plugin-fleet": "github:codeinwp/grunt-plugin-fleet",
     "grunt-version": "^1.3.0",
     "html-loader": "^0.5.1",
-    "husky": "^0.14.3",
+    "husky": "^1.3.1",
     "load-project-config": "~0.2.0",
     "node-sass": "^4.11.0",
     "replace-in-file": "^3.4.2",
