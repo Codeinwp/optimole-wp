@@ -26,7 +26,9 @@
     "build": "npm run prebuild && grunt deploy"
   },
   "husky": {
-    "pre-commit": "validate"
+    "hooks": {
+      "pre-commit": "validate"
+    }
   },
   "devDependencies": {
     "@commitlint/cli": "^7.0.0",

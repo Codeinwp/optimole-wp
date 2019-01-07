@@ -16,7 +16,11 @@
 if ( ! defined( 'WPINC' ) ) {
 	die;
 }
-
+/**
+ * Autoloader function.
+ *
+ * @param string $class Class to load.
+ */
 function optml_autoload( $class ) {
 	$prefix = 'Optml';
 	if ( strpos( $class, $prefix ) !== 0 ) {
