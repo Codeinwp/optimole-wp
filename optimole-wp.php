@@ -48,7 +48,10 @@ function optml() {
 	define( 'OPTML_VERSION', '1.1.2' );
 	define( 'OPTML_NAMESPACE', 'optml' );
 	define( 'OPTML_BASEFILE', __FILE__ );
-
+	// Fallback for old PHP versions when this constant is not defined.
+	if ( ! defined( 'PHP_INT_MIN' ) ) {
+		define( 'PHP_INT_MIN', - 999999 );
+	}
 	if ( ! defined( 'OPTML_DEBUG' ) ) {
 		define( 'OPTML_DEBUG', ( defined( 'TEST_GROUND' ) && TEST_GROUND ) ? true : false );
 	}
