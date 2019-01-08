@@ -30,6 +30,7 @@
     "format": "phpcbf --standard=phpcs.xml --report-summary --report-source",
     "phpcs": "phpcs --standard=phpcs.xml",
     "phpmd": "phpmd inc text phpmd.xml",
+    "test": "phpunit --confirguration=phpunit.xml",
     "lint": "composer run-script phpcs"
   },
   "require": {
