@@ -32,24 +32,26 @@ class Test_Lazyload extends WP_UnitTestCase {
 
 	}
 
-//	public function test_lazy_load() {
-//
-//		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS );
-//		$this->assertContains( 'i.optimole.com', $replaced_content );
-//		$this->assertContains( 'data-opt-src', $replaced_content );
-//		$this->assertNotContains( 'http://example.org', $replaced_content );
-//
-//		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS . Test_Replacer::IMG_URLS );
-//		$this->assertContains( 'i.optimole.com', $replaced_content );
-//		$this->assertContains( 'data-opt-src', $replaced_content );
-//		$this->assertContains( 'http://example.org', $replaced_content ); // Does not touch other URL's
-//
-//		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS_PNG );
-//
-//		$this->assertContains( 'i.optimole.com', $replaced_content );
-//		$this->assertContains( 'data-opt-src', $replaced_content );
-//		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
-//	}
+	public function test_lazy_load() {
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'data-opt-src', $replaced_content );
+		$this->assertContains( 'http://example.org', $replaced_content );
+		$this->assertContains( '/plain/', $replaced_content );
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS . Test_Replacer::IMG_URLS );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'data-opt-src', $replaced_content );
+		$this->assertContains( 'http://example.org', $replaced_content ); // Does not touch other URL's
+		$this->assertContains( '/plain/', $replaced_content );
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS_PNG );
+
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'data-opt-src', $replaced_content );
+		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
+	}
 
 
 	public function test_lazy_load_off() {
