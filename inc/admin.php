@@ -68,9 +68,8 @@ class Optml_Admin {
 				-o-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 			}
 			img[data-opt-src].optml_lazyload_img {
-				opacity: .5;
+				opacity: .75;
 				filter: blur(5px);
-				border-radius: 5%%; /* We need 2x% (i.e %%) because sprintf removes one on echo */
 			}
 		</style>
 		<script type="application/javascript">
