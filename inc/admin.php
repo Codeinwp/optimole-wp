@@ -70,7 +70,7 @@ class Optml_Admin {
 			img[data-opt-src].optml_lazyload_img {
 				opacity: .5;
 				filter: blur(5px);
-				border-radius: 5%%;
+				border-radius: 5%%; /* We need 2x% (i.e %%) because sprintf removes one on echo */
 			}
 		</style>
 		<script type="application/javascript">

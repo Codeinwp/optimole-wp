@@ -62,8 +62,8 @@ jobs:
       script:
         - travis_retry npm install
         - travis_retry composer install --no-dev
-        - npm run-script build || exit 1
-        - npm run semantic-release || exit 1
+        - npm run build || exit 1
+        - npm run release || exit 1
 
 stages:
   - name: deploy

@@ -1,10 +1,9 @@
 === Image optimization service by Optimole ===
 Contributors: optimole
-Tags: image optmization, cdn, image compression
+Tags: image optmization, cdn, image compression, compress image, images, optimization, perfomance, photos
 Requires at least: 4.7
 Tested up to: 5.0
 Requires PHP: 5.4
-Stable tag: trunk
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 

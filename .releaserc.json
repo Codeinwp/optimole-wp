@@ -49,6 +49,12 @@
       }
     ],
     [
+      "@semantic-release/exec",
+      {
+        "publishCmd": "grunt wp_deploy:source"
+      }
+    ],
+    [
       "@semantic-release/git",
       {
         "assets": [
