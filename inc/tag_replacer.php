@@ -65,28 +65,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	}
 
 	/**
-	 * Try to determine height and width from strings WP appends to resized image filenames.
-	 *
-	 * @param string $src The image URL.
-	 *
-	 * @return array An array consisting of width and height.
-	 */
-	public static function parse_dimensions_from_filename( $src ) {
-		$width_height_string = array();
-		$extensions          = array_keys( Optml_Config::$extensions );
-		if ( preg_match( '#-(\d+)x(\d+)\.(?:' . implode( '|', $extensions ) . '){1}$#i', $src, $width_height_string ) ) {
-			$width  = (int) $width_height_string[1];
-			$height = (int) $width_height_string[2];
-
-			if ( $width && $height ) {
-				return array( $width, $height );
-			}
-		}
-
-		return array( false, false );
-	}
-
-	/**
 	 * Called by hook to replace image tags in content.
 	 *
 	 * @param string $content The content to process.
@@ -110,7 +88,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 			list( $width, $height, $resize ) = self::parse_dimensions_from_tag( $images['img_tag'][ $index ], $image_sizes, array( 'width' => $width, 'height' => $height, 'resize' => $resize ) );
 			if ( false === $width && false === $height ) {
-				list( $width, $height ) = self::parse_dimensions_from_filename( $tmp );
+				list( $width, $height ) = $this->parse_dimensions_from_filename( $tmp );
 			}
 			$optml_args = $this->to_optml_dimensions_bound( $width, $height, $this->max_width, $this->max_height );
 			$tmp        = $this->strip_image_size_from_url( $tmp );
@@ -167,7 +145,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		foreach ( $sources as $i => $source ) {
 			$url = $source['url'];
-			list( $width, $height ) = self::parse_dimensions_from_filename( $url );
+			list( $width, $height ) = $this->parse_dimensions_from_filename( $url );
 
 			if ( empty( $width ) ) {
 				$width = $image_meta['width'];

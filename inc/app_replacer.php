@@ -199,6 +199,28 @@ abstract class Optml_App_Replacer {
 	}
 
 	/**
+	 * Try to determine height and width from strings WP appends to resized image filenames.
+	 *
+	 * @param string $src The image URL.
+	 *
+	 * @return array An array consisting of width and height.
+	 */
+	protected function parse_dimensions_from_filename( $src ) {
+		$width_height_string = array();
+		$extensions          = array_keys( Optml_Config::$extensions );
+		if ( preg_match( '#-(\d+)x(\d+)\.(?:' . implode( '|', $extensions ) . '){1}$#i', $src, $width_height_string ) ) {
+			$width  = (int) $width_height_string[1];
+			$height = (int) $width_height_string[2];
+
+			if ( $width && $height ) {
+				return array( $width, $height );
+			}
+		}
+
+		return array( false, false );
+	}
+
+	/**
 	 * Returns the array of image sizes since `get_intermediate_image_sizes` and image metadata  doesn't include the
 	 * custom image sizes in a reliable way.
 	 *
