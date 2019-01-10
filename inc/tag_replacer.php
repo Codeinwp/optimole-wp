@@ -76,7 +76,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		$image_sizes = self::image_sizes();
 		foreach ( $images[0] as $index => $tag ) {
 			$width   = $height = false;
-			$resize  = array( 'resize' => Optml_Image::RESIZE_FIT );
+			$resize  = array(   );
 			$new_tag = $tag;
 			$src     = $tmp = wp_unslash( $images['img_url'][ $index ] );
 			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
@@ -228,7 +228,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		$sizes = array(
 			'width'  => isset( $image_meta['width'] ) ? intval( $image_meta['width'] ) : 'auto',
 			'height' => isset( $image_meta['height'] ) ? intval( $image_meta['height'] ) : 'auto',
-			'resize' => Optml_Image::RESIZE_FIT,
 		);
 
 		// in case there is a custom image size $size will be an array.
@@ -238,13 +237,16 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$sizes['height'] = ( $size[1] < $sizes['height'] ? $size[1] : $sizes['height'] );
 
 		} elseif ( 'full' !== $size && isset( $image_args[ $size ] ) ) { // overwrite if there a size
+
 			$sizes['width']  = $image_args[ $size ]['width'] < $sizes['width'] ? $image_args[ $size ]['width'] : $sizes['width'];
 			$sizes['height'] = $image_args[ $size ]['height'] < $sizes['height'] ? $image_args[ $size ]['height'] : $sizes['height'];
-			$sizes           = array_merge( $sizes, $this->to_optml_crop( $image_args[ $size ]['crop'] ) );
+			$sizes['resize'] = $this->to_optml_crop( $image_args[ $size ]['crop'] );
 		}
-
 		$new_sizes = $this->to_optml_dimensions_bound( $sizes['width'], $sizes['height'], $this->max_width, $this->max_height );
+
+		$new_sizes = array_merge( $sizes, $new_sizes );
 		$image_url = $this->strip_image_size_from_url( $image_url );
+
 		$new_url   = apply_filters( 'optml_content_url', $image_url, $new_sizes );
 
 		if ( $new_url === $image_url ) {

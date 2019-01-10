@@ -17,84 +17,6 @@ class Optml_Image {
 	const SIGNATURE_SIZE = 8;
 
 	/**
-	 * Resize the image while keeping aspect ratio to fit given size.
-	 */
-	const RESIZE_FILL = 'fill';
-	/**
-	 * Resize the image while keeping aspect ratio
-	 * to fill given size and cropping projecting parts.
-	 */
-	const RESIZE_FIT = 'fit';
-	/**
-	 * Crops the image to a given size.
-	 */
-	const RESIZE_CROP = 'crop';
-
-
-	/**
-	 * Top edge.
-	 */
-	const GRAVITY_NORTH = 'no';
-	/**
-	 * Bottom Edge.
-	 */
-	const GRAVITY_SOUTH = 'so';
-	/**
-	 * Right Edge.
-	 */
-	const GRAVITY_EAST = 'ea';
-	/**
-	 * Left edge.
-	 */
-	const GRAVITY_WEST = 'we';
-
-	/**
-	 * Top right corner.
-	 */
-	const GRAVITY_NORTH_WEST = 'noea';
-	/**
-	 * Top left corner.
-	 */
-	const GRAVITY_NORTH_EAST = 'nowe';
-	/**
-	 * Bottom right corner.
-	 */
-	const GRAVITY_SOUTH_EAST = 'soea';
-	/**
-	 * Bottom left corner.
-	 */
-	const GRAVITY_SOUTH_WEST = 'sowe';
-
-
-	/**
-	 * Center
-	 */
-	const GRAVITY_CENTER = 'ce';
-	/**
-	 * Detects the most "interesting" section of the image and
-	 * considers it as the center of the resulting image
-	 */
-	const GRAVITY_SMART = 'sm';
-	/**
-	 * Detects the most "interesting" section of the image and
-	 * considers it as the center of the resulting image
-	 */
-	const GRAVITY_FOCUS_POINT = 'fp';
-
-	/**
-	 * Floating point numbers between 0 and 1 that define the coordinates of the resulting image for X axis.
-	 *
-	 * @var int Focus point X.
-	 */
-	private $focus_point_x = 0;
-	/**
-	 * Floating point numbers between 0 and 1 that define the coordinates of the resulting image for X axis.
-	 *
-	 * @var int Focus point Y.
-	 */
-	private $focus_point_y = 0;
-
-	/**
 	 * Quality of the resulting image.
 	 *
 	 * @var Optml_Quality Quality;
@@ -119,6 +41,12 @@ class Optml_Image {
 	 */
 	private $watermark = null;
 	/**
+	 * Resize type for the image.
+	 *
+	 * @var Optml_Resize Resize details.
+	 */
+	private $resize = null;
+	/**
 	 * Source image url.
 	 *
 	 * @var string Source image.
@@ -141,10 +69,14 @@ class Optml_Image {
 		$this->width->set( $args['width'] );
 		$this->height->set( $args['height'] );
 		$this->quality->set( $args['quality'] );
+
 		if ( isset( $args['watermark_id'] ) && $args['watermark_id'] != 0 ) {
 			$this->watermark->set( $args['watermark_id'] );
 		}
 
+		if ( isset( $args['resize'] ) ) {
+			$this->resize->set( $args['resize'] );
+		}
 		$this->source_url = $url;
 
 	}
@@ -153,10 +85,12 @@ class Optml_Image {
 	 * Set defaults for image transformations.
 	 */
 	private function set_defaults() {
-		$this->width         = new Optml_Width( 'auto' );
-		$this->height        = new Optml_Height( 'auto' );
-		$this->quality       = new Optml_Quality( 'auto' );
-		$this->watermark     = new Optml_Watermark();
+		$this->width     = new Optml_Width( 'auto' );
+		$this->height    = new Optml_Height( 'auto' );
+		$this->quality   = new Optml_Quality( 'auto' );
+		$this->watermark = new Optml_Watermark();
+		$this->resize    = new Optml_Resize();
+
 		$this->focus_point_x = 0;
 		$this->focus_point_y = 0;
 	}
@@ -178,6 +112,9 @@ class Optml_Image {
 		}
 		if ( $this->quality->get() > 0 || $this->quality->get() === 'eco' ) {
 			$path_parts[] = $this->quality->toString();
+		}
+		if ( ! empty( $this->resize->get() ) ) {
+			$path_parts[] = $this->resize->toString();
 		}
 		if ( is_array( $this->watermark->get() ) && isset( $this->watermark->get()['id'] ) && $this->watermark->get()['id'] != 0 ) {
 			$path_parts[] = $this->watermark->toString();
