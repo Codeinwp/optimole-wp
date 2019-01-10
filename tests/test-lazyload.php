@@ -37,14 +37,13 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'data-opt-src', $replaced_content );
-		$this->assertContains( 'http://example.org', $replaced_content );
-		$this->assertContains( '/plain/', $replaced_content );
+		$this->assertContains( '/http://', $replaced_content );
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS . Test_Replacer::IMG_URLS );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'data-opt-src', $replaced_content );
 		$this->assertContains( 'http://example.org', $replaced_content ); // Does not touch other URL's
-		$this->assertContains( '/plain/', $replaced_content );
+		$this->assertContains( '/http://', $replaced_content );
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS_PNG );
 

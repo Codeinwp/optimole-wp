@@ -14,7 +14,7 @@ class Optml_Image {
 	/**
 	 * Signature size.
 	 */
-	const SIGNATURE_SIZE = 10;
+	const SIGNATURE_SIZE = 8;
 
 	/**
 	 * Resize the image while keeping aspect ratio to fit given size.
@@ -156,7 +156,7 @@ class Optml_Image {
 		$this->width         = new Optml_Width( 'auto' );
 		$this->height        = new Optml_Height( 'auto' );
 		$this->quality       = new Optml_Quality( 'auto' );
-		$this->watermark       = new Optml_Watermark();
+		$this->watermark     = new Optml_Watermark();
 		$this->focus_point_x = 0;
 		$this->focus_point_y = 0;
 	}
@@ -182,7 +182,7 @@ class Optml_Image {
 		if ( is_array( $this->watermark->get() ) && isset( $this->watermark->get()['id'] ) && $this->watermark->get()['id'] != 0 ) {
 			$path_parts[] = $this->watermark->toString();
 		}
-		$path = '/plain/' . $this->source_url;
+		$path = '/' . $this->source_url;
 
 		if ( ! empty( $path_parts ) ) {
 			$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
@@ -203,10 +203,11 @@ class Optml_Image {
 	 * @return bool|string
 	 */
 	public function get_signature( $path = '' ) {
+		$binary    = hash_hmac( 'sha256', Optml_Config::$secret . $path, Optml_Config::$key, true );
+		$binary    = pack( 'A' . self::SIGNATURE_SIZE, $binary );
+		$signature = rtrim( strtr( base64_encode( $binary ), '+/', '-_' ), '=' );
 
-		$full_signature = hash_hmac( 'sha256', Optml_Config::$key . $path, Optml_Config::$secret, true );
-
-		return substr( $full_signature, 0, self::SIGNATURE_SIZE );
+		return $signature;
 	}
 
 }
