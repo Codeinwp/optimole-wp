@@ -69,6 +69,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$url = str_replace( array_keys( $this->site_mappings ), array_values( $this->site_mappings ), $url );
 		}
 
+		$url = $this->strip_image_size_from_url( $url );
+
 		return ( new Optml_Image( $url, $args ) )->get_url( $this->is_allowed_site );
 	}
 
