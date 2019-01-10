@@ -143,6 +143,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return $sources;
 		}
 
+		var_dump( $sources );
 		foreach ( $sources as $i => $source ) {
 			$url = $source['url'];
 			list( $width, $height ) = $this->parse_dimensions_from_filename( $url );
@@ -155,9 +156,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$height = $image_meta['height'];
 			}
 
-			$url = $this->strip_image_size_from_url( $source['url'] );
 			if ( ! empty( $attachment_id ) ) {
 				$url = wp_get_attachment_url( $attachment_id );
+			} else {
+				$url = $this->strip_image_size_from_url( $source['url'] );
 			}
 
 			$args = array();
@@ -257,7 +259,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$new_url,
 			$sizes['width'],
 			$sizes['height'],
-			false,
+			true,
 		);
 	}
 
