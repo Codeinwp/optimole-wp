@@ -16,12 +16,42 @@ final class Optml_Manager {
 	protected static $instance = null;
 
 	/**
+	 * Class instance method.
+	 *
+	 * @codeCoverageIgnore
+	 * @static
+	 * @since  1.0.0
+	 * @access public
+	 * @return Optml_Manager
+	 */
+	public static function instance() {
+		if ( is_null( self::$instance ) ) {
+			self::$instance = new self();
+			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
+		}
+
+		return self::$instance;
+	}
+
+	/**
 	 * The initialize method.
 	 */
 	public function init() {
 		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
 		add_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
-		add_action( 'template_redirect', array( $this, 'process_template_redirect_content' ), PHP_INT_MAX );
+		/**
+		 * When we have to process cdn images, i.e MIRROR is defined,
+		 * we need this as late as possible for other replacers to occur.
+		 * Otherwise, we can hook first to avoid any other plugins to take care of replacement.
+		 */
+		add_action(
+			'template_redirect',
+			array(
+				$this,
+				'process_template_redirect_content',
+			),
+			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
+		);
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
 	}
 
@@ -121,35 +151,35 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Init html replacer handler.
+	 * Filter raw content for urls.
+	 *
+	 * @param string $html HTML to filter.
+	 * @param string $context Context for $html.
+	 *
+	 * @return mixed Filtered content.
 	 */
-	public function process_template_redirect_content() {
-		// We no longer need this if the handler was started.
-		remove_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
-
-		ob_start(
-			array( &$this, 'replace_content' )
+	public function replace_content( $html, $context = 'raw' ) {
+		$extracted_urls     = $this->extract_image_urls_from_content( $html );
+		$extracted_urls     = apply_filters( 'optml_extracted_urls', $extracted_urls );
+		$urls     = array_combine( $extracted_urls, $extracted_urls );
+		if ( $context == 'elementor' ) {
+			$urls = array_map( 'wp_unslash', $urls );
+		}
+		$urls = array_map(
+			function ( $url ) {
+				return apply_filters( 'optml_content_url', $url );
+			},
+			$urls
 		);
-	}
 
-	/**
-	 * Adds a filter with detected images tags and the content.
-	 *
-	 * @param string $content The HTML content.
-	 *
-	 * @return mixed
-	 */
-	public function process_images_from_content( $content ) {
-		if ( $this->should_ignore_image_tags() ) {
-			return $content;
+		$html = $this->process_images_from_content( $html );
+
+		foreach ( $urls as $origin => $replace ) {
+			if ( strpos( $html, '/' . $origin ) === false ) {
+				$html = str_replace( $origin, $replace, $html );
+			}
 		}
-		$images = self::parse_images_from_html( $content );
-
-		if ( empty( $images ) ) {
-			return $content;
-		}
-
-		return apply_filters( 'optml_content_images_tags', $content, $images );
+		return $html;
 	}
 
 	/**
@@ -180,35 +210,23 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Filter raw content for urls.
+	 * Adds a filter with detected images tags and the content.
 	 *
-	 * @param string $html HTML to filter.
-	 * @param string $context Context for $html.
+	 * @param string $content The HTML content.
 	 *
-	 * @return mixed Filtered content.
+	 * @return mixed
 	 */
-	public function replace_content( $html, $context = 'raw' ) {
-		$extracted_urls     = $this->extract_image_urls_from_content( $html );
-		$extracted_urls     = apply_filters( 'optml_extracted_urls', $extracted_urls );
-		$urls     = array_combine( $extracted_urls, $extracted_urls );
-		if ( $context == 'elementor' ) {
-			$urls = array_map( 'wp_unslash', $urls );
+	public function process_images_from_content( $content ) {
+		if ( $this->should_ignore_image_tags() ) {
+			return $content;
 		}
-		$urls = array_map(
-			function ( $url ) {
-				return apply_filters( 'optml_content_url', $url );
-			},
-			$urls
-		);
+		$images = self::parse_images_from_html( $content );
 
-		$html = $this->process_images_from_content( $html );
-
-		foreach ( $urls as $origin => $replace ) {
-			if ( strpos( $html, '/' . $origin ) === false ) {
-				$html = str_replace( $origin, $replace, $html );
-			}
+		if ( empty( $images ) ) {
+			return $content;
 		}
-		return $html;
+
+		return apply_filters( 'optml_content_images_tags', $content, $images );
 	}
 
 	/**
@@ -279,21 +297,15 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Class instance method.
-	 *
-	 * @codeCoverageIgnore
-	 * @static
-	 * @since  1.0.0
-	 * @access public
-	 * @return Optml_Manager
+	 * Init html replacer handler.
 	 */
-	public static function instance() {
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
-		}
+	public function process_template_redirect_content() {
+		// We no longer need this if the handler was started.
+		remove_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
 
-		return self::$instance;
+		ob_start(
+			array( &$this, 'replace_content' )
+		);
 	}
 
 	/**
