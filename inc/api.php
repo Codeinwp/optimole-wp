@@ -14,8 +14,7 @@ final class Optml_Api {
 	 *
 	 * @var string Api root.
 	 */
-	private $api_root = 'http://127.0.0.1:8000/api/optml/v1/';
-	// private $api_root = 'https://dashboard.optimole.com/api/optml/v1/';
+	private $api_root = 'https://dashboard.optimole.com/api/';
 	/**
 	 * Hold the user api key.
 	 *
@@ -41,33 +40,7 @@ final class Optml_Api {
 			$this->api_key = $api_key;
 		}
 
-		return $this->request( '/image/details', 'POST' );
-	}
-
-	/**
-	 * Builds Request arguments array.
-	 *
-	 * @param string $method Request method (GET | POST | PUT | UPDATE | DELETE).
-	 * @param string $url    Request URL.
-	 * @param array  $headers Headers Array.
-	 * @param array  $params  Additional params for the Request.
-	 *
-	 * @return array
-	 */
-	private function build_args( $method, $url, $headers, $params ) {
-		$args = array(
-			'url'        => $url,
-			'method'     => $method,
-			'timeout'    => 45,
-			'user-agent' => 'Optimle WP (v' . OPTML_VERSION . ') ',
-			'sslverify'  => false,
-			'headers'    => $headers,
-		);
-		if ( $method !== 'GET' ) {
-			$args['body'] = $params;
-		}
-
-		return $args;
+		return $this->request( '/optml/v1/image/details', 'POST' );
 	}
 
 	/**
@@ -79,7 +52,7 @@ final class Optml_Api {
 	 *
 	 * @return array|boolean Api data.
 	 */
-	private function request( $path, $method = 'GET', $params = array() ) {
+	private function request( $path, $method = 'GET', $params = array(), $extra_headers = [] ) {
 
 		// Grab the url to which we'll be making the request.
 		$url     = $this->api_root;
@@ -89,6 +62,10 @@ final class Optml_Api {
 		if ( ! empty( $this->api_key ) ) {
 			$headers['Authorization'] = 'Bearer ' . $this->api_key;
 		}
+		if ( ! empty( $headers ) && is_array( $headers ) ) {
+			$headers = array_merge( $headers, $extra_headers );
+		}
+
 		// If there is a extra, add that as a url var.
 		if ( 'GET' === $method && ! empty( $params ) ) {
 			foreach ( $params as $key => $val ) {
@@ -123,6 +100,32 @@ final class Optml_Api {
 	}
 
 	/**
+	 * Builds Request arguments array.
+	 *
+	 * @param string $method Request method (GET | POST | PUT | UPDATE | DELETE).
+	 * @param string $url Request URL.
+	 * @param array  $headers Headers Array.
+	 * @param array  $params Additional params for the Request.
+	 *
+	 * @return array
+	 */
+	private function build_args( $method, $url, $headers, $params ) {
+		$args = array(
+			'url'        => $url,
+			'method'     => $method,
+			'timeout'    => 45,
+			'user-agent' => 'Optimle WP (v' . OPTML_VERSION . ') ',
+			'sslverify'  => false,
+			'headers'    => $headers,
+		);
+		if ( $method !== 'GET' ) {
+			$args['body'] = $params;
+		}
+
+		return $args;
+	}
+
+	/**
 	 * Register user remotely on optimole.com.
 	 *
 	 * @param string $email User email.
@@ -131,7 +134,7 @@ final class Optml_Api {
 	 */
 	public function create_account( $email ) {
 		return $this->request(
-			'user/register-remote',
+			'optml/v1/user/register-remote',
 			'POST',
 			array(
 				'email' => $email,
@@ -152,7 +155,7 @@ final class Optml_Api {
 			$this->api_key = $api_key;
 		}
 
-		return $this->request( '/stats/images' );
+		return $this->request( '/optml/v1/stats/images' );
 	}
 
 	/**
@@ -166,7 +169,8 @@ final class Optml_Api {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
-		return $this->request( '/settings/watermark' );
+
+		return $this->request( '/optml/v1/settings/watermark' );
 	}
 
 	/**
@@ -181,7 +185,8 @@ final class Optml_Api {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
-		return $this->request( '/settings/watermark', 'DELETE', array( 'watermark' => $post_id ) );
+
+		return $this->request( '/optml/v1/settings/watermark', 'DELETE', array( 'watermark' => $post_id ) );
 	}
 
 	/**
@@ -193,32 +198,18 @@ final class Optml_Api {
 	 * @return array|bool|mixed|object
 	 */
 	public function add_watermark( $file, $api_key = '' ) {
-		if ( ! empty( $api_key ) ) {
-			$this->api_key = $api_key;
-		}
-		// Grab the url to which we'll be making the request.
-		$url     = str_replace( 'optml/v1/', 'wp/v2/', $this->api_root ) . 'media';
-		$headers = array(
-			'Optml-Site' => get_site_url(),
-		);
-		if ( ! empty( $this->api_key ) ) {
-			$headers['Authorization'] = 'Bearer ' . $this->api_key;
-			$headers['Content-Disposition'] = 'attachment; filename=' . $file['file']['name'];
-		}
-		$args = array(
-			'url'        => $url,
-			'method'     => 'POST',
-			'timeout'    => 45,
-			'user-agent' => 'Optimle WP (v' . OPTML_VERSION . ') ',
-			'sslverify'  => false,
-			'headers'    => $headers,
-			'body'       => file_get_contents( $file['file']['tmp_name'] ),
-		);
-		$response = wp_remote_request( $url, $args );
+
+		$headers['Content-Disposition'] = [
+			'Content-Disposition' => 'attachment; filename=' . $file['file']['name'],
+		];
+
+		$response = $this->request( 'wp/v2/media', 'POST', file_get_contents( $file['file']['tmp_name'] ) );
+
 		if ( is_wp_error( $response ) ) {
 			return false;
 		}
-		return json_decode( wp_remote_retrieve_body( $response ), true );
+
+		return $response;
 	}
 
 	/**

@@ -13,6 +13,7 @@
  */
 class Test_Replacer extends WP_UnitTestCase {
 	const IMG_TAGS = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" /></div></div> ';
+	const IMG_TAGS_WITH_SRCSET = '<img class="alignnone size-full wp-image-26" src="http://example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp.jpg" alt="" width="1450" height="740" srcset="http://example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp.jpg 1450w, http://example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-300x153.jpg 300w, http://example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-768x392.jpg 768w, http://example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-1024x523.jpg 1024w" sizes="(max-width: 1450px) 100vw, 1450px"> ';
 	const IMG_TAGS_PNG = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.png" width="2000" height="1200" alt="Test" /></div></div>';
 	const IMG_URLS = '
 	http://example.org/wp-content/themes/test/assets/images/header.png 
@@ -23,7 +24,7 @@ class Test_Replacer extends WP_UnitTestCase {
 	<style>
 	.body{
 	
-		background-image:url("http://example.org/wp-content/themes/test/assets/images/header.png");
+		background-image:url("http://example.org/wp-content/themes/test/assets/images/header-300x300.png");
 	}</style>
 	 ';
 	const WRONG_EXTENSION = '   http://example.org/wp-content/themes/twentyseventeen/assets/images/header.gif   ';
@@ -116,10 +117,16 @@ class Test_Replacer extends WP_UnitTestCase {
 			'height' => 99999
 		] );
 		$this->assertContains( 'i.optimole.com', $new_url );
-		//Test if wrong extension is still present in the output.
 		$this->assertNotContains( '99999', $new_url );
 
 	}
+//
+//	public function test_cropping_sizes() {
+//		add_image_size( 'sample_size', 100, 100, true );
+//
+//		$attachement_url  = wp_get_attachment_image_src( self::$sample_attachement, 'sample_size' );
+//		var_dump($attachement_url);
+//	}
 
 	public function test_post_content() {
 		$content = apply_filters( 'the_content', get_post_field( 'post_content', self::$sample_post ) );
@@ -140,7 +147,9 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$this->assertNotContains( '282x123', $replaced_content );
 	}
-
+	/**
+	 * @runInSeparateProcess
+	 */
 	public function test_custom_domain() {
 		define( 'OPTML_SITE_MIRROR', 'https://mycnd.com' );
 		Optml_Url_Replacer::instance()->init();
@@ -157,25 +166,60 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	}
 
+	public function test_replace_on_feeds() {
+		$this->go_to( '/?feed=rss2' );
+
+		$replaced_content = Optml_Manager::instance()->replace_content( Test_Replacer::IMG_TAGS_WITH_SRCSET );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertEquals( 5, substr_count( $replaced_content, 'i.optimole.com' ) );
+	}
+
+	public function test_double_replacement() {
+
+		$replaced_content = Optml_Manager::instance()->replace_content( Test_Replacer::IMG_TAGS );
+
+		$doubled_ccontent = Optml_Manager::instance()->replace_content( $replaced_content . Test_Replacer::IMG_TAGS );
+
+		$this->assertContains( 'i.optimole.com', $doubled_ccontent );
+		$this->assertEquals( 2, substr_count( $doubled_ccontent, 'i.optimole.com' ) );
+	}
+
+	public function test_replacement_with_image_size() {
+		//Nasty hack to fetch old url from
+		$attachement =  wp_get_attachment_image_src( self::$sample_attachement, 'medium' );
+		$old_url = explode('http://',$attachement[0]);
+	    $old_url = 'http://' . $old_url[1];
+
+
+	    //Adds possible image size format.
+		$content = str_replace( '.png','-300x300.png', $old_url ) ;
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertNotContains( '-300x300.png', $replaced_content );
+
+	}
+
 	public function test_filter_sizes_attr() {
 
 		global $wp_current_filter;
 		$wp_current_filter = array( 'the_content' );
 
-		$sizes = array(
-			'width' => 1000,
+		$sizes    = array(
+			'width'  => 1000,
 			'height' => 1000
 		);
 		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
-		$this->assertContains('(max-width: 1000px) 100vw, 1000px', $response);
+		$this->assertContains( '(max-width: 1000px) 100vw, 1000px', $response );
 		$wp_current_filter = array();
-		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
+		$response          = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
 		$this->assertTrue( ! empty( $response ) );
 		$this->assertTrue( is_array( $response ) );
 
 		global $content_width;
 		$content_width = 5000;
-		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 1 ) );
+		$response      = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 1 ) );
 		$this->assertTrue( ! empty( $response ) );
 		$this->assertTrue( is_array( $response ) );
 	}

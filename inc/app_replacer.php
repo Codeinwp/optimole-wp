@@ -66,7 +66,7 @@ abstract class Optml_App_Replacer {
 	 */
 	protected $site_mappings = array();
 	/**
-	 * Whether the site is whitelisted or not. Used when signing the urls..
+	 * Whether the site is whitelisted or not. Used when signing the urls.
 	 *
 	 * @var bool Domains.
 	 */
@@ -201,8 +201,6 @@ abstract class Optml_App_Replacer {
 	/**
 	 * Returns the array of image sizes since `get_intermediate_image_sizes` and image metadata  doesn't include the
 	 * custom image sizes in a reliable way.
-	 *
-	 * Inspired from jetpack/photon.
 	 *
 	 * @global $wp_additional_image_sizes
 	 *
