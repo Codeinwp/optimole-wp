@@ -38,7 +38,10 @@ class Test_Replacer extends WP_UnitTestCase {
 	public static $sample_post;
 	public static $sample_attachement;
 
+
 	public function setUp() {
+
+
 		parent::setUp();
 		$settings = new Optml_Settings();
 		$settings->update( 'service_data', [
@@ -120,13 +123,56 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertNotContains( '99999', $new_url );
 
 	}
-//
-//	public function test_cropping_sizes() {
-//		add_image_size( 'sample_size', 100, 100, true );
-//
-//		$attachement_url  = wp_get_attachment_image_src( self::$sample_attachement, 'sample_size' );
-//		var_dump($attachement_url);
-//	}
+
+	public function test_cropping_sizes() {
+
+		$attachement_url = wp_get_attachment_image_src( self::$sample_attachement, 'sample_size_crop' );
+
+		$this->assertContains( 'w:100', $attachement_url[0] );
+		$this->assertContains( 'h:100', $attachement_url[0] );
+		$this->assertContains( 'rt:fill', $attachement_url[0] );
+		global $_test_posssible_values_y_sizes;
+		global $_test_posssible_values_x_sizes;
+		$allowed_gravities = array(
+			'left'          => Optml_Resize::GRAVITY_WEST,
+			'right'         => Optml_Resize::GRAVITY_EAST,
+			'top'           => Optml_Resize::GRAVITY_NORTH,
+			'bottom'        => Optml_Resize::GRAVITY_SOUTH,
+			'lefttop'      => Optml_Resize::GRAVITY_NORTH_WEST,
+			'leftbottom'   => Optml_Resize::GRAVITY_SOUTH_WEST,
+			'righttop'     => Optml_Resize::GRAVITY_NORTH_EAST,
+			'rightbottom'  => Optml_Resize::GRAVITY_SOUTH_EAST,
+			'centertop'    => array( 0.5, 0 ),
+			'centerbottom' => array( 0.5, 1 ),
+			'leftcenter'   => array( 0, 0.5 ),
+			'rightcenter'  => array( 1, 0.5 ),
+		);
+
+		foreach ( $_test_posssible_values_x_sizes as $x_value ) {
+			foreach ( $_test_posssible_values_y_sizes as $y_value ) {
+				if ( $x_value === true && $y_value === true ) {
+					continue;
+				}
+				$x_value = $x_value === true ? '' : $x_value;
+				$y_value = $y_value === true ? '' : $y_value;
+
+				if ( ! isset( $allowed_gravities[ $x_value . $y_value ] ) ) {
+					$gravity_key = Optml_Resize::GRAVITY_CENTER;
+				} else {
+					$gravity_key = $allowed_gravities[ $x_value  . $y_value ];
+				}
+
+				$attachement_url = wp_get_attachment_image_src( self::$sample_attachement, 'sample_size_h_' . $x_value . $y_value );
+				$this->assertContains( 'rt:fill', $attachement_url[0] );
+				if ( ! is_array( $gravity_key ) ) {
+					$this->assertContains( 'g:' . $gravity_key, $attachement_url[0], sprintf( ' %s for X %s for Y should contain %s gravity', $x_value, $y_value, $gravity_key ) );
+				} else {
+					$this->assertContains( 'g:fp:' . $gravity_key[0] . ':' . $gravity_key[1], $attachement_url[0] );
+				}
+			}
+		}
+
+	}
 
 	public function test_post_content() {
 		$content = apply_filters( 'the_content', get_post_field( 'post_content', self::$sample_post ) );
@@ -147,6 +193,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$this->assertNotContains( '282x123', $replaced_content );
 	}
+
 	/**
 	 * @runInSeparateProcess
 	 */
@@ -186,13 +233,13 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	public function test_replacement_with_image_size() {
 		//Nasty hack to fetch old url from
-		$attachement =  wp_get_attachment_image_src( self::$sample_attachement, 'medium' );
-		$old_url = explode('http://',$attachement[0]);
-	    $old_url = 'http://' . $old_url[1];
+		$attachement = wp_get_attachment_image_src( self::$sample_attachement, 'medium' );
 
+		$old_url = explode( 'http://', $attachement[0] );
+		$old_url = 'http://' . $old_url[1];
 
-	    //Adds possible image size format.
-		$content = str_replace( '.png','-300x300.png', $old_url ) ;
+		//Adds possible image size format.
+		$content = str_replace( '.png', '-300x300.png', $old_url );
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 

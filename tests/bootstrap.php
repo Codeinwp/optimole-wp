@@ -20,6 +20,32 @@ require_once $_tests_dir . '/includes/functions.php';
  * Manually load the plugin being tested.
  */
 function _manually_load_plugin() {
+	global $_test_posssible_values_x_sizes;
+	$_test_posssible_values_x_sizes = [
+		true,
+		'left',
+		'center',
+		'right'
+	];
+	global $_test_posssible_values_y_sizes;
+	$_test_posssible_values_y_sizes = [
+		true,
+		'top',
+		'center',
+		'bottom'
+	];
+	add_image_size( 'sample_size_crop', 100, 100, true );
+	foreach ( $_test_posssible_values_x_sizes as $x_value ) {
+		foreach ( $_test_posssible_values_y_sizes as $y_value ) {
+			if ( $x_value === true && $y_value === true ) {
+				continue;
+			}
+			$crop    = [ $x_value, $y_value ];
+			$x_value = $x_value === true ? '' : $x_value;
+			$y_value = $y_value === true ? '' : $y_value;
+			add_image_size( 'sample_size_h_' . $x_value . $y_value, 100, 100, $crop );
+		}
+	}
 	require dirname( dirname( __FILE__ ) ) . '/optimole-wp.php';
 }
 

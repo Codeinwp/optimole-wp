@@ -44,6 +44,7 @@ trait Optml_Normalizer {
 		if ( $integer > $max ) {
 			$integer = $max;
 		}
+
 		return $integer;
 	}
 
@@ -56,6 +57,7 @@ trait Optml_Normalizer {
 	 */
 	public function to_positive_integer( $value ) {
 		$integer = intval( $value );
+
 		return ( $integer > 0 ) ? $integer : 0;
 	}
 
@@ -72,6 +74,7 @@ trait Optml_Normalizer {
 		if ( in_array( $value, $map ) ) {
 			return $value;
 		}
+
 		return $default;
 	}
 
@@ -158,40 +161,39 @@ trait Optml_Normalizer {
 	 * @return array
 	 */
 	public function to_optml_crop( $crop_args = array() ) {
-		if ( $crop_args === false || ! is_array( $crop_args ) ) {
+		if ( $crop_args === true ) {
+			return array(
+				'type'    => Optml_Resize::RESIZE_FILL,
+				'gravity' => Optml_Resize::GRAVITY_CENTER,
+			);
+		}
+		if ( $crop_args === false || ! is_array( $crop_args ) || count( $crop_args ) != 2 ) {
 			return array();
 		}
 
-		if ( $crop_args === true || empty( $crop_args ) || count( $crop_args ) != 2 ) {
-			return array(
-				'resize'  => Optml_Image::RESIZE_FILL,
-				'gravity' => Optml_Image::GRAVITY_CENTER,
-			);
-		}
-
 		$allowed_gravities = array(
-			'left' => Optml_Image::GRAVITY_WEST,
-			'right' => Optml_Image::GRAVITY_EAST,
-			'top' => Optml_Image::GRAVITY_NORTH,
-			'bottom' => Optml_Image::GRAVITY_SOUTH,
-			'left_top' => Optml_Image::GRAVITY_NORTH_WEST,
-			'left_bottom' => Optml_Image::GRAVITY_SOUTH_WEST,
-			'right_top' => Optml_Image::GRAVITY_NORTH_EAST,
-			'right_bottom' => Optml_Image::GRAVITY_SOUTH_EAST,
-			'center_top' => array( 0.5, 0 ),
-			'center_bottom' => array( 0.5, 1 ),
-			'left_center' => array( 0, 0.5 ),
-			'right_center' => array( 1, 0.5 ),
+			'left'          => Optml_Resize::GRAVITY_WEST,
+			'right'         => Optml_Resize::GRAVITY_EAST,
+			'top'           => Optml_Resize::GRAVITY_NORTH,
+			'bottom'        => Optml_Resize::GRAVITY_SOUTH,
+			'lefttop'      => Optml_Resize::GRAVITY_NORTH_WEST,
+			'leftbottom'   => Optml_Resize::GRAVITY_SOUTH_WEST,
+			'righttop'     => Optml_Resize::GRAVITY_NORTH_EAST,
+			'rightbottom'  => Optml_Resize::GRAVITY_SOUTH_EAST,
+			'centertop'    => array( 0.5, 0 ),
+			'centerbottom' => array( 0.5, 1 ),
+			'leftcenter'   => array( 0, 0.5 ),
+			'rightcenter'  => array( 1, 0.5 ),
 		);
 
-		$gravity = Optml_Image::GRAVITY_CENTER;
-		$key_search = strval( $crop_args[0] ) . strval( $crop_args[1] );
+		$gravity    = Optml_Resize::GRAVITY_CENTER;
+		$key_search = ( $crop_args[0] === true ? '' : $crop_args[0] ) . ( $crop_args[1] === true ? '' : $crop_args[1] );
 		if ( array_key_exists( $key_search, $allowed_gravities ) ) {
 			$gravity = $allowed_gravities[ $key_search ];
 		}
 
 		return array(
-			'resize'  => Optml_Image::RESIZE_FILL,
+			'type'    => Optml_Resize::RESIZE_FILL,
 			'gravity' => $gravity,
 		);
 	}
@@ -205,16 +207,16 @@ trait Optml_Normalizer {
 	 */
 	public function to_optml_watermark( $watermark_args = array() ) {
 		$allowed_gravities = array(
-			'left' => Optml_Image::GRAVITY_WEST,
-			'right' => Optml_Image::GRAVITY_EAST,
-			'top' => Optml_Image::GRAVITY_NORTH,
-			'bottom' => Optml_Image::GRAVITY_SOUTH,
-			'left_top' => Optml_Image::GRAVITY_NORTH_WEST,
-			'left_bottom' => Optml_Image::GRAVITY_SOUTH_WEST,
-			'right_top' => Optml_Image::GRAVITY_NORTH_EAST,
-			'right_bottom' => Optml_Image::GRAVITY_SOUTH_EAST,
+			'left'         => Optml_Resize::GRAVITY_WEST,
+			'right'        => Optml_Resize::GRAVITY_EAST,
+			'top'          => Optml_Resize::GRAVITY_NORTH,
+			'bottom'       => Optml_Resize::GRAVITY_SOUTH,
+			'left_top'     => Optml_Resize::GRAVITY_NORTH_WEST,
+			'left_bottom'  => Optml_Resize::GRAVITY_SOUTH_WEST,
+			'right_top'    => Optml_Resize::GRAVITY_NORTH_EAST,
+			'right_bottom' => Optml_Resize::GRAVITY_SOUTH_EAST,
 		);
-		$gravity = Optml_Image::GRAVITY_CENTER;
+		$gravity           = Optml_Resize::GRAVITY_CENTER;
 		if ( isset( $watermark_args['position'] ) && array_key_exists( $watermark_args['position'], $allowed_gravities ) ) {
 			$gravity = $allowed_gravities[ $watermark_args['position'] ];
 		}

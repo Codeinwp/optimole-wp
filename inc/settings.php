@@ -21,7 +21,7 @@ class Optml_Settings {
 		'quality'        => 'auto',
 		'wm_id'          => 0,
 		'wm_opacity'     => 1,
-		'wm_position'    => Optml_Image::GRAVITY_CENTER,
+		'wm_position'    => Optml_Resize::GRAVITY_CENTER,
 		'wm_x'           => 0,
 		'wm_y'           => 0,
 		'wm_scale'       => 0,
