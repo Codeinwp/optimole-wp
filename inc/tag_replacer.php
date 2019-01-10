@@ -143,7 +143,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return $sources;
 		}
 
-		var_dump( $sources );
 		foreach ( $sources as $i => $source ) {
 			$url = $source['url'];
 			list( $width, $height ) = $this->parse_dimensions_from_filename( $url );
