@@ -198,6 +198,8 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertNotContains( '-300x300.png', $replaced_content );
+		$this->assertContains( 'w:300', $replaced_content );
+		$this->assertContains( 'h:300', $replaced_content );
 
 	}
 
