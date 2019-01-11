@@ -19,6 +19,24 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	protected static $instance = null;
 
 	/**
+	 * Class instance method.
+	 *
+	 * @codeCoverageIgnore
+	 * @static
+	 * @since  1.0.0
+	 * @access public
+	 * @return Optml_Url_Replacer
+	 */
+	public static function instance() {
+		if ( is_null( self::$instance ) ) {
+			self::$instance = new self();
+			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
+		}
+
+		return self::$instance;
+	}
+
+	/**
 	 * The initialize method.
 	 */
 	public function init() {
@@ -72,34 +90,13 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		$new_url = $this->strip_image_size_from_url( $url );
 
 		if ( $new_url !== $url ) {
-			list( $width, $height ) = $this->parse_dimensions_from_filename( $url );
-			$optml_args = $this->to_optml_dimensions_bound( $width, $height, $this->max_width, $this->max_height );
-			if ( $optml_args['width'] !== false && $optml_args['height'] !== false ) {
-				$args['width'] = $optml_args['width'];
-				$args['height'] = $optml_args['height'];
-			}
+			list( $args['width'], $args['height'] ) = $this->parse_dimensions_from_filename( $url );
 			$url = $new_url;
 		}
 
+		list( $args['width'], $args['height'] ) = wp_constrain_dimensions( (int) $args['width'], (int) $args['height'], $this->max_width, $this->max_height );
+
 		return ( new Optml_Image( $url, $args ) )->get_url( $this->is_allowed_site );
-	}
-
-	/**
-	 * Class instance method.
-	 *
-	 * @codeCoverageIgnore
-	 * @static
-	 * @since  1.0.0
-	 * @access public
-	 * @return Optml_Url_Replacer
-	 */
-	public static function instance() {
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
-		}
-
-		return self::$instance;
 	}
 
 	/**

@@ -72,8 +72,6 @@ class Optml_Settings {
 					break;
 				case 'max_width':
 				case 'max_height':
-				case 'max_height':
-				case 'max_height':
 					$sanitized_value = $this->to_bound_integer( $value, 100, 5000 );
 					break;
 				case 'quality':
