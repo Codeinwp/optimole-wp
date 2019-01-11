@@ -104,13 +104,13 @@ class Optml_Image {
 	 */
 	public function get_url( $signed = false ) {
 		$path_parts = array();
-		if ( $this->width->get() > 0 ) {
+		if ( $this->width->get() > 0 || $this->width->get() === 'auto' ) {
 			$path_parts[] = $this->width->toString();
 		}
-		if ( $this->height->get() > 0 ) {
+		if ( $this->height->get() > 0 || $this->height->get() === 'auto' ) {
 			$path_parts[] = $this->height->toString();
 		}
-		if ( $this->quality->get() > 0 || $this->quality->get() === 'eco' ) {
+		if ( $this->quality->get() > 0 || $this->quality->get() === 'eco' || $this->quality->get() === 'auto' ) {
 			$path_parts[] = $this->quality->toString();
 		}
 		if ( isset( $this->resize->get()['type'] ) ) {
