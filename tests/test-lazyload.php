@@ -14,6 +14,7 @@
 class Test_Lazyload extends WP_UnitTestCase {
 	const HTML_TAGS_HEADER = 'Test sample <header id="header"><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header2.jpg" width="2000" height="1200" alt="Test" /></div></div> </header><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" /></div></div>';
 	const HTML_TAGS_HEADER_MULTIPLE = 'Test sample <header id="header"><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header2.jpg" width="2000" height="1200" alt="Test" /></div></div> </header><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" /></div></div>Test sample <header id="header"><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header3.jpg" width="2000" height="1200" alt="Test" /></div></div> </header><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header4.jpg" width="2000" height="1200" alt="Test" /></div></div>';
+	public static $sample_attachement;
 
 	public function setUp() {
 		parent::setUp();
@@ -30,6 +31,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 		Optml_Lazyload_Replacer::instance()->init();
 		Optml_Manager::instance()->init();
 
+		self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/logo.png' );
 	}
 
 	public function test_lazy_load() {
@@ -53,7 +55,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 	}
 
 	public function test_lazy_load_ignore_feed() {
-		$this->go_to('/?feed=rss2');
+		$this->go_to( '/?feed=rss2' );
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS_WITH_SRCSET );
 		$this->assertNotContains( 'i.optimole.com', $replaced_content );
@@ -87,6 +89,14 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'http://example.org', $replaced_content );
 		$this->assertEquals( 3, substr_count( $replaced_content, 'data-opt-src' ) );
+	}
+
+	public function test_lazy_load_preserve_image_size() {
+		$html             = wp_get_attachment_image( self::$sample_attachement, 'sample_size_crop' );
+		$replaced_content = Optml_Manager::instance()->replace_content( $html );
+		$this->assertNotEquals( $replaced_content, $html );
+		$this->assertContains( 'rt:fill/g:ce', $replaced_content );
+
 	}
 
 	public function test_check_no_script() {
