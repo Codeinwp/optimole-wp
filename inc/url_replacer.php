@@ -102,8 +102,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		} elseif ( $args['height'] > 0 ) {
 			$args['height'] = $args['height'] > $this->max_height ? $this->max_height : $args['height'];
 		}
-
-		return ( new Optml_Image( $url, $args ) )->get_url( $this->is_allowed_site );
+		return ( new Optml_Image( $url, $args ) )->get_url( $this->settings->use_lazyload() ? false : $this->is_allowed_site );
 	}
 
 	/**
