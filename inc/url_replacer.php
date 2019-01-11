@@ -93,8 +93,15 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			list( $args['width'], $args['height'] ) = $this->parse_dimensions_from_filename( $url );
 			$url = $new_url;
 		}
-
-		list( $args['width'], $args['height'] ) = wp_constrain_dimensions( (int) $args['width'], (int) $args['height'], $this->max_width, $this->max_height );
+		$args['width']  = (int) $args['width'];
+		$args['height'] = (int) $args['height'];
+		if ( $args['width'] > 0 && $args['height'] > 0 ) {
+			list( $args['width'], $args['height'] ) = wp_constrain_dimensions( $args['width'], $args['height'], $this->max_width, $this->max_height );
+		} elseif ( $args['width'] > 0 ) {
+			$args['width'] = $args['width'] > $this->max_width ? $this->max_width : $args['width'];
+		} elseif ( $args['height'] > 0 ) {
+			$args['height'] = $args['height'] > $this->max_height ? $this->max_height : $args['height'];
+		}
 
 		return ( new Optml_Image( $url, $args ) )->get_url( $this->is_allowed_site );
 	}
