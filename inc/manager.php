@@ -159,6 +159,8 @@ final class Optml_Manager {
 	 * @return mixed Filtered content.
 	 */
 	public function replace_content( $html, $context = 'raw' ) {
+		$html = $this->process_images_from_content( $html );
+
 		$extracted_urls     = $this->extract_image_urls_from_content( $html );
 		$extracted_urls     = apply_filters( 'optml_extracted_urls', $extracted_urls );
 		$urls     = array_combine( $extracted_urls, $extracted_urls );
@@ -171,8 +173,6 @@ final class Optml_Manager {
 			},
 			$urls
 		);
-
-		$html = $this->process_images_from_content( $html );
 
 		foreach ( $urls as $origin => $replace ) {
 			if ( strpos( $html, '/' . $origin ) === false ) {

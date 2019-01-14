@@ -62,11 +62,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		$url, $args = array(
 			'width'   => 'auto',
 			'height'  => 'auto',
-			'quality' => 'auto',
+			'quality' => '',
 		)
 	) {
 
-		$url = rawurldecode( $url );
 
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
