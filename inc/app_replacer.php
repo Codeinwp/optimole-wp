@@ -145,7 +145,6 @@ abstract class Optml_App_Replacer {
 		);
 
 		$this->allowed_sources = $this->extract_domain_from_urls( $service_data['whitelist'] );
-		var_dump( $this->allowed_sources );
 
 		$this->is_allowed_site = count( array_diff_key( $this->possible_sources, $this->allowed_sources ) ) > 0;
 
@@ -287,6 +286,6 @@ abstract class Optml_App_Replacer {
 		}
 		$url = parse_url( $url );
 
-		return isset( $this->possible_sources[ str_replace('www.', '', $url['host'] ) ] );
+		return isset( $this->allowed_sources[ $url['host'] ] );
 	}
 }
