@@ -65,6 +65,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			'quality' => '',
 		)
 	) {
+
+		$url = rawurldecode( $url );
+
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
