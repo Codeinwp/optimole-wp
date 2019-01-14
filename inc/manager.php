@@ -222,9 +222,9 @@ final class Optml_Manager {
 		}
 		$images = self::parse_images_from_html( $content );
 
-//		if ( empty( $images ) ) {
-//			return $content;
-//		}
+		if ( empty( $images ) ) {
+			return $content;
+		}
 
 		return apply_filters( 'optml_content_images_tags', $content, $images );
 	}
