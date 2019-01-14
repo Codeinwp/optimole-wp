@@ -89,7 +89,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				list( $width, $height ) = $this->parse_dimensions_from_filename( $tmp );
 			}
 			$optml_args = [ 'width' => $width, 'height' => $height, 'resize' => $resize ];
-			$tmp        = str_replace( '%5C', '', $this->strip_image_size_from_url( $tmp ) );
+			$tmp        = $this->strip_image_size_from_url( $tmp );
 			$new_url    = apply_filters( 'optml_content_url', $tmp, $optml_args );
 
 			if ( $new_url === $tmp ) {
