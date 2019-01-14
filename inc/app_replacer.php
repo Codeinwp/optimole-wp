@@ -286,6 +286,6 @@ abstract class Optml_App_Replacer {
 		}
 		$url = parse_url( $url );
 
-		return isset( $this->allowed_sources[ $url['host'] ] );
+		return isset( $this->allowed_sources[ $url['host'] ] ) || isset( $this->possible_sources[ $url['host'] ] );
 	}
 }
