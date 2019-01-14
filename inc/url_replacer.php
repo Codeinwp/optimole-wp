@@ -62,7 +62,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		$url, $args = array(
 			'width'   => 'auto',
 			'height'  => 'auto',
-			'quality' => '',
+			'quality' => 'auto',
 		)
 	) {
 
