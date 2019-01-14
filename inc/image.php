@@ -128,7 +128,7 @@ class Optml_Image {
 			$path = sprintf( '/%s%s', $this->get_signature( $path ), $path );
 		}
 
-		rtrim( $path, '%5C' );
+		$path = rtrim( $path, '%5C' );
 
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 
