@@ -222,7 +222,7 @@ final class Optml_Manager {
 		}
 		$images = self::parse_images_from_html( $content );
 
-		var_dump( $images );
+		error_log( 'IMAGES ::: ' . json_encode( $images ) );
 		if ( empty( $images ) ) {
 			return $content;
 		}
