@@ -64,8 +64,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function process_image_tags( $content, $images = array() ) {
 		$image_sizes = self::image_sizes();
+		var_dump( $images );
 		foreach ( $images[0] as $index => $tag ) {
-			var_dump( $tag );
 			$width   = $height = false;
 			$resize  = array();
 			$new_tag = $tag;
