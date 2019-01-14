@@ -286,9 +286,6 @@ abstract class Optml_App_Replacer {
 		}
 		$url = parse_url( $url );
 
-		var_dump( $url['host'] );
-		var_dump( $this->possible_sources );
-
 		return isset( $this->possible_sources[ str_replace('www.', '', $url['host'] ) ] );
 	}
 }
