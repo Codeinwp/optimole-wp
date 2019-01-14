@@ -69,12 +69,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$resize  = array();
 			$new_tag = $tag;
 			$src     = $tmp = wp_unslash( $images['img_url'][ $index ] );
-//			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
-//				 false !== strpos( $src, Optml_Config::$service_url ) ||
-//				 ! $this->can_replace_url( $src )
-//			) {
-//				continue; // @codeCoverageIgnore
-//			}
+			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
+				 false !== strpos( $src, Optml_Config::$service_url ) ||
+				 ! $this->can_replace_url( $src )
+			) {
+				continue; // @codeCoverageIgnore
+			}
 
 			list( $width, $height, $resize ) = self::parse_dimensions_from_tag(
 				$images['img_tag'][ $index ],
