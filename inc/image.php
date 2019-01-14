@@ -128,8 +128,6 @@ class Optml_Image {
 			$path = sprintf( '/%s%s', $this->get_signature( $path ), $path );
 		}
 
-		$path = rtrim( wp_unslash( $path ), '/' );
-
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 
 	}
