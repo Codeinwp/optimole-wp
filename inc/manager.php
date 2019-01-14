@@ -167,7 +167,6 @@ final class Optml_Manager {
 		}
 		$urls = array_map(
 			function ( $url ) {
-				var_dump( $url );
 				return apply_filters( 'optml_content_url', $url );
 			},
 			$urls
@@ -175,6 +174,7 @@ final class Optml_Manager {
 
 		$html = $this->process_images_from_content( $html );
 
+		var_dump( $urls );
 		foreach ( $urls as $origin => $replace ) {
 			if ( strpos( $html, '/' . $origin ) === false ) {
 				$html = str_replace( $origin, $replace, $html );
