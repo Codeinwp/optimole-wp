@@ -54,7 +54,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		$low_url = str_replace( 'q:auto', 'q:eco', $original_url );
-
+		var_dump( $low_url );
 		$no_script_tag = str_replace(
 			array(
 				'src="' . $original_url . '"',
