@@ -167,6 +167,7 @@ final class Optml_Manager {
 		}
 		$urls = array_map(
 			function ( $url ) {
+				var_dump( $url );
 				return apply_filters( 'optml_content_url', $url );
 			},
 			$urls
