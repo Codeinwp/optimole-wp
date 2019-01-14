@@ -53,9 +53,9 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args );
 		}
 
-		//var_dump( $original_url );
-		$low_url = str_replace( '/q:auto/', '/q:eco/', $new_url );
-		//var_dump( $low_url );
+		//$low_url = str_replace( '/q:auto/', '/q:eco/', $new_url );
+		$optml_args['quality'] = 'eco';
+		$low_url    = apply_filters( 'optml_content_url', $original_url, $optml_args );
 		$no_script_tag = str_replace(
 			array(
 				'src="' . $original_url . '"',
