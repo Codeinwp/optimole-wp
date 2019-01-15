@@ -144,6 +144,9 @@
   width: auto;
   margin: auto;
 }
+#optimole-app img.optml-image-watermark {
+  width:50px;
+}
 
 .optml-ratio-feedback .emoji {
   font-size: 1.5em;
@@ -161,4 +164,26 @@
 th.optml-image-ratio-heading {
   text-align: right !important;
   font-size: 150%;
+}
+@media screen and (max-width: 768px) {
+  li:not(.is-active) > a > span:not(.icon) {
+    visibility: hidden;
+    position:  absolute;
+  }
+
+  nav.tabs li:not(.is-active) {
+    -webkit-box-flex: 0;
+    -ms-flex-positive: 0;
+    flex-grow: 0;
+    -ms-flex-negative: 1;
+    flex-shrink: 1;
+  }
+
+  .tabs .icon {
+    margin-left: 0.5em;
+  }
+}
+
+.tabs li {
+  transition: flex-grow 1s ease;
 }

@@ -134,6 +134,7 @@ class Optml_Admin {
 		if ( ! $this->should_show_notice() ) {
 			return $classes;
 		}
+
 		return $classes . ' optimole-optin-show ';
 	}
 
@@ -311,6 +312,7 @@ class Optml_Admin {
 		if ( ! $this->settings->use_lazyload() ) {
 			$hints[] = sprintf( '//%s', OPTML_JS_CDN );
 		}
+
 		return $hints;
 	}
 
@@ -329,6 +331,7 @@ class Optml_Admin {
 			update_option( 'optml_notice_optin', 'yes' );
 		}
 		?>
+
 		<div id="optimole-app">
 			<app></app>
 		</div>
@@ -364,6 +367,7 @@ class Optml_Admin {
 		$api_key      = $this->settings->get( 'api_key' );
 		$service_data = $this->settings->get( 'service_data' );
 		$user         = get_userdata( get_current_user_id() );
+
 		return array(
 			'strings'           => $this->get_dashboard_strings(),
 			'assets_url'        => OPTML_URL . 'assets/',
@@ -441,8 +445,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'optimole-wp'
 			),
 			'dashboard_menu_item'           => __( 'Dashboard', 'optimole-wp' ),
-			'settings_menu_item'            => __( 'Settings', 'optimole-wp' ),
-			'watermarks_menu_item'          => __( 'Watermarks', 'optimole-wp' ),
+			'settings_menu_item'            => __( 'General Settings', 'optimole-wp' ),
+			'watermarks_menu_item'          => __( 'Watermark options', 'optimole-wp' ),
 			'options_strings'               => array(
 				'toggle_ab_item'       => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'      => __( 'Javascript replacement & Lazy load', 'optimole-wp' ),
@@ -472,38 +476,43 @@ The root cause might be either a security plugin which blocks this feature or so
 				'admin_bar_desc'       => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),
 				'lazyload_desc'        => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload.', 'optimole-wp' ),
 			),
-			'watermarks' => array(
-				'image'                 => __( 'Image', 'optimole-wp' ),
-				'id'                    => __( 'ID', 'optimole-wp' ),
-				'name'                  => __( 'Name', 'optimole-wp' ),
-				'type'                  => __( 'Type', 'optimole-wp' ),
-				'action'                => __( 'Action', 'optimole-wp' ),
-				'upload'                => __( 'Upload', 'optimole-wp' ),
-				'add_desc'              => __( 'Add new watermark', 'optimole-wp' ),
-				'wm_title'              => __( 'Active watermark', 'optimole-wp' ),
-				'wm_desc'               => __( 'The active watermark to use from the list of uploaded watermarks.', 'optimole-wp' ),
-				'opacity_field'         => __( 'Opacity', 'optimole-wp' ),
-				'opacity_title'         => __( 'Watermark opacity', 'optimole-wp' ),
-				'opacity_desc'          => __( 'A value between 0 and 100 for the opacity level. If set to 0 it will disable the watermark.', 'optimole-wp' ),
-				'position_title'        => __( 'Watermark position', 'optimole-wp' ),
-				'position_desc'         => __( 'The place relative to the image where the watermark should be placed.', 'optimole-wp' ),
-				'pos_nowe_title'        => __( 'North-West', 'optimole-wp' ),
-				'pos_no_title'          => __( 'North', 'optimole-wp' ),
-				'pos_noea_title'        => __( 'North-East', 'optimole-wp' ),
-				'pos_we_title'          => __( 'West', 'optimole-wp' ),
-				'pos_ce_title'          => __( 'Center', 'optimole-wp' ),
-				'pos_ea_title'          => __( 'East', 'optimole-wp' ),
-				'pos_sowe_title'        => __( 'South-West', 'optimole-wp' ),
-				'pos_so_title'          => __( 'South', 'optimole-wp' ),
-				'pos_soea_title'        => __( 'South-East', 'optimole-wp' ),
-				'offset_x_field'        => __( 'Offset X', 'optimole-wp' ),
-				'offset_y_field'        => __( 'Offset Y', 'optimole-wp' ),
-				'offset_title'          => __( 'Watermark offset', 'optimole-wp' ),
-				'offset_desc'           => __( 'Offset the watermark from set position on X and Y axis. Values can be positive or negative.', 'optimole-wp' ),
-				'scale_field'           => __( 'Scale', 'optimole-wp' ),
-				'scale_title'           => __( 'Watermark scale', 'optimole-wp' ),
-				'scale_desc'            => __( 'A value between 0 and 300 for the scale of the watermark (100 is the original size and 300 is 3x the size). If set to 0 it will default to the original size.', 'optimole-wp' ),
-				'save_changes'          => __( 'Save changes', 'optimole-wp' ),
+			'watermarks'                    => array(
+				'image'                    => __( 'Image', 'optimole-wp' ),
+				'loading_remove_watermark' => __( 'Removing watermark resource ...', 'optimole-wp' ),
+				'max_allowed'              => __( 'You are allowed to save maximum 5 images.', 'optimole-wp' ),
+				'list_header'              => __( 'Possible watermarks', 'optimole-wp' ),
+				'settings_header'          => __( 'Watermarks position settings', 'optimole-wp' ),
+				'no_images_found'          => __( 'No images available for watermark. Please upload one.', 'optimole-wp' ),
+				'id'                       => __( 'ID', 'optimole-wp' ),
+				'name'                     => __( 'Name', 'optimole-wp' ),
+				'type'                     => __( 'Type', 'optimole-wp' ),
+				'action'                   => __( 'Action', 'optimole-wp' ),
+				'upload'                   => __( 'Upload', 'optimole-wp' ),
+				'add_desc'                 => __( 'Add new watermark', 'optimole-wp' ),
+				'wm_title'                 => __( 'Active watermark', 'optimole-wp' ),
+				'wm_desc'                  => __( 'The active watermark to use from the list of uploaded watermarks.', 'optimole-wp' ),
+				'opacity_field'            => __( 'Opacity', 'optimole-wp' ),
+				'opacity_title'            => __( 'Watermark opacity', 'optimole-wp' ),
+				'opacity_desc'             => __( 'A value between 0 and 100 for the opacity level. If set to 0 it will disable the watermark.', 'optimole-wp' ),
+				'position_title'           => __( 'Watermark position', 'optimole-wp' ),
+				'position_desc'            => __( 'The place relative to the image where the watermark should be placed.', 'optimole-wp' ),
+				'pos_nowe_title'           => __( 'North-West', 'optimole-wp' ),
+				'pos_no_title'             => __( 'North', 'optimole-wp' ),
+				'pos_noea_title'           => __( 'North-East', 'optimole-wp' ),
+				'pos_we_title'             => __( 'West', 'optimole-wp' ),
+				'pos_ce_title'             => __( 'Center', 'optimole-wp' ),
+				'pos_ea_title'             => __( 'East', 'optimole-wp' ),
+				'pos_sowe_title'           => __( 'South-West', 'optimole-wp' ),
+				'pos_so_title'             => __( 'South', 'optimole-wp' ),
+				'pos_soea_title'           => __( 'South-East', 'optimole-wp' ),
+				'offset_x_field'           => __( 'Offset X', 'optimole-wp' ),
+				'offset_y_field'           => __( 'Offset Y', 'optimole-wp' ),
+				'offset_title'             => __( 'Watermark offset', 'optimole-wp' ),
+				'offset_desc'              => __( 'Offset the watermark from set position on X and Y axis. Values can be positive or negative.', 'optimole-wp' ),
+				'scale_field'              => __( 'Scale', 'optimole-wp' ),
+				'scale_title'              => __( 'Watermark scale', 'optimole-wp' ),
+				'scale_desc'               => __( 'A value between 0 and 300 for the scale of the watermark (100 is the original size and 300 is 3x the size) relative to the resulting image size. If set to 0 it will default to the original size.', 'optimole-wp' ),
+				'save_changes'             => __( 'Save changes', 'optimole-wp' ),
 			),
 			'latest_images'                 => array(
 				'image'                 => __( 'Image', 'optimole-wp' ),

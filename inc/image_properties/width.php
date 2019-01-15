@@ -10,7 +10,7 @@ class Optml_Width extends Optml_Property_Type {
 	 *
 	 * @var mixed $width
 	 */
-	private $width;
+	private $width = 'auto';
 
 	/**
 	 * Optml_Width constructor.
@@ -18,7 +18,28 @@ class Optml_Width extends Optml_Property_Type {
 	 * @param mixed $value Default value.
 	 */
 	public function __construct( $value ) {
-		$this->width = $value;
+		$this->set( $value );
+	}
+
+	/**
+	 * Set property value.
+	 *
+	 * @param mixed $value Value to set.
+	 */
+	public function set( $value ) {
+
+		if ( $value === 'auto' ) {
+			$this->width = 'auto';
+
+			return;
+		}
+		if ( ! $this->is_valid_numeric( $value ) ) {
+			$this->width = 'auto';
+
+			return;
+		}
+
+		$this->width = $this->to_positive_integer( $value );
 	}
 
 	/**
@@ -28,17 +49,6 @@ class Optml_Width extends Optml_Property_Type {
 	 */
 	public function get() {
 		return $this->width;
-	}
-
-	/**
-	 * Set property value.
-	 *
-	 * @param mixed $value Value to set.
-	 */
-	public function set( $value ) {
-		if ( $this->is_valid_numeric( $value ) ) {
-			$this->width = $this->to_positive_integer( $value );
-		}
 	}
 
 	/**

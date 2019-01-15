@@ -10,7 +10,7 @@ class Optml_Height extends Optml_Property_Type {
 	 *
 	 * @var mixed $height
 	 */
-	private $height;
+	private $height = 'auto';
 
 	/**
 	 * Optml_Height constructor.
@@ -18,7 +18,26 @@ class Optml_Height extends Optml_Property_Type {
 	 * @param mixed $value Default value.
 	 */
 	public function __construct( $value ) {
-		$this->height = $value;
+		$this->set( $value );
+	}
+
+	/**
+	 * Set property value.
+	 *
+	 * @param mixed $value Value to set.
+	 */
+	public function set( $value ) {
+		if ( $value === 'auto' ) {
+			$this->height = 'auto';
+			return;
+		}
+
+		if ( ! $this->is_valid_numeric( $value ) ) {
+			$this->height = 'auto';
+			return;
+		}
+
+		$this->height = $this->to_positive_integer( $value );
 	}
 
 	/**
@@ -28,17 +47,6 @@ class Optml_Height extends Optml_Property_Type {
 	 */
 	public function get() {
 		return $this->height;
-	}
-
-	/**
-	 * Set property value.
-	 *
-	 * @param mixed $value Value to set.
-	 */
-	public function set( $value ) {
-		if ( $this->is_valid_numeric( $value ) ) {
-			$this->height = $this->to_positive_integer( $value );
-		}
 	}
 
 	/**

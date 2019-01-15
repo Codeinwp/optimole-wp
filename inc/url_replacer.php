@@ -47,6 +47,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			return; // @codeCoverageIgnore
 		}
 
+		Optml_Image::$quality   = new Optml_Quality( $this->to_accepted_quality( $this->settings->get_quality() ) );
+		Optml_Image::$watermark = new Optml_Watermark( $this->settings->get_site_settings()['watermark'] );
+
 		add_filter( 'optml_content_url', array( $this, 'build_image_url' ), 1, 2 );
 	}
 
@@ -60,9 +63,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 */
 	public function build_image_url(
 		$url, $args = array(
-			'width'   => 'auto',
-			'height'  => 'auto',
-			'quality' => '',
+			'width'  => 'auto',
+			'height' => 'auto',
 		)
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
@@ -75,12 +77,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			return $url;
 		}
 
-		$compress_level = apply_filters( 'optml_image_quality', $this->settings->get_quality() );
 		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) ) {
-			$compress_level = $args['quality'];
+			$args['quality'] = $this->to_accepted_quality( $args['quality'] );
 		}
-
-		$args['quality'] = $this->to_accepted_quality( $compress_level );
 
 		// this will authorize the image
 		if ( ! empty( $this->site_mappings ) ) {
@@ -102,6 +101,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		} elseif ( $args['height'] > 0 ) {
 			$args['height'] = $args['height'] > $this->max_height ? $this->max_height : $args['height'];
 		}
+
 		return ( new Optml_Image( $url, $args ) )->get_url( $this->settings->use_lazyload() ? false : $this->is_allowed_site );
 	}
 

@@ -21,7 +21,13 @@ class Optml_Image {
 	 *
 	 * @var Optml_Quality Quality;
 	 */
-	private $quality = null;
+	public static $quality = null;
+	/**
+	 * Watermark for the image.
+	 *
+	 * @var Optml_Watermark Watermark.
+	 */
+	public static $watermark = null;
 	/**
 	 * Width of the resulting image.
 	 *
@@ -34,12 +40,6 @@ class Optml_Image {
 	 * @var Optml_Height Height.
 	 */
 	private $height = null;
-	/**
-	 * Watermark for the image.
-	 *
-	 * @var Optml_Watermark Watermark.
-	 */
-	private $watermark = null;
 	/**
 	 * Resize type for the image.
 	 *
@@ -66,12 +66,12 @@ class Optml_Image {
 			throw new \InvalidArgumentException( 'Optimole image builder requires the source url to optimize.' ); // @codeCoverageIgnore
 		}
 		$this->set_defaults();
+
 		$this->width->set( $args['width'] );
 		$this->height->set( $args['height'] );
-		$this->quality->set( $args['quality'] );
 
-		if ( isset( $args['watermark_id'] ) && $args['watermark_id'] != 0 ) {
-			$this->watermark->set( $args['watermark_id'] );
+		if ( isset( $args['quality'] ) ) {
+			self::$quality->set( $args['quality'] );
 		}
 
 		if ( isset( $args['resize'] ) ) {
@@ -85,14 +85,9 @@ class Optml_Image {
 	 * Set defaults for image transformations.
 	 */
 	private function set_defaults() {
-		$this->width     = new Optml_Width( 'auto' );
-		$this->height    = new Optml_Height( 'auto' );
-		$this->quality   = new Optml_Quality( 'auto' );
-		$this->watermark = new Optml_Watermark();
-		$this->resize    = new Optml_Resize();
-
-		$this->focus_point_x = 0;
-		$this->focus_point_y = 0;
+		$this->width  = new Optml_Width( 'auto' );
+		$this->height = new Optml_Height( 'auto' );
+		$this->resize = new Optml_Resize();
 	}
 
 	/**
@@ -104,26 +99,23 @@ class Optml_Image {
 	 */
 	public function get_url( $signed = false ) {
 		$path_parts = array();
-		if ( $this->width->get() > 0 || $this->width->get() === 'auto' ) {
-			$path_parts[] = $this->width->toString();
-		}
-		if ( $this->height->get() > 0 || $this->height->get() === 'auto' ) {
-			$path_parts[] = $this->height->toString();
-		}
-		if ( $this->quality->get() > 0 || $this->quality->get() === 'eco' || $this->quality->get() === 'auto' ) {
-			$path_parts[] = $this->quality->toString();
-		}
+
+		$path_parts[] = $this->width->toString();
+		$path_parts[] = $this->height->toString();
+		$path_parts[] = self::$quality->toString();
+
 		if ( isset( $this->resize->get()['type'] ) ) {
 			$path_parts[] = $this->resize->toString();
 		}
-		if ( is_array( $this->watermark->get() ) && isset( $this->watermark->get()['id'] ) && $this->watermark->get()['id'] != 0 ) {
-			$path_parts[] = $this->watermark->toString();
+
+		if ( is_array( self::$watermark->get() ) && isset( self::$watermark->get()['id'] ) && self::$watermark->get()['id'] > 0 ) {
+			$path_parts[] = self::$watermark->toString();
 		}
+
 		$path = '/' . $this->source_url;
 
-		if ( ! empty( $path_parts ) ) {
-			$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
-		}
+		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
+
 		if ( $signed ) {
 			$path = sprintf( '/%s%s', $this->get_signature( $path ), $path );
 		}
@@ -140,6 +132,7 @@ class Optml_Image {
 	 * @return bool|string
 	 */
 	public function get_signature( $path = '' ) {
+
 		$binary    = hash_hmac( 'sha256', Optml_Config::$secret . $path, Optml_Config::$key, true );
 		$binary    = pack( 'A' . self::SIGNATURE_SIZE, $binary );
 		$signature = rtrim( strtr( base64_encode( $binary ), '+/', '-_' ), '=' );

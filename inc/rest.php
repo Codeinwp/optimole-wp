@@ -211,12 +211,12 @@ class Optml_Rest {
 	/**
 	 * Wrapper for api response.
 	 *
-	 * @param array $data data from api.
+	 * @param mixed $data data from api.
 	 *
 	 * @return WP_REST_Response
 	 */
-	private function response( $data ) {
-		return new WP_REST_Response( array( 'data' => $data, 'code' => 'success' ), 200 );
+	private function response( $data, $code = 'success' ) {
+		return new WP_REST_Response( array( 'data' => $data, 'code' => $code ), 200 );
 	}
 
 	/**
@@ -231,7 +231,15 @@ class Optml_Rest {
 		$api   = new Optml_Api();
 		$user  = $api->create_account( $email );
 		if ( $user === false ) {
-			return new WP_Error( 'error', 'Error creating account.' );
+			return new WP_REST_Response(
+				array(
+					'data'    => null,
+					'message' => __( 'Error creating account.', 'optimole-wp' ),
+					'code'    => 'error',
+				),
+				200
+			);
+
 		}
 
 		return $this->response( $user );
@@ -376,13 +384,14 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function poll_watermarks( WP_REST_Request $request ) {
-		$api_key = $request->get_param( 'api_key' );
-		$request = new Optml_Api();
-		$watermarks  = $request->get_watermarks( $api_key );
+		$api_key    = $request->get_param( 'api_key' );
+		$request    = new Optml_Api();
+		$watermarks = $request->get_watermarks( $api_key );
 		if ( ! isset( $watermarks['watermarks'] ) || empty( $watermarks['watermarks'] ) ) {
 			return $this->response( array() );
 		}
 		$final_images = array_splice( $watermarks['watermarks'], 0, 10 );
+
 		return $this->response( $final_images );
 	}
 
@@ -394,10 +403,14 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function add_watermark( WP_REST_Request $request ) {
-		$file = $request->get_file_params();
-		$api_key = $request->get_param( 'api_key' );
-		$request = new Optml_Api();
-		return $this->response( $request->add_watermark( $file, $api_key ) );
+		$file     = $request->get_file_params();
+		$request  = new Optml_Api();
+		$response = $request->add_watermark( $file );
+		if ( $response === false ) {
+			return $this->response( __( 'Error uploading image. Please try again.', 'optimole-wp' ), 'error' );
+		}
+
+		return $this->response( __( 'Watermark image uploaded succesfully ! ', 'optimole-wp' ) );
 	}
 
 	/**
@@ -411,6 +424,7 @@ class Optml_Rest {
 		$post_id = $request->get_param( 'postID' );
 		$api_key = $request->get_param( 'api_key' );
 		$request = new Optml_Api();
+
 		return $this->response( $request->remove_watermark( $post_id, $api_key ) );
 	}
 
@@ -418,6 +432,7 @@ class Optml_Rest {
 	 * Update options method.
 	 *
 	 * @param WP_REST_Request $request option update rest request.
+	 *
 	 * @return WP_REST_Response
 	 */
 	public function update_option( WP_REST_Request $request ) {
@@ -427,7 +442,7 @@ class Optml_Rest {
 			wp_send_json_error( 'No option key set.' );
 		}
 
-		$settings = new Optml_Settings();
+		$settings  = new Optml_Settings();
 		$sanitized = $settings->parse_settings( $new_settings );
 
 		return $this->response( $sanitized );

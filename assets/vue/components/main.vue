@@ -10,21 +10,21 @@
 							<ul class="is-marginless">
 								<li :class="tab === 'dashboard' ? 'is-active' : ''">
 									<a @click="changeTab('dashboard')" class="is-size-6-mobile">
-										<span class="icon is-size-6-mobile  dashicons dashicons-admin-home"></span>
-										<span class="is-size-6-mobile ">{{strings.dashboard_menu_item}}</span>
+										<span class="icon is-size-6-mobile is-size-6-tablet  dashicons dashicons-admin-home"></span>
+										<span class="is-size-6-mobile   is-size-6-touch ">{{strings.dashboard_menu_item}}</span>
 									</a>
 								</li>
 								
 								<li :class="tab === 'settings' ? 'is-active' : ''">
-									<a @click="changeTab('settings')" class="is-size-6-mobile">
-										<span class="icon is-size-6-mobile  dashicons dashicons-admin-settings"></span>
-										<span class="is-size-6-mobile">{{strings.settings_menu_item}}</span>
+									<a @click="changeTab('settings')" class="is-size-6-mobile  ">
+										<span class="icon is-size-6-mobile   is-size-6-tablet dashicons dashicons-admin-settings"></span>
+										<span class="is-size-6-mobile  is-size-6-touch" >{{strings.settings_menu_item}}</span>
 									</a>
 								</li>
 								<li :class="tab === 'watermarks' ? 'is-active' : ''" >
 									<a @click="changeTab('watermarks')" class="is-size-6-mobile">
-										<span class="icon is-size-6-mobile  dashicons dashicons-admin-settings"></span>
-										<span  class="is-size-6-mobile">{{strings.watermarks_menu_item}}</span>
+										<span class="icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-tag"></span>
+										<span  class="is-size-6-mobile   is-size-6-touch">{{strings.watermarks_menu_item}}</span>
 									</a>
 								</li>
 							</ul>

@@ -85,10 +85,12 @@ final class Optml_Api {
 		if ( empty( $response ) ) {
 			return false;
 		}
-
 		$response = json_decode( $response, true );
 
-		if ( ! $response['code'] ) {
+		if ( isset( $response['id'] ) && is_numeric( $response['id'] ) ) {
+			return true;
+		}
+		if ( ! isset( $response['code'] ) ) {
 			return false;
 		}
 		if ( intval( $response['code'] ) !== 200 ) {
@@ -111,7 +113,6 @@ final class Optml_Api {
 	 */
 	private function build_args( $method, $url, $headers, $params ) {
 		$args = array(
-			'url'        => $url,
 			'method'     => $method,
 			'timeout'    => 45,
 			'user-agent' => 'Optimle WP (v' . OPTML_VERSION . ') ',
@@ -192,20 +193,19 @@ final class Optml_Api {
 	/**
 	 * Add watermark.
 	 *
-	 * @param array  $file The file to be uploaded.
-	 * @param string $api_key The API key.
+	 * @param array $file The file to be uploaded.
 	 *
 	 * @return array|bool|mixed|object
 	 */
-	public function add_watermark( $file, $api_key = '' ) {
+	public function add_watermark( $file ) {
 
-		$headers['Content-Disposition'] = [
+		$headers = [
 			'Content-Disposition' => 'attachment; filename=' . $file['file']['name'],
 		];
 
-		$response = $this->request( 'wp/v2/media', 'POST', file_get_contents( $file['file']['tmp_name'] ) );
+		$response = $this->request( 'wp/v2/media', 'POST', file_get_contents( $file['file']['tmp_name'] ), $headers );
 
-		if ( is_wp_error( $response ) ) {
+		if ( $response === false ) {
 			return false;
 		}
 

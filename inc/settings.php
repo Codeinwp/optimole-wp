@@ -19,9 +19,9 @@ class Optml_Settings {
 		'admin_bar_item' => 'enabled',
 		'lazyload'       => 'disabled',
 		'quality'        => 'auto',
-		'wm_id'          => 0,
+		'wm_id'          => - 1,
 		'wm_opacity'     => 1,
-		'wm_position'    => Optml_Resize::GRAVITY_CENTER,
+		'wm_position'    => Optml_Resize::GRAVITY_SOUTH_EAST,
 		'wm_x'           => 0,
 		'wm_y'           => 0,
 		'wm_scale'       => 0,
@@ -44,9 +44,9 @@ class Optml_Settings {
 	 * Optml_Settings constructor.
 	 */
 	public function __construct() {
-		$this->namespace = OPTML_NAMESPACE . '_settings';
+		$this->namespace      = OPTML_NAMESPACE . '_settings';
 		$this->default_schema = apply_filters( 'optml_default_settings', $this->default_schema );
-		$this->options   = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
+		$this->options        = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 		if ( defined( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && $this->to_boolean( constant( 'OPTIML_ENABLED_MU' ) ) && constant( 'OPTIML_MU_SITE_ID' ) ) {
 			switch_to_blog( constant( 'OPTIML_MU_SITE_ID' ) );
 			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
@@ -75,7 +75,16 @@ class Optml_Settings {
 					$sanitized_value = $this->to_bound_integer( $value, 100, 5000 );
 					break;
 				case 'quality':
-					$sanitized_value = $this->to_map_values( $value, array( 'low_c', 'medium_c', 'high_c', 'auto' ), 'auto' );
+					$sanitized_value = $this->to_map_values(
+						$value,
+						array(
+							'low_c',
+							'medium_c',
+							'high_c',
+							'auto',
+						),
+						'auto'
+					);
 					break;
 				case 'wm_id':
 					$sanitized_value = intval( $value );
@@ -86,17 +95,72 @@ class Optml_Settings {
 				case 'wm_y':
 					$sanitized_value = floatval( $value );
 					break;
+				case 'wm_position':
+					$sanitized_value = $this->to_map_values(
+						$value,
+						array(
+							Optml_Resize::GRAVITY_NORTH,
+							Optml_Resize::GRAVITY_NORTH_EAST,
+							Optml_Resize::GRAVITY_NORTH_WEST,
+							Optml_Resize::GRAVITY_CENTER,
+							Optml_Resize::GRAVITY_EAST,
+							Optml_Resize::GRAVITY_WEST,
+							Optml_Resize::GRAVITY_SOUTH_EAST,
+							Optml_Resize::GRAVITY_SOUTH,
+							Optml_Resize::GRAVITY_SOUTH_WEST,
+						),
+						Optml_Resize::GRAVITY_SOUTH_EAST
+					);
+					break;
 				default:
 					$sanitized_value = '';
 					break;
 			}
-			if ( empty( $sanitized_value ) ) {
-				continue;
-			}
+
 			$sanitized[ $key ] = $sanitized_value;
 			$this->update( $key, $sanitized_value );
 		}
+
 		return $sanitized;
+	}
+
+	/**
+	 * Update settings.
+	 *
+	 * @param string $key Settings key.
+	 * @param mixed  $value Settings value.
+	 *
+	 * @return bool Update result.
+	 */
+	public function update( $key, $value ) {
+		if ( ! $this->is_allowed( $key ) ) {
+			return false;
+		}
+		// If we try to update from a website which is not the main OPTML blog, bail.
+		if ( defined( 'OPTIML_ENABLED_MU' ) && constant( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && constant( 'OPTIML_MU_SITE_ID' ) &&
+			 intval( constant( 'OPTIML_MU_SITE_ID' ) ) !== get_current_blog_id()
+		) {
+			return false;
+		}
+		$opt         = $this->options;
+		$opt[ $key ] = $value;
+		$update      = update_option( $this->namespace, $opt, false );
+		if ( $update ) {
+			$this->options = $opt;
+		}
+
+		return $update;
+	}
+
+	/**
+	 * Check if key is allowed.
+	 *
+	 * @param  string $key Is key allowed or not.
+	 *
+	 * @return bool Is key allowed or not.
+	 */
+	private function is_allowed( $key ) {
+		return isset( $this->default_schema[ $key ] );
 	}
 
 	/**
@@ -132,17 +196,6 @@ class Optml_Settings {
 	}
 
 	/**
-	 * Check if key is allowed.
-	 *
-	 * @param  string $key Is key allowed or not.
-	 *
-	 * @return bool Is key allowed or not.
-	 */
-	private function is_allowed( $key ) {
-		return isset( $this->default_schema[ $key ] );
-	}
-
-	/**
 	 * Return site settings.
 	 *
 	 * @return array Site settings.
@@ -157,22 +210,6 @@ class Optml_Settings {
 			'max_width'      => $this->get( 'max_width' ),
 			'max_height'     => $this->get( 'max_height' ),
 			'watermark'      => $this->get_watermark(),
-		);
-	}
-
-	/**
-	 * Return an watermark array.
-	 *
-	 * @return array
-	 */
-	public function get_watermark() {
-		return array(
-			'id'       => $this->get( 'wm_id' ),
-			'opacity'  => $this->get( 'wm_opacity' ),
-			'position' => $this->get( 'wm_position' ),
-			'x_offset' => $this->get( 'wm_x' ),
-			'y_offset' => $this->get( 'wm_y' ),
-			'scale'    => $this->get( 'wm_scale' ),
 		);
 	}
 
@@ -199,12 +236,29 @@ class Optml_Settings {
 	}
 
 	/**
+	 * Return an watermark array.
+	 *
+	 * @return array
+	 */
+	public function get_watermark() {
+		return array(
+			'id'       => $this->get( 'wm_id' ),
+			'opacity'  => $this->get( 'wm_opacity' ),
+			'position' => $this->get( 'wm_position' ),
+			'x_offset' => $this->get( 'wm_x' ),
+			'y_offset' => $this->get( 'wm_y' ),
+			'scale'    => $this->get( 'wm_scale' ),
+		);
+	}
+
+	/**
 	 * Check if replacer is enabled.
 	 *
 	 * @return bool Replacer enabled
 	 */
 	public function is_enabled() {
 		$status = $this->get( 'image_replacer' );
+
 		return $this->to_boolean( $status );
 	}
 
@@ -215,6 +269,7 @@ class Optml_Settings {
 	 */
 	public function use_lazyload() {
 		$status = $this->get( 'lazyload' );
+
 		return $this->to_boolean( $status );
 	}
 
@@ -245,34 +300,6 @@ class Optml_Settings {
 		$update = update_option( $this->namespace, $this->default_schema );
 		if ( $update ) {
 			$this->options = $this->default_schema;
-		}
-
-		return $update;
-	}
-
-	/**
-	 * Update settings.
-	 *
-	 * @param string $key Settings key.
-	 * @param mixed  $value Settings value.
-	 *
-	 * @return bool Update result.
-	 */
-	public function update( $key, $value ) {
-		if ( ! $this->is_allowed( $key ) ) {
-			return false;
-		}
-		// If we try to update from a website which is not the main OPTML blog, bail.
-		if ( defined( 'OPTIML_ENABLED_MU' ) && constant( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && constant( 'OPTIML_MU_SITE_ID' ) &&
-			 intval( constant( 'OPTIML_MU_SITE_ID' ) ) !== get_current_blog_id()
-		) {
-			return false;
-		}
-		$opt         = $this->options;
-		$opt[ $key ] = $value;
-		$update          = update_option( $this->namespace, $opt, false );
-		if ( $update ) {
-			$this->options = $opt;
 		}
 
 		return $update;

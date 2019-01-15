@@ -19,6 +19,7 @@ services:
       - 8888:80
     networks:
       - default
+      - optml_service_net
     volumes:
        - ~/wpcore:/var/www/html/
        - .:/var/www/html/wp-content/plugins/optimole-wp/
@@ -33,5 +34,5 @@ services:
 networks:
   optml_service_net:
     driver: overlay
-    attachable: true
-    name: optml_service_net
+    external: true
+    name: optml_service
