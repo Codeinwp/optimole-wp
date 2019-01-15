@@ -17,8 +17,36 @@ class Optml_Quality extends Optml_Property_Type {
 	 *
 	 * @param mixed $value Default value.
 	 */
-	public function __construct( $value ) {
-		$this->quality = $value;
+	public function __construct( $value = '' ) {
+		$this->set( $value );
+	}
+
+	/**
+	 * Set property value.
+	 *
+	 * @param mixed $value Value to set.
+	 */
+	public function set( $value ) {
+
+		if ( $value === 'auto' ) {
+			$this->quality = 'auto';
+
+			return;
+		}
+		if ( $value === 'eco' ) {
+			$this->quality = 'eco';
+
+			return;
+		}
+
+		if ( ! $this->is_valid_numeric( $value ) ) {
+			$this->quality = 'auto';
+
+			return;
+		}
+
+		$this->quality = $this->to_bound_integer( $value, 0, 100 );
+
 	}
 
 	/**
@@ -28,20 +56,6 @@ class Optml_Quality extends Optml_Property_Type {
 	 */
 	public function get() {
 		return $this->quality;
-	}
-
-	/**
-	 * Set property value.
-	 *
-	 * @param mixed $value Value to set.
-	 */
-	public function set( $value ) {
-		if ( $this->is_valid_numeric( $value ) ) {
-			$this->quality = $this->to_bound_integer( $value, 0, 100 );
-		}
-		if ( $value === 'eco' ) {
-			$this->quality = 'eco';
-		}
 	}
 
 	/**

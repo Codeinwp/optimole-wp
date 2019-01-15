@@ -192,7 +192,8 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 };
 
 const retrieveWatermarks = function ( {commit, state}, data ) {
-	let self = this;
+
+	commit( 'toggleLoading', true );
 	Vue.http( {
 		url: optimoleDashboardApp.root + '/poll_watermarks',
 		method: 'GET',
@@ -200,8 +201,10 @@ const retrieveWatermarks = function ( {commit, state}, data ) {
 		params: {'req': 'Get Watermarks'},
 		responseType: 'json',
 	} ).then( function ( response ) {
+		commit( 'toggleLoading', false );
 		if( response.status === 200 ) {
 			data.component.watermarkData = [];
+
 			for( let row in response.data.data ) {
 				let tmp = response.data.data[row];
 				let item = {
@@ -219,7 +222,7 @@ const retrieveWatermarks = function ( {commit, state}, data ) {
 
 const removeWatermark = function ( {commit, state}, data ) {
 	let self = this;
-	data.component.loading = true
+	commit( 'toggleLoading', true );
 	Vue.http( {
 		url: optimoleDashboardApp.root + '/remove_watermark',
 		method: 'POST',
@@ -227,7 +230,8 @@ const removeWatermark = function ( {commit, state}, data ) {
 		params: {'req': 'Get Watermarks' , 'postID': data.postID },
 		responseType: 'json',
 	} ).then( function ( response ) {
-		data.component.loading = false;
+
+		commit( 'toggleLoading', false );
 		retrieveWatermarks( {commit, state}, data );
 	} );
 };

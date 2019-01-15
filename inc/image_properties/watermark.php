@@ -14,10 +14,20 @@ class Optml_Watermark extends Optml_Property_Type {
 
 	/**
 	 * Optml_Watermark constructor.
+	 *
+	 * @param array $value Watermark details.
 	 */
-	public function __construct() {
-		$settings = new Optml_Settings();
-		$this->watermark = $settings->get_site_settings()['watermark'];
+	public function __construct( $value = [] ) {
+		$this->set( $value );
+	}
+
+	/**
+	 * Set property value.
+	 *
+	 * @param mixed $value Value to set.
+	 */
+	public function set( $value ) {
+		$this->watermark = $value;
 	}
 
 	/**
@@ -30,30 +40,34 @@ class Optml_Watermark extends Optml_Property_Type {
 	}
 
 	/**
-	 * Set property value.
-	 *
-	 * @param mixed $value Value to set.
-	 */
-	public function set( $value ) {
-		if ( $this->is_valid_numeric( $value ) ) {
-			$this->watermark['id'] = $this->to_positive_integer( $value );
-		}
-	}
-
-	/**
 	 * Return ImageProxy URL formatted string property.
 	 *
 	 * @return mixed
 	 */
 	public function toString() {
-		return sprintf(
+		$base = sprintf(
 			'wm:%s',
 			$this->watermark['id'] . ':' .
 			$this->watermark['opacity'] . ':' .
-			$this->watermark['position'] . ':' .
-			$this->watermark['x_offset'] . ':' .
-			$this->watermark['y_offset'] . ':' .
-			$this->watermark['scale']
+			$this->watermark['position']
 		);
+
+		if ( ! empty( $this->watermark['scale'] ) ) {
+			return $base . ':' .
+				   $this->watermark['x_offset'] . ':' .
+				   $this->watermark['y_offset'] . ':' .
+				   $this->watermark['scale'];
+		}
+		if ( ! empty( $this->watermark['y_offset'] ) ) {
+			return $base . ':' .
+				   $this->watermark['x_offset'] . ':' .
+				   $this->watermark['y_offset'];
+		}
+		if ( ! empty( $this->watermark['x_offset'] ) ) {
+			return $base . ':' .
+				   $this->watermark['x_offset'];
+		}
+
+		return $base;
 	}
 }

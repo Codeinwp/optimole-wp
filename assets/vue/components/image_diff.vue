@@ -9,7 +9,7 @@
 			
 			</div>
 			
-			<resize-observer @notify="handleResize"></resize-observer>
+			<resize-observer @notify="handleResize" style="display: none"></resize-observer>
 			<div class="handle-wrap" :style="{left:`calc(${compareWidth + '%'} - var(--handle-line-width) / 2`}">
 				<div class="handle-icon">
 					<svg class="handle__arrow handle__arrow--l" xmlns="http://www.w3.org/2000/svg" width="24"
