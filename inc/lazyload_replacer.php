@@ -33,7 +33,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 					return 1;
 				}
 			);
-			add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 1, 4 );
+			add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 4 );
 		}
 	}
 
@@ -54,8 +54,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		$optml_args['quality'] = 'eco';
-		$low_url = apply_filters( 'optml_content_url', $original_url, $optml_args );
-
+		$low_url    = rtrim( apply_filters( 'optml_content_url', $original_url, $optml_args ), '%5C\/' );
 		$no_script_tag = str_replace(
 			array(
 				'src="' . $original_url . '"',

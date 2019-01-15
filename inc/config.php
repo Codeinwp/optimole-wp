@@ -64,7 +64,7 @@ class Optml_Config {
 		}
 
 		if ( ! empty( $service_settings['key'] ) ) {
-			self::$key = trim( $service_settings['key'] );
+			self::$key = trim( strtolower( $service_settings['key'] ) );
 		}
 
 		if ( ! empty( $service_settings['secret'] ) ) {

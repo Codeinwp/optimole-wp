@@ -67,6 +67,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			'height' => 'auto',
 		)
 	) {
+
+
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
