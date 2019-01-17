@@ -15,19 +15,18 @@ class Optml_Image {
 	 * Signature size.
 	 */
 	const SIGNATURE_SIZE = 8;
-
-	/**
-	 * Quality of the resulting image.
-	 *
-	 * @var Optml_Quality Quality;
-	 */
-	public static $quality = null;
 	/**
 	 * Watermark for the image.
 	 *
 	 * @var Optml_Watermark Watermark.
 	 */
 	public static $watermark = null;
+	/**
+	 * Quality of the resulting image.
+	 *
+	 * @var Optml_Quality Quality;
+	 */
+	public $quality = null;
 	/**
 	 * Width of the resulting image.
 	 *
@@ -71,7 +70,7 @@ class Optml_Image {
 		$this->height->set( $args['height'] );
 
 		if ( isset( $args['quality'] ) ) {
-			self::$quality->set( $args['quality'] );
+			$this->quality->set( $args['quality'] );
 		}
 
 		if ( isset( $args['resize'] ) ) {
@@ -88,6 +87,7 @@ class Optml_Image {
 		$this->width  = new Optml_Width( 'auto' );
 		$this->height = new Optml_Height( 'auto' );
 		$this->resize = new Optml_Resize();
+		$this->quality = new Optml_Quality();
 	}
 
 	/**
@@ -102,7 +102,7 @@ class Optml_Image {
 
 		$path_parts[] = $this->width->toString();
 		$path_parts[] = $this->height->toString();
-		$path_parts[] = self::$quality->toString();
+		$path_parts[] = $this->quality->toString();
 
 		if ( isset( $this->resize->get()['type'] ) ) {
 			$path_parts[] = $this->resize->toString();

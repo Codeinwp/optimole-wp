@@ -52,25 +52,23 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'data-opt-src', $replaced_content );
 		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
+
 	}
 
-	public function test_lazy_load_ignore_feed() {
-		$this->go_to( '/?feed=rss2' );
+	public function test_lazyload_json_data() {
 
-		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS_WITH_SRCSET );
-		$this->assertNotContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( 'data-opt-src', $replaced_content );
-	}
+		$some_html_content = [
+			'html' => '<a href="http://example.org/blog/how-to-monetize-a-blog/"><img class="alignnone wp-image-36442 size-full" src="http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png" alt="How to monetize a blog" width="490" height="256"></a> http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png '
+		];
 
-	public function test_lazy_load_off() {
+		$content           = wp_json_encode( $some_html_content );
+		$replaced_content  = Optml_Manager::instance()->replace_content( $content );
+		$replaced_content2 = Optml_Manager::instance()->replace_content( $replaced_content );
 
-		define( 'OPTML_DISABLE_PNG_LAZYLOAD', true );
+		$this->assertEquals( $replaced_content, $replaced_content2 );
+		$this->assertArrayHasKey( 'html', json_decode( $replaced_content2, true ) );
 
-		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS_PNG . Test_Replacer::IMG_TAGS );
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( 'data-opt-src', $replaced_content );
-		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
-
+		$this->assertEquals( 4, substr_count( $replaced_content2, '/http:\/\/' ) );
 	}
 
 	public function test_lazy_dont_lazy_load_headers() {
@@ -105,4 +103,37 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertContains( '<noscript>', $replaced_content );
 		$this->assertEquals( 1, substr_count( $replaced_content, '<noscript>' ) );
 	}
+	public function test_lazy_load_ignore_feed() {
+		$this->go_to( '/?feed=rss2' );
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS_WITH_SRCSET );
+		$this->assertNotContains( 'i.optimole.com', $replaced_content );
+		$this->assertNotContains( 'data-opt-src', $replaced_content );
+	}
+	public function test_lazy_load_off() {
+
+		define( 'OPTML_DISABLE_PNG_LAZYLOAD', true );
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS_PNG . Test_Replacer::IMG_TAGS );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'data-opt-src', $replaced_content );
+		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
+
+	}
+	public function test_lazyload_json_data_disabled() {
+
+		$some_html_content = [
+			'html' => '<a href="http://example.org/blog/how-to-monetize-a-blog/"><img class="alignnone wp-image-36442 size-full" src="http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png" alt="How to monetize a blog" width="490" height="256"></a> http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png '
+		];
+
+		$content           = wp_json_encode( $some_html_content );
+		$replaced_content  = Optml_Manager::instance()->replace_content( $content );
+		$replaced_content2 = Optml_Manager::instance()->replace_content( $replaced_content );
+
+		$this->assertEquals( $replaced_content, $replaced_content2 );
+		$this->assertArrayHasKey( 'html', json_decode( $replaced_content2, true ) );
+
+		$this->assertEquals( 2, substr_count( $replaced_content2, '/http:\/\/example.org' ) );
+	}
+
 }

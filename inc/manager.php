@@ -108,6 +108,7 @@ final class Optml_Manager {
 				if ( $encoded ) {
 					return json_encode( $array );
 				}
+
 				return $array;
 			}
 
@@ -161,52 +162,29 @@ final class Optml_Manager {
 	public function replace_content( $html, $context = 'raw' ) {
 		$html = $this->process_images_from_content( $html );
 
-		$extracted_urls     = $this->extract_image_urls_from_content( $html );
-		$extracted_urls     = apply_filters( 'optml_extracted_urls', $extracted_urls );
-		$urls     = array_combine( $extracted_urls, $extracted_urls );
-		if ( $context == 'elementor' ) {
-			$urls = array_map( 'wp_unslash', $urls );
+		$extracted_urls = $this->extract_image_urls_from_content( $html );
+		$extracted_urls = apply_filters( 'optml_extracted_urls', $extracted_urls );
+
+		if ( empty( $extracted_urls ) ) {
+			return $html;
 		}
+
+		$urls = array_combine( $extracted_urls, $extracted_urls );
 		$urls = array_map(
 			function ( $url ) {
-				return apply_filters( 'optml_content_url', $url );
+				$is_slashed = strpos( $url, '\/' ) !== false;
+				$new_url    = apply_filters( 'optml_content_url', $url );
+
+				return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 			},
 			$urls
 		);
 
 		foreach ( $urls as $origin => $replace ) {
-			if ( strpos( $html, '/' . $origin ) === false ) {
-				$html = str_replace( $origin, $replace, $html );
-			}
+			$html = preg_replace( '/(?<!\/)' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
 		}
+
 		return $html;
-	}
-
-	/**
-	 * Method to extract images from content.
-	 *
-	 * @param string $content The HTML content.
-	 *
-	 * @return array
-	 */
-	public function extract_image_urls_from_content( $content ) {
-		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')/';
-		preg_match_all(
-			$regex,
-			$content,
-			$urls
-		);
-
-		$urls = array_map(
-			function ( $value ) {
-				return rtrim( html_entity_decode( $value ), '\\' );
-			},
-			$urls[0]
-		);
-
-		$urls = array_unique( $urls );
-
-		return array_values( $urls );
 	}
 
 	/**
@@ -268,10 +246,18 @@ final class Optml_Manager {
 		$content = self::strip_header_from_content( $content );
 
 		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*<\/a>)?/ism', $content, $images ) ) {
+
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.
 				if ( is_numeric( $key ) && $key > 0 ) {
 					unset( $images[ $key ] );
+					continue;
+				}
+				if ( $key !== 'img_url' ) {
+					continue;
+				}
+				foreach ( $unused as $url_key => $url_value ) {
+					$images[ $key ][ $url_key ] = rtrim( $url_value, '\\' );
 				}
 			}
 
@@ -294,6 +280,33 @@ final class Optml_Manager {
 		}
 
 		return str_replace( $matches[0], '', $content );
+	}
+
+	/**
+	 * Method to extract images from content.
+	 *
+	 * @param string $content The HTML content.
+	 *
+	 * @return array
+	 */
+	public function extract_image_urls_from_content( $content ) {
+		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')/';
+		preg_match_all(
+			$regex,
+			$content,
+			$urls
+		);
+
+		$urls = array_map(
+			function ( $value ) {
+				return rtrim( html_entity_decode( $value ), '\\' );
+			},
+			$urls[0]
+		);
+
+		$urls = array_unique( $urls );
+
+		return array_values( $urls );
 	}
 
 	/**

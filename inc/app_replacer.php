@@ -9,33 +9,29 @@
 abstract class Optml_App_Replacer {
 
 	/**
+	 * Holds an array of image sizes.
+	 *
+	 * @var array
+	 */
+	protected static $image_sizes = array();
+	/**
 	 * Settings handler.
 	 *
 	 * @var Optml_Settings $settings
 	 */
 	protected $settings = null;
-
 	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
 	 * @var int
 	 */
 	protected $max_width = 3000;
-
 	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
 	 * @var int
 	 */
 	protected $max_height = 3000;
-
-	/**
-	 * Holds an array of image sizes.
-	 *
-	 * @var array
-	 */
-	protected static $image_sizes = array();
-
 	/**
 	 * A cached version of `wp_upload_dir`
 	 *
@@ -71,6 +67,59 @@ abstract class Optml_App_Replacer {
 	 * @var bool Domains.
 	 */
 	protected $is_allowed_site = array();
+
+	/**
+	 * Returns the array of image sizes since `get_intermediate_image_sizes` and image metadata  doesn't include the
+	 * custom image sizes in a reliable way.
+	 *
+	 * @global $wp_additional_image_sizes
+	 *
+	 * @return array
+	 */
+	protected static function image_sizes() {
+
+		if ( null != self::$image_sizes && is_array( self::$image_sizes ) ) {
+			return self::$image_sizes;
+		}
+
+		global $_wp_additional_image_sizes;
+
+		// Populate an array matching the data structure of $_wp_additional_image_sizes so we have a consistent structure for image sizes
+		$images = array(
+			'thumb'  => array(
+				'width'  => intval( get_option( 'thumbnail_size_w' ) ),
+				'height' => intval( get_option( 'thumbnail_size_h' ) ),
+				'crop'   => get_option( 'thumbnail_crop', false ),
+			),
+			'medium' => array(
+				'width'  => intval( get_option( 'medium_size_w' ) ),
+				'height' => intval( get_option( 'medium_size_h' ) ),
+				'crop'   => false,
+			),
+			'large'  => array(
+				'width'  => intval( get_option( 'large_size_w' ) ),
+				'height' => intval( get_option( 'large_size_h' ) ),
+				'crop'   => false,
+			),
+			'full'   => array(
+				'width'  => null,
+				'height' => null,
+				'crop'   => false,
+			),
+		);
+
+		// Compatibility mapping as found in wp-includes/media.php
+		$images['thumbnail'] = $images['thumb'];
+
+		// Update class variable, merging in $_wp_additional_image_sizes if any are set
+		if ( is_array( $_wp_additional_image_sizes ) && ! empty( $_wp_additional_image_sizes ) ) {
+			self::$image_sizes = array_merge( $images, $_wp_additional_image_sizes );
+		} else {
+			self::$image_sizes = $images;
+		}
+
+		return is_array( self::$image_sizes ) ? self::$image_sizes : array();
+	}
 
 	/**
 	 * The initialize method.
@@ -133,13 +182,13 @@ abstract class Optml_App_Replacer {
 
 		if ( defined( 'OPTML_SITE_MIRROR' ) && constant( 'OPTML_SITE_MIRROR' ) ) {
 			$this->site_mappings = array(
-				rtrim( get_site_url(), '/' ) => rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' ),
+				rtrim( get_site_url(), '/' ) => rtrim( ltrim( constant( 'OPTML_SITE_MIRROR' ), 'www.' ), '/' ),
 			);
 		}
 
 		$this->possible_sources = $this->extract_domain_from_urls(
 			array_merge(
-				array( get_site_url() ),
+				array( ltrim( get_site_url(), 'www.' ) ),
 				array_values( $this->site_mappings )
 			)
 		);
@@ -174,7 +223,24 @@ abstract class Optml_App_Replacer {
 		);
 		$urls = array_filter( $urls );
 		$urls = array_unique( $urls );
+
 		return array_fill_keys( $urls, true );
+	}
+
+	/**
+	 * Check if we can replace the url.
+	 *
+	 * @param string $url Url to change.
+	 *
+	 * @return bool Either we can replace this url or not.
+	 */
+	public function can_replace_url( $url ) {
+		if ( ! is_string( $url ) ) {
+			return false; // @codeCoverageIgnore
+		}
+		$url = parse_url( $url );
+
+		return isset( $this->possible_sources[ ltrim( $url['host'], 'www.' ) ] );
 	}
 
 	/**
@@ -218,74 +284,5 @@ abstract class Optml_App_Replacer {
 		}
 
 		return array( false, false );
-	}
-
-	/**
-	 * Returns the array of image sizes since `get_intermediate_image_sizes` and image metadata  doesn't include the
-	 * custom image sizes in a reliable way.
-	 *
-	 * @global $wp_additional_image_sizes
-	 *
-	 * @return array
-	 */
-	protected static function image_sizes() {
-
-		if ( null != self::$image_sizes && is_array( self::$image_sizes ) ) {
-			return self::$image_sizes;
-		}
-
-		global $_wp_additional_image_sizes;
-
-		// Populate an array matching the data structure of $_wp_additional_image_sizes so we have a consistent structure for image sizes
-		$images = array(
-			'thumb'  => array(
-				'width'  => intval( get_option( 'thumbnail_size_w' ) ),
-				'height' => intval( get_option( 'thumbnail_size_h' ) ),
-				'crop'   => get_option( 'thumbnail_crop', false ),
-			),
-			'medium' => array(
-				'width'  => intval( get_option( 'medium_size_w' ) ),
-				'height' => intval( get_option( 'medium_size_h' ) ),
-				'crop'   => false,
-			),
-			'large'  => array(
-				'width'  => intval( get_option( 'large_size_w' ) ),
-				'height' => intval( get_option( 'large_size_h' ) ),
-				'crop'   => false,
-			),
-			'full'   => array(
-				'width'  => null,
-				'height' => null,
-				'crop'   => false,
-			),
-		);
-
-		// Compatibility mapping as found in wp-includes/media.php
-		$images['thumbnail'] = $images['thumb'];
-
-		// Update class variable, merging in $_wp_additional_image_sizes if any are set
-		if ( is_array( $_wp_additional_image_sizes ) && ! empty( $_wp_additional_image_sizes ) ) {
-			self::$image_sizes = array_merge( $images, $_wp_additional_image_sizes );
-		} else {
-			self::$image_sizes = $images;
-		}
-
-		return is_array( self::$image_sizes ) ? self::$image_sizes : array();
-	}
-
-	/**
-	 * Check if we can replace the url.
-	 *
-	 * @param string $url Url to change.
-	 *
-	 * @return bool Either we can replace this url or not.
-	 */
-	public function can_replace_url( $url ) {
-		if ( ! is_string( $url ) ) {
-			return false; // @codeCoverageIgnore
-		}
-		$url = parse_url( $url );
-
-		return isset( $this->allowed_sources[ $url['host'] ] ) || isset( $this->possible_sources[ $url['host'] ] );
 	}
 }
