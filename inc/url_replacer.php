@@ -47,8 +47,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			return; // @codeCoverageIgnore
 		}
 
-		Optml_Image::$quality   = new Optml_Quality( $this->to_accepted_quality( $this->settings->get_quality() ) );
-		Optml_Image::$watermark = new Optml_Watermark( $this->settings->get_site_settings()['watermark'] );
+		Optml_Quality::$default_quality = $this->to_accepted_quality( $this->settings->get_quality() );
+		Optml_Image::$watermark         = new Optml_Watermark( $this->settings->get_site_settings()['watermark'] );
 
 		add_filter( 'optml_content_url', array( $this, 'build_image_url' ), 1, 2 );
 	}
@@ -68,17 +68,20 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		)
 	) {
 
-
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
+
+		$is_slashed = strpos( $url, '\/' ) !== false;
+
+		$url = $is_slashed ? stripslashes( $url ) : $url;
+
 		if ( strpos( $url, Optml_Config::$service_url ) !== false ) {
 			return $url;
 		}
 		if ( ! $this->is_valid_mimetype_from_url( $url ) ) {
 			return $url;
 		}
-
 		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) ) {
 			$args['quality'] = $this->to_accepted_quality( $args['quality'] );
 		}
@@ -104,7 +107,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$args['height'] = $args['height'] > $this->max_height ? $this->max_height : $args['height'];
 		}
 
-		return ( new Optml_Image( $url, $args ) )->get_url( $this->settings->use_lazyload() ? false : $this->is_allowed_site );
+		$new_url = ( new Optml_Image( $url, $args ) )->get_url( $this->settings->use_lazyload() ? false : $this->is_allowed_site );
+
+		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
 
 	/**

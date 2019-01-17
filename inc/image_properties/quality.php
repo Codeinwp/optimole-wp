@@ -6,6 +6,12 @@
 class Optml_Quality extends Optml_Property_Type {
 
 	/**
+	 * Default quality value.
+	 *
+	 * @var string Quality value.
+	 */
+	public static $default_quality = 'auto';
+	/**
 	 * Quality Property.
 	 *
 	 * @var mixed $quality
@@ -18,6 +24,9 @@ class Optml_Quality extends Optml_Property_Type {
 	 * @param mixed $value Default value.
 	 */
 	public function __construct( $value = '' ) {
+		if ( empty( $value ) ) {
+			$value = self::$default_quality;
+		}
 		$this->set( $value );
 	}
 

@@ -47,7 +47,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		add_filter( 'optml_content_images_tags', array( $this, 'process_image_tags' ), 1, 2 );
 
 		if ( ! $this->settings->use_lazyload() ) {
-			add_filter( 'optml_tag_replace', array( $this, 'regular_tag_replace' ), 1, 4 );
+			add_filter( 'optml_tag_replace', array( $this, 'regular_tag_replace' ), 1, 5 );
 			add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
 			add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
 			add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes_attr' ), 1, 2 );
@@ -64,11 +64,16 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function process_image_tags( $content, $images = array() ) {
 		$image_sizes = self::image_sizes();
+
 		foreach ( $images[0] as $index => $tag ) {
-			$width   = $height = false;
-			$resize  = array();
-			$new_tag = $tag;
-			$src     = $tmp = wp_unslash( $images['img_url'][ $index ] );
+			$width      = $height = false;
+			$resize     = array();
+			$new_tag    = $tag;
+
+			$is_slashed = strpos( $images['img_url'][ $index ], '\/' ) !== false;
+
+			$src        = $tmp = $is_slashed ? stripslashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ];
+
 			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
 				 false !== strpos( $src, Optml_Config::$service_url ) ||
 				 ! $this->can_replace_url( $src )
@@ -100,9 +105,22 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . apply_filters( 'optml_content_url', $tmp, $optml_args ) . '\2', $tag, 1 );
 			}
 
-			$new_tag = str_replace( 'width="' . $width . '"', 'width="' . $optml_args['width'] . '"', $new_tag );
-			$new_tag = str_replace( 'height="' . $height . '"', 'height="' . $optml_args['height'] . '"', $new_tag );
-			$new_tag = apply_filters( 'optml_tag_replace', $new_tag, $images['img_url'][ $index ], $new_url, $optml_args );
+			$new_tag = str_replace(
+				[
+					'width="' . $width . '"',
+					'width=\"' . $width . '\"',
+					'height="' . $height . '"',
+					'height=\"' . $height . '\"',
+				],
+				[
+					'width="' . $optml_args['width'] . '"',
+					'width=\"' . $optml_args['width'] . '\"',
+					'height="' . $optml_args['height'] . '"',
+					'height=\"' . $optml_args['height'] . '\"',
+				],
+				$new_tag
+			);
+			$new_tag = apply_filters( 'optml_tag_replace', $new_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed );
 
 			$content = str_replace( $tag, $new_tag, $content );
 		}
@@ -147,11 +165,17 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * @param string $original_url The original URL.
 	 * @param string $new_url The optimized URL.
 	 * @param array  $optml_args Options passed for URL optimization.
+	 * @param bool   $is_slashed Url needs to slashed.
 	 *
 	 * @return string
 	 */
-	public function regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args ) {
-		return str_replace( 'src="' . $original_url . '"', 'src="' . $new_url . '"', $new_tag );
+	public function regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed = false ) {
+
+		return str_replace(
+			$original_url,
+			$is_slashed ? addcslashes( $new_url, '/' ) : $new_url,
+			$new_tag
+		);
 	}
 
 	/**

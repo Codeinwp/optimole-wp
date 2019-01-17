@@ -18,6 +18,24 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	protected static $instance = null;
 
 	/**
+	 * Class instance method.
+	 *
+	 * @codeCoverageIgnore
+	 * @static
+	 * @since  1.0.0
+	 * @access public
+	 * @return Optml_Tag_Replacer
+	 */
+	public static function instance() {
+		if ( is_null( self::$instance ) ) {
+			self::$instance = new self();
+			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
+		}
+
+		return self::$instance;
+	}
+
+	/**
 	 * The initialize method.
 	 */
 	public function init() {
@@ -29,11 +47,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( $this->settings->use_lazyload() ) {
 			add_filter(
 				'max_srcset_image_width',
-				function() {
+				function () {
 					return 1;
 				}
 			);
-			add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 4 );
+			add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 5 );
 		}
 	}
 
@@ -44,41 +62,44 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @param string $original_url The original URL.
 	 * @param string $new_url The optimized URL.
 	 * @param array  $optml_args Options passed for URL optimization.
+	 * @param bool   $is_slashed If the url needs slashes.
 	 *
 	 * @return string
 	 */
-	public function lazyload_tag_replace( $new_tag, $original_url, $new_url, $optml_args ) {
+	public function lazyload_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed = false ) {
 
 		if ( ! $this->can_lazyload_for( $original_url ) ) {
-			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args );
+			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
-
 		$optml_args['quality'] = 'eco';
-		$low_url    = rtrim( apply_filters( 'optml_content_url', $original_url, $optml_args ), '%5C\/' );
+		$low_url               = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
+		$low_url               = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
+
+		$opt_format = ' data-opt-src="%s" ';
+
+		$opt_format = $is_slashed ? addslashes( $opt_format ) : $opt_format;
+		$new_url    = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
+
+		$opt_src = sprintf( $opt_format, $new_url );
+
 		$no_script_tag = str_replace(
-			array(
-				'src="' . $original_url . '"',
-				'src=\"' . $original_url . '"',
-			),
-			array(
-				'src="' . $new_url . '"',
-				wp_slash( 'src="' . $new_url . '"' ),
-			),
+			$original_url,
+			$new_url,
 			$new_tag
 		);
-		$new_tag   = str_replace(
+		$new_tag       = str_replace(
+			[
+				$original_url,
+				'src=',
+			],
 			array(
-				'src="' . $original_url . '"',
-				'src=\"' . $original_url . '"',
-			),
-			array(
-				'src="' . $low_url . '" data-opt-src="' . $new_url . '"',
-				wp_slash( 'src="' . $low_url . '" data-opt-src="' . $new_url . '"' ),
+				$low_url,
+				$opt_src . ' src=',
 			),
 			$new_tag
 		);
 
-		 return '<noscript>' . $no_script_tag . '</noscript>' . $new_tag;
+		return '<noscript>' . $no_script_tag . '</noscript>' . $new_tag;
 	}
 
 	/**
@@ -106,24 +127,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return false;
-	}
-
-	/**
-	 * Class instance method.
-	 *
-	 * @codeCoverageIgnore
-	 * @static
-	 * @since  1.0.0
-	 * @access public
-	 * @return Optml_Tag_Replacer
-	 */
-	public static function instance() {
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
-			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
-		}
-
-		return self::$instance;
 	}
 
 	/**
