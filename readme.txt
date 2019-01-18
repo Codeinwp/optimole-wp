@@ -114,3 +114,62 @@ The following are the steps to install the OptiMole plugin
 Click on upload at the top.
 2. Browse the location and select the OptiMole Plugin and click install now.
 3. Go to Media -> OptiMole and follow in the instructions on how to enable the service.
+
+== Frequently Asked Questions ==
+
+= How many images I can optimize with each plan? =
+
+The number of images that you can optimize depends on your original image size and the number of transformations you do for it.  Using the Free plan you can optimize up to 1 GB of images, which means around 2000 images at an average of 500Kb per image.
+
+= What happens if I exceed plan limits? =
+
+Once you exceed these, we will contact you and kindly ask to upgrade to the plan that fits you best.
+
+= What Content Delivery Network (CDN) do you use? =
+
+Our FREE plan uses our custom made CDN built with 7 locations around the globe. For the paid plans, we have direct integration with Amazon Cloudfront, with more than 130 locations around the globe.
+
+= I'm already using a CDN, can I use that instead of yours ? =
+
+Short answer, YES. We can help you integrate your default CDN but it will require some additional work from our side and is available to Enterprise plans.
+
+= I'm already using an image optimization plugin, why should I switch to OptiMole? =
+
+You don’t need to change your existing optimization plugin, image optimization is just a small part of what we do, if you are happy with ShortPixel for e.g, feel free to continue to use it, OptiMole would then take care only of serving your image at the RIGHT size, advanced cropping and smart lazy-loading.
+
+= Will the original images be deleted? =
+
+Absolutely No. We use your original images as sources when deliver the optimized images.
+
+= What is the difference between the Auto, High, Medium, Low compression levels? =
+
+A higher compression might result in a small loss of image quality. Selecting the auto level will let Optimole choose the minimum size with no loss in the quality of your picture.
+
+= I used Kraken, Shortpixel, Optimus, EWWW or WP Smush, Imagify  will OptiMole further optimize my images? =
+
+ Yes, Optimole will also take care of serving your image at the RIGHT size for your visitors and optimize them to the best possible format for their browser.
+
+= Which formats can be optimized ? =
+
+For now we support jpg, png and svg format.
+
+= Does Optimole automatically serve WebP for Chrome users ? =
+
+Yes. We automatically detect user browser and serve WebP if is supported, otherwise we optimize the image in the original format.
+
+= Can i disable lazyload for PNG images ? =
+
+Yes. You need to add `define("OPTML_DISABLE_PNG_LAZYLOAD",true);` to `your wp-config.php` file.
+
+= Can i disable optimization for a certain image ? =
+
+Yes, you can follow this code snippet and replace the sample image with the one you need:
+<code>
+add_filter('optml_dont_replace_url', function( $old, $url ) {
+	if ( $url === 'https://example.com/wp-content/uploads/2018/09/1.jpg' ) {
+		return true;
+	}
+	return $old;
+
+}, 10, 2);
+</code>
