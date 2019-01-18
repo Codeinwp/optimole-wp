@@ -40,14 +40,10 @@
         <exclude name="WordPress.WP.I18n.MissingTranslatorsComment"/>
         <exclude name="WordPress.PHP.YodaConditions.NotYoda"/>
         <exclude name="WordPress.WhiteSpace.PrecisionAlignment.Found"/>
+        <exclude name="Generic.Files.LineEndings"/>
     </rule>
     <rule ref="WordPress-Docs">
 
-    </rule>
-    <rule ref="Generic.Files.LineEndings">
-        <properties>
-            <property name="eolChar" value="\r\n" />
-        </properties>
     </rule>
     <rule ref="Squiz.Commenting.FunctionComment.ScalarTypeHintMissing">
         <severity>0</severity>
