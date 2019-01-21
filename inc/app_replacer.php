@@ -239,8 +239,7 @@ abstract class Optml_App_Replacer {
 			return false; // @codeCoverageIgnore
 		}
 		$url = parse_url( $url );
-
-		return isset( $this->possible_sources[ ltrim( $url['host'], 'www.' ) ] );
+		return isset( $this->possible_sources[ ltrim( $url['host'], 'www.' ) ] ) || isset( $this->possible_sources[ $url['host'] ] );
 	}
 
 	/**
