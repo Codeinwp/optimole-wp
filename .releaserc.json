@@ -51,6 +51,12 @@
     [
       "@semantic-release/exec",
       {
+        "publishCmd": "npm run readme"
+      }
+    ],
+    [
+      "@semantic-release/exec",
+      {
         "publishCmd": "grunt wp_deploy:source"
       }
     ],

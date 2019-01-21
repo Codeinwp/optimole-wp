@@ -21,7 +21,7 @@
     "release": "semantic-release --debug && grunt wp_deploy:assets",
     "dev": "cross-env WEBPACK_ENV=dev webpack --progress --colors --watch",
     "readme": "grunt wp_readme_to_markdown:optimole",
-    "prebuild": "cross-env WEBPACK_ENV=production webpack && npm run readme",
+    "prebuild": "cross-env WEBPACK_ENV=production webpack",
     "build": "npm run prebuild && grunt deploy"
   },
   "husky": {
