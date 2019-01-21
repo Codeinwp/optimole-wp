@@ -28,7 +28,15 @@ const restApiNotWorking = ( state, data ) => {
 };
 const updateSettings = ( state, data ) => {
 
-	for ( var setting in data ) { state.site_settings[setting] = data[setting]; }
+	for ( var setting in data ) {
+		state.site_settings[setting] = data[setting]; }
+
+};
+
+const updateWatermark = ( state, data ) => {
+
+	for ( var key in data ) {
+		state.site_settings.watermark[key] = data[key]; }
 
 };
 
@@ -42,5 +50,6 @@ export default {
 	updateSampleRate,
 	restApiNotWorking,
 	updateSettings,
+	updateWatermark,
 	updateOptimizedImages
 };

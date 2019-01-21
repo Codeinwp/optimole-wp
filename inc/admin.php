@@ -39,13 +39,11 @@ class Optml_Admin {
 		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
 		add_action( 'wp_head', array( $this, 'generator' ) );
 		add_action( 'admin_init', array( $this, 'maybe_redirect' ) );
-		if ( ! is_admin() && $this->settings->is_connected() ) {
-			if ( ! wp_next_scheduled( 'optml_daily_sync' ) ) {
-				wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
-			}
+		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
+			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 		}
 
-		if ( $this->settings->is_connected() && $this->settings->use_lazyload() ) {
+		if ( $this->settings->use_lazyload() ) {
 			add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
 			add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 		}
@@ -70,9 +68,8 @@ class Optml_Admin {
 				-o-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 			}
 			img[data-opt-src].optml_lazyload_img {
-				opacity: .5;
+				opacity: .75;
 				filter: blur(5px);
-				border-radius: 5%%;
 			}
 		</style>
 		<script type="application/javascript">
@@ -81,14 +78,14 @@ class Optml_Admin {
 						var s = d.createElement("script");
 						var v = ("IntersectionObserver" in w) ? "_no_poly" : "";
 						s.async = true;  
-						s.src = "%s/latest/optimole_lib" + v  + "%s.js"; 
+						s.src = "%s/optimole_lib" + v  + "%s.js"; 
 						b.appendChild(s);
 						
 					}(window, document));
 					
 					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
 		</script>',
-			esc_url( $domain ),
+			esc_url( 'https://s3.amazonaws.com/optimole-js-lib/tags/v2' ),
 			$min
 		);
 		echo $output;
@@ -137,9 +134,8 @@ class Optml_Admin {
 		if ( ! $this->should_show_notice() ) {
 			return $classes;
 		}
-		$classes .= ' optimole-optin-show ';
 
-		return $classes;
+		return $classes . ' optimole-optin-show ';
 	}
 
 	/**
@@ -149,21 +145,15 @@ class Optml_Admin {
 	 */
 	public function should_show_notice() {
 
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
-			return false;
-		}
-
-		if ( is_network_admin() ) {
-			return false;
-		}
-
-		if ( $this->settings->is_connected() ) {
-			return false;
-		}
 		$current_screen = get_current_screen();
-		if ( empty( $current_screen ) ) {
+		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ||
+			 is_network_admin() ||
+			 $this->settings->is_connected() ||
+			 empty( $current_screen )
+		) {
 			return false;
 		}
+
 		static $allowed_base = array(
 			'plugins'                               => true,
 			'upload'                                => true,
@@ -171,16 +161,21 @@ class Optml_Admin {
 			'themes'                                => true,
 			'appearance_page_tgmpa-install-plugins' => true,
 		);
-		$screen_slug = isset( $current_screen->parent_base ) ? $current_screen->parent_base : isset( $current_screen->base ) ? $current_screen->base : '';
+
+		$screen_slug = '';
+		if ( isset( $current_screen->base ) ) {
+			$screen_slug = $current_screen->base;
+		}
+
+		if ( isset( $current_screen->parent_base ) ) {
+			$screen_slug = $current_screen->parent_base;
+		}
 
 		if ( empty( $screen_slug ) ||
-			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ) {
-			return false;
-		}
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return false;
-		}
-		if ( ( get_option( 'optml_notice_optin', 'no' ) === 'yes' ) ) {
+			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ||
+			 ! current_user_can( 'manage_options' ) ||
+			 ( get_option( 'optml_notice_optin', 'no' ) === 'yes' )
+		) {
 			return false;
 		}
 
@@ -189,7 +184,7 @@ class Optml_Admin {
 
 
 	/**
-	 * Adds optin notice.
+	 * Adds opt in notice.
 	 */
 	public function add_notice() {
 		if ( ! $this->should_show_notice() ) {
@@ -317,6 +312,7 @@ class Optml_Admin {
 		if ( ! $this->settings->use_lazyload() ) {
 			$hints[] = sprintf( '//%s', OPTML_JS_CDN );
 		}
+
 		return $hints;
 	}
 
@@ -335,6 +331,7 @@ class Optml_Admin {
 			update_option( 'optml_notice_optin', 'yes' );
 		}
 		?>
+
 		<div id="optimole-app">
 			<app></app>
 		</div>
@@ -343,6 +340,8 @@ class Optml_Admin {
 
 	/**
 	 * Enqueue scripts needed for admin functionality.
+	 *
+	 * @codeCoverageIgnore
 	 */
 	public function enqueue() {
 
@@ -361,13 +360,15 @@ class Optml_Admin {
 	/**
 	 * Localize the dashboard app.
 	 *
+	 * @codeCoverageIgnore
 	 * @return array
 	 */
 	private function localize_dashboard_app() {
 		$api_key      = $this->settings->get( 'api_key' );
 		$service_data = $this->settings->get( 'service_data' );
 		$user         = get_userdata( get_current_user_id() );
-		$args         = array(
+
+		return array(
 			'strings'           => $this->get_dashboard_strings(),
 			'assets_url'        => OPTML_URL . 'assets/',
 			'connection_status' => empty( $service_data ) ? 'no' : 'yes',
@@ -381,13 +382,12 @@ class Optml_Admin {
 			'site_settings'     => $this->settings->get_site_settings(),
 			'home_url'          => home_url(),
 		);
-
-		return $args;
 	}
 
 	/**
 	 * Get all dashboard strings.
 	 *
+	 * @codeCoverageIgnore
 	 * @return array
 	 */
 	private function get_dashboard_strings() {
@@ -445,7 +445,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'optimole-wp'
 			),
 			'dashboard_menu_item'           => __( 'Dashboard', 'optimole-wp' ),
-			'settings_menu_item'            => __( 'Settings', 'optimole-wp' ),
+			'settings_menu_item'            => __( 'General Settings', 'optimole-wp' ),
+			'watermarks_menu_item'          => __( 'Watermark options', 'optimole-wp' ),
 			'options_strings'               => array(
 				'toggle_ab_item'       => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'      => __( 'Javascript replacement & Lazy load', 'optimole-wp' ),
@@ -475,6 +476,44 @@ The root cause might be either a security plugin which blocks this feature or so
 				'admin_bar_desc'       => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),
 				'lazyload_desc'        => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload.', 'optimole-wp' ),
 			),
+			'watermarks'                    => array(
+				'image'                    => __( 'Image', 'optimole-wp' ),
+				'loading_remove_watermark' => __( 'Removing watermark resource ...', 'optimole-wp' ),
+				'max_allowed'              => __( 'You are allowed to save maximum 5 images.', 'optimole-wp' ),
+				'list_header'              => __( 'Possible watermarks', 'optimole-wp' ),
+				'settings_header'          => __( 'Watermarks position settings', 'optimole-wp' ),
+				'no_images_found'          => __( 'No images available for watermark. Please upload one.', 'optimole-wp' ),
+				'id'                       => __( 'ID', 'optimole-wp' ),
+				'name'                     => __( 'Name', 'optimole-wp' ),
+				'type'                     => __( 'Type', 'optimole-wp' ),
+				'action'                   => __( 'Action', 'optimole-wp' ),
+				'upload'                   => __( 'Upload', 'optimole-wp' ),
+				'add_desc'                 => __( 'Add new watermark', 'optimole-wp' ),
+				'wm_title'                 => __( 'Active watermark', 'optimole-wp' ),
+				'wm_desc'                  => __( 'The active watermark to use from the list of uploaded watermarks.', 'optimole-wp' ),
+				'opacity_field'            => __( 'Opacity', 'optimole-wp' ),
+				'opacity_title'            => __( 'Watermark opacity', 'optimole-wp' ),
+				'opacity_desc'             => __( 'A value between 0 and 100 for the opacity level. If set to 0 it will disable the watermark.', 'optimole-wp' ),
+				'position_title'           => __( 'Watermark position', 'optimole-wp' ),
+				'position_desc'            => __( 'The place relative to the image where the watermark should be placed.', 'optimole-wp' ),
+				'pos_nowe_title'           => __( 'North-West', 'optimole-wp' ),
+				'pos_no_title'             => __( 'North', 'optimole-wp' ),
+				'pos_noea_title'           => __( 'North-East', 'optimole-wp' ),
+				'pos_we_title'             => __( 'West', 'optimole-wp' ),
+				'pos_ce_title'             => __( 'Center', 'optimole-wp' ),
+				'pos_ea_title'             => __( 'East', 'optimole-wp' ),
+				'pos_sowe_title'           => __( 'South-West', 'optimole-wp' ),
+				'pos_so_title'             => __( 'South', 'optimole-wp' ),
+				'pos_soea_title'           => __( 'South-East', 'optimole-wp' ),
+				'offset_x_field'           => __( 'Offset X', 'optimole-wp' ),
+				'offset_y_field'           => __( 'Offset Y', 'optimole-wp' ),
+				'offset_title'             => __( 'Watermark offset', 'optimole-wp' ),
+				'offset_desc'              => __( 'Offset the watermark from set position on X and Y axis. Values can be positive or negative.', 'optimole-wp' ),
+				'scale_field'              => __( 'Scale', 'optimole-wp' ),
+				'scale_title'              => __( 'Watermark scale', 'optimole-wp' ),
+				'scale_desc'               => __( 'A value between 0 and 300 for the scale of the watermark (100 is the original size and 300 is 3x the size) relative to the resulting image size. If set to 0 it will default to the original size.', 'optimole-wp' ),
+				'save_changes'             => __( 'Save changes', 'optimole-wp' ),
+			),
 			'latest_images'                 => array(
 				'image'                 => __( 'Image', 'optimole-wp' ),
 				'no_images_found'       => sprintf( __( 'We might have a delay finding optimized images. Meanwhile you can visit your %1$shomepage%2$s and check how our plugin performs. ', 'optimole-wp' ), '<a href="' . esc_url( home_url() ) . '" target="_blank" >', '</a>' ),
@@ -499,11 +538,11 @@ The root cause might be either a security plugin which blocks this feature or so
 		if ( ! is_user_logged_in() ) {
 			return;
 		}
-		$settings = new Optml_Settings();
-		if ( ! $settings->is_connected() ) {
+		$this->settings = new Optml_Settings();
+		if ( ! $this->settings->is_connected() ) {
 			return;
 		}
-		$should_load = $settings->get( 'admin_bar_item' );
+		$should_load = $this->settings->get( 'admin_bar_item' );
 
 		$service_data = $this->settings->get( 'service_data' );
 		if ( empty( $service_data ) ) {

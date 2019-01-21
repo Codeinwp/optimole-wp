@@ -1,0 +1,26 @@
+<phpunit
+        bootstrap="tests/bootstrap.php"
+        backupGlobals="false"
+        colors="true"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+>
+    <filter>
+        <whitelist
+                addUncoveredFilesFromWhitelist="true"
+                processUncoveredFilesFromWhitelist="true">
+
+            <directory suffix=".php">./inc/</directory>
+        </whitelist>
+    </filter>
+    <logging>
+        <log type="coverage-clover" target="build/logs/clover.xml"/>
+    </logging>
+    <testsuites name="General Unit tests ( Requires PHP 5.4) ">
+        <testsuite >
+            <directory phpVersion="5.4.0" phpVersionOperator=">=" prefix="test-"  suffix=".php">./tests/</directory>
+        </testsuite>
+    </testsuites>
+
+</phpunit>
