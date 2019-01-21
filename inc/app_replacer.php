@@ -217,7 +217,7 @@ abstract class Optml_App_Replacer {
 			function ( $value ) {
 				$parts = parse_url( $value );
 
-				return isset( $parts['host'] ) ? $parts['host'] : '';
+				return isset( $parts['host'] ) ? ltrim( $parts['host'], 'www.' ) : '';
 			},
 			$urls
 		);
@@ -239,7 +239,7 @@ abstract class Optml_App_Replacer {
 			return false; // @codeCoverageIgnore
 		}
 		$url = parse_url( $url );
-		return isset( $this->possible_sources[ ltrim( $url['host'], 'www.' ) ] ) || isset( $this->possible_sources[ $url['host'] ] );
+		return isset( $this->possible_sources[ ltrim( $url['host'], 'www.' ) ] );
 	}
 
 	/**
