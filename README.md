@@ -40,6 +40,18 @@ The plugin will rewrite your image URLs to replace them with OptiMole URLs. Your
 
 ## Changelog ##
 
+  #### [2.0.1](https://github.com/Codeinwp/optimole-wp/compare/v2.0.0...v2.0.1) (2019-01-21)
+
+
+**Bug Fixes**
+
+* fix javascript library production url ([aed9433](https://github.com/Codeinwp/optimole-wp/commit/aed9433))
+
+
+
+
+
+
 ### [2.0.0](https://github.com/Codeinwp/optimole-wp/compare/v1.1.2...v2.0.0) (2019-01-21)
 
 
