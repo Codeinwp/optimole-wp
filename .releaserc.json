@@ -68,6 +68,7 @@
           "composer.json",
           "package-lock.json",
           "readme.txt",
+          "README.md",
           "optimole-wp.php",
           "package.json"
         ]
