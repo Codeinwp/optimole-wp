@@ -45,13 +45,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "grunt version::${nextRelease.version}"
-      }
-    ],
-    [
-      "@semantic-release/exec",
-      {
-        "publishCmd": "npm run readme"
+        "prepareCmd": "grunt version::${nextRelease.version} && npm run readme && grunt deploy"
       }
     ],
     [

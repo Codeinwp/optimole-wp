@@ -56,6 +56,7 @@ jobs:
         - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
 
     - stage: deploy
+      php: 7.0
       before_install:
         - nvm install && nvm use
         - npm install npm -g
