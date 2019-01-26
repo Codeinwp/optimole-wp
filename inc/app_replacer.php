@@ -15,6 +15,12 @@ abstract class Optml_App_Replacer {
 	 */
 	protected static $image_sizes = array();
 	/**
+	 * Holds width/height to crop array based on possible image sizes.
+	 *
+	 * @var array
+	 */
+	protected static $size_to_crop = array();
+	/**
 	 * Settings handler.
 	 *
 	 * @var Optml_Settings $settings
@@ -67,6 +73,23 @@ abstract class Optml_App_Replacer {
 	 * @var bool Domains.
 	 */
 	protected $is_allowed_site = array();
+
+	/**
+	 * Size to crop maping.
+	 *
+	 * @return array Size mapping.
+	 */
+	protected static function size_to_crop() {
+		if ( null != self::$size_to_crop && is_array( self::$size_to_crop ) ) {
+			return self::$size_to_crop;
+		}
+
+		foreach ( self::image_sizes() as $size_data ) {
+			self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] = $size_data['crop'];
+		}
+
+		return self::$size_to_crop;
+	}
 
 	/**
 	 * Returns the array of image sizes since `get_intermediate_image_sizes` and image metadata  doesn't include the
