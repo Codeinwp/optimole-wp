@@ -91,12 +91,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			[
 				$original_url,
 				'src=',
-				'srcset=', //Not ideal to disable srcset, we should aim to remove the srcset completely from code.
+				'srcset=', // Not ideal to disable srcset, we should aim to remove the srcset completely from code.
 			],
 			[
 				$low_url,
 				$opt_src . ' src=',
-				'old-srcset='
+				'old-srcset=',
 			],
 			$new_tag
 		);

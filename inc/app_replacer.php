@@ -205,13 +205,13 @@ abstract class Optml_App_Replacer {
 
 		if ( defined( 'OPTML_SITE_MIRROR' ) && constant( 'OPTML_SITE_MIRROR' ) ) {
 			$this->site_mappings = array(
-				rtrim( get_site_url(), '/' ) => rtrim( ltrim( constant( 'OPTML_SITE_MIRROR' ), 'www.' ), '/' ),
+				rtrim( get_site_url(), '/' ) => rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' ),
 			);
 		}
 
 		$this->possible_sources = $this->extract_domain_from_urls(
 			array_merge(
-				array( ltrim( get_site_url(), 'www.' ) ),
+				array( get_site_url() ),
 				array_values( $this->site_mappings )
 			)
 		);
@@ -240,14 +240,23 @@ abstract class Optml_App_Replacer {
 			function ( $value ) {
 				$parts = parse_url( $value );
 
-				return isset( $parts['host'] ) ? ltrim( $parts['host'], 'www.' ) : '';
+				return isset( $parts['host'] ) ? $parts['host'] : '';
 			},
 			$urls
 		);
 		$urls = array_filter( $urls );
 		$urls = array_unique( $urls );
 
-		return array_fill_keys( $urls, true );
+		$urls = array_fill_keys( $urls, true );
+		// build www versions of urls, just in case we need them for validation.
+
+		foreach ( $urls as $domain => $status ) {
+			if ( ! ( substr( $domain, 0, 4 ) === 'www.' ) ) {
+				$urls[ 'www.' . $domain ] = true;
+			}
+		}
+
+		return $urls;
 	}
 
 	/**
@@ -262,7 +271,8 @@ abstract class Optml_App_Replacer {
 			return false; // @codeCoverageIgnore
 		}
 		$url = parse_url( $url );
-		return isset( $this->possible_sources[ ltrim( $url['host'], 'www.' ) ] );
+
+		return isset( $this->possible_sources[ $url['host'] ] );
 	}
 
 	/**
