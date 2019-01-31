@@ -249,7 +249,6 @@ abstract class Optml_App_Replacer {
 
 		$urls = array_fill_keys( $urls, true );
 		// build www versions of urls, just in case we need them for validation.
-
 		foreach ( $urls as $domain => $status ) {
 			if ( ! ( substr( $domain, 0, 4 ) === 'www.' ) ) {
 				$urls[ 'www.' . $domain ] = true;
