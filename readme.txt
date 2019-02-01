@@ -13,18 +13,19 @@ With OptiMole, your site’s images will be cropped, optimized and processed on-
 
 == Description ==
 
-#### What makes Optimople so special?
-
-* Smaller images. Same quality
-* Optimizes based on the visitor's actual device
-* Fully automated; set and forget
-* Supports all image types
-* Supports both Retina and WebP images
-* Serves images from a global CDN for free
-* Optimizes based on the visitor's actual device (no more guesswork and width estimations)
-* Full support for page builders like Elementor
-* Lazy loading without jQuery (better)
-* Fully functional free version (we have paid plans as well)
+> **What makes Optimople so special?**
+>
+> * Smaller images. Same quality
+> * Optimizes based on the visitor's actual device
+> * Fully automated; set and forget
+> * Supports all image types
+> * Supports both Retina and WebP images
+> * Serves images from a global CDN for free
+> * Optimizes based on the visitor's actual device (no more guesswork and width estimations)
+> * Full support for page builders like Elementor
+> * Lazy loading without jQuery (better)
+> * Fully functional free version (we have paid plans as well)
+>
 
 Optimole is the all-in-one solution to all of your image optimization needs. With full automation and a range of evolutionary features, Optimole makes it easy to clean up your heavy images and bloaty pages.
 
@@ -90,7 +91,7 @@ Premium users will be able to optimize 10GB images per month with a 50GB viewing
 
 == Changelog ==
 
-  #### [2.0.2](https://github.com/Codeinwp/optimole-wp/compare/v2.0.1...v2.0.2) (2019-02-01)
+#### [2.0.2](https://github.com/Codeinwp/optimole-wp/compare/v2.0.1...v2.0.2) (2019-02-01)
 
 
 **Bug Fixes**
@@ -116,11 +117,7 @@ Premium users will be able to optimize 10GB images per month with a 50GB viewing
 * adds upgrade box and notice to upgrade when the user is close to the limit ([62b216a](https://github.com/Codeinwp/optimole-wp/commit/62b216a))
 
 
-
-
-
-
-  #### [2.0.1](https://github.com/Codeinwp/optimole-wp/compare/v2.0.0...v2.0.1) (2019-01-21)
+#### [2.0.1](https://github.com/Codeinwp/optimole-wp/compare/v2.0.0...v2.0.1) (2019-01-21)
 
 
 **Bug Fixes**
