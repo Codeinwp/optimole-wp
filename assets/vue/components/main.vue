@@ -1,60 +1,87 @@
 <template>
-	<div class="card">
-		<app-header></app-header>
-		<div class="card-content">
-			<div class="content">
-				<connect-layout v-if="! this.$store.state.connected"></connect-layout>
-				<transition name="fade" mode="out-in">
-					<div v-if="this.$store.state.connected">
-						<div class="tabs is-left is-boxed is-medium">
-							<ul class="is-marginless">
-								<li :class="tab === 'dashboard' ? 'is-active' : ''">
-									<a @click="changeTab('dashboard')" class="is-size-6-mobile">
-										<span class="icon is-size-6-mobile is-size-6-tablet  dashicons dashicons-admin-home"></span>
-										<span class="is-size-6-mobile   is-size-6-touch ">{{strings.dashboard_menu_item}}</span>
-									</a>
-								</li>
+	<div class="columns is-desktop">
+		
+		<div class="column  ">
+			<div class="card">
+				<app-header></app-header>
+				<div class="card-content">
+					<div class="content">
+						<connect-layout v-if="! this.$store.state.connected"></connect-layout>
+						<transition name="fade" mode="out-in">
+							<div v-if="this.$store.state.connected">
+								<div class="tabs is-left is-boxed is-medium">
+									<ul class="is-marginless">
+										<li :class="tab === 'dashboard' ? 'is-active' : ''">
+											<a @click="changeTab('dashboard')" class="is-size-6-mobile">
+												<span class="icon is-size-6-mobile is-size-6-tablet  dashicons dashicons-admin-home"></span>
+												<span class="is-size-6-mobile   is-size-6-touch ">{{strings.dashboard_menu_item}}</span>
+											</a>
+										</li>
+										
+										<li :class="tab === 'settings' ? 'is-active' : ''">
+											<a @click="changeTab('settings')" class="is-size-6-mobile  ">
+												<span class="icon is-size-6-mobile   is-size-6-tablet dashicons dashicons-admin-settings"></span>
+												<span class="is-size-6-mobile  is-size-6-touch">{{strings.settings_menu_item}}</span>
+											</a>
+										</li>
+										<li :class="tab === 'watermarks' ? 'is-active' : ''">
+											<a @click="changeTab('watermarks')" class="is-size-6-mobile">
+												<span class="icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-tag"></span>
+												<span class="is-size-6-mobile   is-size-6-touch">{{strings.watermarks_menu_item}}</span>
+											</a>
+										</li>
+									</ul>
+								</div>
 								
-								<li :class="tab === 'settings' ? 'is-active' : ''">
-									<a @click="changeTab('settings')" class="is-size-6-mobile  ">
-										<span class="icon is-size-6-mobile   is-size-6-tablet dashicons dashicons-admin-settings"></span>
-										<span class="is-size-6-mobile  is-size-6-touch" >{{strings.settings_menu_item}}</span>
-									</a>
-								</li>
-								<li :class="tab === 'watermarks' ? 'is-active' : ''" >
-									<a @click="changeTab('watermarks')" class="is-size-6-mobile">
-										<span class="icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-tag"></span>
-										<span  class="is-size-6-mobile   is-size-6-touch">{{strings.watermarks_menu_item}}</span>
-									</a>
-								</li>
-							</ul>
-						</div>
-						
-						<div class="is-tab" v-if="tab === 'dashboard' ">
-							<div class="notification is-success" v-if="strings.notice_just_activated.length > 0" v-html="strings.notice_just_activated"></div>
-							<api-key-form></api-key-form>
-							<cdn-details v-if="this.$store.state.userData"></cdn-details>
-							<hr/>
-							<last-images :status="fetchStatus"></last-images>
-						</div>
-						<div class="is-tab" v-if=" tab === 'settings'">
-							<options></options>
-						</div>
-						<div class="is-tab" v-if=" tab === 'watermarks'" >
-							<watermarks></watermarks>
-						</div>
+								<div class="is-tab" v-if="tab === 'dashboard' ">
+									<div class="notification is-success" v-if="strings.notice_just_activated.length > 0"
+									     v-html="strings.notice_just_activated"></div>
+									<api-key-form></api-key-form>
+									<cdn-details v-if="this.$store.state.userData"></cdn-details>
+									<hr/>
+									<last-images :status="fetchStatus"></last-images>
+								</div>
+								<div class="is-tab" v-if=" tab === 'settings'">
+									<options></options>
+								</div>
+								<div class="is-tab" v-if=" tab === 'watermarks'">
+									<watermarks></watermarks>
+								</div>
+							</div>
+						</transition>
 					</div>
-				</transition>
+				</div>
+				
+				<div class="level-right">
+					<p class="level-item"><a href="https://optimole.com" target="_blank">Optimole
+						v{{strings.version}}</a></p>
+					<p class="level-item"><a href="https://optimole.com/terms/"
+					                         target="_blank">{{strings.terms_menu}}</a></p>
+					<p class="level-item"><a href="https://optimole.com/privacy-policy/" target="_blank">{{strings.privacy_menu}}</a>
+					</p>
+					<p class="level-item"><a :href="'https://speedtest.optimole.com/?url=' + home " target="_blank">{{strings.testdrive_menu}}</a>
+					</p>
+				</div>
 			</div>
 		</div>
-		
-		<div class="level-right">
-			<p class="level-item"><a href="https://optimole.com" target="_blank">Optimole v{{strings.version}}</a></p>
-			<p class="level-item"><a href="https://optimole.com/terms/" target="_blank">{{strings.terms_menu}}</a></p>
-			<p class="level-item"><a href="https://optimole.com/privacy-policy/" target="_blank">{{strings.privacy_menu}}</a>
-			</p>
-			<p class="level-item"><a :href="'https://speedtest.optimole.com/?url=' + home " target="_blank">{{strings.testdrive_menu}}</a>
-			</p>
+		<div v-if="this.$store.state.connected && this.$store.state.userData.plan === 'free' " class="column is-narrow is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile">
+			<div class="card optml-upgrade">
+				<div class="card-header">
+					<h3 class="is-size-5 card-header-title"><span class="dashicons dashicons-chart-line"></span>  {{strings.upgrade.title}}</h3>
+				</div>
+				<div class="card-content">
+					<ul>
+						<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_1}}</li>
+						<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_2}}</li>
+						<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_3}}</li>
+					</ul>
+				</div>
+				<div class="card-footer  ">
+					<div class="card-footer-item">
+					<a href="https://optimole.com#pricing" target="_blank" class="button is-centered is-small is-success"><span class="dashicons dashicons-external"></span>{{strings.upgrade.cta}}</a>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </template>
@@ -75,7 +102,6 @@
 				strings: optimoleDashboardApp.strings,
 				home: optimoleDashboardApp.home_url,
 				fetchStatus: false,
-				
 				tab: 'dashboard'
 			}
 		},
@@ -109,6 +135,10 @@
 	
 	#optimole-app .tabs a {
 		margin-bottom: -4px;
+	}
+	
+	#optimole-app .optml-upgrade {
+		min-width: 200px;
 	}
 	
 	#optimole-app .is-tab {

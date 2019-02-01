@@ -12,14 +12,14 @@ Vue.use( ToggleButton );
 Vue.use( VueResize );
 
 
-window.onload = function () {
+window.addEventListener( 'load', function () {
 	new Vue(
 		{
 			el: '#optimole-app',
-				store,
+			store,
 			components: {
 				App
 			},
 		}
 	);
-};
+} );

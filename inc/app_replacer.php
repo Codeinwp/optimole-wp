@@ -15,6 +15,12 @@ abstract class Optml_App_Replacer {
 	 */
 	protected static $image_sizes = array();
 	/**
+	 * Holds width/height to crop array based on possible image sizes.
+	 *
+	 * @var array
+	 */
+	protected static $size_to_crop = array();
+	/**
 	 * Settings handler.
 	 *
 	 * @var Optml_Settings $settings
@@ -67,6 +73,23 @@ abstract class Optml_App_Replacer {
 	 * @var bool Domains.
 	 */
 	protected $is_allowed_site = array();
+
+	/**
+	 * Size to crop maping.
+	 *
+	 * @return array Size mapping.
+	 */
+	protected static function size_to_crop() {
+		if ( null != self::$size_to_crop && is_array( self::$size_to_crop ) ) {
+			return self::$size_to_crop;
+		}
+
+		foreach ( self::image_sizes() as $size_data ) {
+			self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] = $size_data['crop'];
+		}
+
+		return self::$size_to_crop;
+	}
 
 	/**
 	 * Returns the array of image sizes since `get_intermediate_image_sizes` and image metadata  doesn't include the
@@ -182,13 +205,13 @@ abstract class Optml_App_Replacer {
 
 		if ( defined( 'OPTML_SITE_MIRROR' ) && constant( 'OPTML_SITE_MIRROR' ) ) {
 			$this->site_mappings = array(
-				rtrim( get_site_url(), '/' ) => rtrim( ltrim( constant( 'OPTML_SITE_MIRROR' ), 'www.' ), '/' ),
+				rtrim( get_site_url(), '/' ) => rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' ),
 			);
 		}
 
 		$this->possible_sources = $this->extract_domain_from_urls(
 			array_merge(
-				array( ltrim( get_site_url(), 'www.' ) ),
+				array( get_site_url() ),
 				array_values( $this->site_mappings )
 			)
 		);
@@ -224,7 +247,15 @@ abstract class Optml_App_Replacer {
 		$urls = array_filter( $urls );
 		$urls = array_unique( $urls );
 
-		return array_fill_keys( $urls, true );
+		$urls = array_fill_keys( $urls, true );
+		// build www versions of urls, just in case we need them for validation.
+		foreach ( $urls as $domain => $status ) {
+			if ( ! ( substr( $domain, 0, 4 ) === 'www.' ) ) {
+				$urls[ 'www.' . $domain ] = true;
+			}
+		}
+
+		return $urls;
 	}
 
 	/**
@@ -240,7 +271,7 @@ abstract class Optml_App_Replacer {
 		}
 		$url = parse_url( $url );
 
-		return isset( $this->possible_sources[ ltrim( $url['host'], 'www.' ) ] );
+		return isset( $this->possible_sources[ $url['host'] ] );
 	}
 
 	/**

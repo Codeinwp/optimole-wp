@@ -43,7 +43,7 @@ function _manually_load_plugin() {
 			$crop    = array( $x_value, $y_value );
 			$x_value = $x_value === true ? '' : $x_value;
 			$y_value = $y_value === true ? '' : $y_value;
-			add_image_size( 'sample_size_h_' . $x_value . $y_value, 100, 100, $crop );
+			add_image_size( 'sample_size_h_' . $x_value . $y_value, 120, 120, $crop );
 		}
 	}
 	require dirname( dirname( __FILE__ ) ) . '/optimole-wp.php';

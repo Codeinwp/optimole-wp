@@ -194,7 +194,7 @@
 								</a>
 							</p>
 							<p class="control ">
-								<input v-model="watermarkX" class="input is-small" type="number">
+								<input v-model="watermarkX" class="input  is-tiny is-small" type="number">
 							</p>
 						</div>
 						<div class="field column is-narrow  has-addons">
@@ -204,7 +204,7 @@
 								</a>
 							</p>
 							<p class="control ">
-								<input v-model="watermarkY" class="input is-small" type="number">
+								<input v-model="watermarkY" class="input is-small is-tiny" type="number">
 							</p>
 						</div>
 					</div>
@@ -430,5 +430,8 @@
 	.optml-layout-grid {
 		width: 200px;
 		
+	}
+	#optimole-app .input.is-small.is-tiny{
+		width:60px;
 	}
 </style>

@@ -64,15 +64,16 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function process_image_tags( $content, $images = array() ) {
 		$image_sizes = self::image_sizes();
+		$sizes2crop  = self::size_to_crop();
 
 		foreach ( $images[0] as $index => $tag ) {
-			$width      = $height = false;
-			$resize     = array();
-			$new_tag    = $tag;
+			$width   = $height = false;
+			$resize  = array();
+			$new_tag = $tag;
 
 			$is_slashed = strpos( $images['img_url'][ $index ], '\/' ) !== false;
 
-			$src        = $tmp = $is_slashed ? stripslashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ];
+			$src = $tmp = $is_slashed ? stripslashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ];
 
 			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
 				 false !== strpos( $src, Optml_Config::$service_url ) ||
@@ -93,6 +94,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			if ( false === $width && false === $height ) {
 				list( $width, $height ) = $this->parse_dimensions_from_filename( $tmp );
 			}
+
+			if ( empty( $resize ) && isset( $sizes2crop[ $width . $height ] ) ) {
+				$resize = $this->to_optml_crop( $sizes2crop[ $width . $height ] );
+			}
+
 			$optml_args = [ 'width' => $width, 'height' => $height, 'resize' => $resize ];
 			$tmp        = $this->strip_image_size_from_url( $tmp );
 			$new_url    = apply_filters( 'optml_content_url', $tmp, $optml_args );
