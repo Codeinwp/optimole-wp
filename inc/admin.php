@@ -31,6 +31,7 @@ class Optml_Admin {
 		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), PHP_INT_MIN );
 		add_action( 'admin_notices', array( $this, 'add_notice' ) );
+		add_action( 'admin_notices', array( $this, 'add_notice_upgrade' ) );
 		add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
@@ -182,6 +183,61 @@ class Optml_Admin {
 		return true;
 	}
 
+	/**
+	 * Show upgrade notice.
+	 */
+	public function add_notice_upgrade() {
+		if ( ! $this->should_show_upgrade() ) {
+			return;
+		}
+		?>
+		<div class="notice notice-warning optml-notice-optin">
+			<p> <?php printf( __( 'It seems your are close to the %1$s1GB%2$s limit of images optimized with %3$sOptiMole%4$s for this month. You might want to check the upgrade plans for a larger quota. %5$s %6$s What happens if i exceed the quota ?%7$s We will need to deliver back your %8$sun-optimized%9$s images which might decrease your site speed perfomance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
+			<p>
+				<a href="https://optimole.com/#pricing" target="_blank" class="button button-primary"><span
+							class="dashicons dashicons-external"></span><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
+				</a>
+				<a class="button"
+				   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_upg' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I\'ve done this', 'optimole-wp' ); ?></a>
+			</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Check if we should show the upgrade notice to users.
+	 *
+	 * @return bool Should we show it?
+	 */
+	public function should_show_upgrade() {
+		$current_screen = get_current_screen();
+		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ||
+			 is_network_admin() ||
+			 ! current_user_can( 'manage_options' ) ||
+			 ! $this->settings->is_connected() ||
+			 empty( $current_screen )
+		) {
+			return false;
+		}
+		if ( get_option( 'optml_notice_hide_upg', 'no' ) === 'yes' ) {
+			return false;
+		}
+		if ( isset( $current_screen->base ) && $current_screen->base !== 'upload' ) {
+			return false;
+		}
+		$service_data = $this->settings->get( 'service_data' );
+		if ( ! isset( $service_data['plan'] ) ) {
+			return false;
+		}
+		if ( $service_data['plan'] !== 'free' ) {
+			return false;
+		}
+		if ( $service_data['usage'] < 800 ) {
+			return false;
+		}
+
+		return true;
+	}
 
 	/**
 	 * Adds opt in notice.
@@ -223,6 +279,10 @@ class Optml_Admin {
 
 		if ( isset( $_GET['optml_nonce'] ) && isset( $_GET['optml_hide_optin'] ) && $_GET['optml_hide_optin'] === 'yes' && wp_verify_nonce( $_GET['optml_nonce'], 'hide_nonce' ) ) {
 			update_option( 'optml_notice_optin', 'yes' );
+		}
+
+		if ( isset( $_GET['optml_nonce'] ) && isset( $_GET['optml_hide_upg'] ) && $_GET['optml_hide_upg'] === 'yes' && wp_verify_nonce( $_GET['optml_nonce'], 'hide_nonce' ) ) {
+			update_option( 'optml_notice_hide_upg', 'yes' );
 		}
 
 		if ( ! get_transient( 'optml_fresh_install' ) ) {
@@ -447,6 +507,13 @@ The root cause might be either a security plugin which blocks this feature or so
 			'dashboard_menu_item'           => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'            => __( 'General Settings', 'optimole-wp' ),
 			'watermarks_menu_item'          => __( 'Watermark options', 'optimole-wp' ),
+			'upgrade'                       => array(
+				'title'    => __( 'Upgrade to Pro', 'optimole-wp' ),
+				'reason_1' => __( 'Faster CDN ( 130+ locations )', 'optimole-wp' ),
+				'reason_2' => __( 'Larger traffic bandwidth', 'optimole-wp' ),
+				'reason_3' => __( 'Optimize more images', 'optimole-wp' ),
+				'cta'      => __( 'View plans', 'optimole-wp' ),
+			),
 			'options_strings'               => array(
 				'toggle_ab_item'       => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'      => __( 'Javascript replacement & Lazy load', 'optimole-wp' ),

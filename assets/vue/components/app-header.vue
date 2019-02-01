@@ -4,11 +4,14 @@
 			
 			<div class="level-left">
 				<a class="logo level-item" href="https://optimole.com" target="_blank">
-					<figure class="media">
-						<img :src="logo" :alt="strings.optimole + ' ' + strings.service_details" width="75" height="75">
+					<figure class="image is-96x96 is-hidden-touch">
+						<img :src="logo" :alt="strings.optimole + ' ' + strings.service_details" >
+					</figure>
+					<figure class="image is-48x48 is-hidden-desktop">
+						<img :src="logo" :alt="strings.optimole + ' ' + strings.service_details" >
 					</figure>
 				</a>
-				<h3 class="has-text-centered has-text-grey-dark is-size-4 level-item">
+				<h3 class="has-text-centered has-text-grey-dark is-size-5 is-size-4-widescreen is-size-6-touch level-item">
 					<span class="has-text-weight-semibold">
 					OptiMole - {{strings.service_details}}
 					</span>
