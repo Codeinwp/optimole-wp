@@ -12,24 +12,74 @@ With OptiMole, your site’s images will be cropped, optimized and processed on-
 
 
 ## Description ##
-**Image optimization & resizing**
-Images are processed for best results with both lossless and lossy optimization and are automatically resized for any device.
 
-**Image acceleration through CDN**
-If you dont use a CDN, we got you covered, we will serve the images using our default CDN. You already have one, just let us know and we can integrate yours.
+#### What makes Optimople so special?
 
-**On-the-fly image handling**
-Dynamic manipulation of images and videos (resize, compress and serve via CDN on the fly).
+* Smaller images. Same quality
+* Optimizes based on the visitor's actual device
+* Fully automated; set and forget
+* Supports all image types
+* Supports both Retina and WebP images
+* Serves images from a global CDN for free
+* Optimizes based on the visitor's actual device (no more guesswork and width estimations)
+* Full support for page builders like Elementor
+* Lazy loading without jQuery (better)
+* Fully functional free version (we have paid plans as well)
 
-**Easy tracking & monitoring**
-Check how OptiMole is improving your site from day 1. Transparent optimization stats are always available.
+Optimole is the all-in-one solution to all of your image optimization needs. With full automation and a range of evolutionary features, Optimole makes it easy to clean up your heavy images and bloaty pages.
 
-### How does it work? ###
+Optimole optimizes your images in real-time with a cloud-based system to speed up your website and deliver high-quality images perfectly sized for every device. With a one-click setup and minimal footprint, you can start improving your site in minutes.
 
-This plugin connects via API to OptiMole [image optimization service](https://optimole.com/) in order to send the images to its servers and crop, optimize and process them on-the-fly. The EXIF data will either be stripped and it is not stored on our servers. Optimole does not interact with the visitors on your website. We care about your privacy so check our [terms of use](https://optimole.com/terms/).
+You'll be free to concentrate on other aspects of your site with Optimole's set and forget image optimization.
 
-The plugin will rewrite your image URLs to replace them with OptiMole URLs. Your origin images will be downloaded from your storage, processed by the OptiMole infrastructure and cached in the CDN. NO development needed. Simply set up your account and enjoy faster image loading.
+So, if you have been looking for one plugin that provides lazy loading with a CDN and perfectly sized images, then Optimole is perfect for you.
 
+
+**How does it do all these great things?**
+Optimole's format based optimization is handled in the cloud on a case-by-case basis. Once you have the plugin installed, Optimole will replace all of your image URLs with cloud-based URLs. We don't replace any images on your website.
+When the image is requested, Optimole will apply the specific transformations required by the device and deliver it to your visitors. This means every image is perfectly sized for every device. The final result will be cached for a month to ensure ongoing fast delivery and more site speed.
+
+**How many images can be optimized?**
+With the basic plan, you will be able to optimize 1GB of images per month with 10GB viewing bandwidth. All delivered from 7 edge locations all over the world.
+Better yet. The free version is fully functional and includes all of the following great features.
+
+**Format Based Optimization**
+Our cloud-based transformation process means we can offer optimizations based on the format. If your visitor is using a WebP capable browser, then Optimole will send a WebP image to their device.
+
+**Image Optimization**
+Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size.
+
+**Exact Used Size**
+Optimole will use just one image and resize it to fit perfectly on your visitors' devices. No more awkward guesses at potential screen widths.
+
+**Retina Support**
+Optimole can detect Retina screens and deliver an image with the perfect Digital Pixel Ratio (DPR).
+
+**Smart Cropping**
+If you'd like to keep the most interesting part of an image; then you can enable smart cropping to help keep the image well sized without losing focus.
+
+**No Content Shifting**
+The lazy load option is perfectly sized for the container to provide a seamless viewing experience without any content shifting.
+
+**Watermarks**
+Who has time for adding watermarks? Optimole will do the hard work for you. Just set it up and pick your preferred location and Optimole will add the watermark to all of your future images.
+
+**Downgrade Quality For Slower Connections**
+Optimole provides an option to downgrade the image quality when it detects a slower network. Make the images up to 40% smaller with this neat feature to help visitors in a bottleneck.
+**Compatibility**
+Optimole loves page builders and has unique tweaks to solve image replacements. It also has full compatibility with the new block editor in WordPress 5.0
+
+**CDN**
+Optimole provides free access to a CDN with 7 edge locations around the world. Even more with the Pro version.
+
+**What About Security?**
+The stripped EXGIF data is not stored on our service. Optimole likes to work behind the scenes, and won't interact with your site's visitors. No data is collected but you can check the [Terms of Service](https://optimole.com/terms/)
+
+**Smooth And Clean**
+Optimole can be installed in a few clicks and then left in the back-end to do its job. Not happy with it? Optimole has a clean uninstall and your site will be just as before Optimole was installed.
+
+**Go Pro**
+Premium users will be able to optimize 10GB images per month with a 50GB viewing bandwidth. Images in the Premium plan are served from AWS Cloudfront with over 130 locations.
 
 ## Screenshots ##
 
@@ -39,6 +89,36 @@ The plugin will rewrite your image URLs to replace them with OptiMole URLs. Your
 4. Plugin settings
 
 ## Changelog ##
+
+  #### [2.0.2](https://github.com/Codeinwp/optimole-wp/compare/v2.0.1...v2.0.2) (2019-02-01)
+
+
+**Bug Fixes**
+
+* dashboard app loading issues for some wordpress environments ([293e277](https://github.com/Codeinwp/optimole-wp/commit/293e277))
+
+* disable srcset attribute when the javascript resizer and lazyload is active, being redundant ([76c0307](https://github.com/Codeinwp/optimole-wp/commit/76c0307))
+
+* domain validation when www is present in the image urls, thanks [@wpriders](https://github.com/wpriders) team for reporting ([9559ce5](https://github.com/Codeinwp/optimole-wp/commit/9559ce5))
+
+* image resize when the size class is not available, get cropping based on the width/height of the resulting image ([e5c1aab](https://github.com/Codeinwp/optimole-wp/commit/e5c1aab))
+
+
+
+**Documentation**
+
+* improve readme description of the OptiMole service ([e020300](https://github.com/Codeinwp/optimole-wp/commit/e020300))
+
+
+
+**Features**
+
+* adds upgrade box and notice to upgrade when the user is close to the limit ([62b216a](https://github.com/Codeinwp/optimole-wp/commit/62b216a))
+
+
+
+
+
 
   #### [2.0.1](https://github.com/Codeinwp/optimole-wp/compare/v2.0.0...v2.0.1) (2019-01-21)
 
