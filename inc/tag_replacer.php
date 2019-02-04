@@ -200,6 +200,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return $sources;
 		}
 		$original_url = null;
+		$cropping = null;
+		if ( count( $size_array ) === 2 ) {
+			$sizes    = self::size_to_crop();
+			$cropping = isset( $sizes[ $size_array[0] . $size_array[1] ] ) ? $this->to_optml_crop( $sizes[ $size_array[0] . $size_array[1] ] ) : null;
+		}
 		foreach ( $sources as $i => $source ) {
 			$url = $source['url'];
 			list( $width, $height ) = $this->parse_dimensions_from_filename( $url );
@@ -226,6 +231,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				} else {
 					$args['width'] = $source['value'];
 				}
+			}
+			if ( $cropping !== null ) {
+				$args['resize'] = $cropping;
 			}
 			$sources[ $i ]['url'] = apply_filters( 'optml_content_url', $original_url, $args );
 		}
