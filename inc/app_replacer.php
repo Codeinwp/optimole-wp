@@ -164,7 +164,9 @@ abstract class Optml_App_Replacer {
 	 * @return bool If we can replace the image.
 	 */
 	public function should_replace() {
-
+		if ( Optml_Manager::is_ajax_request() ) {
+			return true;
+		}
 		if ( is_admin() || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
 			return false; // @codeCoverageIgnore
 		}

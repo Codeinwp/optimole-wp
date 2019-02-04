@@ -45,7 +45,7 @@ final class Optml_Manager {
 		 * Otherwise, we can hook first to avoid any other plugins to take care of replacement.
 		 */
 		add_action(
-			'template_redirect',
+			self::is_ajax_request() ? 'init' : 'template_redirect',
 			array(
 				$this,
 				'process_template_redirect_content',
@@ -53,6 +53,31 @@ final class Optml_Manager {
 			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
 		);
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+	}
+
+	/**
+	 * Check if we are in a ajax contex where we should enable replacement.
+	 *
+	 * @return bool Is ajax request?
+	 */
+	public static function is_ajax_request() {
+
+		if ( ! function_exists( 'is_user_logged_in' ) ) {
+			return false;
+		}
+		// Disable for logged in users to avoid unexpected results.
+		if ( is_user_logged_in() ) {
+			return false;
+		}
+
+		if ( ! function_exists( 'wp_doing_ajax' ) ) {
+			return false;
+		}
+		if ( ! wp_doing_ajax() ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
