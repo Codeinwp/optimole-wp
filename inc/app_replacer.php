@@ -273,6 +273,10 @@ abstract class Optml_App_Replacer {
 		}
 		$url = parse_url( $url );
 
+		if ( ! isset( $url['host'] ) ) {
+			return false;
+		}
+
 		return isset( $this->possible_sources[ $url['host'] ] );
 	}
 

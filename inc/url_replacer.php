@@ -51,6 +51,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		Optml_Image::$watermark         = new Optml_Watermark( $this->settings->get_site_settings()['watermark'] );
 
 		add_filter( 'optml_content_url', array( $this, 'build_image_url' ), 1, 2 );
+
 	}
 
 	/**
@@ -77,6 +78,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		$url = $is_slashed ? stripslashes( $url ) : $url;
 
 		if ( strpos( $url, Optml_Config::$service_url ) !== false ) {
+			return $url;
+		}
+		if ( ! $this->can_replace_url( $url ) ) {
 			return $url;
 		}
 		if ( ! $this->is_valid_mimetype_from_url( $url ) ) {
