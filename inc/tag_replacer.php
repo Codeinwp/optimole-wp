@@ -106,10 +106,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			if ( $new_url === $tmp ) {
 				continue; // @codeCoverageIgnore
 			}
-			// replace the url in hrefs or links
-			if ( ! empty( $images['link_url'][ $index ] ) && $this->is_valid_mimetype_from_url( $images['link_url'][ $index ] ) ) {
-				$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . apply_filters( 'optml_content_url', $tmp, $optml_args ) . '\2', $tag, 1 );
-			}
 
 			$new_tag = str_replace(
 				[
