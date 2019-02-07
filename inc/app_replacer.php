@@ -268,6 +268,7 @@ abstract class Optml_App_Replacer {
 	 * @return bool Either we can replace this url or not.
 	 */
 	public function can_replace_url( $url ) {
+
 		if ( ! is_string( $url ) ) {
 			return false; // @codeCoverageIgnore
 		}
@@ -276,8 +277,7 @@ abstract class Optml_App_Replacer {
 		if ( ! isset( $url['host'] ) ) {
 			return false;
 		}
-
-		return isset( $this->possible_sources[ $url['host'] ] );
+		return isset( $this->possible_sources[ $url['host'] ] ) || isset( $this->allowed_sources[ $url['host'] ] );
 	}
 
 	/**
