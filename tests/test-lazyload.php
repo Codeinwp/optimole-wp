@@ -111,6 +111,15 @@ class Test_Lazyload extends WP_UnitTestCase {
 
 	}
 
+	public function test_check_with_no_script() {
+		$content = '<img width="1612" height="1116" src="data:image/gif;base64,R0lGODdhAQABAPAAAP///wAAACwAAAAAAQABAEACAkQBADs=" data-lazy-src="http://example.org/wp-content/uploads/2018/11/gradient.png" class="attachment-twentyseventeen-featured-image size-twentyseventeen-featured-image wp-post-image" alt="" data-lazy-sizes="(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px" /><noscript><img width="1612" height="1116" src="http://example.org/wp-content/uploads/2018/11/gradient.png" class="attachment-twentyseventeen-featured-image size-twentyseventeen-featured-image wp-post-image" alt="" sizes="(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px" /></noscript>	';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+
+		$this->assertContains( '<noscript>', $replaced_content );
+		$this->assertEquals( 1, substr_count( $replaced_content, '<noscript>' ) );
+		$this->assertEquals( 2, substr_count( $replaced_content, 'i.optimole.com' ) );
+	}
 	public function test_check_no_script() {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::HTML_TAGS_HEADER );
 

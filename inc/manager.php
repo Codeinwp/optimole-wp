@@ -269,8 +269,7 @@ final class Optml_Manager {
 		$images = array();
 
 		$content = self::strip_header_from_content( $content );
-
-		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag><img[^>]*?\s+?src=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*<\/a>)?/ism', $content, $images ) ) {
+		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<\s*noscript\s*>\s*)?<img[^>]*?\s+?src=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*<\/a>)?/ism', $content, $images ) ) {
 
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.
