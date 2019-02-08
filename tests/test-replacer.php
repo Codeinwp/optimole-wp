@@ -125,6 +125,19 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertContains( 'https://www.codeinwp.org', $replaced_content );
 	}
 
+	// TODO We need to extend this to single url replacement. If we make the url extractor regex with option scheme, the parsing will take huge amount of time. We need to think alternatives.
+	public function test_replacement_without_scheme() {
+		$content          = '<div class="before-footer">
+				<div class="codeinwp-container">
+					<p class="featuredon">Featured On</p>
+					<img src="//www.example.org/wp-content/uploads/2018/05/brands.png"> 
+				</div>
+			</div>';
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'http://www.example.org', $replaced_content );;
+	}
+
 	public function test_non_allowed_extensions() {
 		$replaced_content = Optml_Manager::instance()->replace_content( ( self::CSS_STYLE . self::IMG_TAGS . self::WRONG_EXTENSION ) );
 		$this->assertContains( 'i.optimole.com', $replaced_content );

@@ -95,6 +95,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$url = str_replace( array_keys( $this->site_mappings ), array_values( $this->site_mappings ), $url );
 		}
 
+		if ( substr( $url, 0, 2 ) === '//' ) {
+			$url = sprintf( '%s:%s', is_ssl() ? 'https' : 'http', $url );
+		}
 		$new_url = $this->strip_image_size_from_url( $url );
 
 		if ( $new_url !== $url ) {
