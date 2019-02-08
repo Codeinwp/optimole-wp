@@ -204,17 +204,19 @@ abstract class Optml_App_Replacer {
 				'secret' => $service_data['cdn_secret'],
 			)
 		);
+		$this->site_mappings['//i0.wp.com/'] = '//';
+		$this->site_mappings['//i1.wp.com/'] = '//';
+		$this->site_mappings['//i2.wp.com/'] = '//';
 
 		if ( defined( 'OPTML_SITE_MIRROR' ) && constant( 'OPTML_SITE_MIRROR' ) ) {
-			$this->site_mappings = array(
-				rtrim( get_site_url(), '/' ) => rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' ),
-			);
+			$this->site_mappings[ rtrim( get_site_url(), '/' ) ] = rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' );
 		}
 
 		$this->possible_sources = $this->extract_domain_from_urls(
 			array_merge(
 				array( get_site_url() ),
-				array_values( $this->site_mappings )
+				array_values( $this->site_mappings ),
+				array_keys( $this->site_mappings )
 			)
 		);
 
