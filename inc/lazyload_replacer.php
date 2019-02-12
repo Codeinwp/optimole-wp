@@ -90,7 +90,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$new_tag       = str_replace(
 			[
 				$original_url,
-				'src=',
+				' src=',
 				'srcset=', // Not ideal to disable srcset, we should aim to remove the srcset completely from code.
 			],
 			[

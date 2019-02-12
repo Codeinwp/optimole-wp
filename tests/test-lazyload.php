@@ -120,6 +120,20 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertEquals( 1, substr_count( $replaced_content, '<noscript>' ) );
 		$this->assertEquals( 2, substr_count( $replaced_content, 'i.optimole.com' ) );
 	}
+
+
+	public function test_replacement_with_data_attr() {
+		$content          = '<div class="before-footer">
+				<div class="codeinwp-container">
+					<p class="featuredon">Featured On</p>
+					<img src="http://www.example.org/wp-content/uploads/2018/05/brands.png" data-src="http://www.example.org/wp-content/uploads/2018/05/brands.png"> 
+				</div>
+			</div>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertEquals( 5, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
+	}
 	public function test_check_no_script() {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::HTML_TAGS_HEADER );
 
