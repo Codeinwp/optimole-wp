@@ -1,6 +1,6 @@
 === Image optimization service by Optimole ===
 Contributors: optimole
-Tags: image optmization, cdn, image compression, compress image, images, optimization, perfomance, photos
+Tags: image optimization, cdn, image compression, compress image, images, optimization, perfomance, photos
 Requires at least: 4.7
 Tested up to: 5.0
 Requires PHP: 5.4
@@ -273,6 +273,14 @@ Short answer, YES. We can help you integrate your default CDN but it will requir
 = I'm already using an image optimization plugin, why should I switch to OptiMole? =
 
 You don’t need to change your existing optimization plugin, image optimization is just a small part of what we do, if you are happy with ShortPixel for e.g, feel free to continue to use it, OptiMole would then take care only of serving your image at the RIGHT size, advanced cropping and smart lazy-loading.
+
+= Does Optimole handle images from Ajax content  ? =
+
+Yes, we do. By default, Optimole handle images delivered from your ajax content from admin-ajax.php ( not logged in users ) as well as WordPress REST API routes.
+
+= Can i remove the blurry placeholder from the lazyload effct ? =
+
+Yes, you can. We have bundled this tweak into a plugin you can install while you have Optimole active. The blurry placeholder will be removed and the images will be still lazy-loaded. You can find the plugin tweak here -> http://bit.ly/optml-rm-lqip
 
 = Will the original images be deleted? =
 
