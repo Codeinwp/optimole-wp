@@ -169,7 +169,7 @@ final class Optml_Manager {
 				return $metadata;
 			}
 
-			return $this->replace_content( $current_meta, 'elementor' );
+			return $this->process_urls_from_json( $current_meta );
 		}
 
 		// Return original if the check does not pass
@@ -177,17 +177,66 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Filter raw content for urls.
+	 * Process json string.
 	 *
-	 * @param string $html HTML to filter.
-	 * @param string $context Context for $html.
+	 * @param string $json Json string.
 	 *
-	 * @return mixed Filtered content.
+	 * @return string Processed string.
 	 */
-	public function replace_content( $html, $context = 'raw' ) {
-		$html = $this->process_images_from_content( $html );
+	public function process_urls_from_json( $json ) {
 
-		$extracted_urls = $this->extract_image_urls_from_content( $html );
+		$extracted_urls = $this->extract_urls_from_json( $json );
+
+		return $this->do_url_replacement( $json, $extracted_urls );
+	}
+
+	/**
+	 * Extract urls used as values in json string, i.e not prefixed by =("|') char.
+	 *
+	 * @param string $content Raw json string.
+	 *
+	 * @return array array of urls.
+	 */
+	public function extract_urls_from_json( $content ) {
+		$regex = '/(?<!(=|\\\\)(?:"|\'|"))(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')/';
+		preg_match_all(
+			$regex,
+			$content,
+			$urls
+		);
+
+		return $this->normalize_urls( $urls[0] );
+	}
+
+	/**
+	 * Normalize extracted urls.
+	 *
+	 * @param array $urls Raw urls extracted.
+	 *
+	 * @return array Normalized array.
+	 */
+	private function normalize_urls( $urls ) {
+		$urls = array_map(
+			function ( $value ) {
+				return rtrim( html_entity_decode( $value ), '\\' );
+			},
+			$urls
+		);
+
+		$urls = array_unique( $urls );
+
+		return array_values( $urls );
+	}
+
+	/**
+	 * Process string content and replace possible urls.
+	 *
+	 * @param string $html String content.
+	 * @param array  $extracted_urls Urls to check.
+	 *
+	 * @return string Processed html.
+	 */
+	private function do_url_replacement( $html, $extracted_urls ) {
 		$extracted_urls = apply_filters( 'optml_extracted_urls', $extracted_urls );
 
 		if ( empty( $extracted_urls ) ) {
@@ -208,6 +257,21 @@ final class Optml_Manager {
 		foreach ( $urls as $origin => $replace ) {
 			$html = preg_replace( '/(?<!\/)' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
 		}
+
+		return $html;
+	}
+
+	/**
+	 * Filter raw HTML content for urls.
+	 *
+	 * @param string $html HTML to filter.
+	 *
+	 * @return mixed Filtered content.
+	 */
+	public function replace_content( $html ) {
+		$html = $this->process_images_from_content( $html );
+
+		$html = $this->process_urls_from_content( $html );
 
 		return $html;
 	}
@@ -307,6 +371,20 @@ final class Optml_Manager {
 	}
 
 	/**
+	 * Process url replacement from raw html strings.
+	 *
+	 * @param string $html Raw html.
+	 *
+	 * @return string Processed string.
+	 */
+	public function process_urls_from_content( $html ) {
+		$extracted_urls = $this->extract_image_urls_from_content( $html );
+
+		return $this->do_url_replacement( $html, $extracted_urls );
+
+	}
+
+	/**
 	 * Method to extract images from content.
 	 *
 	 * @param string $content The HTML content.
@@ -321,16 +399,7 @@ final class Optml_Manager {
 			$urls
 		);
 
-		$urls = array_map(
-			function ( $value ) {
-				return rtrim( html_entity_decode( $value ), '\\' );
-			},
-			$urls[0]
-		);
-
-		$urls = array_unique( $urls );
-
-		return array_values( $urls );
+		return $this->normalize_urls( $urls[0] );
 	}
 
 	/**
