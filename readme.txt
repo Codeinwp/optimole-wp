@@ -13,7 +13,7 @@ With OptiMole, your site’s images will be cropped, optimized and processed on-
 
 == Description ==
 
-> **What makes Optimople so special?**
+> **What makes Optimole so special?**
 >
 > * Smaller images. Same quality
 > * Optimizes based on the visitor's actual device
@@ -41,7 +41,7 @@ Optimole's format based optimization is handled in the cloud on a case-by-case b
 When the image is requested, Optimole will apply the specific transformations required by the device and deliver it to your visitors. This means every image is perfectly sized for every device. The final result will be cached for a month to ensure ongoing fast delivery and more site speed.
 
 **How many images can be optimized?**
-With the basic plan, you will be able to optimize 1GB of images per month with 10GB viewing bandwidth. All delivered from 7 edge locations all over the world.
+With the basic plan, you will be able to optimize 1GB of images per month with 5GB viewing bandwidth. All delivered from 7 edge locations all over the world.
 Better yet. The free version is fully functional and includes all of the following great features.
 
 **Format Based Optimization**
@@ -294,11 +294,11 @@ For now we support jpg, png and svg format.
 
 Yes. We automatically detect user browser and serve WebP if is supported, otherwise we optimize the image in the original format.
 
-= Can i disable lazyload for PNG images ? =
+= Can I disable lazyload for PNG images ? =
 
 Yes. You need to add `define("OPTML_DISABLE_PNG_LAZYLOAD",true);` to `your wp-config.php` file.
 
-= Can i disable optimization for a certain image ? =
+= Can I disable optimization for a certain image ? =
 
 Yes, you can follow this code snippet and replace the sample image with the one you need:
 <code>
