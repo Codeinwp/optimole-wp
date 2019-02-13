@@ -106,10 +106,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			if ( $new_url === $tmp ) {
 				continue; // @codeCoverageIgnore
 			}
-			// replace the url in hrefs or links
-			if ( ! empty( $images['link_url'][ $index ] ) && $this->is_valid_mimetype_from_url( $images['link_url'][ $index ] ) ) {
-				$new_tag = preg_replace( '#(href=["|\'])' . $images['link_url'][ $index ] . '(["|\'])#i', '\1' . apply_filters( 'optml_content_url', $tmp, $optml_args ) . '\2', $tag, 1 );
-			}
 
 			$new_tag = str_replace(
 				[
@@ -200,6 +196,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return $sources;
 		}
 		$original_url = null;
+		$cropping = null;
+		if ( count( $size_array ) === 2 ) {
+			$sizes    = self::size_to_crop();
+			$cropping = isset( $sizes[ $size_array[0] . $size_array[1] ] ) ? $this->to_optml_crop( $sizes[ $size_array[0] . $size_array[1] ] ) : null;
+		}
 		foreach ( $sources as $i => $source ) {
 			$url = $source['url'];
 			list( $width, $height ) = $this->parse_dimensions_from_filename( $url );
@@ -226,6 +227,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				} else {
 					$args['width'] = $source['value'];
 				}
+			}
+			if ( $cropping !== null ) {
+				$args['resize'] = $cropping;
 			}
 			$sources[ $i ]['url'] = apply_filters( 'optml_content_url', $original_url, $args );
 		}

@@ -68,7 +68,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	public function lazyload_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed = false ) {
 
-		if ( ! $this->can_lazyload_for( $original_url ) ) {
+		if ( ! $this->can_lazyload_for( $original_url, $new_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
 		$optml_args['quality'] = 'eco';
@@ -90,7 +90,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$new_tag       = str_replace(
 			[
 				$original_url,
-				'src=',
+				' src=',
 				'srcset=', // Not ideal to disable srcset, we should aim to remove the srcset completely from code.
 			],
 			[
@@ -108,10 +108,14 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * Check if the lazyload is allowed for this url.
 	 *
 	 * @param string $url Url.
+	 * @param string $tag Html tag.
 	 *
 	 * @return bool We can lazyload?
 	 */
-	public function can_lazyload_for( $url ) {
+	public function can_lazyload_for( $url, $tag = '' ) {
+		if ( strpos( $tag, '<noscript' ) !== false ) {
+			return false;
+		}
 		if ( ! defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) ) {
 			return true;
 		}

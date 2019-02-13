@@ -164,7 +164,9 @@ abstract class Optml_App_Replacer {
 	 * @return bool If we can replace the image.
 	 */
 	public function should_replace() {
-
+		if ( Optml_Manager::is_ajax_request() ) {
+			return true;
+		}
 		if ( is_admin() || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
 			return false; // @codeCoverageIgnore
 		}
@@ -202,17 +204,19 @@ abstract class Optml_App_Replacer {
 				'secret' => $service_data['cdn_secret'],
 			)
 		);
+		$this->site_mappings['//i0.wp.com/'] = '//';
+		$this->site_mappings['//i1.wp.com/'] = '//';
+		$this->site_mappings['//i2.wp.com/'] = '//';
 
 		if ( defined( 'OPTML_SITE_MIRROR' ) && constant( 'OPTML_SITE_MIRROR' ) ) {
-			$this->site_mappings = array(
-				rtrim( get_site_url(), '/' ) => rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' ),
-			);
+			$this->site_mappings[ rtrim( get_site_url(), '/' ) ] = rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' );
 		}
 
 		$this->possible_sources = $this->extract_domain_from_urls(
 			array_merge(
 				array( get_site_url() ),
-				array_values( $this->site_mappings )
+				array_values( $this->site_mappings ),
+				array_keys( $this->site_mappings )
 			)
 		);
 
@@ -266,12 +270,16 @@ abstract class Optml_App_Replacer {
 	 * @return bool Either we can replace this url or not.
 	 */
 	public function can_replace_url( $url ) {
+
 		if ( ! is_string( $url ) ) {
 			return false; // @codeCoverageIgnore
 		}
 		$url = parse_url( $url );
 
-		return isset( $this->possible_sources[ $url['host'] ] );
+		if ( ! isset( $url['host'] ) ) {
+			return false;
+		}
+		return isset( $this->possible_sources[ $url['host'] ] ) || isset( $this->allowed_sources[ $url['host'] ] );
 	}
 
 	/**

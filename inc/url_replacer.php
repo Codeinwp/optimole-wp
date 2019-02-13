@@ -51,6 +51,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		Optml_Image::$watermark         = new Optml_Watermark( $this->settings->get_site_settings()['watermark'] );
 
 		add_filter( 'optml_content_url', array( $this, 'build_image_url' ), 1, 2 );
+
 	}
 
 	/**
@@ -79,6 +80,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( strpos( $url, Optml_Config::$service_url ) !== false ) {
 			return $url;
 		}
+		if ( ! $this->can_replace_url( $url ) ) {
+			return $url;
+		}
 		if ( ! $this->is_valid_mimetype_from_url( $url ) ) {
 			return $url;
 		}
@@ -91,6 +95,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$url = str_replace( array_keys( $this->site_mappings ), array_values( $this->site_mappings ), $url );
 		}
 
+		if ( substr( $url, 0, 2 ) === '//' ) {
+			$url = sprintf( '%s:%s', is_ssl() ? 'https' : 'http', $url );
+		}
 		$new_url = $this->strip_image_size_from_url( $url );
 
 		if ( $new_url !== $url ) {

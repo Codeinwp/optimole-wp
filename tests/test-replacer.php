@@ -34,12 +34,18 @@ class Test_Replacer extends WP_UnitTestCase {
 	';
 	const IMAGE_SIZE_NO_CLASS = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header-100x100.png" alt="Test" /></div></div>';
 
-	const ELEMENTOR_DATA = '[{"id":"428f250c","elType":"section","settings":{"structure":"33","content_width":{"unit":"px","size":1140},"content_position":"middle","gap":"extended","padding":{"unit":"px","top":"10","right":"0","bottom":"10","left":"0","isLinked":false},"padding_mobile":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":true}},"elements":[{"id":"1b041a88","elType":"column","settings":{"_column_size":25,"_inline_size":20.66,"_inline_size_tablet":25,"_inline_size_mobile":50,"content_position":"top"},"elements":[{"id":"34d685ef","elType":"widget","settings":{"image":{"id":36009,"url":"https:\/\/www.codeinwp.com\/wp-content\/uploads\/2018\/05\/codeinwp-logo.svg"},"image_size":"full","link_to":"custom","link":{"url":"https:\/\/www.codeinwp.com\/","is_external":"","nofollow":""},"align":"left","width":{"unit":"px","size":120},"space":{"unit":"%","size":100},"opacity":{"unit":"px","size":1},"_margin":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":false},"_element_id":"logo"},"elements":[],"widgetType":"image"}],"isInner":false},{"id":"437f5756","elType":"column","settings":{"_column_size":50,"_inline_size":71.992000000000004,"_inline_size_tablet":70,"_inline_size_mobile":40,"padding_mobile":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":true}},"elements":[{"id":"3c7d3ebf","elType":"widget","settings":{"align_items":"right","pointer":"none","color_menu_item":"#0a4266","menu_typography_typography":"custom","menu_typography_font_weight":"bold","menu_typography_text_transform":"lowercase","color_menu_item_hover":"#ec4646","color_menu_item_active":"#ec4646","menu_typography_font_size":{"unit":"px","size":18},"_margin":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":false},"indicator":"none","dropdown":"mobile","full_width":"stretch","menu_typography_font_size_tablet":{"unit":"px","size":18},"padding_horizontal_menu_item_tablet":{"unit":"px","size":14},"toggle_size":{"unit":"px","size":25},"_padding":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":false},"color_dropdown_item":"#0a4266","color_dropdown_item_hover":"#ec4646","background_color_dropdown_item_hover":"rgba(0,0,0,0)","dropdown_typography_typography":"custom","dropdown_typography_font_family":"proxima-nova","dropdown_typography_font_size":{"unit":"px","size":16},"menu_typography_font_size_mobile":{"unit":"px","size":18},"dropdown_typography_font_size_mobile":{"unit":"px","size":25},"dropdown_typography_text_transform":"lowercase","menu":"main-menu-homepage"},"elements":[],"widgetType":"nav-menu"}],"isInner":false},{"id":"7fafd26c","elType":"column","settings":{"_column_size":25,"_inline_size":7.3479999999999999,"_inline_size_tablet":5,"_inline_size_mobile":2},"elements":[{"id":"8f16004","elType":"widget","settings":{"image":{"url":"https:\/\/www.codeinwp.com\/wp-content\/uploads\/2018\/05\/test.png","id":36135},"image_size":"custom","width":{"unit":"px","size":30},"space":{"unit":"%","size":30},"_element_id":"header-trigger"},"elements":[],"widgetType":"image"}],"isInner":false}],"isInner":false}]';
+	const ELEMENTOR_DATA = '[{"id":"428f250c","elType":"section","settings":{"structure":"<img alt=\"\"src=\"https:\/\/www.example.org\/wp-content\/uploads\/2018\/05\/test2.png\" \/>","content_width":{"unit":"px","size":1140},"content_position":"middle","gap":"extended","padding":{"unit":"px","top":"10","right":"0","bottom":"10","left":"0","isLinked":false},"padding_mobile":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":true}},"elements":[{"id":"1b041a88","elType":"column","settings":{"_column_size":25,"_inline_size":20.66,"_inline_size_tablet":25,"_inline_size_mobile":50,"content_position":"top"},"elements":[{"id":"34d685ef","elType":"widget","settings":{"image":{"id":36009,"url":"https:\/\/www.example.org\/wp-content\/uploads\/2018\/05\/codeinwp-logo.svg"},"image_size":"full","link_to":"custom","link":{"url":"https:\/\/www.example.org\/","is_external":"","nofollow":""},"align":"left","width":{"unit":"px","size":120},"space":{"unit":"%","size":100},"opacity":{"unit":"px","size":1},"_margin":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":false},"_element_id":"logo"},"elements":[],"widgetType":"image"}],"isInner":false},{"id":"437f5756","elType":"column","settings":{"_column_size":50,"_inline_size":71.992000000000004,"_inline_size_tablet":70,"_inline_size_mobile":40,"padding_mobile":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":true}},"elements":[{"id":"3c7d3ebf","elType":"widget","settings":{"align_items":"right","pointer":"none","color_menu_item":"#0a4266","menu_typography_typography":"custom","menu_typography_font_weight":"bold","menu_typography_text_transform":"lowercase","color_menu_item_hover":"#ec4646","color_menu_item_active":"#ec4646","menu_typography_font_size":{"unit":"px","size":18},"_margin":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":false},"indicator":"none","dropdown":"mobile","full_width":"stretch","menu_typography_font_size_tablet":{"unit":"px","size":18},"padding_horizontal_menu_item_tablet":{"unit":"px","size":14},"toggle_size":{"unit":"px","size":25},"_padding":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":false},"color_dropdown_item":"#0a4266","color_dropdown_item_hover":"#ec4646","background_color_dropdown_item_hover":"rgba(0,0,0,0)","dropdown_typography_typography":"custom","dropdown_typography_font_family":"proxima-nova","dropdown_typography_font_size":{"unit":"px","size":16},"menu_typography_font_size_mobile":{"unit":"px","size":18},"dropdown_typography_font_size_mobile":{"unit":"px","size":25},"dropdown_typography_text_transform":"lowercase","menu":"main-menu-homepage"},"elements":[],"widgetType":"nav-menu"}],"isInner":false},{"id":"7fafd26c","elType":"column","settings":{"_column_size":25,"_inline_size":7.3479999999999999,"_inline_size_tablet":5,"_inline_size_mobile":2},"elements":[{"id":"8f16004","elType":"widget","settings":{"image":{"url":"https:\/\/www.example.org\/wp-content\/uploads\/2018\/05\/test.png","id":36135},"image_size":"custom","width":{"unit":"px","size":30},"space":{"unit":"%","size":30},"_element_id":"header-trigger"},"elements":[],"widgetType":"image"}],"isInner":false}],"isInner":false}]';
 
 	const TEST_STAGING = '<div class="before-footer">
 				<div class="codeinwp-container">
 					<p class="featuredon">Featured On</p>
 					<img src="https://www.example.org/wp-content/uploads/2018/05/brands.png">
+				</div>
+			</div>';
+	const TEST_WRONG_URLS = '<div class="before-footer">
+				<div class="codeinwp-container">
+					<p class="featuredon">Featured On</p>
+					<img src="https://www.codeinwp.org/wp-content/uploads/2018/05/brands.png">https://www.codeinwp.org/wp-content/uploads/2018/05/brands.png
 				</div>
 			</div>';
 
@@ -112,6 +118,26 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	}
 
+	public function test_replacement_non_whitelisted_urls() {
+		$replaced_content = Optml_Manager::instance()->replace_content( self::TEST_WRONG_URLS );
+
+		$this->assertNotContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'https://www.codeinwp.org', $replaced_content );
+	}
+
+	// TODO We need to extend this to single url replacement. If we make the url extractor regex with option scheme, the parsing will take huge amount of time. We need to think alternatives.
+	public function test_replacement_without_scheme() {
+		$content          = '<div class="before-footer">
+				<div class="codeinwp-container">
+					<p class="featuredon">Featured On</p>
+					<img src="//www.example.org/wp-content/uploads/2018/05/brands.png"> 
+				</div>
+			</div>';
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'http://www.example.org', $replaced_content );;
+	}
+
 	public function test_non_allowed_extensions() {
 		$replaced_content = Optml_Manager::instance()->replace_content( ( self::CSS_STYLE . self::IMG_TAGS . self::WRONG_EXTENSION ) );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
@@ -120,11 +146,24 @@ class Test_Replacer extends WP_UnitTestCase {
 	}
 
 	public function test_elementor_data() {
-		$replaced_content = Optml_Manager::instance()->replace_content( ( self::ELEMENTOR_DATA ), 'elementor' );
+		$replaced_content = Optml_Manager::instance()->process_urls_from_json( ( self::ELEMENTOR_DATA ) );
+
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		//Test if wrong extension is still present in the output.
-		$this->assertNotContains( "\"https:\/\/www.codeinwp.com\/wp-content", $replaced_content );
+
+		//Ensure the json is not corrupted after replacement.
+		$this->assertTrue( is_array( json_decode( $replaced_content ) ) );
+
+		//Make sure the image tag is unprocessed.
+		$this->assertContains( "src=\\\"https:\/\/www.example.org\/wp-content", $replaced_content );
+
+		//Do the html replacement.
+		$replaced_content = Optml_Manager::instance()->replace_content( ( $replaced_content ) );
+
+		//The content should be sucessfully processed.
+		$this->assertNotContains( "\"https:\/\/www.example.org\/wp-content", $replaced_content );
+
 	}
+
 
 	public function test_max_size_height() {
 		$new_url = Optml_Manager::instance()->replace_content( 'http://example.org/wp-content/themes/test/assets/images/header.png', [
@@ -146,10 +185,10 @@ class Test_Replacer extends WP_UnitTestCase {
 		global $_test_posssible_values_y_sizes;
 		global $_test_posssible_values_x_sizes;
 		$allowed_gravities = array(
-			'left'          => Optml_Resize::GRAVITY_WEST,
-			'right'         => Optml_Resize::GRAVITY_EAST,
-			'top'           => Optml_Resize::GRAVITY_NORTH,
-			'bottom'        => Optml_Resize::GRAVITY_SOUTH,
+			'left'         => Optml_Resize::GRAVITY_WEST,
+			'right'        => Optml_Resize::GRAVITY_EAST,
+			'top'          => Optml_Resize::GRAVITY_NORTH,
+			'bottom'       => Optml_Resize::GRAVITY_SOUTH,
 			'lefttop'      => Optml_Resize::GRAVITY_NORTH_WEST,
 			'leftbottom'   => Optml_Resize::GRAVITY_SOUTH_WEST,
 			'righttop'     => Optml_Resize::GRAVITY_NORTH_EAST,
@@ -171,7 +210,7 @@ class Test_Replacer extends WP_UnitTestCase {
 				if ( ! isset( $allowed_gravities[ $x_value . $y_value ] ) ) {
 					$gravity_key = Optml_Resize::GRAVITY_CENTER;
 				} else {
-					$gravity_key = $allowed_gravities[ $x_value  . $y_value ];
+					$gravity_key = $allowed_gravities[ $x_value . $y_value ];
 				}
 
 				$attachement_url = wp_get_attachment_image_src( self::$sample_attachement, 'sample_size_h_' . $x_value . $y_value );
@@ -242,12 +281,14 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertContains( 'i.optimole.com', $doubled_ccontent );
 		$this->assertEquals( 2, substr_count( $doubled_ccontent, 'i.optimole.com' ) );
 	}
-	public function test_image_size_2_crop(){
+
+	public function test_image_size_2_crop() {
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMAGE_SIZE_NO_CLASS );
 
 		$this->assertContains( 'rt:fill', $replaced_content );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 	}
+
 	public function test_replacement_with_image_size() {
 		//Nasty hack to fetch old url from
 		$attachement = wp_get_attachment_image_src( self::$sample_attachement, 'medium' );
@@ -282,6 +323,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$this->assertEquals( 2, substr_count( $replaced_content2, '/http:\/\/' ) );
 	}
+
 	public function test_filter_sizes_attr() {
 
 		global $wp_current_filter;

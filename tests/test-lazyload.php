@@ -71,6 +71,20 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertEquals( 4, substr_count( $replaced_content2, '/http:\/\/' ) );
 	}
 
+
+	public function test_replacement_with_jetpack_photon() {
+		$content = '<div class="before-footer">
+				<div class="codeinwp-container">
+					<p class="featuredon">Featured On</p>
+					<img src="http://i0.wp.com/www.example.org/wp-content/uploads/2018/05/brands.png"> http://i0.wp.com/www.example.org/wp-content/uploads/2018/05/brands.png
+				</div>
+			</div>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertNotContains( 'i0.wp.com', $replaced_content );
+	}
+
 	public function test_lazy_dont_lazy_load_headers() {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::HTML_TAGS_HEADER );
 
@@ -97,12 +111,36 @@ class Test_Lazyload extends WP_UnitTestCase {
 
 	}
 
+	public function test_check_with_no_script() {
+		$content = '<img width="1612" height="1116" src="data:image/gif;base64,R0lGODdhAQABAPAAAP///wAAACwAAAAAAQABAEACAkQBADs=" data-lazy-src="http://example.org/wp-content/uploads/2018/11/gradient.png" class="attachment-twentyseventeen-featured-image size-twentyseventeen-featured-image wp-post-image" alt="" data-lazy-sizes="(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px" /><noscript><img width="1612" height="1116" src="http://example.org/wp-content/uploads/2018/11/gradient.png" class="attachment-twentyseventeen-featured-image size-twentyseventeen-featured-image wp-post-image" alt="" sizes="(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px" /></noscript>	';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+
+		$this->assertContains( '<noscript>', $replaced_content );
+		$this->assertEquals( 1, substr_count( $replaced_content, '<noscript>' ) );
+		$this->assertEquals( 2, substr_count( $replaced_content, 'i.optimole.com' ) );
+	}
+
+
+	public function test_replacement_with_data_attr() {
+		$content          = '<div class="before-footer">
+				<div class="codeinwp-container">
+					<p class="featuredon">Featured On</p>
+					<img src="http://www.example.org/wp-content/uploads/2018/05/brands.png" data-src="http://www.example.org/wp-content/uploads/2018/05/brands.png"> 
+				</div>
+			</div>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertEquals( 5, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
+	}
 	public function test_check_no_script() {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::HTML_TAGS_HEADER );
 
 		$this->assertContains( '<noscript>', $replaced_content );
 		$this->assertEquals( 1, substr_count( $replaced_content, '<noscript>' ) );
 	}
+
 	public function test_lazy_load_ignore_feed() {
 		$this->go_to( '/?feed=rss2' );
 
@@ -110,6 +148,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertNotContains( 'i.optimole.com', $replaced_content );
 		$this->assertNotContains( 'data-opt-src', $replaced_content );
 	}
+
 	public function test_lazy_load_off() {
 
 		define( 'OPTML_DISABLE_PNG_LAZYLOAD', true );
@@ -120,6 +159,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
 
 	}
+
 	public function test_lazyload_json_data_disabled() {
 
 		$some_html_content = [
