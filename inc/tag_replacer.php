@@ -75,10 +75,13 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 			$src = $tmp = $is_slashed ? stripslashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ];
 
+			$src = $tmp = strpos( $src, $this->upload_resource['content_path'] ) === 0 ? untrailingslashit( get_site_url() ) . $src : $src;
+
 			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
 				 false !== strpos( $src, Optml_Config::$service_url ) ||
 				 ! $this->can_replace_url( $src )
 			) {
+
 				continue; // @codeCoverageIgnore
 			}
 
@@ -196,7 +199,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return $sources;
 		}
 		$original_url = null;
-		$cropping = null;
+		$cropping     = null;
 		if ( count( $size_array ) === 2 ) {
 			$sizes    = self::size_to_crop();
 			$cropping = isset( $sizes[ $size_array[0] . $size_array[1] ] ) ? $this->to_optml_crop( $sizes[ $size_array[0] . $size_array[1] ] ) : null;

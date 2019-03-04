@@ -189,12 +189,13 @@ abstract class Optml_App_Replacer {
 	 * Set the cdn url based on the current connected user.
 	 */
 	public function set_properties() {
-		$upload_data                         = wp_upload_dir();
-		$this->upload_resource               = array(
+		$upload_data                           = wp_upload_dir();
+		$this->upload_resource                 = array(
 			'url'       => str_replace( array( 'https://', 'http://' ), '', $upload_data['baseurl'] ),
 			'directory' => $upload_data['basedir'],
 		);
-		$this->upload_resource['url_length'] = strlen( $this->upload_resource['url'] );
+		$this->upload_resource['url_length']   = strlen( $this->upload_resource['url'] );
+		$this->upload_resource['content_path'] = str_replace( get_site_url(), '', content_url() );
 
 		$service_data = $this->settings->get( 'service_data' );
 
