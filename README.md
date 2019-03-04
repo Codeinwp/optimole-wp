@@ -1,6 +1,6 @@
 # Image optimization service by Optimole #
 **Contributors:** [optimole](https://profiles.wordpress.org/optimole)  
-**Tags:** image optmization, cdn, image compression, compress image, images, optimization, perfomance, photos  
+**Tags:** image optimization, cdn, image compression, compress image, images, optimization, perfomance, photos  
 **Requires at least:** 4.7  
 **Tested up to:** 5.0  
 **Requires PHP:** 5.4  
@@ -13,7 +13,7 @@ With OptiMole, your site’s images will be cropped, optimized and processed on-
 
 ## Description ##
 
-> **What makes Optimople so special?**
+> **What makes Optimole so special?**
 >
 > * Smaller images. Same quality
 > * Optimizes based on the visitor's actual device
@@ -41,7 +41,7 @@ Optimole's format based optimization is handled in the cloud on a case-by-case b
 When the image is requested, Optimole will apply the specific transformations required by the device and deliver it to your visitors. This means every image is perfectly sized for every device. The final result will be cached for a month to ensure ongoing fast delivery and more site speed.
 
 **How many images can be optimized?**
-With the basic plan, you will be able to optimize 1GB of images per month with 10GB viewing bandwidth. All delivered from 7 edge locations all over the world.
+With the basic plan, you will be able to optimize 1GB of images per month with 5GB viewing bandwidth. All delivered from 7 edge locations all over the world.
 Better yet. The free version is fully functional and includes all of the following great features.
 
 **Format Based Optimization**
@@ -90,6 +90,25 @@ Premium users will be able to optimize 10GB images per month with a 50GB viewing
 4. Plugin settings
 
 ## Changelog ##
+
+#### [Version 2.0.3](https://github.com/Codeinwp/optimole-wp/compare/v2.0.2...v2.0.3) (2019-02-13)
+
+* **Bug Fixes**
+   * adds whitelisted websites among the image urls to replace ([bfb016e](https://github.com/Codeinwp/optimole-wp/commit/bfb016e))
+   * allow image urls that does not contain scheme, either http or https ([2aae664](https://github.com/Codeinwp/optimole-wp/commit/2aae664))
+   * anchor tags image replacement, conflicting with gallery plugins ( NextGen ) ([824acdc](https://github.com/Codeinwp/optimole-wp/commit/824acdc))
+   * compatibility when jetpack photon is on, fetch directly the image source ([f339dbb](https://github.com/Codeinwp/optimole-wp/commit/f339dbb))
+   * cropping behaviour when lazyload is off for certain edge causing incorrect image resize ([8aca6dc](https://github.com/Codeinwp/optimole-wp/commit/8aca6dc))
+   * doubled image bug, detect if image tag has already lazyload applied and bail for Optimole lazyload ([bea5ac8](https://github.com/Codeinwp/optimole-wp/commit/bea5ac8))
+   * image replacement on admin ajax requests ([924cc49](https://github.com/Codeinwp/optimole-wp/commit/924cc49))
+   * image url replacement on non whitelisted urls ([8567f8b](https://github.com/Codeinwp/optimole-wp/commit/8567f8b))
+   * JSON strings url replacement, improves elementor's compatibility ([2ff9e9b](https://github.com/Codeinwp/optimole-wp/commit/2ff9e9b))
+   * lazyload replacement when image source is in data-src attributes, solving conflict with some gallery plugins ([c26cdab](https://github.com/Codeinwp/optimole-wp/commit/c26cdab))
+
+* **Documentation**
+   * adds faq for ajax content, remove lqip and fixed typo for plugin tags ([104a17e](https://github.com/Codeinwp/optimole-wp/commit/104a17e))
+
+
 
 #### [2.0.2](https://github.com/Codeinwp/optimole-wp/compare/v2.0.1...v2.0.2) (2019-02-01)
 
@@ -274,6 +293,14 @@ Short answer, YES. We can help you integrate your default CDN but it will requir
 
 You don’t need to change your existing optimization plugin, image optimization is just a small part of what we do, if you are happy with ShortPixel for e.g, feel free to continue to use it, OptiMole would then take care only of serving your image at the RIGHT size, advanced cropping and smart lazy-loading.
 
+### Does Optimole handle images from Ajax content  ? ###
+
+Yes, we do. By default, Optimole handle images delivered from your ajax content from admin-ajax.php ( not logged in users ) as well as WordPress REST API routes.
+
+### Can i remove the blurry placeholder from the lazyload effct ? ###
+
+Yes, you can. We have bundled this tweak into a plugin you can install while you have Optimole active. The blurry placeholder will be removed and the images will be still lazy-loaded. You can find the plugin tweak here -> http://bit.ly/optml-rm-lqip
+
 ### Will the original images be deleted? ###
 
 Absolutely No. We use your original images as sources when deliver the optimized images.
@@ -294,11 +321,11 @@ For now we support jpg, png and svg format.
 
 Yes. We automatically detect user browser and serve WebP if is supported, otherwise we optimize the image in the original format.
 
-### Can i disable lazyload for PNG images ? ###
+### Can I disable lazyload for PNG images ? ###
 
 Yes. You need to add `define("OPTML_DISABLE_PNG_LAZYLOAD",true);` to `your wp-config.php` file.
 
-### Can i disable optimization for a certain image ? ###
+### Can I disable optimization for a certain image ? ###
 
 Yes, you can follow this code snippet and replace the sample image with the one you need:
 <code>
