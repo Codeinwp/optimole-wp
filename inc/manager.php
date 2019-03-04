@@ -198,7 +198,7 @@ final class Optml_Manager {
 	 * @return array array of urls.
 	 */
 	public function extract_urls_from_json( $content ) {
-		$regex = '/(?<!(=|\\\\)(?:"|\'|"))(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')/';
+		$regex = '/(?<!(=|\\\\)(?:"|\'|"))(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\??[\w|=|&|\-|\.|:]*)/';
 		preg_match_all(
 			$regex,
 			$content,
@@ -392,7 +392,7 @@ final class Optml_Manager {
 	 * @return array
 	 */
 	public function extract_image_urls_from_content( $content ) {
-		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')/';
+		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\??[\w|=|&|\-|\.|:]*)/';
 		preg_match_all(
 			$regex,
 			$content,

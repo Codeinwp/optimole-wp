@@ -83,6 +83,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_replace_url( $url ) ) {
 			return $url;
 		}
+		// Remove any query strings that might affect conversion.
+		$url = strtok( $url, '?' );
+
 		if ( ! $this->is_valid_mimetype_from_url( $url ) ) {
 			return $url;
 		}
