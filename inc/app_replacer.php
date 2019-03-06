@@ -73,6 +73,12 @@ abstract class Optml_App_Replacer {
 	 * @var bool Domains.
 	 */
 	protected $is_allowed_site = array();
+	/**
+	 * Possible integrations with different plugins.
+	 *
+	 * @var array Integrations classes.
+	 */
+	private $compatibilities = array( 'shortcode_ultimate' );
 
 	/**
 	 * Size to crop maping.
@@ -227,6 +233,20 @@ abstract class Optml_App_Replacer {
 
 		$this->max_height = $this->settings->get( 'max_height' );
 		$this->max_width  = $this->settings->get( 'max_width' );
+
+		foreach ( $this->compatibilities as $compatibility_class ) {
+			$compatibility_class = 'Optml_' . $compatibility_class;
+			$compatibility       = new $compatibility_class;
+
+			/**
+			 * Check if we should load compatibility.
+			 *
+			 * @var Optml_compatibility $compatibility Class to register.
+			 */
+			if ( $compatibility->should_load() ) {
+				$compatibility->register();
+			}
+		}
 	}
 
 	/**

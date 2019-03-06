@@ -68,7 +68,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		foreach ( $images[0] as $index => $tag ) {
 			$width   = $height = false;
-			$resize  = array();
 			$new_tag = $tag;
 
 			$is_slashed = strpos( $images['img_url'][ $index ], '\/' ) !== false;
@@ -84,6 +83,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 				continue; // @codeCoverageIgnore
 			}
+
+			$resize  = apply_filters( 'optml_default_crop', array() );
 
 			list( $width, $height, $resize ) = self::parse_dimensions_from_tag(
 				$images['img_tag'][ $index ],
