@@ -21,6 +21,12 @@ abstract class Optml_App_Replacer {
 	 */
 	protected static $size_to_crop = array();
 	/**
+	 * Holds possible src attributes.
+	 *
+	 * @var array
+	 */
+	protected static $possible_src_attributes = null;
+	/**
 	 * Settings handler.
 	 *
 	 * @var Optml_Settings $settings
@@ -78,7 +84,23 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @var array Integrations classes.
 	 */
-	private $compatibilities = array( 'shortcode_ultimate' );
+	private $compatibilities = array( 'shortcode_ultimate', 'foogallery' );
+
+	/**
+	 * Returns possible src attributes.
+	 *
+	 * @return array
+	 */
+	public static function possible_src_attributes() {
+
+		if ( null != self::$possible_src_attributes && is_array( self::$possible_src_attributes ) ) {
+			return self::$possible_src_attributes;
+		}
+
+		self::$possible_src_attributes = apply_filters( 'optml_possible_src_attributes', [] );
+
+		return self::$possible_src_attributes;
+	}
 
 	/**
 	 * Size to crop maping.

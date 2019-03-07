@@ -116,6 +116,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( strpos( $tag, '<noscript' ) !== false ) {
 			return false;
 		}
+		foreach ( self::possible_src_attributes() as $banned_src ) {
+			if ( strpos( $tag, $banned_src ) !== false ) {
+				return false;
+			}
+		}
+
 		if ( ! defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) ) {
 			return true;
 		}
