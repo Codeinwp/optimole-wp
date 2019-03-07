@@ -29,6 +29,14 @@ class Optml_envira extends Optml_compatibility {
 		add_filter( 'envira_gallery_image_src', [ $this, 'revert_src' ], 10, 1 );
 	}
 
+	/**
+	 * Revert the optimole url to the original state in
+	 * order to allow to be parsed by the image tag parser.
+	 *
+	 * @param string $image Image url.
+	 *
+	 * @return string Original url.
+	 */
 	function revert_src( $image ) {
 
 		if ( ( $pos = strpos( $image, '/http' ) ) !== false ) {
@@ -38,8 +46,15 @@ class Optml_envira extends Optml_compatibility {
 		return $image;
 	}
 
+	/**
+	 * Alter default resize for image tag parsing.
+	 *
+	 * @param array  $old_resize Old array, if any.
+	 * @param string $tag Image tag.
+	 *
+	 * @return array Resize conf.
+	 */
 	function check_resize_tag( $old_resize, $tag ) {
-		error_log( $tag );
 		if ( preg_match( '/(_c)\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')/i', $tag, $match ) ) {
 			return [
 				'type'    => Optml_Resize::RESIZE_FILL,
