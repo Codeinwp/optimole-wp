@@ -24,6 +24,7 @@ class Optml_foogallery extends Optml_compatibility {
 	 */
 	public function register() {
 		add_filter( 'optml_possible_src_attributes', [ $this, 'add_lazysrc' ], 10, 3 );
+		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_lazysrc' ], 10, 3 );
 	}
 
 	/**

@@ -27,6 +27,12 @@ abstract class Optml_App_Replacer {
 	 */
 	protected static $possible_src_attributes = null;
 	/**
+	 * Holds possible lazyload flags where we should ignore our lazyload.
+	 *
+	 * @var array
+	 */
+	protected static $ignore_lazyload_strings = null;
+	/**
 	 * Settings handler.
 	 *
 	 * @var Optml_Settings $settings
@@ -84,7 +90,7 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @var array Integrations classes.
 	 */
-	private $compatibilities = array( 'shortcode_ultimate', 'foogallery' );
+	private $compatibilities = array( 'shortcode_ultimate', 'foogallery', 'envira' );
 
 	/**
 	 * Returns possible src attributes.
@@ -100,6 +106,22 @@ abstract class Optml_App_Replacer {
 		self::$possible_src_attributes = apply_filters( 'optml_possible_src_attributes', [] );
 
 		return self::$possible_src_attributes;
+	}
+
+	/**
+	 * Returns possible src attributes.
+	 *
+	 * @return array
+	 */
+	public static function possible_lazyload_flags() {
+
+		if ( null != self::$ignore_lazyload_strings && is_array( self::$ignore_lazyload_strings ) ) {
+			return self::$ignore_lazyload_strings;
+		}
+
+		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', [] );
+
+		return array_merge( self::$possible_src_attributes, [ '<noscript' ] );
 	}
 
 	/**
@@ -269,6 +291,7 @@ abstract class Optml_App_Replacer {
 				$compatibility->register();
 			}
 		}
+		add_filter( 'optml_strip_image_size_from_url', [ $this, 'strip_image_size_from_url' ], 10, 1 );
 	}
 
 	/**
@@ -322,6 +345,7 @@ abstract class Optml_App_Replacer {
 		if ( ! isset( $url['host'] ) ) {
 			return false;
 		}
+
 		return isset( $this->possible_sources[ $url['host'] ] ) || isset( $this->allowed_sources[ $url['host'] ] );
 	}
 
@@ -332,9 +356,9 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @return string
 	 **/
-	protected function strip_image_size_from_url( $url ) {
+	public function strip_image_size_from_url( $url ) {
 
-		if ( preg_match( '#(-\d+x\d+)\.(' . implode( '|', array_keys( Optml_Config::$extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
+		if ( preg_match( '#(-\d+x\d+(?:_c)?)\.(' . implode( '|', array_keys( Optml_Config::$extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
 			$stripped_url = str_replace( $src_parts[1], '', $url );
 			// Extracts the file path to the image minus the base url
 			$file_path = substr( $stripped_url, strpos( $stripped_url, $this->upload_resource['url'] ) + $this->upload_resource['url_length'] );
@@ -356,15 +380,15 @@ abstract class Optml_App_Replacer {
 	protected function parse_dimensions_from_filename( $src ) {
 		$width_height_string = array();
 		$extensions          = array_keys( Optml_Config::$extensions );
-		if ( preg_match( '#-(\d+)x(\d+)\.(?:' . implode( '|', $extensions ) . '){1}$#i', $src, $width_height_string ) ) {
+		if ( preg_match( '#-(\d+)x(\d+)(:?_c)?\.(?:' . implode( '|', $extensions ) . '){1}$#i', $src, $width_height_string ) ) {
 			$width  = (int) $width_height_string[1];
 			$height = (int) $width_height_string[2];
-
+			$crop   = ( isset( $width_height_string[3] ) && $width_height_string[3] === '_c' );
 			if ( $width && $height ) {
-				return array( $width, $height );
+				return array( $width, $height, $crop );
 			}
 		}
 
-		return array( false, false );
+		return array( false, false, false );
 	}
 }

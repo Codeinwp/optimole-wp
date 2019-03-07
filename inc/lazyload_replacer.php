@@ -113,11 +113,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return bool We can lazyload?
 	 */
 	public function can_lazyload_for( $url, $tag = '' ) {
-		if ( strpos( $tag, '<noscript' ) !== false ) {
-			return false;
-		}
-		foreach ( self::possible_src_attributes() as $banned_src ) {
-			if ( strpos( $tag, $banned_src ) !== false ) {
+		foreach ( self::possible_lazyload_flags() as $banned_string ) {
+			if ( strpos( $tag, $banned_string ) !== false ) {
 				return false;
 			}
 		}

@@ -96,11 +96,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				)
 			);
 			if ( false === $width && false === $height ) {
-				list( $width, $height ) = $this->parse_dimensions_from_filename( $tmp );
+				list( $width, $height, $crop ) = $this->parse_dimensions_from_filename( $tmp );
 			}
-
 			if ( empty( $resize ) && isset( $sizes2crop[ $width . $height ] ) ) {
 				$resize = $this->to_optml_crop( $sizes2crop[ $width . $height ] );
+			} elseif ( isset( $crop ) ) {
+				$resize = $this->to_optml_crop( $crop );
 			}
 
 			$optml_args = [ 'width' => $width, 'height' => $height, 'resize' => $resize ];
@@ -152,6 +153,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		}
 		if ( preg_match( '#class=["|\']?[^"\']*size-([^"\'\s]+)[^"\']*["|\']?#i', $tag, $size ) ) {
 			$size = array_pop( $size );
+
 			if ( false === $args['width'] && false === $args['height'] && 'full' != $size && array_key_exists( $size, $image_sizes ) ) {
 				$args['width']  = (int) $image_sizes[ $size ]['width'];
 				$args['height'] = (int) $image_sizes[ $size ]['height'];
@@ -159,6 +161,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			if ( 'full' != $size && array_key_exists( $size, $image_sizes ) ) {
 				$args['resize'] = $this->to_optml_crop( $image_sizes[ $size ]['crop'] );
 			}
+		} else {
+			$args['resize'] = apply_filters( 'optml_parse_resize_from_tag', [], $tag );
 		}
 
 		return array( $args['width'], $args['height'], $args['resize'] );
@@ -205,9 +209,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$sizes    = self::size_to_crop();
 			$cropping = isset( $sizes[ $size_array[0] . $size_array[1] ] ) ? $this->to_optml_crop( $sizes[ $size_array[0] . $size_array[1] ] ) : null;
 		}
+
 		foreach ( $sources as $i => $source ) {
 			$url = $source['url'];
-			list( $width, $height ) = $this->parse_dimensions_from_filename( $url );
+			list( $width, $height, $file_crop ) = $this->parse_dimensions_from_filename( $url );
 
 			if ( empty( $width ) ) {
 				$width = $image_meta['width'];
@@ -216,6 +221,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			if ( empty( $height ) ) {
 				$height = $image_meta['height'];
 			}
+
 			if ( $original_url === null ) {
 				if ( ! empty( $attachment_id ) ) {
 					$original_url = wp_get_attachment_url( $attachment_id );
@@ -234,6 +240,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 			if ( $cropping !== null ) {
 				$args['resize'] = $cropping;
+			} else {
+				$args['resize'] = $this->to_optml_crop( $file_crop );
 			}
 			$sources[ $i ]['url'] = apply_filters( 'optml_content_url', $original_url, $args );
 		}
