@@ -53,7 +53,13 @@ final class Optml_Manager {
 	 *
 	 * @var array Integrations classes.
 	 */
-	private $compatibilities = array( 'shortcode_ultimate', 'foogallery', 'envira', 'revslider' );
+	private $compatibilities = array(
+		'shortcode_ultimate',
+		'foogallery',
+		'envira',
+		'revslider',
+		'woocommerce',
+	);
 
 	/**
 	 * Class instance method.
