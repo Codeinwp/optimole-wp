@@ -16,6 +16,18 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @var Optml_Tag_Replacer
 	 */
 	protected static $instance = null;
+	/**
+	 * Holds classes for listening to lazyload on background.
+	 *
+	 * @var array Lazyload background classes.
+	 */
+	private static $lazyload_background_classes = null;
+	/**
+	 * Holds classes responsabile for watching lazyload behaviour.
+	 *
+	 * @var array Lazyload classes.
+	 */
+	private static $lazyload_watcher_classes = null;
 
 	/**
 	 * Class instance method.
@@ -27,32 +39,63 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return Optml_Tag_Replacer
 	 */
 	public static function instance() {
-		if ( is_null( self::$instance ) ) {
+		if ( null === self::$instance ) {
 			self::$instance = new self();
-			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
+			add_action( 'optml_replacer_setup', array( self::$instance, 'init' ) );
 		}
 
 		return self::$instance;
 	}
 
 	/**
+	 * Returns background classes for lazyload.
+	 *
+	 * @return array
+	 */
+	public static function get_lazyload_bg_classes() {
+
+		if ( null != self::$lazyload_background_classes && is_array( self::$lazyload_background_classes ) ) {
+			return self::$lazyload_background_classes;
+		}
+
+		self::$lazyload_background_classes = apply_filters( 'optml_lazyload_bg_classes', [] );
+
+		return self::$lazyload_background_classes;
+	}
+
+	/**
+	 * Returns classes for lazyload additional watch.
+	 *
+	 * @return array
+	 */
+	public static function get_watcher_lz_classes() {
+
+		if ( null != self::$lazyload_watcher_classes && is_array( self::$lazyload_watcher_classes ) ) {
+			return self::$lazyload_watcher_classes;
+		}
+
+		self::$lazyload_watcher_classes = apply_filters( 'optml_watcher_lz_classes', [] );
+
+		return self::$lazyload_watcher_classes;
+	}
+
+	/**
 	 * The initialize method.
 	 */
 	public function init() {
+		parent::init();
 
-		if ( ! parent::init() ) {
-			return; // @codeCoverageIgnore
+		if ( ! $this->settings->use_lazyload() ) {
+			return;
 		}
+		add_filter(
+			'max_srcset_image_width',
+			function () {
+				return 1;
+			}
+		);
+		add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 5 );
 
-		if ( $this->settings->use_lazyload() ) {
-			add_filter(
-				'max_srcset_image_width',
-				function () {
-					return 1;
-				}
-			);
-			add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 5 );
-		}
 	}
 
 	/**
@@ -72,13 +115,17 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
 		$optml_args['quality'] = 'eco';
-		$low_url               = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
-		$low_url               = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 
-		$opt_format = ' data-opt-src="%s" ';
+		$low_url    = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
+		$low_url    = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
+		$opt_format = '';
 
-		$opt_format = $is_slashed ? addslashes( $opt_format ) : $opt_format;
-		$new_url    = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
+		if ( $this->should_add_data_tag( $new_tag ) ) {
+			$opt_format = ' data-opt-src="%s" ';
+			$opt_format = $is_slashed ? addslashes( $opt_format ) : $opt_format;
+		}
+
+		$new_url = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 
 		$opt_src = sprintf( $opt_format, $new_url );
 
@@ -136,6 +183,23 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Check if we should add the data-opt-tag.
+	 *
+	 * @param string $tag Html tag.
+	 *
+	 * @return bool Should add?
+	 */
+	public function should_add_data_tag( $tag ) {
+		foreach ( self::possible_data_ignore_flags() as $banned_string ) {
+			if ( strpos( $tag, $banned_string ) !== false ) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	/**

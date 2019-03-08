@@ -27,9 +27,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * @return Optml_Tag_Replacer
 	 */
 	public static function instance() {
-		if ( is_null( self::$instance ) ) {
+		if ( null === self::$instance ) {
 			self::$instance = new self();
-			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
+			add_action( 'optml_replacer_setup', array( self::$instance, 'init' ) );
 		}
 
 		return self::$instance;
@@ -40,18 +40,18 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function init() {
 
-		if ( ! parent::init() ) {
+		parent::init();
+		add_filter( 'optml_content_images_tags', array( $this, 'process_image_tags' ), 1, 2 );
+
+		if ( $this->settings->use_lazyload() ) {
 			return;
 		}
 
-		add_filter( 'optml_content_images_tags', array( $this, 'process_image_tags' ), 1, 2 );
+		add_filter( 'optml_tag_replace', array( $this, 'regular_tag_replace' ), 1, 5 );
+		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
+		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
+		add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes_attr' ), 1, 2 );
 
-		if ( ! $this->settings->use_lazyload() ) {
-			add_filter( 'optml_tag_replace', array( $this, 'regular_tag_replace' ), 1, 5 );
-			add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
-			add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
-			add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes_attr' ), 1, 2 );
-		}
 	}
 
 	/**
@@ -84,7 +84,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				continue; // @codeCoverageIgnore
 			}
 
-			$resize  = apply_filters( 'optml_default_crop', array() );
+			$resize = apply_filters( 'optml_default_crop', array() );
 
 			list( $width, $height, $resize ) = self::parse_dimensions_from_tag(
 				$images['img_tag'][ $index ],

@@ -57,7 +57,12 @@ class Optml_Admin {
 	public function inline_bootstrap_script() {
 		$domain = 'https://' . OPTML_JS_CDN;
 
-		$min = ! OPTML_DEBUG ? '.min' : '';
+		$min             = ! OPTML_DEBUG ? '.min' : '';
+		$bgclasses       = Optml_Lazyload_Replacer::get_lazyload_bg_classes();
+		$watcher_classes = Optml_Lazyload_Replacer::get_watcher_lz_classes();
+
+		$bgclasses       = empty( $bgclasses ) ? '' : sprintf( '"%s"', implode( '","', (array) $bgclasses ) );
+		$watcher_classes = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
 
 		$output = sprintf(
 			'
@@ -72,6 +77,7 @@ class Optml_Admin {
 				opacity: .75;
 				filter: blur(5px);
 			}
+		
 		</style>
 		<script type="application/javascript">
 					(function(w, d){ 
@@ -79,15 +85,23 @@ class Optml_Admin {
 						var s = d.createElement("script");
 						var v = ("IntersectionObserver" in w) ? "_no_poly" : "";
 						s.async = true;  
-						s.src = "%s/v2/latest/optimole_lib" + v  + "%s.js"; 
+						s.src = "%s" + v  + "%s.js?sdaassss=abc"; 
 						b.appendChild(s);
+						w.optimoleData = {
+							backgroundReplaceClasses: [%s],
+							watchClasses: [%s],
+							quality: %d
+						}
 						
 					}(window, document));
 					
 					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
 		</script>',
-			esc_url( $domain ),
-			$min
+			esc_url( 'https://d5jmkjjpb7yfg.cloudfront.net/tags/fix_36/optimole_lib' ),
+			$min,
+			$bgclasses,
+			$watcher_classes,
+			$this->settings->get_numeric_quality()
 		);
 		echo $output;
 	}

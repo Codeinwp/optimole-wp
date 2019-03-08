@@ -33,6 +33,12 @@ abstract class Optml_App_Replacer {
 	 */
 	protected static $ignore_lazyload_strings = null;
 	/**
+	 * Holds flags that should ignore the data-opt-tag format.
+	 *
+	 * @var array
+	 */
+	protected static $ignore_data_opt_attribute = null;
+	/**
 	 * Settings handler.
 	 *
 	 * @var Optml_Settings $settings
@@ -85,12 +91,6 @@ abstract class Optml_App_Replacer {
 	 * @var bool Domains.
 	 */
 	protected $is_allowed_site = array();
-	/**
-	 * Possible integrations with different plugins.
-	 *
-	 * @var array Integrations classes.
-	 */
-	private $compatibilities = array( 'shortcode_ultimate', 'foogallery', 'envira' );
 
 	/**
 	 * Returns possible src attributes.
@@ -122,6 +122,22 @@ abstract class Optml_App_Replacer {
 		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', [] );
 
 		return array_merge( self::$possible_src_attributes, [ '<noscript' ] );
+	}
+
+	/**
+	 * Returns possible data-opt-src ignore flags attributes.
+	 *
+	 * @return array
+	 */
+	public static function possible_data_ignore_flags() {
+
+		if ( null != self::$ignore_data_opt_attribute && is_array( self::$ignore_data_opt_attribute ) ) {
+			return self::$ignore_data_opt_attribute;
+		}
+
+		self::$ignore_data_opt_attribute = apply_filters( 'optml_ignore_data_opt_flag', [] );
+
+		return self::$ignore_data_opt_attribute;
 	}
 
 	/**
@@ -199,46 +215,16 @@ abstract class Optml_App_Replacer {
 	 */
 	public function init() {
 		$this->settings = new Optml_Settings();
-
-		if ( ! $this->should_replace() ) {
-			return false; // @codeCoverageIgnore
-		}
 		$this->set_properties();
 
-		return true;
 	}
 
-	/**
-	 * Check if we should rewrite the urls.
-	 *
-	 * @return bool If we can replace the image.
-	 */
-	public function should_replace() {
-		if ( Optml_Manager::is_ajax_request() ) {
-			return true;
-		}
-		if ( is_admin() || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
-			return false; // @codeCoverageIgnore
-		}
-
-		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
-			return false; // @codeCoverageIgnore
-		}
-
-		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
-			return false; // @codeCoverageIgnore
-		}
-		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
-			return false; // @codeCoverageIgnore
-		}
-
-		return true;
-	}
 
 	/**
 	 * Set the cdn url based on the current connected user.
 	 */
 	public function set_properties() {
+
 		$upload_data                           = wp_upload_dir();
 		$this->upload_resource                 = array(
 			'url'       => str_replace( array( 'https://', 'http://' ), '', $upload_data['baseurl'] ),
@@ -278,20 +264,8 @@ abstract class Optml_App_Replacer {
 		$this->max_height = $this->settings->get( 'max_height' );
 		$this->max_width  = $this->settings->get( 'max_width' );
 
-		foreach ( $this->compatibilities as $compatibility_class ) {
-			$compatibility_class = 'Optml_' . $compatibility_class;
-			$compatibility       = new $compatibility_class;
-
-			/**
-			 * Check if we should load compatibility.
-			 *
-			 * @var Optml_compatibility $compatibility Class to register.
-			 */
-			if ( $compatibility->should_load() ) {
-				$compatibility->register();
-			}
-		}
 		add_filter( 'optml_strip_image_size_from_url', [ $this, 'strip_image_size_from_url' ], 10, 1 );
+
 	}
 
 	/**
