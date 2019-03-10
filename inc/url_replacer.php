@@ -128,9 +128,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 */
 	public function build_image_url(
 		$url, $args = array(
-			'width'  => 'auto',
-			'height' => 'auto',
-		)
+		'width'  => 'auto',
+		'height' => 'auto',
+	)
 	) {
 
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
@@ -184,7 +184,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$args['height'] = $args['height'] > $this->max_height ? $this->max_height : $args['height'];
 		}
 
-		$new_url = ( new Optml_Image( $url, $args ) )->get_url( $this->settings->use_lazyload() ? false : $this->is_allowed_site );
+		$new_url = ( new Optml_Image( $url, $args ) )->get_url( [
+			'signed'          => $this->settings->use_lazyload() ? false : $this->is_allowed_site,
+			'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url )
+		] );
 
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}

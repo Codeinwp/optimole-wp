@@ -93,11 +93,11 @@ class Optml_Image {
 	/**
 	 * Return transformed url.
 	 *
-	 * @param bool $signed Either will be signed or not.
+	 * @param array $params Either will be signed or not.
 	 *
 	 * @return string Transformed image url.
 	 */
-	public function get_url( $signed = false ) {
+	public function get_url( $params = [] ) {
 		$path_parts = array();
 
 		$path_parts[] = $this->width->toString();
@@ -108,7 +108,7 @@ class Optml_Image {
 			$path_parts[] = $this->resize->toString();
 		}
 
-		if ( is_array( self::$watermark->get() ) && isset( self::$watermark->get()['id'] ) && self::$watermark->get()['id'] > 0 ) {
+		if ( isset( $params['apply_watermark'] ) && $params['apply_watermark'] && is_array( self::$watermark->get() ) && isset( self::$watermark->get()['id'] ) && self::$watermark->get()['id'] > 0 ) {
 			$path_parts[] = self::$watermark->toString();
 		}
 
@@ -116,7 +116,7 @@ class Optml_Image {
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
-		if ( $signed ) {
+		if ( isset( $params['signed'] ) && $params['signed'] ) {
 			$path = sprintf( '/%s%s', $this->get_signature( $path ), $path );
 		}
 
