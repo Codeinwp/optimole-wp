@@ -101,10 +101,12 @@ final class Optml_Manager {
 	 * @return bool If we can replace the image.
 	 */
 	public function should_replace() {
-		if ( self::is_ajax_request() ) {
-			return true;
+
+		if ( apply_filters( 'optml_should_replace_page', false ) ) {
+			return false;
 		}
-		if ( is_admin() || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
+
+		if ( ( is_admin() && ! self::is_ajax_request() ) || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
 			return false; // @codeCoverageIgnore
 		}
 
