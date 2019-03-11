@@ -41,6 +41,7 @@
         <exclude name="WordPress.PHP.YodaConditions.NotYoda"/>
         <exclude name="WordPress.WhiteSpace.PrecisionAlignment.Found"/>
         <exclude name="Generic.Files.LineEndings"/>
+        <exclude name="PEAR.NamingConventions.ValidClassName.Invalid"/>
     </rule>
     <rule ref="WordPress-Docs">
 

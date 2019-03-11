@@ -2,7 +2,7 @@
 Contributors: optimole
 Tags: image optimization, cdn, image compression, compress image, images, optimization, perfomance, photos
 Requires at least: 4.7
-Tested up to: 5.0
+Tested up to: 5.1
 Requires PHP: 5.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html

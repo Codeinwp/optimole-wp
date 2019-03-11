@@ -21,6 +21,24 @@ abstract class Optml_App_Replacer {
 	 */
 	protected static $size_to_crop = array();
 	/**
+	 * Holds possible src attributes.
+	 *
+	 * @var array
+	 */
+	protected static $possible_src_attributes = null;
+	/**
+	 * Holds possible lazyload flags where we should ignore our lazyload.
+	 *
+	 * @var array
+	 */
+	protected static $ignore_lazyload_strings = null;
+	/**
+	 * Holds flags that should ignore the data-opt-tag format.
+	 *
+	 * @var array
+	 */
+	protected static $ignore_data_opt_attribute = null;
+	/**
 	 * Settings handler.
 	 *
 	 * @var Optml_Settings $settings
@@ -73,6 +91,54 @@ abstract class Optml_App_Replacer {
 	 * @var bool Domains.
 	 */
 	protected $is_allowed_site = array();
+
+	/**
+	 * Returns possible src attributes.
+	 *
+	 * @return array
+	 */
+	public static function possible_src_attributes() {
+
+		if ( null != self::$possible_src_attributes && is_array( self::$possible_src_attributes ) ) {
+			return self::$possible_src_attributes;
+		}
+
+		self::$possible_src_attributes = apply_filters( 'optml_possible_src_attributes', [] );
+
+		return self::$possible_src_attributes;
+	}
+
+	/**
+	 * Returns possible src attributes.
+	 *
+	 * @return array
+	 */
+	public static function possible_lazyload_flags() {
+
+		if ( null != self::$ignore_lazyload_strings && is_array( self::$ignore_lazyload_strings ) ) {
+			return self::$ignore_lazyload_strings;
+		}
+
+		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', [] );
+
+		return array_merge( self::$possible_src_attributes, [ '<noscript' ] );
+	}
+
+	/**
+	 * Returns possible data-opt-src ignore flags attributes.
+	 *
+	 * @return array
+	 */
+	public static function possible_data_ignore_flags() {
+
+		if ( null != self::$ignore_data_opt_attribute && is_array( self::$ignore_data_opt_attribute ) ) {
+			return self::$ignore_data_opt_attribute;
+		}
+
+		self::$ignore_data_opt_attribute = apply_filters( 'optml_ignore_data_opt_flag', [] );
+
+		return self::$ignore_data_opt_attribute;
+	}
 
 	/**
 	 * Size to crop maping.
@@ -149,52 +215,23 @@ abstract class Optml_App_Replacer {
 	 */
 	public function init() {
 		$this->settings = new Optml_Settings();
-
-		if ( ! $this->should_replace() ) {
-			return false; // @codeCoverageIgnore
-		}
 		$this->set_properties();
 
-		return true;
 	}
 
-	/**
-	 * Check if we should rewrite the urls.
-	 *
-	 * @return bool If we can replace the image.
-	 */
-	public function should_replace() {
-		if ( Optml_Manager::is_ajax_request() ) {
-			return true;
-		}
-		if ( is_admin() || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
-			return false; // @codeCoverageIgnore
-		}
-
-		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
-			return false; // @codeCoverageIgnore
-		}
-
-		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
-			return false; // @codeCoverageIgnore
-		}
-		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
-			return false; // @codeCoverageIgnore
-		}
-
-		return true;
-	}
 
 	/**
 	 * Set the cdn url based on the current connected user.
 	 */
 	public function set_properties() {
-		$upload_data                         = wp_upload_dir();
-		$this->upload_resource               = array(
+
+		$upload_data                           = wp_upload_dir();
+		$this->upload_resource                 = array(
 			'url'       => str_replace( array( 'https://', 'http://' ), '', $upload_data['baseurl'] ),
 			'directory' => $upload_data['basedir'],
 		);
-		$this->upload_resource['url_length'] = strlen( $this->upload_resource['url'] );
+		$this->upload_resource['url_length']   = strlen( $this->upload_resource['url'] );
+		$this->upload_resource['content_path'] = str_replace( get_home_url(), '', content_url() );
 
 		$service_data = $this->settings->get( 'service_data' );
 
@@ -209,12 +246,12 @@ abstract class Optml_App_Replacer {
 		$this->site_mappings['//i2.wp.com/'] = '//';
 
 		if ( defined( 'OPTML_SITE_MIRROR' ) && constant( 'OPTML_SITE_MIRROR' ) ) {
-			$this->site_mappings[ rtrim( get_site_url(), '/' ) ] = rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' );
+			$this->site_mappings[ rtrim( get_home_url(), '/' ) ] = rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' );
 		}
 
 		$this->possible_sources = $this->extract_domain_from_urls(
 			array_merge(
-				array( get_site_url() ),
+				array( get_home_url() ),
 				array_values( $this->site_mappings ),
 				array_keys( $this->site_mappings )
 			)
@@ -226,6 +263,9 @@ abstract class Optml_App_Replacer {
 
 		$this->max_height = $this->settings->get( 'max_height' );
 		$this->max_width  = $this->settings->get( 'max_width' );
+
+		add_filter( 'optml_strip_image_size_from_url', [ $this, 'strip_image_size_from_url' ], 10, 1 );
+
 	}
 
 	/**
@@ -279,6 +319,7 @@ abstract class Optml_App_Replacer {
 		if ( ! isset( $url['host'] ) ) {
 			return false;
 		}
+
 		return isset( $this->possible_sources[ $url['host'] ] ) || isset( $this->allowed_sources[ $url['host'] ] );
 	}
 
@@ -289,9 +330,9 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @return string
 	 **/
-	protected function strip_image_size_from_url( $url ) {
+	public function strip_image_size_from_url( $url ) {
 
-		if ( preg_match( '#(-\d+x\d+)\.(' . implode( '|', array_keys( Optml_Config::$extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
+		if ( preg_match( '#(-\d+x\d+(?:_c)?)\.(' . implode( '|', array_keys( Optml_Config::$extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
 			$stripped_url = str_replace( $src_parts[1], '', $url );
 			// Extracts the file path to the image minus the base url
 			$file_path = substr( $stripped_url, strpos( $stripped_url, $this->upload_resource['url'] ) + $this->upload_resource['url_length'] );
@@ -313,15 +354,15 @@ abstract class Optml_App_Replacer {
 	protected function parse_dimensions_from_filename( $src ) {
 		$width_height_string = array();
 		$extensions          = array_keys( Optml_Config::$extensions );
-		if ( preg_match( '#-(\d+)x(\d+)\.(?:' . implode( '|', $extensions ) . '){1}$#i', $src, $width_height_string ) ) {
+		if ( preg_match( '#-(\d+)x(\d+)(:?_c)?\.(?:' . implode( '|', $extensions ) . '){1}$#i', $src, $width_height_string ) ) {
 			$width  = (int) $width_height_string[1];
 			$height = (int) $width_height_string[2];
-
+			$crop   = ( isset( $width_height_string[3] ) && $width_height_string[3] === '_c' );
 			if ( $width && $height ) {
-				return array( $width, $height );
+				return array( $width, $height, $crop );
 			}
 		}
 
-		return array( false, false );
+		return array( false, false, false );
 	}
 }

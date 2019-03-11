@@ -252,6 +252,17 @@ class Optml_Settings {
 	}
 
 	/**
+	 * Get numeric quality used by the service.
+	 *
+	 * @return int Numeric quality.
+	 */
+	public function get_numeric_quality() {
+		$value = $this->get_quality();
+
+		return (int) $this->to_accepted_quality( $value );
+	}
+
+	/**
 	 * Check if replacer is enabled.
 	 *
 	 * @return bool Replacer enabled

@@ -28,12 +28,78 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 * @return Optml_Url_Replacer
 	 */
 	public static function instance() {
-		if ( is_null( self::$instance ) ) {
+		if ( null === self::$instance ) {
 			self::$instance = new self();
-			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
+			add_action( 'optml_replacer_setup', array( self::$instance, 'init' ) );
 		}
 
 		return self::$instance;
+	}
+
+
+	/**
+	 * Handles the url replacement in options and theme mods.
+	 */
+	public function filter_options_and_mods() {
+		/**
+		 * `optml_imgcdn_options_with_url` is a filter that allows themes or plugins to select which option
+		 * holds an url and needs an optimization.
+		 */
+		$options_list = apply_filters(
+			'optml_imgcdn_options_with_url',
+			array(
+				'theme_mods_' . get_option( 'stylesheet' ),
+				'theme_mods_' . get_option( 'template' ),
+			)
+		);
+
+		foreach ( $options_list as $option ) {
+			add_filter( "option_$option", array( $this, 'replace_option_url' ) );
+		}
+
+	}
+
+	/**
+	 * A filter which turns a local url into an optimized CDN image url or an array of image urls.
+	 *
+	 * @param string $url The url which should be replaced.
+	 *
+	 * @return string Replaced url.
+	 */
+	public function replace_option_url( $url ) {
+		if ( empty( $url ) ) {
+			return $url;
+		}
+		// $url might be an array or an json encoded array with urls.
+		if ( is_array( $url ) || filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
+			$array   = $url;
+			$encoded = false;
+
+			// it might a json encoded array
+			if ( is_string( $url ) ) {
+				$array   = json_decode( $url, true );
+				$encoded = true;
+			}
+
+			// in case there is an array, apply it recursively.
+			if ( is_array( $array ) ) {
+				foreach ( $array as $index => $value ) {
+					$array[ $index ] = $this->replace_option_url( $value );
+				}
+
+				if ( $encoded ) {
+					return json_encode( $array );
+				}
+
+				return $array;
+			}
+
+			if ( filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
+				return $url;
+			}
+		}
+
+		return apply_filters( 'optml_content_url', $url );
 	}
 
 	/**
@@ -42,10 +108,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	public function init() {
 
 		add_filter( 'optml_replace_image', array( $this, 'build_image_url' ), 10, 2 );
-
-		if ( ! parent::init() ) {
-			return; // @codeCoverageIgnore
-		}
+		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
+		parent::init();
 
 		Optml_Quality::$default_quality = $this->to_accepted_quality( $this->settings->get_quality() );
 		Optml_Image::$watermark         = new Optml_Watermark( $this->settings->get_site_settings()['watermark'] );
@@ -83,6 +147,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_replace_url( $url ) ) {
 			return $url;
 		}
+		// Remove any query strings that might affect conversion.
+		$url = strtok( $url, '?' );
+
 		if ( ! $this->is_valid_mimetype_from_url( $url ) ) {
 			return $url;
 		}
@@ -101,7 +168,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		$new_url = $this->strip_image_size_from_url( $url );
 
 		if ( $new_url !== $url ) {
-			list( $args['width'], $args['height'] ) = $this->parse_dimensions_from_filename( $url );
+			list( $args['width'], $args['height'], $crop ) = $this->parse_dimensions_from_filename( $url );
+			if ( $crop ) {
+				$args['resize'] = $this->to_optml_crop( $crop );
+			}
 			$url = $new_url;
 		}
 		$args['width']  = (int) $args['width'];
@@ -114,7 +184,12 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$args['height'] = $args['height'] > $this->max_height ? $this->max_height : $args['height'];
 		}
 
-		$new_url = ( new Optml_Image( $url, $args ) )->get_url( $this->settings->use_lazyload() ? false : $this->is_allowed_site );
+		$new_url = ( new Optml_Image( $url, $args ) )->get_url(
+			[
+				'signed'          => $this->settings->use_lazyload() ? false : $this->is_allowed_site,
+				'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
+			]
+		);
 
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}

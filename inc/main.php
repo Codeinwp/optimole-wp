@@ -13,32 +13,6 @@ final class Optml_Main {
 	 */
 	private static $_instance = null;
 
-	/**
-	 * Holds the url replacer class.
-	 *
-	 * @access  public
-	 * @since   1.0.0
-	 * @var Optml_Url_Replacer Replacer instance.
-	 */
-	public $url_replacer;
-
-	/**
-	 * Holds the tag replacer class.
-	 *
-	 * @access  public
-	 * @since   1.0.0
-	 * @var Optml_Tag_Replacer Replacer instance.
-	 */
-	public $tag_replacer;
-
-	/**
-	 * Holds the lazyload replacer class.
-	 *
-	 * @access  public
-	 * @since   1.0.0
-	 * @var Optml_Lazyload_Replacer Replacer instance.
-	 */
-	public $lazyload_replacer;
 
 	/**
 	 * Holds the manager class.
@@ -84,20 +58,17 @@ final class Optml_Main {
 	 * @return Optml_Main Plugin instance.
 	 */
 	public static function instance() {
-		if ( is_null( self::$_instance ) ) {
+		if ( null === self::$_instance ) {
 			add_filter( 'themeisle_sdk_products', array( __CLASS__, 'register_sdk' ) );
 			add_filter( 'optimole-wp_uninstall_feedback_icon', array( __CLASS__, 'change_icon' ) );
 			add_filter( 'optimole_wp_uninstall_feedback_after_css', array( __CLASS__, 'adds_uf_css' ) );
 			add_filter( 'optimole_wp_feedback_review_message', array( __CLASS__, 'change_review_message' ) );
 			add_filter( 'optimole_wp_logger_heading', array( __CLASS__, 'change_review_message' ) );
 			add_filter( 'optml_default_settings', array( __CLASS__, 'change_lazyload_default' ) );
-			self::$_instance                     = new self();
-			self::$_instance->url_replacer       = Optml_Url_Replacer::instance();
-			self::$_instance->tag_replacer       = Optml_Tag_Replacer::instance();
-			self::$_instance->lazyload_replacer  = Optml_Lazyload_Replacer::instance();
-			self::$_instance->manager            = Optml_Manager::instance();
-			self::$_instance->rest               = new Optml_Rest();
-			self::$_instance->admin              = new Optml_Admin();
+			self::$_instance          = new self();
+			self::$_instance->manager = Optml_Manager::instance();
+			self::$_instance->rest    = new Optml_Rest();
+			self::$_instance->admin   = new Optml_Admin();
 		}
 		$vendor_file = OPTML_PATH . 'vendor/autoload.php';
 		if ( is_readable( $vendor_file ) ) {

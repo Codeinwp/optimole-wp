@@ -16,6 +16,52 @@ final class Optml_Manager {
 	protected static $instance = null;
 
 	/**
+	 * Holds the url replacer class.
+	 *
+	 * @access  public
+	 * @since   1.0.0
+	 * @var Optml_Url_Replacer Replacer instance.
+	 */
+	public $url_replacer;
+
+	/**
+	 * Holds the tag replacer class.
+	 *
+	 * @access  public
+	 * @since   1.0.0
+	 * @var Optml_Tag_Replacer Replacer instance.
+	 */
+	public $tag_replacer;
+
+	/**
+	 * Holds the lazyload replacer class.
+	 *
+	 * @access  public
+	 * @since   1.0.0
+	 * @var Optml_Lazyload_Replacer Replacer instance.
+	 */
+	public $lazyload_replacer;
+	/**
+	 * Holds plugin settings.
+	 *
+	 * @var Optml_Settings WordPress settings.
+	 */
+	protected $settings;
+
+	/**
+	 * Possible integrations with different plugins.
+	 *
+	 * @var array Integrations classes.
+	 */
+	private $compatibilities = array(
+		'shortcode_ultimate',
+		'foogallery',
+		'envira',
+		'revslider',
+		'woocommerce',
+	);
+
+	/**
 	 * Class instance method.
 	 *
 	 * @codeCoverageIgnore
@@ -25,8 +71,11 @@ final class Optml_Manager {
 	 * @return Optml_Manager
 	 */
 	public static function instance() {
-		if ( is_null( self::$instance ) ) {
-			self::$instance = new self();
+		if ( null === self::$instance ) {
+			self::$instance                    = new self();
+			self::$instance->url_replacer      = Optml_Url_Replacer::instance();
+			self::$instance->tag_replacer      = Optml_Tag_Replacer::instance();
+			self::$instance->lazyload_replacer = Optml_Lazyload_Replacer::instance();
 			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
 		}
 
@@ -37,22 +86,42 @@ final class Optml_Manager {
 	 * The initialize method.
 	 */
 	public function init() {
-		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
-		add_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
-		/**
-		 * When we have to process cdn images, i.e MIRROR is defined,
-		 * we need this as late as possible for other replacers to occur.
-		 * Otherwise, we can hook first to avoid any other plugins to take care of replacement.
-		 */
-		add_action(
-			self::is_ajax_request() ? 'init' : 'template_redirect',
-			array(
-				$this,
-				'process_template_redirect_content',
-			),
-			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
-		);
-		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+
+		$this->settings = new Optml_Settings();
+
+		if ( ! $this->should_replace() ) {
+			return;
+		}
+		$this->register_hooks();
+	}
+
+	/**
+	 * Check if we should rewrite the urls.
+	 *
+	 * @return bool If we can replace the image.
+	 */
+	public function should_replace() {
+
+		if ( apply_filters( 'optml_should_replace_page', false ) ) {
+			return false;
+		}
+
+		if ( ( is_admin() && ! self::is_ajax_request() ) || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
+			return false; // @codeCoverageIgnore
+		}
+
+		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
+			return false; // @codeCoverageIgnore
+		}
+
+		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
+			return false; // @codeCoverageIgnore
+		}
+		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
+			return false; // @codeCoverageIgnore
+		}
+
+		return true;
 	}
 
 	/**
@@ -81,68 +150,44 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Handles the url replacement in options and theme mods.
+	 * Register frontend replacer hooks.
 	 */
-	public function filter_options_and_mods() {
+	public function register_hooks() {
+
+		do_action( 'optml_replacer_setup' );
+
+		add_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
 		/**
-		 * `optml_imgcdn_options_with_url` is a filter that allows themes or plugins to select which option
-		 * holds an url and needs an optimization.
+		 * When we have to process cdn images, i.e MIRROR is defined,
+		 * we need this as late as possible for other replacers to occur.
+		 * Otherwise, we can hook first to avoid any other plugins to take care of replacement.
 		 */
-		$options_list = apply_filters(
-			'optml_imgcdn_options_with_url',
+		add_action(
+			self::is_ajax_request() ? 'init' : 'template_redirect',
 			array(
-				'theme_mods_' . get_option( 'stylesheet' ),
-				'theme_mods_' . get_option( 'template' ),
-			)
+				$this,
+				'process_template_redirect_content',
+			),
+			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
 		);
 
-		foreach ( $options_list as $option ) {
-			add_filter( "option_$option", array( $this, 'replace_option_url' ) );
-		}
+		add_action( 'rest_api_init', array( $this, 'process_template_redirect_content' ), PHP_INT_MIN );
 
-	}
+		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
 
-	/**
-	 * A filter which turns a local url into an optimized CDN image url or an array of image urls.
-	 *
-	 * @param string $url The url which should be replaced.
-	 *
-	 * @return string Replaced url.
-	 */
-	public function replace_option_url( $url ) {
-		if ( empty( $url ) ) {
-			return $url;
-		}
-		// $url might be an array or an json encoded array with urls.
-		if ( is_array( $url ) || filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
-			$array   = $url;
-			$encoded = false;
+		foreach ( $this->compatibilities as $compatibility_class ) {
+			$compatibility_class = 'Optml_' . $compatibility_class;
+			$compatibility       = new $compatibility_class;
 
-			// it might a json encoded array
-			if ( is_string( $url ) ) {
-				$array   = json_decode( $url, true );
-				$encoded = true;
-			}
-
-			// in case there is an array, apply it recursively.
-			if ( is_array( $array ) ) {
-				foreach ( $array as $index => $value ) {
-					$array[ $index ] = $this->replace_option_url( $value );
-				}
-
-				if ( $encoded ) {
-					return json_encode( $array );
-				}
-
-				return $array;
-			}
-
-			if ( filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
-				return $url;
+			/**
+			 * Check if we should load compatibility.
+			 *
+			 * @var Optml_compatibility $compatibility Class to register.
+			 */
+			if ( $compatibility->should_load() ) {
+				$compatibility->register();
 			}
 		}
-
-		return apply_filters( 'optml_content_url', $url );
 	}
 
 	/**
@@ -198,7 +243,7 @@ final class Optml_Manager {
 	 * @return array array of urls.
 	 */
 	public function extract_urls_from_json( $content ) {
-		$regex = '/(?<!(=|\\\\)(?:"|\'|"))(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')/';
+		$regex = '/(?<!(=|\\\\)(?:"|\'|"))(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\??[\w|=|&|\-|\.|:]*)/';
 		preg_match_all(
 			$regex,
 			$content,
@@ -288,7 +333,6 @@ final class Optml_Manager {
 			return $content;
 		}
 		$images = self::parse_images_from_html( $content );
-
 		if ( empty( $images ) ) {
 			return $content;
 		}
@@ -333,7 +377,7 @@ final class Optml_Manager {
 		$images = array();
 
 		$content = self::strip_header_from_content( $content );
-		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<\s*noscript\s*>\s*)?<img[^>]*?\s+?src=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*<\/a>)?/ism', $content, $images ) ) {
+		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<\s*noscript\s*>\s*)?<img[^>]*?\s+?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*<\/a>)?/ism', $content, $images ) ) {
 
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.
@@ -392,7 +436,7 @@ final class Optml_Manager {
 	 * @return array
 	 */
 	public function extract_image_urls_from_content( $content ) {
-		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')/';
+		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\??[\w|=|&|\-|\.|:]*)/';
 		preg_match_all(
 			$regex,
 			$content,

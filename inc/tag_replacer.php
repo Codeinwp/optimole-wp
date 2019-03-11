@@ -27,9 +27,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * @return Optml_Tag_Replacer
 	 */
 	public static function instance() {
-		if ( is_null( self::$instance ) ) {
+		if ( null === self::$instance ) {
 			self::$instance = new self();
-			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
+			add_action( 'optml_replacer_setup', array( self::$instance, 'init' ) );
 		}
 
 		return self::$instance;
@@ -40,18 +40,18 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function init() {
 
-		if ( ! parent::init() ) {
+		parent::init();
+		add_filter( 'optml_content_images_tags', array( $this, 'process_image_tags' ), 1, 2 );
+
+		if ( $this->settings->use_lazyload() ) {
 			return;
 		}
 
-		add_filter( 'optml_content_images_tags', array( $this, 'process_image_tags' ), 1, 2 );
+		add_filter( 'optml_tag_replace', array( $this, 'regular_tag_replace' ), 1, 5 );
+		add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
+		add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
+		add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes_attr' ), 1, 2 );
 
-		if ( ! $this->settings->use_lazyload() ) {
-			add_filter( 'optml_tag_replace', array( $this, 'regular_tag_replace' ), 1, 5 );
-			add_filter( 'image_downsize', array( $this, 'filter_image_downsize' ), PHP_INT_MAX, 3 );
-			add_filter( 'wp_calculate_image_srcset', array( $this, 'filter_srcset_attr' ), PHP_INT_MAX, 5 );
-			add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes_attr' ), 1, 2 );
-		}
 	}
 
 	/**
@@ -68,19 +68,23 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		foreach ( $images[0] as $index => $tag ) {
 			$width   = $height = false;
-			$resize  = array();
 			$new_tag = $tag;
 
 			$is_slashed = strpos( $images['img_url'][ $index ], '\/' ) !== false;
 
 			$src = $tmp = $is_slashed ? stripslashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ];
 
+			$src = $tmp = strpos( $src, $this->upload_resource['content_path'] ) === 0 ? untrailingslashit( get_home_url() ) . $src : $src;
+
 			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
 				 false !== strpos( $src, Optml_Config::$service_url ) ||
 				 ! $this->can_replace_url( $src )
 			) {
+
 				continue; // @codeCoverageIgnore
 			}
+
+			$resize = apply_filters( 'optml_default_crop', array() );
 
 			list( $width, $height, $resize ) = self::parse_dimensions_from_tag(
 				$images['img_tag'][ $index ],
@@ -92,11 +96,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				)
 			);
 			if ( false === $width && false === $height ) {
-				list( $width, $height ) = $this->parse_dimensions_from_filename( $tmp );
+				list( $width, $height, $crop ) = $this->parse_dimensions_from_filename( $tmp );
 			}
-
 			if ( empty( $resize ) && isset( $sizes2crop[ $width . $height ] ) ) {
 				$resize = $this->to_optml_crop( $sizes2crop[ $width . $height ] );
+			} elseif ( isset( $crop ) ) {
+				$resize = $this->to_optml_crop( $crop );
 			}
 
 			$optml_args = [ 'width' => $width, 'height' => $height, 'resize' => $resize ];
@@ -148,6 +153,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		}
 		if ( preg_match( '#class=["|\']?[^"\']*size-([^"\'\s]+)[^"\']*["|\']?#i', $tag, $size ) ) {
 			$size = array_pop( $size );
+
 			if ( false === $args['width'] && false === $args['height'] && 'full' != $size && array_key_exists( $size, $image_sizes ) ) {
 				$args['width']  = (int) $image_sizes[ $size ]['width'];
 				$args['height'] = (int) $image_sizes[ $size ]['height'];
@@ -155,6 +161,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			if ( 'full' != $size && array_key_exists( $size, $image_sizes ) ) {
 				$args['resize'] = $this->to_optml_crop( $image_sizes[ $size ]['crop'] );
 			}
+		} else {
+			$args['resize'] = apply_filters( 'optml_parse_resize_from_tag', [], $tag );
 		}
 
 		return array( $args['width'], $args['height'], $args['resize'] );
@@ -196,14 +204,15 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return $sources;
 		}
 		$original_url = null;
-		$cropping = null;
+		$cropping     = null;
 		if ( count( $size_array ) === 2 ) {
 			$sizes    = self::size_to_crop();
 			$cropping = isset( $sizes[ $size_array[0] . $size_array[1] ] ) ? $this->to_optml_crop( $sizes[ $size_array[0] . $size_array[1] ] ) : null;
 		}
+
 		foreach ( $sources as $i => $source ) {
 			$url = $source['url'];
-			list( $width, $height ) = $this->parse_dimensions_from_filename( $url );
+			list( $width, $height, $file_crop ) = $this->parse_dimensions_from_filename( $url );
 
 			if ( empty( $width ) ) {
 				$width = $image_meta['width'];
@@ -212,6 +221,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			if ( empty( $height ) ) {
 				$height = $image_meta['height'];
 			}
+
 			if ( $original_url === null ) {
 				if ( ! empty( $attachment_id ) ) {
 					$original_url = wp_get_attachment_url( $attachment_id );
@@ -230,6 +240,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 			if ( $cropping !== null ) {
 				$args['resize'] = $cropping;
+			} else {
+				$args['resize'] = $this->to_optml_crop( $file_crop );
 			}
 			$sources[ $i ]['url'] = apply_filters( 'optml_content_url', $original_url, $args );
 		}
