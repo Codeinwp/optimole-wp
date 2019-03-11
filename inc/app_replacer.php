@@ -231,7 +231,7 @@ abstract class Optml_App_Replacer {
 			'directory' => $upload_data['basedir'],
 		);
 		$this->upload_resource['url_length']   = strlen( $this->upload_resource['url'] );
-		$this->upload_resource['content_path'] = str_replace( get_site_url(), '', content_url() );
+		$this->upload_resource['content_path'] = str_replace( get_home_url(), '', content_url() );
 
 		$service_data = $this->settings->get( 'service_data' );
 
