@@ -170,6 +170,9 @@ final class Optml_Manager {
 			),
 			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
 		);
+
+		add_action( 'rest_api_init', array( $this, 'process_template_redirect_content' ), PHP_INT_MIN );
+
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
 
 		foreach ( $this->compatibilities as $compatibility_class ) {
