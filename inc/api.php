@@ -57,7 +57,7 @@ final class Optml_Api {
 		// Grab the url to which we'll be making the request.
 		$url     = $this->api_root;
 		$headers = array(
-			'Optml-Site' => get_site_url(),
+			'Optml-Site' => get_home_url(),
 		);
 		if ( ! empty( $this->api_key ) ) {
 			$headers['Authorization'] = 'Bearer ' . $this->api_key;
@@ -139,7 +139,7 @@ final class Optml_Api {
 			'POST',
 			array(
 				'email' => $email,
-				'site'  => get_site_url(),
+				'site'  => get_home_url(),
 			)
 		);
 	}
