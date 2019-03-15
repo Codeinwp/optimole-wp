@@ -94,7 +94,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				return 1;
 			}
 		);
-		add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 5 );
+		add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 6 );
 
 	}
 
@@ -106,12 +106,13 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @param string $new_url The optimized URL.
 	 * @param array  $optml_args Options passed for URL optimization.
 	 * @param bool   $is_slashed If the url needs slashes.
+	 * @param string $full_tag Full tag, wrapper included.
 	 *
 	 * @return string
 	 */
-	public function lazyload_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed = false ) {
+	public function lazyload_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed = false, $full_tag = '' ) {
 
-		if ( ! $this->can_lazyload_for( $original_url, $new_tag ) ) {
+		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
 		$optml_args['quality'] = 'eco';
@@ -120,7 +121,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$low_url    = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 		$opt_format = '';
 
-		if ( $this->should_add_data_tag( $new_tag ) ) {
+		if ( $this->should_add_data_tag( $full_tag ) ) {
 			$opt_format = ' data-opt-src="%s" ';
 			$opt_format = $is_slashed ? addslashes( $opt_format ) : $opt_format;
 		}
@@ -134,19 +135,20 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			$new_url,
 			$new_tag
 		);
-		$new_tag       = str_replace(
+		$new_tag       = preg_replace(
 			[
-				$original_url,
-				' src=',
-				'srcset=', // Not ideal to disable srcset, we should aim to remove the srcset completely from code.
+				'/( src(?>=|"|\'|\s|\\\\)*)' . preg_quote( $original_url, '/' ) . '/m',
+				'/ src=/m',
 			],
 			[
-				$low_url,
+				"$1$low_url",
 				$opt_src . ' src=',
-				'old-srcset=',
 			],
-			$new_tag
+			$new_tag,
+			1
 		);
+
+		$new_tag       = str_replace( 'srcset=', 'old-srcset=', $new_tag );
 
 		return $new_tag . '<noscript>' . $no_script_tag . '</noscript>';
 	}

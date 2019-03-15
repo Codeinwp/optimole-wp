@@ -55,7 +55,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 
 	}
 
-	public function test_lazyload_json_data() {
+	public function test_lazyload_json_data_valid() {
 
 		$some_html_content = [
 			'html' => '<a href="http://example.org/blog/how-to-monetize-a-blog/"><img class="alignnone wp-image-36442 size-full" src="http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png" alt="How to monetize a blog" width="490" height="256"></a> http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png '
@@ -63,15 +63,30 @@ class Test_Lazyload extends WP_UnitTestCase {
 
 		$content           = wp_json_encode( $some_html_content );
 		$replaced_content  = Optml_Manager::instance()->replace_content( $content );
+
 		$replaced_content2 = Optml_Manager::instance()->replace_content( $replaced_content );
 
 		$this->assertEquals( $replaced_content, $replaced_content2 );
+
 		$this->assertArrayHasKey( 'html', json_decode( $replaced_content2, true ) );
 
+		$this->assertEquals( 1, substr_count( $replaced_content, 'q:eco' ) );
 		$this->assertEquals( 4, substr_count( $replaced_content2, '/http:\/\/' ) );
 	}
 
 
+	public function test_lazyload_tag_sanity_check(){
+		$text = ' <a href="http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png"><img class="alignnone wp-image-36442 size-full" src="http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png"  srcset="testsrcset" data-srcset="another" data-plugin-src="http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png" alt="How to monetize a blog" width="490" height="256"></a>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $text );
+
+		$this->assertContains( '</noscript></a>', $replaced_content, 'Noscript tag should be inside the wrapper tag and after image tag' );
+		$this->assertNotContains( '"http://example.org', $replaced_content );
+		$this->assertEquals( 1, substr_count( $replaced_content, 'q:eco' ) );
+		$this->assertEquals( 2, substr_count( $replaced_content, 'old-srcset' ) );
+
+
+	}
 	public function test_replacement_with_jetpack_photon() {
 		$content = '<div class="before-footer">
 				<div class="codeinwp-container">
@@ -165,9 +180,9 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$some_html_content = [
 			'html' => '<a href="http://example.org/blog/how-to-monetize-a-blog/"><img class="alignnone wp-image-36442 size-full" src="http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png" alt="How to monetize a blog" width="490" height="256"></a> http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png '
 		];
-
 		$content           = wp_json_encode( $some_html_content );
 		$replaced_content  = Optml_Manager::instance()->replace_content( $content );
+
 		$replaced_content2 = Optml_Manager::instance()->replace_content( $replaced_content );
 
 		$this->assertEquals( $replaced_content, $replaced_content2 );
