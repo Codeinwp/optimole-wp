@@ -67,14 +67,14 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		$sizes2crop  = self::size_to_crop();
 
 		foreach ( $images[0] as $index => $tag ) {
-			$width   = $height = false;
+			$width     = $height = false;
 			$image_tag = $images['img_tag'][ $index ];
 
 			$is_slashed = strpos( $images['img_url'][ $index ], '\/' ) !== false;
 
 			$src = $tmp = $is_slashed ? stripslashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ];
 
-			$src = $tmp = strpos( $src, $this->upload_resource['content_path'] ) === 0 ? untrailingslashit( get_home_url() ) . $src : $src;
+			$src = $tmp = strpos( $src, $this->upload_resource['content_path'] ) === 0 ? untrailingslashit( $this->upload_resource['content_host'] ) . $src : $src;
 
 			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
 				 false !== strpos( $src, Optml_Config::$service_url ) ||
