@@ -57,6 +57,7 @@ final class Optml_Manager {
 		'shortcode_ultimate',
 		'foogallery',
 		'envira',
+		'beaver_builder',
 		'revslider',
 		'woocommerce',
 	);
