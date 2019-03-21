@@ -83,7 +83,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$found_images = Optml_Manager::parse_images_from_html( self::IMG_TAGS );
 
-		$this->assertCount( 4, $found_images );
+		$this->assertCount( 5, $found_images );
 		$this->assertCount( 1, $found_images['img_url'] );
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );

@@ -75,7 +75,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$src = $tmp = $is_slashed ? stripslashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ];
 
 			if ( strpos( $src, $this->upload_resource['content_path'] ) === 0 ) {
-				$src                         = $tmp = untrailingslashit( $this->upload_resource['content_host'] ) . $src;
+				$src = $tmp = untrailingslashit( $this->upload_resource['content_host'] ) . $src;
 
 				$new_src                     = $is_slashed ? addcslashes( $src, '/' ) : $src;
 				$image_tag                   = str_replace( $images['img_url'][ $index ], $new_src, $image_tag );
@@ -133,7 +133,13 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				],
 				$image_tag
 			);
-			$image_tag = apply_filters( 'optml_tag_replace', $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
+
+			// If the image is in header, we need to do the regular replace.
+			if ( $images['in_header'][ $index ] ) {
+				$image_tag = $this->regular_tag_replace( $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
+			} else {
+				$image_tag = apply_filters( 'optml_tag_replace', $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
+			}
 
 			$content = str_replace( $images['img_tag'][ $index ], $image_tag, $content );
 		}

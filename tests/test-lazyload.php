@@ -109,6 +109,25 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
 	}
 
+	public function test_lazy_dont_lazy_load_headers_relative() {
+		$content = '<div></div><header id="header">
+						<div id="wp-custom-header" class="wp-custom-header">
+							<img src="/wp-content/themes/twentyseventeen/assets/images/header2.jpg" width="2000" height="1200" alt="Test" />
+						</div>
+				    </header>
+				    <div id="wp-custom-header" class="wp-custom-header">
+				        <img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" />
+				    </div>';
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( $content );
+		$this->assertContains( 'data-opt-src', $replaced_content );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'q:eco', $replaced_content );
+		$this->assertContains( 'http://example.org', $replaced_content );
+		$this->assertNotContains( 'src="/wp-content', $replaced_content );
+		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
+	}
+
 	public function test_lazy_load_just_first_header() {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::HTML_TAGS_HEADER_MULTIPLE );
 
@@ -140,7 +159,8 @@ class Test_Lazyload extends WP_UnitTestCase {
 	}
 
 	public function test_check_with_no_script() {
-		$content = '<img width="1612" height="1116" src="data:image/gif;base64,R0lGODdhAQABAPAAAP///wAAACwAAAAAAQABAEACAkQBADs=" data-lazy-src="http://example.org/wp-content/uploads/2018/11/gradient.png" class="attachment-twentyseventeen-featured-image size-twentyseventeen-featured-image wp-post-image" alt="" data-lazy-sizes="(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px" /><noscript><img width="1612" height="1116" src="http://example.org/wp-content/uploads/2018/11/gradient.png" class="attachment-twentyseventeen-featured-image size-twentyseventeen-featured-image wp-post-image" alt="" sizes="(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px" /></noscript>	';
+		$content = '<img width="1612" height="1116" src="data:image/gif;base64,R0lGODdhAQABAPAAAP///wAAACwAAAAAAQABAEACAkQBADs=" data-lazy-src="http://example.org/wp-content/uploads/2018/11/gradient.png" class="attachment-twentyseventeen-featured-image size-twentyseventeen-featured-image wp-post-image" alt="" data-lazy-sizes="(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px" />
+<noscript><img width="1612" height="1116" src="http://example.org/wp-content/uploads/2018/11/gradient.png" class="attachment-twentyseventeen-featured-image size-twentyseventeen-featured-image wp-post-image" alt="" sizes="(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px" /></noscript>	';
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
