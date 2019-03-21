@@ -115,9 +115,22 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertContains( 'data-opt-src', $replaced_content );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'http://example.org', $replaced_content );
+
 		$this->assertEquals( 3, substr_count( $replaced_content, 'data-opt-src' ) );
 	}
+	public function test_replacement_lazyload_with_relative_url() {
+		$content = '<div class="before-footer">
+				<div class="codeinwp-container">
+					<p class="featuredon">Featured On</p>
+					<img src="/wp-content/uploads/2018/05/brands.png"> 
+				</div>
+			</div>';
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertNotContains( '"/wp-content', $replaced_content );
+		$this->assertContains( 'q:eco', $replaced_content );
 
+	}
 	public function test_lazy_load_preserve_image_size() {
 		$html             = wp_get_attachment_image( self::$sample_attachement, 'sample_size_crop' );
 		$replaced_content = Optml_Manager::instance()->replace_content( $html );
