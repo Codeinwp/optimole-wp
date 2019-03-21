@@ -67,7 +67,7 @@ class Optml_Admin {
 		$output = sprintf(
 			'
 		<style type="text/css">
-			img[data-opt-src] {
+			img[data-opt-src]:not([data-opt-lazy-loaded]) {
 				transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 				-webkit-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 				-moz-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
