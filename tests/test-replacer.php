@@ -82,16 +82,15 @@ class Test_Replacer extends WP_UnitTestCase {
 	public function test_wc_json_replacement() {
 		$html = [
 			'image' => "https://www.example.org/wp-content/uploads/2018/05/brands.png",
-			'image2' => "https://www.example.org/wp-content/uploads/2018/05/brands.png?test=123",
-			'image3' => "https://www.example.org/wp-content/uploads/2018/05/brands.png?test=123&anther=test",
+			'image2' => "https://www.example.org/wp-content/uploads/2018/05/brands2.png?test=123",
 		];
 
 
 		$html = wp_json_encode( $html );
 		$html = _wp_specialchars( $html, ENT_QUOTES, 'UTF-8', true );
-
 		$replaced_content = Optml_Manager::instance()->process_urls_from_content( $html );
-		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 2, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertNotContains('?test=123',$replaced_content );
 
 		$replaced_content = wp_specialchars_decode( $replaced_content, ENT_QUOTES );
 		$replaced_content = json_decode( $replaced_content, true );
@@ -150,7 +149,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		$content          = '<div class="before-footer">
 				<div class="codeinwp-container">
 					<p class="featuredon">Featured On</p>
-					<img src="https://www.example.org/wp-content/uploads/2018/05/brands.png?param=123"> 
+					<img src="https://www.example.org/wp-content/uploads/2018/05/brands.png?param=123&2782=dasda"> 
 				</div>
 			</div>';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
