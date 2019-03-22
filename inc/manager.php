@@ -58,6 +58,7 @@ final class Optml_Manager {
 		'foogallery',
 		'envira',
 		'beaver_builder',
+		'jet_elements',
 		'revslider',
 		'metaslider',
 		'woocommerce',
