@@ -123,6 +123,13 @@ final class Optml_Manager {
 			return false; // @codeCoverageIgnore
 		}
 
+		if ( class_exists( 'FLBuilderModel', false ) ) {
+			$post_data = FLBuilderModel::get_post_data();
+			if ( isset( $_GET['fl_builder'] ) || isset( $post_data['fl_builder'] ) ) {
+				return false;
+			}
+		}
+
 		return true;
 	}
 
@@ -441,6 +448,7 @@ final class Optml_Manager {
 			$content,
 			$urls
 		);
+
 		return $this->normalize_urls( $urls[0] );
 	}
 
