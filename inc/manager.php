@@ -59,6 +59,7 @@ final class Optml_Manager {
 		'envira',
 		'beaver_builder',
 		'revslider',
+		'metaslider',
 		'woocommerce',
 	);
 

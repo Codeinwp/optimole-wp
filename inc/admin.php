@@ -73,7 +73,7 @@ class Optml_Admin {
 				-moz-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 				-o-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 			}
-			img[data-opt-src].optml_lazyload_img {
+			img[data-opt-src]:not([data-opt-lazy-loaded]) {
 				opacity: .75;
 				filter: blur(5px);
 			}

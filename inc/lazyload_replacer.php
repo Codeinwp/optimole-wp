@@ -23,6 +23,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	private static $lazyload_background_classes = null;
 	/**
+	 * Holds flags which remove noscript tag bundle causing issues on render, i.e slider plugins.
+	 *
+	 * @var array Noscript flags.
+	 */
+	private static $ignore_no_script_flags = null;
+	/**
 	 * Holds classes responsabile for watching lazyload behaviour.
 	 *
 	 * @var array Lazyload classes.
@@ -148,8 +154,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			1
 		);
 
-		$new_tag       = str_replace( 'srcset=', 'old-srcset=', $new_tag );
+		$new_tag = str_replace( 'srcset=', 'old-srcset=', $new_tag );
 
+		if ( ! $this->should_add_noscript( $new_tag ) ) {
+			return $new_tag;
+		}
 		return $new_tag . '<noscript>' . $no_script_tag . '</noscript>';
 	}
 
@@ -202,6 +211,39 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Check if we should add the noscript tag.
+	 *
+	 * @param string $tag Html tag.
+	 *
+	 * @return bool Should add?
+	 */
+	public function should_add_noscript( $tag ) {
+		foreach ( self::get_ignore_noscript_flags() as $banned_string ) {
+			if ( strpos( $tag, $banned_string ) !== false ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Returns flags for ignoring noscript tag additional watch.
+	 *
+	 * @return array
+	 */
+	public static function get_ignore_noscript_flags() {
+
+		if ( null != self::$ignore_no_script_flags && is_array( self::$ignore_no_script_flags ) ) {
+			return self::$ignore_no_script_flags;
+		}
+
+		self::$ignore_no_script_flags = apply_filters( 'optml_ignore_noscript_on', [] );
+
+		return self::$ignore_no_script_flags;
 	}
 
 	/**
