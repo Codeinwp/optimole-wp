@@ -102,7 +102,7 @@ class Optml_Admin {
 			$min,
 			$bgclasses,
 			$watcher_classes,
-			defined( 'OPTML_CUSTOM_DOMAIN' ) && constant( 'OPTML_CUSTOM_DOMAIN' ) ? strval( OPTML_CUSTOM_DOMAIN ) : 'false',
+			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? strval( OPTML_NETWORK_ON ) : 'false',
 			$this->settings->get_numeric_quality()
 		);
 		echo $output;
@@ -452,6 +452,7 @@ class Optml_Admin {
 			'root'              => rest_url( OPTML_NAMESPACE . '/v1' ),
 			'nonce'             => wp_create_nonce( 'wp_rest' ),
 			'user_data'         => $service_data,
+			'show_latest_images'         => $service_data,
 			'current_user'      => array(
 				'email' => $user->user_email,
 			),
