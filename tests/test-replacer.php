@@ -79,6 +79,27 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	}
 
+	public function test_wc_json_replacement() {
+		$html = [
+			'image' => "https://www.example.org/wp-content/uploads/2018/05/brands.png",
+			'image2' => "https://www.example.org/wp-content/uploads/2018/05/brands.png?test=123",
+			'image3' => "https://www.example.org/wp-content/uploads/2018/05/brands.png?test=123&anther=test",
+		];
+
+
+		$html = wp_json_encode( $html );
+		$html = _wp_specialchars( $html, ENT_QUOTES, 'UTF-8', true );
+
+		$replaced_content = Optml_Manager::instance()->process_urls_from_content( $html );
+		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
+
+		$replaced_content = wp_specialchars_decode( $replaced_content, ENT_QUOTES );
+		$replaced_content = json_decode( $replaced_content, true );
+
+		$this->assertArrayHasKey( 'image', $replaced_content );
+
+	}
+
 	public function test_image_tags() {
 
 		$found_images = Optml_Manager::parse_images_from_html( self::IMG_TAGS );

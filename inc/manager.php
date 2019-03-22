@@ -262,13 +262,13 @@ final class Optml_Manager {
 	 * @return array Normalized array.
 	 */
 	private function normalize_urls( $urls ) {
+
 		$urls = array_map(
 			function ( $value ) {
-				return rtrim( html_entity_decode( $value ), '\\' );
+				return rtrim( html_entity_decode( $value ), '\\";\'' );
 			},
 			$urls
 		);
-
 		$urls = array_unique( $urls );
 
 		return array_values( $urls );
@@ -434,13 +434,12 @@ final class Optml_Manager {
 	 * @return array
 	 */
 	public function extract_image_urls_from_content( $content ) {
-		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\??[\w|=|&|\-|\.|:]*)/';
+		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\?{1}[\w|=|&|\-|\.|:]*)?/';
 		preg_match_all(
 			$regex,
 			$content,
 			$urls
 		);
-
 		return $this->normalize_urls( $urls[0] );
 	}
 
