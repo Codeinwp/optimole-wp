@@ -90,6 +90,7 @@ class Optml_Admin {
 						w.optimoleData = {
 							backgroundReplaceClasses: [%s],
 							watchClasses: [%s],
+							network_optimizations: %s,
 							quality: %d
 						}
 						
@@ -101,6 +102,7 @@ class Optml_Admin {
 			$min,
 			$bgclasses,
 			$watcher_classes,
+			defined( 'OPTML_CUSTOM_DOMAIN' ) && constant( 'OPTML_CUSTOM_DOMAIN' ) ? strval( OPTML_CUSTOM_DOMAIN ) : 'false',
 			$this->settings->get_numeric_quality()
 		);
 		echo $output;
