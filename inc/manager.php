@@ -57,7 +57,10 @@ final class Optml_Manager {
 		'shortcode_ultimate',
 		'foogallery',
 		'envira',
+		'beaver_builder',
+		'jet_elements',
 		'revslider',
+		'metaslider',
 		'woocommerce',
 	);
 
@@ -119,6 +122,13 @@ final class Optml_Manager {
 		}
 		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
 			return false; // @codeCoverageIgnore
+		}
+
+		if ( class_exists( 'FLBuilderModel', false ) ) {
+			$post_data = FLBuilderModel::get_post_data();
+			if ( isset( $_GET['fl_builder'] ) || isset( $post_data['fl_builder'] ) ) {
+				return false;
+			}
 		}
 
 		return true;
@@ -261,13 +271,13 @@ final class Optml_Manager {
 	 * @return array Normalized array.
 	 */
 	private function normalize_urls( $urls ) {
+
 		$urls = array_map(
 			function ( $value ) {
-				return rtrim( html_entity_decode( $value ), '\\' );
+				return rtrim( html_entity_decode( $value ), '\\";\'' );
 			},
 			$urls
 		);
-
 		$urls = array_unique( $urls );
 
 		return array_values( $urls );
@@ -376,8 +386,15 @@ final class Optml_Manager {
 	public static function parse_images_from_html( $content ) {
 		$images = array();
 
-		$content = self::strip_header_from_content( $content );
-		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<\s*noscript\s*>\s*)?<img[^>]*?\s+?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*<\/a>)?/ism', $content, $images ) ) {
+		$header_start = null;
+		$header_end   = null;
+
+		if ( preg_match( '/<header.*<\/header>/ismU', $content, $matches, PREG_OFFSET_CAPTURE ) === 1 ) {
+			$header_start = $matches[0][1];
+			$header_end   = $header_start + strlen( $matches[0][0] );
+		}
+
+		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<\s*noscript\s*>\s*)?<img[^>]*?\s+?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*<\/a>)?/ism', $content, $images, PREG_OFFSET_CAPTURE ) ) {
 
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.
@@ -385,11 +402,15 @@ final class Optml_Manager {
 					unset( $images[ $key ] );
 					continue;
 				}
-				if ( $key !== 'img_url' ) {
-					continue;
-				}
 				foreach ( $unused as $url_key => $url_value ) {
-					$images[ $key ][ $url_key ] = rtrim( $url_value, '\\' );
+					if ( $key === 'img_url' ) {
+						$images[ $key ][ $url_key ] = rtrim( $url_value[0], '\\' );
+						continue;
+					}
+					$images[ $key ][ $url_key ] = $url_value[0];
+					if ( $key === 0 ) {
+						$images['in_header'][ $url_key ] = $header_start !== null ? ( $url_value[1] > $header_start && $url_value[1] < $header_end ) : false;
+					}
 				}
 			}
 
@@ -399,20 +420,6 @@ final class Optml_Manager {
 		return array();
 	}
 
-	/**
-	 * Matches the header tag and removes it.
-	 *
-	 * @param string $content Some HTML.
-	 *
-	 * @return string The HTML without the <header/> tag
-	 */
-	public static function strip_header_from_content( $content ) {
-		if ( preg_match( '/<header.*<\/header>/ismU', $content, $matches ) !== 1 ) {
-			return $content;
-		}
-
-		return str_replace( $matches[0], '', $content );
-	}
 
 	/**
 	 * Process url replacement from raw html strings.
@@ -436,7 +443,7 @@ final class Optml_Manager {
 	 * @return array
 	 */
 	public function extract_image_urls_from_content( $content ) {
-		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\??[\w|=|&|\-|\.|:]*)/';
+		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\?{1}[\w|=|&|\-|\.|:|;]*)?/';
 		preg_match_all(
 			$regex,
 			$content,

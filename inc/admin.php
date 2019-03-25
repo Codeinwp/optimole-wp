@@ -67,13 +67,13 @@ class Optml_Admin {
 		$output = sprintf(
 			'
 		<style type="text/css">
-			img[data-opt-src] {
+			img[data-opt-src]:not([data-opt-lazy-loaded]) {
 				transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 				-webkit-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 				-moz-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 				-o-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 			}
-			img[data-opt-src].optml_lazyload_img {
+			img[data-opt-src]:not([data-opt-lazy-loaded]) {
 				opacity: .75;
 				filter: blur(5px);
 			}
@@ -90,6 +90,7 @@ class Optml_Admin {
 						w.optimoleData = {
 							backgroundReplaceClasses: [%s],
 							watchClasses: [%s],
+							network_optimizations: %s,
 							quality: %d
 						}
 						
@@ -101,6 +102,7 @@ class Optml_Admin {
 			$min,
 			$bgclasses,
 			$watcher_classes,
+			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? ( OPTML_NETWORK_ON ? 'true' : 'false' ) : 'false',
 			$this->settings->get_numeric_quality()
 		);
 		echo $output;
@@ -443,18 +445,19 @@ class Optml_Admin {
 		$user         = get_userdata( get_current_user_id() );
 
 		return array(
-			'strings'           => $this->get_dashboard_strings(),
-			'assets_url'        => OPTML_URL . 'assets/',
-			'connection_status' => empty( $service_data ) ? 'no' : 'yes',
-			'api_key'           => $api_key,
-			'root'              => rest_url( OPTML_NAMESPACE . '/v1' ),
-			'nonce'             => wp_create_nonce( 'wp_rest' ),
-			'user_data'         => $service_data,
-			'current_user'      => array(
+			'strings'              => $this->get_dashboard_strings(),
+			'assets_url'           => OPTML_URL . 'assets/',
+			'connection_status'    => empty( $service_data ) ? 'no' : 'yes',
+			'api_key'              => $api_key,
+			'root'                 => rest_url( OPTML_NAMESPACE . '/v1' ),
+			'nonce'                => wp_create_nonce( 'wp_rest' ),
+			'user_data'            => $service_data,
+			'remove_latest_images' => defined( 'OPTML_REMOVE_LATEST_IMAGES' ) && constant( 'OPTML_REMOVE_LATEST_IMAGES' ) ? ( OPTML_REMOVE_LATEST_IMAGES ? 'yes' : 'no' ) : 'no',
+			'current_user'         => array(
 				'email' => $user->user_email,
 			),
-			'site_settings'     => $this->settings->get_site_settings(),
-			'home_url'          => home_url(),
+			'site_settings'        => $this->settings->get_site_settings(),
+			'home_url'             => home_url(),
 		);
 	}
 

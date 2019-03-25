@@ -405,8 +405,8 @@ module.exports = g;
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* WEBPACK VAR INJECTION */(function(process, global, setImmediate) {/*!
- * Vue.js v2.5.21
- * (c) 2014-2018 Evan You
+ * Vue.js v2.6.6
+ * (c) 2014-2019 Evan You
  * Released under the MIT License.
  */
 /*  */
@@ -482,13 +482,21 @@ function isValidArrayIndex (val) {
   return n >= 0 && Math.floor(n) === n && isFinite(val)
 }
 
+function isPromise (val) {
+  return (
+    isDef(val) &&
+    typeof val.then === 'function' &&
+    typeof val.catch === 'function'
+  )
+}
+
 /**
  * Convert a value to a string that is actually rendered.
  */
 function toString (val) {
   return val == null
     ? ''
-    : typeof val === 'object'
+    : Array.isArray(val) || (isPlainObject(val) && val.toString === _toString)
       ? JSON.stringify(val, null, 2)
       : String(val)
 }
@@ -764,7 +772,8 @@ var LIFECYCLE_HOOKS = [
   'destroyed',
   'activated',
   'deactivated',
-  'errorCaptured'
+  'errorCaptured',
+  'serverPrefetch'
 ];
 
 /*  */
@@ -868,6 +877,13 @@ var config = ({
 /*  */
 
 /**
+ * unicode letters used for parsing html tags, component names and property paths.
+ * using https://www.w3.org/TR/html53/semantics-scripting.html#potentialcustomelementname
+ * skipping \u10000-\uEFFFF due to it freezing up PhantomJS
+ */
+var unicodeLetters = 'a-zA-Z\u00B7\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u037D\u037F-\u1FFF\u200C-\u200D\u203F-\u2040\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD';
+
+/**
  * Check if a string starts with $ or _
  */
 function isReserved (str) {
@@ -890,7 +906,7 @@ function def (obj, key, val, enumerable) {
 /**
  * Parse simple path.
  */
-var bailRE = /[^\w.$]/;
+var bailRE = new RegExp(("[^" + unicodeLetters + ".$_\\d]"));
 function parsePath (path) {
   if (bailRE.test(path)) {
     return
@@ -921,6 +937,8 @@ var isEdge = UA && UA.indexOf('edge/') > 0;
 var isAndroid = (UA && UA.indexOf('android') > 0) || (weexPlatform === 'android');
 var isIOS = (UA && /iphone|ipad|ipod|ios/.test(UA)) || (weexPlatform === 'ios');
 var isChrome = UA && /chrome\/\d+/.test(UA) && !isEdge;
+var isPhantomJS = UA && /phantomjs/.test(UA);
+var isFF = UA && UA.match(/firefox\/(\d+)/);
 
 // Firefox has a "watch" function on Object.prototype...
 var nativeWatch = ({}).watch;
@@ -1033,7 +1051,7 @@ if (process.env.NODE_ENV !== 'production') {
       ? vm.options
       : vm._isVue
         ? vm.$options || vm.constructor.options
-        : vm || {};
+        : vm;
     var name = options.name || options._componentTag;
     var file = options.__file;
     if (!name && file) {
@@ -1128,9 +1146,9 @@ Dep.prototype.notify = function notify () {
   }
 };
 
-// the current target watcher being evaluated.
-// this is globally unique because there could be only one
-// watcher being evaluated at any time.
+// The current target watcher being evaluated.
+// This is globally unique because only one watcher
+// can be evaluated at a time.
 Dep.target = null;
 var targetStack = [];
 
@@ -1566,9 +1584,15 @@ if (process.env.NODE_ENV !== 'production') {
 function mergeData (to, from) {
   if (!from) { return to }
   var key, toVal, fromVal;
-  var keys = Object.keys(from);
+
+  var keys = hasSymbol
+    ? Reflect.ownKeys(from)
+    : Object.keys(from);
+
   for (var i = 0; i < keys.length; i++) {
     key = keys[i];
+    // in case the object is already observed...
+    if (key === '__ob__') { continue }
     toVal = to[key];
     fromVal = from[key];
     if (!hasOwn(to, key)) {
@@ -1658,13 +1682,26 @@ function mergeHook (
   parentVal,
   childVal
 ) {
-  return childVal
+  var res = childVal
     ? parentVal
       ? parentVal.concat(childVal)
       : Array.isArray(childVal)
         ? childVal
         : [childVal]
-    : parentVal
+    : parentVal;
+  return res
+    ? dedupeHooks(res)
+    : res
+}
+
+function dedupeHooks (hooks) {
+  var res = [];
+  for (var i = 0; i < hooks.length; i++) {
+    if (res.indexOf(hooks[i]) === -1) {
+      res.push(hooks[i]);
+    }
+  }
+  return res
 }
 
 LIFECYCLE_HOOKS.forEach(function (hook) {
@@ -1775,11 +1812,10 @@ function checkComponents (options) {
 }
 
 function validateComponentName (name) {
-  if (!/^[a-zA-Z][\w-]*$/.test(name)) {
+  if (!new RegExp(("^[a-zA-Z][\\-\\.0-9_" + unicodeLetters + "]*$")).test(name)) {
     warn(
       'Invalid component name: "' + name + '". Component names ' +
-      'can only contain alphanumeric characters and the hyphen, ' +
-      'and must start with a letter.'
+      'should conform to valid custom element name in html5 specification.'
     );
   }
   if (isBuiltInTag(name) || config.isReservedTag(name)) {
@@ -1862,9 +1898,9 @@ function normalizeDirectives (options) {
   var dirs = options.directives;
   if (dirs) {
     for (var key in dirs) {
-      var def = dirs[key];
-      if (typeof def === 'function') {
-        dirs[key] = { bind: def, update: def };
+      var def$$1 = dirs[key];
+      if (typeof def$$1 === 'function') {
+        dirs[key] = { bind: def$$1, update: def$$1 };
       }
     }
   }
@@ -1900,7 +1936,7 @@ function mergeOptions (
   normalizeProps(child, vm);
   normalizeInject(child, vm);
   normalizeDirectives(child);
-  
+
   // Apply extends and mixins on the child options,
   // but only if it is a raw options object that isn't
   // the result of another mergeOptions call.
@@ -2214,12 +2250,35 @@ function handleError (err, vm, info) {
   globalHandleError(err, vm, info);
 }
 
+function invokeWithErrorHandling (
+  handler,
+  context,
+  args,
+  vm,
+  info
+) {
+  var res;
+  try {
+    res = args ? handler.apply(context, args) : handler.call(context);
+    if (res && !res._isVue && isPromise(res)) {
+      res.catch(function (e) { return handleError(e, vm, info + " (Promise/async)"); });
+    }
+  } catch (e) {
+    handleError(e, vm, info);
+  }
+  return res
+}
+
 function globalHandleError (err, vm, info) {
   if (config.errorHandler) {
     try {
       return config.errorHandler.call(null, err, vm, info)
     } catch (e) {
-      logError(e, null, 'config.errorHandler');
+      // if the user intentionally throws the original error in the handler,
+      // do not log it twice
+      if (e !== err) {
+        logError(e, null, 'config.errorHandler');
+      }
     }
   }
   logError(err, vm, info);
@@ -2239,6 +2298,8 @@ function logError (err, vm, info) {
 
 /*  */
 
+var isUsingMicroTask = false;
+
 var callbacks = [];
 var pending = false;
 
@@ -2251,76 +2312,69 @@ function flushCallbacks () {
   }
 }
 
-// Here we have async deferring wrappers using both microtasks and (macro) tasks.
-// In < 2.4 we used microtasks everywhere, but there are some scenarios where
-// microtasks have too high a priority and fire in between supposedly
-// sequential events (e.g. #4521, #6690) or even between bubbling of the same
-// event (#6566). However, using (macro) tasks everywhere also has subtle problems
-// when state is changed right before repaint (e.g. #6813, out-in transitions).
-// Here we use microtask by default, but expose a way to force (macro) task when
-// needed (e.g. in event handlers attached by v-on).
-var microTimerFunc;
-var macroTimerFunc;
-var useMacroTask = false;
+// Here we have async deferring wrappers using microtasks.
+// In 2.5 we used (macro) tasks (in combination with microtasks).
+// However, it has subtle problems when state is changed right before repaint
+// (e.g. #6813, out-in transitions).
+// Also, using (macro) tasks in event handler would cause some weird behaviors
+// that cannot be circumvented (e.g. #7109, #7153, #7546, #7834, #8109).
+// So we now use microtasks everywhere, again.
+// A major drawback of this tradeoff is that there are some scenarios
+// where microtasks have too high a priority and fire in between supposedly
+// sequential events (e.g. #4521, #6690, which have workarounds)
+// or even between bubbling of the same event (#6566).
+var timerFunc;
 
-// Determine (macro) task defer implementation.
-// Technically setImmediate should be the ideal choice, but it's only available
-// in IE. The only polyfill that consistently queues the callback after all DOM
-// events triggered in the same loop is by using MessageChannel.
-/* istanbul ignore if */
-if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
-  macroTimerFunc = function () {
-    setImmediate(flushCallbacks);
-  };
-} else if (typeof MessageChannel !== 'undefined' && (
-  isNative(MessageChannel) ||
-  // PhantomJS
-  MessageChannel.toString() === '[object MessageChannelConstructor]'
-)) {
-  var channel = new MessageChannel();
-  var port = channel.port2;
-  channel.port1.onmessage = flushCallbacks;
-  macroTimerFunc = function () {
-    port.postMessage(1);
-  };
-} else {
-  /* istanbul ignore next */
-  macroTimerFunc = function () {
-    setTimeout(flushCallbacks, 0);
-  };
-}
-
-// Determine microtask defer implementation.
+// The nextTick behavior leverages the microtask queue, which can be accessed
+// via either native Promise.then or MutationObserver.
+// MutationObserver has wider support, however it is seriously bugged in
+// UIWebView in iOS >= 9.3.3 when triggered in touch event handlers. It
+// completely stops working after triggering a few times... so, if native
+// Promise is available, we will use it:
 /* istanbul ignore next, $flow-disable-line */
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
   var p = Promise.resolve();
-  microTimerFunc = function () {
+  timerFunc = function () {
     p.then(flushCallbacks);
-    // in problematic UIWebViews, Promise.then doesn't completely break, but
+    // In problematic UIWebViews, Promise.then doesn't completely break, but
     // it can get stuck in a weird state where callbacks are pushed into the
     // microtask queue but the queue isn't being flushed, until the browser
     // needs to do some other work, e.g. handle a timer. Therefore we can
     // "force" the microtask queue to be flushed by adding an empty timer.
     if (isIOS) { setTimeout(noop); }
   };
+  isUsingMicroTask = true;
+} else if (!isIE && typeof MutationObserver !== 'undefined' && (
+  isNative(MutationObserver) ||
+  // PhantomJS and iOS 7.x
+  MutationObserver.toString() === '[object MutationObserverConstructor]'
+)) {
+  // Use MutationObserver where native Promise is not available,
+  // e.g. PhantomJS, iOS7, Android 4.4
+  // (#6466 MutationObserver is unreliable in IE11)
+  var counter = 1;
+  var observer = new MutationObserver(flushCallbacks);
+  var textNode = document.createTextNode(String(counter));
+  observer.observe(textNode, {
+    characterData: true
+  });
+  timerFunc = function () {
+    counter = (counter + 1) % 2;
+    textNode.data = String(counter);
+  };
+  isUsingMicroTask = true;
+} else if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
+  // Fallback to setImmediate.
+  // Techinically it leverages the (macro) task queue,
+  // but it is still a better choice than setTimeout.
+  timerFunc = function () {
+    setImmediate(flushCallbacks);
+  };
 } else {
-  // fallback to macro
-  microTimerFunc = macroTimerFunc;
-}
-
-/**
- * Wrap a function so that if any code inside triggers state change,
- * the changes are queued using a (macro) task instead of a microtask.
- */
-function withMacroTask (fn) {
-  return fn._withTask || (fn._withTask = function () {
-    useMacroTask = true;
-    try {
-      return fn.apply(null, arguments)
-    } finally {
-      useMacroTask = false;    
-    }
-  })
+  // Fallback to setTimeout.
+  timerFunc = function () {
+    setTimeout(flushCallbacks, 0);
+  };
 }
 
 function nextTick (cb, ctx) {
@@ -2338,11 +2392,7 @@ function nextTick (cb, ctx) {
   });
   if (!pending) {
     pending = true;
-    if (useMacroTask) {
-      macroTimerFunc();
-    } else {
-      microTimerFunc();
-    }
+    timerFunc();
   }
   // $flow-disable-line
   if (!cb && typeof Promise !== 'undefined') {
@@ -2372,7 +2422,7 @@ if (process.env.NODE_ENV !== 'production') {
       perf.measure(name, startTag, endTag);
       perf.clearMarks(startTag);
       perf.clearMarks(endTag);
-      perf.clearMeasures(name);
+      // perf.clearMeasures(name)
     };
   }
 }
@@ -2519,7 +2569,7 @@ var normalizeEvent = cached(function (name) {
   }
 });
 
-function createFnInvoker (fns) {
+function createFnInvoker (fns, vm) {
   function invoker () {
     var arguments$1 = arguments;
 
@@ -2527,11 +2577,11 @@ function createFnInvoker (fns) {
     if (Array.isArray(fns)) {
       var cloned = fns.slice();
       for (var i = 0; i < cloned.length; i++) {
-        cloned[i].apply(null, arguments$1);
+        invokeWithErrorHandling(cloned[i], null, arguments$1, vm, "v-on handler");
       }
     } else {
       // return handler return value for single handlers
-      return fns.apply(null, arguments)
+      return invokeWithErrorHandling(fns, null, arguments, vm, "v-on handler")
     }
   }
   invoker.fns = fns;
@@ -2558,7 +2608,7 @@ function updateListeners (
       );
     } else if (isUndef(old)) {
       if (isUndef(cur.fns)) {
-        cur = on[name] = createFnInvoker(cur);
+        cur = on[name] = createFnInvoker(cur, vm);
       }
       if (isTrue(event.once)) {
         cur = on[name] = createOnceHandler(event.name, cur, event.capture);
@@ -2769,6 +2819,1158 @@ function normalizeArrayChildren (children, nestedIndex) {
 
 /*  */
 
+function initProvide (vm) {
+  var provide = vm.$options.provide;
+  if (provide) {
+    vm._provided = typeof provide === 'function'
+      ? provide.call(vm)
+      : provide;
+  }
+}
+
+function initInjections (vm) {
+  var result = resolveInject(vm.$options.inject, vm);
+  if (result) {
+    toggleObserving(false);
+    Object.keys(result).forEach(function (key) {
+      /* istanbul ignore else */
+      if (process.env.NODE_ENV !== 'production') {
+        defineReactive$$1(vm, key, result[key], function () {
+          warn(
+            "Avoid mutating an injected value directly since the changes will be " +
+            "overwritten whenever the provided component re-renders. " +
+            "injection being mutated: \"" + key + "\"",
+            vm
+          );
+        });
+      } else {
+        defineReactive$$1(vm, key, result[key]);
+      }
+    });
+    toggleObserving(true);
+  }
+}
+
+function resolveInject (inject, vm) {
+  if (inject) {
+    // inject is :any because flow is not smart enough to figure out cached
+    var result = Object.create(null);
+    var keys = hasSymbol
+      ? Reflect.ownKeys(inject)
+      : Object.keys(inject);
+
+    for (var i = 0; i < keys.length; i++) {
+      var key = keys[i];
+      // #6574 in case the inject object is observed...
+      if (key === '__ob__') { continue }
+      var provideKey = inject[key].from;
+      var source = vm;
+      while (source) {
+        if (source._provided && hasOwn(source._provided, provideKey)) {
+          result[key] = source._provided[provideKey];
+          break
+        }
+        source = source.$parent;
+      }
+      if (!source) {
+        if ('default' in inject[key]) {
+          var provideDefault = inject[key].default;
+          result[key] = typeof provideDefault === 'function'
+            ? provideDefault.call(vm)
+            : provideDefault;
+        } else if (process.env.NODE_ENV !== 'production') {
+          warn(("Injection \"" + key + "\" not found"), vm);
+        }
+      }
+    }
+    return result
+  }
+}
+
+/*  */
+
+
+
+/**
+ * Runtime helper for resolving raw children VNodes into a slot object.
+ */
+function resolveSlots (
+  children,
+  context
+) {
+  if (!children || !children.length) {
+    return {}
+  }
+  var slots = {};
+  for (var i = 0, l = children.length; i < l; i++) {
+    var child = children[i];
+    var data = child.data;
+    // remove slot attribute if the node is resolved as a Vue slot node
+    if (data && data.attrs && data.attrs.slot) {
+      delete data.attrs.slot;
+    }
+    // named slots should only be respected if the vnode was rendered in the
+    // same context.
+    if ((child.context === context || child.fnContext === context) &&
+      data && data.slot != null
+    ) {
+      var name = data.slot;
+      var slot = (slots[name] || (slots[name] = []));
+      if (child.tag === 'template') {
+        slot.push.apply(slot, child.children || []);
+      } else {
+        slot.push(child);
+      }
+    } else {
+      (slots.default || (slots.default = [])).push(child);
+    }
+  }
+  // ignore slots that contains only whitespace
+  for (var name$1 in slots) {
+    if (slots[name$1].every(isWhitespace)) {
+      delete slots[name$1];
+    }
+  }
+  return slots
+}
+
+function isWhitespace (node) {
+  return (node.isComment && !node.asyncFactory) || node.text === ' '
+}
+
+/*  */
+
+function normalizeScopedSlots (
+  slots,
+  normalSlots,
+  prevSlots
+) {
+  var res;
+  if (!slots) {
+    res = {};
+  } else if (slots._normalized) {
+    // fast path 1: child component re-render only, parent did not change
+    return slots._normalized
+  } else if (
+    slots.$stable &&
+    prevSlots &&
+    prevSlots !== emptyObject &&
+    Object.keys(normalSlots).length === 0
+  ) {
+    // fast path 2: stable scoped slots w/ no normal slots to proxy,
+    // only need to normalize once
+    return prevSlots
+  } else {
+    res = {};
+    for (var key in slots) {
+      if (slots[key] && key[0] !== '$') {
+        res[key] = normalizeScopedSlot(normalSlots, key, slots[key]);
+      }
+    }
+  }
+  // expose normal slots on scopedSlots
+  for (var key$1 in normalSlots) {
+    if (!(key$1 in res)) {
+      res[key$1] = proxyNormalSlot(normalSlots, key$1);
+    }
+  }
+  // avoriaz seems to mock a non-extensible $scopedSlots object
+  // and when that is passed down this would cause an error
+  if (slots && Object.isExtensible(slots)) {
+    (slots)._normalized = res;
+  }
+  def(res, '$stable', slots ? !!slots.$stable : true);
+  return res
+}
+
+function normalizeScopedSlot(normalSlots, key, fn) {
+  var normalized = function () {
+    var res = arguments.length ? fn.apply(null, arguments) : fn({});
+    res = res && typeof res === 'object' && !Array.isArray(res)
+      ? [res] // single vnode
+      : normalizeChildren(res);
+    return res && res.length === 0
+      ? undefined
+      : res
+  };
+  // this is a slot using the new v-slot syntax without scope. although it is
+  // compiled as a scoped slot, render fn users would expect it to be present
+  // on this.$slots because the usage is semantically a normal slot.
+  if (fn.proxy) {
+    Object.defineProperty(normalSlots, key, {
+      get: normalized,
+      enumerable: true,
+      configurable: true
+    });
+  }
+  return normalized
+}
+
+function proxyNormalSlot(slots, key) {
+  return function () { return slots[key]; }
+}
+
+/*  */
+
+/**
+ * Runtime helper for rendering v-for lists.
+ */
+function renderList (
+  val,
+  render
+) {
+  var ret, i, l, keys, key;
+  if (Array.isArray(val) || typeof val === 'string') {
+    ret = new Array(val.length);
+    for (i = 0, l = val.length; i < l; i++) {
+      ret[i] = render(val[i], i);
+    }
+  } else if (typeof val === 'number') {
+    ret = new Array(val);
+    for (i = 0; i < val; i++) {
+      ret[i] = render(i + 1, i);
+    }
+  } else if (isObject(val)) {
+    if (hasSymbol && val[Symbol.iterator]) {
+      ret = [];
+      var iterator = val[Symbol.iterator]();
+      var result = iterator.next();
+      while (!result.done) {
+        ret.push(render(result.value, ret.length));
+        result = iterator.next();
+      }
+    } else {
+      keys = Object.keys(val);
+      ret = new Array(keys.length);
+      for (i = 0, l = keys.length; i < l; i++) {
+        key = keys[i];
+        ret[i] = render(val[key], key, i);
+      }
+    }
+  }
+  if (!isDef(ret)) {
+    ret = [];
+  }
+  (ret)._isVList = true;
+  return ret
+}
+
+/*  */
+
+/**
+ * Runtime helper for rendering <slot>
+ */
+function renderSlot (
+  name,
+  fallback,
+  props,
+  bindObject
+) {
+  var scopedSlotFn = this.$scopedSlots[name];
+  var nodes;
+  if (scopedSlotFn) { // scoped slot
+    props = props || {};
+    if (bindObject) {
+      if (process.env.NODE_ENV !== 'production' && !isObject(bindObject)) {
+        warn(
+          'slot v-bind without argument expects an Object',
+          this
+        );
+      }
+      props = extend(extend({}, bindObject), props);
+    }
+    nodes = scopedSlotFn(props) || fallback;
+  } else {
+    nodes = this.$slots[name] || fallback;
+  }
+
+  var target = props && props.slot;
+  if (target) {
+    return this.$createElement('template', { slot: target }, nodes)
+  } else {
+    return nodes
+  }
+}
+
+/*  */
+
+/**
+ * Runtime helper for resolving filters
+ */
+function resolveFilter (id) {
+  return resolveAsset(this.$options, 'filters', id, true) || identity
+}
+
+/*  */
+
+function isKeyNotMatch (expect, actual) {
+  if (Array.isArray(expect)) {
+    return expect.indexOf(actual) === -1
+  } else {
+    return expect !== actual
+  }
+}
+
+/**
+ * Runtime helper for checking keyCodes from config.
+ * exposed as Vue.prototype._k
+ * passing in eventKeyName as last argument separately for backwards compat
+ */
+function checkKeyCodes (
+  eventKeyCode,
+  key,
+  builtInKeyCode,
+  eventKeyName,
+  builtInKeyName
+) {
+  var mappedKeyCode = config.keyCodes[key] || builtInKeyCode;
+  if (builtInKeyName && eventKeyName && !config.keyCodes[key]) {
+    return isKeyNotMatch(builtInKeyName, eventKeyName)
+  } else if (mappedKeyCode) {
+    return isKeyNotMatch(mappedKeyCode, eventKeyCode)
+  } else if (eventKeyName) {
+    return hyphenate(eventKeyName) !== key
+  }
+}
+
+/*  */
+
+/**
+ * Runtime helper for merging v-bind="object" into a VNode's data.
+ */
+function bindObjectProps (
+  data,
+  tag,
+  value,
+  asProp,
+  isSync
+) {
+  if (value) {
+    if (!isObject(value)) {
+      process.env.NODE_ENV !== 'production' && warn(
+        'v-bind without argument expects an Object or Array value',
+        this
+      );
+    } else {
+      if (Array.isArray(value)) {
+        value = toObject(value);
+      }
+      var hash;
+      var loop = function ( key ) {
+        if (
+          key === 'class' ||
+          key === 'style' ||
+          isReservedAttribute(key)
+        ) {
+          hash = data;
+        } else {
+          var type = data.attrs && data.attrs.type;
+          hash = asProp || config.mustUseProp(tag, type, key)
+            ? data.domProps || (data.domProps = {})
+            : data.attrs || (data.attrs = {});
+        }
+        var camelizedKey = camelize(key);
+        if (!(key in hash) && !(camelizedKey in hash)) {
+          hash[key] = value[key];
+
+          if (isSync) {
+            var on = data.on || (data.on = {});
+            on[("update:" + camelizedKey)] = function ($event) {
+              value[key] = $event;
+            };
+          }
+        }
+      };
+
+      for (var key in value) loop( key );
+    }
+  }
+  return data
+}
+
+/*  */
+
+/**
+ * Runtime helper for rendering static trees.
+ */
+function renderStatic (
+  index,
+  isInFor
+) {
+  var cached = this._staticTrees || (this._staticTrees = []);
+  var tree = cached[index];
+  // if has already-rendered static tree and not inside v-for,
+  // we can reuse the same tree.
+  if (tree && !isInFor) {
+    return tree
+  }
+  // otherwise, render a fresh tree.
+  tree = cached[index] = this.$options.staticRenderFns[index].call(
+    this._renderProxy,
+    null,
+    this // for render fns generated for functional component templates
+  );
+  markStatic(tree, ("__static__" + index), false);
+  return tree
+}
+
+/**
+ * Runtime helper for v-once.
+ * Effectively it means marking the node as static with a unique key.
+ */
+function markOnce (
+  tree,
+  index,
+  key
+) {
+  markStatic(tree, ("__once__" + index + (key ? ("_" + key) : "")), true);
+  return tree
+}
+
+function markStatic (
+  tree,
+  key,
+  isOnce
+) {
+  if (Array.isArray(tree)) {
+    for (var i = 0; i < tree.length; i++) {
+      if (tree[i] && typeof tree[i] !== 'string') {
+        markStaticNode(tree[i], (key + "_" + i), isOnce);
+      }
+    }
+  } else {
+    markStaticNode(tree, key, isOnce);
+  }
+}
+
+function markStaticNode (node, key, isOnce) {
+  node.isStatic = true;
+  node.key = key;
+  node.isOnce = isOnce;
+}
+
+/*  */
+
+function bindObjectListeners (data, value) {
+  if (value) {
+    if (!isPlainObject(value)) {
+      process.env.NODE_ENV !== 'production' && warn(
+        'v-on without argument expects an Object value',
+        this
+      );
+    } else {
+      var on = data.on = data.on ? extend({}, data.on) : {};
+      for (var key in value) {
+        var existing = on[key];
+        var ours = value[key];
+        on[key] = existing ? [].concat(existing, ours) : ours;
+      }
+    }
+  }
+  return data
+}
+
+/*  */
+
+function resolveScopedSlots (
+  fns, // see flow/vnode
+  hasDynamicKeys,
+  res
+) {
+  res = res || { $stable: !hasDynamicKeys };
+  for (var i = 0; i < fns.length; i++) {
+    var slot = fns[i];
+    if (Array.isArray(slot)) {
+      resolveScopedSlots(slot, hasDynamicKeys, res);
+    } else if (slot) {
+      // marker for reverse proxying v-slot without scope on this.$slots
+      if (slot.proxy) {
+        slot.fn.proxy = true;
+      }
+      res[slot.key] = slot.fn;
+    }
+  }
+  return res
+}
+
+/*  */
+
+function bindDynamicKeys (baseObj, values) {
+  for (var i = 0; i < values.length; i += 2) {
+    var key = values[i];
+    if (typeof key === 'string' && key) {
+      baseObj[values[i]] = values[i + 1];
+    } else if (process.env.NODE_ENV !== 'production' && key !== '' && key !== null) {
+      // null is a speical value for explicitly removing a binding
+      warn(
+        ("Invalid value for dynamic directive argument (expected string or null): " + key),
+        this
+      );
+    }
+  }
+  return baseObj
+}
+
+// helper to dynamically append modifier runtime markers to event names.
+// ensure only append when value is already string, otherwise it will be cast
+// to string and cause the type check to miss.
+function prependModifier (value, symbol) {
+  return typeof value === 'string' ? symbol + value : value
+}
+
+/*  */
+
+function installRenderHelpers (target) {
+  target._o = markOnce;
+  target._n = toNumber;
+  target._s = toString;
+  target._l = renderList;
+  target._t = renderSlot;
+  target._q = looseEqual;
+  target._i = looseIndexOf;
+  target._m = renderStatic;
+  target._f = resolveFilter;
+  target._k = checkKeyCodes;
+  target._b = bindObjectProps;
+  target._v = createTextVNode;
+  target._e = createEmptyVNode;
+  target._u = resolveScopedSlots;
+  target._g = bindObjectListeners;
+  target._d = bindDynamicKeys;
+  target._p = prependModifier;
+}
+
+/*  */
+
+function FunctionalRenderContext (
+  data,
+  props,
+  children,
+  parent,
+  Ctor
+) {
+  var this$1 = this;
+
+  var options = Ctor.options;
+  // ensure the createElement function in functional components
+  // gets a unique context - this is necessary for correct named slot check
+  var contextVm;
+  if (hasOwn(parent, '_uid')) {
+    contextVm = Object.create(parent);
+    // $flow-disable-line
+    contextVm._original = parent;
+  } else {
+    // the context vm passed in is a functional context as well.
+    // in this case we want to make sure we are able to get a hold to the
+    // real context instance.
+    contextVm = parent;
+    // $flow-disable-line
+    parent = parent._original;
+  }
+  var isCompiled = isTrue(options._compiled);
+  var needNormalization = !isCompiled;
+
+  this.data = data;
+  this.props = props;
+  this.children = children;
+  this.parent = parent;
+  this.listeners = data.on || emptyObject;
+  this.injections = resolveInject(options.inject, parent);
+  this.slots = function () {
+    if (!this$1.$slots) {
+      normalizeScopedSlots(
+        data.scopedSlots,
+        this$1.$slots = resolveSlots(children, parent)
+      );
+    }
+    return this$1.$slots
+  };
+
+  Object.defineProperty(this, 'scopedSlots', ({
+    enumerable: true,
+    get: function get () {
+      return normalizeScopedSlots(data.scopedSlots, this.slots())
+    }
+  }));
+
+  // support for compiled functional template
+  if (isCompiled) {
+    // exposing $options for renderStatic()
+    this.$options = options;
+    // pre-resolve slots for renderSlot()
+    this.$slots = this.slots();
+    this.$scopedSlots = normalizeScopedSlots(data.scopedSlots, this.$slots);
+  }
+
+  if (options._scopeId) {
+    this._c = function (a, b, c, d) {
+      var vnode = createElement(contextVm, a, b, c, d, needNormalization);
+      if (vnode && !Array.isArray(vnode)) {
+        vnode.fnScopeId = options._scopeId;
+        vnode.fnContext = parent;
+      }
+      return vnode
+    };
+  } else {
+    this._c = function (a, b, c, d) { return createElement(contextVm, a, b, c, d, needNormalization); };
+  }
+}
+
+installRenderHelpers(FunctionalRenderContext.prototype);
+
+function createFunctionalComponent (
+  Ctor,
+  propsData,
+  data,
+  contextVm,
+  children
+) {
+  var options = Ctor.options;
+  var props = {};
+  var propOptions = options.props;
+  if (isDef(propOptions)) {
+    for (var key in propOptions) {
+      props[key] = validateProp(key, propOptions, propsData || emptyObject);
+    }
+  } else {
+    if (isDef(data.attrs)) { mergeProps(props, data.attrs); }
+    if (isDef(data.props)) { mergeProps(props, data.props); }
+  }
+
+  var renderContext = new FunctionalRenderContext(
+    data,
+    props,
+    children,
+    contextVm,
+    Ctor
+  );
+
+  var vnode = options.render.call(null, renderContext._c, renderContext);
+
+  if (vnode instanceof VNode) {
+    return cloneAndMarkFunctionalResult(vnode, data, renderContext.parent, options, renderContext)
+  } else if (Array.isArray(vnode)) {
+    var vnodes = normalizeChildren(vnode) || [];
+    var res = new Array(vnodes.length);
+    for (var i = 0; i < vnodes.length; i++) {
+      res[i] = cloneAndMarkFunctionalResult(vnodes[i], data, renderContext.parent, options, renderContext);
+    }
+    return res
+  }
+}
+
+function cloneAndMarkFunctionalResult (vnode, data, contextVm, options, renderContext) {
+  // #7817 clone node before setting fnContext, otherwise if the node is reused
+  // (e.g. it was from a cached normal slot) the fnContext causes named slots
+  // that should not be matched to match.
+  var clone = cloneVNode(vnode);
+  clone.fnContext = contextVm;
+  clone.fnOptions = options;
+  if (process.env.NODE_ENV !== 'production') {
+    (clone.devtoolsMeta = clone.devtoolsMeta || {}).renderContext = renderContext;
+  }
+  if (data.slot) {
+    (clone.data || (clone.data = {})).slot = data.slot;
+  }
+  return clone
+}
+
+function mergeProps (to, from) {
+  for (var key in from) {
+    to[camelize(key)] = from[key];
+  }
+}
+
+/*  */
+
+/*  */
+
+/*  */
+
+/*  */
+
+// inline hooks to be invoked on component VNodes during patch
+var componentVNodeHooks = {
+  init: function init (vnode, hydrating) {
+    if (
+      vnode.componentInstance &&
+      !vnode.componentInstance._isDestroyed &&
+      vnode.data.keepAlive
+    ) {
+      // kept-alive components, treat as a patch
+      var mountedNode = vnode; // work around flow
+      componentVNodeHooks.prepatch(mountedNode, mountedNode);
+    } else {
+      var child = vnode.componentInstance = createComponentInstanceForVnode(
+        vnode,
+        activeInstance
+      );
+      child.$mount(hydrating ? vnode.elm : undefined, hydrating);
+    }
+  },
+
+  prepatch: function prepatch (oldVnode, vnode) {
+    var options = vnode.componentOptions;
+    var child = vnode.componentInstance = oldVnode.componentInstance;
+    updateChildComponent(
+      child,
+      options.propsData, // updated props
+      options.listeners, // updated listeners
+      vnode, // new parent vnode
+      options.children // new children
+    );
+  },
+
+  insert: function insert (vnode) {
+    var context = vnode.context;
+    var componentInstance = vnode.componentInstance;
+    if (!componentInstance._isMounted) {
+      componentInstance._isMounted = true;
+      callHook(componentInstance, 'mounted');
+    }
+    if (vnode.data.keepAlive) {
+      if (context._isMounted) {
+        // vue-router#1212
+        // During updates, a kept-alive component's child components may
+        // change, so directly walking the tree here may call activated hooks
+        // on incorrect children. Instead we push them into a queue which will
+        // be processed after the whole patch process ended.
+        queueActivatedComponent(componentInstance);
+      } else {
+        activateChildComponent(componentInstance, true /* direct */);
+      }
+    }
+  },
+
+  destroy: function destroy (vnode) {
+    var componentInstance = vnode.componentInstance;
+    if (!componentInstance._isDestroyed) {
+      if (!vnode.data.keepAlive) {
+        componentInstance.$destroy();
+      } else {
+        deactivateChildComponent(componentInstance, true /* direct */);
+      }
+    }
+  }
+};
+
+var hooksToMerge = Object.keys(componentVNodeHooks);
+
+function createComponent (
+  Ctor,
+  data,
+  context,
+  children,
+  tag
+) {
+  if (isUndef(Ctor)) {
+    return
+  }
+
+  var baseCtor = context.$options._base;
+
+  // plain options object: turn it into a constructor
+  if (isObject(Ctor)) {
+    Ctor = baseCtor.extend(Ctor);
+  }
+
+  // if at this stage it's not a constructor or an async component factory,
+  // reject.
+  if (typeof Ctor !== 'function') {
+    if (process.env.NODE_ENV !== 'production') {
+      warn(("Invalid Component definition: " + (String(Ctor))), context);
+    }
+    return
+  }
+
+  // async component
+  var asyncFactory;
+  if (isUndef(Ctor.cid)) {
+    asyncFactory = Ctor;
+    Ctor = resolveAsyncComponent(asyncFactory, baseCtor);
+    if (Ctor === undefined) {
+      // return a placeholder node for async component, which is rendered
+      // as a comment node but preserves all the raw information for the node.
+      // the information will be used for async server-rendering and hydration.
+      return createAsyncPlaceholder(
+        asyncFactory,
+        data,
+        context,
+        children,
+        tag
+      )
+    }
+  }
+
+  data = data || {};
+
+  // resolve constructor options in case global mixins are applied after
+  // component constructor creation
+  resolveConstructorOptions(Ctor);
+
+  // transform component v-model data into props & events
+  if (isDef(data.model)) {
+    transformModel(Ctor.options, data);
+  }
+
+  // extract props
+  var propsData = extractPropsFromVNodeData(data, Ctor, tag);
+
+  // functional component
+  if (isTrue(Ctor.options.functional)) {
+    return createFunctionalComponent(Ctor, propsData, data, context, children)
+  }
+
+  // extract listeners, since these needs to be treated as
+  // child component listeners instead of DOM listeners
+  var listeners = data.on;
+  // replace with listeners with .native modifier
+  // so it gets processed during parent component patch.
+  data.on = data.nativeOn;
+
+  if (isTrue(Ctor.options.abstract)) {
+    // abstract components do not keep anything
+    // other than props & listeners & slot
+
+    // work around flow
+    var slot = data.slot;
+    data = {};
+    if (slot) {
+      data.slot = slot;
+    }
+  }
+
+  // install component management hooks onto the placeholder node
+  installComponentHooks(data);
+
+  // return a placeholder vnode
+  var name = Ctor.options.name || tag;
+  var vnode = new VNode(
+    ("vue-component-" + (Ctor.cid) + (name ? ("-" + name) : '')),
+    data, undefined, undefined, undefined, context,
+    { Ctor: Ctor, propsData: propsData, listeners: listeners, tag: tag, children: children },
+    asyncFactory
+  );
+
+  return vnode
+}
+
+function createComponentInstanceForVnode (
+  vnode, // we know it's MountedComponentVNode but flow doesn't
+  parent // activeInstance in lifecycle state
+) {
+  var options = {
+    _isComponent: true,
+    _parentVnode: vnode,
+    parent: parent
+  };
+  // check inline-template render functions
+  var inlineTemplate = vnode.data.inlineTemplate;
+  if (isDef(inlineTemplate)) {
+    options.render = inlineTemplate.render;
+    options.staticRenderFns = inlineTemplate.staticRenderFns;
+  }
+  return new vnode.componentOptions.Ctor(options)
+}
+
+function installComponentHooks (data) {
+  var hooks = data.hook || (data.hook = {});
+  for (var i = 0; i < hooksToMerge.length; i++) {
+    var key = hooksToMerge[i];
+    var existing = hooks[key];
+    var toMerge = componentVNodeHooks[key];
+    if (existing !== toMerge && !(existing && existing._merged)) {
+      hooks[key] = existing ? mergeHook$1(toMerge, existing) : toMerge;
+    }
+  }
+}
+
+function mergeHook$1 (f1, f2) {
+  var merged = function (a, b) {
+    // flow complains about extra args which is why we use any
+    f1(a, b);
+    f2(a, b);
+  };
+  merged._merged = true;
+  return merged
+}
+
+// transform component v-model info (value and callback) into
+// prop and event handler respectively.
+function transformModel (options, data) {
+  var prop = (options.model && options.model.prop) || 'value';
+  var event = (options.model && options.model.event) || 'input'
+  ;(data.attrs || (data.attrs = {}))[prop] = data.model.value;
+  var on = data.on || (data.on = {});
+  var existing = on[event];
+  var callback = data.model.callback;
+  if (isDef(existing)) {
+    if (
+      Array.isArray(existing)
+        ? existing.indexOf(callback) === -1
+        : existing !== callback
+    ) {
+      on[event] = [callback].concat(existing);
+    }
+  } else {
+    on[event] = callback;
+  }
+}
+
+/*  */
+
+var SIMPLE_NORMALIZE = 1;
+var ALWAYS_NORMALIZE = 2;
+
+// wrapper function for providing a more flexible interface
+// without getting yelled at by flow
+function createElement (
+  context,
+  tag,
+  data,
+  children,
+  normalizationType,
+  alwaysNormalize
+) {
+  if (Array.isArray(data) || isPrimitive(data)) {
+    normalizationType = children;
+    children = data;
+    data = undefined;
+  }
+  if (isTrue(alwaysNormalize)) {
+    normalizationType = ALWAYS_NORMALIZE;
+  }
+  return _createElement(context, tag, data, children, normalizationType)
+}
+
+function _createElement (
+  context,
+  tag,
+  data,
+  children,
+  normalizationType
+) {
+  if (isDef(data) && isDef((data).__ob__)) {
+    process.env.NODE_ENV !== 'production' && warn(
+      "Avoid using observed data object as vnode data: " + (JSON.stringify(data)) + "\n" +
+      'Always create fresh vnode data objects in each render!',
+      context
+    );
+    return createEmptyVNode()
+  }
+  // object syntax in v-bind
+  if (isDef(data) && isDef(data.is)) {
+    tag = data.is;
+  }
+  if (!tag) {
+    // in case of component :is set to falsy value
+    return createEmptyVNode()
+  }
+  // warn against non-primitive key
+  if (process.env.NODE_ENV !== 'production' &&
+    isDef(data) && isDef(data.key) && !isPrimitive(data.key)
+  ) {
+    {
+      warn(
+        'Avoid using non-primitive value as key, ' +
+        'use string/number value instead.',
+        context
+      );
+    }
+  }
+  // support single function children as default scoped slot
+  if (Array.isArray(children) &&
+    typeof children[0] === 'function'
+  ) {
+    data = data || {};
+    data.scopedSlots = { default: children[0] };
+    children.length = 0;
+  }
+  if (normalizationType === ALWAYS_NORMALIZE) {
+    children = normalizeChildren(children);
+  } else if (normalizationType === SIMPLE_NORMALIZE) {
+    children = simpleNormalizeChildren(children);
+  }
+  var vnode, ns;
+  if (typeof tag === 'string') {
+    var Ctor;
+    ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag);
+    if (config.isReservedTag(tag)) {
+      // platform built-in elements
+      vnode = new VNode(
+        config.parsePlatformTagName(tag), data, children,
+        undefined, undefined, context
+      );
+    } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
+      // component
+      vnode = createComponent(Ctor, data, context, children, tag);
+    } else {
+      // unknown or unlisted namespaced elements
+      // check at runtime because it may get assigned a namespace when its
+      // parent normalizes children
+      vnode = new VNode(
+        tag, data, children,
+        undefined, undefined, context
+      );
+    }
+  } else {
+    // direct component options / constructor
+    vnode = createComponent(tag, data, context, children);
+  }
+  if (Array.isArray(vnode)) {
+    return vnode
+  } else if (isDef(vnode)) {
+    if (isDef(ns)) { applyNS(vnode, ns); }
+    if (isDef(data)) { registerDeepBindings(data); }
+    return vnode
+  } else {
+    return createEmptyVNode()
+  }
+}
+
+function applyNS (vnode, ns, force) {
+  vnode.ns = ns;
+  if (vnode.tag === 'foreignObject') {
+    // use default namespace inside foreignObject
+    ns = undefined;
+    force = true;
+  }
+  if (isDef(vnode.children)) {
+    for (var i = 0, l = vnode.children.length; i < l; i++) {
+      var child = vnode.children[i];
+      if (isDef(child.tag) && (
+        isUndef(child.ns) || (isTrue(force) && child.tag !== 'svg'))) {
+        applyNS(child, ns, force);
+      }
+    }
+  }
+}
+
+// ref #5318
+// necessary to ensure parent re-render when deep bindings like :style and
+// :class are used on slot nodes
+function registerDeepBindings (data) {
+  if (isObject(data.style)) {
+    traverse(data.style);
+  }
+  if (isObject(data.class)) {
+    traverse(data.class);
+  }
+}
+
+/*  */
+
+function initRender (vm) {
+  vm._vnode = null; // the root of the child tree
+  vm._staticTrees = null; // v-once cached trees
+  var options = vm.$options;
+  var parentVnode = vm.$vnode = options._parentVnode; // the placeholder node in parent tree
+  var renderContext = parentVnode && parentVnode.context;
+  vm.$slots = resolveSlots(options._renderChildren, renderContext);
+  vm.$scopedSlots = emptyObject;
+  // bind the createElement fn to this instance
+  // so that we get proper render context inside it.
+  // args order: tag, data, children, normalizationType, alwaysNormalize
+  // internal version is used by render functions compiled from templates
+  vm._c = function (a, b, c, d) { return createElement(vm, a, b, c, d, false); };
+  // normalization is always applied for the public version, used in
+  // user-written render functions.
+  vm.$createElement = function (a, b, c, d) { return createElement(vm, a, b, c, d, true); };
+
+  // $attrs & $listeners are exposed for easier HOC creation.
+  // they need to be reactive so that HOCs using them are always updated
+  var parentData = parentVnode && parentVnode.data;
+
+  /* istanbul ignore else */
+  if (process.env.NODE_ENV !== 'production') {
+    defineReactive$$1(vm, '$attrs', parentData && parentData.attrs || emptyObject, function () {
+      !isUpdatingChildComponent && warn("$attrs is readonly.", vm);
+    }, true);
+    defineReactive$$1(vm, '$listeners', options._parentListeners || emptyObject, function () {
+      !isUpdatingChildComponent && warn("$listeners is readonly.", vm);
+    }, true);
+  } else {
+    defineReactive$$1(vm, '$attrs', parentData && parentData.attrs || emptyObject, null, true);
+    defineReactive$$1(vm, '$listeners', options._parentListeners || emptyObject, null, true);
+  }
+}
+
+var currentRenderingInstance = null;
+
+function renderMixin (Vue) {
+  // install runtime convenience helpers
+  installRenderHelpers(Vue.prototype);
+
+  Vue.prototype.$nextTick = function (fn) {
+    return nextTick(fn, this)
+  };
+
+  Vue.prototype._render = function () {
+    var vm = this;
+    var ref = vm.$options;
+    var render = ref.render;
+    var _parentVnode = ref._parentVnode;
+
+    if (_parentVnode) {
+      vm.$scopedSlots = normalizeScopedSlots(
+        _parentVnode.data.scopedSlots,
+        vm.$slots,
+        vm.$scopedSlots
+      );
+    }
+
+    // set parent vnode. this allows render functions to have access
+    // to the data on the placeholder node.
+    vm.$vnode = _parentVnode;
+    // render self
+    var vnode;
+    try {
+      // There's no need to maintain a stack becaues all render fns are called
+      // separately from one another. Nested component's render fns are called
+      // when parent component is patched.
+      currentRenderingInstance = vm;
+      vnode = render.call(vm._renderProxy, vm.$createElement);
+    } catch (e) {
+      handleError(e, vm, "render");
+      // return error render result,
+      // or previous vnode to prevent render error causing blank component
+      /* istanbul ignore else */
+      if (process.env.NODE_ENV !== 'production' && vm.$options.renderError) {
+        try {
+          vnode = vm.$options.renderError.call(vm._renderProxy, vm.$createElement, e);
+        } catch (e) {
+          handleError(e, vm, "renderError");
+          vnode = vm._vnode;
+        }
+      } else {
+        vnode = vm._vnode;
+      }
+    } finally {
+      currentRenderingInstance = null;
+    }
+    // if the returned array contains only a single node, allow it
+    if (Array.isArray(vnode) && vnode.length === 1) {
+      vnode = vnode[0];
+    }
+    // return empty vnode in case the render function errored out
+    if (!(vnode instanceof VNode)) {
+      if (process.env.NODE_ENV !== 'production' && Array.isArray(vnode)) {
+        warn(
+          'Multiple root nodes returned from render function. Render function ' +
+          'should return a single root node.',
+          vm
+        );
+      }
+      vnode = createEmptyVNode();
+    }
+    // set parent
+    vnode.parent = _parentVnode;
+    return vnode
+  };
+}
+
+/*  */
+
 function ensureCtor (comp, base) {
   if (
     comp.__esModule ||
@@ -2796,8 +3998,7 @@ function createAsyncPlaceholder (
 
 function resolveAsyncComponent (
   factory,
-  baseCtor,
-  context
+  baseCtor
 ) {
   if (isTrue(factory.error) && isDef(factory.errorComp)) {
     return factory.errorComp
@@ -2811,20 +4012,21 @@ function resolveAsyncComponent (
     return factory.loadingComp
   }
 
-  if (isDef(factory.contexts)) {
+  var owner = currentRenderingInstance;
+  if (isDef(factory.owners)) {
     // already pending
-    factory.contexts.push(context);
+    factory.owners.push(owner);
   } else {
-    var contexts = factory.contexts = [context];
+    var owners = factory.owners = [owner];
     var sync = true;
 
     var forceRender = function (renderCompleted) {
-      for (var i = 0, l = contexts.length; i < l; i++) {
-        contexts[i].$forceUpdate();
+      for (var i = 0, l = owners.length; i < l; i++) {
+        (owners[i]).$forceUpdate();
       }
 
       if (renderCompleted) {
-        contexts.length = 0;
+        owners.length = 0;
       }
     };
 
@@ -2835,6 +4037,8 @@ function resolveAsyncComponent (
       // (async resolves are shimmed as synchronous during SSR)
       if (!sync) {
         forceRender(true);
+      } else {
+        owners.length = 0;
       }
     });
 
@@ -2852,12 +4056,12 @@ function resolveAsyncComponent (
     var res = factory(resolve, reject);
 
     if (isObject(res)) {
-      if (typeof res.then === 'function') {
+      if (isPromise(res)) {
         // () => Promise
         if (isUndef(factory.resolved)) {
           res.then(resolve, reject);
         }
-      } else if (isDef(res.component) && typeof res.component.then === 'function') {
+      } else if (isPromise(res.component)) {
         res.component.then(resolve, reject);
 
         if (isDef(res.error)) {
@@ -3002,8 +4206,8 @@ function eventsMixin (Vue) {
     }
     // array of events
     if (Array.isArray(event)) {
-      for (var i = 0, l = event.length; i < l; i++) {
-        vm.$off(event[i], fn);
+      for (var i$1 = 0, l = event.length; i$1 < l; i$1++) {
+        vm.$off(event[i$1], fn);
       }
       return vm
     }
@@ -3016,16 +4220,14 @@ function eventsMixin (Vue) {
       vm._events[event] = null;
       return vm
     }
-    if (fn) {
-      // specific handler
-      var cb;
-      var i$1 = cbs.length;
-      while (i$1--) {
-        cb = cbs[i$1];
-        if (cb === fn || cb.fn === fn) {
-          cbs.splice(i$1, 1);
-          break
-        }
+    // specific handler
+    var cb;
+    var i = cbs.length;
+    while (i--) {
+      cb = cbs[i];
+      if (cb === fn || cb.fn === fn) {
+        cbs.splice(i, 1);
+        break
       }
     }
     return vm
@@ -3049,82 +4251,13 @@ function eventsMixin (Vue) {
     if (cbs) {
       cbs = cbs.length > 1 ? toArray(cbs) : cbs;
       var args = toArray(arguments, 1);
+      var info = "event handler for \"" + event + "\"";
       for (var i = 0, l = cbs.length; i < l; i++) {
-        try {
-          cbs[i].apply(vm, args);
-        } catch (e) {
-          handleError(e, vm, ("event handler for \"" + event + "\""));
-        }
+        invokeWithErrorHandling(cbs[i], vm, args, vm, info);
       }
     }
     return vm
   };
-}
-
-/*  */
-
-
-
-/**
- * Runtime helper for resolving raw children VNodes into a slot object.
- */
-function resolveSlots (
-  children,
-  context
-) {
-  var slots = {};
-  if (!children) {
-    return slots
-  }
-  for (var i = 0, l = children.length; i < l; i++) {
-    var child = children[i];
-    var data = child.data;
-    // remove slot attribute if the node is resolved as a Vue slot node
-    if (data && data.attrs && data.attrs.slot) {
-      delete data.attrs.slot;
-    }
-    // named slots should only be respected if the vnode was rendered in the
-    // same context.
-    if ((child.context === context || child.fnContext === context) &&
-      data && data.slot != null
-    ) {
-      var name = data.slot;
-      var slot = (slots[name] || (slots[name] = []));
-      if (child.tag === 'template') {
-        slot.push.apply(slot, child.children || []);
-      } else {
-        slot.push(child);
-      }
-    } else {
-      (slots.default || (slots.default = [])).push(child);
-    }
-  }
-  // ignore slots that contains only whitespace
-  for (var name$1 in slots) {
-    if (slots[name$1].every(isWhitespace)) {
-      delete slots[name$1];
-    }
-  }
-  return slots
-}
-
-function isWhitespace (node) {
-  return (node.isComment && !node.asyncFactory) || node.text === ' '
-}
-
-function resolveScopedSlots (
-  fns, // see flow/vnode
-  res
-) {
-  res = res || {};
-  for (var i = 0; i < fns.length; i++) {
-    if (Array.isArray(fns[i])) {
-      resolveScopedSlots(fns[i], res);
-    } else {
-      res[fns[i].key] = fns[i].fn;
-    }
-  }
-  return res
 }
 
 /*  */
@@ -3335,12 +4468,23 @@ function updateChildComponent (
   }
 
   // determine whether component has slot children
-  // we need to do this before overwriting $options._renderChildren
-  var hasChildren = !!(
+  // we need to do this before overwriting $options._renderChildren.
+
+  // check if there are dynamic scopedSlots (hand-written or compiled but with
+  // dynamic slot names). Static scoped slots compiled from template has the
+  // "$stable" marker.
+  var hasDynamicScopedSlot = !!(
+    (parentVnode.data.scopedSlots && !parentVnode.data.scopedSlots.$stable) ||
+    (vm.$scopedSlots !== emptyObject && !vm.$scopedSlots.$stable)
+  );
+
+  // Any static slot children from the parent may have changed during parent's
+  // update. Dynamic scoped slots may also have changed. In such cases, a forced
+  // update is necessary to ensure correctness.
+  var needsForceUpdate = !!(
     renderChildren ||               // has new static slots
     vm.$options._renderChildren ||  // has old static slots
-    parentVnode.data.scopedSlots || // has new scoped slots
-    vm.$scopedSlots !== emptyObject // has old scoped slots
+    hasDynamicScopedSlot
   );
 
   vm.$options._parentVnode = parentVnode;
@@ -3379,7 +4523,7 @@ function updateChildComponent (
   updateComponentListeners(vm, listeners, oldListeners);
 
   // resolve slots + force update if has children
-  if (hasChildren) {
+  if (needsForceUpdate) {
     vm.$slots = resolveSlots(renderChildren, parentVnode.context);
     vm.$forceUpdate();
   }
@@ -3434,13 +4578,10 @@ function callHook (vm, hook) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget();
   var handlers = vm.$options[hook];
+  var info = hook + " hook";
   if (handlers) {
     for (var i = 0, j = handlers.length; i < j; i++) {
-      try {
-        handlers[i].call(vm);
-      } catch (e) {
-        handleError(e, vm, (hook + " hook"));
-      }
+      invokeWithErrorHandling(handlers[i], vm, null, vm, info);
     }
   }
   if (vm._hasHookEvent) {
@@ -3473,10 +4614,32 @@ function resetSchedulerState () {
   waiting = flushing = false;
 }
 
+// Async edge case #6566 requires saving the timestamp when event listeners are
+// attached. However, calling performance.now() has a perf overhead especially
+// if the page has thousands of event listeners. Instead, we take a timestamp
+// every time the scheduler flushes and use that for all event listeners
+// attached during that flush.
+var currentFlushTimestamp = 0;
+
+// Async edge case fix requires storing an event listener's attach timestamp.
+var getNow = Date.now;
+
+// Determine what event timestamp the browser is using. Annoyingly, the
+// timestamp can either be hi-res (relative to page load) or low-res
+// (relative to UNIX epoch), so in order to compare time we have to use the
+// same timestamp type when saving the flush timestamp.
+if (inBrowser && getNow() > document.createEvent('Event').timeStamp) {
+  // if the low-res timestamp which is bigger than the event timestamp
+  // (which is evaluated AFTER) it means the event is using a hi-res timestamp,
+  // and we need to use the hi-res version for event listeners as well.
+  getNow = function () { return performance.now(); };
+}
+
 /**
  * Flush both queues and run the watchers.
  */
 function flushSchedulerQueue () {
+  currentFlushTimestamp = getNow();
   flushing = true;
   var watcher, id;
 
@@ -3600,7 +4763,7 @@ function queueWatcher (watcher) {
 
 
 
-var uid$1 = 0;
+var uid$2 = 0;
 
 /**
  * A watcher parses an expression, collects dependencies,
@@ -3630,7 +4793,7 @@ var Watcher = function Watcher (
     this.deep = this.user = this.lazy = this.sync = false;
   }
   this.cb = cb;
-  this.id = ++uid$1; // uid for batching
+  this.id = ++uid$2; // uid for batching
   this.active = true;
   this.dirty = this.lazy; // for lazy watchers
   this.deps = [];
@@ -4151,943 +5314,6 @@ function stateMixin (Vue) {
 
 /*  */
 
-function initProvide (vm) {
-  var provide = vm.$options.provide;
-  if (provide) {
-    vm._provided = typeof provide === 'function'
-      ? provide.call(vm)
-      : provide;
-  }
-}
-
-function initInjections (vm) {
-  var result = resolveInject(vm.$options.inject, vm);
-  if (result) {
-    toggleObserving(false);
-    Object.keys(result).forEach(function (key) {
-      /* istanbul ignore else */
-      if (process.env.NODE_ENV !== 'production') {
-        defineReactive$$1(vm, key, result[key], function () {
-          warn(
-            "Avoid mutating an injected value directly since the changes will be " +
-            "overwritten whenever the provided component re-renders. " +
-            "injection being mutated: \"" + key + "\"",
-            vm
-          );
-        });
-      } else {
-        defineReactive$$1(vm, key, result[key]);
-      }
-    });
-    toggleObserving(true);
-  }
-}
-
-function resolveInject (inject, vm) {
-  if (inject) {
-    // inject is :any because flow is not smart enough to figure out cached
-    var result = Object.create(null);
-    var keys = hasSymbol
-      ? Reflect.ownKeys(inject).filter(function (key) {
-        /* istanbul ignore next */
-        return Object.getOwnPropertyDescriptor(inject, key).enumerable
-      })
-      : Object.keys(inject);
-
-    for (var i = 0; i < keys.length; i++) {
-      var key = keys[i];
-      var provideKey = inject[key].from;
-      var source = vm;
-      while (source) {
-        if (source._provided && hasOwn(source._provided, provideKey)) {
-          result[key] = source._provided[provideKey];
-          break
-        }
-        source = source.$parent;
-      }
-      if (!source) {
-        if ('default' in inject[key]) {
-          var provideDefault = inject[key].default;
-          result[key] = typeof provideDefault === 'function'
-            ? provideDefault.call(vm)
-            : provideDefault;
-        } else if (process.env.NODE_ENV !== 'production') {
-          warn(("Injection \"" + key + "\" not found"), vm);
-        }
-      }
-    }
-    return result
-  }
-}
-
-/*  */
-
-/**
- * Runtime helper for rendering v-for lists.
- */
-function renderList (
-  val,
-  render
-) {
-  var ret, i, l, keys, key;
-  if (Array.isArray(val) || typeof val === 'string') {
-    ret = new Array(val.length);
-    for (i = 0, l = val.length; i < l; i++) {
-      ret[i] = render(val[i], i);
-    }
-  } else if (typeof val === 'number') {
-    ret = new Array(val);
-    for (i = 0; i < val; i++) {
-      ret[i] = render(i + 1, i);
-    }
-  } else if (isObject(val)) {
-    keys = Object.keys(val);
-    ret = new Array(keys.length);
-    for (i = 0, l = keys.length; i < l; i++) {
-      key = keys[i];
-      ret[i] = render(val[key], key, i);
-    }
-  }
-  if (!isDef(ret)) {
-    ret = [];
-  }
-  (ret)._isVList = true;
-  return ret
-}
-
-/*  */
-
-/**
- * Runtime helper for rendering <slot>
- */
-function renderSlot (
-  name,
-  fallback,
-  props,
-  bindObject
-) {
-  var scopedSlotFn = this.$scopedSlots[name];
-  var nodes;
-  if (scopedSlotFn) { // scoped slot
-    props = props || {};
-    if (bindObject) {
-      if (process.env.NODE_ENV !== 'production' && !isObject(bindObject)) {
-        warn(
-          'slot v-bind without argument expects an Object',
-          this
-        );
-      }
-      props = extend(extend({}, bindObject), props);
-    }
-    nodes = scopedSlotFn(props) || fallback;
-  } else {
-    nodes = this.$slots[name] || fallback;
-  }
-
-  var target = props && props.slot;
-  if (target) {
-    return this.$createElement('template', { slot: target }, nodes)
-  } else {
-    return nodes
-  }
-}
-
-/*  */
-
-/**
- * Runtime helper for resolving filters
- */
-function resolveFilter (id) {
-  return resolveAsset(this.$options, 'filters', id, true) || identity
-}
-
-/*  */
-
-function isKeyNotMatch (expect, actual) {
-  if (Array.isArray(expect)) {
-    return expect.indexOf(actual) === -1
-  } else {
-    return expect !== actual
-  }
-}
-
-/**
- * Runtime helper for checking keyCodes from config.
- * exposed as Vue.prototype._k
- * passing in eventKeyName as last argument separately for backwards compat
- */
-function checkKeyCodes (
-  eventKeyCode,
-  key,
-  builtInKeyCode,
-  eventKeyName,
-  builtInKeyName
-) {
-  var mappedKeyCode = config.keyCodes[key] || builtInKeyCode;
-  if (builtInKeyName && eventKeyName && !config.keyCodes[key]) {
-    return isKeyNotMatch(builtInKeyName, eventKeyName)
-  } else if (mappedKeyCode) {
-    return isKeyNotMatch(mappedKeyCode, eventKeyCode)
-  } else if (eventKeyName) {
-    return hyphenate(eventKeyName) !== key
-  }
-}
-
-/*  */
-
-/**
- * Runtime helper for merging v-bind="object" into a VNode's data.
- */
-function bindObjectProps (
-  data,
-  tag,
-  value,
-  asProp,
-  isSync
-) {
-  if (value) {
-    if (!isObject(value)) {
-      process.env.NODE_ENV !== 'production' && warn(
-        'v-bind without argument expects an Object or Array value',
-        this
-      );
-    } else {
-      if (Array.isArray(value)) {
-        value = toObject(value);
-      }
-      var hash;
-      var loop = function ( key ) {
-        if (
-          key === 'class' ||
-          key === 'style' ||
-          isReservedAttribute(key)
-        ) {
-          hash = data;
-        } else {
-          var type = data.attrs && data.attrs.type;
-          hash = asProp || config.mustUseProp(tag, type, key)
-            ? data.domProps || (data.domProps = {})
-            : data.attrs || (data.attrs = {});
-        }
-        var camelizedKey = camelize(key);
-        if (!(key in hash) && !(camelizedKey in hash)) {
-          hash[key] = value[key];
-
-          if (isSync) {
-            var on = data.on || (data.on = {});
-            on[("update:" + camelizedKey)] = function ($event) {
-              value[key] = $event;
-            };
-          }
-        }
-      };
-
-      for (var key in value) loop( key );
-    }
-  }
-  return data
-}
-
-/*  */
-
-/**
- * Runtime helper for rendering static trees.
- */
-function renderStatic (
-  index,
-  isInFor
-) {
-  var cached = this._staticTrees || (this._staticTrees = []);
-  var tree = cached[index];
-  // if has already-rendered static tree and not inside v-for,
-  // we can reuse the same tree.
-  if (tree && !isInFor) {
-    return tree
-  }
-  // otherwise, render a fresh tree.
-  tree = cached[index] = this.$options.staticRenderFns[index].call(
-    this._renderProxy,
-    null,
-    this // for render fns generated for functional component templates
-  );
-  markStatic(tree, ("__static__" + index), false);
-  return tree
-}
-
-/**
- * Runtime helper for v-once.
- * Effectively it means marking the node as static with a unique key.
- */
-function markOnce (
-  tree,
-  index,
-  key
-) {
-  markStatic(tree, ("__once__" + index + (key ? ("_" + key) : "")), true);
-  return tree
-}
-
-function markStatic (
-  tree,
-  key,
-  isOnce
-) {
-  if (Array.isArray(tree)) {
-    for (var i = 0; i < tree.length; i++) {
-      if (tree[i] && typeof tree[i] !== 'string') {
-        markStaticNode(tree[i], (key + "_" + i), isOnce);
-      }
-    }
-  } else {
-    markStaticNode(tree, key, isOnce);
-  }
-}
-
-function markStaticNode (node, key, isOnce) {
-  node.isStatic = true;
-  node.key = key;
-  node.isOnce = isOnce;
-}
-
-/*  */
-
-function bindObjectListeners (data, value) {
-  if (value) {
-    if (!isPlainObject(value)) {
-      process.env.NODE_ENV !== 'production' && warn(
-        'v-on without argument expects an Object value',
-        this
-      );
-    } else {
-      var on = data.on = data.on ? extend({}, data.on) : {};
-      for (var key in value) {
-        var existing = on[key];
-        var ours = value[key];
-        on[key] = existing ? [].concat(existing, ours) : ours;
-      }
-    }
-  }
-  return data
-}
-
-/*  */
-
-function installRenderHelpers (target) {
-  target._o = markOnce;
-  target._n = toNumber;
-  target._s = toString;
-  target._l = renderList;
-  target._t = renderSlot;
-  target._q = looseEqual;
-  target._i = looseIndexOf;
-  target._m = renderStatic;
-  target._f = resolveFilter;
-  target._k = checkKeyCodes;
-  target._b = bindObjectProps;
-  target._v = createTextVNode;
-  target._e = createEmptyVNode;
-  target._u = resolveScopedSlots;
-  target._g = bindObjectListeners;
-}
-
-/*  */
-
-function FunctionalRenderContext (
-  data,
-  props,
-  children,
-  parent,
-  Ctor
-) {
-  var options = Ctor.options;
-  // ensure the createElement function in functional components
-  // gets a unique context - this is necessary for correct named slot check
-  var contextVm;
-  if (hasOwn(parent, '_uid')) {
-    contextVm = Object.create(parent);
-    // $flow-disable-line
-    contextVm._original = parent;
-  } else {
-    // the context vm passed in is a functional context as well.
-    // in this case we want to make sure we are able to get a hold to the
-    // real context instance.
-    contextVm = parent;
-    // $flow-disable-line
-    parent = parent._original;
-  }
-  var isCompiled = isTrue(options._compiled);
-  var needNormalization = !isCompiled;
-
-  this.data = data;
-  this.props = props;
-  this.children = children;
-  this.parent = parent;
-  this.listeners = data.on || emptyObject;
-  this.injections = resolveInject(options.inject, parent);
-  this.slots = function () { return resolveSlots(children, parent); };
-
-  // support for compiled functional template
-  if (isCompiled) {
-    // exposing $options for renderStatic()
-    this.$options = options;
-    // pre-resolve slots for renderSlot()
-    this.$slots = this.slots();
-    this.$scopedSlots = data.scopedSlots || emptyObject;
-  }
-
-  if (options._scopeId) {
-    this._c = function (a, b, c, d) {
-      var vnode = createElement(contextVm, a, b, c, d, needNormalization);
-      if (vnode && !Array.isArray(vnode)) {
-        vnode.fnScopeId = options._scopeId;
-        vnode.fnContext = parent;
-      }
-      return vnode
-    };
-  } else {
-    this._c = function (a, b, c, d) { return createElement(contextVm, a, b, c, d, needNormalization); };
-  }
-}
-
-installRenderHelpers(FunctionalRenderContext.prototype);
-
-function createFunctionalComponent (
-  Ctor,
-  propsData,
-  data,
-  contextVm,
-  children
-) {
-  var options = Ctor.options;
-  var props = {};
-  var propOptions = options.props;
-  if (isDef(propOptions)) {
-    for (var key in propOptions) {
-      props[key] = validateProp(key, propOptions, propsData || emptyObject);
-    }
-  } else {
-    if (isDef(data.attrs)) { mergeProps(props, data.attrs); }
-    if (isDef(data.props)) { mergeProps(props, data.props); }
-  }
-
-  var renderContext = new FunctionalRenderContext(
-    data,
-    props,
-    children,
-    contextVm,
-    Ctor
-  );
-
-  var vnode = options.render.call(null, renderContext._c, renderContext);
-
-  if (vnode instanceof VNode) {
-    return cloneAndMarkFunctionalResult(vnode, data, renderContext.parent, options, renderContext)
-  } else if (Array.isArray(vnode)) {
-    var vnodes = normalizeChildren(vnode) || [];
-    var res = new Array(vnodes.length);
-    for (var i = 0; i < vnodes.length; i++) {
-      res[i] = cloneAndMarkFunctionalResult(vnodes[i], data, renderContext.parent, options, renderContext);
-    }
-    return res
-  }
-}
-
-function cloneAndMarkFunctionalResult (vnode, data, contextVm, options, renderContext) {
-  // #7817 clone node before setting fnContext, otherwise if the node is reused
-  // (e.g. it was from a cached normal slot) the fnContext causes named slots
-  // that should not be matched to match.
-  var clone = cloneVNode(vnode);
-  clone.fnContext = contextVm;
-  clone.fnOptions = options;
-  if (process.env.NODE_ENV !== 'production') {
-    (clone.devtoolsMeta = clone.devtoolsMeta || {}).renderContext = renderContext;
-  }
-  if (data.slot) {
-    (clone.data || (clone.data = {})).slot = data.slot;
-  }
-  return clone
-}
-
-function mergeProps (to, from) {
-  for (var key in from) {
-    to[camelize(key)] = from[key];
-  }
-}
-
-/*  */
-
-/*  */
-
-/*  */
-
-/*  */
-
-// inline hooks to be invoked on component VNodes during patch
-var componentVNodeHooks = {
-  init: function init (vnode, hydrating) {
-    if (
-      vnode.componentInstance &&
-      !vnode.componentInstance._isDestroyed &&
-      vnode.data.keepAlive
-    ) {
-      // kept-alive components, treat as a patch
-      var mountedNode = vnode; // work around flow
-      componentVNodeHooks.prepatch(mountedNode, mountedNode);
-    } else {
-      var child = vnode.componentInstance = createComponentInstanceForVnode(
-        vnode,
-        activeInstance
-      );
-      child.$mount(hydrating ? vnode.elm : undefined, hydrating);
-    }
-  },
-
-  prepatch: function prepatch (oldVnode, vnode) {
-    var options = vnode.componentOptions;
-    var child = vnode.componentInstance = oldVnode.componentInstance;
-    updateChildComponent(
-      child,
-      options.propsData, // updated props
-      options.listeners, // updated listeners
-      vnode, // new parent vnode
-      options.children // new children
-    );
-  },
-
-  insert: function insert (vnode) {
-    var context = vnode.context;
-    var componentInstance = vnode.componentInstance;
-    if (!componentInstance._isMounted) {
-      componentInstance._isMounted = true;
-      callHook(componentInstance, 'mounted');
-    }
-    if (vnode.data.keepAlive) {
-      if (context._isMounted) {
-        // vue-router#1212
-        // During updates, a kept-alive component's child components may
-        // change, so directly walking the tree here may call activated hooks
-        // on incorrect children. Instead we push them into a queue which will
-        // be processed after the whole patch process ended.
-        queueActivatedComponent(componentInstance);
-      } else {
-        activateChildComponent(componentInstance, true /* direct */);
-      }
-    }
-  },
-
-  destroy: function destroy (vnode) {
-    var componentInstance = vnode.componentInstance;
-    if (!componentInstance._isDestroyed) {
-      if (!vnode.data.keepAlive) {
-        componentInstance.$destroy();
-      } else {
-        deactivateChildComponent(componentInstance, true /* direct */);
-      }
-    }
-  }
-};
-
-var hooksToMerge = Object.keys(componentVNodeHooks);
-
-function createComponent (
-  Ctor,
-  data,
-  context,
-  children,
-  tag
-) {
-  if (isUndef(Ctor)) {
-    return
-  }
-
-  var baseCtor = context.$options._base;
-
-  // plain options object: turn it into a constructor
-  if (isObject(Ctor)) {
-    Ctor = baseCtor.extend(Ctor);
-  }
-
-  // if at this stage it's not a constructor or an async component factory,
-  // reject.
-  if (typeof Ctor !== 'function') {
-    if (process.env.NODE_ENV !== 'production') {
-      warn(("Invalid Component definition: " + (String(Ctor))), context);
-    }
-    return
-  }
-
-  // async component
-  var asyncFactory;
-  if (isUndef(Ctor.cid)) {
-    asyncFactory = Ctor;
-    Ctor = resolveAsyncComponent(asyncFactory, baseCtor, context);
-    if (Ctor === undefined) {
-      // return a placeholder node for async component, which is rendered
-      // as a comment node but preserves all the raw information for the node.
-      // the information will be used for async server-rendering and hydration.
-      return createAsyncPlaceholder(
-        asyncFactory,
-        data,
-        context,
-        children,
-        tag
-      )
-    }
-  }
-
-  data = data || {};
-
-  // resolve constructor options in case global mixins are applied after
-  // component constructor creation
-  resolveConstructorOptions(Ctor);
-
-  // transform component v-model data into props & events
-  if (isDef(data.model)) {
-    transformModel(Ctor.options, data);
-  }
-
-  // extract props
-  var propsData = extractPropsFromVNodeData(data, Ctor, tag);
-
-  // functional component
-  if (isTrue(Ctor.options.functional)) {
-    return createFunctionalComponent(Ctor, propsData, data, context, children)
-  }
-
-  // extract listeners, since these needs to be treated as
-  // child component listeners instead of DOM listeners
-  var listeners = data.on;
-  // replace with listeners with .native modifier
-  // so it gets processed during parent component patch.
-  data.on = data.nativeOn;
-
-  if (isTrue(Ctor.options.abstract)) {
-    // abstract components do not keep anything
-    // other than props & listeners & slot
-
-    // work around flow
-    var slot = data.slot;
-    data = {};
-    if (slot) {
-      data.slot = slot;
-    }
-  }
-
-  // install component management hooks onto the placeholder node
-  installComponentHooks(data);
-
-  // return a placeholder vnode
-  var name = Ctor.options.name || tag;
-  var vnode = new VNode(
-    ("vue-component-" + (Ctor.cid) + (name ? ("-" + name) : '')),
-    data, undefined, undefined, undefined, context,
-    { Ctor: Ctor, propsData: propsData, listeners: listeners, tag: tag, children: children },
-    asyncFactory
-  );
-
-  return vnode
-}
-
-function createComponentInstanceForVnode (
-  vnode, // we know it's MountedComponentVNode but flow doesn't
-  parent // activeInstance in lifecycle state
-) {
-  var options = {
-    _isComponent: true,
-    _parentVnode: vnode,
-    parent: parent
-  };
-  // check inline-template render functions
-  var inlineTemplate = vnode.data.inlineTemplate;
-  if (isDef(inlineTemplate)) {
-    options.render = inlineTemplate.render;
-    options.staticRenderFns = inlineTemplate.staticRenderFns;
-  }
-  return new vnode.componentOptions.Ctor(options)
-}
-
-function installComponentHooks (data) {
-  var hooks = data.hook || (data.hook = {});
-  for (var i = 0; i < hooksToMerge.length; i++) {
-    var key = hooksToMerge[i];
-    var existing = hooks[key];
-    var toMerge = componentVNodeHooks[key];
-    if (existing !== toMerge && !(existing && existing._merged)) {
-      hooks[key] = existing ? mergeHook$1(toMerge, existing) : toMerge;
-    }
-  }
-}
-
-function mergeHook$1 (f1, f2) {
-  var merged = function (a, b) {
-    // flow complains about extra args which is why we use any
-    f1(a, b);
-    f2(a, b);
-  };
-  merged._merged = true;
-  return merged
-}
-
-// transform component v-model info (value and callback) into
-// prop and event handler respectively.
-function transformModel (options, data) {
-  var prop = (options.model && options.model.prop) || 'value';
-  var event = (options.model && options.model.event) || 'input'
-  ;(data.props || (data.props = {}))[prop] = data.model.value;
-  var on = data.on || (data.on = {});
-  var existing = on[event];
-  var callback = data.model.callback;
-  if (isDef(existing)) {
-    if (
-      Array.isArray(existing)
-        ? existing.indexOf(callback) === -1
-        : existing !== callback
-    ) {
-      on[event] = [callback].concat(existing);
-    }
-  } else {
-    on[event] = callback;
-  }
-}
-
-/*  */
-
-var SIMPLE_NORMALIZE = 1;
-var ALWAYS_NORMALIZE = 2;
-
-// wrapper function for providing a more flexible interface
-// without getting yelled at by flow
-function createElement (
-  context,
-  tag,
-  data,
-  children,
-  normalizationType,
-  alwaysNormalize
-) {
-  if (Array.isArray(data) || isPrimitive(data)) {
-    normalizationType = children;
-    children = data;
-    data = undefined;
-  }
-  if (isTrue(alwaysNormalize)) {
-    normalizationType = ALWAYS_NORMALIZE;
-  }
-  return _createElement(context, tag, data, children, normalizationType)
-}
-
-function _createElement (
-  context,
-  tag,
-  data,
-  children,
-  normalizationType
-) {
-  if (isDef(data) && isDef((data).__ob__)) {
-    process.env.NODE_ENV !== 'production' && warn(
-      "Avoid using observed data object as vnode data: " + (JSON.stringify(data)) + "\n" +
-      'Always create fresh vnode data objects in each render!',
-      context
-    );
-    return createEmptyVNode()
-  }
-  // object syntax in v-bind
-  if (isDef(data) && isDef(data.is)) {
-    tag = data.is;
-  }
-  if (!tag) {
-    // in case of component :is set to falsy value
-    return createEmptyVNode()
-  }
-  // warn against non-primitive key
-  if (process.env.NODE_ENV !== 'production' &&
-    isDef(data) && isDef(data.key) && !isPrimitive(data.key)
-  ) {
-    {
-      warn(
-        'Avoid using non-primitive value as key, ' +
-        'use string/number value instead.',
-        context
-      );
-    }
-  }
-  // support single function children as default scoped slot
-  if (Array.isArray(children) &&
-    typeof children[0] === 'function'
-  ) {
-    data = data || {};
-    data.scopedSlots = { default: children[0] };
-    children.length = 0;
-  }
-  if (normalizationType === ALWAYS_NORMALIZE) {
-    children = normalizeChildren(children);
-  } else if (normalizationType === SIMPLE_NORMALIZE) {
-    children = simpleNormalizeChildren(children);
-  }
-  var vnode, ns;
-  if (typeof tag === 'string') {
-    var Ctor;
-    ns = (context.$vnode && context.$vnode.ns) || config.getTagNamespace(tag);
-    if (config.isReservedTag(tag)) {
-      // platform built-in elements
-      vnode = new VNode(
-        config.parsePlatformTagName(tag), data, children,
-        undefined, undefined, context
-      );
-    } else if ((!data || !data.pre) && isDef(Ctor = resolveAsset(context.$options, 'components', tag))) {
-      // component
-      vnode = createComponent(Ctor, data, context, children, tag);
-    } else {
-      // unknown or unlisted namespaced elements
-      // check at runtime because it may get assigned a namespace when its
-      // parent normalizes children
-      vnode = new VNode(
-        tag, data, children,
-        undefined, undefined, context
-      );
-    }
-  } else {
-    // direct component options / constructor
-    vnode = createComponent(tag, data, context, children);
-  }
-  if (Array.isArray(vnode)) {
-    return vnode
-  } else if (isDef(vnode)) {
-    if (isDef(ns)) { applyNS(vnode, ns); }
-    if (isDef(data)) { registerDeepBindings(data); }
-    return vnode
-  } else {
-    return createEmptyVNode()
-  }
-}
-
-function applyNS (vnode, ns, force) {
-  vnode.ns = ns;
-  if (vnode.tag === 'foreignObject') {
-    // use default namespace inside foreignObject
-    ns = undefined;
-    force = true;
-  }
-  if (isDef(vnode.children)) {
-    for (var i = 0, l = vnode.children.length; i < l; i++) {
-      var child = vnode.children[i];
-      if (isDef(child.tag) && (
-        isUndef(child.ns) || (isTrue(force) && child.tag !== 'svg'))) {
-        applyNS(child, ns, force);
-      }
-    }
-  }
-}
-
-// ref #5318
-// necessary to ensure parent re-render when deep bindings like :style and
-// :class are used on slot nodes
-function registerDeepBindings (data) {
-  if (isObject(data.style)) {
-    traverse(data.style);
-  }
-  if (isObject(data.class)) {
-    traverse(data.class);
-  }
-}
-
-/*  */
-
-function initRender (vm) {
-  vm._vnode = null; // the root of the child tree
-  vm._staticTrees = null; // v-once cached trees
-  var options = vm.$options;
-  var parentVnode = vm.$vnode = options._parentVnode; // the placeholder node in parent tree
-  var renderContext = parentVnode && parentVnode.context;
-  vm.$slots = resolveSlots(options._renderChildren, renderContext);
-  vm.$scopedSlots = emptyObject;
-  // bind the createElement fn to this instance
-  // so that we get proper render context inside it.
-  // args order: tag, data, children, normalizationType, alwaysNormalize
-  // internal version is used by render functions compiled from templates
-  vm._c = function (a, b, c, d) { return createElement(vm, a, b, c, d, false); };
-  // normalization is always applied for the public version, used in
-  // user-written render functions.
-  vm.$createElement = function (a, b, c, d) { return createElement(vm, a, b, c, d, true); };
-
-  // $attrs & $listeners are exposed for easier HOC creation.
-  // they need to be reactive so that HOCs using them are always updated
-  var parentData = parentVnode && parentVnode.data;
-
-  /* istanbul ignore else */
-  if (process.env.NODE_ENV !== 'production') {
-    defineReactive$$1(vm, '$attrs', parentData && parentData.attrs || emptyObject, function () {
-      !isUpdatingChildComponent && warn("$attrs is readonly.", vm);
-    }, true);
-    defineReactive$$1(vm, '$listeners', options._parentListeners || emptyObject, function () {
-      !isUpdatingChildComponent && warn("$listeners is readonly.", vm);
-    }, true);
-  } else {
-    defineReactive$$1(vm, '$attrs', parentData && parentData.attrs || emptyObject, null, true);
-    defineReactive$$1(vm, '$listeners', options._parentListeners || emptyObject, null, true);
-  }
-}
-
-function renderMixin (Vue) {
-  // install runtime convenience helpers
-  installRenderHelpers(Vue.prototype);
-
-  Vue.prototype.$nextTick = function (fn) {
-    return nextTick(fn, this)
-  };
-
-  Vue.prototype._render = function () {
-    var vm = this;
-    var ref = vm.$options;
-    var render = ref.render;
-    var _parentVnode = ref._parentVnode;
-
-    if (_parentVnode) {
-      vm.$scopedSlots = _parentVnode.data.scopedSlots || emptyObject;
-    }
-
-    // set parent vnode. this allows render functions to have access
-    // to the data on the placeholder node.
-    vm.$vnode = _parentVnode;
-    // render self
-    var vnode;
-    try {
-      vnode = render.call(vm._renderProxy, vm.$createElement);
-    } catch (e) {
-      handleError(e, vm, "render");
-      // return error render result,
-      // or previous vnode to prevent render error causing blank component
-      /* istanbul ignore else */
-      if (process.env.NODE_ENV !== 'production' && vm.$options.renderError) {
-        try {
-          vnode = vm.$options.renderError.call(vm._renderProxy, vm.$createElement, e);
-        } catch (e) {
-          handleError(e, vm, "renderError");
-          vnode = vm._vnode;
-        }
-      } else {
-        vnode = vm._vnode;
-      }
-    }
-    // return empty vnode in case the render function errored out
-    if (!(vnode instanceof VNode)) {
-      if (process.env.NODE_ENV !== 'production' && Array.isArray(vnode)) {
-        warn(
-          'Multiple root nodes returned from render function. Render function ' +
-          'should return a single root node.',
-          vm
-        );
-      }
-      vnode = createEmptyVNode();
-    }
-    // set parent
-    vnode.parent = _parentVnode;
-    return vnode
-  };
-}
-
-/*  */
-
 var uid$3 = 0;
 
 function initMixin (Vue) {
@@ -5195,34 +5421,14 @@ function resolveConstructorOptions (Ctor) {
 function resolveModifiedOptions (Ctor) {
   var modified;
   var latest = Ctor.options;
-  var extended = Ctor.extendOptions;
   var sealed = Ctor.sealedOptions;
   for (var key in latest) {
     if (latest[key] !== sealed[key]) {
       if (!modified) { modified = {}; }
-      modified[key] = dedupe(latest[key], extended[key], sealed[key]);
+      modified[key] = latest[key];
     }
   }
   return modified
-}
-
-function dedupe (latest, extended, sealed) {
-  // compare latest and sealed to ensure lifecycle hooks won't be duplicated
-  // between merges
-  if (Array.isArray(latest)) {
-    var res = [];
-    sealed = Array.isArray(sealed) ? sealed : [sealed];
-    extended = Array.isArray(extended) ? extended : [extended];
-    for (var i = 0; i < latest.length; i++) {
-      // push original options and not sealed options to exclude duplicated options
-      if (extended.indexOf(latest[i]) >= 0 || sealed.indexOf(latest[i]) < 0) {
-        res.push(latest[i]);
-      }
-    }
-    return res
-  } else {
-    return latest
-  }
 }
 
 function Vue (options) {
@@ -5558,6 +5764,12 @@ function initGlobalAPI (Vue) {
   Vue.delete = del;
   Vue.nextTick = nextTick;
 
+  // 2.6 explicit observable API
+  Vue.observable = function (obj) {
+    observe(obj);
+    return obj
+  };
+
   Vue.options = Object.create(null);
   ASSET_TYPES.forEach(function (type) {
     Vue.options[type + 's'] = Object.create(null);
@@ -5593,7 +5805,7 @@ Object.defineProperty(Vue, 'FunctionalRenderContext', {
   value: FunctionalRenderContext
 });
 
-Vue.version = '2.5.21';
+Vue.version = '2.6.6';
 
 /*  */
 
@@ -5613,6 +5825,17 @@ var mustUseProp = function (tag, type, attr) {
 };
 
 var isEnumeratedAttr = makeMap('contenteditable,draggable,spellcheck');
+
+var isValidContentEditableValue = makeMap('events,caret,typing,plaintext-only');
+
+var convertEnumeratedValue = function (key, value) {
+  return isFalsyAttrValue(value) || value === 'false'
+    ? 'false'
+    // allow arbitrary string value for contenteditable
+    : key === 'contenteditable' && isValidContentEditableValue(value)
+      ? value
+      : 'true'
+};
 
 var isBooleanAttr = makeMap(
   'allowfullscreen,async,autofocus,autoplay,checked,compact,controls,declare,' +
@@ -6739,6 +6962,7 @@ function _update (oldVnode, vnode) {
     } else {
       // existing directive, update
       dir.oldValue = oldDir.value;
+      dir.oldArg = oldDir.arg;
       callHook$1(dir, 'update', vnode, oldVnode);
       if (dir.def && dir.def.componentUpdated) {
         dirsWithPostpatch.push(dir);
@@ -6882,7 +7106,7 @@ function setAttr (el, key, value) {
       el.setAttribute(key, value);
     }
   } else if (isEnumeratedAttr(key)) {
-    el.setAttribute(key, isFalsyAttrValue(value) || value === 'false' ? 'false' : 'true');
+    el.setAttribute(key, convertEnumeratedValue(key, value));
   } else if (isXlink(key)) {
     if (isFalsyAttrValue(value)) {
       el.removeAttributeNS(xlinkNS, getXlinkProp(key));
@@ -6904,8 +7128,8 @@ function baseSetAttr (el, key, value) {
     /* istanbul ignore if */
     if (
       isIE && !isIE9 &&
-      (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') &&
-      key === 'placeholder' && !el.__ieph
+      el.tagName === 'TEXTAREA' &&
+      key === 'placeholder' && value !== '' && !el.__ieph
     ) {
       var blocker = function (e) {
         e.stopImmediatePropagation();
@@ -7062,9 +7286,13 @@ function wrapFilter (exp, filter) {
 
 /*  */
 
-function baseWarn (msg) {
+
+
+/* eslint-disable no-unused-vars */
+function baseWarn (msg, range) {
   console.error(("[Vue compiler]: " + msg));
 }
+/* eslint-enable no-unused-vars */
 
 function pluckModuleFunction (
   modules,
@@ -7075,20 +7303,23 @@ function pluckModuleFunction (
     : []
 }
 
-function addProp (el, name, value) {
-  (el.props || (el.props = [])).push({ name: name, value: value });
+function addProp (el, name, value, range, dynamic) {
+  (el.props || (el.props = [])).push(rangeSetItem({ name: name, value: value, dynamic: dynamic }, range));
   el.plain = false;
 }
 
-function addAttr (el, name, value) {
-  (el.attrs || (el.attrs = [])).push({ name: name, value: value });
+function addAttr (el, name, value, range, dynamic) {
+  var attrs = dynamic
+    ? (el.dynamicAttrs || (el.dynamicAttrs = []))
+    : (el.attrs || (el.attrs = []));
+  attrs.push(rangeSetItem({ name: name, value: value, dynamic: dynamic }, range));
   el.plain = false;
 }
 
 // add a raw attr (use this in preTransforms)
-function addRawAttr (el, name, value) {
+function addRawAttr (el, name, value, range) {
   el.attrsMap[name] = value;
-  el.attrsList.push({ name: name, value: value });
+  el.attrsList.push(rangeSetItem({ name: name, value: value }, range));
 }
 
 function addDirective (
@@ -7097,10 +7328,25 @@ function addDirective (
   rawName,
   value,
   arg,
-  modifiers
+  isDynamicArg,
+  modifiers,
+  range
 ) {
-  (el.directives || (el.directives = [])).push({ name: name, rawName: rawName, value: value, arg: arg, modifiers: modifiers });
+  (el.directives || (el.directives = [])).push(rangeSetItem({
+    name: name,
+    rawName: rawName,
+    value: value,
+    arg: arg,
+    isDynamicArg: isDynamicArg,
+    modifiers: modifiers
+  }, range));
   el.plain = false;
+}
+
+function prependModifierMarker (symbol, name, dynamic) {
+  return dynamic
+    ? ("_p(" + name + ",\"" + symbol + "\")")
+    : symbol + name // mark the event as captured
 }
 
 function addHandler (
@@ -7109,7 +7355,9 @@ function addHandler (
   value,
   modifiers,
   important,
-  warn
+  warn,
+  range,
+  dynamic
 ) {
   modifiers = modifiers || emptyObject;
   // warn prevent and passive modifier
@@ -7120,18 +7368,25 @@ function addHandler (
   ) {
     warn(
       'passive and prevent can\'t be used together. ' +
-      'Passive handler can\'t prevent default event.'
+      'Passive handler can\'t prevent default event.',
+      range
     );
   }
 
   // normalize click.right and click.middle since they don't actually fire
   // this is technically browser-specific, but at least for now browsers are
   // the only target envs that have right/middle clicks.
-  if (name === 'click') {
-    if (modifiers.right) {
+  if (modifiers.right) {
+    if (dynamic) {
+      name = "(" + name + ")==='click'?'contextmenu':(" + name + ")";
+    } else if (name === 'click') {
       name = 'contextmenu';
       delete modifiers.right;
-    } else if (modifiers.middle) {
+    }
+  } else if (modifiers.middle) {
+    if (dynamic) {
+      name = "(" + name + ")==='click'?'mouseup':(" + name + ")";
+    } else if (name === 'click') {
       name = 'mouseup';
     }
   }
@@ -7139,16 +7394,16 @@ function addHandler (
   // check capture modifier
   if (modifiers.capture) {
     delete modifiers.capture;
-    name = '!' + name; // mark the event as captured
+    name = prependModifierMarker('!', name, dynamic);
   }
   if (modifiers.once) {
     delete modifiers.once;
-    name = '~' + name; // mark the event as once
+    name = prependModifierMarker('~', name, dynamic);
   }
   /* istanbul ignore if */
   if (modifiers.passive) {
     delete modifiers.passive;
-    name = '&' + name; // mark the event as passive
+    name = prependModifierMarker('&', name, dynamic);
   }
 
   var events;
@@ -7159,9 +7414,7 @@ function addHandler (
     events = el.events || (el.events = {});
   }
 
-  var newHandler = {
-    value: value.trim()
-  };
+  var newHandler = rangeSetItem({ value: value.trim(), dynamic: dynamic }, range);
   if (modifiers !== emptyObject) {
     newHandler.modifiers = modifiers;
   }
@@ -7177,6 +7430,15 @@ function addHandler (
   }
 
   el.plain = false;
+}
+
+function getRawBindingAttr (
+  el,
+  name
+) {
+  return el.rawAttrsMap[':' + name] ||
+    el.rawAttrsMap['v-bind:' + name] ||
+    el.rawAttrsMap[name]
 }
 
 function getBindingAttr (
@@ -7220,6 +7482,35 @@ function getAndRemoveAttr (
     delete el.attrsMap[name];
   }
   return val
+}
+
+function getAndRemoveAttrByRegex (
+  el,
+  name
+) {
+  var list = el.attrsList;
+  for (var i = 0, l = list.length; i < l; i++) {
+    var attr = list[i];
+    if (name.test(attr.name)) {
+      list.splice(i, 1);
+      return attr
+    }
+  }
+}
+
+function rangeSetItem (
+  item,
+  range
+) {
+  if (range) {
+    if (range.start != null) {
+      item.start = range.start;
+    }
+    if (range.end != null) {
+      item.end = range.end;
+    }
+  }
+  return item
 }
 
 /*  */
@@ -7396,7 +7687,8 @@ function model (
     if (tag === 'input' && type === 'file') {
       warn$1(
         "<" + (el.tag) + " v-model=\"" + value + "\" type=\"file\">:\n" +
-        "File inputs are read only. Use a v-on:change listener instead."
+        "File inputs are read only. Use a v-on:change listener instead.",
+        el.rawAttrsMap['v-model']
       );
     }
   }
@@ -7422,7 +7714,8 @@ function model (
       "<" + (el.tag) + " v-model=\"" + value + "\">: " +
       "v-model is not supported on this element type. " +
       'If you are working with contenteditable, it\'s recommended to ' +
-      'wrap a library dedicated for that purpose inside a custom component.'
+      'wrap a library dedicated for that purpose inside a custom component.',
+      el.rawAttrsMap['v-model']
     );
   }
 
@@ -7506,7 +7799,8 @@ function genDefaultModel (
       var binding = el.attrsMap['v-bind:value'] ? 'v-bind:value' : ':value';
       warn$1(
         binding + "=\"" + value$1 + "\" conflicts with v-model on the same element " +
-        'because the latter already expands to a value binding internally'
+        'because the latter already expands to a value binding internally',
+        el.rawAttrsMap[binding]
       );
     }
   }
@@ -7577,15 +7871,47 @@ function createOnceHandler$1 (event, handler, capture) {
   }
 }
 
+// #9446: Firefox <= 53 (in particular, ESR 52) has incorrect Event.timeStamp
+// implementation and does not fire microtasks in between event propagation, so
+// safe to exclude.
+var useMicrotaskFix = isUsingMicroTask && !(isFF && Number(isFF[1]) <= 53);
+
 function add$1 (
-  event,
+  name,
   handler,
   capture,
   passive
 ) {
-  handler = withMacroTask(handler);
+  // async edge case #6566: inner click event triggers patch, event handler
+  // attached to outer element during patch, and triggered again. This
+  // happens because browsers fire microtask ticks between event propagation.
+  // the solution is simple: we save the timestamp when a handler is attached,
+  // and the handler would only fire if the event passed to it was fired
+  // AFTER it was attached.
+  if (useMicrotaskFix) {
+    var attachedTimestamp = currentFlushTimestamp;
+    var original = handler;
+    handler = original._wrapper = function (e) {
+      if (
+        // no bubbling, should always fire.
+        // this is just a safety net in case event.timeStamp is unreliable in
+        // certain weird environments...
+        e.target === e.currentTarget ||
+        // event is fired after handler attachment
+        e.timeStamp >= attachedTimestamp ||
+        // #9462 bail for iOS 9 bug: event.timeStamp is 0 after history.pushState
+        e.timeStamp === 0 ||
+        // #9448 bail if event is fired in another document in a multi-page
+        // electron/nw.js app, since event.timeStamp will be using a different
+        // starting reference
+        e.target.ownerDocument !== document
+      ) {
+        return original.apply(this, arguments)
+      }
+    };
+  }
   target$1.addEventListener(
-    event,
+    name,
     handler,
     supportsPassive
       ? { capture: capture, passive: passive }
@@ -7594,14 +7920,14 @@ function add$1 (
 }
 
 function remove$2 (
-  event,
+  name,
   handler,
   capture,
   _target
 ) {
   (_target || target$1).removeEventListener(
-    event,
-    handler._withTask || handler,
+    name,
+    handler._wrapper || handler,
     capture
   );
 }
@@ -7624,6 +7950,8 @@ var events = {
 };
 
 /*  */
+
+var svgContainer;
 
 function updateDOMProps (oldVnode, vnode) {
   if (isUndef(oldVnode.data.domProps) && isUndef(vnode.data.domProps)) {
@@ -7658,6 +7986,14 @@ function updateDOMProps (oldVnode, vnode) {
       }
     }
 
+    // skip the update if old and new VDOM state is the same.
+    // the only exception is `value` where the DOM value may be temporarily
+    // out of sync with VDOM state due to focus, composition and modifiers.
+    // This also covers #4521 by skipping the unnecesarry `checked` update.
+    if (key !== 'value' && cur === oldProps[key]) {
+      continue
+    }
+
     if (key === 'value') {
       // store value as _value as well since
       // non-string values will be stringified
@@ -7666,6 +8002,17 @@ function updateDOMProps (oldVnode, vnode) {
       var strCur = isUndef(cur) ? '' : String(cur);
       if (shouldUpdateValue(elm, strCur)) {
         elm.value = strCur;
+      }
+    } else if (key === 'innerHTML' && isSVG(elm.tagName) && isUndef(elm.innerHTML)) {
+      // IE doesn't support innerHTML for SVG elements
+      svgContainer = svgContainer || document.createElement('div');
+      svgContainer.innerHTML = "<svg>" + cur + "</svg>";
+      var svg = svgContainer.firstChild;
+      while (elm.firstChild) {
+        elm.removeChild(elm.firstChild);
+      }
+      while (svg.firstChild) {
+        elm.appendChild(svg.firstChild);
       }
     } else {
       elm[key] = cur;
@@ -7698,10 +8045,6 @@ function isDirtyWithModifiers (elm, newVal) {
   var value = elm.value;
   var modifiers = elm._vModifiers; // injected by v-model runtime
   if (isDef(modifiers)) {
-    if (modifiers.lazy) {
-      // inputs with lazy should only be updated when not in focus
-      return false
-    }
     if (modifiers.number) {
       return toNumber(value) !== toNumber(newVal)
     }
@@ -7796,7 +8139,7 @@ var setProp = function (el, name, val) {
   if (cssVarRE.test(name)) {
     el.style.setProperty(name, val);
   } else if (importantRE.test(val)) {
-    el.style.setProperty(name, val.replace(importantRE, ''), 'important');
+    el.style.setProperty(hyphenate(name), val.replace(importantRE, ''), 'important');
   } else {
     var normalizedName = normalize(name);
     if (Array.isArray(val)) {
@@ -9070,8 +9413,7 @@ if (inBrowser) {
         devtools.emit('init', Vue);
       } else if (
         process.env.NODE_ENV !== 'production' &&
-        process.env.NODE_ENV !== 'test' &&
-        isChrome
+        process.env.NODE_ENV !== 'test'
       ) {
         console[console.info ? 'info' : 'log'](
           'Download the Vue Devtools extension for a better development experience:\n' +
@@ -9153,7 +9495,8 @@ function transformNode (el, options) {
         "class=\"" + staticClass + "\": " +
         'Interpolation inside attributes has been removed. ' +
         'Use v-bind or the colon shorthand instead. For example, ' +
-        'instead of <div class="{{ val }}">, use <div :class="val">.'
+        'instead of <div class="{{ val }}">, use <div :class="val">.',
+        el.rawAttrsMap['class']
       );
     }
   }
@@ -9197,7 +9540,8 @@ function transformNode$1 (el, options) {
           "style=\"" + staticStyle + "\": " +
           'Interpolation inside attributes has been removed. ' +
           'Use v-bind or the colon shorthand instead. For example, ' +
-          'instead of <div style="{{ val }}">, use <div :style="val">.'
+          'instead of <div style="{{ val }}">, use <div :style="val">.',
+          el.rawAttrsMap['style']
         );
       }
     }
@@ -9268,9 +9612,8 @@ var isNonPhrasingTag = makeMap(
 
 // Regular Expressions for parsing tags and attributes
 var attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/;
-// could use https://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-QName
-// but for Vue templates we can enforce a simple charset
-var ncname = '[a-zA-Z_][\\w\\-\\.]*';
+var dynamicArgAttribute = /^\s*((?:v-[\w-]+:|@|:|#)\[[^=]+\][^\s"'<>\/=]*)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/;
+var ncname = "[a-zA-Z_][\\-\\.0-9_a-zA-Z" + unicodeLetters + "]*";
 var qnameCapture = "((?:" + ncname + "\\:)?" + ncname + ")";
 var startTagOpen = new RegExp(("^<" + qnameCapture));
 var startTagClose = /^\s*(\/?)>/;
@@ -9290,10 +9633,11 @@ var decodingMap = {
   '&quot;': '"',
   '&amp;': '&',
   '&#10;': '\n',
-  '&#9;': '\t'
+  '&#9;': '\t',
+  '&#39;': "'"
 };
-var encodedAttr = /&(?:lt|gt|quot|amp);/g;
-var encodedAttrWithNewLines = /&(?:lt|gt|quot|amp|#10|#9);/g;
+var encodedAttr = /&(?:lt|gt|quot|amp|#39);/g;
+var encodedAttrWithNewLines = /&(?:lt|gt|quot|amp|#39|#10|#9);/g;
 
 // #5992
 var isIgnoreNewlineTag = makeMap('pre,textarea', true);
@@ -9323,7 +9667,7 @@ function parseHTML (html, options) {
 
           if (commentEnd >= 0) {
             if (options.shouldKeepComment) {
-              options.comment(html.substring(4, commentEnd));
+              options.comment(html.substring(4, commentEnd), index, index + commentEnd + 3);
             }
             advance(commentEnd + 3);
             continue
@@ -9383,16 +9727,18 @@ function parseHTML (html, options) {
           rest = html.slice(textEnd);
         }
         text = html.substring(0, textEnd);
-        advance(textEnd);
       }
 
       if (textEnd < 0) {
         text = html;
-        html = '';
+      }
+
+      if (text) {
+        advance(text.length);
       }
 
       if (options.chars && text) {
-        options.chars(text);
+        options.chars(text, index - text.length, index);
       }
     } else {
       var endTagLength = 0;
@@ -9421,7 +9767,7 @@ function parseHTML (html, options) {
     if (html === last) {
       options.chars && options.chars(html);
       if (process.env.NODE_ENV !== 'production' && !stack.length && options.warn) {
-        options.warn(("Mal-formatted tag at end of template: \"" + html + "\""));
+        options.warn(("Mal-formatted tag at end of template: \"" + html + "\""), { start: index + html.length });
       }
       break
     }
@@ -9445,8 +9791,10 @@ function parseHTML (html, options) {
       };
       advance(start[0].length);
       var end, attr;
-      while (!(end = html.match(startTagClose)) && (attr = html.match(attribute))) {
+      while (!(end = html.match(startTagClose)) && (attr = html.match(dynamicArgAttribute) || html.match(attribute))) {
+        attr.start = index;
         advance(attr[0].length);
+        attr.end = index;
         match.attrs.push(attr);
       }
       if (end) {
@@ -9485,10 +9833,14 @@ function parseHTML (html, options) {
         name: args[1],
         value: decodeAttr(value, shouldDecodeNewlines)
       };
+      if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
+        attrs[i].start = args.start + args[0].match(/^\s*/).length;
+        attrs[i].end = args.end;
+      }
     }
 
     if (!unary) {
-      stack.push({ tag: tagName, lowerCasedTag: tagName.toLowerCase(), attrs: attrs });
+      stack.push({ tag: tagName, lowerCasedTag: tagName.toLowerCase(), attrs: attrs, start: match.start, end: match.end });
       lastTag = tagName;
     }
 
@@ -9523,7 +9875,8 @@ function parseHTML (html, options) {
           options.warn
         ) {
           options.warn(
-            ("tag <" + (stack[i].tag) + "> has no matching end tag.")
+            ("tag <" + (stack[i].tag) + "> has no matching end tag."),
+            { start: stack[i].start }
           );
         }
         if (options.end) {
@@ -9556,12 +9909,22 @@ var dirRE = /^v-|^@|^:/;
 var forAliasRE = /([\s\S]*?)\s+(?:in|of)\s+([\s\S]*)/;
 var forIteratorRE = /,([^,\}\]]*)(?:,([^,\}\]]*))?$/;
 var stripParensRE = /^\(|\)$/g;
+var dynamicArgRE = /^\[.*\]$/;
 
 var argRE = /:(.*)$/;
-var bindRE = /^:|^v-bind:/;
+var bindRE = /^:|^\.|^v-bind:/;
 var modifierRE = /\.[^.]+/g;
 
+var slotRE = /^v-slot(:|$)|^#/;
+
+var lineBreakRE = /[\r\n]/;
+var whitespaceRE$1 = /\s+/g;
+
+var invalidAttributeRE = /[\s"'<>\/=]/;
+
 var decodeHTMLCached = cached(he.decode);
+
+var emptySlotScopeToken = "_empty_";
 
 // configurable state
 var warn$2;
@@ -9572,8 +9935,7 @@ var postTransforms;
 var platformIsPreTag;
 var platformMustUseProp;
 var platformGetTagNamespace;
-
-
+var maybeComponent;
 
 function createASTElement (
   tag,
@@ -9585,6 +9947,7 @@ function createASTElement (
     tag: tag,
     attrsList: attrs,
     attrsMap: makeAttrsMap(attrs),
+    rawAttrsMap: {},
     parent: parent,
     children: []
   }
@@ -9602,6 +9965,8 @@ function parse (
   platformIsPreTag = options.isPreTag || no;
   platformMustUseProp = options.mustUseProp || no;
   platformGetTagNamespace = options.getTagNamespace || no;
+  var isReservedTag = options.isReservedTag || no;
+  maybeComponent = function (el) { return !!el.component || !isReservedTag(el.tag); };
 
   transforms = pluckModuleFunction(options.modules, 'transformNode');
   preTransforms = pluckModuleFunction(options.modules, 'preTransformNode');
@@ -9611,20 +9976,67 @@ function parse (
 
   var stack = [];
   var preserveWhitespace = options.preserveWhitespace !== false;
+  var whitespaceOption = options.whitespace;
   var root;
   var currentParent;
   var inVPre = false;
   var inPre = false;
   var warned = false;
 
-  function warnOnce (msg) {
+  function warnOnce (msg, range) {
     if (!warned) {
       warned = true;
-      warn$2(msg);
+      warn$2(msg, range);
     }
   }
 
   function closeElement (element) {
+    trimEndingWhitespace(element);
+    if (!inVPre && !element.processed) {
+      element = processElement(element, options);
+    }
+    // tree management
+    if (!stack.length && element !== root) {
+      // allow root elements with v-if, v-else-if and v-else
+      if (root.if && (element.elseif || element.else)) {
+        if (process.env.NODE_ENV !== 'production') {
+          checkRootConstraints(element);
+        }
+        addIfCondition(root, {
+          exp: element.elseif,
+          block: element
+        });
+      } else if (process.env.NODE_ENV !== 'production') {
+        warnOnce(
+          "Component template should contain exactly one root element. " +
+          "If you are using v-if on multiple elements, " +
+          "use v-else-if to chain them instead.",
+          { start: element.start }
+        );
+      }
+    }
+    if (currentParent && !element.forbidden) {
+      if (element.elseif || element.else) {
+        processIfConditions(element, currentParent);
+      } else {
+        if (element.slotScope) {
+          // scoped slot
+          // keep it in the children list so that v-else(-if) conditions can
+          // find it as the prev node.
+          var name = element.slotTarget || '"default"'
+          ;(currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element;
+        }
+        currentParent.children.push(element);
+        element.parent = currentParent;
+      }
+    }
+
+    // final children cleanup
+    // filter out scoped slots
+    element.children = element.children.filter(function (c) { return !(c).slotScope; });
+    // remove trailing whitespace node again
+    trimEndingWhitespace(element);
+
     // check pre state
     if (element.pre) {
       inVPre = false;
@@ -9638,6 +10050,37 @@ function parse (
     }
   }
 
+  function trimEndingWhitespace (el) {
+    // remove trailing whitespace node
+    if (!inPre) {
+      var lastNode;
+      while (
+        (lastNode = el.children[el.children.length - 1]) &&
+        lastNode.type === 3 &&
+        lastNode.text === ' '
+      ) {
+        el.children.pop();
+      }
+    }
+  }
+
+  function checkRootConstraints (el) {
+    if (el.tag === 'slot' || el.tag === 'template') {
+      warnOnce(
+        "Cannot use <" + (el.tag) + "> as component root element because it may " +
+        'contain multiple nodes.',
+        { start: el.start }
+      );
+    }
+    if (el.attrsMap.hasOwnProperty('v-for')) {
+      warnOnce(
+        'Cannot use v-for on stateful component root element because ' +
+        'it renders multiple elements.',
+        el.rawAttrsMap['v-for']
+      );
+    }
+  }
+
   parseHTML(template, {
     warn: warn$2,
     expectHTML: options.expectHTML,
@@ -9646,7 +10089,8 @@ function parse (
     shouldDecodeNewlines: options.shouldDecodeNewlines,
     shouldDecodeNewlinesForHref: options.shouldDecodeNewlinesForHref,
     shouldKeepComment: options.comments,
-    start: function start (tag, attrs, unary) {
+    outputSourceRange: options.outputSourceRange,
+    start: function start (tag, attrs, unary, start$1) {
       // check namespace.
       // inherit parent ns if there is one
       var ns = (currentParent && currentParent.ns) || platformGetTagNamespace(tag);
@@ -9662,12 +10106,35 @@ function parse (
         element.ns = ns;
       }
 
+      if (process.env.NODE_ENV !== 'production') {
+        if (options.outputSourceRange) {
+          element.start = start$1;
+          element.rawAttrsMap = element.attrsList.reduce(function (cumulated, attr) {
+            cumulated[attr.name] = attr;
+            return cumulated
+          }, {});
+        }
+        attrs.forEach(function (attr) {
+          if (invalidAttributeRE.test(attr.name)) {
+            warn$2(
+              "Invalid dynamic argument expression: attribute names cannot contain " +
+              "spaces, quotes, <, >, / or =.",
+              {
+                start: attr.start + attr.name.indexOf("["),
+                end: attr.start + attr.name.length
+              }
+            );
+          }
+        });
+      }
+
       if (isForbiddenTag(element) && !isServerRendering()) {
         element.forbidden = true;
         process.env.NODE_ENV !== 'production' && warn$2(
           'Templates should only be responsible for mapping the state to the ' +
           'UI. Avoid placing tags with side-effects in your templates, such as ' +
-          "<" + tag + ">" + ', as they will not be parsed.'
+          "<" + tag + ">" + ', as they will not be parsed.',
+          { start: element.start }
         );
       }
 
@@ -9692,59 +10159,15 @@ function parse (
         processFor(element);
         processIf(element);
         processOnce(element);
-        // element-scope stuff
-        processElement(element, options);
       }
 
-      function checkRootConstraints (el) {
-        if (process.env.NODE_ENV !== 'production') {
-          if (el.tag === 'slot' || el.tag === 'template') {
-            warnOnce(
-              "Cannot use <" + (el.tag) + "> as component root element because it may " +
-              'contain multiple nodes.'
-            );
-          }
-          if (el.attrsMap.hasOwnProperty('v-for')) {
-            warnOnce(
-              'Cannot use v-for on stateful component root element because ' +
-              'it renders multiple elements.'
-            );
-          }
-        }
-      }
-
-      // tree management
       if (!root) {
         root = element;
-        checkRootConstraints(root);
-      } else if (!stack.length) {
-        // allow root elements with v-if, v-else-if and v-else
-        if (root.if && (element.elseif || element.else)) {
-          checkRootConstraints(element);
-          addIfCondition(root, {
-            exp: element.elseif,
-            block: element
-          });
-        } else if (process.env.NODE_ENV !== 'production') {
-          warnOnce(
-            "Component template should contain exactly one root element. " +
-            "If you are using v-if on multiple elements, " +
-            "use v-else-if to chain them instead."
-          );
+        if (process.env.NODE_ENV !== 'production') {
+          checkRootConstraints(root);
         }
       }
-      if (currentParent && !element.forbidden) {
-        if (element.elseif || element.else) {
-          processIfConditions(element, currentParent);
-        } else if (element.slotScope) { // scoped slot
-          currentParent.plain = false;
-          var name = element.slotTarget || '"default"'
-          ;(currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element;
-        } else {
-          currentParent.children.push(element);
-          element.parent = currentParent;
-        }
-      }
+
       if (!unary) {
         currentParent = element;
         stack.push(element);
@@ -9753,29 +10176,29 @@ function parse (
       }
     },
 
-    end: function end () {
-      // remove trailing whitespace
+    end: function end (tag, start, end$1) {
       var element = stack[stack.length - 1];
-      var lastNode = element.children[element.children.length - 1];
-      if (lastNode && lastNode.type === 3 && lastNode.text === ' ' && !inPre) {
-        element.children.pop();
-      }
       // pop stack
       stack.length -= 1;
       currentParent = stack[stack.length - 1];
+      if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
+        element.end = end$1;
+      }
       closeElement(element);
     },
 
-    chars: function chars (text) {
+    chars: function chars (text, start, end) {
       if (!currentParent) {
         if (process.env.NODE_ENV !== 'production') {
           if (text === template) {
             warnOnce(
-              'Component template requires a root element, rather than just text.'
+              'Component template requires a root element, rather than just text.',
+              { start: start }
             );
           } else if ((text = text.trim())) {
             warnOnce(
-              ("text \"" + text + "\" outside root element will be ignored.")
+              ("text \"" + text + "\" outside root element will be ignored."),
+              { start: start }
             );
           }
         }
@@ -9790,33 +10213,66 @@ function parse (
         return
       }
       var children = currentParent.children;
-      text = inPre || text.trim()
-        ? isTextTag(currentParent) ? text : decodeHTMLCached(text)
-        // only preserve whitespace if its not right after a starting tag
-        : preserveWhitespace && children.length ? ' ' : '';
+      if (inPre || text.trim()) {
+        text = isTextTag(currentParent) ? text : decodeHTMLCached(text);
+      } else if (!children.length) {
+        // remove the whitespace-only node right after an opening tag
+        text = '';
+      } else if (whitespaceOption) {
+        if (whitespaceOption === 'condense') {
+          // in condense mode, remove the whitespace node if it contains
+          // line break, otherwise condense to a single space
+          text = lineBreakRE.test(text) ? '' : ' ';
+        } else {
+          text = ' ';
+        }
+      } else {
+        text = preserveWhitespace ? ' ' : '';
+      }
       if (text) {
+        if (whitespaceOption === 'condense') {
+          // condense consecutive whitespaces into single space
+          text = text.replace(whitespaceRE$1, ' ');
+        }
         var res;
+        var child;
         if (!inVPre && text !== ' ' && (res = parseText(text, delimiters))) {
-          children.push({
+          child = {
             type: 2,
             expression: res.expression,
             tokens: res.tokens,
             text: text
-          });
+          };
         } else if (text !== ' ' || !children.length || children[children.length - 1].text !== ' ') {
-          children.push({
+          child = {
             type: 3,
             text: text
-          });
+          };
+        }
+        if (child) {
+          if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
+            child.start = start;
+            child.end = end;
+          }
+          children.push(child);
         }
       }
     },
-    comment: function comment (text) {
-      currentParent.children.push({
-        type: 3,
-        text: text,
-        isComment: true
-      });
+    comment: function comment (text, start, end) {
+      // adding anyting as a sibling to the root node is forbidden
+      // comments should still be allowed, but ignored
+      if (currentParent) {
+        var child = {
+          type: 3,
+          text: text,
+          isComment: true
+        };
+        if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
+          child.start = start;
+          child.end = end;
+        }
+        currentParent.children.push(child);
+      }
     }
   });
   return root
@@ -9829,14 +10285,19 @@ function processPre (el) {
 }
 
 function processRawAttrs (el) {
-  var l = el.attrsList.length;
-  if (l) {
-    var attrs = el.attrs = new Array(l);
-    for (var i = 0; i < l; i++) {
+  var list = el.attrsList;
+  var len = list.length;
+  if (len) {
+    var attrs = el.attrs = new Array(len);
+    for (var i = 0; i < len; i++) {
       attrs[i] = {
-        name: el.attrsList[i].name,
-        value: JSON.stringify(el.attrsList[i].value)
+        name: list[i].name,
+        value: JSON.stringify(list[i].value)
       };
+      if (list[i].start != null) {
+        attrs[i].start = list[i].start;
+        attrs[i].end = list[i].end;
+      }
     }
   } else if (!el.pre) {
     // non root node in pre blocks with no attributes
@@ -9844,20 +10305,29 @@ function processRawAttrs (el) {
   }
 }
 
-function processElement (element, options) {
+function processElement (
+  element,
+  options
+) {
   processKey(element);
 
   // determine whether this is a plain element after
   // removing structural attributes
-  element.plain = !element.key && !element.attrsList.length;
+  element.plain = (
+    !element.key &&
+    !element.scopedSlots &&
+    !element.attrsList.length
+  );
 
   processRef(element);
-  processSlot(element);
+  processSlotContent(element);
+  processSlotOutlet(element);
   processComponent(element);
   for (var i = 0; i < transforms.length; i++) {
     element = transforms[i](element, options) || element;
   }
   processAttrs(element);
+  return element
 }
 
 function processKey (el) {
@@ -9865,7 +10335,10 @@ function processKey (el) {
   if (exp) {
     if (process.env.NODE_ENV !== 'production') {
       if (el.tag === 'template') {
-        warn$2("<template> cannot be keyed. Place the key on real elements instead.");
+        warn$2(
+          "<template> cannot be keyed. Place the key on real elements instead.",
+          getRawBindingAttr(el, 'key')
+        );
       }
       if (el.for) {
         var iterator = el.iterator2 || el.iterator1;
@@ -9873,7 +10346,9 @@ function processKey (el) {
         if (iterator && iterator === exp && parent && parent.tag === 'transition-group') {
           warn$2(
             "Do not use v-for index as key on <transition-group> children, " +
-            "this is the same as not using keys."
+            "this is the same as not using keys.",
+            getRawBindingAttr(el, 'key'),
+            true /* tip */
           );
         }
       }
@@ -9898,7 +10373,8 @@ function processFor (el) {
       extend(el, res);
     } else if (process.env.NODE_ENV !== 'production') {
       warn$2(
-        ("Invalid v-for expression: " + exp)
+        ("Invalid v-for expression: " + exp),
+        el.rawAttrsMap['v-for']
       );
     }
   }
@@ -9954,7 +10430,8 @@ function processIfConditions (el, parent) {
   } else if (process.env.NODE_ENV !== 'production') {
     warn$2(
       "v-" + (el.elseif ? ('else-if="' + el.elseif + '"') : 'else') + " " +
-      "used on element <" + (el.tag) + "> without corresponding v-if."
+      "used on element <" + (el.tag) + "> without corresponding v-if.",
+      el.rawAttrsMap[el.elseif ? 'v-else-if' : 'v-else']
     );
   }
 }
@@ -9968,7 +10445,8 @@ function findPrevElement (children) {
       if (process.env.NODE_ENV !== 'production' && children[i].text !== ' ') {
         warn$2(
           "text \"" + (children[i].text.trim()) + "\" between v-if and v-else(-if) " +
-          "will be ignored."
+          "will be ignored.",
+          children[i]
         );
       }
       children.pop();
@@ -9990,51 +10468,157 @@ function processOnce (el) {
   }
 }
 
-function processSlot (el) {
+// handle content being passed to a component as slot,
+// e.g. <template slot="xxx">, <div slot-scope="xxx">
+function processSlotContent (el) {
+  var slotScope;
+  if (el.tag === 'template') {
+    slotScope = getAndRemoveAttr(el, 'scope');
+    /* istanbul ignore if */
+    if (process.env.NODE_ENV !== 'production' && slotScope) {
+      warn$2(
+        "the \"scope\" attribute for scoped slots have been deprecated and " +
+        "replaced by \"slot-scope\" since 2.5. The new \"slot-scope\" attribute " +
+        "can also be used on plain elements in addition to <template> to " +
+        "denote scoped slots.",
+        el.rawAttrsMap['scope'],
+        true
+      );
+    }
+    el.slotScope = slotScope || getAndRemoveAttr(el, 'slot-scope');
+  } else if ((slotScope = getAndRemoveAttr(el, 'slot-scope'))) {
+    /* istanbul ignore if */
+    if (process.env.NODE_ENV !== 'production' && el.attrsMap['v-for']) {
+      warn$2(
+        "Ambiguous combined usage of slot-scope and v-for on <" + (el.tag) + "> " +
+        "(v-for takes higher priority). Use a wrapper <template> for the " +
+        "scoped slot to make it clearer.",
+        el.rawAttrsMap['slot-scope'],
+        true
+      );
+    }
+    el.slotScope = slotScope;
+  }
+
+  // slot="xxx"
+  var slotTarget = getBindingAttr(el, 'slot');
+  if (slotTarget) {
+    el.slotTarget = slotTarget === '""' ? '"default"' : slotTarget;
+    el.slotTargetDynamic = !!(el.attrsMap[':slot'] || el.attrsMap['v-bind:slot']);
+    // preserve slot as an attribute for native shadow DOM compat
+    // only for non-scoped slots.
+    if (el.tag !== 'template' && !el.slotScope) {
+      addAttr(el, 'slot', slotTarget, getRawBindingAttr(el, 'slot'));
+    }
+  }
+
+  // 2.6 v-slot syntax
+  {
+    if (el.tag === 'template') {
+      // v-slot on <template>
+      var slotBinding = getAndRemoveAttrByRegex(el, slotRE);
+      if (slotBinding) {
+        if (process.env.NODE_ENV !== 'production') {
+          if (el.slotTarget || el.slotScope) {
+            warn$2(
+              "Unexpected mixed usage of different slot syntaxes.",
+              el
+            );
+          }
+          if (el.parent && !maybeComponent(el.parent)) {
+            warn$2(
+              "<template v-slot> can only appear at the root level inside " +
+              "the receiving the component",
+              el
+            );
+          }
+        }
+        var ref = getSlotName(slotBinding);
+        var name = ref.name;
+        var dynamic = ref.dynamic;
+        el.slotTarget = name;
+        el.slotTargetDynamic = dynamic;
+        el.slotScope = slotBinding.value || emptySlotScopeToken; // force it into a scoped slot for perf
+      }
+    } else {
+      // v-slot on component, denotes default slot
+      var slotBinding$1 = getAndRemoveAttrByRegex(el, slotRE);
+      if (slotBinding$1) {
+        if (process.env.NODE_ENV !== 'production') {
+          if (!maybeComponent(el)) {
+            warn$2(
+              "v-slot can only be used on components or <template>.",
+              slotBinding$1
+            );
+          }
+          if (el.slotScope || el.slotTarget) {
+            warn$2(
+              "Unexpected mixed usage of different slot syntaxes.",
+              el
+            );
+          }
+          if (el.scopedSlots) {
+            warn$2(
+              "To avoid scope ambiguity, the default slot should also use " +
+              "<template> syntax when there are other named slots.",
+              slotBinding$1
+            );
+          }
+        }
+        // add the component's children to its default slot
+        var slots = el.scopedSlots || (el.scopedSlots = {});
+        var ref$1 = getSlotName(slotBinding$1);
+        var name$1 = ref$1.name;
+        var dynamic$1 = ref$1.dynamic;
+        var slotContainer = slots[name$1] = createASTElement('template', [], el);
+        slotContainer.slotTarget = name$1;
+        slotContainer.slotTargetDynamic = dynamic$1;
+        slotContainer.children = el.children.filter(function (c) {
+          if (!c.slotScope) {
+            c.parent = slotContainer;
+            return true
+          }
+        });
+        slotContainer.slotScope = slotBinding$1.value || emptySlotScopeToken;
+        // remove children as they are returned from scopedSlots now
+        el.children = [];
+        // mark el non-plain so data gets generated
+        el.plain = false;
+      }
+    }
+  }
+}
+
+function getSlotName (binding) {
+  var name = binding.name.replace(slotRE, '');
+  if (!name) {
+    if (binding.name[0] !== '#') {
+      name = 'default';
+    } else if (process.env.NODE_ENV !== 'production') {
+      warn$2(
+        "v-slot shorthand syntax requires a slot name.",
+        binding
+      );
+    }
+  }
+  return dynamicArgRE.test(name)
+    // dynamic [name]
+    ? { name: name.slice(1, -1), dynamic: true }
+    // static name
+    : { name: ("\"" + name + "\""), dynamic: false }
+}
+
+// handle <slot/> outlets
+function processSlotOutlet (el) {
   if (el.tag === 'slot') {
     el.slotName = getBindingAttr(el, 'name');
     if (process.env.NODE_ENV !== 'production' && el.key) {
       warn$2(
         "`key` does not work on <slot> because slots are abstract outlets " +
         "and can possibly expand into multiple elements. " +
-        "Use the key on a wrapping element instead."
+        "Use the key on a wrapping element instead.",
+        getRawBindingAttr(el, 'key')
       );
-    }
-  } else {
-    var slotScope;
-    if (el.tag === 'template') {
-      slotScope = getAndRemoveAttr(el, 'scope');
-      /* istanbul ignore if */
-      if (process.env.NODE_ENV !== 'production' && slotScope) {
-        warn$2(
-          "the \"scope\" attribute for scoped slots have been deprecated and " +
-          "replaced by \"slot-scope\" since 2.5. The new \"slot-scope\" attribute " +
-          "can also be used on plain elements in addition to <template> to " +
-          "denote scoped slots.",
-          true
-        );
-      }
-      el.slotScope = slotScope || getAndRemoveAttr(el, 'slot-scope');
-    } else if ((slotScope = getAndRemoveAttr(el, 'slot-scope'))) {
-      /* istanbul ignore if */
-      if (process.env.NODE_ENV !== 'production' && el.attrsMap['v-for']) {
-        warn$2(
-          "Ambiguous combined usage of slot-scope and v-for on <" + (el.tag) + "> " +
-          "(v-for takes higher priority). Use a wrapper <template> for the " +
-          "scoped slot to make it clearer.",
-          true
-        );
-      }
-      el.slotScope = slotScope;
-    }
-    var slotTarget = getBindingAttr(el, 'slot');
-    if (slotTarget) {
-      el.slotTarget = slotTarget === '""' ? '"default"' : slotTarget;
-      // preserve slot as an attribute for native shadow DOM compat
-      // only for non-scoped slots.
-      if (el.tag !== 'template' && !el.slotScope) {
-        addAttr(el, 'slot', slotTarget);
-      }
     }
   }
 }
@@ -10051,7 +10635,7 @@ function processComponent (el) {
 
 function processAttrs (el) {
   var list = el.attrsList;
-  var i, l, name, rawName, value, modifiers, isProp;
+  var i, l, name, rawName, value, modifiers, syncGen, isDynamic;
   for (i = 0, l = list.length; i < l; i++) {
     name = rawName = list[i].name;
     value = list[i].value;
@@ -10059,14 +10643,18 @@ function processAttrs (el) {
       // mark element as dynamic
       el.hasBindings = true;
       // modifiers
-      modifiers = parseModifiers(name);
+      modifiers = parseModifiers(name.replace(dirRE, ''));
+      // support .foo shorthand syntax for the .prop modifier
       if (modifiers) {
         name = name.replace(modifierRE, '');
       }
       if (bindRE.test(name)) { // v-bind
         name = name.replace(bindRE, '');
         value = parseFilters(value);
-        isProp = false;
+        isDynamic = dynamicArgRE.test(name);
+        if (isDynamic) {
+          name = name.slice(1, -1);
+        }
         if (
           process.env.NODE_ENV !== 'production' &&
           value.trim().length === 0
@@ -10076,41 +10664,79 @@ function processAttrs (el) {
           );
         }
         if (modifiers) {
-          if (modifiers.prop) {
-            isProp = true;
+          if (modifiers.prop && !isDynamic) {
             name = camelize(name);
             if (name === 'innerHtml') { name = 'innerHTML'; }
           }
-          if (modifiers.camel) {
+          if (modifiers.camel && !isDynamic) {
             name = camelize(name);
           }
           if (modifiers.sync) {
-            addHandler(
-              el,
-              ("update:" + (camelize(name))),
-              genAssignmentCode(value, "$event")
-            );
+            syncGen = genAssignmentCode(value, "$event");
+            if (!isDynamic) {
+              addHandler(
+                el,
+                ("update:" + (camelize(name))),
+                syncGen,
+                null,
+                false,
+                warn$2,
+                list[i]
+              );
+              if (hyphenate(name) !== camelize(name)) {
+                addHandler(
+                  el,
+                  ("update:" + (hyphenate(name))),
+                  syncGen,
+                  null,
+                  false,
+                  warn$2,
+                  list[i]
+                );
+              }
+            } else {
+              // handler w/ dynamic event name
+              addHandler(
+                el,
+                ("\"update:\"+(" + name + ")"),
+                syncGen,
+                null,
+                false,
+                warn$2,
+                list[i],
+                true // dynamic
+              );
+            }
           }
         }
-        if (isProp || (
+        if ((modifiers && modifiers.prop) || (
           !el.component && platformMustUseProp(el.tag, el.attrsMap.type, name)
         )) {
-          addProp(el, name, value);
+          addProp(el, name, value, list[i], isDynamic);
         } else {
-          addAttr(el, name, value);
+          addAttr(el, name, value, list[i], isDynamic);
         }
       } else if (onRE.test(name)) { // v-on
         name = name.replace(onRE, '');
-        addHandler(el, name, value, modifiers, false, warn$2);
+        isDynamic = dynamicArgRE.test(name);
+        if (isDynamic) {
+          name = name.slice(1, -1);
+        }
+        addHandler(el, name, value, modifiers, false, warn$2, list[i], isDynamic);
       } else { // normal directives
         name = name.replace(dirRE, '');
         // parse arg
         var argMatch = name.match(argRE);
         var arg = argMatch && argMatch[1];
+        isDynamic = false;
         if (arg) {
           name = name.slice(0, -(arg.length + 1));
+          if (dynamicArgRE.test(arg)) {
+            arg = arg.slice(1, -1);
+            isDynamic = true;
+          }
         }
-        addDirective(el, name, rawName, value, arg, modifiers);
+        addDirective(el, name, rawName, value, arg, isDynamic, modifiers, list[i]);
         if (process.env.NODE_ENV !== 'production' && name === 'model') {
           checkForAliasModel(el, value);
         }
@@ -10124,17 +10750,18 @@ function processAttrs (el) {
             name + "=\"" + value + "\": " +
             'Interpolation inside attributes has been removed. ' +
             'Use v-bind or the colon shorthand instead. For example, ' +
-            'instead of <div id="{{ val }}">, use <div :id="val">.'
+            'instead of <div id="{{ val }}">, use <div :id="val">.',
+            list[i]
           );
         }
       }
-      addAttr(el, name, JSON.stringify(value));
+      addAttr(el, name, JSON.stringify(value), list[i]);
       // #6887 firefox doesn't update muted state if set via attribute
       // even immediately after element creation
       if (!el.component &&
           name === 'muted' &&
           platformMustUseProp(el.tag, el.attrsMap.type, name)) {
-        addProp(el, name, 'true');
+        addProp(el, name, 'true', list[i]);
       }
     }
   }
@@ -10167,7 +10794,7 @@ function makeAttrsMap (attrs) {
       process.env.NODE_ENV !== 'production' &&
       map[attrs[i].name] && !isIE && !isEdge
     ) {
-      warn$2('duplicate attribute: ' + attrs[i].name);
+      warn$2('duplicate attribute: ' + attrs[i].name, attrs[i]);
     }
     map[attrs[i].name] = attrs[i].value;
   }
@@ -10214,7 +10841,8 @@ function checkForAliasModel (el, value) {
         "You are binding v-model directly to a v-for iteration alias. " +
         "This will not be able to modify the v-for source array because " +
         "writing to the alias is like modifying a function local variable. " +
-        "Consider using an array of objects and use v-model on an object property instead."
+        "Consider using an array of objects and use v-model on an object property instead.",
+        el.rawAttrsMap['v-model']
       );
     }
     _el = _el.parent;
@@ -10303,7 +10931,7 @@ var modules$1 = [
 
 function text (el, dir) {
   if (dir.value) {
-    addProp(el, 'textContent', ("_s(" + (dir.value) + ")"));
+    addProp(el, 'textContent', ("_s(" + (dir.value) + ")"), dir);
   }
 }
 
@@ -10311,7 +10939,7 @@ function text (el, dir) {
 
 function html (el, dir) {
   if (dir.value) {
-    addProp(el, 'innerHTML', ("_s(" + (dir.value) + ")"));
+    addProp(el, 'innerHTML', ("_s(" + (dir.value) + ")"), dir);
   }
 }
 
@@ -10366,7 +10994,7 @@ function optimize (root, options) {
 
 function genStaticKeys$1 (keys) {
   return makeMap(
-    'type,tag,attrsList,attrsMap,plain,parent,children,attrs' +
+    'type,tag,attrsList,attrsMap,plain,parent,children,attrs,start,end,rawAttrsMap' +
     (keys ? ',' + keys : '')
   )
 }
@@ -10466,6 +11094,7 @@ function isDirectChildOfTemplateFor (node) {
 /*  */
 
 var fnExpRE = /^([\w$_]+|\([^)]*?\))\s*=>|^function\s*\(/;
+var fnInvokeRE = /\([^)]*?\);*$/;
 var simplePathRE = /^[A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*|\['[^']*?']|\["[^"]*?"]|\[\d+]|\[[A-Za-z_$][\w$]*])*$/;
 
 // KeyboardEvent.keyCode aliases
@@ -10520,33 +11149,43 @@ function genHandlers (
   events,
   isNative
 ) {
-  var res = isNative ? 'nativeOn:{' : 'on:{';
+  var prefix = isNative ? 'nativeOn:' : 'on:';
+  var staticHandlers = "";
+  var dynamicHandlers = "";
   for (var name in events) {
-    res += "\"" + name + "\":" + (genHandler(name, events[name])) + ",";
+    var handlerCode = genHandler(events[name]);
+    if (events[name] && events[name].dynamic) {
+      dynamicHandlers += name + "," + handlerCode + ",";
+    } else {
+      staticHandlers += "\"" + name + "\":" + handlerCode + ",";
+    }
   }
-  return res.slice(0, -1) + '}'
+  staticHandlers = "{" + (staticHandlers.slice(0, -1)) + "}";
+  if (dynamicHandlers) {
+    return prefix + "_d(" + staticHandlers + ",[" + (dynamicHandlers.slice(0, -1)) + "])"
+  } else {
+    return prefix + staticHandlers
+  }
 }
 
-function genHandler (
-  name,
-  handler
-) {
+function genHandler (handler) {
   if (!handler) {
     return 'function(){}'
   }
 
   if (Array.isArray(handler)) {
-    return ("[" + (handler.map(function (handler) { return genHandler(name, handler); }).join(',')) + "]")
+    return ("[" + (handler.map(function (handler) { return genHandler(handler); }).join(',')) + "]")
   }
 
   var isMethodPath = simplePathRE.test(handler.value);
   var isFunctionExpression = fnExpRE.test(handler.value);
+  var isFunctionInvocation = simplePathRE.test(handler.value.replace(fnInvokeRE, ''));
 
   if (!handler.modifiers) {
     if (isMethodPath || isFunctionExpression) {
       return handler.value
     }
-    return ("function($event){" + (handler.value) + "}") // inline statement
+    return ("function($event){" + (isFunctionInvocation ? ("return " + (handler.value)) : handler.value) + "}") // inline statement
   } else {
     var code = '';
     var genModifierCode = '';
@@ -10581,13 +11220,21 @@ function genHandler (
       ? ("return " + (handler.value) + "($event)")
       : isFunctionExpression
         ? ("return (" + (handler.value) + ")($event)")
-        : handler.value;
+        : isFunctionInvocation
+          ? ("return " + (handler.value))
+          : handler.value;
     return ("function($event){" + code + handlerCode + "}")
   }
 }
 
 function genKeyFilter (keys) {
-  return ("if(!('button' in $event)&&" + (keys.map(genFilterCode).join('&&')) + ")return null;")
+  return (
+    // make sure the key filters only apply to KeyboardEvents
+    // #9441: can't use 'keyCode' in $event because Chrome autofill fires fake
+    // key events that do not have keyCode property...
+    "if(!$event.type.indexOf('key')&&" +
+    (keys.map(genFilterCode).join('&&')) + ")return null;"
+  )
 }
 
 function genFilterCode (key) {
@@ -10645,7 +11292,7 @@ var CodegenState = function CodegenState (options) {
   this.dataGenFns = pluckModuleFunction(options.modules, 'genData');
   this.directives = extend(extend({}, baseDirectives), options.directives);
   var isReservedTag = options.isReservedTag || no;
-  this.maybeComponent = function (el) { return !(isReservedTag(el.tag) && !el.component); };
+  this.maybeComponent = function (el) { return !!el.component || !isReservedTag(el.tag); };
   this.onceId = 0;
   this.staticRenderFns = [];
   this.pre = false;
@@ -10736,7 +11383,8 @@ function genOnce (el, state) {
     }
     if (!key) {
       process.env.NODE_ENV !== 'production' && state.warn(
-        "v-once can only be used inside v-for that is keyed. "
+        "v-once can only be used inside v-for that is keyed. ",
+        el.rawAttrsMap['v-once']
       );
       return genElement(el, state)
     }
@@ -10804,6 +11452,7 @@ function genFor (
       "<" + (el.tag) + " v-for=\"" + alias + " in " + exp + "\">: component lists rendered with " +
       "v-for should have explicit keys. " +
       "See https://vuejs.org/guide/list.html#key for more info.",
+      el.rawAttrsMap['v-for'],
       true /* tip */
     );
   }
@@ -10848,11 +11497,11 @@ function genData$2 (el, state) {
   }
   // attributes
   if (el.attrs) {
-    data += "attrs:{" + (genProps(el.attrs)) + "},";
+    data += "attrs:" + (genProps(el.attrs)) + ",";
   }
   // DOM props
   if (el.props) {
-    data += "domProps:{" + (genProps(el.props)) + "},";
+    data += "domProps:" + (genProps(el.props)) + ",";
   }
   // event handlers
   if (el.events) {
@@ -10868,7 +11517,7 @@ function genData$2 (el, state) {
   }
   // scoped slots
   if (el.scopedSlots) {
-    data += (genScopedSlots(el.scopedSlots, state)) + ",";
+    data += (genScopedSlots(el, el.scopedSlots, state)) + ",";
   }
   // component v-model
   if (el.model) {
@@ -10882,6 +11531,12 @@ function genData$2 (el, state) {
     }
   }
   data = data.replace(/,$/, '') + '}';
+  // v-bind dynamic argument wrap
+  // v-bind with dynamic arguments must be applied using the same v-bind object
+  // merge helper so that class/style/mustUseProp attrs are handled correctly.
+  if (el.dynamicAttrs) {
+    data = "_b(" + data + ",\"" + (el.tag) + "\"," + (genProps(el.dynamicAttrs)) + ")";
+  }
   // v-bind data wrap
   if (el.wrapData) {
     data = el.wrapData(data);
@@ -10910,7 +11565,7 @@ function genDirectives (el, state) {
     }
     if (needRuntime) {
       hasRuntime = true;
-      res += "{name:\"" + (dir.name) + "\",rawName:\"" + (dir.rawName) + "\"" + (dir.value ? (",value:(" + (dir.value) + "),expression:" + (JSON.stringify(dir.value))) : '') + (dir.arg ? (",arg:\"" + (dir.arg) + "\"") : '') + (dir.modifiers ? (",modifiers:" + (JSON.stringify(dir.modifiers))) : '') + "},";
+      res += "{name:\"" + (dir.name) + "\",rawName:\"" + (dir.rawName) + "\"" + (dir.value ? (",value:(" + (dir.value) + "),expression:" + (JSON.stringify(dir.value))) : '') + (dir.arg ? (",arg:" + (dir.isDynamicArg ? dir.arg : ("\"" + (dir.arg) + "\""))) : '') + (dir.modifiers ? (",modifiers:" + (JSON.stringify(dir.modifiers))) : '') + "},";
     }
   }
   if (hasRuntime) {
@@ -10923,54 +11578,86 @@ function genInlineTemplate (el, state) {
   if (process.env.NODE_ENV !== 'production' && (
     el.children.length !== 1 || ast.type !== 1
   )) {
-    state.warn('Inline-template components must have exactly one child element.');
+    state.warn(
+      'Inline-template components must have exactly one child element.',
+      { start: el.start }
+    );
   }
-  if (ast.type === 1) {
+  if (ast && ast.type === 1) {
     var inlineRenderFns = generate(ast, state.options);
     return ("inlineTemplate:{render:function(){" + (inlineRenderFns.render) + "},staticRenderFns:[" + (inlineRenderFns.staticRenderFns.map(function (code) { return ("function(){" + code + "}"); }).join(',')) + "]}")
   }
 }
 
 function genScopedSlots (
+  el,
   slots,
   state
 ) {
+  // by default scoped slots are considered "stable", this allows child
+  // components with only scoped slots to skip forced updates from parent.
+  // but in some cases we have to bail-out of this optimization
+  // for example if the slot contains dynamic names, has v-if or v-for on them...
+  var needsForceUpdate = Object.keys(slots).some(function (key) {
+    var slot = slots[key];
+    return (
+      slot.slotTargetDynamic ||
+      slot.if ||
+      slot.for ||
+      containsSlotChild(slot) // is passing down slot from parent which may be dynamic
+    )
+  });
+  // OR when it is inside another scoped slot (the reactivity is disconnected)
+  // #9438
+  if (!needsForceUpdate) {
+    var parent = el.parent;
+    while (parent) {
+      if (parent.slotScope && parent.slotScope !== emptySlotScopeToken) {
+        needsForceUpdate = true;
+        break
+      }
+      parent = parent.parent;
+    }
+  }
+
   return ("scopedSlots:_u([" + (Object.keys(slots).map(function (key) {
-      return genScopedSlot(key, slots[key], state)
-    }).join(',')) + "])")
+      return genScopedSlot(slots[key], state)
+    }).join(',')) + "]" + (needsForceUpdate ? ",true" : "") + ")")
+}
+
+function containsSlotChild (el) {
+  if (el.type === 1) {
+    if (el.tag === 'slot') {
+      return true
+    }
+    return el.children.some(containsSlotChild)
+  }
+  return false
 }
 
 function genScopedSlot (
-  key,
   el,
   state
 ) {
-  if (el.for && !el.forProcessed) {
-    return genForScopedSlot(key, el, state)
+  var isLegacySyntax = el.attrsMap['slot-scope'];
+  if (el.if && !el.ifProcessed && !isLegacySyntax) {
+    return genIf(el, state, genScopedSlot, "null")
   }
-  var fn = "function(" + (String(el.slotScope)) + "){" +
+  if (el.for && !el.forProcessed) {
+    return genFor(el, state, genScopedSlot)
+  }
+  var slotScope = el.slotScope === emptySlotScopeToken
+    ? ""
+    : String(el.slotScope);
+  var fn = "function(" + slotScope + "){" +
     "return " + (el.tag === 'template'
-      ? el.if
+      ? el.if && isLegacySyntax
         ? ("(" + (el.if) + ")?" + (genChildren(el, state) || 'undefined') + ":undefined")
         : genChildren(el, state) || 'undefined'
       : genElement(el, state)) + "}";
-  return ("{key:" + key + ",fn:" + fn + "}")
-}
-
-function genForScopedSlot (
-  key,
-  el,
-  state
-) {
-  var exp = el.for;
-  var alias = el.alias;
-  var iterator1 = el.iterator1 ? ("," + (el.iterator1)) : '';
-  var iterator2 = el.iterator2 ? ("," + (el.iterator2)) : '';
-  el.forProcessed = true; // avoid recursion
-  return "_l((" + exp + ")," +
-    "function(" + alias + iterator1 + iterator2 + "){" +
-      "return " + (genScopedSlot(key, el, state)) +
-    '})'
+  // reverse proxy v-slot without scope on this.$slots
+  var reverseProxy = slotScope ? "" : ",proxy:true";
+  return ("{key:" + (el.slotTarget || "\"default\"") + ",fn:" + fn + reverseProxy + "}")
 }
 
 function genChildren (
@@ -11057,7 +11744,14 @@ function genSlot (el, state) {
   var slotName = el.slotName || '"default"';
   var children = genChildren(el, state);
   var res = "_t(" + slotName + (children ? ("," + children) : '');
-  var attrs = el.attrs && ("{" + (el.attrs.map(function (a) { return ((camelize(a.name)) + ":" + (a.value)); }).join(',')) + "}");
+  var attrs = el.attrs || el.dynamicAttrs
+    ? genProps((el.attrs || []).concat(el.dynamicAttrs || []).map(function (attr) { return ({
+        // slot props are camelized
+        name: camelize(attr.name),
+        value: attr.value,
+        dynamic: attr.dynamic
+      }); }))
+    : null;
   var bind$$1 = el.attrsMap['v-bind'];
   if ((attrs || bind$$1) && !children) {
     res += ",null";
@@ -11082,15 +11776,23 @@ function genComponent (
 }
 
 function genProps (props) {
-  var res = '';
+  var staticProps = "";
+  var dynamicProps = "";
   for (var i = 0; i < props.length; i++) {
     var prop = props[i];
-    /* istanbul ignore if */
-    {
-      res += "\"" + (prop.name) + "\":" + (transformSpecialNewlines(prop.value)) + ",";
+    var value = transformSpecialNewlines(prop.value);
+    if (prop.dynamic) {
+      dynamicProps += (prop.name) + "," + value + ",";
+    } else {
+      staticProps += "\"" + (prop.name) + "\":" + value + ",";
     }
   }
-  return res.slice(0, -1)
+  staticProps = "{" + (staticProps.slice(0, -1)) + "}";
+  if (dynamicProps) {
+    return ("_d(" + staticProps + ",[" + (dynamicProps.slice(0, -1)) + "])")
+  } else {
+    return staticProps
+  }
 }
 
 // #3895, #4268
@@ -11101,6 +11803,8 @@ function transformSpecialNewlines (text) {
 }
 
 /*  */
+
+
 
 // these keywords should not appear inside expressions, but operators like
 // typeof, instanceof and in are allowed
@@ -11119,92 +11823,147 @@ var unaryOperatorsRE = new RegExp('\\b' + (
 var stripStringRE = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*\$\{|\}(?:[^`\\]|\\.)*`|`(?:[^`\\]|\\.)*`/g;
 
 // detect problematic expressions in a template
-function detectErrors (ast) {
-  var errors = [];
+function detectErrors (ast, warn) {
   if (ast) {
-    checkNode(ast, errors);
+    checkNode(ast, warn);
   }
-  return errors
 }
 
-function checkNode (node, errors) {
+function checkNode (node, warn) {
   if (node.type === 1) {
     for (var name in node.attrsMap) {
       if (dirRE.test(name)) {
         var value = node.attrsMap[name];
         if (value) {
+          var range = node.rawAttrsMap[name];
           if (name === 'v-for') {
-            checkFor(node, ("v-for=\"" + value + "\""), errors);
+            checkFor(node, ("v-for=\"" + value + "\""), warn, range);
           } else if (onRE.test(name)) {
-            checkEvent(value, (name + "=\"" + value + "\""), errors);
+            checkEvent(value, (name + "=\"" + value + "\""), warn, range);
           } else {
-            checkExpression(value, (name + "=\"" + value + "\""), errors);
+            checkExpression(value, (name + "=\"" + value + "\""), warn, range);
           }
         }
       }
     }
     if (node.children) {
       for (var i = 0; i < node.children.length; i++) {
-        checkNode(node.children[i], errors);
+        checkNode(node.children[i], warn);
       }
     }
   } else if (node.type === 2) {
-    checkExpression(node.expression, node.text, errors);
+    checkExpression(node.expression, node.text, warn, node);
   }
 }
 
-function checkEvent (exp, text, errors) {
+function checkEvent (exp, text, warn, range) {
   var stipped = exp.replace(stripStringRE, '');
   var keywordMatch = stipped.match(unaryOperatorsRE);
   if (keywordMatch && stipped.charAt(keywordMatch.index - 1) !== '$') {
-    errors.push(
+    warn(
       "avoid using JavaScript unary operator as property name: " +
-      "\"" + (keywordMatch[0]) + "\" in expression " + (text.trim())
+      "\"" + (keywordMatch[0]) + "\" in expression " + (text.trim()),
+      range
     );
   }
-  checkExpression(exp, text, errors);
+  checkExpression(exp, text, warn, range);
 }
 
-function checkFor (node, text, errors) {
-  checkExpression(node.for || '', text, errors);
-  checkIdentifier(node.alias, 'v-for alias', text, errors);
-  checkIdentifier(node.iterator1, 'v-for iterator', text, errors);
-  checkIdentifier(node.iterator2, 'v-for iterator', text, errors);
+function checkFor (node, text, warn, range) {
+  checkExpression(node.for || '', text, warn, range);
+  checkIdentifier(node.alias, 'v-for alias', text, warn, range);
+  checkIdentifier(node.iterator1, 'v-for iterator', text, warn, range);
+  checkIdentifier(node.iterator2, 'v-for iterator', text, warn, range);
 }
 
 function checkIdentifier (
   ident,
   type,
   text,
-  errors
+  warn,
+  range
 ) {
   if (typeof ident === 'string') {
     try {
       new Function(("var " + ident + "=_"));
     } catch (e) {
-      errors.push(("invalid " + type + " \"" + ident + "\" in expression: " + (text.trim())));
+      warn(("invalid " + type + " \"" + ident + "\" in expression: " + (text.trim())), range);
     }
   }
 }
 
-function checkExpression (exp, text, errors) {
+function checkExpression (exp, text, warn, range) {
   try {
     new Function(("return " + exp));
   } catch (e) {
     var keywordMatch = exp.replace(stripStringRE, '').match(prohibitedKeywordRE);
     if (keywordMatch) {
-      errors.push(
+      warn(
         "avoid using JavaScript keyword as property name: " +
-        "\"" + (keywordMatch[0]) + "\"\n  Raw expression: " + (text.trim())
+        "\"" + (keywordMatch[0]) + "\"\n  Raw expression: " + (text.trim()),
+        range
       );
     } else {
-      errors.push(
+      warn(
         "invalid expression: " + (e.message) + " in\n\n" +
         "    " + exp + "\n\n" +
-        "  Raw expression: " + (text.trim()) + "\n"
+        "  Raw expression: " + (text.trim()) + "\n",
+        range
       );
     }
   }
+}
+
+/*  */
+
+var range = 2;
+
+function generateCodeFrame (
+  source,
+  start,
+  end
+) {
+  if ( start === void 0 ) start = 0;
+  if ( end === void 0 ) end = source.length;
+
+  var lines = source.split(/\r?\n/);
+  var count = 0;
+  var res = [];
+  for (var i = 0; i < lines.length; i++) {
+    count += lines[i].length + 1;
+    if (count >= start) {
+      for (var j = i - range; j <= i + range || end > count; j++) {
+        if (j < 0 || j >= lines.length) { continue }
+        res.push(("" + (j + 1) + (repeat$1(" ", 3 - String(j + 1).length)) + "|  " + (lines[j])));
+        var lineLength = lines[j].length;
+        if (j === i) {
+          // push underline
+          var pad = start - (count - lineLength) + 1;
+          var length = end > count ? lineLength - pad : end - start;
+          res.push("   |  " + repeat$1(" ", pad) + repeat$1("^", length));
+        } else if (j > i) {
+          if (end > count) {
+            var length$1 = Math.min(end - count, lineLength);
+            res.push("   |  " + repeat$1("^", length$1));
+          }
+          count += lineLength + 1;
+        }
+      }
+      break
+    }
+  }
+  return res.join('\n')
+}
+
+function repeat$1 (str, n) {
+  var result = '';
+  while (true) { // eslint-disable-line
+    if (n & 1) { result += str; }
+    n >>>= 1;
+    if (n <= 0) { break }
+    str += str;
+  }
+  return result
 }
 
 /*  */
@@ -11264,14 +12023,28 @@ function createCompileToFunctionFn (compile) {
     // check compilation errors/tips
     if (process.env.NODE_ENV !== 'production') {
       if (compiled.errors && compiled.errors.length) {
-        warn$$1(
-          "Error compiling template:\n\n" + template + "\n\n" +
-          compiled.errors.map(function (e) { return ("- " + e); }).join('\n') + '\n',
-          vm
-        );
+        if (options.outputSourceRange) {
+          compiled.errors.forEach(function (e) {
+            warn$$1(
+              "Error compiling template:\n\n" + (e.msg) + "\n\n" +
+              generateCodeFrame(template, e.start, e.end),
+              vm
+            );
+          });
+        } else {
+          warn$$1(
+            "Error compiling template:\n\n" + template + "\n\n" +
+            compiled.errors.map(function (e) { return ("- " + e); }).join('\n') + '\n',
+            vm
+          );
+        }
       }
       if (compiled.tips && compiled.tips.length) {
-        compiled.tips.forEach(function (msg) { return tip(msg, vm); });
+        if (options.outputSourceRange) {
+          compiled.tips.forEach(function (e) { return tip(e.msg, vm); });
+        } else {
+          compiled.tips.forEach(function (msg) { return tip(msg, vm); });
+        }
       }
     }
 
@@ -11317,11 +12090,29 @@ function createCompilerCreator (baseCompile) {
       var finalOptions = Object.create(baseOptions);
       var errors = [];
       var tips = [];
-      finalOptions.warn = function (msg, tip) {
+
+      var warn = function (msg, range, tip) {
         (tip ? tips : errors).push(msg);
       };
 
       if (options) {
+        if (process.env.NODE_ENV !== 'production' && options.outputSourceRange) {
+          // $flow-disable-line
+          var leadingSpaceLength = template.match(/^\s*/)[0].length;
+
+          warn = function (msg, range, tip) {
+            var data = { msg: msg };
+            if (range) {
+              if (range.start != null) {
+                data.start = range.start + leadingSpaceLength;
+              }
+              if (range.end != null) {
+                data.end = range.end + leadingSpaceLength;
+              }
+            }
+            (tip ? tips : errors).push(data);
+          };
+        }
         // merge custom modules
         if (options.modules) {
           finalOptions.modules =
@@ -11342,9 +12133,11 @@ function createCompilerCreator (baseCompile) {
         }
       }
 
-      var compiled = baseCompile(template, finalOptions);
+      finalOptions.warn = warn;
+
+      var compiled = baseCompile(template.trim(), finalOptions);
       if (process.env.NODE_ENV !== 'production') {
-        errors.push.apply(errors, detectErrors(compiled.ast));
+        detectErrors(compiled.ast, warn);
       }
       compiled.errors = errors;
       compiled.tips = tips;
@@ -11456,6 +12249,7 @@ Vue.prototype.$mount = function (
       }
 
       var ref = compileToFunctions(template, {
+        outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines: shouldDecodeNewlines,
         shouldDecodeNewlinesForHref: shouldDecodeNewlinesForHref,
         delimiters: options.delimiters,
@@ -13640,7 +14434,7 @@ exports = module.exports = __webpack_require__(0)();
 
 
 // module
-exports.push([module.i, "#optimole-app {\n  padding: 0 30px 0 20px;\n  /*! bulma.io v0.7.2 | MIT License | github.com/jgthms/bulma */\n  /*! minireset.css v0.0.3 | MIT License | github.com/jgthms/minireset.css */ }\n\n@keyframes spinAround {\n  from {\n    transform: rotate(0deg); }\n  to {\n    transform: rotate(359deg); } }\n  #optimole-app .delete, #optimole-app .modal-close, #optimole-app .is-unselectable, #optimole-app .button, #optimole-app .file, #optimole-app .breadcrumb, #optimole-app .pagination-previous,\n  #optimole-app .pagination-next,\n  #optimole-app .pagination-link,\n  #optimole-app .pagination-ellipsis, #optimole-app .tabs {\n    -webkit-touch-callout: none;\n    -webkit-user-select: none;\n    -moz-user-select: none;\n    -ms-user-select: none;\n    user-select: none; }\n  #optimole-app .select:not(.is-multiple):not(.is-loading)::after, #optimole-app .navbar-link:not(.is-arrowless)::after {\n    border: 3px solid transparent;\n    border-radius: 2px;\n    border-right: 0;\n    border-top: 0;\n    content: \" \";\n    display: block;\n    height: 0.625em;\n    margin-top: -0.4375em;\n    pointer-events: none;\n    position: absolute;\n    top: 50%;\n    transform: rotate(-45deg);\n    transform-origin: center;\n    width: 0.625em; }\n  #optimole-app .box:not(:last-child), #optimole-app .content:not(:last-child), #optimole-app .notification:not(:last-child), #optimole-app .progress:not(:last-child), #optimole-app .table:not(:last-child), #optimole-app .table-container:not(:last-child), #optimole-app .title:not(:last-child),\n  #optimole-app .subtitle:not(:last-child), #optimole-app .block:not(:last-child), #optimole-app .highlight:not(:last-child), #optimole-app .breadcrumb:not(:last-child), #optimole-app .level:not(:last-child), #optimole-app .list:not(:last-child), #optimole-app .message:not(:last-child), #optimole-app .tabs:not(:last-child) {\n    margin-bottom: 1.5rem; }\n  #optimole-app .delete, #optimole-app .modal-close {\n    -moz-appearance: none;\n    -webkit-appearance: none;\n    background-color: rgba(10, 10, 10, 0.2);\n    border: none;\n    border-radius: 290486px;\n    cursor: pointer;\n    pointer-events: auto;\n    display: inline-block;\n    -ms-flex-positive: 0;\n        flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    font-size: 0;\n    height: 20px;\n    max-height: 20px;\n    max-width: 20px;\n    min-height: 20px;\n    min-width: 20px;\n    outline: none;\n    position: relative;\n    vertical-align: top;\n    width: 20px; }\n    #optimole-app .delete::before, #optimole-app .modal-close::before, #optimole-app .delete::after, #optimole-app .modal-close::after {\n      background-color: white;\n      content: \"\";\n      display: block;\n      left: 50%;\n      position: absolute;\n      top: 50%;\n      transform: translateX(-50%) translateY(-50%) rotate(45deg);\n      transform-origin: center center; }\n    #optimole-app .delete::before, #optimole-app .modal-close::before {\n      height: 2px;\n      width: 50%; }\n    #optimole-app .delete::after, #optimole-app .modal-close::after {\n      height: 50%;\n      width: 2px; }\n    #optimole-app .delete:hover, #optimole-app .modal-close:hover, #optimole-app .delete:focus, #optimole-app .modal-close:focus {\n      background-color: rgba(10, 10, 10, 0.3); }\n    #optimole-app .delete:active, #optimole-app .modal-close:active {\n      background-color: rgba(10, 10, 10, 0.4); }\n    #optimole-app .is-small.delete, #optimole-app .is-small.modal-close {\n      height: 16px;\n      max-height: 16px;\n      max-width: 16px;\n      min-height: 16px;\n      min-width: 16px;\n      width: 16px; }\n    #optimole-app .is-medium.delete, #optimole-app .is-medium.modal-close {\n      height: 24px;\n      max-height: 24px;\n      max-width: 24px;\n      min-height: 24px;\n      min-width: 24px;\n      width: 24px; }\n    #optimole-app .is-large.delete, #optimole-app .is-large.modal-close {\n      height: 32px;\n      max-height: 32px;\n      max-width: 32px;\n      min-height: 32px;\n      min-width: 32px;\n      width: 32px; }\n  #optimole-app .button.is-loading::after, #optimole-app .select.is-loading::after, #optimole-app .control.is-loading::after, #optimole-app .loader {\n    animation: spinAround 500ms infinite linear;\n    border: 2px solid #dbdbdb;\n    border-radius: 290486px;\n    border-right-color: transparent;\n    border-top-color: transparent;\n    content: \"\";\n    display: block;\n    height: 1em;\n    position: relative;\n    width: 1em; }\n  #optimole-app .is-overlay, #optimole-app .image.is-square img, #optimole-app .image.is-1by1 img, #optimole-app .image.is-5by4 img, #optimole-app .image.is-4by3 img, #optimole-app .image.is-3by2 img, #optimole-app .image.is-5by3 img, #optimole-app .image.is-16by9 img, #optimole-app .image.is-2by1 img, #optimole-app .image.is-3by1 img, #optimole-app .image.is-4by5 img, #optimole-app .image.is-3by4 img, #optimole-app .image.is-2by3 img, #optimole-app .image.is-3by5 img, #optimole-app .image.is-9by16 img, #optimole-app .image.is-1by2 img, #optimole-app .image.is-1by3 img, #optimole-app .modal, #optimole-app .modal-background, #optimole-app .hero-video {\n    bottom: 0;\n    left: 0;\n    position: absolute;\n    right: 0;\n    top: 0; }\n  #optimole-app .button, #optimole-app .input,\n  #optimole-app .textarea, #optimole-app .select select, #optimole-app .file-cta,\n  #optimole-app .file-name, #optimole-app .pagination-previous,\n  #optimole-app .pagination-next,\n  #optimole-app .pagination-link,\n  #optimole-app .pagination-ellipsis {\n    -moz-appearance: none;\n    -webkit-appearance: none;\n    -ms-flex-align: center;\n        align-items: center;\n    border: 1px solid transparent;\n    border-radius: 4px;\n    box-shadow: none;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    font-size: 1rem;\n    height: 2.25em;\n    -ms-flex-pack: start;\n        justify-content: flex-start;\n    line-height: 1.5;\n    padding-bottom: calc(0.375em - 1px);\n    padding-left: calc(0.625em - 1px);\n    padding-right: calc(0.625em - 1px);\n    padding-top: calc(0.375em - 1px);\n    position: relative;\n    vertical-align: top; }\n    #optimole-app .button:focus, #optimole-app .input:focus,\n    #optimole-app .textarea:focus, #optimole-app .select select:focus, #optimole-app .file-cta:focus,\n    #optimole-app .file-name:focus, #optimole-app .pagination-previous:focus,\n    #optimole-app .pagination-next:focus,\n    #optimole-app .pagination-link:focus,\n    #optimole-app .pagination-ellipsis:focus, #optimole-app .is-focused.button, #optimole-app .is-focused.input,\n    #optimole-app .is-focused.textarea, #optimole-app .select select.is-focused, #optimole-app .is-focused.file-cta,\n    #optimole-app .is-focused.file-name, #optimole-app .is-focused.pagination-previous,\n    #optimole-app .is-focused.pagination-next,\n    #optimole-app .is-focused.pagination-link,\n    #optimole-app .is-focused.pagination-ellipsis, #optimole-app .button:active, #optimole-app .input:active,\n    #optimole-app .textarea:active, #optimole-app .select select:active, #optimole-app .file-cta:active,\n    #optimole-app .file-name:active, #optimole-app .pagination-previous:active,\n    #optimole-app .pagination-next:active,\n    #optimole-app .pagination-link:active,\n    #optimole-app .pagination-ellipsis:active, #optimole-app .is-active.button, #optimole-app .is-active.input,\n    #optimole-app .is-active.textarea, #optimole-app .select select.is-active, #optimole-app .is-active.file-cta,\n    #optimole-app .is-active.file-name, #optimole-app .is-active.pagination-previous,\n    #optimole-app .is-active.pagination-next,\n    #optimole-app .is-active.pagination-link,\n    #optimole-app .is-active.pagination-ellipsis {\n      outline: none; }\n    #optimole-app .button[disabled], #optimole-app .input[disabled],\n    #optimole-app .textarea[disabled], #optimole-app .select select[disabled], #optimole-app .file-cta[disabled],\n    #optimole-app .file-name[disabled], #optimole-app .pagination-previous[disabled],\n    #optimole-app .pagination-next[disabled],\n    #optimole-app .pagination-link[disabled],\n    #optimole-app .pagination-ellipsis[disabled] {\n      cursor: not-allowed; }\n  #optimole-app html,\n  #optimole-app body,\n  #optimole-app p,\n  #optimole-app ol,\n  #optimole-app ul,\n  #optimole-app li,\n  #optimole-app dl,\n  #optimole-app dt,\n  #optimole-app dd,\n  #optimole-app blockquote,\n  #optimole-app figure,\n  #optimole-app fieldset,\n  #optimole-app legend,\n  #optimole-app textarea,\n  #optimole-app pre,\n  #optimole-app iframe,\n  #optimole-app hr,\n  #optimole-app h1,\n  #optimole-app h2,\n  #optimole-app h3,\n  #optimole-app h4,\n  #optimole-app h5,\n  #optimole-app h6 {\n    margin: 0;\n    padding: 0; }\n  #optimole-app h1,\n  #optimole-app h2,\n  #optimole-app h3,\n  #optimole-app h4,\n  #optimole-app h5,\n  #optimole-app h6 {\n    font-size: 100%;\n    font-weight: normal; }\n  #optimole-app ul {\n    list-style: none; }\n  #optimole-app button,\n  #optimole-app input,\n  #optimole-app select,\n  #optimole-app textarea {\n    margin: 0; }\n  #optimole-app html {\n    box-sizing: border-box; }\n  #optimole-app *, #optimole-app *::before, #optimole-app *::after {\n    box-sizing: inherit; }\n  #optimole-app img,\n  #optimole-app audio,\n  #optimole-app video {\n    height: auto;\n    max-width: 100%; }\n  #optimole-app iframe {\n    border: 0; }\n  #optimole-app table {\n    border-collapse: collapse;\n    border-spacing: 0; }\n  #optimole-app td,\n  #optimole-app th {\n    padding: 0;\n    text-align: left; }\n  #optimole-app html {\n    background-color: white;\n    font-size: 16px;\n    -moz-osx-font-smoothing: grayscale;\n    -webkit-font-smoothing: antialiased;\n    min-width: 300px;\n    overflow-x: hidden;\n    overflow-y: scroll;\n    text-rendering: optimizeLegibility;\n    -webkit-text-size-adjust: 100%;\n        -ms-text-size-adjust: 100%;\n            text-size-adjust: 100%; }\n  #optimole-app article,\n  #optimole-app aside,\n  #optimole-app figure,\n  #optimole-app footer,\n  #optimole-app header,\n  #optimole-app hgroup,\n  #optimole-app section {\n    display: block; }\n  #optimole-app body,\n  #optimole-app button,\n  #optimole-app input,\n  #optimole-app select,\n  #optimole-app textarea {\n    font-family: BlinkMacSystemFont, -apple-system, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", \"Helvetica\", \"Arial\", sans-serif; }\n  #optimole-app code,\n  #optimole-app pre {\n    -moz-osx-font-smoothing: auto;\n    -webkit-font-smoothing: auto;\n    font-family: monospace; }\n  #optimole-app body {\n    color: #4a4a4a;\n    font-size: 1rem;\n    font-weight: 400;\n    line-height: 1.5; }\n  #optimole-app a {\n    color: #3273dc;\n    cursor: pointer;\n    text-decoration: none; }\n    #optimole-app a strong {\n      color: currentColor; }\n    #optimole-app a:hover {\n      color: #363636; }\n  #optimole-app code {\n    background-color: whitesmoke;\n    color: #ff3860;\n    font-size: 0.875em;\n    font-weight: normal;\n    padding: 0.25em 0.5em 0.25em; }\n  #optimole-app hr {\n    background-color: whitesmoke;\n    border: none;\n    display: block;\n    height: 2px;\n    margin: 1.5rem 0; }\n  #optimole-app img {\n    height: auto;\n    max-width: 100%; }\n  #optimole-app input[type=\"checkbox\"],\n  #optimole-app input[type=\"radio\"] {\n    vertical-align: baseline; }\n  #optimole-app small {\n    font-size: 0.875em; }\n  #optimole-app span {\n    font-style: inherit;\n    font-weight: inherit; }\n  #optimole-app strong {\n    color: #363636;\n    font-weight: 700; }\n  #optimole-app pre {\n    -webkit-overflow-scrolling: touch;\n    background-color: whitesmoke;\n    color: #4a4a4a;\n    font-size: 0.875em;\n    overflow-x: auto;\n    padding: 1.25rem 1.5rem;\n    white-space: pre;\n    word-wrap: normal; }\n    #optimole-app pre code {\n      background-color: transparent;\n      color: currentColor;\n      font-size: 1em;\n      padding: 0; }\n  #optimole-app table td,\n  #optimole-app table th {\n    text-align: left;\n    vertical-align: top; }\n  #optimole-app table th {\n    color: #363636; }\n  #optimole-app .is-clearfix::after {\n    clear: both;\n    content: \" \";\n    display: table; }\n  #optimole-app .is-pulled-left {\n    float: left !important; }\n  #optimole-app .is-pulled-right {\n    float: right !important; }\n  #optimole-app .is-clipped {\n    overflow: hidden !important; }\n  #optimole-app .is-size-1 {\n    font-size: 3rem !important; }\n  #optimole-app .is-size-2 {\n    font-size: 2.5rem !important; }\n  #optimole-app .is-size-3 {\n    font-size: 2rem !important; }\n  #optimole-app .is-size-4 {\n    font-size: 1.5rem !important; }\n  #optimole-app .is-size-5 {\n    font-size: 1.25rem !important; }\n  #optimole-app .is-size-6 {\n    font-size: 1rem !important; }\n  #optimole-app .is-size-7 {\n    font-size: 0.75rem !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-size-1-mobile {\n      font-size: 3rem !important; }\n    #optimole-app .is-size-2-mobile {\n      font-size: 2.5rem !important; }\n    #optimole-app .is-size-3-mobile {\n      font-size: 2rem !important; }\n    #optimole-app .is-size-4-mobile {\n      font-size: 1.5rem !important; }\n    #optimole-app .is-size-5-mobile {\n      font-size: 1.25rem !important; }\n    #optimole-app .is-size-6-mobile {\n      font-size: 1rem !important; }\n    #optimole-app .is-size-7-mobile {\n      font-size: 0.75rem !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-size-1-tablet {\n      font-size: 3rem !important; }\n    #optimole-app .is-size-2-tablet {\n      font-size: 2.5rem !important; }\n    #optimole-app .is-size-3-tablet {\n      font-size: 2rem !important; }\n    #optimole-app .is-size-4-tablet {\n      font-size: 1.5rem !important; }\n    #optimole-app .is-size-5-tablet {\n      font-size: 1.25rem !important; }\n    #optimole-app .is-size-6-tablet {\n      font-size: 1rem !important; }\n    #optimole-app .is-size-7-tablet {\n      font-size: 0.75rem !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-size-1-touch {\n      font-size: 3rem !important; }\n    #optimole-app .is-size-2-touch {\n      font-size: 2.5rem !important; }\n    #optimole-app .is-size-3-touch {\n      font-size: 2rem !important; }\n    #optimole-app .is-size-4-touch {\n      font-size: 1.5rem !important; }\n    #optimole-app .is-size-5-touch {\n      font-size: 1.25rem !important; }\n    #optimole-app .is-size-6-touch {\n      font-size: 1rem !important; }\n    #optimole-app .is-size-7-touch {\n      font-size: 0.75rem !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-size-1-desktop {\n      font-size: 3rem !important; }\n    #optimole-app .is-size-2-desktop {\n      font-size: 2.5rem !important; }\n    #optimole-app .is-size-3-desktop {\n      font-size: 2rem !important; }\n    #optimole-app .is-size-4-desktop {\n      font-size: 1.5rem !important; }\n    #optimole-app .is-size-5-desktop {\n      font-size: 1.25rem !important; }\n    #optimole-app .is-size-6-desktop {\n      font-size: 1rem !important; }\n    #optimole-app .is-size-7-desktop {\n      font-size: 0.75rem !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-size-1-widescreen {\n      font-size: 3rem !important; }\n    #optimole-app .is-size-2-widescreen {\n      font-size: 2.5rem !important; }\n    #optimole-app .is-size-3-widescreen {\n      font-size: 2rem !important; }\n    #optimole-app .is-size-4-widescreen {\n      font-size: 1.5rem !important; }\n    #optimole-app .is-size-5-widescreen {\n      font-size: 1.25rem !important; }\n    #optimole-app .is-size-6-widescreen {\n      font-size: 1rem !important; }\n    #optimole-app .is-size-7-widescreen {\n      font-size: 0.75rem !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-size-1-fullhd {\n      font-size: 3rem !important; }\n    #optimole-app .is-size-2-fullhd {\n      font-size: 2.5rem !important; }\n    #optimole-app .is-size-3-fullhd {\n      font-size: 2rem !important; }\n    #optimole-app .is-size-4-fullhd {\n      font-size: 1.5rem !important; }\n    #optimole-app .is-size-5-fullhd {\n      font-size: 1.25rem !important; }\n    #optimole-app .is-size-6-fullhd {\n      font-size: 1rem !important; }\n    #optimole-app .is-size-7-fullhd {\n      font-size: 0.75rem !important; } }\n  #optimole-app .has-text-centered {\n    text-align: center !important; }\n  #optimole-app .has-text-justified {\n    text-align: justify !important; }\n  #optimole-app .has-text-left {\n    text-align: left !important; }\n  #optimole-app .has-text-right {\n    text-align: right !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .has-text-centered-mobile {\n      text-align: center !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .has-text-centered-tablet {\n      text-align: center !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .has-text-centered-tablet-only {\n      text-align: center !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .has-text-centered-touch {\n      text-align: center !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .has-text-centered-desktop {\n      text-align: center !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .has-text-centered-desktop-only {\n      text-align: center !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .has-text-centered-widescreen {\n      text-align: center !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .has-text-centered-widescreen-only {\n      text-align: center !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .has-text-centered-fullhd {\n      text-align: center !important; } }\n  @media screen and (max-width: 768px) {\n    #optimole-app .has-text-justified-mobile {\n      text-align: justify !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .has-text-justified-tablet {\n      text-align: justify !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .has-text-justified-tablet-only {\n      text-align: justify !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .has-text-justified-touch {\n      text-align: justify !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .has-text-justified-desktop {\n      text-align: justify !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .has-text-justified-desktop-only {\n      text-align: justify !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .has-text-justified-widescreen {\n      text-align: justify !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .has-text-justified-widescreen-only {\n      text-align: justify !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .has-text-justified-fullhd {\n      text-align: justify !important; } }\n  @media screen and (max-width: 768px) {\n    #optimole-app .has-text-left-mobile {\n      text-align: left !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .has-text-left-tablet {\n      text-align: left !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .has-text-left-tablet-only {\n      text-align: left !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .has-text-left-touch {\n      text-align: left !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .has-text-left-desktop {\n      text-align: left !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .has-text-left-desktop-only {\n      text-align: left !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .has-text-left-widescreen {\n      text-align: left !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .has-text-left-widescreen-only {\n      text-align: left !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .has-text-left-fullhd {\n      text-align: left !important; } }\n  @media screen and (max-width: 768px) {\n    #optimole-app .has-text-right-mobile {\n      text-align: right !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .has-text-right-tablet {\n      text-align: right !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .has-text-right-tablet-only {\n      text-align: right !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .has-text-right-touch {\n      text-align: right !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .has-text-right-desktop {\n      text-align: right !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .has-text-right-desktop-only {\n      text-align: right !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .has-text-right-widescreen {\n      text-align: right !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .has-text-right-widescreen-only {\n      text-align: right !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .has-text-right-fullhd {\n      text-align: right !important; } }\n  #optimole-app .is-capitalized {\n    text-transform: capitalize !important; }\n  #optimole-app .is-lowercase {\n    text-transform: lowercase !important; }\n  #optimole-app .is-uppercase {\n    text-transform: uppercase !important; }\n  #optimole-app .is-italic {\n    font-style: italic !important; }\n  #optimole-app .has-text-white {\n    color: white !important; }\n  #optimole-app a.has-text-white:hover, #optimole-app a.has-text-white:focus {\n    color: #e6e6e6 !important; }\n  #optimole-app .has-background-white {\n    background-color: white !important; }\n  #optimole-app .has-text-black {\n    color: #0a0a0a !important; }\n  #optimole-app a.has-text-black:hover, #optimole-app a.has-text-black:focus {\n    color: black !important; }\n  #optimole-app .has-background-black {\n    background-color: #0a0a0a !important; }\n  #optimole-app .has-text-light {\n    color: whitesmoke !important; }\n  #optimole-app a.has-text-light:hover, #optimole-app a.has-text-light:focus {\n    color: #dbdbdb !important; }\n  #optimole-app .has-background-light {\n    background-color: whitesmoke !important; }\n  #optimole-app .has-text-dark {\n    color: #363636 !important; }\n  #optimole-app a.has-text-dark:hover, #optimole-app a.has-text-dark:focus {\n    color: #1c1c1c !important; }\n  #optimole-app .has-background-dark {\n    background-color: #363636 !important; }\n  #optimole-app .has-text-primary {\n    color: #EF686B !important; }\n  #optimole-app a.has-text-primary:hover, #optimole-app a.has-text-primary:focus {\n    color: #ea3a3e !important; }\n  #optimole-app .has-background-primary {\n    background-color: #EF686B !important; }\n  #optimole-app .has-text-link {\n    color: #3273dc !important; }\n  #optimole-app a.has-text-link:hover, #optimole-app a.has-text-link:focus {\n    color: #205bbc !important; }\n  #optimole-app .has-background-link {\n    background-color: #3273dc !important; }\n  #optimole-app .has-text-info {\n    color: #5180C1 !important; }\n  #optimole-app a.has-text-info:hover, #optimole-app a.has-text-info:focus {\n    color: #3b67a4 !important; }\n  #optimole-app .has-background-info {\n    background-color: #5180C1 !important; }\n  #optimole-app .has-text-success {\n    color: #34a85e !important; }\n  #optimole-app a.has-text-success:hover, #optimole-app a.has-text-success:focus {\n    color: #288148 !important; }\n  #optimole-app .has-background-success {\n    background-color: #34a85e !important; }\n  #optimole-app .has-text-warning {\n    color: #ffdd57 !important; }\n  #optimole-app a.has-text-warning:hover, #optimole-app a.has-text-warning:focus {\n    color: #ffd324 !important; }\n  #optimole-app .has-background-warning {\n    background-color: #ffdd57 !important; }\n  #optimole-app .has-text-danger {\n    color: #D54222 !important; }\n  #optimole-app a.has-text-danger:hover, #optimole-app a.has-text-danger:focus {\n    color: #a9341b !important; }\n  #optimole-app .has-background-danger {\n    background-color: #D54222 !important; }\n  #optimole-app .has-text-black-bis {\n    color: #121212 !important; }\n  #optimole-app .has-background-black-bis {\n    background-color: #121212 !important; }\n  #optimole-app .has-text-black-ter {\n    color: #242424 !important; }\n  #optimole-app .has-background-black-ter {\n    background-color: #242424 !important; }\n  #optimole-app .has-text-grey-darker {\n    color: #363636 !important; }\n  #optimole-app .has-background-grey-darker {\n    background-color: #363636 !important; }\n  #optimole-app .has-text-grey-dark {\n    color: #4a4a4a !important; }\n  #optimole-app .has-background-grey-dark {\n    background-color: #4a4a4a !important; }\n  #optimole-app .has-text-grey {\n    color: #7a7a7a !important; }\n  #optimole-app .has-background-grey {\n    background-color: #7a7a7a !important; }\n  #optimole-app .has-text-grey-light {\n    color: #b5b5b5 !important; }\n  #optimole-app .has-background-grey-light {\n    background-color: #b5b5b5 !important; }\n  #optimole-app .has-text-grey-lighter {\n    color: #dbdbdb !important; }\n  #optimole-app .has-background-grey-lighter {\n    background-color: #dbdbdb !important; }\n  #optimole-app .has-text-white-ter {\n    color: whitesmoke !important; }\n  #optimole-app .has-background-white-ter {\n    background-color: whitesmoke !important; }\n  #optimole-app .has-text-white-bis {\n    color: #fafafa !important; }\n  #optimole-app .has-background-white-bis {\n    background-color: #fafafa !important; }\n  #optimole-app .has-text-weight-light {\n    font-weight: 300 !important; }\n  #optimole-app .has-text-weight-normal {\n    font-weight: 400 !important; }\n  #optimole-app .has-text-weight-semibold {\n    font-weight: 600 !important; }\n  #optimole-app .has-text-weight-bold {\n    font-weight: 700 !important; }\n  #optimole-app .is-block {\n    display: block !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-block-mobile {\n      display: block !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-block-tablet {\n      display: block !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-block-tablet-only {\n      display: block !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-block-touch {\n      display: block !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-block-desktop {\n      display: block !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-block-desktop-only {\n      display: block !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-block-widescreen {\n      display: block !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-block-widescreen-only {\n      display: block !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-block-fullhd {\n      display: block !important; } }\n  #optimole-app .is-flex {\n    display: -ms-flexbox !important;\n    display: flex !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-flex-mobile {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-flex-tablet {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-flex-tablet-only {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-flex-touch {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-flex-desktop {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-flex-desktop-only {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-flex-widescreen {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-flex-widescreen-only {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-flex-fullhd {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  #optimole-app .is-inline {\n    display: inline !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-inline-mobile {\n      display: inline !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-inline-tablet {\n      display: inline !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-inline-tablet-only {\n      display: inline !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-inline-touch {\n      display: inline !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-inline-desktop {\n      display: inline !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-inline-desktop-only {\n      display: inline !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-inline-widescreen {\n      display: inline !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-inline-widescreen-only {\n      display: inline !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-inline-fullhd {\n      display: inline !important; } }\n  #optimole-app .is-inline-block {\n    display: inline-block !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-inline-block-mobile {\n      display: inline-block !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-inline-block-tablet {\n      display: inline-block !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-inline-block-tablet-only {\n      display: inline-block !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-inline-block-touch {\n      display: inline-block !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-inline-block-desktop {\n      display: inline-block !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-inline-block-desktop-only {\n      display: inline-block !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-inline-block-widescreen {\n      display: inline-block !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-inline-block-widescreen-only {\n      display: inline-block !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-inline-block-fullhd {\n      display: inline-block !important; } }\n  #optimole-app .is-inline-flex {\n    display: -ms-inline-flexbox !important;\n    display: inline-flex !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-inline-flex-mobile {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-inline-flex-tablet {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-inline-flex-tablet-only {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-inline-flex-touch {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-inline-flex-desktop {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-inline-flex-desktop-only {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-inline-flex-widescreen {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-inline-flex-widescreen-only {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-inline-flex-fullhd {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  #optimole-app .is-hidden {\n    display: none !important; }\n  #optimole-app .is-sr-only {\n    border: none !important;\n    clip: rect(0, 0, 0, 0) !important;\n    height: 0.01em !important;\n    overflow: hidden !important;\n    padding: 0 !important;\n    position: absolute !important;\n    white-space: nowrap !important;\n    width: 0.01em !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-hidden-mobile {\n      display: none !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-hidden-tablet {\n      display: none !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-hidden-tablet-only {\n      display: none !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-hidden-touch {\n      display: none !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-hidden-desktop {\n      display: none !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-hidden-desktop-only {\n      display: none !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-hidden-widescreen {\n      display: none !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-hidden-widescreen-only {\n      display: none !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-hidden-fullhd {\n      display: none !important; } }\n  #optimole-app .is-invisible {\n    visibility: hidden !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-invisible-mobile {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-invisible-tablet {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-invisible-tablet-only {\n      visibility: hidden !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-invisible-touch {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-invisible-desktop {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-invisible-desktop-only {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-invisible-widescreen {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-invisible-widescreen-only {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-invisible-fullhd {\n      visibility: hidden !important; } }\n  #optimole-app .is-marginless {\n    margin: 0 !important; }\n  #optimole-app .is-paddingless {\n    padding: 0 !important; }\n  #optimole-app .is-radiusless {\n    border-radius: 0 !important; }\n  #optimole-app .is-shadowless {\n    box-shadow: none !important; }\n  #optimole-app .box {\n    background-color: white;\n    border-radius: 6px;\n    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);\n    color: #4a4a4a;\n    display: block;\n    padding: 1.25rem; }\n  #optimole-app a.box:hover, #optimole-app a.box:focus {\n    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px #3273dc; }\n  #optimole-app a.box:active {\n    box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.2), 0 0 0 1px #3273dc; }\n  #optimole-app .button {\n    background-color: white;\n    border-color: #dbdbdb;\n    border-width: 1px;\n    color: #363636;\n    cursor: pointer;\n    -ms-flex-pack: center;\n        justify-content: center;\n    padding-bottom: calc(0.375em - 1px);\n    padding-left: 0.75em;\n    padding-right: 0.75em;\n    padding-top: calc(0.375em - 1px);\n    text-align: center;\n    white-space: nowrap; }\n    #optimole-app .button strong {\n      color: inherit; }\n    #optimole-app .button .icon, #optimole-app .button .icon.is-small, #optimole-app .button .icon.is-medium, #optimole-app .button .icon.is-large {\n      height: 1.5em;\n      width: 1.5em; }\n    #optimole-app .button .icon:first-child:not(:last-child) {\n      margin-left: calc(-0.375em - 1px);\n      margin-right: 0.1875em; }\n    #optimole-app .button .icon:last-child:not(:first-child) {\n      margin-left: 0.1875em;\n      margin-right: calc(-0.375em - 1px); }\n    #optimole-app .button .icon:first-child:last-child {\n      margin-left: calc(-0.375em - 1px);\n      margin-right: calc(-0.375em - 1px); }\n    #optimole-app .button:hover, #optimole-app .button.is-hovered {\n      border-color: #b5b5b5;\n      color: #363636; }\n    #optimole-app .button:focus, #optimole-app .button.is-focused {\n      border-color: #3273dc;\n      color: #363636; }\n      #optimole-app .button:focus:not(:active), #optimole-app .button.is-focused:not(:active) {\n        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }\n    #optimole-app .button:active, #optimole-app .button.is-active {\n      border-color: #4a4a4a;\n      color: #363636; }\n    #optimole-app .button.is-text {\n      background-color: transparent;\n      border-color: transparent;\n      color: #4a4a4a;\n      text-decoration: underline; }\n      #optimole-app .button.is-text:hover, #optimole-app .button.is-text.is-hovered, #optimole-app .button.is-text:focus, #optimole-app .button.is-text.is-focused {\n        background-color: whitesmoke;\n        color: #363636; }\n      #optimole-app .button.is-text:active, #optimole-app .button.is-text.is-active {\n        background-color: #e8e8e8;\n        color: #363636; }\n      #optimole-app .button.is-text[disabled] {\n        background-color: transparent;\n        border-color: transparent;\n        box-shadow: none; }\n    #optimole-app .button.is-white {\n      background-color: white;\n      border-color: transparent;\n      color: #0a0a0a; }\n      #optimole-app .button.is-white:hover, #optimole-app .button.is-white.is-hovered {\n        background-color: #f9f9f9;\n        border-color: transparent;\n        color: #0a0a0a; }\n      #optimole-app .button.is-white:focus, #optimole-app .button.is-white.is-focused {\n        border-color: transparent;\n        color: #0a0a0a; }\n        #optimole-app .button.is-white:focus:not(:active), #optimole-app .button.is-white.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(255, 255, 255, 0.25); }\n      #optimole-app .button.is-white:active, #optimole-app .button.is-white.is-active {\n        background-color: #f2f2f2;\n        border-color: transparent;\n        color: #0a0a0a; }\n      #optimole-app .button.is-white[disabled] {\n        background-color: white;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-white.is-inverted {\n        background-color: #0a0a0a;\n        color: white; }\n        #optimole-app .button.is-white.is-inverted:hover {\n          background-color: black; }\n        #optimole-app .button.is-white.is-inverted[disabled] {\n          background-color: #0a0a0a;\n          border-color: transparent;\n          box-shadow: none;\n          color: white; }\n      #optimole-app .button.is-white.is-loading::after {\n        border-color: transparent transparent #0a0a0a #0a0a0a !important; }\n      #optimole-app .button.is-white.is-outlined {\n        background-color: transparent;\n        border-color: white;\n        color: white; }\n        #optimole-app .button.is-white.is-outlined:hover, #optimole-app .button.is-white.is-outlined:focus {\n          background-color: white;\n          border-color: white;\n          color: #0a0a0a; }\n        #optimole-app .button.is-white.is-outlined.is-loading::after {\n          border-color: transparent transparent white white !important; }\n        #optimole-app .button.is-white.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: white;\n          box-shadow: none;\n          color: white; }\n      #optimole-app .button.is-white.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #0a0a0a;\n        color: #0a0a0a; }\n        #optimole-app .button.is-white.is-inverted.is-outlined:hover, #optimole-app .button.is-white.is-inverted.is-outlined:focus {\n          background-color: #0a0a0a;\n          color: white; }\n        #optimole-app .button.is-white.is-inverted.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #0a0a0a;\n          box-shadow: none;\n          color: #0a0a0a; }\n    #optimole-app .button.is-black {\n      background-color: #0a0a0a;\n      border-color: transparent;\n      color: white; }\n      #optimole-app .button.is-black:hover, #optimole-app .button.is-black.is-hovered {\n        background-color: #040404;\n        border-color: transparent;\n        color: white; }\n      #optimole-app .button.is-black:focus, #optimole-app .button.is-black.is-focused {\n        border-color: transparent;\n        color: white; }\n        #optimole-app .button.is-black:focus:not(:active), #optimole-app .button.is-black.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(10, 10, 10, 0.25); }\n      #optimole-app .button.is-black:active, #optimole-app .button.is-black.is-active {\n        background-color: black;\n        border-color: transparent;\n        color: white; }\n      #optimole-app .button.is-black[disabled] {\n        background-color: #0a0a0a;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-black.is-inverted {\n        background-color: white;\n        color: #0a0a0a; }\n        #optimole-app .button.is-black.is-inverted:hover {\n          background-color: #f2f2f2; }\n        #optimole-app .button.is-black.is-inverted[disabled] {\n          background-color: white;\n          border-color: transparent;\n          box-shadow: none;\n          color: #0a0a0a; }\n      #optimole-app .button.is-black.is-loading::after {\n        border-color: transparent transparent white white !important; }\n      #optimole-app .button.is-black.is-outlined {\n        background-color: transparent;\n        border-color: #0a0a0a;\n        color: #0a0a0a; }\n        #optimole-app .button.is-black.is-outlined:hover, #optimole-app .button.is-black.is-outlined:focus {\n          background-color: #0a0a0a;\n          border-color: #0a0a0a;\n          color: white; }\n        #optimole-app .button.is-black.is-outlined.is-loading::after {\n          border-color: transparent transparent #0a0a0a #0a0a0a !important; }\n        #optimole-app .button.is-black.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #0a0a0a;\n          box-shadow: none;\n          color: #0a0a0a; }\n      #optimole-app .button.is-black.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: white;\n        color: white; }\n        #optimole-app .button.is-black.is-inverted.is-outlined:hover, #optimole-app .button.is-black.is-inverted.is-outlined:focus {\n          background-color: white;\n          color: #0a0a0a; }\n        #optimole-app .button.is-black.is-inverted.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: white;\n          box-shadow: none;\n          color: white; }\n    #optimole-app .button.is-light {\n      background-color: whitesmoke;\n      border-color: transparent;\n      color: #363636; }\n      #optimole-app .button.is-light:hover, #optimole-app .button.is-light.is-hovered {\n        background-color: #eeeeee;\n        border-color: transparent;\n        color: #363636; }\n      #optimole-app .button.is-light:focus, #optimole-app .button.is-light.is-focused {\n        border-color: transparent;\n        color: #363636; }\n        #optimole-app .button.is-light:focus:not(:active), #optimole-app .button.is-light.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(245, 245, 245, 0.25); }\n      #optimole-app .button.is-light:active, #optimole-app .button.is-light.is-active {\n        background-color: #e8e8e8;\n        border-color: transparent;\n        color: #363636; }\n      #optimole-app .button.is-light[disabled] {\n        background-color: whitesmoke;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-light.is-inverted {\n        background-color: #363636;\n        color: whitesmoke; }\n        #optimole-app .button.is-light.is-inverted:hover {\n          background-color: #292929; }\n        #optimole-app .button.is-light.is-inverted[disabled] {\n          background-color: #363636;\n          border-color: transparent;\n          box-shadow: none;\n          color: whitesmoke; }\n      #optimole-app .button.is-light.is-loading::after {\n        border-color: transparent transparent #363636 #363636 !important; }\n      #optimole-app .button.is-light.is-outlined {\n        background-color: transparent;\n        border-color: whitesmoke;\n        color: whitesmoke; }\n        #optimole-app .button.is-light.is-outlined:hover, #optimole-app .button.is-light.is-outlined:focus {\n          background-color: whitesmoke;\n          border-color: whitesmoke;\n          color: #363636; }\n        #optimole-app .button.is-light.is-outlined.is-loading::after {\n          border-color: transparent transparent whitesmoke whitesmoke !important; }\n        #optimole-app .button.is-light.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: whitesmoke;\n          box-shadow: none;\n          color: whitesmoke; }\n      #optimole-app .button.is-light.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #363636;\n        color: #363636; }\n        #optimole-app .button.is-light.is-inverted.is-outlined:hover, #optimole-app .button.is-light.is-inverted.is-outlined:focus {\n          background-color: #363636;\n          color: whitesmoke; }\n        #optimole-app .button.is-light.is-inverted.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #363636;\n          box-shadow: none;\n          color: #363636; }\n    #optimole-app .button.is-dark {\n      background-color: #363636;\n      border-color: transparent;\n      color: whitesmoke; }\n      #optimole-app .button.is-dark:hover, #optimole-app .button.is-dark.is-hovered {\n        background-color: #2f2f2f;\n        border-color: transparent;\n        color: whitesmoke; }\n      #optimole-app .button.is-dark:focus, #optimole-app .button.is-dark.is-focused {\n        border-color: transparent;\n        color: whitesmoke; }\n        #optimole-app .button.is-dark:focus:not(:active), #optimole-app .button.is-dark.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(54, 54, 54, 0.25); }\n      #optimole-app .button.is-dark:active, #optimole-app .button.is-dark.is-active {\n        background-color: #292929;\n        border-color: transparent;\n        color: whitesmoke; }\n      #optimole-app .button.is-dark[disabled] {\n        background-color: #363636;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-dark.is-inverted {\n        background-color: whitesmoke;\n        color: #363636; }\n        #optimole-app .button.is-dark.is-inverted:hover {\n          background-color: #e8e8e8; }\n        #optimole-app .button.is-dark.is-inverted[disabled] {\n          background-color: whitesmoke;\n          border-color: transparent;\n          box-shadow: none;\n          color: #363636; }\n      #optimole-app .button.is-dark.is-loading::after {\n        border-color: transparent transparent whitesmoke whitesmoke !important; }\n      #optimole-app .button.is-dark.is-outlined {\n        background-color: transparent;\n        border-color: #363636;\n        color: #363636; }\n        #optimole-app .button.is-dark.is-outlined:hover, #optimole-app .button.is-dark.is-outlined:focus {\n          background-color: #363636;\n          border-color: #363636;\n          color: whitesmoke; }\n        #optimole-app .button.is-dark.is-outlined.is-loading::after {\n          border-color: transparent transparent #363636 #363636 !important; }\n        #optimole-app .button.is-dark.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #363636;\n          box-shadow: none;\n          color: #363636; }\n      #optimole-app .button.is-dark.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: whitesmoke;\n        color: whitesmoke; }\n        #optimole-app .button.is-dark.is-inverted.is-outlined:hover, #optimole-app .button.is-dark.is-inverted.is-outlined:focus {\n          background-color: whitesmoke;\n          color: #363636; }\n        #optimole-app .button.is-dark.is-inverted.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: whitesmoke;\n          box-shadow: none;\n          color: whitesmoke; }\n    #optimole-app .button.is-primary {\n      background-color: #EF686B;\n      border-color: transparent;\n      color: #fff; }\n      #optimole-app .button.is-primary:hover, #optimole-app .button.is-primary.is-hovered {\n        background-color: #ee5c60;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-primary:focus, #optimole-app .button.is-primary.is-focused {\n        border-color: transparent;\n        color: #fff; }\n        #optimole-app .button.is-primary:focus:not(:active), #optimole-app .button.is-primary.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(239, 104, 107, 0.25); }\n      #optimole-app .button.is-primary:active, #optimole-app .button.is-primary.is-active {\n        background-color: #ed5154;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-primary[disabled] {\n        background-color: #EF686B;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-primary.is-inverted {\n        background-color: #fff;\n        color: #EF686B; }\n        #optimole-app .button.is-primary.is-inverted:hover {\n          background-color: #f2f2f2; }\n        #optimole-app .button.is-primary.is-inverted[disabled] {\n          background-color: #fff;\n          border-color: transparent;\n          box-shadow: none;\n          color: #EF686B; }\n      #optimole-app .button.is-primary.is-loading::after {\n        border-color: transparent transparent #fff #fff !important; }\n      #optimole-app .button.is-primary.is-outlined {\n        background-color: transparent;\n        border-color: #EF686B;\n        color: #EF686B; }\n        #optimole-app .button.is-primary.is-outlined:hover, #optimole-app .button.is-primary.is-outlined:focus {\n          background-color: #EF686B;\n          border-color: #EF686B;\n          color: #fff; }\n        #optimole-app .button.is-primary.is-outlined.is-loading::after {\n          border-color: transparent transparent #EF686B #EF686B !important; }\n        #optimole-app .button.is-primary.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #EF686B;\n          box-shadow: none;\n          color: #EF686B; }\n      #optimole-app .button.is-primary.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #fff;\n        color: #fff; }\n        #optimole-app .button.is-primary.is-inverted.is-outlined:hover, #optimole-app .button.is-primary.is-inverted.is-outlined:focus {\n          background-color: #fff;\n          color: #EF686B; }\n        #optimole-app .button.is-primary.is-inverted.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #fff;\n          box-shadow: none;\n          color: #fff; }\n    #optimole-app .button.is-link {\n      background-color: #3273dc;\n      border-color: transparent;\n      color: #fff; }\n      #optimole-app .button.is-link:hover, #optimole-app .button.is-link.is-hovered {\n        background-color: #276cda;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-link:focus, #optimole-app .button.is-link.is-focused {\n        border-color: transparent;\n        color: #fff; }\n        #optimole-app .button.is-link:focus:not(:active), #optimole-app .button.is-link.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }\n      #optimole-app .button.is-link:active, #optimole-app .button.is-link.is-active {\n        background-color: #2366d1;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-link[disabled] {\n        background-color: #3273dc;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-link.is-inverted {\n        background-color: #fff;\n        color: #3273dc; }\n        #optimole-app .button.is-link.is-inverted:hover {\n          background-color: #f2f2f2; }\n        #optimole-app .button.is-link.is-inverted[disabled] {\n          background-color: #fff;\n          border-color: transparent;\n          box-shadow: none;\n          color: #3273dc; }\n      #optimole-app .button.is-link.is-loading::after {\n        border-color: transparent transparent #fff #fff !important; }\n      #optimole-app .button.is-link.is-outlined {\n        background-color: transparent;\n        border-color: #3273dc;\n        color: #3273dc; }\n        #optimole-app .button.is-link.is-outlined:hover, #optimole-app .button.is-link.is-outlined:focus {\n          background-color: #3273dc;\n          border-color: #3273dc;\n          color: #fff; }\n        #optimole-app .button.is-link.is-outlined.is-loading::after {\n          border-color: transparent transparent #3273dc #3273dc !important; }\n        #optimole-app .button.is-link.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #3273dc;\n          box-shadow: none;\n          color: #3273dc; }\n      #optimole-app .button.is-link.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #fff;\n        color: #fff; }\n        #optimole-app .button.is-link.is-inverted.is-outlined:hover, #optimole-app .button.is-link.is-inverted.is-outlined:focus {\n          background-color: #fff;\n          color: #3273dc; }\n        #optimole-app .button.is-link.is-inverted.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #fff;\n          box-shadow: none;\n          color: #fff; }\n    #optimole-app .button.is-info {\n      background-color: #5180C1;\n      border-color: transparent;\n      color: #fff; }\n      #optimole-app .button.is-info:hover, #optimole-app .button.is-info.is-hovered {\n        background-color: #4879be;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-info:focus, #optimole-app .button.is-info.is-focused {\n        border-color: transparent;\n        color: #fff; }\n        #optimole-app .button.is-info:focus:not(:active), #optimole-app .button.is-info.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(81, 128, 193, 0.25); }\n      #optimole-app .button.is-info:active, #optimole-app .button.is-info.is-active {\n        background-color: #4173b7;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-info[disabled] {\n        background-color: #5180C1;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-info.is-inverted {\n        background-color: #fff;\n        color: #5180C1; }\n        #optimole-app .button.is-info.is-inverted:hover {\n          background-color: #f2f2f2; }\n        #optimole-app .button.is-info.is-inverted[disabled] {\n          background-color: #fff;\n          border-color: transparent;\n          box-shadow: none;\n          color: #5180C1; }\n      #optimole-app .button.is-info.is-loading::after {\n        border-color: transparent transparent #fff #fff !important; }\n      #optimole-app .button.is-info.is-outlined {\n        background-color: transparent;\n        border-color: #5180C1;\n        color: #5180C1; }\n        #optimole-app .button.is-info.is-outlined:hover, #optimole-app .button.is-info.is-outlined:focus {\n          background-color: #5180C1;\n          border-color: #5180C1;\n          color: #fff; }\n        #optimole-app .button.is-info.is-outlined.is-loading::after {\n          border-color: transparent transparent #5180C1 #5180C1 !important; }\n        #optimole-app .button.is-info.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #5180C1;\n          box-shadow: none;\n          color: #5180C1; }\n      #optimole-app .button.is-info.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #fff;\n        color: #fff; }\n        #optimole-app .button.is-info.is-inverted.is-outlined:hover, #optimole-app .button.is-info.is-inverted.is-outlined:focus {\n          background-color: #fff;\n          color: #5180C1; }\n        #optimole-app .button.is-info.is-inverted.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #fff;\n          box-shadow: none;\n          color: #fff; }\n    #optimole-app .button.is-success {\n      background-color: #34a85e;\n      border-color: transparent;\n      color: #fff; }\n      #optimole-app .button.is-success:hover, #optimole-app .button.is-success.is-hovered {\n        background-color: #319e59;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-success:focus, #optimole-app .button.is-success.is-focused {\n        border-color: transparent;\n        color: #fff; }\n        #optimole-app .button.is-success:focus:not(:active), #optimole-app .button.is-success.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(52, 168, 94, 0.25); }\n      #optimole-app .button.is-success:active, #optimole-app .button.is-success.is-active {\n        background-color: #2e9553;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-success[disabled] {\n        background-color: #34a85e;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-success.is-inverted {\n        background-color: #fff;\n        color: #34a85e; }\n        #optimole-app .button.is-success.is-inverted:hover {\n          background-color: #f2f2f2; }\n        #optimole-app .button.is-success.is-inverted[disabled] {\n          background-color: #fff;\n          border-color: transparent;\n          box-shadow: none;\n          color: #34a85e; }\n      #optimole-app .button.is-success.is-loading::after {\n        border-color: transparent transparent #fff #fff !important; }\n      #optimole-app .button.is-success.is-outlined {\n        background-color: transparent;\n        border-color: #34a85e;\n        color: #34a85e; }\n        #optimole-app .button.is-success.is-outlined:hover, #optimole-app .button.is-success.is-outlined:focus {\n          background-color: #34a85e;\n          border-color: #34a85e;\n          color: #fff; }\n        #optimole-app .button.is-success.is-outlined.is-loading::after {\n          border-color: transparent transparent #34a85e #34a85e !important; }\n        #optimole-app .button.is-success.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #34a85e;\n          box-shadow: none;\n          color: #34a85e; }\n      #optimole-app .button.is-success.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #fff;\n        color: #fff; }\n        #optimole-app .button.is-success.is-inverted.is-outlined:hover, #optimole-app .button.is-success.is-inverted.is-outlined:focus {\n          background-color: #fff;\n          color: #34a85e; }\n        #optimole-app .button.is-success.is-inverted.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #fff;\n          box-shadow: none;\n          color: #fff; }\n    #optimole-app .button.is-warning {\n      background-color: #ffdd57;\n      border-color: transparent;\n      color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .button.is-warning:hover, #optimole-app .button.is-warning.is-hovered {\n        background-color: #ffdb4a;\n        border-color: transparent;\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .button.is-warning:focus, #optimole-app .button.is-warning.is-focused {\n        border-color: transparent;\n        color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .button.is-warning:focus:not(:active), #optimole-app .button.is-warning.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(255, 221, 87, 0.25); }\n      #optimole-app .button.is-warning:active, #optimole-app .button.is-warning.is-active {\n        background-color: #ffd83d;\n        border-color: transparent;\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .button.is-warning[disabled] {\n        background-color: #ffdd57;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-warning.is-inverted {\n        background-color: rgba(0, 0, 0, 0.7);\n        color: #ffdd57; }\n        #optimole-app .button.is-warning.is-inverted:hover {\n          background-color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .button.is-warning.is-inverted[disabled] {\n          background-color: rgba(0, 0, 0, 0.7);\n          border-color: transparent;\n          box-shadow: none;\n          color: #ffdd57; }\n      #optimole-app .button.is-warning.is-loading::after {\n        border-color: transparent transparent rgba(0, 0, 0, 0.7) rgba(0, 0, 0, 0.7) !important; }\n      #optimole-app .button.is-warning.is-outlined {\n        background-color: transparent;\n        border-color: #ffdd57;\n        color: #ffdd57; }\n        #optimole-app .button.is-warning.is-outlined:hover, #optimole-app .button.is-warning.is-outlined:focus {\n          background-color: #ffdd57;\n          border-color: #ffdd57;\n          color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .button.is-warning.is-outlined.is-loading::after {\n          border-color: transparent transparent #ffdd57 #ffdd57 !important; }\n        #optimole-app .button.is-warning.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #ffdd57;\n          box-shadow: none;\n          color: #ffdd57; }\n      #optimole-app .button.is-warning.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: rgba(0, 0, 0, 0.7);\n        color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .button.is-warning.is-inverted.is-outlined:hover, #optimole-app .button.is-warning.is-inverted.is-outlined:focus {\n          background-color: rgba(0, 0, 0, 0.7);\n          color: #ffdd57; }\n        #optimole-app .button.is-warning.is-inverted.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: rgba(0, 0, 0, 0.7);\n          box-shadow: none;\n          color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .button.is-danger {\n      background-color: #D54222;\n      border-color: transparent;\n      color: #fff; }\n      #optimole-app .button.is-danger:hover, #optimole-app .button.is-danger.is-hovered {\n        background-color: #ca3f20;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-danger:focus, #optimole-app .button.is-danger.is-focused {\n        border-color: transparent;\n        color: #fff; }\n        #optimole-app .button.is-danger:focus:not(:active), #optimole-app .button.is-danger.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(213, 66, 34, 0.25); }\n      #optimole-app .button.is-danger:active, #optimole-app .button.is-danger.is-active {\n        background-color: #bf3b1e;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-danger[disabled] {\n        background-color: #D54222;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-danger.is-inverted {\n        background-color: #fff;\n        color: #D54222; }\n        #optimole-app .button.is-danger.is-inverted:hover {\n          background-color: #f2f2f2; }\n        #optimole-app .button.is-danger.is-inverted[disabled] {\n          background-color: #fff;\n          border-color: transparent;\n          box-shadow: none;\n          color: #D54222; }\n      #optimole-app .button.is-danger.is-loading::after {\n        border-color: transparent transparent #fff #fff !important; }\n      #optimole-app .button.is-danger.is-outlined {\n        background-color: transparent;\n        border-color: #D54222;\n        color: #D54222; }\n        #optimole-app .button.is-danger.is-outlined:hover, #optimole-app .button.is-danger.is-outlined:focus {\n          background-color: #D54222;\n          border-color: #D54222;\n          color: #fff; }\n        #optimole-app .button.is-danger.is-outlined.is-loading::after {\n          border-color: transparent transparent #D54222 #D54222 !important; }\n        #optimole-app .button.is-danger.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #D54222;\n          box-shadow: none;\n          color: #D54222; }\n      #optimole-app .button.is-danger.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #fff;\n        color: #fff; }\n        #optimole-app .button.is-danger.is-inverted.is-outlined:hover, #optimole-app .button.is-danger.is-inverted.is-outlined:focus {\n          background-color: #fff;\n          color: #D54222; }\n        #optimole-app .button.is-danger.is-inverted.is-outlined[disabled] {\n          background-color: transparent;\n          border-color: #fff;\n          box-shadow: none;\n          color: #fff; }\n    #optimole-app .button.is-small {\n      border-radius: 2px;\n      font-size: 0.75rem; }\n    #optimole-app .button.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .button.is-large {\n      font-size: 1.5rem; }\n    #optimole-app .button[disabled] {\n      background-color: white;\n      border-color: #dbdbdb;\n      box-shadow: none;\n      opacity: 0.5; }\n    #optimole-app .button.is-fullwidth {\n      display: -ms-flexbox;\n      display: flex;\n      width: 100%; }\n    #optimole-app .button.is-loading {\n      color: transparent !important;\n      pointer-events: none; }\n      #optimole-app .button.is-loading::after {\n        position: absolute;\n        left: calc(50% - (1em / 2));\n        top: calc(50% - (1em / 2));\n        position: absolute !important; }\n    #optimole-app .button.is-static {\n      background-color: whitesmoke;\n      border-color: #dbdbdb;\n      color: #7a7a7a;\n      box-shadow: none;\n      pointer-events: none; }\n    #optimole-app .button.is-rounded {\n      border-radius: 290486px;\n      padding-left: 1em;\n      padding-right: 1em; }\n  #optimole-app .buttons {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n    -ms-flex-pack: start;\n        justify-content: flex-start; }\n    #optimole-app .buttons .button {\n      margin-bottom: 0.5rem; }\n      #optimole-app .buttons .button:not(:last-child):not(.is-fullwidth) {\n        margin-right: 0.5rem; }\n    #optimole-app .buttons:last-child {\n      margin-bottom: -0.5rem; }\n    #optimole-app .buttons:not(:last-child) {\n      margin-bottom: 1rem; }\n    #optimole-app .buttons.has-addons .button:not(:first-child) {\n      border-bottom-left-radius: 0;\n      border-top-left-radius: 0; }\n    #optimole-app .buttons.has-addons .button:not(:last-child) {\n      border-bottom-right-radius: 0;\n      border-top-right-radius: 0;\n      margin-right: -1px; }\n    #optimole-app .buttons.has-addons .button:last-child {\n      margin-right: 0; }\n    #optimole-app .buttons.has-addons .button:hover, #optimole-app .buttons.has-addons .button.is-hovered {\n      z-index: 2; }\n    #optimole-app .buttons.has-addons .button:focus, #optimole-app .buttons.has-addons .button.is-focused, #optimole-app .buttons.has-addons .button:active, #optimole-app .buttons.has-addons .button.is-active, #optimole-app .buttons.has-addons .button.is-selected {\n      z-index: 3; }\n      #optimole-app .buttons.has-addons .button:focus:hover, #optimole-app .buttons.has-addons .button.is-focused:hover, #optimole-app .buttons.has-addons .button:active:hover, #optimole-app .buttons.has-addons .button.is-active:hover, #optimole-app .buttons.has-addons .button.is-selected:hover {\n        z-index: 4; }\n    #optimole-app .buttons.has-addons .button.is-expanded {\n      -ms-flex-positive: 1;\n          flex-grow: 1; }\n    #optimole-app .buttons.is-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .buttons.is-right {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n  #optimole-app .container {\n    margin: 0 auto;\n    position: relative; }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .container {\n        max-width: 960px;\n        width: 960px; }\n        #optimole-app .container.is-fluid {\n          margin-left: 64px;\n          margin-right: 64px;\n          max-width: none;\n          width: auto; } }\n    @media screen and (max-width: 1279px) {\n      #optimole-app .container.is-widescreen {\n        max-width: 1152px;\n        width: auto; } }\n    @media screen and (max-width: 1471px) {\n      #optimole-app .container.is-fullhd {\n        max-width: 1344px;\n        width: auto; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .container {\n        max-width: 1152px;\n        width: 1152px; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .container {\n        max-width: 1344px;\n        width: 1344px; } }\n  #optimole-app .content li + li {\n    margin-top: 0.25em; }\n  #optimole-app .content p:not(:last-child),\n  #optimole-app .content dl:not(:last-child),\n  #optimole-app .content ol:not(:last-child),\n  #optimole-app .content ul:not(:last-child),\n  #optimole-app .content blockquote:not(:last-child),\n  #optimole-app .content pre:not(:last-child),\n  #optimole-app .content table:not(:last-child) {\n    margin-bottom: 1em; }\n  #optimole-app .content h1,\n  #optimole-app .content h2,\n  #optimole-app .content h3,\n  #optimole-app .content h4,\n  #optimole-app .content h5,\n  #optimole-app .content h6 {\n    color: #363636;\n    font-weight: 600;\n    line-height: 1.125; }\n  #optimole-app .content h1 {\n    font-size: 2em;\n    margin-bottom: 0.5em; }\n    #optimole-app .content h1:not(:first-child) {\n      margin-top: 1em; }\n  #optimole-app .content h2 {\n    font-size: 1.75em;\n    margin-bottom: 0.5714em; }\n    #optimole-app .content h2:not(:first-child) {\n      margin-top: 1.1428em; }\n  #optimole-app .content h3 {\n    font-size: 1.5em;\n    margin-bottom: 0.6666em; }\n    #optimole-app .content h3:not(:first-child) {\n      margin-top: 1.3333em; }\n  #optimole-app .content h4 {\n    font-size: 1.25em;\n    margin-bottom: 0.8em; }\n  #optimole-app .content h5 {\n    font-size: 1.125em;\n    margin-bottom: 0.8888em; }\n  #optimole-app .content h6 {\n    font-size: 1em;\n    margin-bottom: 1em; }\n  #optimole-app .content blockquote {\n    background-color: whitesmoke;\n    border-left: 5px solid #dbdbdb;\n    padding: 1.25em 1.5em; }\n  #optimole-app .content ol {\n    list-style-position: outside;\n    margin-left: 2em;\n    margin-top: 1em; }\n    #optimole-app .content ol:not([type]) {\n      list-style-type: decimal; }\n      #optimole-app .content ol:not([type]).is-lower-alpha {\n        list-style-type: lower-alpha; }\n      #optimole-app .content ol:not([type]).is-lower-roman {\n        list-style-type: lower-roman; }\n      #optimole-app .content ol:not([type]).is-upper-alpha {\n        list-style-type: upper-alpha; }\n      #optimole-app .content ol:not([type]).is-upper-roman {\n        list-style-type: upper-roman; }\n  #optimole-app .content ul {\n    list-style: disc outside;\n    margin-left: 2em;\n    margin-top: 1em; }\n    #optimole-app .content ul ul {\n      list-style-type: circle;\n      margin-top: 0.5em; }\n      #optimole-app .content ul ul ul {\n        list-style-type: square; }\n  #optimole-app .content dd {\n    margin-left: 2em; }\n  #optimole-app .content figure {\n    margin-left: 2em;\n    margin-right: 2em;\n    text-align: center; }\n    #optimole-app .content figure:not(:first-child) {\n      margin-top: 2em; }\n    #optimole-app .content figure:not(:last-child) {\n      margin-bottom: 2em; }\n    #optimole-app .content figure img {\n      display: inline-block; }\n    #optimole-app .content figure figcaption {\n      font-style: italic; }\n  #optimole-app .content pre {\n    -webkit-overflow-scrolling: touch;\n    overflow-x: auto;\n    padding: 1.25em 1.5em;\n    white-space: pre;\n    word-wrap: normal; }\n  #optimole-app .content sup,\n  #optimole-app .content sub {\n    font-size: 75%; }\n  #optimole-app .content table {\n    width: 100%; }\n    #optimole-app .content table td,\n    #optimole-app .content table th {\n      border: 1px solid #dbdbdb;\n      border-width: 0 0 1px;\n      padding: 0.5em 0.75em;\n      vertical-align: top; }\n    #optimole-app .content table th {\n      color: #363636;\n      text-align: left; }\n    #optimole-app .content table thead td,\n    #optimole-app .content table thead th {\n      border-width: 0 0 2px;\n      color: #363636; }\n    #optimole-app .content table tfoot td,\n    #optimole-app .content table tfoot th {\n      border-width: 2px 0 0;\n      color: #363636; }\n    #optimole-app .content table tbody tr:last-child td,\n    #optimole-app .content table tbody tr:last-child th {\n      border-bottom-width: 0; }\n  #optimole-app .content.is-small {\n    font-size: 0.75rem; }\n  #optimole-app .content.is-medium {\n    font-size: 1.25rem; }\n  #optimole-app .content.is-large {\n    font-size: 1.5rem; }\n  #optimole-app .input,\n  #optimole-app .textarea {\n    background-color: white;\n    border-color: #dbdbdb;\n    color: #363636;\n    box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.1);\n    max-width: 100%;\n    width: 100%; }\n    #optimole-app .input::-moz-placeholder,\n    #optimole-app .textarea::-moz-placeholder {\n      color: rgba(54, 54, 54, 0.3); }\n    #optimole-app .input::-webkit-input-placeholder,\n    #optimole-app .textarea::-webkit-input-placeholder {\n      color: rgba(54, 54, 54, 0.3); }\n    #optimole-app .input:-moz-placeholder,\n    #optimole-app .textarea:-moz-placeholder {\n      color: rgba(54, 54, 54, 0.3); }\n    #optimole-app .input:-ms-input-placeholder,\n    #optimole-app .textarea:-ms-input-placeholder {\n      color: rgba(54, 54, 54, 0.3); }\n    #optimole-app .input:hover, #optimole-app .input.is-hovered,\n    #optimole-app .textarea:hover,\n    #optimole-app .textarea.is-hovered {\n      border-color: #b5b5b5; }\n    #optimole-app .input:focus, #optimole-app .input.is-focused, #optimole-app .input:active, #optimole-app .input.is-active,\n    #optimole-app .textarea:focus,\n    #optimole-app .textarea.is-focused,\n    #optimole-app .textarea:active,\n    #optimole-app .textarea.is-active {\n      border-color: #3273dc;\n      box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }\n    #optimole-app .input[disabled],\n    #optimole-app .textarea[disabled] {\n      background-color: whitesmoke;\n      border-color: whitesmoke;\n      box-shadow: none;\n      color: #7a7a7a; }\n      #optimole-app .input[disabled]::-moz-placeholder,\n      #optimole-app .textarea[disabled]::-moz-placeholder {\n        color: rgba(122, 122, 122, 0.3); }\n      #optimole-app .input[disabled]::-webkit-input-placeholder,\n      #optimole-app .textarea[disabled]::-webkit-input-placeholder {\n        color: rgba(122, 122, 122, 0.3); }\n      #optimole-app .input[disabled]:-moz-placeholder,\n      #optimole-app .textarea[disabled]:-moz-placeholder {\n        color: rgba(122, 122, 122, 0.3); }\n      #optimole-app .input[disabled]:-ms-input-placeholder,\n      #optimole-app .textarea[disabled]:-ms-input-placeholder {\n        color: rgba(122, 122, 122, 0.3); }\n    #optimole-app .input[readonly],\n    #optimole-app .textarea[readonly] {\n      box-shadow: none; }\n    #optimole-app .input.is-white,\n    #optimole-app .textarea.is-white {\n      border-color: white; }\n      #optimole-app .input.is-white:focus, #optimole-app .input.is-white.is-focused, #optimole-app .input.is-white:active, #optimole-app .input.is-white.is-active,\n      #optimole-app .textarea.is-white:focus,\n      #optimole-app .textarea.is-white.is-focused,\n      #optimole-app .textarea.is-white:active,\n      #optimole-app .textarea.is-white.is-active {\n        box-shadow: 0 0 0 0.125em rgba(255, 255, 255, 0.25); }\n    #optimole-app .input.is-black,\n    #optimole-app .textarea.is-black {\n      border-color: #0a0a0a; }\n      #optimole-app .input.is-black:focus, #optimole-app .input.is-black.is-focused, #optimole-app .input.is-black:active, #optimole-app .input.is-black.is-active,\n      #optimole-app .textarea.is-black:focus,\n      #optimole-app .textarea.is-black.is-focused,\n      #optimole-app .textarea.is-black:active,\n      #optimole-app .textarea.is-black.is-active {\n        box-shadow: 0 0 0 0.125em rgba(10, 10, 10, 0.25); }\n    #optimole-app .input.is-light,\n    #optimole-app .textarea.is-light {\n      border-color: whitesmoke; }\n      #optimole-app .input.is-light:focus, #optimole-app .input.is-light.is-focused, #optimole-app .input.is-light:active, #optimole-app .input.is-light.is-active,\n      #optimole-app .textarea.is-light:focus,\n      #optimole-app .textarea.is-light.is-focused,\n      #optimole-app .textarea.is-light:active,\n      #optimole-app .textarea.is-light.is-active {\n        box-shadow: 0 0 0 0.125em rgba(245, 245, 245, 0.25); }\n    #optimole-app .input.is-dark,\n    #optimole-app .textarea.is-dark {\n      border-color: #363636; }\n      #optimole-app .input.is-dark:focus, #optimole-app .input.is-dark.is-focused, #optimole-app .input.is-dark:active, #optimole-app .input.is-dark.is-active,\n      #optimole-app .textarea.is-dark:focus,\n      #optimole-app .textarea.is-dark.is-focused,\n      #optimole-app .textarea.is-dark:active,\n      #optimole-app .textarea.is-dark.is-active {\n        box-shadow: 0 0 0 0.125em rgba(54, 54, 54, 0.25); }\n    #optimole-app .input.is-primary,\n    #optimole-app .textarea.is-primary {\n      border-color: #EF686B; }\n      #optimole-app .input.is-primary:focus, #optimole-app .input.is-primary.is-focused, #optimole-app .input.is-primary:active, #optimole-app .input.is-primary.is-active,\n      #optimole-app .textarea.is-primary:focus,\n      #optimole-app .textarea.is-primary.is-focused,\n      #optimole-app .textarea.is-primary:active,\n      #optimole-app .textarea.is-primary.is-active {\n        box-shadow: 0 0 0 0.125em rgba(239, 104, 107, 0.25); }\n    #optimole-app .input.is-link,\n    #optimole-app .textarea.is-link {\n      border-color: #3273dc; }\n      #optimole-app .input.is-link:focus, #optimole-app .input.is-link.is-focused, #optimole-app .input.is-link:active, #optimole-app .input.is-link.is-active,\n      #optimole-app .textarea.is-link:focus,\n      #optimole-app .textarea.is-link.is-focused,\n      #optimole-app .textarea.is-link:active,\n      #optimole-app .textarea.is-link.is-active {\n        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }\n    #optimole-app .input.is-info,\n    #optimole-app .textarea.is-info {\n      border-color: #5180C1; }\n      #optimole-app .input.is-info:focus, #optimole-app .input.is-info.is-focused, #optimole-app .input.is-info:active, #optimole-app .input.is-info.is-active,\n      #optimole-app .textarea.is-info:focus,\n      #optimole-app .textarea.is-info.is-focused,\n      #optimole-app .textarea.is-info:active,\n      #optimole-app .textarea.is-info.is-active {\n        box-shadow: 0 0 0 0.125em rgba(81, 128, 193, 0.25); }\n    #optimole-app .input.is-success,\n    #optimole-app .textarea.is-success {\n      border-color: #34a85e; }\n      #optimole-app .input.is-success:focus, #optimole-app .input.is-success.is-focused, #optimole-app .input.is-success:active, #optimole-app .input.is-success.is-active,\n      #optimole-app .textarea.is-success:focus,\n      #optimole-app .textarea.is-success.is-focused,\n      #optimole-app .textarea.is-success:active,\n      #optimole-app .textarea.is-success.is-active {\n        box-shadow: 0 0 0 0.125em rgba(52, 168, 94, 0.25); }\n    #optimole-app .input.is-warning,\n    #optimole-app .textarea.is-warning {\n      border-color: #ffdd57; }\n      #optimole-app .input.is-warning:focus, #optimole-app .input.is-warning.is-focused, #optimole-app .input.is-warning:active, #optimole-app .input.is-warning.is-active,\n      #optimole-app .textarea.is-warning:focus,\n      #optimole-app .textarea.is-warning.is-focused,\n      #optimole-app .textarea.is-warning:active,\n      #optimole-app .textarea.is-warning.is-active {\n        box-shadow: 0 0 0 0.125em rgba(255, 221, 87, 0.25); }\n    #optimole-app .input.is-danger,\n    #optimole-app .textarea.is-danger {\n      border-color: #D54222; }\n      #optimole-app .input.is-danger:focus, #optimole-app .input.is-danger.is-focused, #optimole-app .input.is-danger:active, #optimole-app .input.is-danger.is-active,\n      #optimole-app .textarea.is-danger:focus,\n      #optimole-app .textarea.is-danger.is-focused,\n      #optimole-app .textarea.is-danger:active,\n      #optimole-app .textarea.is-danger.is-active {\n        box-shadow: 0 0 0 0.125em rgba(213, 66, 34, 0.25); }\n    #optimole-app .input.is-small,\n    #optimole-app .textarea.is-small {\n      border-radius: 2px;\n      font-size: 0.75rem; }\n    #optimole-app .input.is-medium,\n    #optimole-app .textarea.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .input.is-large,\n    #optimole-app .textarea.is-large {\n      font-size: 1.5rem; }\n    #optimole-app .input.is-fullwidth,\n    #optimole-app .textarea.is-fullwidth {\n      display: block;\n      width: 100%; }\n    #optimole-app .input.is-inline,\n    #optimole-app .textarea.is-inline {\n      display: inline;\n      width: auto; }\n  #optimole-app .input.is-rounded {\n    border-radius: 290486px;\n    padding-left: 1em;\n    padding-right: 1em; }\n  #optimole-app .input.is-static {\n    background-color: transparent;\n    border-color: transparent;\n    box-shadow: none;\n    padding-left: 0;\n    padding-right: 0; }\n  #optimole-app .textarea {\n    display: block;\n    max-width: 100%;\n    min-width: 100%;\n    padding: 0.625em;\n    resize: vertical; }\n    #optimole-app .textarea:not([rows]) {\n      max-height: 600px;\n      min-height: 120px; }\n    #optimole-app .textarea[rows] {\n      height: initial; }\n    #optimole-app .textarea.has-fixed-size {\n      resize: none; }\n  #optimole-app .checkbox,\n  #optimole-app .radio {\n    cursor: pointer;\n    display: inline-block;\n    line-height: 1.25;\n    position: relative; }\n    #optimole-app .checkbox input,\n    #optimole-app .radio input {\n      cursor: pointer; }\n    #optimole-app .checkbox:hover,\n    #optimole-app .radio:hover {\n      color: #363636; }\n    #optimole-app .checkbox[disabled],\n    #optimole-app .radio[disabled] {\n      color: #7a7a7a;\n      cursor: not-allowed; }\n  #optimole-app .radio + .radio {\n    margin-left: 0.5em; }\n  #optimole-app .select {\n    display: inline-block;\n    max-width: 100%;\n    position: relative;\n    vertical-align: top; }\n    #optimole-app .select:not(.is-multiple) {\n      height: 2.25em; }\n    #optimole-app .select:not(.is-multiple):not(.is-loading)::after {\n      border-color: #3273dc;\n      right: 1.125em;\n      z-index: 4; }\n    #optimole-app .select.is-rounded select {\n      border-radius: 290486px;\n      padding-left: 1em; }\n    #optimole-app .select select {\n      background-color: white;\n      border-color: #dbdbdb;\n      color: #363636;\n      cursor: pointer;\n      display: block;\n      font-size: 1em;\n      max-width: 100%;\n      outline: none; }\n      #optimole-app .select select::-moz-placeholder {\n        color: rgba(54, 54, 54, 0.3); }\n      #optimole-app .select select::-webkit-input-placeholder {\n        color: rgba(54, 54, 54, 0.3); }\n      #optimole-app .select select:-moz-placeholder {\n        color: rgba(54, 54, 54, 0.3); }\n      #optimole-app .select select:-ms-input-placeholder {\n        color: rgba(54, 54, 54, 0.3); }\n      #optimole-app .select select:hover, #optimole-app .select select.is-hovered {\n        border-color: #b5b5b5; }\n      #optimole-app .select select:focus, #optimole-app .select select.is-focused, #optimole-app .select select:active, #optimole-app .select select.is-active {\n        border-color: #3273dc;\n        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }\n      #optimole-app .select select[disabled] {\n        background-color: whitesmoke;\n        border-color: whitesmoke;\n        box-shadow: none;\n        color: #7a7a7a; }\n        #optimole-app .select select[disabled]::-moz-placeholder {\n          color: rgba(122, 122, 122, 0.3); }\n        #optimole-app .select select[disabled]::-webkit-input-placeholder {\n          color: rgba(122, 122, 122, 0.3); }\n        #optimole-app .select select[disabled]:-moz-placeholder {\n          color: rgba(122, 122, 122, 0.3); }\n        #optimole-app .select select[disabled]:-ms-input-placeholder {\n          color: rgba(122, 122, 122, 0.3); }\n      #optimole-app .select select::-ms-expand {\n        display: none; }\n      #optimole-app .select select[disabled]:hover {\n        border-color: whitesmoke; }\n      #optimole-app .select select:not([multiple]) {\n        padding-right: 2.5em; }\n      #optimole-app .select select[multiple] {\n        height: auto;\n        padding: 0; }\n        #optimole-app .select select[multiple] option {\n          padding: 0.5em 1em; }\n    #optimole-app .select:not(.is-multiple):not(.is-loading):hover::after {\n      border-color: #363636; }\n    #optimole-app .select.is-white:not(:hover)::after {\n      border-color: white; }\n    #optimole-app .select.is-white select {\n      border-color: white; }\n      #optimole-app .select.is-white select:hover, #optimole-app .select.is-white select.is-hovered {\n        border-color: #f2f2f2; }\n      #optimole-app .select.is-white select:focus, #optimole-app .select.is-white select.is-focused, #optimole-app .select.is-white select:active, #optimole-app .select.is-white select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(255, 255, 255, 0.25); }\n    #optimole-app .select.is-black:not(:hover)::after {\n      border-color: #0a0a0a; }\n    #optimole-app .select.is-black select {\n      border-color: #0a0a0a; }\n      #optimole-app .select.is-black select:hover, #optimole-app .select.is-black select.is-hovered {\n        border-color: black; }\n      #optimole-app .select.is-black select:focus, #optimole-app .select.is-black select.is-focused, #optimole-app .select.is-black select:active, #optimole-app .select.is-black select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(10, 10, 10, 0.25); }\n    #optimole-app .select.is-light:not(:hover)::after {\n      border-color: whitesmoke; }\n    #optimole-app .select.is-light select {\n      border-color: whitesmoke; }\n      #optimole-app .select.is-light select:hover, #optimole-app .select.is-light select.is-hovered {\n        border-color: #e8e8e8; }\n      #optimole-app .select.is-light select:focus, #optimole-app .select.is-light select.is-focused, #optimole-app .select.is-light select:active, #optimole-app .select.is-light select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(245, 245, 245, 0.25); }\n    #optimole-app .select.is-dark:not(:hover)::after {\n      border-color: #363636; }\n    #optimole-app .select.is-dark select {\n      border-color: #363636; }\n      #optimole-app .select.is-dark select:hover, #optimole-app .select.is-dark select.is-hovered {\n        border-color: #292929; }\n      #optimole-app .select.is-dark select:focus, #optimole-app .select.is-dark select.is-focused, #optimole-app .select.is-dark select:active, #optimole-app .select.is-dark select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(54, 54, 54, 0.25); }\n    #optimole-app .select.is-primary:not(:hover)::after {\n      border-color: #EF686B; }\n    #optimole-app .select.is-primary select {\n      border-color: #EF686B; }\n      #optimole-app .select.is-primary select:hover, #optimole-app .select.is-primary select.is-hovered {\n        border-color: #ed5154; }\n      #optimole-app .select.is-primary select:focus, #optimole-app .select.is-primary select.is-focused, #optimole-app .select.is-primary select:active, #optimole-app .select.is-primary select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(239, 104, 107, 0.25); }\n    #optimole-app .select.is-link:not(:hover)::after {\n      border-color: #3273dc; }\n    #optimole-app .select.is-link select {\n      border-color: #3273dc; }\n      #optimole-app .select.is-link select:hover, #optimole-app .select.is-link select.is-hovered {\n        border-color: #2366d1; }\n      #optimole-app .select.is-link select:focus, #optimole-app .select.is-link select.is-focused, #optimole-app .select.is-link select:active, #optimole-app .select.is-link select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }\n    #optimole-app .select.is-info:not(:hover)::after {\n      border-color: #5180C1; }\n    #optimole-app .select.is-info select {\n      border-color: #5180C1; }\n      #optimole-app .select.is-info select:hover, #optimole-app .select.is-info select.is-hovered {\n        border-color: #4173b7; }\n      #optimole-app .select.is-info select:focus, #optimole-app .select.is-info select.is-focused, #optimole-app .select.is-info select:active, #optimole-app .select.is-info select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(81, 128, 193, 0.25); }\n    #optimole-app .select.is-success:not(:hover)::after {\n      border-color: #34a85e; }\n    #optimole-app .select.is-success select {\n      border-color: #34a85e; }\n      #optimole-app .select.is-success select:hover, #optimole-app .select.is-success select.is-hovered {\n        border-color: #2e9553; }\n      #optimole-app .select.is-success select:focus, #optimole-app .select.is-success select.is-focused, #optimole-app .select.is-success select:active, #optimole-app .select.is-success select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(52, 168, 94, 0.25); }\n    #optimole-app .select.is-warning:not(:hover)::after {\n      border-color: #ffdd57; }\n    #optimole-app .select.is-warning select {\n      border-color: #ffdd57; }\n      #optimole-app .select.is-warning select:hover, #optimole-app .select.is-warning select.is-hovered {\n        border-color: #ffd83d; }\n      #optimole-app .select.is-warning select:focus, #optimole-app .select.is-warning select.is-focused, #optimole-app .select.is-warning select:active, #optimole-app .select.is-warning select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(255, 221, 87, 0.25); }\n    #optimole-app .select.is-danger:not(:hover)::after {\n      border-color: #D54222; }\n    #optimole-app .select.is-danger select {\n      border-color: #D54222; }\n      #optimole-app .select.is-danger select:hover, #optimole-app .select.is-danger select.is-hovered {\n        border-color: #bf3b1e; }\n      #optimole-app .select.is-danger select:focus, #optimole-app .select.is-danger select.is-focused, #optimole-app .select.is-danger select:active, #optimole-app .select.is-danger select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(213, 66, 34, 0.25); }\n    #optimole-app .select.is-small {\n      border-radius: 2px;\n      font-size: 0.75rem; }\n    #optimole-app .select.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .select.is-large {\n      font-size: 1.5rem; }\n    #optimole-app .select.is-disabled::after {\n      border-color: #7a7a7a; }\n    #optimole-app .select.is-fullwidth {\n      width: 100%; }\n      #optimole-app .select.is-fullwidth select {\n        width: 100%; }\n    #optimole-app .select.is-loading::after {\n      margin-top: 0;\n      position: absolute;\n      right: 0.625em;\n      top: 0.625em;\n      transform: none; }\n    #optimole-app .select.is-loading.is-small:after {\n      font-size: 0.75rem; }\n    #optimole-app .select.is-loading.is-medium:after {\n      font-size: 1.25rem; }\n    #optimole-app .select.is-loading.is-large:after {\n      font-size: 1.5rem; }\n  #optimole-app .file {\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-pack: start;\n        justify-content: flex-start;\n    position: relative; }\n    #optimole-app .file.is-white .file-cta {\n      background-color: white;\n      border-color: transparent;\n      color: #0a0a0a; }\n    #optimole-app .file.is-white:hover .file-cta, #optimole-app .file.is-white.is-hovered .file-cta {\n      background-color: #f9f9f9;\n      border-color: transparent;\n      color: #0a0a0a; }\n    #optimole-app .file.is-white:focus .file-cta, #optimole-app .file.is-white.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(255, 255, 255, 0.25);\n      color: #0a0a0a; }\n    #optimole-app .file.is-white:active .file-cta, #optimole-app .file.is-white.is-active .file-cta {\n      background-color: #f2f2f2;\n      border-color: transparent;\n      color: #0a0a0a; }\n    #optimole-app .file.is-black .file-cta {\n      background-color: #0a0a0a;\n      border-color: transparent;\n      color: white; }\n    #optimole-app .file.is-black:hover .file-cta, #optimole-app .file.is-black.is-hovered .file-cta {\n      background-color: #040404;\n      border-color: transparent;\n      color: white; }\n    #optimole-app .file.is-black:focus .file-cta, #optimole-app .file.is-black.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(10, 10, 10, 0.25);\n      color: white; }\n    #optimole-app .file.is-black:active .file-cta, #optimole-app .file.is-black.is-active .file-cta {\n      background-color: black;\n      border-color: transparent;\n      color: white; }\n    #optimole-app .file.is-light .file-cta {\n      background-color: whitesmoke;\n      border-color: transparent;\n      color: #363636; }\n    #optimole-app .file.is-light:hover .file-cta, #optimole-app .file.is-light.is-hovered .file-cta {\n      background-color: #eeeeee;\n      border-color: transparent;\n      color: #363636; }\n    #optimole-app .file.is-light:focus .file-cta, #optimole-app .file.is-light.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(245, 245, 245, 0.25);\n      color: #363636; }\n    #optimole-app .file.is-light:active .file-cta, #optimole-app .file.is-light.is-active .file-cta {\n      background-color: #e8e8e8;\n      border-color: transparent;\n      color: #363636; }\n    #optimole-app .file.is-dark .file-cta {\n      background-color: #363636;\n      border-color: transparent;\n      color: whitesmoke; }\n    #optimole-app .file.is-dark:hover .file-cta, #optimole-app .file.is-dark.is-hovered .file-cta {\n      background-color: #2f2f2f;\n      border-color: transparent;\n      color: whitesmoke; }\n    #optimole-app .file.is-dark:focus .file-cta, #optimole-app .file.is-dark.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(54, 54, 54, 0.25);\n      color: whitesmoke; }\n    #optimole-app .file.is-dark:active .file-cta, #optimole-app .file.is-dark.is-active .file-cta {\n      background-color: #292929;\n      border-color: transparent;\n      color: whitesmoke; }\n    #optimole-app .file.is-primary .file-cta {\n      background-color: #EF686B;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-primary:hover .file-cta, #optimole-app .file.is-primary.is-hovered .file-cta {\n      background-color: #ee5c60;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-primary:focus .file-cta, #optimole-app .file.is-primary.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(239, 104, 107, 0.25);\n      color: #fff; }\n    #optimole-app .file.is-primary:active .file-cta, #optimole-app .file.is-primary.is-active .file-cta {\n      background-color: #ed5154;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-link .file-cta {\n      background-color: #3273dc;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-link:hover .file-cta, #optimole-app .file.is-link.is-hovered .file-cta {\n      background-color: #276cda;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-link:focus .file-cta, #optimole-app .file.is-link.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(50, 115, 220, 0.25);\n      color: #fff; }\n    #optimole-app .file.is-link:active .file-cta, #optimole-app .file.is-link.is-active .file-cta {\n      background-color: #2366d1;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-info .file-cta {\n      background-color: #5180C1;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-info:hover .file-cta, #optimole-app .file.is-info.is-hovered .file-cta {\n      background-color: #4879be;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-info:focus .file-cta, #optimole-app .file.is-info.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(81, 128, 193, 0.25);\n      color: #fff; }\n    #optimole-app .file.is-info:active .file-cta, #optimole-app .file.is-info.is-active .file-cta {\n      background-color: #4173b7;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-success .file-cta {\n      background-color: #34a85e;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-success:hover .file-cta, #optimole-app .file.is-success.is-hovered .file-cta {\n      background-color: #319e59;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-success:focus .file-cta, #optimole-app .file.is-success.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(52, 168, 94, 0.25);\n      color: #fff; }\n    #optimole-app .file.is-success:active .file-cta, #optimole-app .file.is-success.is-active .file-cta {\n      background-color: #2e9553;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-warning .file-cta {\n      background-color: #ffdd57;\n      border-color: transparent;\n      color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .file.is-warning:hover .file-cta, #optimole-app .file.is-warning.is-hovered .file-cta {\n      background-color: #ffdb4a;\n      border-color: transparent;\n      color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .file.is-warning:focus .file-cta, #optimole-app .file.is-warning.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(255, 221, 87, 0.25);\n      color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .file.is-warning:active .file-cta, #optimole-app .file.is-warning.is-active .file-cta {\n      background-color: #ffd83d;\n      border-color: transparent;\n      color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .file.is-danger .file-cta {\n      background-color: #D54222;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-danger:hover .file-cta, #optimole-app .file.is-danger.is-hovered .file-cta {\n      background-color: #ca3f20;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-danger:focus .file-cta, #optimole-app .file.is-danger.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(213, 66, 34, 0.25);\n      color: #fff; }\n    #optimole-app .file.is-danger:active .file-cta, #optimole-app .file.is-danger.is-active .file-cta {\n      background-color: #bf3b1e;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .file.is-medium {\n      font-size: 1.25rem; }\n      #optimole-app .file.is-medium .file-icon .fa {\n        font-size: 21px; }\n    #optimole-app .file.is-large {\n      font-size: 1.5rem; }\n      #optimole-app .file.is-large .file-icon .fa {\n        font-size: 28px; }\n    #optimole-app .file.has-name .file-cta {\n      border-bottom-right-radius: 0;\n      border-top-right-radius: 0; }\n    #optimole-app .file.has-name .file-name {\n      border-bottom-left-radius: 0;\n      border-top-left-radius: 0; }\n    #optimole-app .file.has-name.is-empty .file-cta {\n      border-radius: 4px; }\n    #optimole-app .file.has-name.is-empty .file-name {\n      display: none; }\n    #optimole-app .file.is-boxed .file-label {\n      -ms-flex-direction: column;\n          flex-direction: column; }\n    #optimole-app .file.is-boxed .file-cta {\n      -ms-flex-direction: column;\n          flex-direction: column;\n      height: auto;\n      padding: 1em 3em; }\n    #optimole-app .file.is-boxed .file-name {\n      border-width: 0 1px 1px; }\n    #optimole-app .file.is-boxed .file-icon {\n      height: 1.5em;\n      width: 1.5em; }\n      #optimole-app .file.is-boxed .file-icon .fa {\n        font-size: 21px; }\n    #optimole-app .file.is-boxed.is-small .file-icon .fa {\n      font-size: 14px; }\n    #optimole-app .file.is-boxed.is-medium .file-icon .fa {\n      font-size: 28px; }\n    #optimole-app .file.is-boxed.is-large .file-icon .fa {\n      font-size: 35px; }\n    #optimole-app .file.is-boxed.has-name .file-cta {\n      border-radius: 4px 4px 0 0; }\n    #optimole-app .file.is-boxed.has-name .file-name {\n      border-radius: 0 0 4px 4px;\n      border-width: 0 1px 1px; }\n    #optimole-app .file.is-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .file.is-fullwidth .file-label {\n      width: 100%; }\n    #optimole-app .file.is-fullwidth .file-name {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      max-width: none; }\n    #optimole-app .file.is-right {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n      #optimole-app .file.is-right .file-cta {\n        border-radius: 0 4px 4px 0; }\n      #optimole-app .file.is-right .file-name {\n        border-radius: 4px 0 0 4px;\n        border-width: 1px 0 1px 1px;\n        -ms-flex-order: -1;\n            order: -1; }\n  #optimole-app .file-label {\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: -ms-flexbox;\n    display: flex;\n    cursor: pointer;\n    -ms-flex-pack: start;\n        justify-content: flex-start;\n    overflow: hidden;\n    position: relative; }\n    #optimole-app .file-label:hover .file-cta {\n      background-color: #eeeeee;\n      color: #363636; }\n    #optimole-app .file-label:hover .file-name {\n      border-color: #d5d5d5; }\n    #optimole-app .file-label:active .file-cta {\n      background-color: #e8e8e8;\n      color: #363636; }\n    #optimole-app .file-label:active .file-name {\n      border-color: #cfcfcf; }\n  #optimole-app .file-input {\n    height: 100%;\n    left: 0;\n    opacity: 0;\n    outline: none;\n    position: absolute;\n    top: 0;\n    width: 100%; }\n  #optimole-app .file-cta,\n  #optimole-app .file-name {\n    border-color: #dbdbdb;\n    border-radius: 4px;\n    font-size: 1em;\n    padding-left: 1em;\n    padding-right: 1em;\n    white-space: nowrap; }\n  #optimole-app .file-cta {\n    background-color: whitesmoke;\n    color: #4a4a4a; }\n  #optimole-app .file-name {\n    border-color: #dbdbdb;\n    border-style: solid;\n    border-width: 1px 1px 1px 0;\n    display: block;\n    max-width: 16em;\n    overflow: hidden;\n    text-align: left;\n    text-overflow: ellipsis; }\n  #optimole-app .file-icon {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-flexbox;\n    display: flex;\n    height: 1em;\n    -ms-flex-pack: center;\n        justify-content: center;\n    margin-right: 0.5em;\n    width: 1em; }\n    #optimole-app .file-icon .fa {\n      font-size: 14px; }\n  #optimole-app .label {\n    color: #363636;\n    display: block;\n    font-size: 1rem;\n    font-weight: 700; }\n    #optimole-app .label:not(:last-child) {\n      margin-bottom: 0.5em; }\n    #optimole-app .label.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .label.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .label.is-large {\n      font-size: 1.5rem; }\n  #optimole-app .help {\n    display: block;\n    font-size: 0.75rem;\n    margin-top: 0.25rem; }\n    #optimole-app .help.is-white {\n      color: white; }\n    #optimole-app .help.is-black {\n      color: #0a0a0a; }\n    #optimole-app .help.is-light {\n      color: whitesmoke; }\n    #optimole-app .help.is-dark {\n      color: #363636; }\n    #optimole-app .help.is-primary {\n      color: #EF686B; }\n    #optimole-app .help.is-link {\n      color: #3273dc; }\n    #optimole-app .help.is-info {\n      color: #5180C1; }\n    #optimole-app .help.is-success {\n      color: #34a85e; }\n    #optimole-app .help.is-warning {\n      color: #ffdd57; }\n    #optimole-app .help.is-danger {\n      color: #D54222; }\n  #optimole-app .field:not(:last-child) {\n    margin-bottom: 0.75rem; }\n  #optimole-app .field.has-addons {\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-pack: start;\n        justify-content: flex-start; }\n    #optimole-app .field.has-addons .control:not(:last-child) {\n      margin-right: -1px; }\n    #optimole-app .field.has-addons .control:not(:first-child):not(:last-child) .button,\n    #optimole-app .field.has-addons .control:not(:first-child):not(:last-child) .input,\n    #optimole-app .field.has-addons .control:not(:first-child):not(:last-child) .select select {\n      border-radius: 0; }\n    #optimole-app .field.has-addons .control:first-child .button,\n    #optimole-app .field.has-addons .control:first-child .input,\n    #optimole-app .field.has-addons .control:first-child .select select {\n      border-bottom-right-radius: 0;\n      border-top-right-radius: 0; }\n    #optimole-app .field.has-addons .control:last-child .button,\n    #optimole-app .field.has-addons .control:last-child .input,\n    #optimole-app .field.has-addons .control:last-child .select select {\n      border-bottom-left-radius: 0;\n      border-top-left-radius: 0; }\n    #optimole-app .field.has-addons .control .button:not([disabled]):hover, #optimole-app .field.has-addons .control .button:not([disabled]).is-hovered,\n    #optimole-app .field.has-addons .control .input:not([disabled]):hover,\n    #optimole-app .field.has-addons .control .input:not([disabled]).is-hovered,\n    #optimole-app .field.has-addons .control .select select:not([disabled]):hover,\n    #optimole-app .field.has-addons .control .select select:not([disabled]).is-hovered {\n      z-index: 2; }\n    #optimole-app .field.has-addons .control .button:not([disabled]):focus, #optimole-app .field.has-addons .control .button:not([disabled]).is-focused, #optimole-app .field.has-addons .control .button:not([disabled]):active, #optimole-app .field.has-addons .control .button:not([disabled]).is-active,\n    #optimole-app .field.has-addons .control .input:not([disabled]):focus,\n    #optimole-app .field.has-addons .control .input:not([disabled]).is-focused,\n    #optimole-app .field.has-addons .control .input:not([disabled]):active,\n    #optimole-app .field.has-addons .control .input:not([disabled]).is-active,\n    #optimole-app .field.has-addons .control .select select:not([disabled]):focus,\n    #optimole-app .field.has-addons .control .select select:not([disabled]).is-focused,\n    #optimole-app .field.has-addons .control .select select:not([disabled]):active,\n    #optimole-app .field.has-addons .control .select select:not([disabled]).is-active {\n      z-index: 3; }\n      #optimole-app .field.has-addons .control .button:not([disabled]):focus:hover, #optimole-app .field.has-addons .control .button:not([disabled]).is-focused:hover, #optimole-app .field.has-addons .control .button:not([disabled]):active:hover, #optimole-app .field.has-addons .control .button:not([disabled]).is-active:hover,\n      #optimole-app .field.has-addons .control .input:not([disabled]):focus:hover,\n      #optimole-app .field.has-addons .control .input:not([disabled]).is-focused:hover,\n      #optimole-app .field.has-addons .control .input:not([disabled]):active:hover,\n      #optimole-app .field.has-addons .control .input:not([disabled]).is-active:hover,\n      #optimole-app .field.has-addons .control .select select:not([disabled]):focus:hover,\n      #optimole-app .field.has-addons .control .select select:not([disabled]).is-focused:hover,\n      #optimole-app .field.has-addons .control .select select:not([disabled]):active:hover,\n      #optimole-app .field.has-addons .control .select select:not([disabled]).is-active:hover {\n        z-index: 4; }\n    #optimole-app .field.has-addons .control.is-expanded {\n      -ms-flex-positive: 1;\n          flex-grow: 1; }\n    #optimole-app .field.has-addons.has-addons-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .field.has-addons.has-addons-right {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n    #optimole-app .field.has-addons.has-addons-fullwidth .control {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 0;\n          flex-shrink: 0; }\n  #optimole-app .field.is-grouped {\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-pack: start;\n        justify-content: flex-start; }\n    #optimole-app .field.is-grouped > .control {\n      -ms-flex-negative: 0;\n          flex-shrink: 0; }\n      #optimole-app .field.is-grouped > .control:not(:last-child) {\n        margin-bottom: 0;\n        margin-right: 0.75rem; }\n      #optimole-app .field.is-grouped > .control.is-expanded {\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n        -ms-flex-negative: 1;\n            flex-shrink: 1; }\n    #optimole-app .field.is-grouped.is-grouped-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .field.is-grouped.is-grouped-right {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n    #optimole-app .field.is-grouped.is-grouped-multiline {\n      -ms-flex-wrap: wrap;\n          flex-wrap: wrap; }\n      #optimole-app .field.is-grouped.is-grouped-multiline > .control:last-child, #optimole-app .field.is-grouped.is-grouped-multiline > .control:not(:last-child) {\n        margin-bottom: 0.75rem; }\n      #optimole-app .field.is-grouped.is-grouped-multiline:last-child {\n        margin-bottom: -0.75rem; }\n      #optimole-app .field.is-grouped.is-grouped-multiline:not(:last-child) {\n        margin-bottom: 0; }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .field.is-horizontal {\n      display: -ms-flexbox;\n      display: flex; } }\n  #optimole-app .field-label .label {\n    font-size: inherit; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .field-label {\n      margin-bottom: 0.5rem; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .field-label {\n      -ms-flex-preferred-size: 0;\n          flex-basis: 0;\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 0;\n          flex-shrink: 0;\n      margin-right: 1.5rem;\n      text-align: right; }\n      #optimole-app .field-label.is-small {\n        font-size: 0.75rem;\n        padding-top: 0.375em; }\n      #optimole-app .field-label.is-normal {\n        padding-top: 0.375em; }\n      #optimole-app .field-label.is-medium {\n        font-size: 1.25rem;\n        padding-top: 0.375em; }\n      #optimole-app .field-label.is-large {\n        font-size: 1.5rem;\n        padding-top: 0.375em; } }\n  #optimole-app .field-body .field .field {\n    margin-bottom: 0; }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .field-body {\n      display: -ms-flexbox;\n      display: flex;\n      -ms-flex-preferred-size: 0;\n          flex-basis: 0;\n      -ms-flex-positive: 5;\n          flex-grow: 5;\n      -ms-flex-negative: 1;\n          flex-shrink: 1; }\n      #optimole-app .field-body .field {\n        margin-bottom: 0; }\n      #optimole-app .field-body > .field {\n        -ms-flex-negative: 1;\n            flex-shrink: 1; }\n        #optimole-app .field-body > .field:not(.is-narrow) {\n          -ms-flex-positive: 1;\n              flex-grow: 1; }\n        #optimole-app .field-body > .field:not(:last-child) {\n          margin-right: 0.75rem; } }\n  #optimole-app .control {\n    clear: both;\n    font-size: 1rem;\n    position: relative;\n    text-align: left; }\n    #optimole-app .control.has-icon .icon {\n      color: #dbdbdb;\n      height: 2.25em;\n      pointer-events: none;\n      position: absolute;\n      top: 0;\n      width: 2.25em;\n      z-index: 4; }\n    #optimole-app .control.has-icon .input:focus + .icon {\n      color: #7a7a7a; }\n    #optimole-app .control.has-icon .input.is-small + .icon {\n      font-size: 0.75rem; }\n    #optimole-app .control.has-icon .input.is-medium + .icon {\n      font-size: 1.25rem; }\n    #optimole-app .control.has-icon .input.is-large + .icon {\n      font-size: 1.5rem; }\n    #optimole-app .control.has-icon:not(.has-icon-right) .icon {\n      left: 0; }\n    #optimole-app .control.has-icon:not(.has-icon-right) .input {\n      padding-left: 2.25em; }\n    #optimole-app .control.has-icon.has-icon-right .icon {\n      right: 0; }\n    #optimole-app .control.has-icon.has-icon-right .input {\n      padding-right: 2.25em; }\n    #optimole-app .control.has-icons-left .input:focus ~ .icon,\n    #optimole-app .control.has-icons-left .select:focus ~ .icon, #optimole-app .control.has-icons-right .input:focus ~ .icon,\n    #optimole-app .control.has-icons-right .select:focus ~ .icon {\n      color: #7a7a7a; }\n    #optimole-app .control.has-icons-left .input.is-small ~ .icon,\n    #optimole-app .control.has-icons-left .select.is-small ~ .icon, #optimole-app .control.has-icons-right .input.is-small ~ .icon,\n    #optimole-app .control.has-icons-right .select.is-small ~ .icon {\n      font-size: 0.75rem; }\n    #optimole-app .control.has-icons-left .input.is-medium ~ .icon,\n    #optimole-app .control.has-icons-left .select.is-medium ~ .icon, #optimole-app .control.has-icons-right .input.is-medium ~ .icon,\n    #optimole-app .control.has-icons-right .select.is-medium ~ .icon {\n      font-size: 1.25rem; }\n    #optimole-app .control.has-icons-left .input.is-large ~ .icon,\n    #optimole-app .control.has-icons-left .select.is-large ~ .icon, #optimole-app .control.has-icons-right .input.is-large ~ .icon,\n    #optimole-app .control.has-icons-right .select.is-large ~ .icon {\n      font-size: 1.5rem; }\n    #optimole-app .control.has-icons-left .icon, #optimole-app .control.has-icons-right .icon {\n      color: #dbdbdb;\n      height: 2.25em;\n      pointer-events: none;\n      position: absolute;\n      top: 0;\n      width: 2.25em;\n      z-index: 4; }\n    #optimole-app .control.has-icons-left .input,\n    #optimole-app .control.has-icons-left .select select {\n      padding-left: 2.25em; }\n    #optimole-app .control.has-icons-left .icon.is-left {\n      left: 0; }\n    #optimole-app .control.has-icons-right .input,\n    #optimole-app .control.has-icons-right .select select {\n      padding-right: 2.25em; }\n    #optimole-app .control.has-icons-right .icon.is-right {\n      right: 0; }\n    #optimole-app .control.is-loading::after {\n      position: absolute !important;\n      right: 0.625em;\n      top: 0.625em;\n      z-index: 4; }\n    #optimole-app .control.is-loading.is-small:after {\n      font-size: 0.75rem; }\n    #optimole-app .control.is-loading.is-medium:after {\n      font-size: 1.25rem; }\n    #optimole-app .control.is-loading.is-large:after {\n      font-size: 1.5rem; }\n  #optimole-app .icon {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -ms-flex-pack: center;\n        justify-content: center;\n    height: 1.5rem;\n    width: 1.5rem; }\n    #optimole-app .icon.is-small {\n      height: 1rem;\n      width: 1rem; }\n    #optimole-app .icon.is-medium {\n      height: 2rem;\n      width: 2rem; }\n    #optimole-app .icon.is-large {\n      height: 3rem;\n      width: 3rem; }\n  #optimole-app .image {\n    display: block;\n    position: relative; }\n    #optimole-app .image img {\n      display: block;\n      height: auto;\n      width: 100%; }\n      #optimole-app .image img.is-rounded {\n        border-radius: 290486px; }\n    #optimole-app .image.is-square img, #optimole-app .image.is-1by1 img, #optimole-app .image.is-5by4 img, #optimole-app .image.is-4by3 img, #optimole-app .image.is-3by2 img, #optimole-app .image.is-5by3 img, #optimole-app .image.is-16by9 img, #optimole-app .image.is-2by1 img, #optimole-app .image.is-3by1 img, #optimole-app .image.is-4by5 img, #optimole-app .image.is-3by4 img, #optimole-app .image.is-2by3 img, #optimole-app .image.is-3by5 img, #optimole-app .image.is-9by16 img, #optimole-app .image.is-1by2 img, #optimole-app .image.is-1by3 img {\n      height: 100%;\n      width: 100%; }\n    #optimole-app .image.is-square, #optimole-app .image.is-1by1 {\n      padding-top: 100%; }\n    #optimole-app .image.is-5by4 {\n      padding-top: 80%; }\n    #optimole-app .image.is-4by3 {\n      padding-top: 75%; }\n    #optimole-app .image.is-3by2 {\n      padding-top: 66.6666%; }\n    #optimole-app .image.is-5by3 {\n      padding-top: 60%; }\n    #optimole-app .image.is-16by9 {\n      padding-top: 56.25%; }\n    #optimole-app .image.is-2by1 {\n      padding-top: 50%; }\n    #optimole-app .image.is-3by1 {\n      padding-top: 33.3333%; }\n    #optimole-app .image.is-4by5 {\n      padding-top: 125%; }\n    #optimole-app .image.is-3by4 {\n      padding-top: 133.3333%; }\n    #optimole-app .image.is-2by3 {\n      padding-top: 150%; }\n    #optimole-app .image.is-3by5 {\n      padding-top: 166.6666%; }\n    #optimole-app .image.is-9by16 {\n      padding-top: 177.7777%; }\n    #optimole-app .image.is-1by2 {\n      padding-top: 200%; }\n    #optimole-app .image.is-1by3 {\n      padding-top: 300%; }\n    #optimole-app .image.is-16x16 {\n      height: 16px;\n      width: 16px; }\n    #optimole-app .image.is-24x24 {\n      height: 24px;\n      width: 24px; }\n    #optimole-app .image.is-32x32 {\n      height: 32px;\n      width: 32px; }\n    #optimole-app .image.is-48x48 {\n      height: 48px;\n      width: 48px; }\n    #optimole-app .image.is-64x64 {\n      height: 64px;\n      width: 64px; }\n    #optimole-app .image.is-96x96 {\n      height: 96px;\n      width: 96px; }\n    #optimole-app .image.is-128x128 {\n      height: 128px;\n      width: 128px; }\n  #optimole-app .notification {\n    background-color: whitesmoke;\n    border-radius: 4px;\n    padding: 1.25rem 2.5rem 1.25rem 1.5rem;\n    position: relative; }\n    #optimole-app .notification a:not(.button):not(.dropdown-item) {\n      color: currentColor;\n      text-decoration: underline; }\n    #optimole-app .notification strong {\n      color: currentColor; }\n    #optimole-app .notification code,\n    #optimole-app .notification pre {\n      background: white; }\n    #optimole-app .notification pre code {\n      background: transparent; }\n    #optimole-app .notification > .delete {\n      position: absolute;\n      right: 0.5rem;\n      top: 0.5rem; }\n    #optimole-app .notification .title,\n    #optimole-app .notification .subtitle,\n    #optimole-app .notification .content {\n      color: currentColor; }\n    #optimole-app .notification.is-white {\n      background-color: white;\n      color: #0a0a0a; }\n    #optimole-app .notification.is-black {\n      background-color: #0a0a0a;\n      color: white; }\n    #optimole-app .notification.is-light {\n      background-color: whitesmoke;\n      color: #363636; }\n    #optimole-app .notification.is-dark {\n      background-color: #363636;\n      color: whitesmoke; }\n    #optimole-app .notification.is-primary {\n      background-color: #EF686B;\n      color: #fff; }\n    #optimole-app .notification.is-link {\n      background-color: #3273dc;\n      color: #fff; }\n    #optimole-app .notification.is-info {\n      background-color: #5180C1;\n      color: #fff; }\n    #optimole-app .notification.is-success {\n      background-color: #34a85e;\n      color: #fff; }\n    #optimole-app .notification.is-warning {\n      background-color: #ffdd57;\n      color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .notification.is-danger {\n      background-color: #D54222;\n      color: #fff; }\n  #optimole-app .progress {\n    -moz-appearance: none;\n    -webkit-appearance: none;\n    border: none;\n    border-radius: 290486px;\n    display: block;\n    height: 1rem;\n    overflow: hidden;\n    padding: 0;\n    width: 100%; }\n    #optimole-app .progress::-webkit-progress-bar {\n      background-color: #dbdbdb; }\n    #optimole-app .progress::-webkit-progress-value {\n      background-color: #4a4a4a; }\n    #optimole-app .progress::-moz-progress-bar {\n      background-color: #4a4a4a; }\n    #optimole-app .progress::-ms-fill {\n      background-color: #4a4a4a;\n      border: none; }\n    #optimole-app .progress.is-white::-webkit-progress-value {\n      background-color: white; }\n    #optimole-app .progress.is-white::-moz-progress-bar {\n      background-color: white; }\n    #optimole-app .progress.is-white::-ms-fill {\n      background-color: white; }\n    #optimole-app .progress.is-black::-webkit-progress-value {\n      background-color: #0a0a0a; }\n    #optimole-app .progress.is-black::-moz-progress-bar {\n      background-color: #0a0a0a; }\n    #optimole-app .progress.is-black::-ms-fill {\n      background-color: #0a0a0a; }\n    #optimole-app .progress.is-light::-webkit-progress-value {\n      background-color: whitesmoke; }\n    #optimole-app .progress.is-light::-moz-progress-bar {\n      background-color: whitesmoke; }\n    #optimole-app .progress.is-light::-ms-fill {\n      background-color: whitesmoke; }\n    #optimole-app .progress.is-dark::-webkit-progress-value {\n      background-color: #363636; }\n    #optimole-app .progress.is-dark::-moz-progress-bar {\n      background-color: #363636; }\n    #optimole-app .progress.is-dark::-ms-fill {\n      background-color: #363636; }\n    #optimole-app .progress.is-primary::-webkit-progress-value {\n      background-color: #EF686B; }\n    #optimole-app .progress.is-primary::-moz-progress-bar {\n      background-color: #EF686B; }\n    #optimole-app .progress.is-primary::-ms-fill {\n      background-color: #EF686B; }\n    #optimole-app .progress.is-link::-webkit-progress-value {\n      background-color: #3273dc; }\n    #optimole-app .progress.is-link::-moz-progress-bar {\n      background-color: #3273dc; }\n    #optimole-app .progress.is-link::-ms-fill {\n      background-color: #3273dc; }\n    #optimole-app .progress.is-info::-webkit-progress-value {\n      background-color: #5180C1; }\n    #optimole-app .progress.is-info::-moz-progress-bar {\n      background-color: #5180C1; }\n    #optimole-app .progress.is-info::-ms-fill {\n      background-color: #5180C1; }\n    #optimole-app .progress.is-success::-webkit-progress-value {\n      background-color: #34a85e; }\n    #optimole-app .progress.is-success::-moz-progress-bar {\n      background-color: #34a85e; }\n    #optimole-app .progress.is-success::-ms-fill {\n      background-color: #34a85e; }\n    #optimole-app .progress.is-warning::-webkit-progress-value {\n      background-color: #ffdd57; }\n    #optimole-app .progress.is-warning::-moz-progress-bar {\n      background-color: #ffdd57; }\n    #optimole-app .progress.is-warning::-ms-fill {\n      background-color: #ffdd57; }\n    #optimole-app .progress.is-danger::-webkit-progress-value {\n      background-color: #D54222; }\n    #optimole-app .progress.is-danger::-moz-progress-bar {\n      background-color: #D54222; }\n    #optimole-app .progress.is-danger::-ms-fill {\n      background-color: #D54222; }\n    #optimole-app .progress.is-small {\n      height: 0.75rem; }\n    #optimole-app .progress.is-medium {\n      height: 1.25rem; }\n    #optimole-app .progress.is-large {\n      height: 1.5rem; }\n  #optimole-app .table {\n    background-color: white;\n    color: #363636; }\n    #optimole-app .table td,\n    #optimole-app .table th {\n      border: 1px solid #dbdbdb;\n      border-width: 0 0 1px;\n      padding: 0.5em 0.75em;\n      vertical-align: top; }\n      #optimole-app .table td.is-white,\n      #optimole-app .table th.is-white {\n        background-color: white;\n        border-color: white;\n        color: #0a0a0a; }\n      #optimole-app .table td.is-black,\n      #optimole-app .table th.is-black {\n        background-color: #0a0a0a;\n        border-color: #0a0a0a;\n        color: white; }\n      #optimole-app .table td.is-light,\n      #optimole-app .table th.is-light {\n        background-color: whitesmoke;\n        border-color: whitesmoke;\n        color: #363636; }\n      #optimole-app .table td.is-dark,\n      #optimole-app .table th.is-dark {\n        background-color: #363636;\n        border-color: #363636;\n        color: whitesmoke; }\n      #optimole-app .table td.is-primary,\n      #optimole-app .table th.is-primary {\n        background-color: #EF686B;\n        border-color: #EF686B;\n        color: #fff; }\n      #optimole-app .table td.is-link,\n      #optimole-app .table th.is-link {\n        background-color: #3273dc;\n        border-color: #3273dc;\n        color: #fff; }\n      #optimole-app .table td.is-info,\n      #optimole-app .table th.is-info {\n        background-color: #5180C1;\n        border-color: #5180C1;\n        color: #fff; }\n      #optimole-app .table td.is-success,\n      #optimole-app .table th.is-success {\n        background-color: #34a85e;\n        border-color: #34a85e;\n        color: #fff; }\n      #optimole-app .table td.is-warning,\n      #optimole-app .table th.is-warning {\n        background-color: #ffdd57;\n        border-color: #ffdd57;\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .table td.is-danger,\n      #optimole-app .table th.is-danger {\n        background-color: #D54222;\n        border-color: #D54222;\n        color: #fff; }\n      #optimole-app .table td.is-narrow,\n      #optimole-app .table th.is-narrow {\n        white-space: nowrap;\n        width: 1%; }\n      #optimole-app .table td.is-selected,\n      #optimole-app .table th.is-selected {\n        background-color: #EF686B;\n        color: #fff; }\n        #optimole-app .table td.is-selected a,\n        #optimole-app .table td.is-selected strong,\n        #optimole-app .table th.is-selected a,\n        #optimole-app .table th.is-selected strong {\n          color: currentColor; }\n    #optimole-app .table th {\n      color: #363636;\n      text-align: left; }\n    #optimole-app .table tr.is-selected {\n      background-color: #EF686B;\n      color: #fff; }\n      #optimole-app .table tr.is-selected a,\n      #optimole-app .table tr.is-selected strong {\n        color: currentColor; }\n      #optimole-app .table tr.is-selected td,\n      #optimole-app .table tr.is-selected th {\n        border-color: #fff;\n        color: currentColor; }\n    #optimole-app .table thead td,\n    #optimole-app .table thead th {\n      border-width: 0 0 2px;\n      color: #363636; }\n    #optimole-app .table tfoot td,\n    #optimole-app .table tfoot th {\n      border-width: 2px 0 0;\n      color: #363636; }\n    #optimole-app .table tbody tr:last-child td,\n    #optimole-app .table tbody tr:last-child th {\n      border-bottom-width: 0; }\n    #optimole-app .table.is-bordered td,\n    #optimole-app .table.is-bordered th {\n      border-width: 1px; }\n    #optimole-app .table.is-bordered tr:last-child td,\n    #optimole-app .table.is-bordered tr:last-child th {\n      border-bottom-width: 1px; }\n    #optimole-app .table.is-fullwidth {\n      width: 100%; }\n    #optimole-app .table.is-hoverable tbody tr:not(.is-selected):hover {\n      background-color: #fafafa; }\n    #optimole-app .table.is-hoverable.is-striped tbody tr:not(.is-selected):hover {\n      background-color: #fafafa; }\n      #optimole-app .table.is-hoverable.is-striped tbody tr:not(.is-selected):hover:nth-child(even) {\n        background-color: whitesmoke; }\n    #optimole-app .table.is-narrow td,\n    #optimole-app .table.is-narrow th {\n      padding: 0.25em 0.5em; }\n    #optimole-app .table.is-striped tbody tr:not(.is-selected):nth-child(even) {\n      background-color: #fafafa; }\n  #optimole-app .table-container {\n    -webkit-overflow-scrolling: touch;\n    overflow: auto;\n    overflow-y: hidden;\n    max-width: 100%; }\n  #optimole-app .tags {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n    -ms-flex-pack: start;\n        justify-content: flex-start; }\n    #optimole-app .tags .tag {\n      margin-bottom: 0.5rem; }\n      #optimole-app .tags .tag:not(:last-child) {\n        margin-right: 0.5rem; }\n    #optimole-app .tags:last-child {\n      margin-bottom: -0.5rem; }\n    #optimole-app .tags:not(:last-child) {\n      margin-bottom: 1rem; }\n    #optimole-app .tags.has-addons .tag {\n      margin-right: 0; }\n      #optimole-app .tags.has-addons .tag:not(:first-child) {\n        border-bottom-left-radius: 0;\n        border-top-left-radius: 0; }\n      #optimole-app .tags.has-addons .tag:not(:last-child) {\n        border-bottom-right-radius: 0;\n        border-top-right-radius: 0; }\n    #optimole-app .tags.is-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n      #optimole-app .tags.is-centered .tag {\n        margin-right: 0.25rem;\n        margin-left: 0.25rem; }\n    #optimole-app .tags.is-right {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n      #optimole-app .tags.is-right .tag:not(:first-child) {\n        margin-left: 0.5rem; }\n      #optimole-app .tags.is-right .tag:not(:last-child) {\n        margin-right: 0; }\n  #optimole-app .tag:not(body) {\n    -ms-flex-align: center;\n        align-items: center;\n    background-color: whitesmoke;\n    border-radius: 4px;\n    color: #4a4a4a;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    font-size: 0.75rem;\n    height: 2em;\n    -ms-flex-pack: center;\n        justify-content: center;\n    line-height: 1.5;\n    padding-left: 0.75em;\n    padding-right: 0.75em;\n    white-space: nowrap; }\n    #optimole-app .tag:not(body) .delete {\n      margin-left: 0.25rem;\n      margin-right: -0.375rem; }\n    #optimole-app .tag:not(body).is-white {\n      background-color: white;\n      color: #0a0a0a; }\n    #optimole-app .tag:not(body).is-black {\n      background-color: #0a0a0a;\n      color: white; }\n    #optimole-app .tag:not(body).is-light {\n      background-color: whitesmoke;\n      color: #363636; }\n    #optimole-app .tag:not(body).is-dark {\n      background-color: #363636;\n      color: whitesmoke; }\n    #optimole-app .tag:not(body).is-primary {\n      background-color: #EF686B;\n      color: #fff; }\n    #optimole-app .tag:not(body).is-link {\n      background-color: #3273dc;\n      color: #fff; }\n    #optimole-app .tag:not(body).is-info {\n      background-color: #5180C1;\n      color: #fff; }\n    #optimole-app .tag:not(body).is-success {\n      background-color: #34a85e;\n      color: #fff; }\n    #optimole-app .tag:not(body).is-warning {\n      background-color: #ffdd57;\n      color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .tag:not(body).is-danger {\n      background-color: #D54222;\n      color: #fff; }\n    #optimole-app .tag:not(body).is-medium {\n      font-size: 1rem; }\n    #optimole-app .tag:not(body).is-large {\n      font-size: 1.25rem; }\n    #optimole-app .tag:not(body) .icon:first-child:not(:last-child) {\n      margin-left: -0.375em;\n      margin-right: 0.1875em; }\n    #optimole-app .tag:not(body) .icon:last-child:not(:first-child) {\n      margin-left: 0.1875em;\n      margin-right: -0.375em; }\n    #optimole-app .tag:not(body) .icon:first-child:last-child {\n      margin-left: -0.375em;\n      margin-right: -0.375em; }\n    #optimole-app .tag:not(body).is-delete {\n      margin-left: 1px;\n      padding: 0;\n      position: relative;\n      width: 2em; }\n      #optimole-app .tag:not(body).is-delete::before, #optimole-app .tag:not(body).is-delete::after {\n        background-color: currentColor;\n        content: \"\";\n        display: block;\n        left: 50%;\n        position: absolute;\n        top: 50%;\n        transform: translateX(-50%) translateY(-50%) rotate(45deg);\n        transform-origin: center center; }\n      #optimole-app .tag:not(body).is-delete::before {\n        height: 1px;\n        width: 50%; }\n      #optimole-app .tag:not(body).is-delete::after {\n        height: 50%;\n        width: 1px; }\n      #optimole-app .tag:not(body).is-delete:hover, #optimole-app .tag:not(body).is-delete:focus {\n        background-color: #e8e8e8; }\n      #optimole-app .tag:not(body).is-delete:active {\n        background-color: #dbdbdb; }\n    #optimole-app .tag:not(body).is-rounded {\n      border-radius: 290486px; }\n  #optimole-app a.tag:hover {\n    text-decoration: underline; }\n  #optimole-app .title,\n  #optimole-app .subtitle {\n    word-break: break-word; }\n    #optimole-app .title em,\n    #optimole-app .title span,\n    #optimole-app .subtitle em,\n    #optimole-app .subtitle span {\n      font-weight: inherit; }\n    #optimole-app .title sub,\n    #optimole-app .subtitle sub {\n      font-size: 0.75em; }\n    #optimole-app .title sup,\n    #optimole-app .subtitle sup {\n      font-size: 0.75em; }\n    #optimole-app .title .tag,\n    #optimole-app .subtitle .tag {\n      vertical-align: middle; }\n  #optimole-app .title {\n    color: #363636;\n    font-size: 2rem;\n    font-weight: 600;\n    line-height: 1.125; }\n    #optimole-app .title strong {\n      color: inherit;\n      font-weight: inherit; }\n    #optimole-app .title + .highlight {\n      margin-top: -0.75rem; }\n    #optimole-app .title:not(.is-spaced) + .subtitle {\n      margin-top: -1.25rem; }\n    #optimole-app .title.is-1 {\n      font-size: 3rem; }\n    #optimole-app .title.is-2 {\n      font-size: 2.5rem; }\n    #optimole-app .title.is-3 {\n      font-size: 2rem; }\n    #optimole-app .title.is-4 {\n      font-size: 1.5rem; }\n    #optimole-app .title.is-5 {\n      font-size: 1.25rem; }\n    #optimole-app .title.is-6 {\n      font-size: 1rem; }\n    #optimole-app .title.is-7 {\n      font-size: 0.75rem; }\n  #optimole-app .subtitle {\n    color: #4a4a4a;\n    font-size: 1.25rem;\n    font-weight: 400;\n    line-height: 1.25; }\n    #optimole-app .subtitle strong {\n      color: #363636;\n      font-weight: 600; }\n    #optimole-app .subtitle:not(.is-spaced) + .title {\n      margin-top: -1.25rem; }\n    #optimole-app .subtitle.is-1 {\n      font-size: 3rem; }\n    #optimole-app .subtitle.is-2 {\n      font-size: 2.5rem; }\n    #optimole-app .subtitle.is-3 {\n      font-size: 2rem; }\n    #optimole-app .subtitle.is-4 {\n      font-size: 1.5rem; }\n    #optimole-app .subtitle.is-5 {\n      font-size: 1.25rem; }\n    #optimole-app .subtitle.is-6 {\n      font-size: 1rem; }\n    #optimole-app .subtitle.is-7 {\n      font-size: 0.75rem; }\n  #optimole-app .heading {\n    display: block;\n    font-size: 11px;\n    letter-spacing: 1px;\n    margin-bottom: 5px;\n    text-transform: uppercase; }\n  #optimole-app .highlight {\n    font-weight: 400;\n    max-width: 100%;\n    overflow: hidden;\n    padding: 0; }\n    #optimole-app .highlight pre {\n      overflow: auto;\n      max-width: 100%; }\n  #optimole-app .number {\n    -ms-flex-align: center;\n        align-items: center;\n    background-color: whitesmoke;\n    border-radius: 290486px;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    font-size: 1.25rem;\n    height: 2em;\n    -ms-flex-pack: center;\n        justify-content: center;\n    margin-right: 1.5rem;\n    min-width: 2.5em;\n    padding: 0.25rem 0.5rem;\n    text-align: center;\n    vertical-align: top; }\n  #optimole-app .breadcrumb {\n    font-size: 1rem;\n    white-space: nowrap; }\n    #optimole-app .breadcrumb a {\n      -ms-flex-align: center;\n          align-items: center;\n      color: #3273dc;\n      display: -ms-flexbox;\n      display: flex;\n      -ms-flex-pack: center;\n          justify-content: center;\n      padding: 0 0.75em; }\n      #optimole-app .breadcrumb a:hover {\n        color: #363636; }\n    #optimole-app .breadcrumb li {\n      -ms-flex-align: center;\n          align-items: center;\n      display: -ms-flexbox;\n      display: flex; }\n      #optimole-app .breadcrumb li:first-child a {\n        padding-left: 0; }\n      #optimole-app .breadcrumb li.is-active a {\n        color: #363636;\n        cursor: default;\n        pointer-events: none; }\n      #optimole-app .breadcrumb li + li::before {\n        color: #b5b5b5;\n        content: \"/\"; }\n    #optimole-app .breadcrumb ul,\n    #optimole-app .breadcrumb ol {\n      -ms-flex-align: start;\n          align-items: flex-start;\n      display: -ms-flexbox;\n      display: flex;\n      -ms-flex-wrap: wrap;\n          flex-wrap: wrap;\n      -ms-flex-pack: start;\n          justify-content: flex-start; }\n    #optimole-app .breadcrumb .icon:first-child {\n      margin-right: 0.5em; }\n    #optimole-app .breadcrumb .icon:last-child {\n      margin-left: 0.5em; }\n    #optimole-app .breadcrumb.is-centered ol,\n    #optimole-app .breadcrumb.is-centered ul {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .breadcrumb.is-right ol,\n    #optimole-app .breadcrumb.is-right ul {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n    #optimole-app .breadcrumb.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .breadcrumb.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .breadcrumb.is-large {\n      font-size: 1.5rem; }\n    #optimole-app .breadcrumb.has-arrow-separator li + li::before {\n      content: \"\\2192\"; }\n    #optimole-app .breadcrumb.has-bullet-separator li + li::before {\n      content: \"\\2022\"; }\n    #optimole-app .breadcrumb.has-dot-separator li + li::before {\n      content: \"\\B7\"; }\n    #optimole-app .breadcrumb.has-succeeds-separator li + li::before {\n      content: \"\\227B\"; }\n  #optimole-app .card {\n    background-color: white;\n    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);\n    color: #4a4a4a;\n    max-width: 100%;\n    position: relative; }\n  #optimole-app .card-header {\n    background-color: transparent;\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    box-shadow: 0 1px 2px rgba(10, 10, 10, 0.1);\n    display: -ms-flexbox;\n    display: flex; }\n  #optimole-app .card-header-title {\n    -ms-flex-align: center;\n        align-items: center;\n    color: #363636;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    font-weight: 700;\n    padding: 0.75rem; }\n    #optimole-app .card-header-title.is-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n  #optimole-app .card-header-icon {\n    -ms-flex-align: center;\n        align-items: center;\n    cursor: pointer;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-pack: center;\n        justify-content: center;\n    padding: 0.75rem; }\n  #optimole-app .card-image {\n    display: block;\n    position: relative; }\n  #optimole-app .card-content {\n    background-color: transparent;\n    padding: 1.5rem; }\n  #optimole-app .card-footer {\n    background-color: transparent;\n    border-top: 1px solid #dbdbdb;\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: -ms-flexbox;\n    display: flex; }\n  #optimole-app .card-footer-item {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-preferred-size: 0;\n        flex-basis: 0;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    -ms-flex-pack: center;\n        justify-content: center;\n    padding: 0.75rem; }\n    #optimole-app .card-footer-item:not(:last-child) {\n      border-right: 1px solid #dbdbdb; }\n  #optimole-app .card .media:not(:last-child) {\n    margin-bottom: 0.75rem; }\n  #optimole-app .dropdown {\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    position: relative;\n    vertical-align: top; }\n    #optimole-app .dropdown.is-active .dropdown-menu, #optimole-app .dropdown.is-hoverable:hover .dropdown-menu {\n      display: block; }\n    #optimole-app .dropdown.is-right .dropdown-menu {\n      left: auto;\n      right: 0; }\n    #optimole-app .dropdown.is-up .dropdown-menu {\n      bottom: 100%;\n      padding-bottom: 4px;\n      padding-top: initial;\n      top: auto; }\n  #optimole-app .dropdown-menu {\n    display: none;\n    left: 0;\n    min-width: 12rem;\n    padding-top: 4px;\n    position: absolute;\n    top: 100%;\n    z-index: 20; }\n  #optimole-app .dropdown-content {\n    background-color: white;\n    border-radius: 4px;\n    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);\n    padding-bottom: 0.5rem;\n    padding-top: 0.5rem; }\n  #optimole-app .dropdown-item {\n    color: #4a4a4a;\n    display: block;\n    font-size: 0.875rem;\n    line-height: 1.5;\n    padding: 0.375rem 1rem;\n    position: relative; }\n  #optimole-app a.dropdown-item,\n  #optimole-app button.dropdown-item {\n    padding-right: 3rem;\n    text-align: left;\n    white-space: nowrap;\n    width: 100%; }\n    #optimole-app a.dropdown-item:hover,\n    #optimole-app button.dropdown-item:hover {\n      background-color: whitesmoke;\n      color: #0a0a0a; }\n    #optimole-app a.dropdown-item.is-active,\n    #optimole-app button.dropdown-item.is-active {\n      background-color: #3273dc;\n      color: #fff; }\n  #optimole-app .dropdown-divider {\n    background-color: #dbdbdb;\n    border: none;\n    display: block;\n    height: 1px;\n    margin: 0.5rem 0; }\n  #optimole-app .level {\n    -ms-flex-align: center;\n        align-items: center;\n    -ms-flex-pack: justify;\n        justify-content: space-between; }\n    #optimole-app .level code {\n      border-radius: 4px; }\n    #optimole-app .level img {\n      display: inline-block;\n      vertical-align: top; }\n    #optimole-app .level.is-mobile {\n      display: -ms-flexbox;\n      display: flex; }\n      #optimole-app .level.is-mobile .level-left,\n      #optimole-app .level.is-mobile .level-right {\n        display: -ms-flexbox;\n        display: flex; }\n      #optimole-app .level.is-mobile .level-left + .level-right {\n        margin-top: 0; }\n      #optimole-app .level.is-mobile .level-item:not(:last-child) {\n        margin-bottom: 0;\n        margin-right: 0.75rem; }\n      #optimole-app .level.is-mobile .level-item:not(.is-narrow) {\n        -ms-flex-positive: 1;\n            flex-grow: 1; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .level {\n        display: -ms-flexbox;\n        display: flex; }\n        #optimole-app .level > .level-item:not(.is-narrow) {\n          -ms-flex-positive: 1;\n              flex-grow: 1; } }\n  #optimole-app .level-item {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-preferred-size: auto;\n        flex-basis: auto;\n    -ms-flex-positive: 0;\n        flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    -ms-flex-pack: center;\n        justify-content: center; }\n    #optimole-app .level-item .title,\n    #optimole-app .level-item .subtitle {\n      margin-bottom: 0; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .level-item:not(:last-child) {\n        margin-bottom: 0.75rem; } }\n  #optimole-app .level-left,\n  #optimole-app .level-right {\n    -ms-flex-preferred-size: auto;\n        flex-basis: auto;\n    -ms-flex-positive: 0;\n        flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0; }\n    #optimole-app .level-left .level-item.is-flexible,\n    #optimole-app .level-right .level-item.is-flexible {\n      -ms-flex-positive: 1;\n          flex-grow: 1; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .level-left .level-item:not(:last-child),\n      #optimole-app .level-right .level-item:not(:last-child) {\n        margin-right: 0.75rem; } }\n  #optimole-app .level-left {\n    -ms-flex-align: center;\n        align-items: center;\n    -ms-flex-pack: start;\n        justify-content: flex-start; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .level-left + .level-right {\n        margin-top: 1.5rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .level-left {\n        display: -ms-flexbox;\n        display: flex; } }\n  #optimole-app .level-right {\n    -ms-flex-align: center;\n        align-items: center;\n    -ms-flex-pack: end;\n        justify-content: flex-end; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .level-right {\n        display: -ms-flexbox;\n        display: flex; } }\n  #optimole-app .list {\n    background-color: white;\n    border-radius: 4px;\n    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1); }\n  #optimole-app .list-item {\n    display: block;\n    padding: 0.5em 1em; }\n    #optimole-app .list-item:not(a) {\n      color: #4a4a4a; }\n    #optimole-app .list-item:first-child {\n      border-top-left-radius: 4px;\n      border-top-right-radius: 4px; }\n    #optimole-app .list-item:last-child {\n      border-top-left-radius: 4px;\n      border-top-right-radius: 4px; }\n    #optimole-app .list-item:not(:last-child) {\n      border-bottom: 1px solid #dbdbdb; }\n    #optimole-app .list-item.is-active {\n      background-color: #3273dc;\n      color: #fff; }\n  #optimole-app a.list-item {\n    background-color: whitesmoke;\n    cursor: pointer; }\n  #optimole-app .media {\n    -ms-flex-align: start;\n        align-items: flex-start;\n    display: -ms-flexbox;\n    display: flex;\n    text-align: left; }\n    #optimole-app .media .content:not(:last-child) {\n      margin-bottom: 0.75rem; }\n    #optimole-app .media .media {\n      border-top: 1px solid rgba(219, 219, 219, 0.5);\n      display: -ms-flexbox;\n      display: flex;\n      padding-top: 0.75rem; }\n      #optimole-app .media .media .content:not(:last-child),\n      #optimole-app .media .media .control:not(:last-child) {\n        margin-bottom: 0.5rem; }\n      #optimole-app .media .media .media {\n        padding-top: 0.5rem; }\n        #optimole-app .media .media .media + .media {\n          margin-top: 0.5rem; }\n    #optimole-app .media + .media {\n      border-top: 1px solid rgba(219, 219, 219, 0.5);\n      margin-top: 1rem;\n      padding-top: 1rem; }\n    #optimole-app .media.is-large + .media {\n      margin-top: 1.5rem;\n      padding-top: 1.5rem; }\n  #optimole-app .media-left,\n  #optimole-app .media-right {\n    -ms-flex-preferred-size: auto;\n        flex-basis: auto;\n    -ms-flex-positive: 0;\n        flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0; }\n  #optimole-app .media-left {\n    margin-right: 1rem; }\n  #optimole-app .media-right {\n    margin-left: 1rem; }\n  #optimole-app .media-content {\n    -ms-flex-preferred-size: auto;\n        flex-basis: auto;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 1;\n        flex-shrink: 1;\n    text-align: left; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .media-content {\n      overflow-x: auto; } }\n  #optimole-app .menu {\n    font-size: 1rem; }\n    #optimole-app .menu.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .menu.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .menu.is-large {\n      font-size: 1.5rem; }\n  #optimole-app .menu-list {\n    line-height: 1.25; }\n    #optimole-app .menu-list a {\n      border-radius: 2px;\n      color: #4a4a4a;\n      display: block;\n      padding: 0.5em 0.75em; }\n      #optimole-app .menu-list a:hover {\n        background-color: whitesmoke;\n        color: #363636; }\n      #optimole-app .menu-list a.is-active {\n        background-color: #3273dc;\n        color: #fff; }\n    #optimole-app .menu-list li ul {\n      border-left: 1px solid #dbdbdb;\n      margin: 0.75em;\n      padding-left: 0.75em; }\n  #optimole-app .menu-label {\n    color: #7a7a7a;\n    font-size: 0.75em;\n    letter-spacing: 0.1em;\n    text-transform: uppercase; }\n    #optimole-app .menu-label:not(:first-child) {\n      margin-top: 1em; }\n    #optimole-app .menu-label:not(:last-child) {\n      margin-bottom: 1em; }\n  #optimole-app .message {\n    background-color: whitesmoke;\n    border-radius: 4px;\n    font-size: 1rem; }\n    #optimole-app .message strong {\n      color: currentColor; }\n    #optimole-app .message a:not(.button):not(.tag) {\n      color: currentColor;\n      text-decoration: underline; }\n    #optimole-app .message.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .message.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .message.is-large {\n      font-size: 1.5rem; }\n    #optimole-app .message.is-white {\n      background-color: white; }\n      #optimole-app .message.is-white .message-header {\n        background-color: white;\n        color: #0a0a0a; }\n      #optimole-app .message.is-white .message-body {\n        border-color: white;\n        color: #4d4d4d; }\n    #optimole-app .message.is-black {\n      background-color: #fafafa; }\n      #optimole-app .message.is-black .message-header {\n        background-color: #0a0a0a;\n        color: white; }\n      #optimole-app .message.is-black .message-body {\n        border-color: #0a0a0a;\n        color: #090909; }\n    #optimole-app .message.is-light {\n      background-color: #fafafa; }\n      #optimole-app .message.is-light .message-header {\n        background-color: whitesmoke;\n        color: #363636; }\n      #optimole-app .message.is-light .message-body {\n        border-color: whitesmoke;\n        color: #505050; }\n    #optimole-app .message.is-dark {\n      background-color: #fafafa; }\n      #optimole-app .message.is-dark .message-header {\n        background-color: #363636;\n        color: whitesmoke; }\n      #optimole-app .message.is-dark .message-body {\n        border-color: #363636;\n        color: #2a2a2a; }\n    #optimole-app .message.is-primary {\n      background-color: #fef6f6; }\n      #optimole-app .message.is-primary .message-header {\n        background-color: #EF686B;\n        color: #fff; }\n      #optimole-app .message.is-primary .message-body {\n        border-color: #EF686B;\n        color: #bd2124; }\n    #optimole-app .message.is-link {\n      background-color: #f6f9fe; }\n      #optimole-app .message.is-link .message-header {\n        background-color: #3273dc;\n        color: #fff; }\n      #optimole-app .message.is-link .message-body {\n        border-color: #3273dc;\n        color: #22509a; }\n    #optimole-app .message.is-info {\n      background-color: #f7fafc; }\n      #optimole-app .message.is-info .message-header {\n        background-color: #5180C1;\n        color: #fff; }\n      #optimole-app .message.is-info .message-body {\n        border-color: #5180C1;\n        color: #36537c; }\n    #optimole-app .message.is-success {\n      background-color: #f7fdf9; }\n      #optimole-app .message.is-success .message-header {\n        background-color: #34a85e;\n        color: #fff; }\n      #optimole-app .message.is-success .message-body {\n        border-color: #34a85e;\n        color: #1b432a; }\n    #optimole-app .message.is-warning {\n      background-color: #fffdf5; }\n      #optimole-app .message.is-warning .message-header {\n        background-color: #ffdd57;\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .message.is-warning .message-body {\n        border-color: #ffdd57;\n        color: #3b3108; }\n    #optimole-app .message.is-danger {\n      background-color: #fef8f6; }\n      #optimole-app .message.is-danger .message-header {\n        background-color: #D54222;\n        color: #fff; }\n      #optimole-app .message.is-danger .message-body {\n        border-color: #D54222;\n        color: #8d311d; }\n  #optimole-app .message-header {\n    -ms-flex-align: center;\n        align-items: center;\n    background-color: #4a4a4a;\n    border-radius: 4px 4px 0 0;\n    color: #fff;\n    display: -ms-flexbox;\n    display: flex;\n    font-weight: 700;\n    -ms-flex-pack: justify;\n        justify-content: space-between;\n    line-height: 1.25;\n    padding: 0.75em 1em;\n    position: relative; }\n    #optimole-app .message-header .delete {\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n      -ms-flex-negative: 0;\n          flex-shrink: 0;\n      margin-left: 0.75em; }\n    #optimole-app .message-header + .message-body {\n      border-width: 0;\n      border-top-left-radius: 0;\n      border-top-right-radius: 0; }\n  #optimole-app .message-body {\n    border-color: #dbdbdb;\n    border-radius: 4px;\n    border-style: solid;\n    border-width: 0 0 0 4px;\n    color: #4a4a4a;\n    padding: 1.25em 1.5em; }\n    #optimole-app .message-body code,\n    #optimole-app .message-body pre {\n      background-color: white; }\n    #optimole-app .message-body pre code {\n      background-color: transparent; }\n  #optimole-app .modal {\n    -ms-flex-align: center;\n        align-items: center;\n    display: none;\n    -ms-flex-direction: column;\n        flex-direction: column;\n    -ms-flex-pack: center;\n        justify-content: center;\n    overflow: hidden;\n    position: fixed;\n    z-index: 40; }\n    #optimole-app .modal.is-active {\n      display: -ms-flexbox;\n      display: flex; }\n  #optimole-app .modal-background {\n    background-color: rgba(10, 10, 10, 0.86); }\n  #optimole-app .modal-content,\n  #optimole-app .modal-card {\n    margin: 0 20px;\n    max-height: calc(100vh - 160px);\n    overflow: auto;\n    position: relative;\n    width: 100%; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .modal-content,\n      #optimole-app .modal-card {\n        margin: 0 auto;\n        max-height: calc(100vh - 40px);\n        width: 640px; } }\n  #optimole-app .modal-close {\n    background: none;\n    height: 40px;\n    position: fixed;\n    right: 20px;\n    top: 20px;\n    width: 40px; }\n  #optimole-app .modal-card {\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-direction: column;\n        flex-direction: column;\n    max-height: calc(100vh - 40px);\n    overflow: hidden;\n    -ms-overflow-y: visible; }\n  #optimole-app .modal-card-head,\n  #optimole-app .modal-card-foot {\n    -ms-flex-align: center;\n        align-items: center;\n    background-color: whitesmoke;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    -ms-flex-pack: start;\n        justify-content: flex-start;\n    padding: 20px;\n    position: relative; }\n  #optimole-app .modal-card-head {\n    border-bottom: 1px solid #dbdbdb;\n    border-top-left-radius: 6px;\n    border-top-right-radius: 6px; }\n  #optimole-app .modal-card-title {\n    color: #363636;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    font-size: 1.5rem;\n    line-height: 1; }\n  #optimole-app .modal-card-foot {\n    border-bottom-left-radius: 6px;\n    border-bottom-right-radius: 6px;\n    border-top: 1px solid #dbdbdb; }\n    #optimole-app .modal-card-foot .button:not(:last-child) {\n      margin-right: 10px; }\n  #optimole-app .modal-card-body {\n    -webkit-overflow-scrolling: touch;\n    background-color: white;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 1;\n        flex-shrink: 1;\n    overflow: auto;\n    padding: 20px; }\n  #optimole-app .navbar {\n    background-color: white;\n    min-height: 3.25rem;\n    position: relative;\n    z-index: 30; }\n    #optimole-app .navbar.is-white {\n      background-color: white;\n      color: #0a0a0a; }\n      #optimole-app .navbar.is-white .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-white .navbar-brand .navbar-link {\n        color: #0a0a0a; }\n      #optimole-app .navbar.is-white .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-white .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-white .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-white .navbar-brand .navbar-link.is-active {\n        background-color: #f2f2f2;\n        color: #0a0a0a; }\n      #optimole-app .navbar.is-white .navbar-brand .navbar-link::after {\n        border-color: #0a0a0a; }\n      #optimole-app .navbar.is-white .navbar-burger {\n        color: #0a0a0a; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-white .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-white .navbar-start .navbar-link,\n        #optimole-app .navbar.is-white .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-white .navbar-end .navbar-link {\n          color: #0a0a0a; }\n        #optimole-app .navbar.is-white .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-white .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-white .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-white .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-white .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-white .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-white .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-white .navbar-end .navbar-link.is-active {\n          background-color: #f2f2f2;\n          color: #0a0a0a; }\n        #optimole-app .navbar.is-white .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-white .navbar-end .navbar-link::after {\n          border-color: #0a0a0a; }\n        #optimole-app .navbar.is-white .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-white .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #f2f2f2;\n          color: #0a0a0a; }\n        #optimole-app .navbar.is-white .navbar-dropdown a.navbar-item.is-active {\n          background-color: white;\n          color: #0a0a0a; } }\n    #optimole-app .navbar.is-black {\n      background-color: #0a0a0a;\n      color: white; }\n      #optimole-app .navbar.is-black .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-black .navbar-brand .navbar-link {\n        color: white; }\n      #optimole-app .navbar.is-black .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-black .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-black .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-black .navbar-brand .navbar-link.is-active {\n        background-color: black;\n        color: white; }\n      #optimole-app .navbar.is-black .navbar-brand .navbar-link::after {\n        border-color: white; }\n      #optimole-app .navbar.is-black .navbar-burger {\n        color: white; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-black .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-black .navbar-start .navbar-link,\n        #optimole-app .navbar.is-black .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-black .navbar-end .navbar-link {\n          color: white; }\n        #optimole-app .navbar.is-black .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-black .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-black .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-black .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-black .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-black .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-black .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-black .navbar-end .navbar-link.is-active {\n          background-color: black;\n          color: white; }\n        #optimole-app .navbar.is-black .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-black .navbar-end .navbar-link::after {\n          border-color: white; }\n        #optimole-app .navbar.is-black .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-black .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: black;\n          color: white; }\n        #optimole-app .navbar.is-black .navbar-dropdown a.navbar-item.is-active {\n          background-color: #0a0a0a;\n          color: white; } }\n    #optimole-app .navbar.is-light {\n      background-color: whitesmoke;\n      color: #363636; }\n      #optimole-app .navbar.is-light .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-light .navbar-brand .navbar-link {\n        color: #363636; }\n      #optimole-app .navbar.is-light .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-light .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-light .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-light .navbar-brand .navbar-link.is-active {\n        background-color: #e8e8e8;\n        color: #363636; }\n      #optimole-app .navbar.is-light .navbar-brand .navbar-link::after {\n        border-color: #363636; }\n      #optimole-app .navbar.is-light .navbar-burger {\n        color: #363636; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-light .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-light .navbar-start .navbar-link,\n        #optimole-app .navbar.is-light .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-light .navbar-end .navbar-link {\n          color: #363636; }\n        #optimole-app .navbar.is-light .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-light .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-light .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-light .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-light .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-light .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-light .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-light .navbar-end .navbar-link.is-active {\n          background-color: #e8e8e8;\n          color: #363636; }\n        #optimole-app .navbar.is-light .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-light .navbar-end .navbar-link::after {\n          border-color: #363636; }\n        #optimole-app .navbar.is-light .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-light .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #e8e8e8;\n          color: #363636; }\n        #optimole-app .navbar.is-light .navbar-dropdown a.navbar-item.is-active {\n          background-color: whitesmoke;\n          color: #363636; } }\n    #optimole-app .navbar.is-dark {\n      background-color: #363636;\n      color: whitesmoke; }\n      #optimole-app .navbar.is-dark .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-dark .navbar-brand .navbar-link {\n        color: whitesmoke; }\n      #optimole-app .navbar.is-dark .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-dark .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-dark .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-dark .navbar-brand .navbar-link.is-active {\n        background-color: #292929;\n        color: whitesmoke; }\n      #optimole-app .navbar.is-dark .navbar-brand .navbar-link::after {\n        border-color: whitesmoke; }\n      #optimole-app .navbar.is-dark .navbar-burger {\n        color: whitesmoke; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-dark .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-dark .navbar-start .navbar-link,\n        #optimole-app .navbar.is-dark .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-dark .navbar-end .navbar-link {\n          color: whitesmoke; }\n        #optimole-app .navbar.is-dark .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-dark .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-dark .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-dark .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-dark .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-dark .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-dark .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-dark .navbar-end .navbar-link.is-active {\n          background-color: #292929;\n          color: whitesmoke; }\n        #optimole-app .navbar.is-dark .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-dark .navbar-end .navbar-link::after {\n          border-color: whitesmoke; }\n        #optimole-app .navbar.is-dark .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-dark .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #292929;\n          color: whitesmoke; }\n        #optimole-app .navbar.is-dark .navbar-dropdown a.navbar-item.is-active {\n          background-color: #363636;\n          color: whitesmoke; } }\n    #optimole-app .navbar.is-primary {\n      background-color: #EF686B;\n      color: #fff; }\n      #optimole-app .navbar.is-primary .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-primary .navbar-brand .navbar-link {\n        color: #fff; }\n      #optimole-app .navbar.is-primary .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-primary .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-primary .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-primary .navbar-brand .navbar-link.is-active {\n        background-color: #ed5154;\n        color: #fff; }\n      #optimole-app .navbar.is-primary .navbar-brand .navbar-link::after {\n        border-color: #fff; }\n      #optimole-app .navbar.is-primary .navbar-burger {\n        color: #fff; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-primary .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-primary .navbar-start .navbar-link,\n        #optimole-app .navbar.is-primary .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-primary .navbar-end .navbar-link {\n          color: #fff; }\n        #optimole-app .navbar.is-primary .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-primary .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-primary .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-primary .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-primary .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-primary .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-primary .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-primary .navbar-end .navbar-link.is-active {\n          background-color: #ed5154;\n          color: #fff; }\n        #optimole-app .navbar.is-primary .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-primary .navbar-end .navbar-link::after {\n          border-color: #fff; }\n        #optimole-app .navbar.is-primary .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-primary .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #ed5154;\n          color: #fff; }\n        #optimole-app .navbar.is-primary .navbar-dropdown a.navbar-item.is-active {\n          background-color: #EF686B;\n          color: #fff; } }\n    #optimole-app .navbar.is-link {\n      background-color: #3273dc;\n      color: #fff; }\n      #optimole-app .navbar.is-link .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-link .navbar-brand .navbar-link {\n        color: #fff; }\n      #optimole-app .navbar.is-link .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-link .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-link .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-link .navbar-brand .navbar-link.is-active {\n        background-color: #2366d1;\n        color: #fff; }\n      #optimole-app .navbar.is-link .navbar-brand .navbar-link::after {\n        border-color: #fff; }\n      #optimole-app .navbar.is-link .navbar-burger {\n        color: #fff; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-link .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-link .navbar-start .navbar-link,\n        #optimole-app .navbar.is-link .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-link .navbar-end .navbar-link {\n          color: #fff; }\n        #optimole-app .navbar.is-link .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-link .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-link .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-link .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-link .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-link .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-link .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-link .navbar-end .navbar-link.is-active {\n          background-color: #2366d1;\n          color: #fff; }\n        #optimole-app .navbar.is-link .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-link .navbar-end .navbar-link::after {\n          border-color: #fff; }\n        #optimole-app .navbar.is-link .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-link .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #2366d1;\n          color: #fff; }\n        #optimole-app .navbar.is-link .navbar-dropdown a.navbar-item.is-active {\n          background-color: #3273dc;\n          color: #fff; } }\n    #optimole-app .navbar.is-info {\n      background-color: #5180C1;\n      color: #fff; }\n      #optimole-app .navbar.is-info .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-info .navbar-brand .navbar-link {\n        color: #fff; }\n      #optimole-app .navbar.is-info .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-info .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-info .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-info .navbar-brand .navbar-link.is-active {\n        background-color: #4173b7;\n        color: #fff; }\n      #optimole-app .navbar.is-info .navbar-brand .navbar-link::after {\n        border-color: #fff; }\n      #optimole-app .navbar.is-info .navbar-burger {\n        color: #fff; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-info .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-info .navbar-start .navbar-link,\n        #optimole-app .navbar.is-info .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-info .navbar-end .navbar-link {\n          color: #fff; }\n        #optimole-app .navbar.is-info .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-info .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-info .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-info .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-info .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-info .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-info .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-info .navbar-end .navbar-link.is-active {\n          background-color: #4173b7;\n          color: #fff; }\n        #optimole-app .navbar.is-info .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-info .navbar-end .navbar-link::after {\n          border-color: #fff; }\n        #optimole-app .navbar.is-info .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-info .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #4173b7;\n          color: #fff; }\n        #optimole-app .navbar.is-info .navbar-dropdown a.navbar-item.is-active {\n          background-color: #5180C1;\n          color: #fff; } }\n    #optimole-app .navbar.is-success {\n      background-color: #34a85e;\n      color: #fff; }\n      #optimole-app .navbar.is-success .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-success .navbar-brand .navbar-link {\n        color: #fff; }\n      #optimole-app .navbar.is-success .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-success .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-success .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-success .navbar-brand .navbar-link.is-active {\n        background-color: #2e9553;\n        color: #fff; }\n      #optimole-app .navbar.is-success .navbar-brand .navbar-link::after {\n        border-color: #fff; }\n      #optimole-app .navbar.is-success .navbar-burger {\n        color: #fff; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-success .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-success .navbar-start .navbar-link,\n        #optimole-app .navbar.is-success .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-success .navbar-end .navbar-link {\n          color: #fff; }\n        #optimole-app .navbar.is-success .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-success .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-success .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-success .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-success .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-success .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-success .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-success .navbar-end .navbar-link.is-active {\n          background-color: #2e9553;\n          color: #fff; }\n        #optimole-app .navbar.is-success .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-success .navbar-end .navbar-link::after {\n          border-color: #fff; }\n        #optimole-app .navbar.is-success .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-success .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #2e9553;\n          color: #fff; }\n        #optimole-app .navbar.is-success .navbar-dropdown a.navbar-item.is-active {\n          background-color: #34a85e;\n          color: #fff; } }\n    #optimole-app .navbar.is-warning {\n      background-color: #ffdd57;\n      color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .navbar.is-warning .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-warning .navbar-brand .navbar-link {\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .navbar.is-warning .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-warning .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-warning .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-warning .navbar-brand .navbar-link.is-active {\n        background-color: #ffd83d;\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .navbar.is-warning .navbar-brand .navbar-link::after {\n        border-color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .navbar.is-warning .navbar-burger {\n        color: rgba(0, 0, 0, 0.7); }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-warning .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-warning .navbar-start .navbar-link,\n        #optimole-app .navbar.is-warning .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-warning .navbar-end .navbar-link {\n          color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .navbar.is-warning .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-warning .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-warning .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-warning .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-warning .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-warning .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-warning .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-warning .navbar-end .navbar-link.is-active {\n          background-color: #ffd83d;\n          color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .navbar.is-warning .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-warning .navbar-end .navbar-link::after {\n          border-color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .navbar.is-warning .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-warning .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #ffd83d;\n          color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .navbar.is-warning .navbar-dropdown a.navbar-item.is-active {\n          background-color: #ffdd57;\n          color: rgba(0, 0, 0, 0.7); } }\n    #optimole-app .navbar.is-danger {\n      background-color: #D54222;\n      color: #fff; }\n      #optimole-app .navbar.is-danger .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-danger .navbar-brand .navbar-link {\n        color: #fff; }\n      #optimole-app .navbar.is-danger .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-danger .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-danger .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-danger .navbar-brand .navbar-link.is-active {\n        background-color: #bf3b1e;\n        color: #fff; }\n      #optimole-app .navbar.is-danger .navbar-brand .navbar-link::after {\n        border-color: #fff; }\n      #optimole-app .navbar.is-danger .navbar-burger {\n        color: #fff; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-danger .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-danger .navbar-start .navbar-link,\n        #optimole-app .navbar.is-danger .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-danger .navbar-end .navbar-link {\n          color: #fff; }\n        #optimole-app .navbar.is-danger .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-danger .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-danger .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-danger .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-danger .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-danger .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-danger .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-danger .navbar-end .navbar-link.is-active {\n          background-color: #bf3b1e;\n          color: #fff; }\n        #optimole-app .navbar.is-danger .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-danger .navbar-end .navbar-link::after {\n          border-color: #fff; }\n        #optimole-app .navbar.is-danger .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-danger .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #bf3b1e;\n          color: #fff; }\n        #optimole-app .navbar.is-danger .navbar-dropdown a.navbar-item.is-active {\n          background-color: #D54222;\n          color: #fff; } }\n    #optimole-app .navbar > .container {\n      -ms-flex-align: stretch;\n          align-items: stretch;\n      display: -ms-flexbox;\n      display: flex;\n      min-height: 3.25rem;\n      width: 100%; }\n    #optimole-app .navbar.has-shadow {\n      box-shadow: 0 2px 0 0 whitesmoke; }\n    #optimole-app .navbar.is-fixed-bottom, #optimole-app .navbar.is-fixed-top {\n      left: 0;\n      position: fixed;\n      right: 0;\n      z-index: 30; }\n    #optimole-app .navbar.is-fixed-bottom {\n      bottom: 0; }\n      #optimole-app .navbar.is-fixed-bottom.has-shadow {\n        box-shadow: 0 -2px 0 0 whitesmoke; }\n    #optimole-app .navbar.is-fixed-top {\n      top: 0; }\n  #optimole-app html.has-navbar-fixed-top,\n  #optimole-app body.has-navbar-fixed-top {\n    padding-top: 3.25rem; }\n  #optimole-app html.has-navbar-fixed-bottom,\n  #optimole-app body.has-navbar-fixed-bottom {\n    padding-bottom: 3.25rem; }\n  #optimole-app .navbar-brand,\n  #optimole-app .navbar-tabs {\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    min-height: 3.25rem; }\n  #optimole-app .navbar-brand a.navbar-item:hover {\n    background-color: transparent; }\n  #optimole-app .navbar-tabs {\n    -webkit-overflow-scrolling: touch;\n    max-width: 100vw;\n    overflow-x: auto;\n    overflow-y: hidden; }\n  #optimole-app .navbar-burger {\n    color: #4a4a4a;\n    cursor: pointer;\n    display: block;\n    height: 3.25rem;\n    position: relative;\n    width: 3.25rem;\n    margin-left: auto; }\n    #optimole-app .navbar-burger span {\n      background-color: currentColor;\n      display: block;\n      height: 1px;\n      left: calc(50% - 8px);\n      position: absolute;\n      transform-origin: center;\n      transition-duration: 86ms;\n      transition-property: background-color, opacity, transform;\n      transition-timing-function: ease-out;\n      width: 16px; }\n      #optimole-app .navbar-burger span:nth-child(1) {\n        top: calc(50% - 6px); }\n      #optimole-app .navbar-burger span:nth-child(2) {\n        top: calc(50% - 1px); }\n      #optimole-app .navbar-burger span:nth-child(3) {\n        top: calc(50% + 4px); }\n    #optimole-app .navbar-burger:hover {\n      background-color: rgba(0, 0, 0, 0.05); }\n    #optimole-app .navbar-burger.is-active span:nth-child(1) {\n      transform: translateY(5px) rotate(45deg); }\n    #optimole-app .navbar-burger.is-active span:nth-child(2) {\n      opacity: 0; }\n    #optimole-app .navbar-burger.is-active span:nth-child(3) {\n      transform: translateY(-5px) rotate(-45deg); }\n  #optimole-app .navbar-menu {\n    display: none; }\n  #optimole-app .navbar-item,\n  #optimole-app .navbar-link {\n    color: #4a4a4a;\n    display: block;\n    line-height: 1.5;\n    padding: 0.5rem 0.75rem;\n    position: relative; }\n    #optimole-app .navbar-item .icon:only-child,\n    #optimole-app .navbar-link .icon:only-child {\n      margin-left: -0.25rem;\n      margin-right: -0.25rem; }\n  #optimole-app a.navbar-item,\n  #optimole-app .navbar-link {\n    cursor: pointer; }\n    #optimole-app a.navbar-item:hover, #optimole-app a.navbar-item.is-active,\n    #optimole-app .navbar-link:hover,\n    #optimole-app .navbar-link.is-active {\n      background-color: #fafafa;\n      color: #3273dc; }\n  #optimole-app .navbar-item {\n    display: block;\n    -ms-flex-positive: 0;\n        flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0; }\n    #optimole-app .navbar-item img {\n      max-height: 1.75rem; }\n    #optimole-app .navbar-item.has-dropdown {\n      padding: 0; }\n    #optimole-app .navbar-item.is-expanded {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 1;\n          flex-shrink: 1; }\n    #optimole-app .navbar-item.is-tab {\n      border-bottom: 1px solid transparent;\n      min-height: 3.25rem;\n      padding-bottom: calc(0.5rem - 1px); }\n      #optimole-app .navbar-item.is-tab:hover {\n        background-color: transparent;\n        border-bottom-color: #3273dc; }\n      #optimole-app .navbar-item.is-tab.is-active {\n        background-color: transparent;\n        border-bottom-color: #3273dc;\n        border-bottom-style: solid;\n        border-bottom-width: 3px;\n        color: #3273dc;\n        padding-bottom: calc(0.5rem - 3px); }\n  #optimole-app .navbar-content {\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 1;\n        flex-shrink: 1; }\n  #optimole-app .navbar-link:not(.is-arrowless) {\n    padding-right: 2.5em; }\n    #optimole-app .navbar-link:not(.is-arrowless)::after {\n      border-color: #3273dc;\n      margin-top: -0.375em;\n      right: 1.125em; }\n  #optimole-app .navbar-dropdown {\n    font-size: 0.875rem;\n    padding-bottom: 0.5rem;\n    padding-top: 0.5rem; }\n    #optimole-app .navbar-dropdown .navbar-item {\n      padding-left: 1.5rem;\n      padding-right: 1.5rem; }\n  #optimole-app .navbar-divider {\n    background-color: whitesmoke;\n    border: none;\n    display: none;\n    height: 2px;\n    margin: 0.5rem 0; }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .navbar > .container {\n      display: block; }\n    #optimole-app .navbar-brand .navbar-item,\n    #optimole-app .navbar-tabs .navbar-item {\n      -ms-flex-align: center;\n          align-items: center;\n      display: -ms-flexbox;\n      display: flex; }\n    #optimole-app .navbar-link::after {\n      display: none; }\n    #optimole-app .navbar-menu {\n      background-color: white;\n      box-shadow: 0 8px 16px rgba(10, 10, 10, 0.1);\n      padding: 0.5rem 0; }\n      #optimole-app .navbar-menu.is-active {\n        display: block; }\n    #optimole-app .navbar.is-fixed-bottom-touch, #optimole-app .navbar.is-fixed-top-touch {\n      left: 0;\n      position: fixed;\n      right: 0;\n      z-index: 30; }\n    #optimole-app .navbar.is-fixed-bottom-touch {\n      bottom: 0; }\n      #optimole-app .navbar.is-fixed-bottom-touch.has-shadow {\n        box-shadow: 0 -2px 3px rgba(10, 10, 10, 0.1); }\n    #optimole-app .navbar.is-fixed-top-touch {\n      top: 0; }\n    #optimole-app .navbar.is-fixed-top .navbar-menu, #optimole-app .navbar.is-fixed-top-touch .navbar-menu {\n      -webkit-overflow-scrolling: touch;\n      max-height: calc(100vh - 3.25rem);\n      overflow: auto; }\n    #optimole-app html.has-navbar-fixed-top-touch,\n    #optimole-app body.has-navbar-fixed-top-touch {\n      padding-top: 3.25rem; }\n    #optimole-app html.has-navbar-fixed-bottom-touch,\n    #optimole-app body.has-navbar-fixed-bottom-touch {\n      padding-bottom: 3.25rem; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .navbar,\n    #optimole-app .navbar-menu,\n    #optimole-app .navbar-start,\n    #optimole-app .navbar-end {\n      -ms-flex-align: stretch;\n          align-items: stretch;\n      display: -ms-flexbox;\n      display: flex; }\n    #optimole-app .navbar {\n      min-height: 3.25rem; }\n      #optimole-app .navbar.is-spaced {\n        padding: 1rem 2rem; }\n        #optimole-app .navbar.is-spaced .navbar-start,\n        #optimole-app .navbar.is-spaced .navbar-end {\n          -ms-flex-align: center;\n              align-items: center; }\n        #optimole-app .navbar.is-spaced a.navbar-item,\n        #optimole-app .navbar.is-spaced .navbar-link {\n          border-radius: 4px; }\n      #optimole-app .navbar.is-transparent a.navbar-item:hover, #optimole-app .navbar.is-transparent a.navbar-item.is-active,\n      #optimole-app .navbar.is-transparent .navbar-link:hover,\n      #optimole-app .navbar.is-transparent .navbar-link.is-active {\n        background-color: transparent !important; }\n      #optimole-app .navbar.is-transparent .navbar-item.has-dropdown.is-active .navbar-link, #optimole-app .navbar.is-transparent .navbar-item.has-dropdown.is-hoverable:hover .navbar-link {\n        background-color: transparent !important; }\n      #optimole-app .navbar.is-transparent .navbar-dropdown a.navbar-item:hover {\n        background-color: whitesmoke;\n        color: #0a0a0a; }\n      #optimole-app .navbar.is-transparent .navbar-dropdown a.navbar-item.is-active {\n        background-color: whitesmoke;\n        color: #3273dc; }\n    #optimole-app .navbar-burger {\n      display: none; }\n    #optimole-app .navbar-item,\n    #optimole-app .navbar-link {\n      -ms-flex-align: center;\n          align-items: center;\n      display: -ms-flexbox;\n      display: flex; }\n    #optimole-app .navbar-item {\n      display: -ms-flexbox;\n      display: flex; }\n      #optimole-app .navbar-item.has-dropdown {\n        -ms-flex-align: stretch;\n            align-items: stretch; }\n      #optimole-app .navbar-item.has-dropdown-up .navbar-link::after {\n        transform: rotate(135deg) translate(0.25em, -0.25em); }\n      #optimole-app .navbar-item.has-dropdown-up .navbar-dropdown {\n        border-bottom: 2px solid #dbdbdb;\n        border-radius: 6px 6px 0 0;\n        border-top: none;\n        bottom: 100%;\n        box-shadow: 0 -8px 8px rgba(10, 10, 10, 0.1);\n        top: auto; }\n      #optimole-app .navbar-item.is-active .navbar-dropdown, #optimole-app .navbar-item.is-hoverable:hover .navbar-dropdown {\n        display: block; }\n        .navbar.is-spaced #optimole-app .navbar-item.is-active .navbar-dropdown, #optimole-app .navbar-item.is-active .navbar-dropdown.is-boxed, .navbar.is-spaced #optimole-app .navbar-item.is-hoverable:hover .navbar-dropdown, #optimole-app .navbar-item.is-hoverable:hover .navbar-dropdown.is-boxed {\n          opacity: 1;\n          pointer-events: auto;\n          transform: translateY(0); }\n    #optimole-app .navbar-menu {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 0;\n          flex-shrink: 0; }\n    #optimole-app .navbar-start {\n      -ms-flex-pack: start;\n          justify-content: flex-start;\n      margin-right: auto; }\n    #optimole-app .navbar-end {\n      -ms-flex-pack: end;\n          justify-content: flex-end;\n      margin-left: auto; }\n    #optimole-app .navbar-dropdown {\n      background-color: white;\n      border-bottom-left-radius: 6px;\n      border-bottom-right-radius: 6px;\n      border-top: 2px solid #dbdbdb;\n      box-shadow: 0 8px 8px rgba(10, 10, 10, 0.1);\n      display: none;\n      font-size: 0.875rem;\n      left: 0;\n      min-width: 100%;\n      position: absolute;\n      top: 100%;\n      z-index: 20; }\n      #optimole-app .navbar-dropdown .navbar-item {\n        padding: 0.375rem 1rem;\n        white-space: nowrap; }\n      #optimole-app .navbar-dropdown a.navbar-item {\n        padding-right: 3rem; }\n        #optimole-app .navbar-dropdown a.navbar-item:hover {\n          background-color: whitesmoke;\n          color: #0a0a0a; }\n        #optimole-app .navbar-dropdown a.navbar-item.is-active {\n          background-color: whitesmoke;\n          color: #3273dc; }\n      .navbar.is-spaced #optimole-app .navbar-dropdown, #optimole-app .navbar-dropdown.is-boxed {\n        border-radius: 6px;\n        border-top: none;\n        box-shadow: 0 8px 8px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);\n        display: block;\n        opacity: 0;\n        pointer-events: none;\n        top: calc(100% + (-4px));\n        transform: translateY(-5px);\n        transition-duration: 86ms;\n        transition-property: opacity, transform; }\n      #optimole-app .navbar-dropdown.is-right {\n        left: auto;\n        right: 0; }\n    #optimole-app .navbar-divider {\n      display: block; }\n    #optimole-app .navbar > .container .navbar-brand,\n    #optimole-app .container > .navbar .navbar-brand {\n      margin-left: -.75rem; }\n    #optimole-app .navbar > .container .navbar-menu,\n    #optimole-app .container > .navbar .navbar-menu {\n      margin-right: -.75rem; }\n    #optimole-app .navbar.is-fixed-bottom-desktop, #optimole-app .navbar.is-fixed-top-desktop {\n      left: 0;\n      position: fixed;\n      right: 0;\n      z-index: 30; }\n    #optimole-app .navbar.is-fixed-bottom-desktop {\n      bottom: 0; }\n      #optimole-app .navbar.is-fixed-bottom-desktop.has-shadow {\n        box-shadow: 0 -2px 3px rgba(10, 10, 10, 0.1); }\n    #optimole-app .navbar.is-fixed-top-desktop {\n      top: 0; }\n    #optimole-app html.has-navbar-fixed-top-desktop,\n    #optimole-app body.has-navbar-fixed-top-desktop {\n      padding-top: 3.25rem; }\n    #optimole-app html.has-navbar-fixed-bottom-desktop,\n    #optimole-app body.has-navbar-fixed-bottom-desktop {\n      padding-bottom: 3.25rem; }\n    #optimole-app html.has-spaced-navbar-fixed-top,\n    #optimole-app body.has-spaced-navbar-fixed-top {\n      padding-top: 5.25rem; }\n    #optimole-app html.has-spaced-navbar-fixed-bottom,\n    #optimole-app body.has-spaced-navbar-fixed-bottom {\n      padding-bottom: 5.25rem; }\n    #optimole-app a.navbar-item.is-active,\n    #optimole-app .navbar-link.is-active {\n      color: #0a0a0a; }\n    #optimole-app a.navbar-item.is-active:not(:hover),\n    #optimole-app .navbar-link.is-active:not(:hover) {\n      background-color: transparent; }\n    #optimole-app .navbar-item.has-dropdown:hover .navbar-link, #optimole-app .navbar-item.has-dropdown.is-active .navbar-link {\n      background-color: #fafafa; } }\n  #optimole-app .pagination {\n    font-size: 1rem;\n    margin: -0.25rem; }\n    #optimole-app .pagination.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .pagination.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .pagination.is-large {\n      font-size: 1.5rem; }\n    #optimole-app .pagination.is-rounded .pagination-previous,\n    #optimole-app .pagination.is-rounded .pagination-next {\n      padding-left: 1em;\n      padding-right: 1em;\n      border-radius: 290486px; }\n    #optimole-app .pagination.is-rounded .pagination-link {\n      border-radius: 290486px; }\n  #optimole-app .pagination,\n  #optimole-app .pagination-list {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-pack: center;\n        justify-content: center;\n    text-align: center; }\n  #optimole-app .pagination-previous,\n  #optimole-app .pagination-next,\n  #optimole-app .pagination-link,\n  #optimole-app .pagination-ellipsis {\n    font-size: 1em;\n    padding-left: 0.5em;\n    padding-right: 0.5em;\n    -ms-flex-pack: center;\n        justify-content: center;\n    margin: 0.25rem;\n    text-align: center; }\n  #optimole-app .pagination-previous,\n  #optimole-app .pagination-next,\n  #optimole-app .pagination-link {\n    border-color: #dbdbdb;\n    color: #363636;\n    min-width: 2.25em; }\n    #optimole-app .pagination-previous:hover,\n    #optimole-app .pagination-next:hover,\n    #optimole-app .pagination-link:hover {\n      border-color: #b5b5b5;\n      color: #363636; }\n    #optimole-app .pagination-previous:focus,\n    #optimole-app .pagination-next:focus,\n    #optimole-app .pagination-link:focus {\n      border-color: #3273dc; }\n    #optimole-app .pagination-previous:active,\n    #optimole-app .pagination-next:active,\n    #optimole-app .pagination-link:active {\n      box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.2); }\n    #optimole-app .pagination-previous[disabled],\n    #optimole-app .pagination-next[disabled],\n    #optimole-app .pagination-link[disabled] {\n      background-color: #dbdbdb;\n      border-color: #dbdbdb;\n      box-shadow: none;\n      color: #7a7a7a;\n      opacity: 0.5; }\n  #optimole-app .pagination-previous,\n  #optimole-app .pagination-next {\n    padding-left: 0.75em;\n    padding-right: 0.75em;\n    white-space: nowrap; }\n  #optimole-app .pagination-link.is-current {\n    background-color: #3273dc;\n    border-color: #3273dc;\n    color: #fff; }\n  #optimole-app .pagination-ellipsis {\n    color: #b5b5b5;\n    pointer-events: none; }\n  #optimole-app .pagination-list {\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .pagination {\n      -ms-flex-wrap: wrap;\n          flex-wrap: wrap; }\n    #optimole-app .pagination-previous,\n    #optimole-app .pagination-next {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 1;\n          flex-shrink: 1; }\n    #optimole-app .pagination-list li {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 1;\n          flex-shrink: 1; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .pagination-list {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 1;\n          flex-shrink: 1;\n      -ms-flex-pack: start;\n          justify-content: flex-start;\n      -ms-flex-order: 1;\n          order: 1; }\n    #optimole-app .pagination-previous {\n      -ms-flex-order: 2;\n          order: 2; }\n    #optimole-app .pagination-next {\n      -ms-flex-order: 3;\n          order: 3; }\n    #optimole-app .pagination {\n      -ms-flex-pack: justify;\n          justify-content: space-between; }\n      #optimole-app .pagination.is-centered .pagination-previous {\n        -ms-flex-order: 1;\n            order: 1; }\n      #optimole-app .pagination.is-centered .pagination-list {\n        -ms-flex-pack: center;\n            justify-content: center;\n        -ms-flex-order: 2;\n            order: 2; }\n      #optimole-app .pagination.is-centered .pagination-next {\n        -ms-flex-order: 3;\n            order: 3; }\n      #optimole-app .pagination.is-right .pagination-previous {\n        -ms-flex-order: 1;\n            order: 1; }\n      #optimole-app .pagination.is-right .pagination-next {\n        -ms-flex-order: 2;\n            order: 2; }\n      #optimole-app .pagination.is-right .pagination-list {\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n        -ms-flex-order: 3;\n            order: 3; } }\n  #optimole-app .panel {\n    font-size: 1rem; }\n    #optimole-app .panel:not(:last-child) {\n      margin-bottom: 1.5rem; }\n  #optimole-app .panel-heading,\n  #optimole-app .panel-tabs,\n  #optimole-app .panel-block {\n    border-bottom: 1px solid #dbdbdb;\n    border-left: 1px solid #dbdbdb;\n    border-right: 1px solid #dbdbdb; }\n    #optimole-app .panel-heading:first-child,\n    #optimole-app .panel-tabs:first-child,\n    #optimole-app .panel-block:first-child {\n      border-top: 1px solid #dbdbdb; }\n  #optimole-app .panel-heading {\n    background-color: whitesmoke;\n    border-radius: 4px 4px 0 0;\n    color: #363636;\n    font-size: 1.25em;\n    font-weight: 300;\n    line-height: 1.25;\n    padding: 0.5em 0.75em; }\n  #optimole-app .panel-tabs {\n    -ms-flex-align: end;\n        align-items: flex-end;\n    display: -ms-flexbox;\n    display: flex;\n    font-size: 0.875em;\n    -ms-flex-pack: center;\n        justify-content: center; }\n    #optimole-app .panel-tabs a {\n      border-bottom: 1px solid #dbdbdb;\n      margin-bottom: -1px;\n      padding: 0.5em; }\n      #optimole-app .panel-tabs a.is-active {\n        border-bottom-color: #4a4a4a;\n        color: #363636; }\n  #optimole-app .panel-list a {\n    color: #4a4a4a; }\n    #optimole-app .panel-list a:hover {\n      color: #3273dc; }\n  #optimole-app .panel-block {\n    -ms-flex-align: center;\n        align-items: center;\n    color: #363636;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-pack: start;\n        justify-content: flex-start;\n    padding: 0.5em 0.75em; }\n    #optimole-app .panel-block input[type=\"checkbox\"] {\n      margin-right: 0.75em; }\n    #optimole-app .panel-block > .control {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 1;\n          flex-shrink: 1;\n      width: 100%; }\n    #optimole-app .panel-block.is-wrapped {\n      -ms-flex-wrap: wrap;\n          flex-wrap: wrap; }\n    #optimole-app .panel-block.is-active {\n      border-left-color: #3273dc;\n      color: #363636; }\n      #optimole-app .panel-block.is-active .panel-icon {\n        color: #3273dc; }\n  #optimole-app a.panel-block,\n  #optimole-app label.panel-block {\n    cursor: pointer; }\n    #optimole-app a.panel-block:hover,\n    #optimole-app label.panel-block:hover {\n      background-color: whitesmoke; }\n  #optimole-app .panel-icon {\n    display: inline-block;\n    font-size: 14px;\n    height: 1em;\n    line-height: 1em;\n    text-align: center;\n    vertical-align: top;\n    width: 1em;\n    color: #7a7a7a;\n    margin-right: 0.75em; }\n    #optimole-app .panel-icon .fa {\n      font-size: inherit;\n      line-height: inherit; }\n  #optimole-app .tabs {\n    -webkit-overflow-scrolling: touch;\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: -ms-flexbox;\n    display: flex;\n    font-size: 1rem;\n    -ms-flex-pack: justify;\n        justify-content: space-between;\n    overflow: hidden;\n    overflow-x: auto;\n    white-space: nowrap; }\n    #optimole-app .tabs a {\n      -ms-flex-align: center;\n          align-items: center;\n      border-bottom-color: #dbdbdb;\n      border-bottom-style: solid;\n      border-bottom-width: 1px;\n      color: #4a4a4a;\n      display: -ms-flexbox;\n      display: flex;\n      -ms-flex-pack: center;\n          justify-content: center;\n      margin-bottom: -1px;\n      padding: 0.5em 1em;\n      vertical-align: top; }\n      #optimole-app .tabs a:hover {\n        border-bottom-color: #363636;\n        color: #363636; }\n    #optimole-app .tabs li {\n      display: block; }\n      #optimole-app .tabs li.is-active a {\n        border-bottom-color: #3273dc;\n        color: #3273dc; }\n    #optimole-app .tabs ul {\n      -ms-flex-align: center;\n          align-items: center;\n      border-bottom-color: #dbdbdb;\n      border-bottom-style: solid;\n      border-bottom-width: 1px;\n      display: -ms-flexbox;\n      display: flex;\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 0;\n          flex-shrink: 0;\n      -ms-flex-pack: start;\n          justify-content: flex-start; }\n      #optimole-app .tabs ul.is-left {\n        padding-right: 0.75em; }\n      #optimole-app .tabs ul.is-center {\n        -ms-flex: none;\n            flex: none;\n        -ms-flex-pack: center;\n            justify-content: center;\n        padding-left: 0.75em;\n        padding-right: 0.75em; }\n      #optimole-app .tabs ul.is-right {\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n        padding-left: 0.75em; }\n    #optimole-app .tabs .icon:first-child {\n      margin-right: 0.5em; }\n    #optimole-app .tabs .icon:last-child {\n      margin-left: 0.5em; }\n    #optimole-app .tabs.is-centered ul {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .tabs.is-right ul {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n    #optimole-app .tabs.is-boxed a {\n      border: 1px solid transparent;\n      border-radius: 4px 4px 0 0; }\n      #optimole-app .tabs.is-boxed a:hover {\n        background-color: whitesmoke;\n        border-bottom-color: #dbdbdb; }\n    #optimole-app .tabs.is-boxed li.is-active a {\n      background-color: white;\n      border-color: #dbdbdb;\n      border-bottom-color: transparent !important; }\n    #optimole-app .tabs.is-fullwidth li {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 0;\n          flex-shrink: 0; }\n    #optimole-app .tabs.is-toggle a {\n      border-color: #dbdbdb;\n      border-style: solid;\n      border-width: 1px;\n      margin-bottom: 0;\n      position: relative; }\n      #optimole-app .tabs.is-toggle a:hover {\n        background-color: whitesmoke;\n        border-color: #b5b5b5;\n        z-index: 2; }\n    #optimole-app .tabs.is-toggle li + li {\n      margin-left: -1px; }\n    #optimole-app .tabs.is-toggle li:first-child a {\n      border-radius: 4px 0 0 4px; }\n    #optimole-app .tabs.is-toggle li:last-child a {\n      border-radius: 0 4px 4px 0; }\n    #optimole-app .tabs.is-toggle li.is-active a {\n      background-color: #3273dc;\n      border-color: #3273dc;\n      color: #fff;\n      z-index: 1; }\n    #optimole-app .tabs.is-toggle ul {\n      border-bottom: none; }\n    #optimole-app .tabs.is-toggle.is-toggle-rounded li:first-child a {\n      border-bottom-left-radius: 290486px;\n      border-top-left-radius: 290486px;\n      padding-left: 1.25em; }\n    #optimole-app .tabs.is-toggle.is-toggle-rounded li:last-child a {\n      border-bottom-right-radius: 290486px;\n      border-top-right-radius: 290486px;\n      padding-right: 1.25em; }\n    #optimole-app .tabs.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .tabs.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .tabs.is-large {\n      font-size: 1.5rem; }\n  #optimole-app .column {\n    display: block;\n    -ms-flex-preferred-size: 0;\n        flex-basis: 0;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 1;\n        flex-shrink: 1;\n    padding: 0.75rem; }\n    .columns.is-mobile > #optimole-app .column.is-narrow {\n      -ms-flex: none;\n          flex: none; }\n    .columns.is-mobile > #optimole-app .column.is-full {\n      -ms-flex: none;\n          flex: none;\n      width: 100%; }\n    .columns.is-mobile > #optimole-app .column.is-three-quarters {\n      -ms-flex: none;\n          flex: none;\n      width: 75%; }\n    .columns.is-mobile > #optimole-app .column.is-two-thirds {\n      -ms-flex: none;\n          flex: none;\n      width: 66.6666%; }\n    .columns.is-mobile > #optimole-app .column.is-half {\n      -ms-flex: none;\n          flex: none;\n      width: 50%; }\n    .columns.is-mobile > #optimole-app .column.is-one-third {\n      -ms-flex: none;\n          flex: none;\n      width: 33.3333%; }\n    .columns.is-mobile > #optimole-app .column.is-one-quarter {\n      -ms-flex: none;\n          flex: none;\n      width: 25%; }\n    .columns.is-mobile > #optimole-app .column.is-one-fifth {\n      -ms-flex: none;\n          flex: none;\n      width: 20%; }\n    .columns.is-mobile > #optimole-app .column.is-two-fifths {\n      -ms-flex: none;\n          flex: none;\n      width: 40%; }\n    .columns.is-mobile > #optimole-app .column.is-three-fifths {\n      -ms-flex: none;\n          flex: none;\n      width: 60%; }\n    .columns.is-mobile > #optimole-app .column.is-four-fifths {\n      -ms-flex: none;\n          flex: none;\n      width: 80%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-three-quarters {\n      margin-left: 75%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-two-thirds {\n      margin-left: 66.6666%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-half {\n      margin-left: 50%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-one-third {\n      margin-left: 33.3333%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-one-quarter {\n      margin-left: 25%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-one-fifth {\n      margin-left: 20%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-two-fifths {\n      margin-left: 40%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-three-fifths {\n      margin-left: 60%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-four-fifths {\n      margin-left: 80%; }\n    .columns.is-mobile > #optimole-app .column.is-1 {\n      -ms-flex: none;\n          flex: none;\n      width: 8.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-1 {\n      margin-left: 8.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-2 {\n      -ms-flex: none;\n          flex: none;\n      width: 16.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-2 {\n      margin-left: 16.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-3 {\n      -ms-flex: none;\n          flex: none;\n      width: 25%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-3 {\n      margin-left: 25%; }\n    .columns.is-mobile > #optimole-app .column.is-4 {\n      -ms-flex: none;\n          flex: none;\n      width: 33.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-4 {\n      margin-left: 33.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-5 {\n      -ms-flex: none;\n          flex: none;\n      width: 41.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-5 {\n      margin-left: 41.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-6 {\n      -ms-flex: none;\n          flex: none;\n      width: 50%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-6 {\n      margin-left: 50%; }\n    .columns.is-mobile > #optimole-app .column.is-7 {\n      -ms-flex: none;\n          flex: none;\n      width: 58.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-7 {\n      margin-left: 58.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-8 {\n      -ms-flex: none;\n          flex: none;\n      width: 66.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-8 {\n      margin-left: 66.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-9 {\n      -ms-flex: none;\n          flex: none;\n      width: 75%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-9 {\n      margin-left: 75%; }\n    .columns.is-mobile > #optimole-app .column.is-10 {\n      -ms-flex: none;\n          flex: none;\n      width: 83.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-10 {\n      margin-left: 83.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-11 {\n      -ms-flex: none;\n          flex: none;\n      width: 91.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-11 {\n      margin-left: 91.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-12 {\n      -ms-flex: none;\n          flex: none;\n      width: 100%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-12 {\n      margin-left: 100%; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .column.is-narrow-mobile {\n        -ms-flex: none;\n            flex: none; }\n      #optimole-app .column.is-full-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-three-quarters-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-two-thirds-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 66.6666%; }\n      #optimole-app .column.is-half-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-one-third-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 33.3333%; }\n      #optimole-app .column.is-one-quarter-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-one-fifth-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 20%; }\n      #optimole-app .column.is-two-fifths-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 40%; }\n      #optimole-app .column.is-three-fifths-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 60%; }\n      #optimole-app .column.is-four-fifths-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 80%; }\n      #optimole-app .column.is-offset-three-quarters-mobile {\n        margin-left: 75%; }\n      #optimole-app .column.is-offset-two-thirds-mobile {\n        margin-left: 66.6666%; }\n      #optimole-app .column.is-offset-half-mobile {\n        margin-left: 50%; }\n      #optimole-app .column.is-offset-one-third-mobile {\n        margin-left: 33.3333%; }\n      #optimole-app .column.is-offset-one-quarter-mobile {\n        margin-left: 25%; }\n      #optimole-app .column.is-offset-one-fifth-mobile {\n        margin-left: 20%; }\n      #optimole-app .column.is-offset-two-fifths-mobile {\n        margin-left: 40%; }\n      #optimole-app .column.is-offset-three-fifths-mobile {\n        margin-left: 60%; }\n      #optimole-app .column.is-offset-four-fifths-mobile {\n        margin-left: 80%; }\n      #optimole-app .column.is-1-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .column.is-offset-1-mobile {\n        margin-left: 8.33333%; }\n      #optimole-app .column.is-2-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .column.is-offset-2-mobile {\n        margin-left: 16.66667%; }\n      #optimole-app .column.is-3-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-offset-3-mobile {\n        margin-left: 25%; }\n      #optimole-app .column.is-4-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .column.is-offset-4-mobile {\n        margin-left: 33.33333%; }\n      #optimole-app .column.is-5-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .column.is-offset-5-mobile {\n        margin-left: 41.66667%; }\n      #optimole-app .column.is-6-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-offset-6-mobile {\n        margin-left: 50%; }\n      #optimole-app .column.is-7-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .column.is-offset-7-mobile {\n        margin-left: 58.33333%; }\n      #optimole-app .column.is-8-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .column.is-offset-8-mobile {\n        margin-left: 66.66667%; }\n      #optimole-app .column.is-9-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-offset-9-mobile {\n        margin-left: 75%; }\n      #optimole-app .column.is-10-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .column.is-offset-10-mobile {\n        margin-left: 83.33333%; }\n      #optimole-app .column.is-11-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .column.is-offset-11-mobile {\n        margin-left: 91.66667%; }\n      #optimole-app .column.is-12-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-offset-12-mobile {\n        margin-left: 100%; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .column.is-narrow, #optimole-app .column.is-narrow-tablet {\n        -ms-flex: none;\n            flex: none; }\n      #optimole-app .column.is-full, #optimole-app .column.is-full-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-three-quarters, #optimole-app .column.is-three-quarters-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-two-thirds, #optimole-app .column.is-two-thirds-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 66.6666%; }\n      #optimole-app .column.is-half, #optimole-app .column.is-half-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-one-third, #optimole-app .column.is-one-third-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 33.3333%; }\n      #optimole-app .column.is-one-quarter, #optimole-app .column.is-one-quarter-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-one-fifth, #optimole-app .column.is-one-fifth-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 20%; }\n      #optimole-app .column.is-two-fifths, #optimole-app .column.is-two-fifths-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 40%; }\n      #optimole-app .column.is-three-fifths, #optimole-app .column.is-three-fifths-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 60%; }\n      #optimole-app .column.is-four-fifths, #optimole-app .column.is-four-fifths-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 80%; }\n      #optimole-app .column.is-offset-three-quarters, #optimole-app .column.is-offset-three-quarters-tablet {\n        margin-left: 75%; }\n      #optimole-app .column.is-offset-two-thirds, #optimole-app .column.is-offset-two-thirds-tablet {\n        margin-left: 66.6666%; }\n      #optimole-app .column.is-offset-half, #optimole-app .column.is-offset-half-tablet {\n        margin-left: 50%; }\n      #optimole-app .column.is-offset-one-third, #optimole-app .column.is-offset-one-third-tablet {\n        margin-left: 33.3333%; }\n      #optimole-app .column.is-offset-one-quarter, #optimole-app .column.is-offset-one-quarter-tablet {\n        margin-left: 25%; }\n      #optimole-app .column.is-offset-one-fifth, #optimole-app .column.is-offset-one-fifth-tablet {\n        margin-left: 20%; }\n      #optimole-app .column.is-offset-two-fifths, #optimole-app .column.is-offset-two-fifths-tablet {\n        margin-left: 40%; }\n      #optimole-app .column.is-offset-three-fifths, #optimole-app .column.is-offset-three-fifths-tablet {\n        margin-left: 60%; }\n      #optimole-app .column.is-offset-four-fifths, #optimole-app .column.is-offset-four-fifths-tablet {\n        margin-left: 80%; }\n      #optimole-app .column.is-1, #optimole-app .column.is-1-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .column.is-offset-1, #optimole-app .column.is-offset-1-tablet {\n        margin-left: 8.33333%; }\n      #optimole-app .column.is-2, #optimole-app .column.is-2-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .column.is-offset-2, #optimole-app .column.is-offset-2-tablet {\n        margin-left: 16.66667%; }\n      #optimole-app .column.is-3, #optimole-app .column.is-3-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-offset-3, #optimole-app .column.is-offset-3-tablet {\n        margin-left: 25%; }\n      #optimole-app .column.is-4, #optimole-app .column.is-4-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .column.is-offset-4, #optimole-app .column.is-offset-4-tablet {\n        margin-left: 33.33333%; }\n      #optimole-app .column.is-5, #optimole-app .column.is-5-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .column.is-offset-5, #optimole-app .column.is-offset-5-tablet {\n        margin-left: 41.66667%; }\n      #optimole-app .column.is-6, #optimole-app .column.is-6-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-offset-6, #optimole-app .column.is-offset-6-tablet {\n        margin-left: 50%; }\n      #optimole-app .column.is-7, #optimole-app .column.is-7-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .column.is-offset-7, #optimole-app .column.is-offset-7-tablet {\n        margin-left: 58.33333%; }\n      #optimole-app .column.is-8, #optimole-app .column.is-8-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .column.is-offset-8, #optimole-app .column.is-offset-8-tablet {\n        margin-left: 66.66667%; }\n      #optimole-app .column.is-9, #optimole-app .column.is-9-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-offset-9, #optimole-app .column.is-offset-9-tablet {\n        margin-left: 75%; }\n      #optimole-app .column.is-10, #optimole-app .column.is-10-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .column.is-offset-10, #optimole-app .column.is-offset-10-tablet {\n        margin-left: 83.33333%; }\n      #optimole-app .column.is-11, #optimole-app .column.is-11-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .column.is-offset-11, #optimole-app .column.is-offset-11-tablet {\n        margin-left: 91.66667%; }\n      #optimole-app .column.is-12, #optimole-app .column.is-12-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-offset-12, #optimole-app .column.is-offset-12-tablet {\n        margin-left: 100%; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .column.is-narrow-touch {\n        -ms-flex: none;\n            flex: none; }\n      #optimole-app .column.is-full-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-three-quarters-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-two-thirds-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 66.6666%; }\n      #optimole-app .column.is-half-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-one-third-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 33.3333%; }\n      #optimole-app .column.is-one-quarter-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-one-fifth-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 20%; }\n      #optimole-app .column.is-two-fifths-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 40%; }\n      #optimole-app .column.is-three-fifths-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 60%; }\n      #optimole-app .column.is-four-fifths-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 80%; }\n      #optimole-app .column.is-offset-three-quarters-touch {\n        margin-left: 75%; }\n      #optimole-app .column.is-offset-two-thirds-touch {\n        margin-left: 66.6666%; }\n      #optimole-app .column.is-offset-half-touch {\n        margin-left: 50%; }\n      #optimole-app .column.is-offset-one-third-touch {\n        margin-left: 33.3333%; }\n      #optimole-app .column.is-offset-one-quarter-touch {\n        margin-left: 25%; }\n      #optimole-app .column.is-offset-one-fifth-touch {\n        margin-left: 20%; }\n      #optimole-app .column.is-offset-two-fifths-touch {\n        margin-left: 40%; }\n      #optimole-app .column.is-offset-three-fifths-touch {\n        margin-left: 60%; }\n      #optimole-app .column.is-offset-four-fifths-touch {\n        margin-left: 80%; }\n      #optimole-app .column.is-1-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .column.is-offset-1-touch {\n        margin-left: 8.33333%; }\n      #optimole-app .column.is-2-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .column.is-offset-2-touch {\n        margin-left: 16.66667%; }\n      #optimole-app .column.is-3-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-offset-3-touch {\n        margin-left: 25%; }\n      #optimole-app .column.is-4-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .column.is-offset-4-touch {\n        margin-left: 33.33333%; }\n      #optimole-app .column.is-5-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .column.is-offset-5-touch {\n        margin-left: 41.66667%; }\n      #optimole-app .column.is-6-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-offset-6-touch {\n        margin-left: 50%; }\n      #optimole-app .column.is-7-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .column.is-offset-7-touch {\n        margin-left: 58.33333%; }\n      #optimole-app .column.is-8-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .column.is-offset-8-touch {\n        margin-left: 66.66667%; }\n      #optimole-app .column.is-9-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-offset-9-touch {\n        margin-left: 75%; }\n      #optimole-app .column.is-10-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .column.is-offset-10-touch {\n        margin-left: 83.33333%; }\n      #optimole-app .column.is-11-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .column.is-offset-11-touch {\n        margin-left: 91.66667%; }\n      #optimole-app .column.is-12-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-offset-12-touch {\n        margin-left: 100%; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .column.is-narrow-desktop {\n        -ms-flex: none;\n            flex: none; }\n      #optimole-app .column.is-full-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-three-quarters-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-two-thirds-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 66.6666%; }\n      #optimole-app .column.is-half-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-one-third-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 33.3333%; }\n      #optimole-app .column.is-one-quarter-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-one-fifth-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 20%; }\n      #optimole-app .column.is-two-fifths-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 40%; }\n      #optimole-app .column.is-three-fifths-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 60%; }\n      #optimole-app .column.is-four-fifths-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 80%; }\n      #optimole-app .column.is-offset-three-quarters-desktop {\n        margin-left: 75%; }\n      #optimole-app .column.is-offset-two-thirds-desktop {\n        margin-left: 66.6666%; }\n      #optimole-app .column.is-offset-half-desktop {\n        margin-left: 50%; }\n      #optimole-app .column.is-offset-one-third-desktop {\n        margin-left: 33.3333%; }\n      #optimole-app .column.is-offset-one-quarter-desktop {\n        margin-left: 25%; }\n      #optimole-app .column.is-offset-one-fifth-desktop {\n        margin-left: 20%; }\n      #optimole-app .column.is-offset-two-fifths-desktop {\n        margin-left: 40%; }\n      #optimole-app .column.is-offset-three-fifths-desktop {\n        margin-left: 60%; }\n      #optimole-app .column.is-offset-four-fifths-desktop {\n        margin-left: 80%; }\n      #optimole-app .column.is-1-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .column.is-offset-1-desktop {\n        margin-left: 8.33333%; }\n      #optimole-app .column.is-2-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .column.is-offset-2-desktop {\n        margin-left: 16.66667%; }\n      #optimole-app .column.is-3-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-offset-3-desktop {\n        margin-left: 25%; }\n      #optimole-app .column.is-4-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .column.is-offset-4-desktop {\n        margin-left: 33.33333%; }\n      #optimole-app .column.is-5-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .column.is-offset-5-desktop {\n        margin-left: 41.66667%; }\n      #optimole-app .column.is-6-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-offset-6-desktop {\n        margin-left: 50%; }\n      #optimole-app .column.is-7-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .column.is-offset-7-desktop {\n        margin-left: 58.33333%; }\n      #optimole-app .column.is-8-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .column.is-offset-8-desktop {\n        margin-left: 66.66667%; }\n      #optimole-app .column.is-9-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-offset-9-desktop {\n        margin-left: 75%; }\n      #optimole-app .column.is-10-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .column.is-offset-10-desktop {\n        margin-left: 83.33333%; }\n      #optimole-app .column.is-11-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .column.is-offset-11-desktop {\n        margin-left: 91.66667%; }\n      #optimole-app .column.is-12-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-offset-12-desktop {\n        margin-left: 100%; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .column.is-narrow-widescreen {\n        -ms-flex: none;\n            flex: none; }\n      #optimole-app .column.is-full-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-three-quarters-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-two-thirds-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 66.6666%; }\n      #optimole-app .column.is-half-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-one-third-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 33.3333%; }\n      #optimole-app .column.is-one-quarter-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-one-fifth-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 20%; }\n      #optimole-app .column.is-two-fifths-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 40%; }\n      #optimole-app .column.is-three-fifths-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 60%; }\n      #optimole-app .column.is-four-fifths-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 80%; }\n      #optimole-app .column.is-offset-three-quarters-widescreen {\n        margin-left: 75%; }\n      #optimole-app .column.is-offset-two-thirds-widescreen {\n        margin-left: 66.6666%; }\n      #optimole-app .column.is-offset-half-widescreen {\n        margin-left: 50%; }\n      #optimole-app .column.is-offset-one-third-widescreen {\n        margin-left: 33.3333%; }\n      #optimole-app .column.is-offset-one-quarter-widescreen {\n        margin-left: 25%; }\n      #optimole-app .column.is-offset-one-fifth-widescreen {\n        margin-left: 20%; }\n      #optimole-app .column.is-offset-two-fifths-widescreen {\n        margin-left: 40%; }\n      #optimole-app .column.is-offset-three-fifths-widescreen {\n        margin-left: 60%; }\n      #optimole-app .column.is-offset-four-fifths-widescreen {\n        margin-left: 80%; }\n      #optimole-app .column.is-1-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .column.is-offset-1-widescreen {\n        margin-left: 8.33333%; }\n      #optimole-app .column.is-2-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .column.is-offset-2-widescreen {\n        margin-left: 16.66667%; }\n      #optimole-app .column.is-3-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-offset-3-widescreen {\n        margin-left: 25%; }\n      #optimole-app .column.is-4-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .column.is-offset-4-widescreen {\n        margin-left: 33.33333%; }\n      #optimole-app .column.is-5-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .column.is-offset-5-widescreen {\n        margin-left: 41.66667%; }\n      #optimole-app .column.is-6-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-offset-6-widescreen {\n        margin-left: 50%; }\n      #optimole-app .column.is-7-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .column.is-offset-7-widescreen {\n        margin-left: 58.33333%; }\n      #optimole-app .column.is-8-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .column.is-offset-8-widescreen {\n        margin-left: 66.66667%; }\n      #optimole-app .column.is-9-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-offset-9-widescreen {\n        margin-left: 75%; }\n      #optimole-app .column.is-10-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .column.is-offset-10-widescreen {\n        margin-left: 83.33333%; }\n      #optimole-app .column.is-11-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .column.is-offset-11-widescreen {\n        margin-left: 91.66667%; }\n      #optimole-app .column.is-12-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-offset-12-widescreen {\n        margin-left: 100%; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .column.is-narrow-fullhd {\n        -ms-flex: none;\n            flex: none; }\n      #optimole-app .column.is-full-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-three-quarters-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-two-thirds-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 66.6666%; }\n      #optimole-app .column.is-half-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-one-third-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 33.3333%; }\n      #optimole-app .column.is-one-quarter-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-one-fifth-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 20%; }\n      #optimole-app .column.is-two-fifths-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 40%; }\n      #optimole-app .column.is-three-fifths-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 60%; }\n      #optimole-app .column.is-four-fifths-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 80%; }\n      #optimole-app .column.is-offset-three-quarters-fullhd {\n        margin-left: 75%; }\n      #optimole-app .column.is-offset-two-thirds-fullhd {\n        margin-left: 66.6666%; }\n      #optimole-app .column.is-offset-half-fullhd {\n        margin-left: 50%; }\n      #optimole-app .column.is-offset-one-third-fullhd {\n        margin-left: 33.3333%; }\n      #optimole-app .column.is-offset-one-quarter-fullhd {\n        margin-left: 25%; }\n      #optimole-app .column.is-offset-one-fifth-fullhd {\n        margin-left: 20%; }\n      #optimole-app .column.is-offset-two-fifths-fullhd {\n        margin-left: 40%; }\n      #optimole-app .column.is-offset-three-fifths-fullhd {\n        margin-left: 60%; }\n      #optimole-app .column.is-offset-four-fifths-fullhd {\n        margin-left: 80%; }\n      #optimole-app .column.is-1-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .column.is-offset-1-fullhd {\n        margin-left: 8.33333%; }\n      #optimole-app .column.is-2-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .column.is-offset-2-fullhd {\n        margin-left: 16.66667%; }\n      #optimole-app .column.is-3-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-offset-3-fullhd {\n        margin-left: 25%; }\n      #optimole-app .column.is-4-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .column.is-offset-4-fullhd {\n        margin-left: 33.33333%; }\n      #optimole-app .column.is-5-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .column.is-offset-5-fullhd {\n        margin-left: 41.66667%; }\n      #optimole-app .column.is-6-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-offset-6-fullhd {\n        margin-left: 50%; }\n      #optimole-app .column.is-7-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .column.is-offset-7-fullhd {\n        margin-left: 58.33333%; }\n      #optimole-app .column.is-8-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .column.is-offset-8-fullhd {\n        margin-left: 66.66667%; }\n      #optimole-app .column.is-9-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-offset-9-fullhd {\n        margin-left: 75%; }\n      #optimole-app .column.is-10-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .column.is-offset-10-fullhd {\n        margin-left: 83.33333%; }\n      #optimole-app .column.is-11-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .column.is-offset-11-fullhd {\n        margin-left: 91.66667%; }\n      #optimole-app .column.is-12-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-offset-12-fullhd {\n        margin-left: 100%; } }\n  #optimole-app .columns {\n    margin-left: -0.75rem;\n    margin-right: -0.75rem;\n    margin-top: -0.75rem; }\n    #optimole-app .columns:last-child {\n      margin-bottom: -0.75rem; }\n    #optimole-app .columns:not(:last-child) {\n      margin-bottom: calc(1.5rem - 0.75rem); }\n    #optimole-app .columns.is-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .columns.is-gapless {\n      margin-left: 0;\n      margin-right: 0;\n      margin-top: 0; }\n      #optimole-app .columns.is-gapless > .column {\n        margin: 0;\n        padding: 0 !important; }\n      #optimole-app .columns.is-gapless:not(:last-child) {\n        margin-bottom: 1.5rem; }\n      #optimole-app .columns.is-gapless:last-child {\n        margin-bottom: 0; }\n    #optimole-app .columns.is-mobile {\n      display: -ms-flexbox;\n      display: flex; }\n    #optimole-app .columns.is-multiline {\n      -ms-flex-wrap: wrap;\n          flex-wrap: wrap; }\n    #optimole-app .columns.is-vcentered {\n      -ms-flex-align: center;\n          align-items: center; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns:not(.is-desktop) {\n        display: -ms-flexbox;\n        display: flex; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-desktop {\n        display: -ms-flexbox;\n        display: flex; } }\n  #optimole-app .columns.is-variable {\n    --columnGap: 0.75rem;\n    margin-left: calc(-1 * var(--columnGap));\n    margin-right: calc(-1 * var(--columnGap)); }\n    #optimole-app .columns.is-variable .column {\n      padding-left: var(--columnGap);\n      padding-right: var(--columnGap); }\n    #optimole-app .columns.is-variable.is-0 {\n      --columnGap: 0rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-0-mobile {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-0-tablet {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-0-tablet-only {\n        --columnGap: 0rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-0-touch {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-0-desktop {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-0-desktop-only {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-0-widescreen {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-0-widescreen-only {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-0-fullhd {\n        --columnGap: 0rem; } }\n    #optimole-app .columns.is-variable.is-1 {\n      --columnGap: 0.25rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-1-mobile {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-1-tablet {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-1-tablet-only {\n        --columnGap: 0.25rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-1-touch {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-1-desktop {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-1-desktop-only {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-1-widescreen {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-1-widescreen-only {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-1-fullhd {\n        --columnGap: 0.25rem; } }\n    #optimole-app .columns.is-variable.is-2 {\n      --columnGap: 0.5rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-2-mobile {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-2-tablet {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-2-tablet-only {\n        --columnGap: 0.5rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-2-touch {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-2-desktop {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-2-desktop-only {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-2-widescreen {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-2-widescreen-only {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-2-fullhd {\n        --columnGap: 0.5rem; } }\n    #optimole-app .columns.is-variable.is-3 {\n      --columnGap: 0.75rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-3-mobile {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-3-tablet {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-3-tablet-only {\n        --columnGap: 0.75rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-3-touch {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-3-desktop {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-3-desktop-only {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-3-widescreen {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-3-widescreen-only {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-3-fullhd {\n        --columnGap: 0.75rem; } }\n    #optimole-app .columns.is-variable.is-4 {\n      --columnGap: 1rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-4-mobile {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-4-tablet {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-4-tablet-only {\n        --columnGap: 1rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-4-touch {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-4-desktop {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-4-desktop-only {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-4-widescreen {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-4-widescreen-only {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-4-fullhd {\n        --columnGap: 1rem; } }\n    #optimole-app .columns.is-variable.is-5 {\n      --columnGap: 1.25rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-5-mobile {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-5-tablet {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-5-tablet-only {\n        --columnGap: 1.25rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-5-touch {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-5-desktop {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-5-desktop-only {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-5-widescreen {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-5-widescreen-only {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-5-fullhd {\n        --columnGap: 1.25rem; } }\n    #optimole-app .columns.is-variable.is-6 {\n      --columnGap: 1.5rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-6-mobile {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-6-tablet {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-6-tablet-only {\n        --columnGap: 1.5rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-6-touch {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-6-desktop {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-6-desktop-only {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-6-widescreen {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-6-widescreen-only {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-6-fullhd {\n        --columnGap: 1.5rem; } }\n    #optimole-app .columns.is-variable.is-7 {\n      --columnGap: 1.75rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-7-mobile {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-7-tablet {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-7-tablet-only {\n        --columnGap: 1.75rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-7-touch {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-7-desktop {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-7-desktop-only {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-7-widescreen {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-7-widescreen-only {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-7-fullhd {\n        --columnGap: 1.75rem; } }\n    #optimole-app .columns.is-variable.is-8 {\n      --columnGap: 2rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-8-mobile {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-8-tablet {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-8-tablet-only {\n        --columnGap: 2rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-8-touch {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-8-desktop {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-8-desktop-only {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-8-widescreen {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-8-widescreen-only {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-8-fullhd {\n        --columnGap: 2rem; } }\n  #optimole-app .tile {\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: block;\n    -ms-flex-preferred-size: 0;\n        flex-basis: 0;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 1;\n        flex-shrink: 1;\n    min-height: -webkit-min-content;\n    min-height: -moz-min-content;\n    min-height: min-content; }\n    #optimole-app .tile.is-ancestor {\n      margin-left: -0.75rem;\n      margin-right: -0.75rem;\n      margin-top: -0.75rem; }\n      #optimole-app .tile.is-ancestor:last-child {\n        margin-bottom: -0.75rem; }\n      #optimole-app .tile.is-ancestor:not(:last-child) {\n        margin-bottom: 0.75rem; }\n    #optimole-app .tile.is-child {\n      margin: 0 !important; }\n    #optimole-app .tile.is-parent {\n      padding: 0.75rem; }\n    #optimole-app .tile.is-vertical {\n      -ms-flex-direction: column;\n          flex-direction: column; }\n      #optimole-app .tile.is-vertical > .tile.is-child:not(:last-child) {\n        margin-bottom: 1.5rem !important; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .tile:not(.is-child) {\n        display: -ms-flexbox;\n        display: flex; }\n      #optimole-app .tile.is-1 {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .tile.is-2 {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .tile.is-3 {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .tile.is-4 {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .tile.is-5 {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .tile.is-6 {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .tile.is-7 {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .tile.is-8 {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .tile.is-9 {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .tile.is-10 {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .tile.is-11 {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .tile.is-12 {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; } }\n  #optimole-app .hero {\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-direction: column;\n        flex-direction: column;\n    -ms-flex-pack: justify;\n        justify-content: space-between; }\n    #optimole-app .hero .navbar {\n      background: none; }\n    #optimole-app .hero .tabs ul {\n      border-bottom: none; }\n    #optimole-app .hero.is-white {\n      background-color: white;\n      color: #0a0a0a; }\n      #optimole-app .hero.is-white a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-white strong {\n        color: inherit; }\n      #optimole-app .hero.is-white .title {\n        color: #0a0a0a; }\n      #optimole-app .hero.is-white .subtitle {\n        color: rgba(10, 10, 10, 0.9); }\n        #optimole-app .hero.is-white .subtitle a:not(.button),\n        #optimole-app .hero.is-white .subtitle strong {\n          color: #0a0a0a; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-white .navbar-menu {\n          background-color: white; } }\n      #optimole-app .hero.is-white .navbar-item,\n      #optimole-app .hero.is-white .navbar-link {\n        color: rgba(10, 10, 10, 0.7); }\n      #optimole-app .hero.is-white a.navbar-item:hover, #optimole-app .hero.is-white a.navbar-item.is-active,\n      #optimole-app .hero.is-white .navbar-link:hover,\n      #optimole-app .hero.is-white .navbar-link.is-active {\n        background-color: #f2f2f2;\n        color: #0a0a0a; }\n      #optimole-app .hero.is-white .tabs a {\n        color: #0a0a0a;\n        opacity: 0.9; }\n        #optimole-app .hero.is-white .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-white .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-white .tabs.is-boxed a, #optimole-app .hero.is-white .tabs.is-toggle a {\n        color: #0a0a0a; }\n        #optimole-app .hero.is-white .tabs.is-boxed a:hover, #optimole-app .hero.is-white .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-white .tabs.is-boxed li.is-active a, #optimole-app .hero.is-white .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-white .tabs.is-toggle li.is-active a, #optimole-app .hero.is-white .tabs.is-toggle li.is-active a:hover {\n        background-color: #0a0a0a;\n        border-color: #0a0a0a;\n        color: white; }\n      #optimole-app .hero.is-white.is-bold {\n        background-image: linear-gradient(141deg, #e6e6e6 0%, white 71%, white 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-white.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #e6e6e6 0%, white 71%, white 100%); } }\n    #optimole-app .hero.is-black {\n      background-color: #0a0a0a;\n      color: white; }\n      #optimole-app .hero.is-black a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-black strong {\n        color: inherit; }\n      #optimole-app .hero.is-black .title {\n        color: white; }\n      #optimole-app .hero.is-black .subtitle {\n        color: rgba(255, 255, 255, 0.9); }\n        #optimole-app .hero.is-black .subtitle a:not(.button),\n        #optimole-app .hero.is-black .subtitle strong {\n          color: white; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-black .navbar-menu {\n          background-color: #0a0a0a; } }\n      #optimole-app .hero.is-black .navbar-item,\n      #optimole-app .hero.is-black .navbar-link {\n        color: rgba(255, 255, 255, 0.7); }\n      #optimole-app .hero.is-black a.navbar-item:hover, #optimole-app .hero.is-black a.navbar-item.is-active,\n      #optimole-app .hero.is-black .navbar-link:hover,\n      #optimole-app .hero.is-black .navbar-link.is-active {\n        background-color: black;\n        color: white; }\n      #optimole-app .hero.is-black .tabs a {\n        color: white;\n        opacity: 0.9; }\n        #optimole-app .hero.is-black .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-black .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-black .tabs.is-boxed a, #optimole-app .hero.is-black .tabs.is-toggle a {\n        color: white; }\n        #optimole-app .hero.is-black .tabs.is-boxed a:hover, #optimole-app .hero.is-black .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-black .tabs.is-boxed li.is-active a, #optimole-app .hero.is-black .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-black .tabs.is-toggle li.is-active a, #optimole-app .hero.is-black .tabs.is-toggle li.is-active a:hover {\n        background-color: white;\n        border-color: white;\n        color: #0a0a0a; }\n      #optimole-app .hero.is-black.is-bold {\n        background-image: linear-gradient(141deg, black 0%, #0a0a0a 71%, #181616 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-black.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, black 0%, #0a0a0a 71%, #181616 100%); } }\n    #optimole-app .hero.is-light {\n      background-color: whitesmoke;\n      color: #363636; }\n      #optimole-app .hero.is-light a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-light strong {\n        color: inherit; }\n      #optimole-app .hero.is-light .title {\n        color: #363636; }\n      #optimole-app .hero.is-light .subtitle {\n        color: rgba(54, 54, 54, 0.9); }\n        #optimole-app .hero.is-light .subtitle a:not(.button),\n        #optimole-app .hero.is-light .subtitle strong {\n          color: #363636; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-light .navbar-menu {\n          background-color: whitesmoke; } }\n      #optimole-app .hero.is-light .navbar-item,\n      #optimole-app .hero.is-light .navbar-link {\n        color: rgba(54, 54, 54, 0.7); }\n      #optimole-app .hero.is-light a.navbar-item:hover, #optimole-app .hero.is-light a.navbar-item.is-active,\n      #optimole-app .hero.is-light .navbar-link:hover,\n      #optimole-app .hero.is-light .navbar-link.is-active {\n        background-color: #e8e8e8;\n        color: #363636; }\n      #optimole-app .hero.is-light .tabs a {\n        color: #363636;\n        opacity: 0.9; }\n        #optimole-app .hero.is-light .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-light .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-light .tabs.is-boxed a, #optimole-app .hero.is-light .tabs.is-toggle a {\n        color: #363636; }\n        #optimole-app .hero.is-light .tabs.is-boxed a:hover, #optimole-app .hero.is-light .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-light .tabs.is-boxed li.is-active a, #optimole-app .hero.is-light .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-light .tabs.is-toggle li.is-active a, #optimole-app .hero.is-light .tabs.is-toggle li.is-active a:hover {\n        background-color: #363636;\n        border-color: #363636;\n        color: whitesmoke; }\n      #optimole-app .hero.is-light.is-bold {\n        background-image: linear-gradient(141deg, #dfd8d9 0%, whitesmoke 71%, white 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-light.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #dfd8d9 0%, whitesmoke 71%, white 100%); } }\n    #optimole-app .hero.is-dark {\n      background-color: #363636;\n      color: whitesmoke; }\n      #optimole-app .hero.is-dark a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-dark strong {\n        color: inherit; }\n      #optimole-app .hero.is-dark .title {\n        color: whitesmoke; }\n      #optimole-app .hero.is-dark .subtitle {\n        color: rgba(245, 245, 245, 0.9); }\n        #optimole-app .hero.is-dark .subtitle a:not(.button),\n        #optimole-app .hero.is-dark .subtitle strong {\n          color: whitesmoke; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-dark .navbar-menu {\n          background-color: #363636; } }\n      #optimole-app .hero.is-dark .navbar-item,\n      #optimole-app .hero.is-dark .navbar-link {\n        color: rgba(245, 245, 245, 0.7); }\n      #optimole-app .hero.is-dark a.navbar-item:hover, #optimole-app .hero.is-dark a.navbar-item.is-active,\n      #optimole-app .hero.is-dark .navbar-link:hover,\n      #optimole-app .hero.is-dark .navbar-link.is-active {\n        background-color: #292929;\n        color: whitesmoke; }\n      #optimole-app .hero.is-dark .tabs a {\n        color: whitesmoke;\n        opacity: 0.9; }\n        #optimole-app .hero.is-dark .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-dark .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-dark .tabs.is-boxed a, #optimole-app .hero.is-dark .tabs.is-toggle a {\n        color: whitesmoke; }\n        #optimole-app .hero.is-dark .tabs.is-boxed a:hover, #optimole-app .hero.is-dark .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-dark .tabs.is-boxed li.is-active a, #optimole-app .hero.is-dark .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-dark .tabs.is-toggle li.is-active a, #optimole-app .hero.is-dark .tabs.is-toggle li.is-active a:hover {\n        background-color: whitesmoke;\n        border-color: whitesmoke;\n        color: #363636; }\n      #optimole-app .hero.is-dark.is-bold {\n        background-image: linear-gradient(141deg, #1f191a 0%, #363636 71%, #46403f 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-dark.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #1f191a 0%, #363636 71%, #46403f 100%); } }\n    #optimole-app .hero.is-primary {\n      background-color: #EF686B;\n      color: #fff; }\n      #optimole-app .hero.is-primary a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-primary strong {\n        color: inherit; }\n      #optimole-app .hero.is-primary .title {\n        color: #fff; }\n      #optimole-app .hero.is-primary .subtitle {\n        color: rgba(255, 255, 255, 0.9); }\n        #optimole-app .hero.is-primary .subtitle a:not(.button),\n        #optimole-app .hero.is-primary .subtitle strong {\n          color: #fff; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-primary .navbar-menu {\n          background-color: #EF686B; } }\n      #optimole-app .hero.is-primary .navbar-item,\n      #optimole-app .hero.is-primary .navbar-link {\n        color: rgba(255, 255, 255, 0.7); }\n      #optimole-app .hero.is-primary a.navbar-item:hover, #optimole-app .hero.is-primary a.navbar-item.is-active,\n      #optimole-app .hero.is-primary .navbar-link:hover,\n      #optimole-app .hero.is-primary .navbar-link.is-active {\n        background-color: #ed5154;\n        color: #fff; }\n      #optimole-app .hero.is-primary .tabs a {\n        color: #fff;\n        opacity: 0.9; }\n        #optimole-app .hero.is-primary .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-primary .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-primary .tabs.is-boxed a, #optimole-app .hero.is-primary .tabs.is-toggle a {\n        color: #fff; }\n        #optimole-app .hero.is-primary .tabs.is-boxed a:hover, #optimole-app .hero.is-primary .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-primary .tabs.is-boxed li.is-active a, #optimole-app .hero.is-primary .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-primary .tabs.is-toggle li.is-active a, #optimole-app .hero.is-primary .tabs.is-toggle li.is-active a:hover {\n        background-color: #fff;\n        border-color: #fff;\n        color: #EF686B; }\n      #optimole-app .hero.is-primary.is-bold {\n        background-image: linear-gradient(141deg, #f52f54 0%, #EF686B 71%, #f58d7c 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-primary.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #f52f54 0%, #EF686B 71%, #f58d7c 100%); } }\n    #optimole-app .hero.is-link {\n      background-color: #3273dc;\n      color: #fff; }\n      #optimole-app .hero.is-link a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-link strong {\n        color: inherit; }\n      #optimole-app .hero.is-link .title {\n        color: #fff; }\n      #optimole-app .hero.is-link .subtitle {\n        color: rgba(255, 255, 255, 0.9); }\n        #optimole-app .hero.is-link .subtitle a:not(.button),\n        #optimole-app .hero.is-link .subtitle strong {\n          color: #fff; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-link .navbar-menu {\n          background-color: #3273dc; } }\n      #optimole-app .hero.is-link .navbar-item,\n      #optimole-app .hero.is-link .navbar-link {\n        color: rgba(255, 255, 255, 0.7); }\n      #optimole-app .hero.is-link a.navbar-item:hover, #optimole-app .hero.is-link a.navbar-item.is-active,\n      #optimole-app .hero.is-link .navbar-link:hover,\n      #optimole-app .hero.is-link .navbar-link.is-active {\n        background-color: #2366d1;\n        color: #fff; }\n      #optimole-app .hero.is-link .tabs a {\n        color: #fff;\n        opacity: 0.9; }\n        #optimole-app .hero.is-link .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-link .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-link .tabs.is-boxed a, #optimole-app .hero.is-link .tabs.is-toggle a {\n        color: #fff; }\n        #optimole-app .hero.is-link .tabs.is-boxed a:hover, #optimole-app .hero.is-link .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-link .tabs.is-boxed li.is-active a, #optimole-app .hero.is-link .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-link .tabs.is-toggle li.is-active a, #optimole-app .hero.is-link .tabs.is-toggle li.is-active a:hover {\n        background-color: #fff;\n        border-color: #fff;\n        color: #3273dc; }\n      #optimole-app .hero.is-link.is-bold {\n        background-image: linear-gradient(141deg, #1577c6 0%, #3273dc 71%, #4366e5 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-link.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #1577c6 0%, #3273dc 71%, #4366e5 100%); } }\n    #optimole-app .hero.is-info {\n      background-color: #5180C1;\n      color: #fff; }\n      #optimole-app .hero.is-info a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-info strong {\n        color: inherit; }\n      #optimole-app .hero.is-info .title {\n        color: #fff; }\n      #optimole-app .hero.is-info .subtitle {\n        color: rgba(255, 255, 255, 0.9); }\n        #optimole-app .hero.is-info .subtitle a:not(.button),\n        #optimole-app .hero.is-info .subtitle strong {\n          color: #fff; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-info .navbar-menu {\n          background-color: #5180C1; } }\n      #optimole-app .hero.is-info .navbar-item,\n      #optimole-app .hero.is-info .navbar-link {\n        color: rgba(255, 255, 255, 0.7); }\n      #optimole-app .hero.is-info a.navbar-item:hover, #optimole-app .hero.is-info a.navbar-item.is-active,\n      #optimole-app .hero.is-info .navbar-link:hover,\n      #optimole-app .hero.is-info .navbar-link.is-active {\n        background-color: #4173b7;\n        color: #fff; }\n      #optimole-app .hero.is-info .tabs a {\n        color: #fff;\n        opacity: 0.9; }\n        #optimole-app .hero.is-info .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-info .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-info .tabs.is-boxed a, #optimole-app .hero.is-info .tabs.is-toggle a {\n        color: #fff; }\n        #optimole-app .hero.is-info .tabs.is-boxed a:hover, #optimole-app .hero.is-info .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-info .tabs.is-boxed li.is-active a, #optimole-app .hero.is-info .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-info .tabs.is-toggle li.is-active a, #optimole-app .hero.is-info .tabs.is-toggle li.is-active a:hover {\n        background-color: #fff;\n        border-color: #fff;\n        color: #5180C1; }\n      #optimole-app .hero.is-info.is-bold {\n        background-image: linear-gradient(141deg, #2f7bb0 0%, #5180C1 71%, #5f7acd 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-info.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #2f7bb0 0%, #5180C1 71%, #5f7acd 100%); } }\n    #optimole-app .hero.is-success {\n      background-color: #34a85e;\n      color: #fff; }\n      #optimole-app .hero.is-success a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-success strong {\n        color: inherit; }\n      #optimole-app .hero.is-success .title {\n        color: #fff; }\n      #optimole-app .hero.is-success .subtitle {\n        color: rgba(255, 255, 255, 0.9); }\n        #optimole-app .hero.is-success .subtitle a:not(.button),\n        #optimole-app .hero.is-success .subtitle strong {\n          color: #fff; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-success .navbar-menu {\n          background-color: #34a85e; } }\n      #optimole-app .hero.is-success .navbar-item,\n      #optimole-app .hero.is-success .navbar-link {\n        color: rgba(255, 255, 255, 0.7); }\n      #optimole-app .hero.is-success a.navbar-item:hover, #optimole-app .hero.is-success a.navbar-item.is-active,\n      #optimole-app .hero.is-success .navbar-link:hover,\n      #optimole-app .hero.is-success .navbar-link.is-active {\n        background-color: #2e9553;\n        color: #fff; }\n      #optimole-app .hero.is-success .tabs a {\n        color: #fff;\n        opacity: 0.9; }\n        #optimole-app .hero.is-success .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-success .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-success .tabs.is-boxed a, #optimole-app .hero.is-success .tabs.is-toggle a {\n        color: #fff; }\n        #optimole-app .hero.is-success .tabs.is-boxed a:hover, #optimole-app .hero.is-success .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-success .tabs.is-boxed li.is-active a, #optimole-app .hero.is-success .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-success .tabs.is-toggle li.is-active a, #optimole-app .hero.is-success .tabs.is-toggle li.is-active a:hover {\n        background-color: #fff;\n        border-color: #fff;\n        color: #34a85e; }\n      #optimole-app .hero.is-success.is-bold {\n        background-image: linear-gradient(141deg, #1f8a34 0%, #34a85e 71%, #34c27f 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-success.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #1f8a34 0%, #34a85e 71%, #34c27f 100%); } }\n    #optimole-app .hero.is-warning {\n      background-color: #ffdd57;\n      color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .hero.is-warning a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-warning strong {\n        color: inherit; }\n      #optimole-app .hero.is-warning .title {\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .hero.is-warning .subtitle {\n        color: rgba(0, 0, 0, 0.9); }\n        #optimole-app .hero.is-warning .subtitle a:not(.button),\n        #optimole-app .hero.is-warning .subtitle strong {\n          color: rgba(0, 0, 0, 0.7); }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-warning .navbar-menu {\n          background-color: #ffdd57; } }\n      #optimole-app .hero.is-warning .navbar-item,\n      #optimole-app .hero.is-warning .navbar-link {\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .hero.is-warning a.navbar-item:hover, #optimole-app .hero.is-warning a.navbar-item.is-active,\n      #optimole-app .hero.is-warning .navbar-link:hover,\n      #optimole-app .hero.is-warning .navbar-link.is-active {\n        background-color: #ffd83d;\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .hero.is-warning .tabs a {\n        color: rgba(0, 0, 0, 0.7);\n        opacity: 0.9; }\n        #optimole-app .hero.is-warning .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-warning .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-warning .tabs.is-boxed a, #optimole-app .hero.is-warning .tabs.is-toggle a {\n        color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .hero.is-warning .tabs.is-boxed a:hover, #optimole-app .hero.is-warning .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-warning .tabs.is-boxed li.is-active a, #optimole-app .hero.is-warning .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-warning .tabs.is-toggle li.is-active a, #optimole-app .hero.is-warning .tabs.is-toggle li.is-active a:hover {\n        background-color: rgba(0, 0, 0, 0.7);\n        border-color: rgba(0, 0, 0, 0.7);\n        color: #ffdd57; }\n      #optimole-app .hero.is-warning.is-bold {\n        background-image: linear-gradient(141deg, #ffaf24 0%, #ffdd57 71%, #fffa70 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-warning.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #ffaf24 0%, #ffdd57 71%, #fffa70 100%); } }\n    #optimole-app .hero.is-danger {\n      background-color: #D54222;\n      color: #fff; }\n      #optimole-app .hero.is-danger a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-danger strong {\n        color: inherit; }\n      #optimole-app .hero.is-danger .title {\n        color: #fff; }\n      #optimole-app .hero.is-danger .subtitle {\n        color: rgba(255, 255, 255, 0.9); }\n        #optimole-app .hero.is-danger .subtitle a:not(.button),\n        #optimole-app .hero.is-danger .subtitle strong {\n          color: #fff; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-danger .navbar-menu {\n          background-color: #D54222; } }\n      #optimole-app .hero.is-danger .navbar-item,\n      #optimole-app .hero.is-danger .navbar-link {\n        color: rgba(255, 255, 255, 0.7); }\n      #optimole-app .hero.is-danger a.navbar-item:hover, #optimole-app .hero.is-danger a.navbar-item.is-active,\n      #optimole-app .hero.is-danger .navbar-link:hover,\n      #optimole-app .hero.is-danger .navbar-link.is-active {\n        background-color: #bf3b1e;\n        color: #fff; }\n      #optimole-app .hero.is-danger .tabs a {\n        color: #fff;\n        opacity: 0.9; }\n        #optimole-app .hero.is-danger .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-danger .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-danger .tabs.is-boxed a, #optimole-app .hero.is-danger .tabs.is-toggle a {\n        color: #fff; }\n        #optimole-app .hero.is-danger .tabs.is-boxed a:hover, #optimole-app .hero.is-danger .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-danger .tabs.is-boxed li.is-active a, #optimole-app .hero.is-danger .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-danger .tabs.is-toggle li.is-active a, #optimole-app .hero.is-danger .tabs.is-toggle li.is-active a:hover {\n        background-color: #fff;\n        border-color: #fff;\n        color: #D54222; }\n      #optimole-app .hero.is-danger.is-bold {\n        background-image: linear-gradient(141deg, #b31311 0%, #D54222 71%, #e46c2c 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-danger.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #b31311 0%, #D54222 71%, #e46c2c 100%); } }\n    #optimole-app .hero.is-small .hero-body {\n      padding-bottom: 1.5rem;\n      padding-top: 1.5rem; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .hero.is-medium .hero-body {\n        padding-bottom: 9rem;\n        padding-top: 9rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .hero.is-large .hero-body {\n        padding-bottom: 18rem;\n        padding-top: 18rem; } }\n    #optimole-app .hero.is-halfheight .hero-body, #optimole-app .hero.is-fullheight .hero-body, #optimole-app .hero.is-fullheight-with-navbar .hero-body {\n      -ms-flex-align: center;\n          align-items: center;\n      display: -ms-flexbox;\n      display: flex; }\n      #optimole-app .hero.is-halfheight .hero-body > .container, #optimole-app .hero.is-fullheight .hero-body > .container, #optimole-app .hero.is-fullheight-with-navbar .hero-body > .container {\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n        -ms-flex-negative: 1;\n            flex-shrink: 1; }\n    #optimole-app .hero.is-halfheight {\n      min-height: 50vh; }\n    #optimole-app .hero.is-fullheight {\n      min-height: 100vh; }\n    #optimole-app .hero.is-fullheight-with-navbar {\n      min-height: calc(100vh - 3.25rem); }\n  #optimole-app .hero-video {\n    overflow: hidden; }\n    #optimole-app .hero-video video {\n      left: 50%;\n      min-height: 100%;\n      min-width: 100%;\n      position: absolute;\n      top: 50%;\n      transform: translate3d(-50%, -50%, 0); }\n    #optimole-app .hero-video.is-transparent {\n      opacity: 0.3; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .hero-video {\n        display: none; } }\n  #optimole-app .hero-buttons {\n    margin-top: 1.5rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .hero-buttons .button {\n        display: -ms-flexbox;\n        display: flex; }\n        #optimole-app .hero-buttons .button:not(:last-child) {\n          margin-bottom: 0.75rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .hero-buttons {\n        display: -ms-flexbox;\n        display: flex;\n        -ms-flex-pack: center;\n            justify-content: center; }\n        #optimole-app .hero-buttons .button:not(:last-child) {\n          margin-right: 1.5rem; } }\n  #optimole-app .hero-head,\n  #optimole-app .hero-foot {\n    -ms-flex-positive: 0;\n        flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0; }\n  #optimole-app .hero-body {\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    padding: 3rem 1.5rem; }\n  #optimole-app .section {\n    padding: 3rem 1.5rem; }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .section.is-medium {\n        padding: 9rem 1.5rem; }\n      #optimole-app .section.is-large {\n        padding: 18rem 1.5rem; } }\n  #optimole-app .footer {\n    background-color: #fafafa;\n    padding: 3rem 1.5rem 6rem; }\n  #optimole-app .card {\n    transition: all 750ms ease-in-out;\n    border: 0;\n    border-radius: .1875rem;\n    box-shadow: 0 1px 15px 1px rgba(39, 39, 39, 0.1); }\n  #optimole-app .logo {\n    margin-bottom: 10px; }\n    #optimole-app .logo img {\n      max-width: 180px;\n      margin: 0 auto; }\n  #optimole-app .vue-js-switch {\n    -ms-flex-item-align: center;\n        -ms-grid-row-align: center;\n        align-self: center; }\n  #optimole-app .api-key-control {\n    padding: 0 15px 0 0; }\n  #optimole-app .api-key-field .button.is-danger {\n    padding-left: 20px;\n    padding-right: 20px; }\n  #optimole-app .api-key-label {\n    -ms-flex-item-align: center;\n        -ms-grid-row-align: center;\n        align-self: center;\n    margin: 0.5em 10px 0.5em 0;\n    font-size: 1em; }\n  #optimole-app .header {\n    padding: 0 1.5rem 0; }\n    #optimole-app .header.level {\n      margin-bottom: 0; }\n  #optimole-app .account img {\n    border-top-right-radius: 4px;\n    border-bottom-right-radius: 4px; }\n  #optimole-app .account .label {\n    margin-bottom: 0; }\n  #optimole-app .optimized-images table td, #optimole-app .optimized-images table th {\n    vertical-align: middle; }\n  #optimole-app .media-diff {\n    position: relative;\n    margin: 0 auto; }\n    #optimole-app .media-diff video, #optimole-app .media-diff img {\n      display: block;\n      position: absolute;\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%; }\n  #optimole-app .origin-wrapper {\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: hidden;\n    z-index: 1;\n    transform: translateZ(0);\n    will-change: width; }\n  #optimole-app .handle {\n    position: absolute;\n    top: 0;\n    bottom: 0;\n    color: rgba(255, 255, 255, 0.8);\n    background-color: rgba(255, 255, 255, 0.8);\n    width: 2px;\n    cursor: ew-resize;\n    transform: translateX(-50%) translateZ(0);\n    z-index: 2;\n    will-change: left;\n    left: 200px; }\n  #optimole-app .cursor {\n    position: absolute;\n    top: 50%;\n    left: 50%;\n    transform: translateX(-50%) translateZ(0); }\n    #optimole-app .cursor .circle {\n      background-color: rgba(255, 255, 255, 0.8);\n      width: 24px;\n      height: 24px;\n      border-radius: 50%; }\n  #optimole-app .no-padding-right {\n    padding-right: 0px !important; }\n\n.fade-enter-active, .fade-leave-active {\n  transition: opacity .5s; }\n\n.fade-enter, .fade-leave-to {\n  opacity: 0; }\n\n.media_page_optimole #wpbody-content > * {\n  display: none !important; }\n\n.media_page_optimole #wpbody-content > #optimole-app {\n  display: block !important; }\n\n#optimole-app img.optml-image {\n  float: left;\n  max-width: 100px;\n  width: auto;\n  margin: auto; }\n\n#optimole-app img.optml-image-watermark {\n  width: 50px; }\n\n.optml-ratio-feedback .emoji {\n  font-size: 1.5em; }\n\n.optml-ratio-feedback {\n  float: right;\n  padding-right: 20px; }\n\n.optml-image-heading {\n  text-align: left; }\n\nth.optml-image-ratio-heading {\n  text-align: right !important;\n  font-size: 150%; }\n\n@media screen and (max-width: 768px) {\n  li:not(.is-active) > a > span:not(.icon) {\n    visibility: hidden;\n    position: absolute; }\n  nav.tabs li:not(.is-active) {\n    -ms-flex-positive: 0;\n    flex-grow: 0;\n    -ms-flex-negative: 1;\n    flex-shrink: 1; }\n  .tabs .icon {\n    margin-left: 0.5em; } }\n\n.tabs li {\n  transition: flex-grow 1s ease;\n  transition: flex-grow 1s ease, -ms-flex-positive 1s ease; }\n\n#optimole-app .tabs a {\n  margin-bottom: -4px; }\n\n#optimole-app .optml-upgrade {\n  min-width: 200px; }\n\n#optimole-app .is-tab {\n  min-height: 700px; }\n", ""]);
+exports.push([module.i, "#optimole-app {\n  padding: 0 30px 0 20px;\n  /*! bulma.io v0.7.4 | MIT License | github.com/jgthms/bulma */\n  /*! minireset.css v0.0.4 | MIT License | github.com/jgthms/minireset.css */ }\n\n@keyframes spinAround {\n  from {\n    transform: rotate(0deg); }\n  to {\n    transform: rotate(359deg); } }\n  #optimole-app .delete, #optimole-app .modal-close, #optimole-app .is-unselectable, #optimole-app .button, #optimole-app .file, #optimole-app .breadcrumb, #optimole-app .pagination-previous,\n  #optimole-app .pagination-next,\n  #optimole-app .pagination-link,\n  #optimole-app .pagination-ellipsis, #optimole-app .tabs {\n    -webkit-touch-callout: none;\n    -webkit-user-select: none;\n    -moz-user-select: none;\n    -ms-user-select: none;\n    user-select: none; }\n  #optimole-app .select:not(.is-multiple):not(.is-loading)::after, #optimole-app .navbar-link:not(.is-arrowless)::after {\n    border: 3px solid transparent;\n    border-radius: 2px;\n    border-right: 0;\n    border-top: 0;\n    content: \" \";\n    display: block;\n    height: 0.625em;\n    margin-top: -0.4375em;\n    pointer-events: none;\n    position: absolute;\n    top: 50%;\n    transform: rotate(-45deg);\n    transform-origin: center;\n    width: 0.625em; }\n  #optimole-app .box:not(:last-child), #optimole-app .content:not(:last-child), #optimole-app .notification:not(:last-child), #optimole-app .progress:not(:last-child), #optimole-app .table:not(:last-child), #optimole-app .table-container:not(:last-child), #optimole-app .title:not(:last-child),\n  #optimole-app .subtitle:not(:last-child), #optimole-app .block:not(:last-child), #optimole-app .highlight:not(:last-child), #optimole-app .breadcrumb:not(:last-child), #optimole-app .level:not(:last-child), #optimole-app .list:not(:last-child), #optimole-app .message:not(:last-child), #optimole-app .tabs:not(:last-child) {\n    margin-bottom: 1.5rem; }\n  #optimole-app .delete, #optimole-app .modal-close {\n    -moz-appearance: none;\n    -webkit-appearance: none;\n    background-color: rgba(10, 10, 10, 0.2);\n    border: none;\n    border-radius: 290486px;\n    cursor: pointer;\n    pointer-events: auto;\n    display: inline-block;\n    -ms-flex-positive: 0;\n        flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    font-size: 0;\n    height: 20px;\n    max-height: 20px;\n    max-width: 20px;\n    min-height: 20px;\n    min-width: 20px;\n    outline: none;\n    position: relative;\n    vertical-align: top;\n    width: 20px; }\n    #optimole-app .delete::before, #optimole-app .modal-close::before, #optimole-app .delete::after, #optimole-app .modal-close::after {\n      background-color: white;\n      content: \"\";\n      display: block;\n      left: 50%;\n      position: absolute;\n      top: 50%;\n      transform: translateX(-50%) translateY(-50%) rotate(45deg);\n      transform-origin: center center; }\n    #optimole-app .delete::before, #optimole-app .modal-close::before {\n      height: 2px;\n      width: 50%; }\n    #optimole-app .delete::after, #optimole-app .modal-close::after {\n      height: 50%;\n      width: 2px; }\n    #optimole-app .delete:hover, #optimole-app .modal-close:hover, #optimole-app .delete:focus, #optimole-app .modal-close:focus {\n      background-color: rgba(10, 10, 10, 0.3); }\n    #optimole-app .delete:active, #optimole-app .modal-close:active {\n      background-color: rgba(10, 10, 10, 0.4); }\n    #optimole-app .is-small.delete, #optimole-app .is-small.modal-close {\n      height: 16px;\n      max-height: 16px;\n      max-width: 16px;\n      min-height: 16px;\n      min-width: 16px;\n      width: 16px; }\n    #optimole-app .is-medium.delete, #optimole-app .is-medium.modal-close {\n      height: 24px;\n      max-height: 24px;\n      max-width: 24px;\n      min-height: 24px;\n      min-width: 24px;\n      width: 24px; }\n    #optimole-app .is-large.delete, #optimole-app .is-large.modal-close {\n      height: 32px;\n      max-height: 32px;\n      max-width: 32px;\n      min-height: 32px;\n      min-width: 32px;\n      width: 32px; }\n  #optimole-app .button.is-loading::after, #optimole-app .select.is-loading::after, #optimole-app .control.is-loading::after, #optimole-app .loader {\n    animation: spinAround 500ms infinite linear;\n    border: 2px solid #dbdbdb;\n    border-radius: 290486px;\n    border-right-color: transparent;\n    border-top-color: transparent;\n    content: \"\";\n    display: block;\n    height: 1em;\n    position: relative;\n    width: 1em; }\n  #optimole-app .is-overlay, #optimole-app .image.is-square img,\n  #optimole-app .image.is-square .has-ratio, #optimole-app .image.is-1by1 img,\n  #optimole-app .image.is-1by1 .has-ratio, #optimole-app .image.is-5by4 img,\n  #optimole-app .image.is-5by4 .has-ratio, #optimole-app .image.is-4by3 img,\n  #optimole-app .image.is-4by3 .has-ratio, #optimole-app .image.is-3by2 img,\n  #optimole-app .image.is-3by2 .has-ratio, #optimole-app .image.is-5by3 img,\n  #optimole-app .image.is-5by3 .has-ratio, #optimole-app .image.is-16by9 img,\n  #optimole-app .image.is-16by9 .has-ratio, #optimole-app .image.is-2by1 img,\n  #optimole-app .image.is-2by1 .has-ratio, #optimole-app .image.is-3by1 img,\n  #optimole-app .image.is-3by1 .has-ratio, #optimole-app .image.is-4by5 img,\n  #optimole-app .image.is-4by5 .has-ratio, #optimole-app .image.is-3by4 img,\n  #optimole-app .image.is-3by4 .has-ratio, #optimole-app .image.is-2by3 img,\n  #optimole-app .image.is-2by3 .has-ratio, #optimole-app .image.is-3by5 img,\n  #optimole-app .image.is-3by5 .has-ratio, #optimole-app .image.is-9by16 img,\n  #optimole-app .image.is-9by16 .has-ratio, #optimole-app .image.is-1by2 img,\n  #optimole-app .image.is-1by2 .has-ratio, #optimole-app .image.is-1by3 img,\n  #optimole-app .image.is-1by3 .has-ratio, #optimole-app .modal, #optimole-app .modal-background, #optimole-app .hero-video {\n    bottom: 0;\n    left: 0;\n    position: absolute;\n    right: 0;\n    top: 0; }\n  #optimole-app .button, #optimole-app .input,\n  #optimole-app .textarea, #optimole-app .select select, #optimole-app .file-cta,\n  #optimole-app .file-name, #optimole-app .pagination-previous,\n  #optimole-app .pagination-next,\n  #optimole-app .pagination-link,\n  #optimole-app .pagination-ellipsis {\n    -moz-appearance: none;\n    -webkit-appearance: none;\n    -ms-flex-align: center;\n        align-items: center;\n    border: 1px solid transparent;\n    border-radius: 4px;\n    box-shadow: none;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    font-size: 1rem;\n    height: 2.25em;\n    -ms-flex-pack: start;\n        justify-content: flex-start;\n    line-height: 1.5;\n    padding-bottom: calc(0.375em - 1px);\n    padding-left: calc(0.625em - 1px);\n    padding-right: calc(0.625em - 1px);\n    padding-top: calc(0.375em - 1px);\n    position: relative;\n    vertical-align: top; }\n    #optimole-app .button:focus, #optimole-app .input:focus,\n    #optimole-app .textarea:focus, #optimole-app .select select:focus, #optimole-app .file-cta:focus,\n    #optimole-app .file-name:focus, #optimole-app .pagination-previous:focus,\n    #optimole-app .pagination-next:focus,\n    #optimole-app .pagination-link:focus,\n    #optimole-app .pagination-ellipsis:focus, #optimole-app .is-focused.button, #optimole-app .is-focused.input,\n    #optimole-app .is-focused.textarea, #optimole-app .select select.is-focused, #optimole-app .is-focused.file-cta,\n    #optimole-app .is-focused.file-name, #optimole-app .is-focused.pagination-previous,\n    #optimole-app .is-focused.pagination-next,\n    #optimole-app .is-focused.pagination-link,\n    #optimole-app .is-focused.pagination-ellipsis, #optimole-app .button:active, #optimole-app .input:active,\n    #optimole-app .textarea:active, #optimole-app .select select:active, #optimole-app .file-cta:active,\n    #optimole-app .file-name:active, #optimole-app .pagination-previous:active,\n    #optimole-app .pagination-next:active,\n    #optimole-app .pagination-link:active,\n    #optimole-app .pagination-ellipsis:active, #optimole-app .is-active.button, #optimole-app .is-active.input,\n    #optimole-app .is-active.textarea, #optimole-app .select select.is-active, #optimole-app .is-active.file-cta,\n    #optimole-app .is-active.file-name, #optimole-app .is-active.pagination-previous,\n    #optimole-app .is-active.pagination-next,\n    #optimole-app .is-active.pagination-link,\n    #optimole-app .is-active.pagination-ellipsis {\n      outline: none; }\n    #optimole-app .button[disabled], #optimole-app .input[disabled],\n    #optimole-app .textarea[disabled], #optimole-app .select select[disabled], #optimole-app .file-cta[disabled],\n    #optimole-app .file-name[disabled], #optimole-app .pagination-previous[disabled],\n    #optimole-app .pagination-next[disabled],\n    #optimole-app .pagination-link[disabled],\n    #optimole-app .pagination-ellipsis[disabled],\n    fieldset[disabled] #optimole-app .button,\n    fieldset[disabled] #optimole-app .input,\n    fieldset[disabled] #optimole-app .textarea,\n    fieldset[disabled] #optimole-app .select select,\n    fieldset[disabled] #optimole-app .file-cta,\n    fieldset[disabled] #optimole-app .file-name,\n    fieldset[disabled] #optimole-app .pagination-previous,\n    fieldset[disabled] #optimole-app .pagination-next,\n    fieldset[disabled] #optimole-app .pagination-link,\n    fieldset[disabled] #optimole-app .pagination-ellipsis {\n      cursor: not-allowed; }\n  #optimole-app html,\n  #optimole-app body,\n  #optimole-app p,\n  #optimole-app ol,\n  #optimole-app ul,\n  #optimole-app li,\n  #optimole-app dl,\n  #optimole-app dt,\n  #optimole-app dd,\n  #optimole-app blockquote,\n  #optimole-app figure,\n  #optimole-app fieldset,\n  #optimole-app legend,\n  #optimole-app textarea,\n  #optimole-app pre,\n  #optimole-app iframe,\n  #optimole-app hr,\n  #optimole-app h1,\n  #optimole-app h2,\n  #optimole-app h3,\n  #optimole-app h4,\n  #optimole-app h5,\n  #optimole-app h6 {\n    margin: 0;\n    padding: 0; }\n  #optimole-app h1,\n  #optimole-app h2,\n  #optimole-app h3,\n  #optimole-app h4,\n  #optimole-app h5,\n  #optimole-app h6 {\n    font-size: 100%;\n    font-weight: normal; }\n  #optimole-app ul {\n    list-style: none; }\n  #optimole-app button,\n  #optimole-app input,\n  #optimole-app select,\n  #optimole-app textarea {\n    margin: 0; }\n  #optimole-app html {\n    box-sizing: border-box; }\n  #optimole-app *, #optimole-app *::before, #optimole-app *::after {\n    box-sizing: inherit; }\n  #optimole-app img,\n  #optimole-app embed,\n  #optimole-app iframe,\n  #optimole-app object,\n  #optimole-app video {\n    height: auto;\n    max-width: 100%; }\n  #optimole-app audio {\n    max-width: 100%; }\n  #optimole-app iframe {\n    border: 0; }\n  #optimole-app table {\n    border-collapse: collapse;\n    border-spacing: 0; }\n  #optimole-app td,\n  #optimole-app th {\n    padding: 0;\n    text-align: left; }\n  #optimole-app html {\n    background-color: white;\n    font-size: 16px;\n    -moz-osx-font-smoothing: grayscale;\n    -webkit-font-smoothing: antialiased;\n    min-width: 300px;\n    overflow-x: hidden;\n    overflow-y: scroll;\n    text-rendering: optimizeLegibility;\n    -webkit-text-size-adjust: 100%;\n        -ms-text-size-adjust: 100%;\n            text-size-adjust: 100%; }\n  #optimole-app article,\n  #optimole-app aside,\n  #optimole-app figure,\n  #optimole-app footer,\n  #optimole-app header,\n  #optimole-app hgroup,\n  #optimole-app section {\n    display: block; }\n  #optimole-app body,\n  #optimole-app button,\n  #optimole-app input,\n  #optimole-app select,\n  #optimole-app textarea {\n    font-family: BlinkMacSystemFont, -apple-system, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", \"Helvetica\", \"Arial\", sans-serif; }\n  #optimole-app code,\n  #optimole-app pre {\n    -moz-osx-font-smoothing: auto;\n    -webkit-font-smoothing: auto;\n    font-family: monospace; }\n  #optimole-app body {\n    color: #4a4a4a;\n    font-size: 1rem;\n    font-weight: 400;\n    line-height: 1.5; }\n  #optimole-app a {\n    color: #3273dc;\n    cursor: pointer;\n    text-decoration: none; }\n    #optimole-app a strong {\n      color: currentColor; }\n    #optimole-app a:hover {\n      color: #363636; }\n  #optimole-app code {\n    background-color: whitesmoke;\n    color: #ff3860;\n    font-size: 0.875em;\n    font-weight: normal;\n    padding: 0.25em 0.5em 0.25em; }\n  #optimole-app hr {\n    background-color: whitesmoke;\n    border: none;\n    display: block;\n    height: 2px;\n    margin: 1.5rem 0; }\n  #optimole-app img {\n    height: auto;\n    max-width: 100%; }\n  #optimole-app input[type=\"checkbox\"],\n  #optimole-app input[type=\"radio\"] {\n    vertical-align: baseline; }\n  #optimole-app small {\n    font-size: 0.875em; }\n  #optimole-app span {\n    font-style: inherit;\n    font-weight: inherit; }\n  #optimole-app strong {\n    color: #363636;\n    font-weight: 700; }\n  #optimole-app fieldset {\n    border: none; }\n  #optimole-app pre {\n    -webkit-overflow-scrolling: touch;\n    background-color: whitesmoke;\n    color: #4a4a4a;\n    font-size: 0.875em;\n    overflow-x: auto;\n    padding: 1.25rem 1.5rem;\n    white-space: pre;\n    word-wrap: normal; }\n    #optimole-app pre code {\n      background-color: transparent;\n      color: currentColor;\n      font-size: 1em;\n      padding: 0; }\n  #optimole-app table td,\n  #optimole-app table th {\n    text-align: left;\n    vertical-align: top; }\n  #optimole-app table th {\n    color: #363636; }\n  #optimole-app .is-clearfix::after {\n    clear: both;\n    content: \" \";\n    display: table; }\n  #optimole-app .is-pulled-left {\n    float: left !important; }\n  #optimole-app .is-pulled-right {\n    float: right !important; }\n  #optimole-app .is-clipped {\n    overflow: hidden !important; }\n  #optimole-app .is-size-1 {\n    font-size: 3rem !important; }\n  #optimole-app .is-size-2 {\n    font-size: 2.5rem !important; }\n  #optimole-app .is-size-3 {\n    font-size: 2rem !important; }\n  #optimole-app .is-size-4 {\n    font-size: 1.5rem !important; }\n  #optimole-app .is-size-5 {\n    font-size: 1.25rem !important; }\n  #optimole-app .is-size-6 {\n    font-size: 1rem !important; }\n  #optimole-app .is-size-7 {\n    font-size: 0.75rem !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-size-1-mobile {\n      font-size: 3rem !important; }\n    #optimole-app .is-size-2-mobile {\n      font-size: 2.5rem !important; }\n    #optimole-app .is-size-3-mobile {\n      font-size: 2rem !important; }\n    #optimole-app .is-size-4-mobile {\n      font-size: 1.5rem !important; }\n    #optimole-app .is-size-5-mobile {\n      font-size: 1.25rem !important; }\n    #optimole-app .is-size-6-mobile {\n      font-size: 1rem !important; }\n    #optimole-app .is-size-7-mobile {\n      font-size: 0.75rem !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-size-1-tablet {\n      font-size: 3rem !important; }\n    #optimole-app .is-size-2-tablet {\n      font-size: 2.5rem !important; }\n    #optimole-app .is-size-3-tablet {\n      font-size: 2rem !important; }\n    #optimole-app .is-size-4-tablet {\n      font-size: 1.5rem !important; }\n    #optimole-app .is-size-5-tablet {\n      font-size: 1.25rem !important; }\n    #optimole-app .is-size-6-tablet {\n      font-size: 1rem !important; }\n    #optimole-app .is-size-7-tablet {\n      font-size: 0.75rem !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-size-1-touch {\n      font-size: 3rem !important; }\n    #optimole-app .is-size-2-touch {\n      font-size: 2.5rem !important; }\n    #optimole-app .is-size-3-touch {\n      font-size: 2rem !important; }\n    #optimole-app .is-size-4-touch {\n      font-size: 1.5rem !important; }\n    #optimole-app .is-size-5-touch {\n      font-size: 1.25rem !important; }\n    #optimole-app .is-size-6-touch {\n      font-size: 1rem !important; }\n    #optimole-app .is-size-7-touch {\n      font-size: 0.75rem !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-size-1-desktop {\n      font-size: 3rem !important; }\n    #optimole-app .is-size-2-desktop {\n      font-size: 2.5rem !important; }\n    #optimole-app .is-size-3-desktop {\n      font-size: 2rem !important; }\n    #optimole-app .is-size-4-desktop {\n      font-size: 1.5rem !important; }\n    #optimole-app .is-size-5-desktop {\n      font-size: 1.25rem !important; }\n    #optimole-app .is-size-6-desktop {\n      font-size: 1rem !important; }\n    #optimole-app .is-size-7-desktop {\n      font-size: 0.75rem !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-size-1-widescreen {\n      font-size: 3rem !important; }\n    #optimole-app .is-size-2-widescreen {\n      font-size: 2.5rem !important; }\n    #optimole-app .is-size-3-widescreen {\n      font-size: 2rem !important; }\n    #optimole-app .is-size-4-widescreen {\n      font-size: 1.5rem !important; }\n    #optimole-app .is-size-5-widescreen {\n      font-size: 1.25rem !important; }\n    #optimole-app .is-size-6-widescreen {\n      font-size: 1rem !important; }\n    #optimole-app .is-size-7-widescreen {\n      font-size: 0.75rem !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-size-1-fullhd {\n      font-size: 3rem !important; }\n    #optimole-app .is-size-2-fullhd {\n      font-size: 2.5rem !important; }\n    #optimole-app .is-size-3-fullhd {\n      font-size: 2rem !important; }\n    #optimole-app .is-size-4-fullhd {\n      font-size: 1.5rem !important; }\n    #optimole-app .is-size-5-fullhd {\n      font-size: 1.25rem !important; }\n    #optimole-app .is-size-6-fullhd {\n      font-size: 1rem !important; }\n    #optimole-app .is-size-7-fullhd {\n      font-size: 0.75rem !important; } }\n  #optimole-app .has-text-centered {\n    text-align: center !important; }\n  #optimole-app .has-text-justified {\n    text-align: justify !important; }\n  #optimole-app .has-text-left {\n    text-align: left !important; }\n  #optimole-app .has-text-right {\n    text-align: right !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .has-text-centered-mobile {\n      text-align: center !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .has-text-centered-tablet {\n      text-align: center !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .has-text-centered-tablet-only {\n      text-align: center !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .has-text-centered-touch {\n      text-align: center !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .has-text-centered-desktop {\n      text-align: center !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .has-text-centered-desktop-only {\n      text-align: center !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .has-text-centered-widescreen {\n      text-align: center !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .has-text-centered-widescreen-only {\n      text-align: center !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .has-text-centered-fullhd {\n      text-align: center !important; } }\n  @media screen and (max-width: 768px) {\n    #optimole-app .has-text-justified-mobile {\n      text-align: justify !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .has-text-justified-tablet {\n      text-align: justify !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .has-text-justified-tablet-only {\n      text-align: justify !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .has-text-justified-touch {\n      text-align: justify !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .has-text-justified-desktop {\n      text-align: justify !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .has-text-justified-desktop-only {\n      text-align: justify !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .has-text-justified-widescreen {\n      text-align: justify !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .has-text-justified-widescreen-only {\n      text-align: justify !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .has-text-justified-fullhd {\n      text-align: justify !important; } }\n  @media screen and (max-width: 768px) {\n    #optimole-app .has-text-left-mobile {\n      text-align: left !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .has-text-left-tablet {\n      text-align: left !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .has-text-left-tablet-only {\n      text-align: left !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .has-text-left-touch {\n      text-align: left !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .has-text-left-desktop {\n      text-align: left !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .has-text-left-desktop-only {\n      text-align: left !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .has-text-left-widescreen {\n      text-align: left !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .has-text-left-widescreen-only {\n      text-align: left !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .has-text-left-fullhd {\n      text-align: left !important; } }\n  @media screen and (max-width: 768px) {\n    #optimole-app .has-text-right-mobile {\n      text-align: right !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .has-text-right-tablet {\n      text-align: right !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .has-text-right-tablet-only {\n      text-align: right !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .has-text-right-touch {\n      text-align: right !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .has-text-right-desktop {\n      text-align: right !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .has-text-right-desktop-only {\n      text-align: right !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .has-text-right-widescreen {\n      text-align: right !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .has-text-right-widescreen-only {\n      text-align: right !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .has-text-right-fullhd {\n      text-align: right !important; } }\n  #optimole-app .is-capitalized {\n    text-transform: capitalize !important; }\n  #optimole-app .is-lowercase {\n    text-transform: lowercase !important; }\n  #optimole-app .is-uppercase {\n    text-transform: uppercase !important; }\n  #optimole-app .is-italic {\n    font-style: italic !important; }\n  #optimole-app .has-text-white {\n    color: white !important; }\n  #optimole-app a.has-text-white:hover, #optimole-app a.has-text-white:focus {\n    color: #e6e6e6 !important; }\n  #optimole-app .has-background-white {\n    background-color: white !important; }\n  #optimole-app .has-text-black {\n    color: #0a0a0a !important; }\n  #optimole-app a.has-text-black:hover, #optimole-app a.has-text-black:focus {\n    color: black !important; }\n  #optimole-app .has-background-black {\n    background-color: #0a0a0a !important; }\n  #optimole-app .has-text-light {\n    color: whitesmoke !important; }\n  #optimole-app a.has-text-light:hover, #optimole-app a.has-text-light:focus {\n    color: #dbdbdb !important; }\n  #optimole-app .has-background-light {\n    background-color: whitesmoke !important; }\n  #optimole-app .has-text-dark {\n    color: #363636 !important; }\n  #optimole-app a.has-text-dark:hover, #optimole-app a.has-text-dark:focus {\n    color: #1c1c1c !important; }\n  #optimole-app .has-background-dark {\n    background-color: #363636 !important; }\n  #optimole-app .has-text-primary {\n    color: #EF686B !important; }\n  #optimole-app a.has-text-primary:hover, #optimole-app a.has-text-primary:focus {\n    color: #ea3a3e !important; }\n  #optimole-app .has-background-primary {\n    background-color: #EF686B !important; }\n  #optimole-app .has-text-link {\n    color: #3273dc !important; }\n  #optimole-app a.has-text-link:hover, #optimole-app a.has-text-link:focus {\n    color: #205bbc !important; }\n  #optimole-app .has-background-link {\n    background-color: #3273dc !important; }\n  #optimole-app .has-text-info {\n    color: #5180C1 !important; }\n  #optimole-app a.has-text-info:hover, #optimole-app a.has-text-info:focus {\n    color: #3b67a4 !important; }\n  #optimole-app .has-background-info {\n    background-color: #5180C1 !important; }\n  #optimole-app .has-text-success {\n    color: #34a85e !important; }\n  #optimole-app a.has-text-success:hover, #optimole-app a.has-text-success:focus {\n    color: #288148 !important; }\n  #optimole-app .has-background-success {\n    background-color: #34a85e !important; }\n  #optimole-app .has-text-warning {\n    color: #ffdd57 !important; }\n  #optimole-app a.has-text-warning:hover, #optimole-app a.has-text-warning:focus {\n    color: #ffd324 !important; }\n  #optimole-app .has-background-warning {\n    background-color: #ffdd57 !important; }\n  #optimole-app .has-text-danger {\n    color: #D54222 !important; }\n  #optimole-app a.has-text-danger:hover, #optimole-app a.has-text-danger:focus {\n    color: #a9341b !important; }\n  #optimole-app .has-background-danger {\n    background-color: #D54222 !important; }\n  #optimole-app .has-text-black-bis {\n    color: #121212 !important; }\n  #optimole-app .has-background-black-bis {\n    background-color: #121212 !important; }\n  #optimole-app .has-text-black-ter {\n    color: #242424 !important; }\n  #optimole-app .has-background-black-ter {\n    background-color: #242424 !important; }\n  #optimole-app .has-text-grey-darker {\n    color: #363636 !important; }\n  #optimole-app .has-background-grey-darker {\n    background-color: #363636 !important; }\n  #optimole-app .has-text-grey-dark {\n    color: #4a4a4a !important; }\n  #optimole-app .has-background-grey-dark {\n    background-color: #4a4a4a !important; }\n  #optimole-app .has-text-grey {\n    color: #7a7a7a !important; }\n  #optimole-app .has-background-grey {\n    background-color: #7a7a7a !important; }\n  #optimole-app .has-text-grey-light {\n    color: #b5b5b5 !important; }\n  #optimole-app .has-background-grey-light {\n    background-color: #b5b5b5 !important; }\n  #optimole-app .has-text-grey-lighter {\n    color: #dbdbdb !important; }\n  #optimole-app .has-background-grey-lighter {\n    background-color: #dbdbdb !important; }\n  #optimole-app .has-text-white-ter {\n    color: whitesmoke !important; }\n  #optimole-app .has-background-white-ter {\n    background-color: whitesmoke !important; }\n  #optimole-app .has-text-white-bis {\n    color: #fafafa !important; }\n  #optimole-app .has-background-white-bis {\n    background-color: #fafafa !important; }\n  #optimole-app .has-text-weight-light {\n    font-weight: 300 !important; }\n  #optimole-app .has-text-weight-normal {\n    font-weight: 400 !important; }\n  #optimole-app .has-text-weight-semibold {\n    font-weight: 600 !important; }\n  #optimole-app .has-text-weight-bold {\n    font-weight: 700 !important; }\n  #optimole-app .is-family-primary {\n    font-family: BlinkMacSystemFont, -apple-system, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", \"Helvetica\", \"Arial\", sans-serif !important; }\n  #optimole-app .is-family-secondary {\n    font-family: BlinkMacSystemFont, -apple-system, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", \"Helvetica\", \"Arial\", sans-serif !important; }\n  #optimole-app .is-family-sans-serif {\n    font-family: BlinkMacSystemFont, -apple-system, \"Segoe UI\", \"Roboto\", \"Oxygen\", \"Ubuntu\", \"Cantarell\", \"Fira Sans\", \"Droid Sans\", \"Helvetica Neue\", \"Helvetica\", \"Arial\", sans-serif !important; }\n  #optimole-app .is-family-monospace {\n    font-family: monospace !important; }\n  #optimole-app .is-family-code {\n    font-family: monospace !important; }\n  #optimole-app .is-block {\n    display: block !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-block-mobile {\n      display: block !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-block-tablet {\n      display: block !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-block-tablet-only {\n      display: block !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-block-touch {\n      display: block !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-block-desktop {\n      display: block !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-block-desktop-only {\n      display: block !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-block-widescreen {\n      display: block !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-block-widescreen-only {\n      display: block !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-block-fullhd {\n      display: block !important; } }\n  #optimole-app .is-flex {\n    display: -ms-flexbox !important;\n    display: flex !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-flex-mobile {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-flex-tablet {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-flex-tablet-only {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-flex-touch {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-flex-desktop {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-flex-desktop-only {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-flex-widescreen {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-flex-widescreen-only {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-flex-fullhd {\n      display: -ms-flexbox !important;\n      display: flex !important; } }\n  #optimole-app .is-inline {\n    display: inline !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-inline-mobile {\n      display: inline !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-inline-tablet {\n      display: inline !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-inline-tablet-only {\n      display: inline !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-inline-touch {\n      display: inline !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-inline-desktop {\n      display: inline !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-inline-desktop-only {\n      display: inline !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-inline-widescreen {\n      display: inline !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-inline-widescreen-only {\n      display: inline !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-inline-fullhd {\n      display: inline !important; } }\n  #optimole-app .is-inline-block {\n    display: inline-block !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-inline-block-mobile {\n      display: inline-block !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-inline-block-tablet {\n      display: inline-block !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-inline-block-tablet-only {\n      display: inline-block !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-inline-block-touch {\n      display: inline-block !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-inline-block-desktop {\n      display: inline-block !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-inline-block-desktop-only {\n      display: inline-block !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-inline-block-widescreen {\n      display: inline-block !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-inline-block-widescreen-only {\n      display: inline-block !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-inline-block-fullhd {\n      display: inline-block !important; } }\n  #optimole-app .is-inline-flex {\n    display: -ms-inline-flexbox !important;\n    display: inline-flex !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-inline-flex-mobile {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-inline-flex-tablet {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-inline-flex-tablet-only {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-inline-flex-touch {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-inline-flex-desktop {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-inline-flex-desktop-only {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-inline-flex-widescreen {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-inline-flex-widescreen-only {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-inline-flex-fullhd {\n      display: -ms-inline-flexbox !important;\n      display: inline-flex !important; } }\n  #optimole-app .is-hidden {\n    display: none !important; }\n  #optimole-app .is-sr-only {\n    border: none !important;\n    clip: rect(0, 0, 0, 0) !important;\n    height: 0.01em !important;\n    overflow: hidden !important;\n    padding: 0 !important;\n    position: absolute !important;\n    white-space: nowrap !important;\n    width: 0.01em !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-hidden-mobile {\n      display: none !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-hidden-tablet {\n      display: none !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-hidden-tablet-only {\n      display: none !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-hidden-touch {\n      display: none !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-hidden-desktop {\n      display: none !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-hidden-desktop-only {\n      display: none !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-hidden-widescreen {\n      display: none !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-hidden-widescreen-only {\n      display: none !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-hidden-fullhd {\n      display: none !important; } }\n  #optimole-app .is-invisible {\n    visibility: hidden !important; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .is-invisible-mobile {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .is-invisible-tablet {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 769px) and (max-width: 1087px) {\n    #optimole-app .is-invisible-tablet-only {\n      visibility: hidden !important; } }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .is-invisible-touch {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .is-invisible-desktop {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 1088px) and (max-width: 1279px) {\n    #optimole-app .is-invisible-desktop-only {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 1280px) {\n    #optimole-app .is-invisible-widescreen {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 1280px) and (max-width: 1471px) {\n    #optimole-app .is-invisible-widescreen-only {\n      visibility: hidden !important; } }\n  @media screen and (min-width: 1472px) {\n    #optimole-app .is-invisible-fullhd {\n      visibility: hidden !important; } }\n  #optimole-app .is-marginless {\n    margin: 0 !important; }\n  #optimole-app .is-paddingless {\n    padding: 0 !important; }\n  #optimole-app .is-radiusless {\n    border-radius: 0 !important; }\n  #optimole-app .is-shadowless {\n    box-shadow: none !important; }\n  #optimole-app .box {\n    background-color: white;\n    border-radius: 6px;\n    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);\n    color: #4a4a4a;\n    display: block;\n    padding: 1.25rem; }\n  #optimole-app a.box:hover, #optimole-app a.box:focus {\n    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px #3273dc; }\n  #optimole-app a.box:active {\n    box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.2), 0 0 0 1px #3273dc; }\n  #optimole-app .button {\n    background-color: white;\n    border-color: #dbdbdb;\n    border-width: 1px;\n    color: #363636;\n    cursor: pointer;\n    -ms-flex-pack: center;\n        justify-content: center;\n    padding-bottom: calc(0.375em - 1px);\n    padding-left: 0.75em;\n    padding-right: 0.75em;\n    padding-top: calc(0.375em - 1px);\n    text-align: center;\n    white-space: nowrap; }\n    #optimole-app .button strong {\n      color: inherit; }\n    #optimole-app .button .icon, #optimole-app .button .icon.is-small, #optimole-app .button .icon.is-medium, #optimole-app .button .icon.is-large {\n      height: 1.5em;\n      width: 1.5em; }\n    #optimole-app .button .icon:first-child:not(:last-child) {\n      margin-left: calc(-0.375em - 1px);\n      margin-right: 0.1875em; }\n    #optimole-app .button .icon:last-child:not(:first-child) {\n      margin-left: 0.1875em;\n      margin-right: calc(-0.375em - 1px); }\n    #optimole-app .button .icon:first-child:last-child {\n      margin-left: calc(-0.375em - 1px);\n      margin-right: calc(-0.375em - 1px); }\n    #optimole-app .button:hover, #optimole-app .button.is-hovered {\n      border-color: #b5b5b5;\n      color: #363636; }\n    #optimole-app .button:focus, #optimole-app .button.is-focused {\n      border-color: #3273dc;\n      color: #363636; }\n      #optimole-app .button:focus:not(:active), #optimole-app .button.is-focused:not(:active) {\n        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }\n    #optimole-app .button:active, #optimole-app .button.is-active {\n      border-color: #4a4a4a;\n      color: #363636; }\n    #optimole-app .button.is-text {\n      background-color: transparent;\n      border-color: transparent;\n      color: #4a4a4a;\n      text-decoration: underline; }\n      #optimole-app .button.is-text:hover, #optimole-app .button.is-text.is-hovered, #optimole-app .button.is-text:focus, #optimole-app .button.is-text.is-focused {\n        background-color: whitesmoke;\n        color: #363636; }\n      #optimole-app .button.is-text:active, #optimole-app .button.is-text.is-active {\n        background-color: #e8e8e8;\n        color: #363636; }\n      #optimole-app .button.is-text[disabled],\n      fieldset[disabled] #optimole-app .button.is-text {\n        background-color: transparent;\n        border-color: transparent;\n        box-shadow: none; }\n    #optimole-app .button.is-white {\n      background-color: white;\n      border-color: transparent;\n      color: #0a0a0a; }\n      #optimole-app .button.is-white:hover, #optimole-app .button.is-white.is-hovered {\n        background-color: #f9f9f9;\n        border-color: transparent;\n        color: #0a0a0a; }\n      #optimole-app .button.is-white:focus, #optimole-app .button.is-white.is-focused {\n        border-color: transparent;\n        color: #0a0a0a; }\n        #optimole-app .button.is-white:focus:not(:active), #optimole-app .button.is-white.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(255, 255, 255, 0.25); }\n      #optimole-app .button.is-white:active, #optimole-app .button.is-white.is-active {\n        background-color: #f2f2f2;\n        border-color: transparent;\n        color: #0a0a0a; }\n      #optimole-app .button.is-white[disabled],\n      fieldset[disabled] #optimole-app .button.is-white {\n        background-color: white;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-white.is-inverted {\n        background-color: #0a0a0a;\n        color: white; }\n        #optimole-app .button.is-white.is-inverted:hover {\n          background-color: black; }\n        #optimole-app .button.is-white.is-inverted[disabled],\n        fieldset[disabled] #optimole-app .button.is-white.is-inverted {\n          background-color: #0a0a0a;\n          border-color: transparent;\n          box-shadow: none;\n          color: white; }\n      #optimole-app .button.is-white.is-loading::after {\n        border-color: transparent transparent #0a0a0a #0a0a0a !important; }\n      #optimole-app .button.is-white.is-outlined {\n        background-color: transparent;\n        border-color: white;\n        color: white; }\n        #optimole-app .button.is-white.is-outlined:hover, #optimole-app .button.is-white.is-outlined:focus {\n          background-color: white;\n          border-color: white;\n          color: #0a0a0a; }\n        #optimole-app .button.is-white.is-outlined.is-loading::after {\n          border-color: transparent transparent white white !important; }\n        #optimole-app .button.is-white.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-white.is-outlined {\n          background-color: transparent;\n          border-color: white;\n          box-shadow: none;\n          color: white; }\n      #optimole-app .button.is-white.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #0a0a0a;\n        color: #0a0a0a; }\n        #optimole-app .button.is-white.is-inverted.is-outlined:hover, #optimole-app .button.is-white.is-inverted.is-outlined:focus {\n          background-color: #0a0a0a;\n          color: white; }\n        #optimole-app .button.is-white.is-inverted.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-white.is-inverted.is-outlined {\n          background-color: transparent;\n          border-color: #0a0a0a;\n          box-shadow: none;\n          color: #0a0a0a; }\n    #optimole-app .button.is-black {\n      background-color: #0a0a0a;\n      border-color: transparent;\n      color: white; }\n      #optimole-app .button.is-black:hover, #optimole-app .button.is-black.is-hovered {\n        background-color: #040404;\n        border-color: transparent;\n        color: white; }\n      #optimole-app .button.is-black:focus, #optimole-app .button.is-black.is-focused {\n        border-color: transparent;\n        color: white; }\n        #optimole-app .button.is-black:focus:not(:active), #optimole-app .button.is-black.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(10, 10, 10, 0.25); }\n      #optimole-app .button.is-black:active, #optimole-app .button.is-black.is-active {\n        background-color: black;\n        border-color: transparent;\n        color: white; }\n      #optimole-app .button.is-black[disabled],\n      fieldset[disabled] #optimole-app .button.is-black {\n        background-color: #0a0a0a;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-black.is-inverted {\n        background-color: white;\n        color: #0a0a0a; }\n        #optimole-app .button.is-black.is-inverted:hover {\n          background-color: #f2f2f2; }\n        #optimole-app .button.is-black.is-inverted[disabled],\n        fieldset[disabled] #optimole-app .button.is-black.is-inverted {\n          background-color: white;\n          border-color: transparent;\n          box-shadow: none;\n          color: #0a0a0a; }\n      #optimole-app .button.is-black.is-loading::after {\n        border-color: transparent transparent white white !important; }\n      #optimole-app .button.is-black.is-outlined {\n        background-color: transparent;\n        border-color: #0a0a0a;\n        color: #0a0a0a; }\n        #optimole-app .button.is-black.is-outlined:hover, #optimole-app .button.is-black.is-outlined:focus {\n          background-color: #0a0a0a;\n          border-color: #0a0a0a;\n          color: white; }\n        #optimole-app .button.is-black.is-outlined.is-loading::after {\n          border-color: transparent transparent #0a0a0a #0a0a0a !important; }\n        #optimole-app .button.is-black.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-black.is-outlined {\n          background-color: transparent;\n          border-color: #0a0a0a;\n          box-shadow: none;\n          color: #0a0a0a; }\n      #optimole-app .button.is-black.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: white;\n        color: white; }\n        #optimole-app .button.is-black.is-inverted.is-outlined:hover, #optimole-app .button.is-black.is-inverted.is-outlined:focus {\n          background-color: white;\n          color: #0a0a0a; }\n        #optimole-app .button.is-black.is-inverted.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-black.is-inverted.is-outlined {\n          background-color: transparent;\n          border-color: white;\n          box-shadow: none;\n          color: white; }\n    #optimole-app .button.is-light {\n      background-color: whitesmoke;\n      border-color: transparent;\n      color: #363636; }\n      #optimole-app .button.is-light:hover, #optimole-app .button.is-light.is-hovered {\n        background-color: #eeeeee;\n        border-color: transparent;\n        color: #363636; }\n      #optimole-app .button.is-light:focus, #optimole-app .button.is-light.is-focused {\n        border-color: transparent;\n        color: #363636; }\n        #optimole-app .button.is-light:focus:not(:active), #optimole-app .button.is-light.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(245, 245, 245, 0.25); }\n      #optimole-app .button.is-light:active, #optimole-app .button.is-light.is-active {\n        background-color: #e8e8e8;\n        border-color: transparent;\n        color: #363636; }\n      #optimole-app .button.is-light[disabled],\n      fieldset[disabled] #optimole-app .button.is-light {\n        background-color: whitesmoke;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-light.is-inverted {\n        background-color: #363636;\n        color: whitesmoke; }\n        #optimole-app .button.is-light.is-inverted:hover {\n          background-color: #292929; }\n        #optimole-app .button.is-light.is-inverted[disabled],\n        fieldset[disabled] #optimole-app .button.is-light.is-inverted {\n          background-color: #363636;\n          border-color: transparent;\n          box-shadow: none;\n          color: whitesmoke; }\n      #optimole-app .button.is-light.is-loading::after {\n        border-color: transparent transparent #363636 #363636 !important; }\n      #optimole-app .button.is-light.is-outlined {\n        background-color: transparent;\n        border-color: whitesmoke;\n        color: whitesmoke; }\n        #optimole-app .button.is-light.is-outlined:hover, #optimole-app .button.is-light.is-outlined:focus {\n          background-color: whitesmoke;\n          border-color: whitesmoke;\n          color: #363636; }\n        #optimole-app .button.is-light.is-outlined.is-loading::after {\n          border-color: transparent transparent whitesmoke whitesmoke !important; }\n        #optimole-app .button.is-light.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-light.is-outlined {\n          background-color: transparent;\n          border-color: whitesmoke;\n          box-shadow: none;\n          color: whitesmoke; }\n      #optimole-app .button.is-light.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #363636;\n        color: #363636; }\n        #optimole-app .button.is-light.is-inverted.is-outlined:hover, #optimole-app .button.is-light.is-inverted.is-outlined:focus {\n          background-color: #363636;\n          color: whitesmoke; }\n        #optimole-app .button.is-light.is-inverted.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-light.is-inverted.is-outlined {\n          background-color: transparent;\n          border-color: #363636;\n          box-shadow: none;\n          color: #363636; }\n    #optimole-app .button.is-dark {\n      background-color: #363636;\n      border-color: transparent;\n      color: whitesmoke; }\n      #optimole-app .button.is-dark:hover, #optimole-app .button.is-dark.is-hovered {\n        background-color: #2f2f2f;\n        border-color: transparent;\n        color: whitesmoke; }\n      #optimole-app .button.is-dark:focus, #optimole-app .button.is-dark.is-focused {\n        border-color: transparent;\n        color: whitesmoke; }\n        #optimole-app .button.is-dark:focus:not(:active), #optimole-app .button.is-dark.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(54, 54, 54, 0.25); }\n      #optimole-app .button.is-dark:active, #optimole-app .button.is-dark.is-active {\n        background-color: #292929;\n        border-color: transparent;\n        color: whitesmoke; }\n      #optimole-app .button.is-dark[disabled],\n      fieldset[disabled] #optimole-app .button.is-dark {\n        background-color: #363636;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-dark.is-inverted {\n        background-color: whitesmoke;\n        color: #363636; }\n        #optimole-app .button.is-dark.is-inverted:hover {\n          background-color: #e8e8e8; }\n        #optimole-app .button.is-dark.is-inverted[disabled],\n        fieldset[disabled] #optimole-app .button.is-dark.is-inverted {\n          background-color: whitesmoke;\n          border-color: transparent;\n          box-shadow: none;\n          color: #363636; }\n      #optimole-app .button.is-dark.is-loading::after {\n        border-color: transparent transparent whitesmoke whitesmoke !important; }\n      #optimole-app .button.is-dark.is-outlined {\n        background-color: transparent;\n        border-color: #363636;\n        color: #363636; }\n        #optimole-app .button.is-dark.is-outlined:hover, #optimole-app .button.is-dark.is-outlined:focus {\n          background-color: #363636;\n          border-color: #363636;\n          color: whitesmoke; }\n        #optimole-app .button.is-dark.is-outlined.is-loading::after {\n          border-color: transparent transparent #363636 #363636 !important; }\n        #optimole-app .button.is-dark.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-dark.is-outlined {\n          background-color: transparent;\n          border-color: #363636;\n          box-shadow: none;\n          color: #363636; }\n      #optimole-app .button.is-dark.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: whitesmoke;\n        color: whitesmoke; }\n        #optimole-app .button.is-dark.is-inverted.is-outlined:hover, #optimole-app .button.is-dark.is-inverted.is-outlined:focus {\n          background-color: whitesmoke;\n          color: #363636; }\n        #optimole-app .button.is-dark.is-inverted.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-dark.is-inverted.is-outlined {\n          background-color: transparent;\n          border-color: whitesmoke;\n          box-shadow: none;\n          color: whitesmoke; }\n    #optimole-app .button.is-primary {\n      background-color: #EF686B;\n      border-color: transparent;\n      color: #fff; }\n      #optimole-app .button.is-primary:hover, #optimole-app .button.is-primary.is-hovered {\n        background-color: #ee5c60;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-primary:focus, #optimole-app .button.is-primary.is-focused {\n        border-color: transparent;\n        color: #fff; }\n        #optimole-app .button.is-primary:focus:not(:active), #optimole-app .button.is-primary.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(239, 104, 107, 0.25); }\n      #optimole-app .button.is-primary:active, #optimole-app .button.is-primary.is-active {\n        background-color: #ed5154;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-primary[disabled],\n      fieldset[disabled] #optimole-app .button.is-primary {\n        background-color: #EF686B;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-primary.is-inverted {\n        background-color: #fff;\n        color: #EF686B; }\n        #optimole-app .button.is-primary.is-inverted:hover {\n          background-color: #f2f2f2; }\n        #optimole-app .button.is-primary.is-inverted[disabled],\n        fieldset[disabled] #optimole-app .button.is-primary.is-inverted {\n          background-color: #fff;\n          border-color: transparent;\n          box-shadow: none;\n          color: #EF686B; }\n      #optimole-app .button.is-primary.is-loading::after {\n        border-color: transparent transparent #fff #fff !important; }\n      #optimole-app .button.is-primary.is-outlined {\n        background-color: transparent;\n        border-color: #EF686B;\n        color: #EF686B; }\n        #optimole-app .button.is-primary.is-outlined:hover, #optimole-app .button.is-primary.is-outlined:focus {\n          background-color: #EF686B;\n          border-color: #EF686B;\n          color: #fff; }\n        #optimole-app .button.is-primary.is-outlined.is-loading::after {\n          border-color: transparent transparent #EF686B #EF686B !important; }\n        #optimole-app .button.is-primary.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-primary.is-outlined {\n          background-color: transparent;\n          border-color: #EF686B;\n          box-shadow: none;\n          color: #EF686B; }\n      #optimole-app .button.is-primary.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #fff;\n        color: #fff; }\n        #optimole-app .button.is-primary.is-inverted.is-outlined:hover, #optimole-app .button.is-primary.is-inverted.is-outlined:focus {\n          background-color: #fff;\n          color: #EF686B; }\n        #optimole-app .button.is-primary.is-inverted.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-primary.is-inverted.is-outlined {\n          background-color: transparent;\n          border-color: #fff;\n          box-shadow: none;\n          color: #fff; }\n    #optimole-app .button.is-link {\n      background-color: #3273dc;\n      border-color: transparent;\n      color: #fff; }\n      #optimole-app .button.is-link:hover, #optimole-app .button.is-link.is-hovered {\n        background-color: #276cda;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-link:focus, #optimole-app .button.is-link.is-focused {\n        border-color: transparent;\n        color: #fff; }\n        #optimole-app .button.is-link:focus:not(:active), #optimole-app .button.is-link.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }\n      #optimole-app .button.is-link:active, #optimole-app .button.is-link.is-active {\n        background-color: #2366d1;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-link[disabled],\n      fieldset[disabled] #optimole-app .button.is-link {\n        background-color: #3273dc;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-link.is-inverted {\n        background-color: #fff;\n        color: #3273dc; }\n        #optimole-app .button.is-link.is-inverted:hover {\n          background-color: #f2f2f2; }\n        #optimole-app .button.is-link.is-inverted[disabled],\n        fieldset[disabled] #optimole-app .button.is-link.is-inverted {\n          background-color: #fff;\n          border-color: transparent;\n          box-shadow: none;\n          color: #3273dc; }\n      #optimole-app .button.is-link.is-loading::after {\n        border-color: transparent transparent #fff #fff !important; }\n      #optimole-app .button.is-link.is-outlined {\n        background-color: transparent;\n        border-color: #3273dc;\n        color: #3273dc; }\n        #optimole-app .button.is-link.is-outlined:hover, #optimole-app .button.is-link.is-outlined:focus {\n          background-color: #3273dc;\n          border-color: #3273dc;\n          color: #fff; }\n        #optimole-app .button.is-link.is-outlined.is-loading::after {\n          border-color: transparent transparent #3273dc #3273dc !important; }\n        #optimole-app .button.is-link.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-link.is-outlined {\n          background-color: transparent;\n          border-color: #3273dc;\n          box-shadow: none;\n          color: #3273dc; }\n      #optimole-app .button.is-link.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #fff;\n        color: #fff; }\n        #optimole-app .button.is-link.is-inverted.is-outlined:hover, #optimole-app .button.is-link.is-inverted.is-outlined:focus {\n          background-color: #fff;\n          color: #3273dc; }\n        #optimole-app .button.is-link.is-inverted.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-link.is-inverted.is-outlined {\n          background-color: transparent;\n          border-color: #fff;\n          box-shadow: none;\n          color: #fff; }\n    #optimole-app .button.is-info {\n      background-color: #5180C1;\n      border-color: transparent;\n      color: #fff; }\n      #optimole-app .button.is-info:hover, #optimole-app .button.is-info.is-hovered {\n        background-color: #4879be;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-info:focus, #optimole-app .button.is-info.is-focused {\n        border-color: transparent;\n        color: #fff; }\n        #optimole-app .button.is-info:focus:not(:active), #optimole-app .button.is-info.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(81, 128, 193, 0.25); }\n      #optimole-app .button.is-info:active, #optimole-app .button.is-info.is-active {\n        background-color: #4173b7;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-info[disabled],\n      fieldset[disabled] #optimole-app .button.is-info {\n        background-color: #5180C1;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-info.is-inverted {\n        background-color: #fff;\n        color: #5180C1; }\n        #optimole-app .button.is-info.is-inverted:hover {\n          background-color: #f2f2f2; }\n        #optimole-app .button.is-info.is-inverted[disabled],\n        fieldset[disabled] #optimole-app .button.is-info.is-inverted {\n          background-color: #fff;\n          border-color: transparent;\n          box-shadow: none;\n          color: #5180C1; }\n      #optimole-app .button.is-info.is-loading::after {\n        border-color: transparent transparent #fff #fff !important; }\n      #optimole-app .button.is-info.is-outlined {\n        background-color: transparent;\n        border-color: #5180C1;\n        color: #5180C1; }\n        #optimole-app .button.is-info.is-outlined:hover, #optimole-app .button.is-info.is-outlined:focus {\n          background-color: #5180C1;\n          border-color: #5180C1;\n          color: #fff; }\n        #optimole-app .button.is-info.is-outlined.is-loading::after {\n          border-color: transparent transparent #5180C1 #5180C1 !important; }\n        #optimole-app .button.is-info.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-info.is-outlined {\n          background-color: transparent;\n          border-color: #5180C1;\n          box-shadow: none;\n          color: #5180C1; }\n      #optimole-app .button.is-info.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #fff;\n        color: #fff; }\n        #optimole-app .button.is-info.is-inverted.is-outlined:hover, #optimole-app .button.is-info.is-inverted.is-outlined:focus {\n          background-color: #fff;\n          color: #5180C1; }\n        #optimole-app .button.is-info.is-inverted.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-info.is-inverted.is-outlined {\n          background-color: transparent;\n          border-color: #fff;\n          box-shadow: none;\n          color: #fff; }\n    #optimole-app .button.is-success {\n      background-color: #34a85e;\n      border-color: transparent;\n      color: #fff; }\n      #optimole-app .button.is-success:hover, #optimole-app .button.is-success.is-hovered {\n        background-color: #319e59;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-success:focus, #optimole-app .button.is-success.is-focused {\n        border-color: transparent;\n        color: #fff; }\n        #optimole-app .button.is-success:focus:not(:active), #optimole-app .button.is-success.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(52, 168, 94, 0.25); }\n      #optimole-app .button.is-success:active, #optimole-app .button.is-success.is-active {\n        background-color: #2e9553;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-success[disabled],\n      fieldset[disabled] #optimole-app .button.is-success {\n        background-color: #34a85e;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-success.is-inverted {\n        background-color: #fff;\n        color: #34a85e; }\n        #optimole-app .button.is-success.is-inverted:hover {\n          background-color: #f2f2f2; }\n        #optimole-app .button.is-success.is-inverted[disabled],\n        fieldset[disabled] #optimole-app .button.is-success.is-inverted {\n          background-color: #fff;\n          border-color: transparent;\n          box-shadow: none;\n          color: #34a85e; }\n      #optimole-app .button.is-success.is-loading::after {\n        border-color: transparent transparent #fff #fff !important; }\n      #optimole-app .button.is-success.is-outlined {\n        background-color: transparent;\n        border-color: #34a85e;\n        color: #34a85e; }\n        #optimole-app .button.is-success.is-outlined:hover, #optimole-app .button.is-success.is-outlined:focus {\n          background-color: #34a85e;\n          border-color: #34a85e;\n          color: #fff; }\n        #optimole-app .button.is-success.is-outlined.is-loading::after {\n          border-color: transparent transparent #34a85e #34a85e !important; }\n        #optimole-app .button.is-success.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-success.is-outlined {\n          background-color: transparent;\n          border-color: #34a85e;\n          box-shadow: none;\n          color: #34a85e; }\n      #optimole-app .button.is-success.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #fff;\n        color: #fff; }\n        #optimole-app .button.is-success.is-inverted.is-outlined:hover, #optimole-app .button.is-success.is-inverted.is-outlined:focus {\n          background-color: #fff;\n          color: #34a85e; }\n        #optimole-app .button.is-success.is-inverted.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-success.is-inverted.is-outlined {\n          background-color: transparent;\n          border-color: #fff;\n          box-shadow: none;\n          color: #fff; }\n    #optimole-app .button.is-warning {\n      background-color: #ffdd57;\n      border-color: transparent;\n      color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .button.is-warning:hover, #optimole-app .button.is-warning.is-hovered {\n        background-color: #ffdb4a;\n        border-color: transparent;\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .button.is-warning:focus, #optimole-app .button.is-warning.is-focused {\n        border-color: transparent;\n        color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .button.is-warning:focus:not(:active), #optimole-app .button.is-warning.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(255, 221, 87, 0.25); }\n      #optimole-app .button.is-warning:active, #optimole-app .button.is-warning.is-active {\n        background-color: #ffd83d;\n        border-color: transparent;\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .button.is-warning[disabled],\n      fieldset[disabled] #optimole-app .button.is-warning {\n        background-color: #ffdd57;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-warning.is-inverted {\n        background-color: rgba(0, 0, 0, 0.7);\n        color: #ffdd57; }\n        #optimole-app .button.is-warning.is-inverted:hover {\n          background-color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .button.is-warning.is-inverted[disabled],\n        fieldset[disabled] #optimole-app .button.is-warning.is-inverted {\n          background-color: rgba(0, 0, 0, 0.7);\n          border-color: transparent;\n          box-shadow: none;\n          color: #ffdd57; }\n      #optimole-app .button.is-warning.is-loading::after {\n        border-color: transparent transparent rgba(0, 0, 0, 0.7) rgba(0, 0, 0, 0.7) !important; }\n      #optimole-app .button.is-warning.is-outlined {\n        background-color: transparent;\n        border-color: #ffdd57;\n        color: #ffdd57; }\n        #optimole-app .button.is-warning.is-outlined:hover, #optimole-app .button.is-warning.is-outlined:focus {\n          background-color: #ffdd57;\n          border-color: #ffdd57;\n          color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .button.is-warning.is-outlined.is-loading::after {\n          border-color: transparent transparent #ffdd57 #ffdd57 !important; }\n        #optimole-app .button.is-warning.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-warning.is-outlined {\n          background-color: transparent;\n          border-color: #ffdd57;\n          box-shadow: none;\n          color: #ffdd57; }\n      #optimole-app .button.is-warning.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: rgba(0, 0, 0, 0.7);\n        color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .button.is-warning.is-inverted.is-outlined:hover, #optimole-app .button.is-warning.is-inverted.is-outlined:focus {\n          background-color: rgba(0, 0, 0, 0.7);\n          color: #ffdd57; }\n        #optimole-app .button.is-warning.is-inverted.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-warning.is-inverted.is-outlined {\n          background-color: transparent;\n          border-color: rgba(0, 0, 0, 0.7);\n          box-shadow: none;\n          color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .button.is-danger {\n      background-color: #D54222;\n      border-color: transparent;\n      color: #fff; }\n      #optimole-app .button.is-danger:hover, #optimole-app .button.is-danger.is-hovered {\n        background-color: #ca3f20;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-danger:focus, #optimole-app .button.is-danger.is-focused {\n        border-color: transparent;\n        color: #fff; }\n        #optimole-app .button.is-danger:focus:not(:active), #optimole-app .button.is-danger.is-focused:not(:active) {\n          box-shadow: 0 0 0 0.125em rgba(213, 66, 34, 0.25); }\n      #optimole-app .button.is-danger:active, #optimole-app .button.is-danger.is-active {\n        background-color: #bf3b1e;\n        border-color: transparent;\n        color: #fff; }\n      #optimole-app .button.is-danger[disabled],\n      fieldset[disabled] #optimole-app .button.is-danger {\n        background-color: #D54222;\n        border-color: transparent;\n        box-shadow: none; }\n      #optimole-app .button.is-danger.is-inverted {\n        background-color: #fff;\n        color: #D54222; }\n        #optimole-app .button.is-danger.is-inverted:hover {\n          background-color: #f2f2f2; }\n        #optimole-app .button.is-danger.is-inverted[disabled],\n        fieldset[disabled] #optimole-app .button.is-danger.is-inverted {\n          background-color: #fff;\n          border-color: transparent;\n          box-shadow: none;\n          color: #D54222; }\n      #optimole-app .button.is-danger.is-loading::after {\n        border-color: transparent transparent #fff #fff !important; }\n      #optimole-app .button.is-danger.is-outlined {\n        background-color: transparent;\n        border-color: #D54222;\n        color: #D54222; }\n        #optimole-app .button.is-danger.is-outlined:hover, #optimole-app .button.is-danger.is-outlined:focus {\n          background-color: #D54222;\n          border-color: #D54222;\n          color: #fff; }\n        #optimole-app .button.is-danger.is-outlined.is-loading::after {\n          border-color: transparent transparent #D54222 #D54222 !important; }\n        #optimole-app .button.is-danger.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-danger.is-outlined {\n          background-color: transparent;\n          border-color: #D54222;\n          box-shadow: none;\n          color: #D54222; }\n      #optimole-app .button.is-danger.is-inverted.is-outlined {\n        background-color: transparent;\n        border-color: #fff;\n        color: #fff; }\n        #optimole-app .button.is-danger.is-inverted.is-outlined:hover, #optimole-app .button.is-danger.is-inverted.is-outlined:focus {\n          background-color: #fff;\n          color: #D54222; }\n        #optimole-app .button.is-danger.is-inverted.is-outlined[disabled],\n        fieldset[disabled] #optimole-app .button.is-danger.is-inverted.is-outlined {\n          background-color: transparent;\n          border-color: #fff;\n          box-shadow: none;\n          color: #fff; }\n    #optimole-app .button.is-small {\n      border-radius: 2px;\n      font-size: 0.75rem; }\n    #optimole-app .button.is-normal {\n      font-size: 1rem; }\n    #optimole-app .button.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .button.is-large {\n      font-size: 1.5rem; }\n    #optimole-app .button[disabled],\n    fieldset[disabled] #optimole-app .button {\n      background-color: white;\n      border-color: #dbdbdb;\n      box-shadow: none;\n      opacity: 0.5; }\n    #optimole-app .button.is-fullwidth {\n      display: -ms-flexbox;\n      display: flex;\n      width: 100%; }\n    #optimole-app .button.is-loading {\n      color: transparent !important;\n      pointer-events: none; }\n      #optimole-app .button.is-loading::after {\n        position: absolute;\n        left: calc(50% - (1em / 2));\n        top: calc(50% - (1em / 2));\n        position: absolute !important; }\n    #optimole-app .button.is-static {\n      background-color: whitesmoke;\n      border-color: #dbdbdb;\n      color: #7a7a7a;\n      box-shadow: none;\n      pointer-events: none; }\n    #optimole-app .button.is-rounded {\n      border-radius: 290486px;\n      padding-left: 1em;\n      padding-right: 1em; }\n  #optimole-app .buttons {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n    -ms-flex-pack: start;\n        justify-content: flex-start; }\n    #optimole-app .buttons .button {\n      margin-bottom: 0.5rem; }\n      #optimole-app .buttons .button:not(:last-child):not(.is-fullwidth) {\n        margin-right: 0.5rem; }\n    #optimole-app .buttons:last-child {\n      margin-bottom: -0.5rem; }\n    #optimole-app .buttons:not(:last-child) {\n      margin-bottom: 1rem; }\n    #optimole-app .buttons.are-small .button:not(.is-normal):not(.is-medium):not(.is-large) {\n      border-radius: 2px;\n      font-size: 0.75rem; }\n    #optimole-app .buttons.are-medium .button:not(.is-small):not(.is-normal):not(.is-large) {\n      font-size: 1.25rem; }\n    #optimole-app .buttons.are-large .button:not(.is-small):not(.is-normal):not(.is-medium) {\n      font-size: 1.5rem; }\n    #optimole-app .buttons.has-addons .button:not(:first-child) {\n      border-bottom-left-radius: 0;\n      border-top-left-radius: 0; }\n    #optimole-app .buttons.has-addons .button:not(:last-child) {\n      border-bottom-right-radius: 0;\n      border-top-right-radius: 0;\n      margin-right: -1px; }\n    #optimole-app .buttons.has-addons .button:last-child {\n      margin-right: 0; }\n    #optimole-app .buttons.has-addons .button:hover, #optimole-app .buttons.has-addons .button.is-hovered {\n      z-index: 2; }\n    #optimole-app .buttons.has-addons .button:focus, #optimole-app .buttons.has-addons .button.is-focused, #optimole-app .buttons.has-addons .button:active, #optimole-app .buttons.has-addons .button.is-active, #optimole-app .buttons.has-addons .button.is-selected {\n      z-index: 3; }\n      #optimole-app .buttons.has-addons .button:focus:hover, #optimole-app .buttons.has-addons .button.is-focused:hover, #optimole-app .buttons.has-addons .button:active:hover, #optimole-app .buttons.has-addons .button.is-active:hover, #optimole-app .buttons.has-addons .button.is-selected:hover {\n        z-index: 4; }\n    #optimole-app .buttons.has-addons .button.is-expanded {\n      -ms-flex-positive: 1;\n          flex-grow: 1; }\n    #optimole-app .buttons.is-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .buttons.is-right {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n  #optimole-app .container {\n    margin: 0 auto;\n    position: relative; }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .container {\n        max-width: 960px;\n        width: 960px; }\n        #optimole-app .container.is-fluid {\n          margin-left: 64px;\n          margin-right: 64px;\n          max-width: none;\n          width: auto; } }\n    @media screen and (max-width: 1279px) {\n      #optimole-app .container.is-widescreen {\n        max-width: 1152px;\n        width: auto; } }\n    @media screen and (max-width: 1471px) {\n      #optimole-app .container.is-fullhd {\n        max-width: 1344px;\n        width: auto; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .container {\n        max-width: 1152px;\n        width: 1152px; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .container {\n        max-width: 1344px;\n        width: 1344px; } }\n  #optimole-app .content li + li {\n    margin-top: 0.25em; }\n  #optimole-app .content p:not(:last-child),\n  #optimole-app .content dl:not(:last-child),\n  #optimole-app .content ol:not(:last-child),\n  #optimole-app .content ul:not(:last-child),\n  #optimole-app .content blockquote:not(:last-child),\n  #optimole-app .content pre:not(:last-child),\n  #optimole-app .content table:not(:last-child) {\n    margin-bottom: 1em; }\n  #optimole-app .content h1,\n  #optimole-app .content h2,\n  #optimole-app .content h3,\n  #optimole-app .content h4,\n  #optimole-app .content h5,\n  #optimole-app .content h6 {\n    color: #363636;\n    font-weight: 600;\n    line-height: 1.125; }\n  #optimole-app .content h1 {\n    font-size: 2em;\n    margin-bottom: 0.5em; }\n    #optimole-app .content h1:not(:first-child) {\n      margin-top: 1em; }\n  #optimole-app .content h2 {\n    font-size: 1.75em;\n    margin-bottom: 0.5714em; }\n    #optimole-app .content h2:not(:first-child) {\n      margin-top: 1.1428em; }\n  #optimole-app .content h3 {\n    font-size: 1.5em;\n    margin-bottom: 0.6666em; }\n    #optimole-app .content h3:not(:first-child) {\n      margin-top: 1.3333em; }\n  #optimole-app .content h4 {\n    font-size: 1.25em;\n    margin-bottom: 0.8em; }\n  #optimole-app .content h5 {\n    font-size: 1.125em;\n    margin-bottom: 0.8888em; }\n  #optimole-app .content h6 {\n    font-size: 1em;\n    margin-bottom: 1em; }\n  #optimole-app .content blockquote {\n    background-color: whitesmoke;\n    border-left: 5px solid #dbdbdb;\n    padding: 1.25em 1.5em; }\n  #optimole-app .content ol {\n    list-style-position: outside;\n    margin-left: 2em;\n    margin-top: 1em; }\n    #optimole-app .content ol:not([type]) {\n      list-style-type: decimal; }\n      #optimole-app .content ol:not([type]).is-lower-alpha {\n        list-style-type: lower-alpha; }\n      #optimole-app .content ol:not([type]).is-lower-roman {\n        list-style-type: lower-roman; }\n      #optimole-app .content ol:not([type]).is-upper-alpha {\n        list-style-type: upper-alpha; }\n      #optimole-app .content ol:not([type]).is-upper-roman {\n        list-style-type: upper-roman; }\n  #optimole-app .content ul {\n    list-style: disc outside;\n    margin-left: 2em;\n    margin-top: 1em; }\n    #optimole-app .content ul ul {\n      list-style-type: circle;\n      margin-top: 0.5em; }\n      #optimole-app .content ul ul ul {\n        list-style-type: square; }\n  #optimole-app .content dd {\n    margin-left: 2em; }\n  #optimole-app .content figure {\n    margin-left: 2em;\n    margin-right: 2em;\n    text-align: center; }\n    #optimole-app .content figure:not(:first-child) {\n      margin-top: 2em; }\n    #optimole-app .content figure:not(:last-child) {\n      margin-bottom: 2em; }\n    #optimole-app .content figure img {\n      display: inline-block; }\n    #optimole-app .content figure figcaption {\n      font-style: italic; }\n  #optimole-app .content pre {\n    -webkit-overflow-scrolling: touch;\n    overflow-x: auto;\n    padding: 1.25em 1.5em;\n    white-space: pre;\n    word-wrap: normal; }\n  #optimole-app .content sup,\n  #optimole-app .content sub {\n    font-size: 75%; }\n  #optimole-app .content table {\n    width: 100%; }\n    #optimole-app .content table td,\n    #optimole-app .content table th {\n      border: 1px solid #dbdbdb;\n      border-width: 0 0 1px;\n      padding: 0.5em 0.75em;\n      vertical-align: top; }\n    #optimole-app .content table th {\n      color: #363636;\n      text-align: left; }\n    #optimole-app .content table thead td,\n    #optimole-app .content table thead th {\n      border-width: 0 0 2px;\n      color: #363636; }\n    #optimole-app .content table tfoot td,\n    #optimole-app .content table tfoot th {\n      border-width: 2px 0 0;\n      color: #363636; }\n    #optimole-app .content table tbody tr:last-child td,\n    #optimole-app .content table tbody tr:last-child th {\n      border-bottom-width: 0; }\n  #optimole-app .content.is-small {\n    font-size: 0.75rem; }\n  #optimole-app .content.is-medium {\n    font-size: 1.25rem; }\n  #optimole-app .content.is-large {\n    font-size: 1.5rem; }\n  #optimole-app .input,\n  #optimole-app .textarea {\n    background-color: white;\n    border-color: #dbdbdb;\n    color: #363636;\n    box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.1);\n    max-width: 100%;\n    width: 100%; }\n    #optimole-app .input::-moz-placeholder,\n    #optimole-app .textarea::-moz-placeholder {\n      color: rgba(54, 54, 54, 0.3); }\n    #optimole-app .input::-webkit-input-placeholder,\n    #optimole-app .textarea::-webkit-input-placeholder {\n      color: rgba(54, 54, 54, 0.3); }\n    #optimole-app .input:-moz-placeholder,\n    #optimole-app .textarea:-moz-placeholder {\n      color: rgba(54, 54, 54, 0.3); }\n    #optimole-app .input:-ms-input-placeholder,\n    #optimole-app .textarea:-ms-input-placeholder {\n      color: rgba(54, 54, 54, 0.3); }\n    #optimole-app .input:hover, #optimole-app .input.is-hovered,\n    #optimole-app .textarea:hover,\n    #optimole-app .textarea.is-hovered {\n      border-color: #b5b5b5; }\n    #optimole-app .input:focus, #optimole-app .input.is-focused, #optimole-app .input:active, #optimole-app .input.is-active,\n    #optimole-app .textarea:focus,\n    #optimole-app .textarea.is-focused,\n    #optimole-app .textarea:active,\n    #optimole-app .textarea.is-active {\n      border-color: #3273dc;\n      box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }\n    #optimole-app .input[disabled],\n    fieldset[disabled] #optimole-app .input,\n    #optimole-app .textarea[disabled],\n    fieldset[disabled]\n    #optimole-app .textarea {\n      background-color: whitesmoke;\n      border-color: whitesmoke;\n      box-shadow: none;\n      color: #7a7a7a; }\n      #optimole-app .input[disabled]::-moz-placeholder,\n      fieldset[disabled] #optimole-app .input::-moz-placeholder,\n      #optimole-app .textarea[disabled]::-moz-placeholder,\n      fieldset[disabled]\n      #optimole-app .textarea::-moz-placeholder {\n        color: rgba(122, 122, 122, 0.3); }\n      #optimole-app .input[disabled]::-webkit-input-placeholder,\n      fieldset[disabled] #optimole-app .input::-webkit-input-placeholder,\n      #optimole-app .textarea[disabled]::-webkit-input-placeholder,\n      fieldset[disabled]\n      #optimole-app .textarea::-webkit-input-placeholder {\n        color: rgba(122, 122, 122, 0.3); }\n      #optimole-app .input[disabled]:-moz-placeholder,\n      fieldset[disabled] #optimole-app .input:-moz-placeholder,\n      #optimole-app .textarea[disabled]:-moz-placeholder,\n      fieldset[disabled]\n      #optimole-app .textarea:-moz-placeholder {\n        color: rgba(122, 122, 122, 0.3); }\n      #optimole-app .input[disabled]:-ms-input-placeholder,\n      fieldset[disabled] #optimole-app .input:-ms-input-placeholder,\n      #optimole-app .textarea[disabled]:-ms-input-placeholder,\n      fieldset[disabled]\n      #optimole-app .textarea:-ms-input-placeholder {\n        color: rgba(122, 122, 122, 0.3); }\n    #optimole-app .input[readonly],\n    #optimole-app .textarea[readonly] {\n      box-shadow: none; }\n    #optimole-app .input.is-white,\n    #optimole-app .textarea.is-white {\n      border-color: white; }\n      #optimole-app .input.is-white:focus, #optimole-app .input.is-white.is-focused, #optimole-app .input.is-white:active, #optimole-app .input.is-white.is-active,\n      #optimole-app .textarea.is-white:focus,\n      #optimole-app .textarea.is-white.is-focused,\n      #optimole-app .textarea.is-white:active,\n      #optimole-app .textarea.is-white.is-active {\n        box-shadow: 0 0 0 0.125em rgba(255, 255, 255, 0.25); }\n    #optimole-app .input.is-black,\n    #optimole-app .textarea.is-black {\n      border-color: #0a0a0a; }\n      #optimole-app .input.is-black:focus, #optimole-app .input.is-black.is-focused, #optimole-app .input.is-black:active, #optimole-app .input.is-black.is-active,\n      #optimole-app .textarea.is-black:focus,\n      #optimole-app .textarea.is-black.is-focused,\n      #optimole-app .textarea.is-black:active,\n      #optimole-app .textarea.is-black.is-active {\n        box-shadow: 0 0 0 0.125em rgba(10, 10, 10, 0.25); }\n    #optimole-app .input.is-light,\n    #optimole-app .textarea.is-light {\n      border-color: whitesmoke; }\n      #optimole-app .input.is-light:focus, #optimole-app .input.is-light.is-focused, #optimole-app .input.is-light:active, #optimole-app .input.is-light.is-active,\n      #optimole-app .textarea.is-light:focus,\n      #optimole-app .textarea.is-light.is-focused,\n      #optimole-app .textarea.is-light:active,\n      #optimole-app .textarea.is-light.is-active {\n        box-shadow: 0 0 0 0.125em rgba(245, 245, 245, 0.25); }\n    #optimole-app .input.is-dark,\n    #optimole-app .textarea.is-dark {\n      border-color: #363636; }\n      #optimole-app .input.is-dark:focus, #optimole-app .input.is-dark.is-focused, #optimole-app .input.is-dark:active, #optimole-app .input.is-dark.is-active,\n      #optimole-app .textarea.is-dark:focus,\n      #optimole-app .textarea.is-dark.is-focused,\n      #optimole-app .textarea.is-dark:active,\n      #optimole-app .textarea.is-dark.is-active {\n        box-shadow: 0 0 0 0.125em rgba(54, 54, 54, 0.25); }\n    #optimole-app .input.is-primary,\n    #optimole-app .textarea.is-primary {\n      border-color: #EF686B; }\n      #optimole-app .input.is-primary:focus, #optimole-app .input.is-primary.is-focused, #optimole-app .input.is-primary:active, #optimole-app .input.is-primary.is-active,\n      #optimole-app .textarea.is-primary:focus,\n      #optimole-app .textarea.is-primary.is-focused,\n      #optimole-app .textarea.is-primary:active,\n      #optimole-app .textarea.is-primary.is-active {\n        box-shadow: 0 0 0 0.125em rgba(239, 104, 107, 0.25); }\n    #optimole-app .input.is-link,\n    #optimole-app .textarea.is-link {\n      border-color: #3273dc; }\n      #optimole-app .input.is-link:focus, #optimole-app .input.is-link.is-focused, #optimole-app .input.is-link:active, #optimole-app .input.is-link.is-active,\n      #optimole-app .textarea.is-link:focus,\n      #optimole-app .textarea.is-link.is-focused,\n      #optimole-app .textarea.is-link:active,\n      #optimole-app .textarea.is-link.is-active {\n        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }\n    #optimole-app .input.is-info,\n    #optimole-app .textarea.is-info {\n      border-color: #5180C1; }\n      #optimole-app .input.is-info:focus, #optimole-app .input.is-info.is-focused, #optimole-app .input.is-info:active, #optimole-app .input.is-info.is-active,\n      #optimole-app .textarea.is-info:focus,\n      #optimole-app .textarea.is-info.is-focused,\n      #optimole-app .textarea.is-info:active,\n      #optimole-app .textarea.is-info.is-active {\n        box-shadow: 0 0 0 0.125em rgba(81, 128, 193, 0.25); }\n    #optimole-app .input.is-success,\n    #optimole-app .textarea.is-success {\n      border-color: #34a85e; }\n      #optimole-app .input.is-success:focus, #optimole-app .input.is-success.is-focused, #optimole-app .input.is-success:active, #optimole-app .input.is-success.is-active,\n      #optimole-app .textarea.is-success:focus,\n      #optimole-app .textarea.is-success.is-focused,\n      #optimole-app .textarea.is-success:active,\n      #optimole-app .textarea.is-success.is-active {\n        box-shadow: 0 0 0 0.125em rgba(52, 168, 94, 0.25); }\n    #optimole-app .input.is-warning,\n    #optimole-app .textarea.is-warning {\n      border-color: #ffdd57; }\n      #optimole-app .input.is-warning:focus, #optimole-app .input.is-warning.is-focused, #optimole-app .input.is-warning:active, #optimole-app .input.is-warning.is-active,\n      #optimole-app .textarea.is-warning:focus,\n      #optimole-app .textarea.is-warning.is-focused,\n      #optimole-app .textarea.is-warning:active,\n      #optimole-app .textarea.is-warning.is-active {\n        box-shadow: 0 0 0 0.125em rgba(255, 221, 87, 0.25); }\n    #optimole-app .input.is-danger,\n    #optimole-app .textarea.is-danger {\n      border-color: #D54222; }\n      #optimole-app .input.is-danger:focus, #optimole-app .input.is-danger.is-focused, #optimole-app .input.is-danger:active, #optimole-app .input.is-danger.is-active,\n      #optimole-app .textarea.is-danger:focus,\n      #optimole-app .textarea.is-danger.is-focused,\n      #optimole-app .textarea.is-danger:active,\n      #optimole-app .textarea.is-danger.is-active {\n        box-shadow: 0 0 0 0.125em rgba(213, 66, 34, 0.25); }\n    #optimole-app .input.is-small,\n    #optimole-app .textarea.is-small {\n      border-radius: 2px;\n      font-size: 0.75rem; }\n    #optimole-app .input.is-medium,\n    #optimole-app .textarea.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .input.is-large,\n    #optimole-app .textarea.is-large {\n      font-size: 1.5rem; }\n    #optimole-app .input.is-fullwidth,\n    #optimole-app .textarea.is-fullwidth {\n      display: block;\n      width: 100%; }\n    #optimole-app .input.is-inline,\n    #optimole-app .textarea.is-inline {\n      display: inline;\n      width: auto; }\n  #optimole-app .input.is-rounded {\n    border-radius: 290486px;\n    padding-left: 1em;\n    padding-right: 1em; }\n  #optimole-app .input.is-static {\n    background-color: transparent;\n    border-color: transparent;\n    box-shadow: none;\n    padding-left: 0;\n    padding-right: 0; }\n  #optimole-app .textarea {\n    display: block;\n    max-width: 100%;\n    min-width: 100%;\n    padding: 0.625em;\n    resize: vertical; }\n    #optimole-app .textarea:not([rows]) {\n      max-height: 600px;\n      min-height: 120px; }\n    #optimole-app .textarea[rows] {\n      height: initial; }\n    #optimole-app .textarea.has-fixed-size {\n      resize: none; }\n  #optimole-app .checkbox,\n  #optimole-app .radio {\n    cursor: pointer;\n    display: inline-block;\n    line-height: 1.25;\n    position: relative; }\n    #optimole-app .checkbox input,\n    #optimole-app .radio input {\n      cursor: pointer; }\n    #optimole-app .checkbox:hover,\n    #optimole-app .radio:hover {\n      color: #363636; }\n    #optimole-app .checkbox[disabled],\n    fieldset[disabled] #optimole-app .checkbox,\n    #optimole-app .radio[disabled],\n    fieldset[disabled]\n    #optimole-app .radio {\n      color: #7a7a7a;\n      cursor: not-allowed; }\n  #optimole-app .radio + .radio {\n    margin-left: 0.5em; }\n  #optimole-app .select {\n    display: inline-block;\n    max-width: 100%;\n    position: relative;\n    vertical-align: top; }\n    #optimole-app .select:not(.is-multiple) {\n      height: 2.25em; }\n    #optimole-app .select:not(.is-multiple):not(.is-loading)::after {\n      border-color: #3273dc;\n      right: 1.125em;\n      z-index: 4; }\n    #optimole-app .select.is-rounded select {\n      border-radius: 290486px;\n      padding-left: 1em; }\n    #optimole-app .select select {\n      background-color: white;\n      border-color: #dbdbdb;\n      color: #363636;\n      cursor: pointer;\n      display: block;\n      font-size: 1em;\n      max-width: 100%;\n      outline: none; }\n      #optimole-app .select select::-moz-placeholder {\n        color: rgba(54, 54, 54, 0.3); }\n      #optimole-app .select select::-webkit-input-placeholder {\n        color: rgba(54, 54, 54, 0.3); }\n      #optimole-app .select select:-moz-placeholder {\n        color: rgba(54, 54, 54, 0.3); }\n      #optimole-app .select select:-ms-input-placeholder {\n        color: rgba(54, 54, 54, 0.3); }\n      #optimole-app .select select:hover, #optimole-app .select select.is-hovered {\n        border-color: #b5b5b5; }\n      #optimole-app .select select:focus, #optimole-app .select select.is-focused, #optimole-app .select select:active, #optimole-app .select select.is-active {\n        border-color: #3273dc;\n        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }\n      #optimole-app .select select[disabled],\n      fieldset[disabled] #optimole-app .select select {\n        background-color: whitesmoke;\n        border-color: whitesmoke;\n        box-shadow: none;\n        color: #7a7a7a; }\n        #optimole-app .select select[disabled]::-moz-placeholder,\n        fieldset[disabled] #optimole-app .select select::-moz-placeholder {\n          color: rgba(122, 122, 122, 0.3); }\n        #optimole-app .select select[disabled]::-webkit-input-placeholder,\n        fieldset[disabled] #optimole-app .select select::-webkit-input-placeholder {\n          color: rgba(122, 122, 122, 0.3); }\n        #optimole-app .select select[disabled]:-moz-placeholder,\n        fieldset[disabled] #optimole-app .select select:-moz-placeholder {\n          color: rgba(122, 122, 122, 0.3); }\n        #optimole-app .select select[disabled]:-ms-input-placeholder,\n        fieldset[disabled] #optimole-app .select select:-ms-input-placeholder {\n          color: rgba(122, 122, 122, 0.3); }\n      #optimole-app .select select::-ms-expand {\n        display: none; }\n      #optimole-app .select select[disabled]:hover,\n      fieldset[disabled] #optimole-app .select select:hover {\n        border-color: whitesmoke; }\n      #optimole-app .select select:not([multiple]) {\n        padding-right: 2.5em; }\n      #optimole-app .select select[multiple] {\n        height: auto;\n        padding: 0; }\n        #optimole-app .select select[multiple] option {\n          padding: 0.5em 1em; }\n    #optimole-app .select:not(.is-multiple):not(.is-loading):hover::after {\n      border-color: #363636; }\n    #optimole-app .select.is-white:not(:hover)::after {\n      border-color: white; }\n    #optimole-app .select.is-white select {\n      border-color: white; }\n      #optimole-app .select.is-white select:hover, #optimole-app .select.is-white select.is-hovered {\n        border-color: #f2f2f2; }\n      #optimole-app .select.is-white select:focus, #optimole-app .select.is-white select.is-focused, #optimole-app .select.is-white select:active, #optimole-app .select.is-white select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(255, 255, 255, 0.25); }\n    #optimole-app .select.is-black:not(:hover)::after {\n      border-color: #0a0a0a; }\n    #optimole-app .select.is-black select {\n      border-color: #0a0a0a; }\n      #optimole-app .select.is-black select:hover, #optimole-app .select.is-black select.is-hovered {\n        border-color: black; }\n      #optimole-app .select.is-black select:focus, #optimole-app .select.is-black select.is-focused, #optimole-app .select.is-black select:active, #optimole-app .select.is-black select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(10, 10, 10, 0.25); }\n    #optimole-app .select.is-light:not(:hover)::after {\n      border-color: whitesmoke; }\n    #optimole-app .select.is-light select {\n      border-color: whitesmoke; }\n      #optimole-app .select.is-light select:hover, #optimole-app .select.is-light select.is-hovered {\n        border-color: #e8e8e8; }\n      #optimole-app .select.is-light select:focus, #optimole-app .select.is-light select.is-focused, #optimole-app .select.is-light select:active, #optimole-app .select.is-light select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(245, 245, 245, 0.25); }\n    #optimole-app .select.is-dark:not(:hover)::after {\n      border-color: #363636; }\n    #optimole-app .select.is-dark select {\n      border-color: #363636; }\n      #optimole-app .select.is-dark select:hover, #optimole-app .select.is-dark select.is-hovered {\n        border-color: #292929; }\n      #optimole-app .select.is-dark select:focus, #optimole-app .select.is-dark select.is-focused, #optimole-app .select.is-dark select:active, #optimole-app .select.is-dark select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(54, 54, 54, 0.25); }\n    #optimole-app .select.is-primary:not(:hover)::after {\n      border-color: #EF686B; }\n    #optimole-app .select.is-primary select {\n      border-color: #EF686B; }\n      #optimole-app .select.is-primary select:hover, #optimole-app .select.is-primary select.is-hovered {\n        border-color: #ed5154; }\n      #optimole-app .select.is-primary select:focus, #optimole-app .select.is-primary select.is-focused, #optimole-app .select.is-primary select:active, #optimole-app .select.is-primary select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(239, 104, 107, 0.25); }\n    #optimole-app .select.is-link:not(:hover)::after {\n      border-color: #3273dc; }\n    #optimole-app .select.is-link select {\n      border-color: #3273dc; }\n      #optimole-app .select.is-link select:hover, #optimole-app .select.is-link select.is-hovered {\n        border-color: #2366d1; }\n      #optimole-app .select.is-link select:focus, #optimole-app .select.is-link select.is-focused, #optimole-app .select.is-link select:active, #optimole-app .select.is-link select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(50, 115, 220, 0.25); }\n    #optimole-app .select.is-info:not(:hover)::after {\n      border-color: #5180C1; }\n    #optimole-app .select.is-info select {\n      border-color: #5180C1; }\n      #optimole-app .select.is-info select:hover, #optimole-app .select.is-info select.is-hovered {\n        border-color: #4173b7; }\n      #optimole-app .select.is-info select:focus, #optimole-app .select.is-info select.is-focused, #optimole-app .select.is-info select:active, #optimole-app .select.is-info select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(81, 128, 193, 0.25); }\n    #optimole-app .select.is-success:not(:hover)::after {\n      border-color: #34a85e; }\n    #optimole-app .select.is-success select {\n      border-color: #34a85e; }\n      #optimole-app .select.is-success select:hover, #optimole-app .select.is-success select.is-hovered {\n        border-color: #2e9553; }\n      #optimole-app .select.is-success select:focus, #optimole-app .select.is-success select.is-focused, #optimole-app .select.is-success select:active, #optimole-app .select.is-success select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(52, 168, 94, 0.25); }\n    #optimole-app .select.is-warning:not(:hover)::after {\n      border-color: #ffdd57; }\n    #optimole-app .select.is-warning select {\n      border-color: #ffdd57; }\n      #optimole-app .select.is-warning select:hover, #optimole-app .select.is-warning select.is-hovered {\n        border-color: #ffd83d; }\n      #optimole-app .select.is-warning select:focus, #optimole-app .select.is-warning select.is-focused, #optimole-app .select.is-warning select:active, #optimole-app .select.is-warning select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(255, 221, 87, 0.25); }\n    #optimole-app .select.is-danger:not(:hover)::after {\n      border-color: #D54222; }\n    #optimole-app .select.is-danger select {\n      border-color: #D54222; }\n      #optimole-app .select.is-danger select:hover, #optimole-app .select.is-danger select.is-hovered {\n        border-color: #bf3b1e; }\n      #optimole-app .select.is-danger select:focus, #optimole-app .select.is-danger select.is-focused, #optimole-app .select.is-danger select:active, #optimole-app .select.is-danger select.is-active {\n        box-shadow: 0 0 0 0.125em rgba(213, 66, 34, 0.25); }\n    #optimole-app .select.is-small {\n      border-radius: 2px;\n      font-size: 0.75rem; }\n    #optimole-app .select.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .select.is-large {\n      font-size: 1.5rem; }\n    #optimole-app .select.is-disabled::after {\n      border-color: #7a7a7a; }\n    #optimole-app .select.is-fullwidth {\n      width: 100%; }\n      #optimole-app .select.is-fullwidth select {\n        width: 100%; }\n    #optimole-app .select.is-loading::after {\n      margin-top: 0;\n      position: absolute;\n      right: 0.625em;\n      top: 0.625em;\n      transform: none; }\n    #optimole-app .select.is-loading.is-small:after {\n      font-size: 0.75rem; }\n    #optimole-app .select.is-loading.is-medium:after {\n      font-size: 1.25rem; }\n    #optimole-app .select.is-loading.is-large:after {\n      font-size: 1.5rem; }\n  #optimole-app .file {\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-pack: start;\n        justify-content: flex-start;\n    position: relative; }\n    #optimole-app .file.is-white .file-cta {\n      background-color: white;\n      border-color: transparent;\n      color: #0a0a0a; }\n    #optimole-app .file.is-white:hover .file-cta, #optimole-app .file.is-white.is-hovered .file-cta {\n      background-color: #f9f9f9;\n      border-color: transparent;\n      color: #0a0a0a; }\n    #optimole-app .file.is-white:focus .file-cta, #optimole-app .file.is-white.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(255, 255, 255, 0.25);\n      color: #0a0a0a; }\n    #optimole-app .file.is-white:active .file-cta, #optimole-app .file.is-white.is-active .file-cta {\n      background-color: #f2f2f2;\n      border-color: transparent;\n      color: #0a0a0a; }\n    #optimole-app .file.is-black .file-cta {\n      background-color: #0a0a0a;\n      border-color: transparent;\n      color: white; }\n    #optimole-app .file.is-black:hover .file-cta, #optimole-app .file.is-black.is-hovered .file-cta {\n      background-color: #040404;\n      border-color: transparent;\n      color: white; }\n    #optimole-app .file.is-black:focus .file-cta, #optimole-app .file.is-black.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(10, 10, 10, 0.25);\n      color: white; }\n    #optimole-app .file.is-black:active .file-cta, #optimole-app .file.is-black.is-active .file-cta {\n      background-color: black;\n      border-color: transparent;\n      color: white; }\n    #optimole-app .file.is-light .file-cta {\n      background-color: whitesmoke;\n      border-color: transparent;\n      color: #363636; }\n    #optimole-app .file.is-light:hover .file-cta, #optimole-app .file.is-light.is-hovered .file-cta {\n      background-color: #eeeeee;\n      border-color: transparent;\n      color: #363636; }\n    #optimole-app .file.is-light:focus .file-cta, #optimole-app .file.is-light.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(245, 245, 245, 0.25);\n      color: #363636; }\n    #optimole-app .file.is-light:active .file-cta, #optimole-app .file.is-light.is-active .file-cta {\n      background-color: #e8e8e8;\n      border-color: transparent;\n      color: #363636; }\n    #optimole-app .file.is-dark .file-cta {\n      background-color: #363636;\n      border-color: transparent;\n      color: whitesmoke; }\n    #optimole-app .file.is-dark:hover .file-cta, #optimole-app .file.is-dark.is-hovered .file-cta {\n      background-color: #2f2f2f;\n      border-color: transparent;\n      color: whitesmoke; }\n    #optimole-app .file.is-dark:focus .file-cta, #optimole-app .file.is-dark.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(54, 54, 54, 0.25);\n      color: whitesmoke; }\n    #optimole-app .file.is-dark:active .file-cta, #optimole-app .file.is-dark.is-active .file-cta {\n      background-color: #292929;\n      border-color: transparent;\n      color: whitesmoke; }\n    #optimole-app .file.is-primary .file-cta {\n      background-color: #EF686B;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-primary:hover .file-cta, #optimole-app .file.is-primary.is-hovered .file-cta {\n      background-color: #ee5c60;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-primary:focus .file-cta, #optimole-app .file.is-primary.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(239, 104, 107, 0.25);\n      color: #fff; }\n    #optimole-app .file.is-primary:active .file-cta, #optimole-app .file.is-primary.is-active .file-cta {\n      background-color: #ed5154;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-link .file-cta {\n      background-color: #3273dc;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-link:hover .file-cta, #optimole-app .file.is-link.is-hovered .file-cta {\n      background-color: #276cda;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-link:focus .file-cta, #optimole-app .file.is-link.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(50, 115, 220, 0.25);\n      color: #fff; }\n    #optimole-app .file.is-link:active .file-cta, #optimole-app .file.is-link.is-active .file-cta {\n      background-color: #2366d1;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-info .file-cta {\n      background-color: #5180C1;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-info:hover .file-cta, #optimole-app .file.is-info.is-hovered .file-cta {\n      background-color: #4879be;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-info:focus .file-cta, #optimole-app .file.is-info.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(81, 128, 193, 0.25);\n      color: #fff; }\n    #optimole-app .file.is-info:active .file-cta, #optimole-app .file.is-info.is-active .file-cta {\n      background-color: #4173b7;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-success .file-cta {\n      background-color: #34a85e;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-success:hover .file-cta, #optimole-app .file.is-success.is-hovered .file-cta {\n      background-color: #319e59;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-success:focus .file-cta, #optimole-app .file.is-success.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(52, 168, 94, 0.25);\n      color: #fff; }\n    #optimole-app .file.is-success:active .file-cta, #optimole-app .file.is-success.is-active .file-cta {\n      background-color: #2e9553;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-warning .file-cta {\n      background-color: #ffdd57;\n      border-color: transparent;\n      color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .file.is-warning:hover .file-cta, #optimole-app .file.is-warning.is-hovered .file-cta {\n      background-color: #ffdb4a;\n      border-color: transparent;\n      color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .file.is-warning:focus .file-cta, #optimole-app .file.is-warning.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(255, 221, 87, 0.25);\n      color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .file.is-warning:active .file-cta, #optimole-app .file.is-warning.is-active .file-cta {\n      background-color: #ffd83d;\n      border-color: transparent;\n      color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .file.is-danger .file-cta {\n      background-color: #D54222;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-danger:hover .file-cta, #optimole-app .file.is-danger.is-hovered .file-cta {\n      background-color: #ca3f20;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-danger:focus .file-cta, #optimole-app .file.is-danger.is-focused .file-cta {\n      border-color: transparent;\n      box-shadow: 0 0 0.5em rgba(213, 66, 34, 0.25);\n      color: #fff; }\n    #optimole-app .file.is-danger:active .file-cta, #optimole-app .file.is-danger.is-active .file-cta {\n      background-color: #bf3b1e;\n      border-color: transparent;\n      color: #fff; }\n    #optimole-app .file.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .file.is-medium {\n      font-size: 1.25rem; }\n      #optimole-app .file.is-medium .file-icon .fa {\n        font-size: 21px; }\n    #optimole-app .file.is-large {\n      font-size: 1.5rem; }\n      #optimole-app .file.is-large .file-icon .fa {\n        font-size: 28px; }\n    #optimole-app .file.has-name .file-cta {\n      border-bottom-right-radius: 0;\n      border-top-right-radius: 0; }\n    #optimole-app .file.has-name .file-name {\n      border-bottom-left-radius: 0;\n      border-top-left-radius: 0; }\n    #optimole-app .file.has-name.is-empty .file-cta {\n      border-radius: 4px; }\n    #optimole-app .file.has-name.is-empty .file-name {\n      display: none; }\n    #optimole-app .file.is-boxed .file-label {\n      -ms-flex-direction: column;\n          flex-direction: column; }\n    #optimole-app .file.is-boxed .file-cta {\n      -ms-flex-direction: column;\n          flex-direction: column;\n      height: auto;\n      padding: 1em 3em; }\n    #optimole-app .file.is-boxed .file-name {\n      border-width: 0 1px 1px; }\n    #optimole-app .file.is-boxed .file-icon {\n      height: 1.5em;\n      width: 1.5em; }\n      #optimole-app .file.is-boxed .file-icon .fa {\n        font-size: 21px; }\n    #optimole-app .file.is-boxed.is-small .file-icon .fa {\n      font-size: 14px; }\n    #optimole-app .file.is-boxed.is-medium .file-icon .fa {\n      font-size: 28px; }\n    #optimole-app .file.is-boxed.is-large .file-icon .fa {\n      font-size: 35px; }\n    #optimole-app .file.is-boxed.has-name .file-cta {\n      border-radius: 4px 4px 0 0; }\n    #optimole-app .file.is-boxed.has-name .file-name {\n      border-radius: 0 0 4px 4px;\n      border-width: 0 1px 1px; }\n    #optimole-app .file.is-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .file.is-fullwidth .file-label {\n      width: 100%; }\n    #optimole-app .file.is-fullwidth .file-name {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      max-width: none; }\n    #optimole-app .file.is-right {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n      #optimole-app .file.is-right .file-cta {\n        border-radius: 0 4px 4px 0; }\n      #optimole-app .file.is-right .file-name {\n        border-radius: 4px 0 0 4px;\n        border-width: 1px 0 1px 1px;\n        -ms-flex-order: -1;\n            order: -1; }\n  #optimole-app .file-label {\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: -ms-flexbox;\n    display: flex;\n    cursor: pointer;\n    -ms-flex-pack: start;\n        justify-content: flex-start;\n    overflow: hidden;\n    position: relative; }\n    #optimole-app .file-label:hover .file-cta {\n      background-color: #eeeeee;\n      color: #363636; }\n    #optimole-app .file-label:hover .file-name {\n      border-color: #d5d5d5; }\n    #optimole-app .file-label:active .file-cta {\n      background-color: #e8e8e8;\n      color: #363636; }\n    #optimole-app .file-label:active .file-name {\n      border-color: #cfcfcf; }\n  #optimole-app .file-input {\n    height: 100%;\n    left: 0;\n    opacity: 0;\n    outline: none;\n    position: absolute;\n    top: 0;\n    width: 100%; }\n  #optimole-app .file-cta,\n  #optimole-app .file-name {\n    border-color: #dbdbdb;\n    border-radius: 4px;\n    font-size: 1em;\n    padding-left: 1em;\n    padding-right: 1em;\n    white-space: nowrap; }\n  #optimole-app .file-cta {\n    background-color: whitesmoke;\n    color: #4a4a4a; }\n  #optimole-app .file-name {\n    border-color: #dbdbdb;\n    border-style: solid;\n    border-width: 1px 1px 1px 0;\n    display: block;\n    max-width: 16em;\n    overflow: hidden;\n    text-align: left;\n    text-overflow: ellipsis; }\n  #optimole-app .file-icon {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-flexbox;\n    display: flex;\n    height: 1em;\n    -ms-flex-pack: center;\n        justify-content: center;\n    margin-right: 0.5em;\n    width: 1em; }\n    #optimole-app .file-icon .fa {\n      font-size: 14px; }\n  #optimole-app .label {\n    color: #363636;\n    display: block;\n    font-size: 1rem;\n    font-weight: 700; }\n    #optimole-app .label:not(:last-child) {\n      margin-bottom: 0.5em; }\n    #optimole-app .label.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .label.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .label.is-large {\n      font-size: 1.5rem; }\n  #optimole-app .help {\n    display: block;\n    font-size: 0.75rem;\n    margin-top: 0.25rem; }\n    #optimole-app .help.is-white {\n      color: white; }\n    #optimole-app .help.is-black {\n      color: #0a0a0a; }\n    #optimole-app .help.is-light {\n      color: whitesmoke; }\n    #optimole-app .help.is-dark {\n      color: #363636; }\n    #optimole-app .help.is-primary {\n      color: #EF686B; }\n    #optimole-app .help.is-link {\n      color: #3273dc; }\n    #optimole-app .help.is-info {\n      color: #5180C1; }\n    #optimole-app .help.is-success {\n      color: #34a85e; }\n    #optimole-app .help.is-warning {\n      color: #ffdd57; }\n    #optimole-app .help.is-danger {\n      color: #D54222; }\n  #optimole-app .field:not(:last-child) {\n    margin-bottom: 0.75rem; }\n  #optimole-app .field.has-addons {\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-pack: start;\n        justify-content: flex-start; }\n    #optimole-app .field.has-addons .control:not(:last-child) {\n      margin-right: -1px; }\n    #optimole-app .field.has-addons .control:not(:first-child):not(:last-child) .button,\n    #optimole-app .field.has-addons .control:not(:first-child):not(:last-child) .input,\n    #optimole-app .field.has-addons .control:not(:first-child):not(:last-child) .select select {\n      border-radius: 0; }\n    #optimole-app .field.has-addons .control:first-child:not(:only-child) .button,\n    #optimole-app .field.has-addons .control:first-child:not(:only-child) .input,\n    #optimole-app .field.has-addons .control:first-child:not(:only-child) .select select {\n      border-bottom-right-radius: 0;\n      border-top-right-radius: 0; }\n    #optimole-app .field.has-addons .control:last-child:not(:only-child) .button,\n    #optimole-app .field.has-addons .control:last-child:not(:only-child) .input,\n    #optimole-app .field.has-addons .control:last-child:not(:only-child) .select select {\n      border-bottom-left-radius: 0;\n      border-top-left-radius: 0; }\n    #optimole-app .field.has-addons .control .button:not([disabled]):hover, #optimole-app .field.has-addons .control .button:not([disabled]).is-hovered,\n    #optimole-app .field.has-addons .control .input:not([disabled]):hover,\n    #optimole-app .field.has-addons .control .input:not([disabled]).is-hovered,\n    #optimole-app .field.has-addons .control .select select:not([disabled]):hover,\n    #optimole-app .field.has-addons .control .select select:not([disabled]).is-hovered {\n      z-index: 2; }\n    #optimole-app .field.has-addons .control .button:not([disabled]):focus, #optimole-app .field.has-addons .control .button:not([disabled]).is-focused, #optimole-app .field.has-addons .control .button:not([disabled]):active, #optimole-app .field.has-addons .control .button:not([disabled]).is-active,\n    #optimole-app .field.has-addons .control .input:not([disabled]):focus,\n    #optimole-app .field.has-addons .control .input:not([disabled]).is-focused,\n    #optimole-app .field.has-addons .control .input:not([disabled]):active,\n    #optimole-app .field.has-addons .control .input:not([disabled]).is-active,\n    #optimole-app .field.has-addons .control .select select:not([disabled]):focus,\n    #optimole-app .field.has-addons .control .select select:not([disabled]).is-focused,\n    #optimole-app .field.has-addons .control .select select:not([disabled]):active,\n    #optimole-app .field.has-addons .control .select select:not([disabled]).is-active {\n      z-index: 3; }\n      #optimole-app .field.has-addons .control .button:not([disabled]):focus:hover, #optimole-app .field.has-addons .control .button:not([disabled]).is-focused:hover, #optimole-app .field.has-addons .control .button:not([disabled]):active:hover, #optimole-app .field.has-addons .control .button:not([disabled]).is-active:hover,\n      #optimole-app .field.has-addons .control .input:not([disabled]):focus:hover,\n      #optimole-app .field.has-addons .control .input:not([disabled]).is-focused:hover,\n      #optimole-app .field.has-addons .control .input:not([disabled]):active:hover,\n      #optimole-app .field.has-addons .control .input:not([disabled]).is-active:hover,\n      #optimole-app .field.has-addons .control .select select:not([disabled]):focus:hover,\n      #optimole-app .field.has-addons .control .select select:not([disabled]).is-focused:hover,\n      #optimole-app .field.has-addons .control .select select:not([disabled]):active:hover,\n      #optimole-app .field.has-addons .control .select select:not([disabled]).is-active:hover {\n        z-index: 4; }\n    #optimole-app .field.has-addons .control.is-expanded {\n      -ms-flex-positive: 1;\n          flex-grow: 1; }\n    #optimole-app .field.has-addons.has-addons-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .field.has-addons.has-addons-right {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n    #optimole-app .field.has-addons.has-addons-fullwidth .control {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 0;\n          flex-shrink: 0; }\n  #optimole-app .field.is-grouped {\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-pack: start;\n        justify-content: flex-start; }\n    #optimole-app .field.is-grouped > .control {\n      -ms-flex-negative: 0;\n          flex-shrink: 0; }\n      #optimole-app .field.is-grouped > .control:not(:last-child) {\n        margin-bottom: 0;\n        margin-right: 0.75rem; }\n      #optimole-app .field.is-grouped > .control.is-expanded {\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n        -ms-flex-negative: 1;\n            flex-shrink: 1; }\n    #optimole-app .field.is-grouped.is-grouped-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .field.is-grouped.is-grouped-right {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n    #optimole-app .field.is-grouped.is-grouped-multiline {\n      -ms-flex-wrap: wrap;\n          flex-wrap: wrap; }\n      #optimole-app .field.is-grouped.is-grouped-multiline > .control:last-child, #optimole-app .field.is-grouped.is-grouped-multiline > .control:not(:last-child) {\n        margin-bottom: 0.75rem; }\n      #optimole-app .field.is-grouped.is-grouped-multiline:last-child {\n        margin-bottom: -0.75rem; }\n      #optimole-app .field.is-grouped.is-grouped-multiline:not(:last-child) {\n        margin-bottom: 0; }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .field.is-horizontal {\n      display: -ms-flexbox;\n      display: flex; } }\n  #optimole-app .field-label .label {\n    font-size: inherit; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .field-label {\n      margin-bottom: 0.5rem; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .field-label {\n      -ms-flex-preferred-size: 0;\n          flex-basis: 0;\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 0;\n          flex-shrink: 0;\n      margin-right: 1.5rem;\n      text-align: right; }\n      #optimole-app .field-label.is-small {\n        font-size: 0.75rem;\n        padding-top: 0.375em; }\n      #optimole-app .field-label.is-normal {\n        padding-top: 0.375em; }\n      #optimole-app .field-label.is-medium {\n        font-size: 1.25rem;\n        padding-top: 0.375em; }\n      #optimole-app .field-label.is-large {\n        font-size: 1.5rem;\n        padding-top: 0.375em; } }\n  #optimole-app .field-body .field .field {\n    margin-bottom: 0; }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .field-body {\n      display: -ms-flexbox;\n      display: flex;\n      -ms-flex-preferred-size: 0;\n          flex-basis: 0;\n      -ms-flex-positive: 5;\n          flex-grow: 5;\n      -ms-flex-negative: 1;\n          flex-shrink: 1; }\n      #optimole-app .field-body .field {\n        margin-bottom: 0; }\n      #optimole-app .field-body > .field {\n        -ms-flex-negative: 1;\n            flex-shrink: 1; }\n        #optimole-app .field-body > .field:not(.is-narrow) {\n          -ms-flex-positive: 1;\n              flex-grow: 1; }\n        #optimole-app .field-body > .field:not(:last-child) {\n          margin-right: 0.75rem; } }\n  #optimole-app .control {\n    box-sizing: border-box;\n    clear: both;\n    font-size: 1rem;\n    position: relative;\n    text-align: left; }\n    #optimole-app .control.has-icons-left .input:focus ~ .icon,\n    #optimole-app .control.has-icons-left .select:focus ~ .icon, #optimole-app .control.has-icons-right .input:focus ~ .icon,\n    #optimole-app .control.has-icons-right .select:focus ~ .icon {\n      color: #7a7a7a; }\n    #optimole-app .control.has-icons-left .input.is-small ~ .icon,\n    #optimole-app .control.has-icons-left .select.is-small ~ .icon, #optimole-app .control.has-icons-right .input.is-small ~ .icon,\n    #optimole-app .control.has-icons-right .select.is-small ~ .icon {\n      font-size: 0.75rem; }\n    #optimole-app .control.has-icons-left .input.is-medium ~ .icon,\n    #optimole-app .control.has-icons-left .select.is-medium ~ .icon, #optimole-app .control.has-icons-right .input.is-medium ~ .icon,\n    #optimole-app .control.has-icons-right .select.is-medium ~ .icon {\n      font-size: 1.25rem; }\n    #optimole-app .control.has-icons-left .input.is-large ~ .icon,\n    #optimole-app .control.has-icons-left .select.is-large ~ .icon, #optimole-app .control.has-icons-right .input.is-large ~ .icon,\n    #optimole-app .control.has-icons-right .select.is-large ~ .icon {\n      font-size: 1.5rem; }\n    #optimole-app .control.has-icons-left .icon, #optimole-app .control.has-icons-right .icon {\n      color: #dbdbdb;\n      height: 2.25em;\n      pointer-events: none;\n      position: absolute;\n      top: 0;\n      width: 2.25em;\n      z-index: 4; }\n    #optimole-app .control.has-icons-left .input,\n    #optimole-app .control.has-icons-left .select select {\n      padding-left: 2.25em; }\n    #optimole-app .control.has-icons-left .icon.is-left {\n      left: 0; }\n    #optimole-app .control.has-icons-right .input,\n    #optimole-app .control.has-icons-right .select select {\n      padding-right: 2.25em; }\n    #optimole-app .control.has-icons-right .icon.is-right {\n      right: 0; }\n    #optimole-app .control.is-loading::after {\n      position: absolute !important;\n      right: 0.625em;\n      top: 0.625em;\n      z-index: 4; }\n    #optimole-app .control.is-loading.is-small:after {\n      font-size: 0.75rem; }\n    #optimole-app .control.is-loading.is-medium:after {\n      font-size: 1.25rem; }\n    #optimole-app .control.is-loading.is-large:after {\n      font-size: 1.5rem; }\n  #optimole-app .icon {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    -ms-flex-pack: center;\n        justify-content: center;\n    height: 1.5rem;\n    width: 1.5rem; }\n    #optimole-app .icon.is-small {\n      height: 1rem;\n      width: 1rem; }\n    #optimole-app .icon.is-medium {\n      height: 2rem;\n      width: 2rem; }\n    #optimole-app .icon.is-large {\n      height: 3rem;\n      width: 3rem; }\n  #optimole-app .image {\n    display: block;\n    position: relative; }\n    #optimole-app .image img {\n      display: block;\n      height: auto;\n      width: 100%; }\n      #optimole-app .image img.is-rounded {\n        border-radius: 290486px; }\n    #optimole-app .image.is-square img,\n    #optimole-app .image.is-square .has-ratio, #optimole-app .image.is-1by1 img,\n    #optimole-app .image.is-1by1 .has-ratio, #optimole-app .image.is-5by4 img,\n    #optimole-app .image.is-5by4 .has-ratio, #optimole-app .image.is-4by3 img,\n    #optimole-app .image.is-4by3 .has-ratio, #optimole-app .image.is-3by2 img,\n    #optimole-app .image.is-3by2 .has-ratio, #optimole-app .image.is-5by3 img,\n    #optimole-app .image.is-5by3 .has-ratio, #optimole-app .image.is-16by9 img,\n    #optimole-app .image.is-16by9 .has-ratio, #optimole-app .image.is-2by1 img,\n    #optimole-app .image.is-2by1 .has-ratio, #optimole-app .image.is-3by1 img,\n    #optimole-app .image.is-3by1 .has-ratio, #optimole-app .image.is-4by5 img,\n    #optimole-app .image.is-4by5 .has-ratio, #optimole-app .image.is-3by4 img,\n    #optimole-app .image.is-3by4 .has-ratio, #optimole-app .image.is-2by3 img,\n    #optimole-app .image.is-2by3 .has-ratio, #optimole-app .image.is-3by5 img,\n    #optimole-app .image.is-3by5 .has-ratio, #optimole-app .image.is-9by16 img,\n    #optimole-app .image.is-9by16 .has-ratio, #optimole-app .image.is-1by2 img,\n    #optimole-app .image.is-1by2 .has-ratio, #optimole-app .image.is-1by3 img,\n    #optimole-app .image.is-1by3 .has-ratio {\n      height: 100%;\n      width: 100%; }\n    #optimole-app .image.is-square, #optimole-app .image.is-1by1 {\n      padding-top: 100%; }\n    #optimole-app .image.is-5by4 {\n      padding-top: 80%; }\n    #optimole-app .image.is-4by3 {\n      padding-top: 75%; }\n    #optimole-app .image.is-3by2 {\n      padding-top: 66.6666%; }\n    #optimole-app .image.is-5by3 {\n      padding-top: 60%; }\n    #optimole-app .image.is-16by9 {\n      padding-top: 56.25%; }\n    #optimole-app .image.is-2by1 {\n      padding-top: 50%; }\n    #optimole-app .image.is-3by1 {\n      padding-top: 33.3333%; }\n    #optimole-app .image.is-4by5 {\n      padding-top: 125%; }\n    #optimole-app .image.is-3by4 {\n      padding-top: 133.3333%; }\n    #optimole-app .image.is-2by3 {\n      padding-top: 150%; }\n    #optimole-app .image.is-3by5 {\n      padding-top: 166.6666%; }\n    #optimole-app .image.is-9by16 {\n      padding-top: 177.7777%; }\n    #optimole-app .image.is-1by2 {\n      padding-top: 200%; }\n    #optimole-app .image.is-1by3 {\n      padding-top: 300%; }\n    #optimole-app .image.is-16x16 {\n      height: 16px;\n      width: 16px; }\n    #optimole-app .image.is-24x24 {\n      height: 24px;\n      width: 24px; }\n    #optimole-app .image.is-32x32 {\n      height: 32px;\n      width: 32px; }\n    #optimole-app .image.is-48x48 {\n      height: 48px;\n      width: 48px; }\n    #optimole-app .image.is-64x64 {\n      height: 64px;\n      width: 64px; }\n    #optimole-app .image.is-96x96 {\n      height: 96px;\n      width: 96px; }\n    #optimole-app .image.is-128x128 {\n      height: 128px;\n      width: 128px; }\n  #optimole-app .notification {\n    background-color: whitesmoke;\n    border-radius: 4px;\n    padding: 1.25rem 2.5rem 1.25rem 1.5rem;\n    position: relative; }\n    #optimole-app .notification a:not(.button):not(.dropdown-item) {\n      color: currentColor;\n      text-decoration: underline; }\n    #optimole-app .notification strong {\n      color: currentColor; }\n    #optimole-app .notification code,\n    #optimole-app .notification pre {\n      background: white; }\n    #optimole-app .notification pre code {\n      background: transparent; }\n    #optimole-app .notification > .delete {\n      position: absolute;\n      right: 0.5rem;\n      top: 0.5rem; }\n    #optimole-app .notification .title,\n    #optimole-app .notification .subtitle,\n    #optimole-app .notification .content {\n      color: currentColor; }\n    #optimole-app .notification.is-white {\n      background-color: white;\n      color: #0a0a0a; }\n    #optimole-app .notification.is-black {\n      background-color: #0a0a0a;\n      color: white; }\n    #optimole-app .notification.is-light {\n      background-color: whitesmoke;\n      color: #363636; }\n    #optimole-app .notification.is-dark {\n      background-color: #363636;\n      color: whitesmoke; }\n    #optimole-app .notification.is-primary {\n      background-color: #EF686B;\n      color: #fff; }\n    #optimole-app .notification.is-link {\n      background-color: #3273dc;\n      color: #fff; }\n    #optimole-app .notification.is-info {\n      background-color: #5180C1;\n      color: #fff; }\n    #optimole-app .notification.is-success {\n      background-color: #34a85e;\n      color: #fff; }\n    #optimole-app .notification.is-warning {\n      background-color: #ffdd57;\n      color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .notification.is-danger {\n      background-color: #D54222;\n      color: #fff; }\n  #optimole-app .progress {\n    -moz-appearance: none;\n    -webkit-appearance: none;\n    border: none;\n    border-radius: 290486px;\n    display: block;\n    height: 1rem;\n    overflow: hidden;\n    padding: 0;\n    width: 100%; }\n    #optimole-app .progress::-webkit-progress-bar {\n      background-color: #dbdbdb; }\n    #optimole-app .progress::-webkit-progress-value {\n      background-color: #4a4a4a; }\n    #optimole-app .progress::-moz-progress-bar {\n      background-color: #4a4a4a; }\n    #optimole-app .progress::-ms-fill {\n      background-color: #4a4a4a;\n      border: none; }\n    #optimole-app .progress:indeterminate {\n      animation-duration: 1.5s;\n      animation-iteration-count: infinite;\n      animation-name: moveIndeterminate;\n      animation-timing-function: linear;\n      background-color: #dbdbdb;\n      background-image: linear-gradient(to right, #4a4a4a 30%, #dbdbdb 30%);\n      background-position: top left;\n      background-repeat: no-repeat;\n      background-size: 150% 150%; }\n      #optimole-app .progress:indeterminate::-webkit-progress-bar {\n        background-color: transparent; }\n      #optimole-app .progress:indeterminate::-moz-progress-bar {\n        background-color: transparent; }\n    #optimole-app .progress.is-white::-webkit-progress-value {\n      background-color: white; }\n    #optimole-app .progress.is-white::-moz-progress-bar {\n      background-color: white; }\n    #optimole-app .progress.is-white::-ms-fill {\n      background-color: white; }\n    #optimole-app .progress.is-white:indeterminate {\n      background-image: linear-gradient(to right, white 30%, #dbdbdb 30%); }\n    #optimole-app .progress.is-black::-webkit-progress-value {\n      background-color: #0a0a0a; }\n    #optimole-app .progress.is-black::-moz-progress-bar {\n      background-color: #0a0a0a; }\n    #optimole-app .progress.is-black::-ms-fill {\n      background-color: #0a0a0a; }\n    #optimole-app .progress.is-black:indeterminate {\n      background-image: linear-gradient(to right, #0a0a0a 30%, #dbdbdb 30%); }\n    #optimole-app .progress.is-light::-webkit-progress-value {\n      background-color: whitesmoke; }\n    #optimole-app .progress.is-light::-moz-progress-bar {\n      background-color: whitesmoke; }\n    #optimole-app .progress.is-light::-ms-fill {\n      background-color: whitesmoke; }\n    #optimole-app .progress.is-light:indeterminate {\n      background-image: linear-gradient(to right, whitesmoke 30%, #dbdbdb 30%); }\n    #optimole-app .progress.is-dark::-webkit-progress-value {\n      background-color: #363636; }\n    #optimole-app .progress.is-dark::-moz-progress-bar {\n      background-color: #363636; }\n    #optimole-app .progress.is-dark::-ms-fill {\n      background-color: #363636; }\n    #optimole-app .progress.is-dark:indeterminate {\n      background-image: linear-gradient(to right, #363636 30%, #dbdbdb 30%); }\n    #optimole-app .progress.is-primary::-webkit-progress-value {\n      background-color: #EF686B; }\n    #optimole-app .progress.is-primary::-moz-progress-bar {\n      background-color: #EF686B; }\n    #optimole-app .progress.is-primary::-ms-fill {\n      background-color: #EF686B; }\n    #optimole-app .progress.is-primary:indeterminate {\n      background-image: linear-gradient(to right, #EF686B 30%, #dbdbdb 30%); }\n    #optimole-app .progress.is-link::-webkit-progress-value {\n      background-color: #3273dc; }\n    #optimole-app .progress.is-link::-moz-progress-bar {\n      background-color: #3273dc; }\n    #optimole-app .progress.is-link::-ms-fill {\n      background-color: #3273dc; }\n    #optimole-app .progress.is-link:indeterminate {\n      background-image: linear-gradient(to right, #3273dc 30%, #dbdbdb 30%); }\n    #optimole-app .progress.is-info::-webkit-progress-value {\n      background-color: #5180C1; }\n    #optimole-app .progress.is-info::-moz-progress-bar {\n      background-color: #5180C1; }\n    #optimole-app .progress.is-info::-ms-fill {\n      background-color: #5180C1; }\n    #optimole-app .progress.is-info:indeterminate {\n      background-image: linear-gradient(to right, #5180C1 30%, #dbdbdb 30%); }\n    #optimole-app .progress.is-success::-webkit-progress-value {\n      background-color: #34a85e; }\n    #optimole-app .progress.is-success::-moz-progress-bar {\n      background-color: #34a85e; }\n    #optimole-app .progress.is-success::-ms-fill {\n      background-color: #34a85e; }\n    #optimole-app .progress.is-success:indeterminate {\n      background-image: linear-gradient(to right, #34a85e 30%, #dbdbdb 30%); }\n    #optimole-app .progress.is-warning::-webkit-progress-value {\n      background-color: #ffdd57; }\n    #optimole-app .progress.is-warning::-moz-progress-bar {\n      background-color: #ffdd57; }\n    #optimole-app .progress.is-warning::-ms-fill {\n      background-color: #ffdd57; }\n    #optimole-app .progress.is-warning:indeterminate {\n      background-image: linear-gradient(to right, #ffdd57 30%, #dbdbdb 30%); }\n    #optimole-app .progress.is-danger::-webkit-progress-value {\n      background-color: #D54222; }\n    #optimole-app .progress.is-danger::-moz-progress-bar {\n      background-color: #D54222; }\n    #optimole-app .progress.is-danger::-ms-fill {\n      background-color: #D54222; }\n    #optimole-app .progress.is-danger:indeterminate {\n      background-image: linear-gradient(to right, #D54222 30%, #dbdbdb 30%); }\n    #optimole-app .progress.is-small {\n      height: 0.75rem; }\n    #optimole-app .progress.is-medium {\n      height: 1.25rem; }\n    #optimole-app .progress.is-large {\n      height: 1.5rem; }\n\n@keyframes moveIndeterminate {\n  from {\n    background-position: 200% 0; }\n  to {\n    background-position: -200% 0; } }\n  #optimole-app .table {\n    background-color: white;\n    color: #363636; }\n    #optimole-app .table td,\n    #optimole-app .table th {\n      border: 1px solid #dbdbdb;\n      border-width: 0 0 1px;\n      padding: 0.5em 0.75em;\n      vertical-align: top; }\n      #optimole-app .table td.is-white,\n      #optimole-app .table th.is-white {\n        background-color: white;\n        border-color: white;\n        color: #0a0a0a; }\n      #optimole-app .table td.is-black,\n      #optimole-app .table th.is-black {\n        background-color: #0a0a0a;\n        border-color: #0a0a0a;\n        color: white; }\n      #optimole-app .table td.is-light,\n      #optimole-app .table th.is-light {\n        background-color: whitesmoke;\n        border-color: whitesmoke;\n        color: #363636; }\n      #optimole-app .table td.is-dark,\n      #optimole-app .table th.is-dark {\n        background-color: #363636;\n        border-color: #363636;\n        color: whitesmoke; }\n      #optimole-app .table td.is-primary,\n      #optimole-app .table th.is-primary {\n        background-color: #EF686B;\n        border-color: #EF686B;\n        color: #fff; }\n      #optimole-app .table td.is-link,\n      #optimole-app .table th.is-link {\n        background-color: #3273dc;\n        border-color: #3273dc;\n        color: #fff; }\n      #optimole-app .table td.is-info,\n      #optimole-app .table th.is-info {\n        background-color: #5180C1;\n        border-color: #5180C1;\n        color: #fff; }\n      #optimole-app .table td.is-success,\n      #optimole-app .table th.is-success {\n        background-color: #34a85e;\n        border-color: #34a85e;\n        color: #fff; }\n      #optimole-app .table td.is-warning,\n      #optimole-app .table th.is-warning {\n        background-color: #ffdd57;\n        border-color: #ffdd57;\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .table td.is-danger,\n      #optimole-app .table th.is-danger {\n        background-color: #D54222;\n        border-color: #D54222;\n        color: #fff; }\n      #optimole-app .table td.is-narrow,\n      #optimole-app .table th.is-narrow {\n        white-space: nowrap;\n        width: 1%; }\n      #optimole-app .table td.is-selected,\n      #optimole-app .table th.is-selected {\n        background-color: #EF686B;\n        color: #fff; }\n        #optimole-app .table td.is-selected a,\n        #optimole-app .table td.is-selected strong,\n        #optimole-app .table th.is-selected a,\n        #optimole-app .table th.is-selected strong {\n          color: currentColor; }\n    #optimole-app .table th {\n      color: #363636;\n      text-align: left; }\n    #optimole-app .table tr.is-selected {\n      background-color: #EF686B;\n      color: #fff; }\n      #optimole-app .table tr.is-selected a,\n      #optimole-app .table tr.is-selected strong {\n        color: currentColor; }\n      #optimole-app .table tr.is-selected td,\n      #optimole-app .table tr.is-selected th {\n        border-color: #fff;\n        color: currentColor; }\n    #optimole-app .table thead {\n      background-color: transparent; }\n      #optimole-app .table thead td,\n      #optimole-app .table thead th {\n        border-width: 0 0 2px;\n        color: #363636; }\n    #optimole-app .table tfoot {\n      background-color: transparent; }\n      #optimole-app .table tfoot td,\n      #optimole-app .table tfoot th {\n        border-width: 2px 0 0;\n        color: #363636; }\n    #optimole-app .table tbody {\n      background-color: transparent; }\n      #optimole-app .table tbody tr:last-child td,\n      #optimole-app .table tbody tr:last-child th {\n        border-bottom-width: 0; }\n    #optimole-app .table.is-bordered td,\n    #optimole-app .table.is-bordered th {\n      border-width: 1px; }\n    #optimole-app .table.is-bordered tr:last-child td,\n    #optimole-app .table.is-bordered tr:last-child th {\n      border-bottom-width: 1px; }\n    #optimole-app .table.is-fullwidth {\n      width: 100%; }\n    #optimole-app .table.is-hoverable tbody tr:not(.is-selected):hover {\n      background-color: #fafafa; }\n    #optimole-app .table.is-hoverable.is-striped tbody tr:not(.is-selected):hover {\n      background-color: #fafafa; }\n      #optimole-app .table.is-hoverable.is-striped tbody tr:not(.is-selected):hover:nth-child(even) {\n        background-color: whitesmoke; }\n    #optimole-app .table.is-narrow td,\n    #optimole-app .table.is-narrow th {\n      padding: 0.25em 0.5em; }\n    #optimole-app .table.is-striped tbody tr:not(.is-selected):nth-child(even) {\n      background-color: #fafafa; }\n  #optimole-app .table-container {\n    -webkit-overflow-scrolling: touch;\n    overflow: auto;\n    overflow-y: hidden;\n    max-width: 100%; }\n  #optimole-app .tags {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap;\n    -ms-flex-pack: start;\n        justify-content: flex-start; }\n    #optimole-app .tags .tag {\n      margin-bottom: 0.5rem; }\n      #optimole-app .tags .tag:not(:last-child) {\n        margin-right: 0.5rem; }\n    #optimole-app .tags:last-child {\n      margin-bottom: -0.5rem; }\n    #optimole-app .tags:not(:last-child) {\n      margin-bottom: 1rem; }\n    #optimole-app .tags.are-medium .tag:not(.is-normal):not(.is-large) {\n      font-size: 1rem; }\n    #optimole-app .tags.are-large .tag:not(.is-normal):not(.is-medium) {\n      font-size: 1.25rem; }\n    #optimole-app .tags.has-addons .tag {\n      margin-right: 0; }\n      #optimole-app .tags.has-addons .tag:not(:first-child) {\n        border-bottom-left-radius: 0;\n        border-top-left-radius: 0; }\n      #optimole-app .tags.has-addons .tag:not(:last-child) {\n        border-bottom-right-radius: 0;\n        border-top-right-radius: 0; }\n    #optimole-app .tags.is-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n      #optimole-app .tags.is-centered .tag {\n        margin-right: 0.25rem;\n        margin-left: 0.25rem; }\n    #optimole-app .tags.is-right {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n      #optimole-app .tags.is-right .tag:not(:first-child) {\n        margin-left: 0.5rem; }\n      #optimole-app .tags.is-right .tag:not(:last-child) {\n        margin-right: 0; }\n    #optimole-app .tags.has-addons .tag {\n      margin-right: 0; }\n      #optimole-app .tags.has-addons .tag:not(:first-child) {\n        margin-left: 0;\n        border-bottom-left-radius: 0;\n        border-top-left-radius: 0; }\n      #optimole-app .tags.has-addons .tag:not(:last-child) {\n        border-bottom-right-radius: 0;\n        border-top-right-radius: 0; }\n  #optimole-app .tag:not(body) {\n    -ms-flex-align: center;\n        align-items: center;\n    background-color: whitesmoke;\n    border-radius: 4px;\n    color: #4a4a4a;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    font-size: 0.75rem;\n    height: 2em;\n    -ms-flex-pack: center;\n        justify-content: center;\n    line-height: 1.5;\n    padding-left: 0.75em;\n    padding-right: 0.75em;\n    white-space: nowrap; }\n    #optimole-app .tag:not(body) .delete {\n      margin-left: 0.25rem;\n      margin-right: -0.375rem; }\n    #optimole-app .tag:not(body).is-white {\n      background-color: white;\n      color: #0a0a0a; }\n    #optimole-app .tag:not(body).is-black {\n      background-color: #0a0a0a;\n      color: white; }\n    #optimole-app .tag:not(body).is-light {\n      background-color: whitesmoke;\n      color: #363636; }\n    #optimole-app .tag:not(body).is-dark {\n      background-color: #363636;\n      color: whitesmoke; }\n    #optimole-app .tag:not(body).is-primary {\n      background-color: #EF686B;\n      color: #fff; }\n    #optimole-app .tag:not(body).is-link {\n      background-color: #3273dc;\n      color: #fff; }\n    #optimole-app .tag:not(body).is-info {\n      background-color: #5180C1;\n      color: #fff; }\n    #optimole-app .tag:not(body).is-success {\n      background-color: #34a85e;\n      color: #fff; }\n    #optimole-app .tag:not(body).is-warning {\n      background-color: #ffdd57;\n      color: rgba(0, 0, 0, 0.7); }\n    #optimole-app .tag:not(body).is-danger {\n      background-color: #D54222;\n      color: #fff; }\n    #optimole-app .tag:not(body).is-normal {\n      font-size: 0.75rem; }\n    #optimole-app .tag:not(body).is-medium {\n      font-size: 1rem; }\n    #optimole-app .tag:not(body).is-large {\n      font-size: 1.25rem; }\n    #optimole-app .tag:not(body) .icon:first-child:not(:last-child) {\n      margin-left: -0.375em;\n      margin-right: 0.1875em; }\n    #optimole-app .tag:not(body) .icon:last-child:not(:first-child) {\n      margin-left: 0.1875em;\n      margin-right: -0.375em; }\n    #optimole-app .tag:not(body) .icon:first-child:last-child {\n      margin-left: -0.375em;\n      margin-right: -0.375em; }\n    #optimole-app .tag:not(body).is-delete {\n      margin-left: 1px;\n      padding: 0;\n      position: relative;\n      width: 2em; }\n      #optimole-app .tag:not(body).is-delete::before, #optimole-app .tag:not(body).is-delete::after {\n        background-color: currentColor;\n        content: \"\";\n        display: block;\n        left: 50%;\n        position: absolute;\n        top: 50%;\n        transform: translateX(-50%) translateY(-50%) rotate(45deg);\n        transform-origin: center center; }\n      #optimole-app .tag:not(body).is-delete::before {\n        height: 1px;\n        width: 50%; }\n      #optimole-app .tag:not(body).is-delete::after {\n        height: 50%;\n        width: 1px; }\n      #optimole-app .tag:not(body).is-delete:hover, #optimole-app .tag:not(body).is-delete:focus {\n        background-color: #e8e8e8; }\n      #optimole-app .tag:not(body).is-delete:active {\n        background-color: #dbdbdb; }\n    #optimole-app .tag:not(body).is-rounded {\n      border-radius: 290486px; }\n  #optimole-app a.tag:hover {\n    text-decoration: underline; }\n  #optimole-app .title,\n  #optimole-app .subtitle {\n    word-break: break-word; }\n    #optimole-app .title em,\n    #optimole-app .title span,\n    #optimole-app .subtitle em,\n    #optimole-app .subtitle span {\n      font-weight: inherit; }\n    #optimole-app .title sub,\n    #optimole-app .subtitle sub {\n      font-size: 0.75em; }\n    #optimole-app .title sup,\n    #optimole-app .subtitle sup {\n      font-size: 0.75em; }\n    #optimole-app .title .tag,\n    #optimole-app .subtitle .tag {\n      vertical-align: middle; }\n  #optimole-app .title {\n    color: #363636;\n    font-size: 2rem;\n    font-weight: 600;\n    line-height: 1.125; }\n    #optimole-app .title strong {\n      color: inherit;\n      font-weight: inherit; }\n    #optimole-app .title + .highlight {\n      margin-top: -0.75rem; }\n    #optimole-app .title:not(.is-spaced) + .subtitle {\n      margin-top: -1.25rem; }\n    #optimole-app .title.is-1 {\n      font-size: 3rem; }\n    #optimole-app .title.is-2 {\n      font-size: 2.5rem; }\n    #optimole-app .title.is-3 {\n      font-size: 2rem; }\n    #optimole-app .title.is-4 {\n      font-size: 1.5rem; }\n    #optimole-app .title.is-5 {\n      font-size: 1.25rem; }\n    #optimole-app .title.is-6 {\n      font-size: 1rem; }\n    #optimole-app .title.is-7 {\n      font-size: 0.75rem; }\n  #optimole-app .subtitle {\n    color: #4a4a4a;\n    font-size: 1.25rem;\n    font-weight: 400;\n    line-height: 1.25; }\n    #optimole-app .subtitle strong {\n      color: #363636;\n      font-weight: 600; }\n    #optimole-app .subtitle:not(.is-spaced) + .title {\n      margin-top: -1.25rem; }\n    #optimole-app .subtitle.is-1 {\n      font-size: 3rem; }\n    #optimole-app .subtitle.is-2 {\n      font-size: 2.5rem; }\n    #optimole-app .subtitle.is-3 {\n      font-size: 2rem; }\n    #optimole-app .subtitle.is-4 {\n      font-size: 1.5rem; }\n    #optimole-app .subtitle.is-5 {\n      font-size: 1.25rem; }\n    #optimole-app .subtitle.is-6 {\n      font-size: 1rem; }\n    #optimole-app .subtitle.is-7 {\n      font-size: 0.75rem; }\n  #optimole-app .heading {\n    display: block;\n    font-size: 11px;\n    letter-spacing: 1px;\n    margin-bottom: 5px;\n    text-transform: uppercase; }\n  #optimole-app .highlight {\n    font-weight: 400;\n    max-width: 100%;\n    overflow: hidden;\n    padding: 0; }\n    #optimole-app .highlight pre {\n      overflow: auto;\n      max-width: 100%; }\n  #optimole-app .number {\n    -ms-flex-align: center;\n        align-items: center;\n    background-color: whitesmoke;\n    border-radius: 290486px;\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    font-size: 1.25rem;\n    height: 2em;\n    -ms-flex-pack: center;\n        justify-content: center;\n    margin-right: 1.5rem;\n    min-width: 2.5em;\n    padding: 0.25rem 0.5rem;\n    text-align: center;\n    vertical-align: top; }\n  #optimole-app .breadcrumb {\n    font-size: 1rem;\n    white-space: nowrap; }\n    #optimole-app .breadcrumb a {\n      -ms-flex-align: center;\n          align-items: center;\n      color: #3273dc;\n      display: -ms-flexbox;\n      display: flex;\n      -ms-flex-pack: center;\n          justify-content: center;\n      padding: 0 0.75em; }\n      #optimole-app .breadcrumb a:hover {\n        color: #363636; }\n    #optimole-app .breadcrumb li {\n      -ms-flex-align: center;\n          align-items: center;\n      display: -ms-flexbox;\n      display: flex; }\n      #optimole-app .breadcrumb li:first-child a {\n        padding-left: 0; }\n      #optimole-app .breadcrumb li.is-active a {\n        color: #363636;\n        cursor: default;\n        pointer-events: none; }\n      #optimole-app .breadcrumb li + li::before {\n        color: #b5b5b5;\n        content: \"/\"; }\n    #optimole-app .breadcrumb ul,\n    #optimole-app .breadcrumb ol {\n      -ms-flex-align: start;\n          align-items: flex-start;\n      display: -ms-flexbox;\n      display: flex;\n      -ms-flex-wrap: wrap;\n          flex-wrap: wrap;\n      -ms-flex-pack: start;\n          justify-content: flex-start; }\n    #optimole-app .breadcrumb .icon:first-child {\n      margin-right: 0.5em; }\n    #optimole-app .breadcrumb .icon:last-child {\n      margin-left: 0.5em; }\n    #optimole-app .breadcrumb.is-centered ol,\n    #optimole-app .breadcrumb.is-centered ul {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .breadcrumb.is-right ol,\n    #optimole-app .breadcrumb.is-right ul {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n    #optimole-app .breadcrumb.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .breadcrumb.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .breadcrumb.is-large {\n      font-size: 1.5rem; }\n    #optimole-app .breadcrumb.has-arrow-separator li + li::before {\n      content: \"\\2192\"; }\n    #optimole-app .breadcrumb.has-bullet-separator li + li::before {\n      content: \"\\2022\"; }\n    #optimole-app .breadcrumb.has-dot-separator li + li::before {\n      content: \"\\B7\"; }\n    #optimole-app .breadcrumb.has-succeeds-separator li + li::before {\n      content: \"\\227B\"; }\n  #optimole-app .card {\n    background-color: white;\n    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);\n    color: #4a4a4a;\n    max-width: 100%;\n    position: relative; }\n  #optimole-app .card-header {\n    background-color: transparent;\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    box-shadow: 0 1px 2px rgba(10, 10, 10, 0.1);\n    display: -ms-flexbox;\n    display: flex; }\n  #optimole-app .card-header-title {\n    -ms-flex-align: center;\n        align-items: center;\n    color: #363636;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    font-weight: 700;\n    padding: 0.75rem; }\n    #optimole-app .card-header-title.is-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n  #optimole-app .card-header-icon {\n    -ms-flex-align: center;\n        align-items: center;\n    cursor: pointer;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-pack: center;\n        justify-content: center;\n    padding: 0.75rem; }\n  #optimole-app .card-image {\n    display: block;\n    position: relative; }\n  #optimole-app .card-content {\n    background-color: transparent;\n    padding: 1.5rem; }\n  #optimole-app .card-footer {\n    background-color: transparent;\n    border-top: 1px solid #dbdbdb;\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: -ms-flexbox;\n    display: flex; }\n  #optimole-app .card-footer-item {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-preferred-size: 0;\n        flex-basis: 0;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    -ms-flex-pack: center;\n        justify-content: center;\n    padding: 0.75rem; }\n    #optimole-app .card-footer-item:not(:last-child) {\n      border-right: 1px solid #dbdbdb; }\n  #optimole-app .card .media:not(:last-child) {\n    margin-bottom: 0.75rem; }\n  #optimole-app .dropdown {\n    display: -ms-inline-flexbox;\n    display: inline-flex;\n    position: relative;\n    vertical-align: top; }\n    #optimole-app .dropdown.is-active .dropdown-menu, #optimole-app .dropdown.is-hoverable:hover .dropdown-menu {\n      display: block; }\n    #optimole-app .dropdown.is-right .dropdown-menu {\n      left: auto;\n      right: 0; }\n    #optimole-app .dropdown.is-up .dropdown-menu {\n      bottom: 100%;\n      padding-bottom: 4px;\n      padding-top: initial;\n      top: auto; }\n  #optimole-app .dropdown-menu {\n    display: none;\n    left: 0;\n    min-width: 12rem;\n    padding-top: 4px;\n    position: absolute;\n    top: 100%;\n    z-index: 20; }\n  #optimole-app .dropdown-content {\n    background-color: white;\n    border-radius: 4px;\n    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);\n    padding-bottom: 0.5rem;\n    padding-top: 0.5rem; }\n  #optimole-app .dropdown-item {\n    color: #4a4a4a;\n    display: block;\n    font-size: 0.875rem;\n    line-height: 1.5;\n    padding: 0.375rem 1rem;\n    position: relative; }\n  #optimole-app a.dropdown-item,\n  #optimole-app button.dropdown-item {\n    padding-right: 3rem;\n    text-align: left;\n    white-space: nowrap;\n    width: 100%; }\n    #optimole-app a.dropdown-item:hover,\n    #optimole-app button.dropdown-item:hover {\n      background-color: whitesmoke;\n      color: #0a0a0a; }\n    #optimole-app a.dropdown-item.is-active,\n    #optimole-app button.dropdown-item.is-active {\n      background-color: #3273dc;\n      color: #fff; }\n  #optimole-app .dropdown-divider {\n    background-color: #dbdbdb;\n    border: none;\n    display: block;\n    height: 1px;\n    margin: 0.5rem 0; }\n  #optimole-app .level {\n    -ms-flex-align: center;\n        align-items: center;\n    -ms-flex-pack: justify;\n        justify-content: space-between; }\n    #optimole-app .level code {\n      border-radius: 4px; }\n    #optimole-app .level img {\n      display: inline-block;\n      vertical-align: top; }\n    #optimole-app .level.is-mobile {\n      display: -ms-flexbox;\n      display: flex; }\n      #optimole-app .level.is-mobile .level-left,\n      #optimole-app .level.is-mobile .level-right {\n        display: -ms-flexbox;\n        display: flex; }\n      #optimole-app .level.is-mobile .level-left + .level-right {\n        margin-top: 0; }\n      #optimole-app .level.is-mobile .level-item:not(:last-child) {\n        margin-bottom: 0;\n        margin-right: 0.75rem; }\n      #optimole-app .level.is-mobile .level-item:not(.is-narrow) {\n        -ms-flex-positive: 1;\n            flex-grow: 1; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .level {\n        display: -ms-flexbox;\n        display: flex; }\n        #optimole-app .level > .level-item:not(.is-narrow) {\n          -ms-flex-positive: 1;\n              flex-grow: 1; } }\n  #optimole-app .level-item {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-preferred-size: auto;\n        flex-basis: auto;\n    -ms-flex-positive: 0;\n        flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    -ms-flex-pack: center;\n        justify-content: center; }\n    #optimole-app .level-item .title,\n    #optimole-app .level-item .subtitle {\n      margin-bottom: 0; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .level-item:not(:last-child) {\n        margin-bottom: 0.75rem; } }\n  #optimole-app .level-left,\n  #optimole-app .level-right {\n    -ms-flex-preferred-size: auto;\n        flex-basis: auto;\n    -ms-flex-positive: 0;\n        flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0; }\n    #optimole-app .level-left .level-item.is-flexible,\n    #optimole-app .level-right .level-item.is-flexible {\n      -ms-flex-positive: 1;\n          flex-grow: 1; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .level-left .level-item:not(:last-child),\n      #optimole-app .level-right .level-item:not(:last-child) {\n        margin-right: 0.75rem; } }\n  #optimole-app .level-left {\n    -ms-flex-align: center;\n        align-items: center;\n    -ms-flex-pack: start;\n        justify-content: flex-start; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .level-left + .level-right {\n        margin-top: 1.5rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .level-left {\n        display: -ms-flexbox;\n        display: flex; } }\n  #optimole-app .level-right {\n    -ms-flex-align: center;\n        align-items: center;\n    -ms-flex-pack: end;\n        justify-content: flex-end; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .level-right {\n        display: -ms-flexbox;\n        display: flex; } }\n  #optimole-app .list {\n    background-color: white;\n    border-radius: 4px;\n    box-shadow: 0 2px 3px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1); }\n  #optimole-app .list-item {\n    display: block;\n    padding: 0.5em 1em; }\n    #optimole-app .list-item:not(a) {\n      color: #4a4a4a; }\n    #optimole-app .list-item:first-child {\n      border-top-left-radius: 4px;\n      border-top-right-radius: 4px; }\n    #optimole-app .list-item:last-child {\n      border-top-left-radius: 4px;\n      border-top-right-radius: 4px; }\n    #optimole-app .list-item:not(:last-child) {\n      border-bottom: 1px solid #dbdbdb; }\n    #optimole-app .list-item.is-active {\n      background-color: #3273dc;\n      color: #fff; }\n  #optimole-app a.list-item {\n    background-color: whitesmoke;\n    cursor: pointer; }\n  #optimole-app .media {\n    -ms-flex-align: start;\n        align-items: flex-start;\n    display: -ms-flexbox;\n    display: flex;\n    text-align: left; }\n    #optimole-app .media .content:not(:last-child) {\n      margin-bottom: 0.75rem; }\n    #optimole-app .media .media {\n      border-top: 1px solid rgba(219, 219, 219, 0.5);\n      display: -ms-flexbox;\n      display: flex;\n      padding-top: 0.75rem; }\n      #optimole-app .media .media .content:not(:last-child),\n      #optimole-app .media .media .control:not(:last-child) {\n        margin-bottom: 0.5rem; }\n      #optimole-app .media .media .media {\n        padding-top: 0.5rem; }\n        #optimole-app .media .media .media + .media {\n          margin-top: 0.5rem; }\n    #optimole-app .media + .media {\n      border-top: 1px solid rgba(219, 219, 219, 0.5);\n      margin-top: 1rem;\n      padding-top: 1rem; }\n    #optimole-app .media.is-large + .media {\n      margin-top: 1.5rem;\n      padding-top: 1.5rem; }\n  #optimole-app .media-left,\n  #optimole-app .media-right {\n    -ms-flex-preferred-size: auto;\n        flex-basis: auto;\n    -ms-flex-positive: 0;\n        flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0; }\n  #optimole-app .media-left {\n    margin-right: 1rem; }\n  #optimole-app .media-right {\n    margin-left: 1rem; }\n  #optimole-app .media-content {\n    -ms-flex-preferred-size: auto;\n        flex-basis: auto;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 1;\n        flex-shrink: 1;\n    text-align: left; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .media-content {\n      overflow-x: auto; } }\n  #optimole-app .menu {\n    font-size: 1rem; }\n    #optimole-app .menu.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .menu.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .menu.is-large {\n      font-size: 1.5rem; }\n  #optimole-app .menu-list {\n    line-height: 1.25; }\n    #optimole-app .menu-list a {\n      border-radius: 2px;\n      color: #4a4a4a;\n      display: block;\n      padding: 0.5em 0.75em; }\n      #optimole-app .menu-list a:hover {\n        background-color: whitesmoke;\n        color: #363636; }\n      #optimole-app .menu-list a.is-active {\n        background-color: #3273dc;\n        color: #fff; }\n    #optimole-app .menu-list li ul {\n      border-left: 1px solid #dbdbdb;\n      margin: 0.75em;\n      padding-left: 0.75em; }\n  #optimole-app .menu-label {\n    color: #7a7a7a;\n    font-size: 0.75em;\n    letter-spacing: 0.1em;\n    text-transform: uppercase; }\n    #optimole-app .menu-label:not(:first-child) {\n      margin-top: 1em; }\n    #optimole-app .menu-label:not(:last-child) {\n      margin-bottom: 1em; }\n  #optimole-app .message {\n    background-color: whitesmoke;\n    border-radius: 4px;\n    font-size: 1rem; }\n    #optimole-app .message strong {\n      color: currentColor; }\n    #optimole-app .message a:not(.button):not(.tag):not(.dropdown-item) {\n      color: currentColor;\n      text-decoration: underline; }\n    #optimole-app .message.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .message.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .message.is-large {\n      font-size: 1.5rem; }\n    #optimole-app .message.is-white {\n      background-color: white; }\n      #optimole-app .message.is-white .message-header {\n        background-color: white;\n        color: #0a0a0a; }\n      #optimole-app .message.is-white .message-body {\n        border-color: white;\n        color: #4d4d4d; }\n    #optimole-app .message.is-black {\n      background-color: #fafafa; }\n      #optimole-app .message.is-black .message-header {\n        background-color: #0a0a0a;\n        color: white; }\n      #optimole-app .message.is-black .message-body {\n        border-color: #0a0a0a;\n        color: #090909; }\n    #optimole-app .message.is-light {\n      background-color: #fafafa; }\n      #optimole-app .message.is-light .message-header {\n        background-color: whitesmoke;\n        color: #363636; }\n      #optimole-app .message.is-light .message-body {\n        border-color: whitesmoke;\n        color: #505050; }\n    #optimole-app .message.is-dark {\n      background-color: #fafafa; }\n      #optimole-app .message.is-dark .message-header {\n        background-color: #363636;\n        color: whitesmoke; }\n      #optimole-app .message.is-dark .message-body {\n        border-color: #363636;\n        color: #2a2a2a; }\n    #optimole-app .message.is-primary {\n      background-color: #fef6f6; }\n      #optimole-app .message.is-primary .message-header {\n        background-color: #EF686B;\n        color: #fff; }\n      #optimole-app .message.is-primary .message-body {\n        border-color: #EF686B;\n        color: #bd2124; }\n    #optimole-app .message.is-link {\n      background-color: #f6f9fe; }\n      #optimole-app .message.is-link .message-header {\n        background-color: #3273dc;\n        color: #fff; }\n      #optimole-app .message.is-link .message-body {\n        border-color: #3273dc;\n        color: #22509a; }\n    #optimole-app .message.is-info {\n      background-color: #f7fafc; }\n      #optimole-app .message.is-info .message-header {\n        background-color: #5180C1;\n        color: #fff; }\n      #optimole-app .message.is-info .message-body {\n        border-color: #5180C1;\n        color: #36537c; }\n    #optimole-app .message.is-success {\n      background-color: #f7fdf9; }\n      #optimole-app .message.is-success .message-header {\n        background-color: #34a85e;\n        color: #fff; }\n      #optimole-app .message.is-success .message-body {\n        border-color: #34a85e;\n        color: #1b432a; }\n    #optimole-app .message.is-warning {\n      background-color: #fffdf5; }\n      #optimole-app .message.is-warning .message-header {\n        background-color: #ffdd57;\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .message.is-warning .message-body {\n        border-color: #ffdd57;\n        color: #3b3108; }\n    #optimole-app .message.is-danger {\n      background-color: #fef8f6; }\n      #optimole-app .message.is-danger .message-header {\n        background-color: #D54222;\n        color: #fff; }\n      #optimole-app .message.is-danger .message-body {\n        border-color: #D54222;\n        color: #8d311d; }\n  #optimole-app .message-header {\n    -ms-flex-align: center;\n        align-items: center;\n    background-color: #4a4a4a;\n    border-radius: 4px 4px 0 0;\n    color: #fff;\n    display: -ms-flexbox;\n    display: flex;\n    font-weight: 700;\n    -ms-flex-pack: justify;\n        justify-content: space-between;\n    line-height: 1.25;\n    padding: 0.75em 1em;\n    position: relative; }\n    #optimole-app .message-header .delete {\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n      -ms-flex-negative: 0;\n          flex-shrink: 0;\n      margin-left: 0.75em; }\n    #optimole-app .message-header + .message-body {\n      border-width: 0;\n      border-top-left-radius: 0;\n      border-top-right-radius: 0; }\n  #optimole-app .message-body {\n    border-color: #dbdbdb;\n    border-radius: 4px;\n    border-style: solid;\n    border-width: 0 0 0 4px;\n    color: #4a4a4a;\n    padding: 1.25em 1.5em; }\n    #optimole-app .message-body code,\n    #optimole-app .message-body pre {\n      background-color: white; }\n    #optimole-app .message-body pre code {\n      background-color: transparent; }\n  #optimole-app .modal {\n    -ms-flex-align: center;\n        align-items: center;\n    display: none;\n    -ms-flex-direction: column;\n        flex-direction: column;\n    -ms-flex-pack: center;\n        justify-content: center;\n    overflow: hidden;\n    position: fixed;\n    z-index: 40; }\n    #optimole-app .modal.is-active {\n      display: -ms-flexbox;\n      display: flex; }\n  #optimole-app .modal-background {\n    background-color: rgba(10, 10, 10, 0.86); }\n  #optimole-app .modal-content,\n  #optimole-app .modal-card {\n    margin: 0 20px;\n    max-height: calc(100vh - 160px);\n    overflow: auto;\n    position: relative;\n    width: 100%; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .modal-content,\n      #optimole-app .modal-card {\n        margin: 0 auto;\n        max-height: calc(100vh - 40px);\n        width: 640px; } }\n  #optimole-app .modal-close {\n    background: none;\n    height: 40px;\n    position: fixed;\n    right: 20px;\n    top: 20px;\n    width: 40px; }\n  #optimole-app .modal-card {\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-direction: column;\n        flex-direction: column;\n    max-height: calc(100vh - 40px);\n    overflow: hidden;\n    -ms-overflow-y: visible; }\n  #optimole-app .modal-card-head,\n  #optimole-app .modal-card-foot {\n    -ms-flex-align: center;\n        align-items: center;\n    background-color: whitesmoke;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    -ms-flex-pack: start;\n        justify-content: flex-start;\n    padding: 20px;\n    position: relative; }\n  #optimole-app .modal-card-head {\n    border-bottom: 1px solid #dbdbdb;\n    border-top-left-radius: 6px;\n    border-top-right-radius: 6px; }\n  #optimole-app .modal-card-title {\n    color: #363636;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    font-size: 1.5rem;\n    line-height: 1; }\n  #optimole-app .modal-card-foot {\n    border-bottom-left-radius: 6px;\n    border-bottom-right-radius: 6px;\n    border-top: 1px solid #dbdbdb; }\n    #optimole-app .modal-card-foot .button:not(:last-child) {\n      margin-right: 10px; }\n  #optimole-app .modal-card-body {\n    -webkit-overflow-scrolling: touch;\n    background-color: white;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 1;\n        flex-shrink: 1;\n    overflow: auto;\n    padding: 20px; }\n  #optimole-app .navbar {\n    background-color: white;\n    min-height: 3.25rem;\n    position: relative;\n    z-index: 30; }\n    #optimole-app .navbar.is-white {\n      background-color: white;\n      color: #0a0a0a; }\n      #optimole-app .navbar.is-white .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-white .navbar-brand .navbar-link {\n        color: #0a0a0a; }\n      #optimole-app .navbar.is-white .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-white .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-white .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-white .navbar-brand .navbar-link.is-active {\n        background-color: #f2f2f2;\n        color: #0a0a0a; }\n      #optimole-app .navbar.is-white .navbar-brand .navbar-link::after {\n        border-color: #0a0a0a; }\n      #optimole-app .navbar.is-white .navbar-burger {\n        color: #0a0a0a; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-white .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-white .navbar-start .navbar-link,\n        #optimole-app .navbar.is-white .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-white .navbar-end .navbar-link {\n          color: #0a0a0a; }\n        #optimole-app .navbar.is-white .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-white .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-white .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-white .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-white .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-white .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-white .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-white .navbar-end .navbar-link.is-active {\n          background-color: #f2f2f2;\n          color: #0a0a0a; }\n        #optimole-app .navbar.is-white .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-white .navbar-end .navbar-link::after {\n          border-color: #0a0a0a; }\n        #optimole-app .navbar.is-white .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-white .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #f2f2f2;\n          color: #0a0a0a; }\n        #optimole-app .navbar.is-white .navbar-dropdown a.navbar-item.is-active {\n          background-color: white;\n          color: #0a0a0a; } }\n    #optimole-app .navbar.is-black {\n      background-color: #0a0a0a;\n      color: white; }\n      #optimole-app .navbar.is-black .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-black .navbar-brand .navbar-link {\n        color: white; }\n      #optimole-app .navbar.is-black .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-black .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-black .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-black .navbar-brand .navbar-link.is-active {\n        background-color: black;\n        color: white; }\n      #optimole-app .navbar.is-black .navbar-brand .navbar-link::after {\n        border-color: white; }\n      #optimole-app .navbar.is-black .navbar-burger {\n        color: white; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-black .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-black .navbar-start .navbar-link,\n        #optimole-app .navbar.is-black .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-black .navbar-end .navbar-link {\n          color: white; }\n        #optimole-app .navbar.is-black .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-black .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-black .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-black .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-black .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-black .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-black .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-black .navbar-end .navbar-link.is-active {\n          background-color: black;\n          color: white; }\n        #optimole-app .navbar.is-black .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-black .navbar-end .navbar-link::after {\n          border-color: white; }\n        #optimole-app .navbar.is-black .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-black .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: black;\n          color: white; }\n        #optimole-app .navbar.is-black .navbar-dropdown a.navbar-item.is-active {\n          background-color: #0a0a0a;\n          color: white; } }\n    #optimole-app .navbar.is-light {\n      background-color: whitesmoke;\n      color: #363636; }\n      #optimole-app .navbar.is-light .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-light .navbar-brand .navbar-link {\n        color: #363636; }\n      #optimole-app .navbar.is-light .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-light .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-light .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-light .navbar-brand .navbar-link.is-active {\n        background-color: #e8e8e8;\n        color: #363636; }\n      #optimole-app .navbar.is-light .navbar-brand .navbar-link::after {\n        border-color: #363636; }\n      #optimole-app .navbar.is-light .navbar-burger {\n        color: #363636; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-light .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-light .navbar-start .navbar-link,\n        #optimole-app .navbar.is-light .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-light .navbar-end .navbar-link {\n          color: #363636; }\n        #optimole-app .navbar.is-light .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-light .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-light .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-light .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-light .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-light .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-light .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-light .navbar-end .navbar-link.is-active {\n          background-color: #e8e8e8;\n          color: #363636; }\n        #optimole-app .navbar.is-light .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-light .navbar-end .navbar-link::after {\n          border-color: #363636; }\n        #optimole-app .navbar.is-light .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-light .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #e8e8e8;\n          color: #363636; }\n        #optimole-app .navbar.is-light .navbar-dropdown a.navbar-item.is-active {\n          background-color: whitesmoke;\n          color: #363636; } }\n    #optimole-app .navbar.is-dark {\n      background-color: #363636;\n      color: whitesmoke; }\n      #optimole-app .navbar.is-dark .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-dark .navbar-brand .navbar-link {\n        color: whitesmoke; }\n      #optimole-app .navbar.is-dark .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-dark .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-dark .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-dark .navbar-brand .navbar-link.is-active {\n        background-color: #292929;\n        color: whitesmoke; }\n      #optimole-app .navbar.is-dark .navbar-brand .navbar-link::after {\n        border-color: whitesmoke; }\n      #optimole-app .navbar.is-dark .navbar-burger {\n        color: whitesmoke; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-dark .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-dark .navbar-start .navbar-link,\n        #optimole-app .navbar.is-dark .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-dark .navbar-end .navbar-link {\n          color: whitesmoke; }\n        #optimole-app .navbar.is-dark .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-dark .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-dark .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-dark .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-dark .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-dark .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-dark .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-dark .navbar-end .navbar-link.is-active {\n          background-color: #292929;\n          color: whitesmoke; }\n        #optimole-app .navbar.is-dark .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-dark .navbar-end .navbar-link::after {\n          border-color: whitesmoke; }\n        #optimole-app .navbar.is-dark .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-dark .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #292929;\n          color: whitesmoke; }\n        #optimole-app .navbar.is-dark .navbar-dropdown a.navbar-item.is-active {\n          background-color: #363636;\n          color: whitesmoke; } }\n    #optimole-app .navbar.is-primary {\n      background-color: #EF686B;\n      color: #fff; }\n      #optimole-app .navbar.is-primary .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-primary .navbar-brand .navbar-link {\n        color: #fff; }\n      #optimole-app .navbar.is-primary .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-primary .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-primary .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-primary .navbar-brand .navbar-link.is-active {\n        background-color: #ed5154;\n        color: #fff; }\n      #optimole-app .navbar.is-primary .navbar-brand .navbar-link::after {\n        border-color: #fff; }\n      #optimole-app .navbar.is-primary .navbar-burger {\n        color: #fff; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-primary .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-primary .navbar-start .navbar-link,\n        #optimole-app .navbar.is-primary .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-primary .navbar-end .navbar-link {\n          color: #fff; }\n        #optimole-app .navbar.is-primary .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-primary .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-primary .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-primary .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-primary .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-primary .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-primary .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-primary .navbar-end .navbar-link.is-active {\n          background-color: #ed5154;\n          color: #fff; }\n        #optimole-app .navbar.is-primary .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-primary .navbar-end .navbar-link::after {\n          border-color: #fff; }\n        #optimole-app .navbar.is-primary .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-primary .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #ed5154;\n          color: #fff; }\n        #optimole-app .navbar.is-primary .navbar-dropdown a.navbar-item.is-active {\n          background-color: #EF686B;\n          color: #fff; } }\n    #optimole-app .navbar.is-link {\n      background-color: #3273dc;\n      color: #fff; }\n      #optimole-app .navbar.is-link .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-link .navbar-brand .navbar-link {\n        color: #fff; }\n      #optimole-app .navbar.is-link .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-link .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-link .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-link .navbar-brand .navbar-link.is-active {\n        background-color: #2366d1;\n        color: #fff; }\n      #optimole-app .navbar.is-link .navbar-brand .navbar-link::after {\n        border-color: #fff; }\n      #optimole-app .navbar.is-link .navbar-burger {\n        color: #fff; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-link .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-link .navbar-start .navbar-link,\n        #optimole-app .navbar.is-link .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-link .navbar-end .navbar-link {\n          color: #fff; }\n        #optimole-app .navbar.is-link .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-link .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-link .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-link .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-link .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-link .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-link .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-link .navbar-end .navbar-link.is-active {\n          background-color: #2366d1;\n          color: #fff; }\n        #optimole-app .navbar.is-link .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-link .navbar-end .navbar-link::after {\n          border-color: #fff; }\n        #optimole-app .navbar.is-link .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-link .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #2366d1;\n          color: #fff; }\n        #optimole-app .navbar.is-link .navbar-dropdown a.navbar-item.is-active {\n          background-color: #3273dc;\n          color: #fff; } }\n    #optimole-app .navbar.is-info {\n      background-color: #5180C1;\n      color: #fff; }\n      #optimole-app .navbar.is-info .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-info .navbar-brand .navbar-link {\n        color: #fff; }\n      #optimole-app .navbar.is-info .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-info .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-info .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-info .navbar-brand .navbar-link.is-active {\n        background-color: #4173b7;\n        color: #fff; }\n      #optimole-app .navbar.is-info .navbar-brand .navbar-link::after {\n        border-color: #fff; }\n      #optimole-app .navbar.is-info .navbar-burger {\n        color: #fff; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-info .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-info .navbar-start .navbar-link,\n        #optimole-app .navbar.is-info .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-info .navbar-end .navbar-link {\n          color: #fff; }\n        #optimole-app .navbar.is-info .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-info .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-info .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-info .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-info .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-info .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-info .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-info .navbar-end .navbar-link.is-active {\n          background-color: #4173b7;\n          color: #fff; }\n        #optimole-app .navbar.is-info .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-info .navbar-end .navbar-link::after {\n          border-color: #fff; }\n        #optimole-app .navbar.is-info .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-info .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #4173b7;\n          color: #fff; }\n        #optimole-app .navbar.is-info .navbar-dropdown a.navbar-item.is-active {\n          background-color: #5180C1;\n          color: #fff; } }\n    #optimole-app .navbar.is-success {\n      background-color: #34a85e;\n      color: #fff; }\n      #optimole-app .navbar.is-success .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-success .navbar-brand .navbar-link {\n        color: #fff; }\n      #optimole-app .navbar.is-success .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-success .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-success .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-success .navbar-brand .navbar-link.is-active {\n        background-color: #2e9553;\n        color: #fff; }\n      #optimole-app .navbar.is-success .navbar-brand .navbar-link::after {\n        border-color: #fff; }\n      #optimole-app .navbar.is-success .navbar-burger {\n        color: #fff; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-success .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-success .navbar-start .navbar-link,\n        #optimole-app .navbar.is-success .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-success .navbar-end .navbar-link {\n          color: #fff; }\n        #optimole-app .navbar.is-success .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-success .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-success .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-success .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-success .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-success .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-success .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-success .navbar-end .navbar-link.is-active {\n          background-color: #2e9553;\n          color: #fff; }\n        #optimole-app .navbar.is-success .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-success .navbar-end .navbar-link::after {\n          border-color: #fff; }\n        #optimole-app .navbar.is-success .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-success .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #2e9553;\n          color: #fff; }\n        #optimole-app .navbar.is-success .navbar-dropdown a.navbar-item.is-active {\n          background-color: #34a85e;\n          color: #fff; } }\n    #optimole-app .navbar.is-warning {\n      background-color: #ffdd57;\n      color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .navbar.is-warning .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-warning .navbar-brand .navbar-link {\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .navbar.is-warning .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-warning .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-warning .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-warning .navbar-brand .navbar-link.is-active {\n        background-color: #ffd83d;\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .navbar.is-warning .navbar-brand .navbar-link::after {\n        border-color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .navbar.is-warning .navbar-burger {\n        color: rgba(0, 0, 0, 0.7); }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-warning .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-warning .navbar-start .navbar-link,\n        #optimole-app .navbar.is-warning .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-warning .navbar-end .navbar-link {\n          color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .navbar.is-warning .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-warning .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-warning .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-warning .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-warning .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-warning .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-warning .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-warning .navbar-end .navbar-link.is-active {\n          background-color: #ffd83d;\n          color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .navbar.is-warning .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-warning .navbar-end .navbar-link::after {\n          border-color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .navbar.is-warning .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-warning .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #ffd83d;\n          color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .navbar.is-warning .navbar-dropdown a.navbar-item.is-active {\n          background-color: #ffdd57;\n          color: rgba(0, 0, 0, 0.7); } }\n    #optimole-app .navbar.is-danger {\n      background-color: #D54222;\n      color: #fff; }\n      #optimole-app .navbar.is-danger .navbar-brand > .navbar-item,\n      #optimole-app .navbar.is-danger .navbar-brand .navbar-link {\n        color: #fff; }\n      #optimole-app .navbar.is-danger .navbar-brand > a.navbar-item:hover, #optimole-app .navbar.is-danger .navbar-brand > a.navbar-item.is-active,\n      #optimole-app .navbar.is-danger .navbar-brand .navbar-link:hover,\n      #optimole-app .navbar.is-danger .navbar-brand .navbar-link.is-active {\n        background-color: #bf3b1e;\n        color: #fff; }\n      #optimole-app .navbar.is-danger .navbar-brand .navbar-link::after {\n        border-color: #fff; }\n      #optimole-app .navbar.is-danger .navbar-burger {\n        color: #fff; }\n      @media screen and (min-width: 1088px) {\n        #optimole-app .navbar.is-danger .navbar-start > .navbar-item,\n        #optimole-app .navbar.is-danger .navbar-start .navbar-link,\n        #optimole-app .navbar.is-danger .navbar-end > .navbar-item,\n        #optimole-app .navbar.is-danger .navbar-end .navbar-link {\n          color: #fff; }\n        #optimole-app .navbar.is-danger .navbar-start > a.navbar-item:hover, #optimole-app .navbar.is-danger .navbar-start > a.navbar-item.is-active,\n        #optimole-app .navbar.is-danger .navbar-start .navbar-link:hover,\n        #optimole-app .navbar.is-danger .navbar-start .navbar-link.is-active,\n        #optimole-app .navbar.is-danger .navbar-end > a.navbar-item:hover,\n        #optimole-app .navbar.is-danger .navbar-end > a.navbar-item.is-active,\n        #optimole-app .navbar.is-danger .navbar-end .navbar-link:hover,\n        #optimole-app .navbar.is-danger .navbar-end .navbar-link.is-active {\n          background-color: #bf3b1e;\n          color: #fff; }\n        #optimole-app .navbar.is-danger .navbar-start .navbar-link::after,\n        #optimole-app .navbar.is-danger .navbar-end .navbar-link::after {\n          border-color: #fff; }\n        #optimole-app .navbar.is-danger .navbar-item.has-dropdown:hover .navbar-link,\n        #optimole-app .navbar.is-danger .navbar-item.has-dropdown.is-active .navbar-link {\n          background-color: #bf3b1e;\n          color: #fff; }\n        #optimole-app .navbar.is-danger .navbar-dropdown a.navbar-item.is-active {\n          background-color: #D54222;\n          color: #fff; } }\n    #optimole-app .navbar > .container {\n      -ms-flex-align: stretch;\n          align-items: stretch;\n      display: -ms-flexbox;\n      display: flex;\n      min-height: 3.25rem;\n      width: 100%; }\n    #optimole-app .navbar.has-shadow {\n      box-shadow: 0 2px 0 0 whitesmoke; }\n    #optimole-app .navbar.is-fixed-bottom, #optimole-app .navbar.is-fixed-top {\n      left: 0;\n      position: fixed;\n      right: 0;\n      z-index: 30; }\n    #optimole-app .navbar.is-fixed-bottom {\n      bottom: 0; }\n      #optimole-app .navbar.is-fixed-bottom.has-shadow {\n        box-shadow: 0 -2px 0 0 whitesmoke; }\n    #optimole-app .navbar.is-fixed-top {\n      top: 0; }\n  #optimole-app html.has-navbar-fixed-top,\n  #optimole-app body.has-navbar-fixed-top {\n    padding-top: 3.25rem; }\n  #optimole-app html.has-navbar-fixed-bottom,\n  #optimole-app body.has-navbar-fixed-bottom {\n    padding-bottom: 3.25rem; }\n  #optimole-app .navbar-brand,\n  #optimole-app .navbar-tabs {\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    min-height: 3.25rem; }\n  #optimole-app .navbar-brand a.navbar-item:hover {\n    background-color: transparent; }\n  #optimole-app .navbar-tabs {\n    -webkit-overflow-scrolling: touch;\n    max-width: 100vw;\n    overflow-x: auto;\n    overflow-y: hidden; }\n  #optimole-app .navbar-burger {\n    color: #4a4a4a;\n    cursor: pointer;\n    display: block;\n    height: 3.25rem;\n    position: relative;\n    width: 3.25rem;\n    margin-left: auto; }\n    #optimole-app .navbar-burger span {\n      background-color: currentColor;\n      display: block;\n      height: 1px;\n      left: calc(50% - 8px);\n      position: absolute;\n      transform-origin: center;\n      transition-duration: 86ms;\n      transition-property: background-color, opacity, transform;\n      transition-timing-function: ease-out;\n      width: 16px; }\n      #optimole-app .navbar-burger span:nth-child(1) {\n        top: calc(50% - 6px); }\n      #optimole-app .navbar-burger span:nth-child(2) {\n        top: calc(50% - 1px); }\n      #optimole-app .navbar-burger span:nth-child(3) {\n        top: calc(50% + 4px); }\n    #optimole-app .navbar-burger:hover {\n      background-color: rgba(0, 0, 0, 0.05); }\n    #optimole-app .navbar-burger.is-active span:nth-child(1) {\n      transform: translateY(5px) rotate(45deg); }\n    #optimole-app .navbar-burger.is-active span:nth-child(2) {\n      opacity: 0; }\n    #optimole-app .navbar-burger.is-active span:nth-child(3) {\n      transform: translateY(-5px) rotate(-45deg); }\n  #optimole-app .navbar-menu {\n    display: none; }\n  #optimole-app .navbar-item,\n  #optimole-app .navbar-link {\n    color: #4a4a4a;\n    display: block;\n    line-height: 1.5;\n    padding: 0.5rem 0.75rem;\n    position: relative; }\n    #optimole-app .navbar-item .icon:only-child,\n    #optimole-app .navbar-link .icon:only-child {\n      margin-left: -0.25rem;\n      margin-right: -0.25rem; }\n  #optimole-app a.navbar-item,\n  #optimole-app .navbar-link {\n    cursor: pointer; }\n    #optimole-app a.navbar-item:hover, #optimole-app a.navbar-item.is-active,\n    #optimole-app .navbar-link:hover,\n    #optimole-app .navbar-link.is-active {\n      background-color: #fafafa;\n      color: #3273dc; }\n  #optimole-app .navbar-item {\n    display: block;\n    -ms-flex-positive: 0;\n        flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0; }\n    #optimole-app .navbar-item img {\n      max-height: 1.75rem; }\n    #optimole-app .navbar-item.has-dropdown {\n      padding: 0; }\n    #optimole-app .navbar-item.is-expanded {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 1;\n          flex-shrink: 1; }\n    #optimole-app .navbar-item.is-tab {\n      border-bottom: 1px solid transparent;\n      min-height: 3.25rem;\n      padding-bottom: calc(0.5rem - 1px); }\n      #optimole-app .navbar-item.is-tab:hover {\n        background-color: transparent;\n        border-bottom-color: #3273dc; }\n      #optimole-app .navbar-item.is-tab.is-active {\n        background-color: transparent;\n        border-bottom-color: #3273dc;\n        border-bottom-style: solid;\n        border-bottom-width: 3px;\n        color: #3273dc;\n        padding-bottom: calc(0.5rem - 3px); }\n  #optimole-app .navbar-content {\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 1;\n        flex-shrink: 1; }\n  #optimole-app .navbar-link:not(.is-arrowless) {\n    padding-right: 2.5em; }\n    #optimole-app .navbar-link:not(.is-arrowless)::after {\n      border-color: #3273dc;\n      margin-top: -0.375em;\n      right: 1.125em; }\n  #optimole-app .navbar-dropdown {\n    font-size: 0.875rem;\n    padding-bottom: 0.5rem;\n    padding-top: 0.5rem; }\n    #optimole-app .navbar-dropdown .navbar-item {\n      padding-left: 1.5rem;\n      padding-right: 1.5rem; }\n  #optimole-app .navbar-divider {\n    background-color: whitesmoke;\n    border: none;\n    display: none;\n    height: 2px;\n    margin: 0.5rem 0; }\n  @media screen and (max-width: 1087px) {\n    #optimole-app .navbar > .container {\n      display: block; }\n    #optimole-app .navbar-brand .navbar-item,\n    #optimole-app .navbar-tabs .navbar-item {\n      -ms-flex-align: center;\n          align-items: center;\n      display: -ms-flexbox;\n      display: flex; }\n    #optimole-app .navbar-link::after {\n      display: none; }\n    #optimole-app .navbar-menu {\n      background-color: white;\n      box-shadow: 0 8px 16px rgba(10, 10, 10, 0.1);\n      padding: 0.5rem 0; }\n      #optimole-app .navbar-menu.is-active {\n        display: block; }\n    #optimole-app .navbar.is-fixed-bottom-touch, #optimole-app .navbar.is-fixed-top-touch {\n      left: 0;\n      position: fixed;\n      right: 0;\n      z-index: 30; }\n    #optimole-app .navbar.is-fixed-bottom-touch {\n      bottom: 0; }\n      #optimole-app .navbar.is-fixed-bottom-touch.has-shadow {\n        box-shadow: 0 -2px 3px rgba(10, 10, 10, 0.1); }\n    #optimole-app .navbar.is-fixed-top-touch {\n      top: 0; }\n    #optimole-app .navbar.is-fixed-top .navbar-menu, #optimole-app .navbar.is-fixed-top-touch .navbar-menu {\n      -webkit-overflow-scrolling: touch;\n      max-height: calc(100vh - 3.25rem);\n      overflow: auto; }\n    #optimole-app html.has-navbar-fixed-top-touch,\n    #optimole-app body.has-navbar-fixed-top-touch {\n      padding-top: 3.25rem; }\n    #optimole-app html.has-navbar-fixed-bottom-touch,\n    #optimole-app body.has-navbar-fixed-bottom-touch {\n      padding-bottom: 3.25rem; } }\n  @media screen and (min-width: 1088px) {\n    #optimole-app .navbar,\n    #optimole-app .navbar-menu,\n    #optimole-app .navbar-start,\n    #optimole-app .navbar-end {\n      -ms-flex-align: stretch;\n          align-items: stretch;\n      display: -ms-flexbox;\n      display: flex; }\n    #optimole-app .navbar {\n      min-height: 3.25rem; }\n      #optimole-app .navbar.is-spaced {\n        padding: 1rem 2rem; }\n        #optimole-app .navbar.is-spaced .navbar-start,\n        #optimole-app .navbar.is-spaced .navbar-end {\n          -ms-flex-align: center;\n              align-items: center; }\n        #optimole-app .navbar.is-spaced a.navbar-item,\n        #optimole-app .navbar.is-spaced .navbar-link {\n          border-radius: 4px; }\n      #optimole-app .navbar.is-transparent a.navbar-item:hover, #optimole-app .navbar.is-transparent a.navbar-item.is-active,\n      #optimole-app .navbar.is-transparent .navbar-link:hover,\n      #optimole-app .navbar.is-transparent .navbar-link.is-active {\n        background-color: transparent !important; }\n      #optimole-app .navbar.is-transparent .navbar-item.has-dropdown.is-active .navbar-link, #optimole-app .navbar.is-transparent .navbar-item.has-dropdown.is-hoverable:hover .navbar-link {\n        background-color: transparent !important; }\n      #optimole-app .navbar.is-transparent .navbar-dropdown a.navbar-item:hover {\n        background-color: whitesmoke;\n        color: #0a0a0a; }\n      #optimole-app .navbar.is-transparent .navbar-dropdown a.navbar-item.is-active {\n        background-color: whitesmoke;\n        color: #3273dc; }\n    #optimole-app .navbar-burger {\n      display: none; }\n    #optimole-app .navbar-item,\n    #optimole-app .navbar-link {\n      -ms-flex-align: center;\n          align-items: center;\n      display: -ms-flexbox;\n      display: flex; }\n    #optimole-app .navbar-item {\n      display: -ms-flexbox;\n      display: flex; }\n      #optimole-app .navbar-item.has-dropdown {\n        -ms-flex-align: stretch;\n            align-items: stretch; }\n      #optimole-app .navbar-item.has-dropdown-up .navbar-link::after {\n        transform: rotate(135deg) translate(0.25em, -0.25em); }\n      #optimole-app .navbar-item.has-dropdown-up .navbar-dropdown {\n        border-bottom: 2px solid #dbdbdb;\n        border-radius: 6px 6px 0 0;\n        border-top: none;\n        bottom: 100%;\n        box-shadow: 0 -8px 8px rgba(10, 10, 10, 0.1);\n        top: auto; }\n      #optimole-app .navbar-item.is-active .navbar-dropdown, #optimole-app .navbar-item.is-hoverable:hover .navbar-dropdown {\n        display: block; }\n        .navbar.is-spaced #optimole-app .navbar-item.is-active .navbar-dropdown, #optimole-app .navbar-item.is-active .navbar-dropdown.is-boxed, .navbar.is-spaced #optimole-app .navbar-item.is-hoverable:hover .navbar-dropdown, #optimole-app .navbar-item.is-hoverable:hover .navbar-dropdown.is-boxed {\n          opacity: 1;\n          pointer-events: auto;\n          transform: translateY(0); }\n    #optimole-app .navbar-menu {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 0;\n          flex-shrink: 0; }\n    #optimole-app .navbar-start {\n      -ms-flex-pack: start;\n          justify-content: flex-start;\n      margin-right: auto; }\n    #optimole-app .navbar-end {\n      -ms-flex-pack: end;\n          justify-content: flex-end;\n      margin-left: auto; }\n    #optimole-app .navbar-dropdown {\n      background-color: white;\n      border-bottom-left-radius: 6px;\n      border-bottom-right-radius: 6px;\n      border-top: 2px solid #dbdbdb;\n      box-shadow: 0 8px 8px rgba(10, 10, 10, 0.1);\n      display: none;\n      font-size: 0.875rem;\n      left: 0;\n      min-width: 100%;\n      position: absolute;\n      top: 100%;\n      z-index: 20; }\n      #optimole-app .navbar-dropdown .navbar-item {\n        padding: 0.375rem 1rem;\n        white-space: nowrap; }\n      #optimole-app .navbar-dropdown a.navbar-item {\n        padding-right: 3rem; }\n        #optimole-app .navbar-dropdown a.navbar-item:hover {\n          background-color: whitesmoke;\n          color: #0a0a0a; }\n        #optimole-app .navbar-dropdown a.navbar-item.is-active {\n          background-color: whitesmoke;\n          color: #3273dc; }\n      .navbar.is-spaced #optimole-app .navbar-dropdown, #optimole-app .navbar-dropdown.is-boxed {\n        border-radius: 6px;\n        border-top: none;\n        box-shadow: 0 8px 8px rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.1);\n        display: block;\n        opacity: 0;\n        pointer-events: none;\n        top: calc(100% + (-4px));\n        transform: translateY(-5px);\n        transition-duration: 86ms;\n        transition-property: opacity, transform; }\n      #optimole-app .navbar-dropdown.is-right {\n        left: auto;\n        right: 0; }\n    #optimole-app .navbar-divider {\n      display: block; }\n    #optimole-app .navbar > .container .navbar-brand,\n    #optimole-app .container > .navbar .navbar-brand {\n      margin-left: -.75rem; }\n    #optimole-app .navbar > .container .navbar-menu,\n    #optimole-app .container > .navbar .navbar-menu {\n      margin-right: -.75rem; }\n    #optimole-app .navbar.is-fixed-bottom-desktop, #optimole-app .navbar.is-fixed-top-desktop {\n      left: 0;\n      position: fixed;\n      right: 0;\n      z-index: 30; }\n    #optimole-app .navbar.is-fixed-bottom-desktop {\n      bottom: 0; }\n      #optimole-app .navbar.is-fixed-bottom-desktop.has-shadow {\n        box-shadow: 0 -2px 3px rgba(10, 10, 10, 0.1); }\n    #optimole-app .navbar.is-fixed-top-desktop {\n      top: 0; }\n    #optimole-app html.has-navbar-fixed-top-desktop,\n    #optimole-app body.has-navbar-fixed-top-desktop {\n      padding-top: 3.25rem; }\n    #optimole-app html.has-navbar-fixed-bottom-desktop,\n    #optimole-app body.has-navbar-fixed-bottom-desktop {\n      padding-bottom: 3.25rem; }\n    #optimole-app html.has-spaced-navbar-fixed-top,\n    #optimole-app body.has-spaced-navbar-fixed-top {\n      padding-top: 5.25rem; }\n    #optimole-app html.has-spaced-navbar-fixed-bottom,\n    #optimole-app body.has-spaced-navbar-fixed-bottom {\n      padding-bottom: 5.25rem; }\n    #optimole-app a.navbar-item.is-active,\n    #optimole-app .navbar-link.is-active {\n      color: #0a0a0a; }\n    #optimole-app a.navbar-item.is-active:not(:hover),\n    #optimole-app .navbar-link.is-active:not(:hover) {\n      background-color: transparent; }\n    #optimole-app .navbar-item.has-dropdown:hover .navbar-link, #optimole-app .navbar-item.has-dropdown.is-active .navbar-link {\n      background-color: #fafafa; } }\n  #optimole-app .hero.is-fullheight-with-navbar {\n    min-height: calc(100vh - 3.25rem); }\n  #optimole-app .pagination {\n    font-size: 1rem;\n    margin: -0.25rem; }\n    #optimole-app .pagination.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .pagination.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .pagination.is-large {\n      font-size: 1.5rem; }\n    #optimole-app .pagination.is-rounded .pagination-previous,\n    #optimole-app .pagination.is-rounded .pagination-next {\n      padding-left: 1em;\n      padding-right: 1em;\n      border-radius: 290486px; }\n    #optimole-app .pagination.is-rounded .pagination-link {\n      border-radius: 290486px; }\n  #optimole-app .pagination,\n  #optimole-app .pagination-list {\n    -ms-flex-align: center;\n        align-items: center;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-pack: center;\n        justify-content: center;\n    text-align: center; }\n  #optimole-app .pagination-previous,\n  #optimole-app .pagination-next,\n  #optimole-app .pagination-link,\n  #optimole-app .pagination-ellipsis {\n    font-size: 1em;\n    padding-left: 0.5em;\n    padding-right: 0.5em;\n    -ms-flex-pack: center;\n        justify-content: center;\n    margin: 0.25rem;\n    text-align: center; }\n  #optimole-app .pagination-previous,\n  #optimole-app .pagination-next,\n  #optimole-app .pagination-link {\n    border-color: #dbdbdb;\n    color: #363636;\n    min-width: 2.25em; }\n    #optimole-app .pagination-previous:hover,\n    #optimole-app .pagination-next:hover,\n    #optimole-app .pagination-link:hover {\n      border-color: #b5b5b5;\n      color: #363636; }\n    #optimole-app .pagination-previous:focus,\n    #optimole-app .pagination-next:focus,\n    #optimole-app .pagination-link:focus {\n      border-color: #3273dc; }\n    #optimole-app .pagination-previous:active,\n    #optimole-app .pagination-next:active,\n    #optimole-app .pagination-link:active {\n      box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.2); }\n    #optimole-app .pagination-previous[disabled],\n    #optimole-app .pagination-next[disabled],\n    #optimole-app .pagination-link[disabled] {\n      background-color: #dbdbdb;\n      border-color: #dbdbdb;\n      box-shadow: none;\n      color: #7a7a7a;\n      opacity: 0.5; }\n  #optimole-app .pagination-previous,\n  #optimole-app .pagination-next {\n    padding-left: 0.75em;\n    padding-right: 0.75em;\n    white-space: nowrap; }\n  #optimole-app .pagination-link.is-current {\n    background-color: #3273dc;\n    border-color: #3273dc;\n    color: #fff; }\n  #optimole-app .pagination-ellipsis {\n    color: #b5b5b5;\n    pointer-events: none; }\n  #optimole-app .pagination-list {\n    -ms-flex-wrap: wrap;\n        flex-wrap: wrap; }\n  @media screen and (max-width: 768px) {\n    #optimole-app .pagination {\n      -ms-flex-wrap: wrap;\n          flex-wrap: wrap; }\n    #optimole-app .pagination-previous,\n    #optimole-app .pagination-next {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 1;\n          flex-shrink: 1; }\n    #optimole-app .pagination-list li {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 1;\n          flex-shrink: 1; } }\n  @media screen and (min-width: 769px), print {\n    #optimole-app .pagination-list {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 1;\n          flex-shrink: 1;\n      -ms-flex-pack: start;\n          justify-content: flex-start;\n      -ms-flex-order: 1;\n          order: 1; }\n    #optimole-app .pagination-previous {\n      -ms-flex-order: 2;\n          order: 2; }\n    #optimole-app .pagination-next {\n      -ms-flex-order: 3;\n          order: 3; }\n    #optimole-app .pagination {\n      -ms-flex-pack: justify;\n          justify-content: space-between; }\n      #optimole-app .pagination.is-centered .pagination-previous {\n        -ms-flex-order: 1;\n            order: 1; }\n      #optimole-app .pagination.is-centered .pagination-list {\n        -ms-flex-pack: center;\n            justify-content: center;\n        -ms-flex-order: 2;\n            order: 2; }\n      #optimole-app .pagination.is-centered .pagination-next {\n        -ms-flex-order: 3;\n            order: 3; }\n      #optimole-app .pagination.is-right .pagination-previous {\n        -ms-flex-order: 1;\n            order: 1; }\n      #optimole-app .pagination.is-right .pagination-next {\n        -ms-flex-order: 2;\n            order: 2; }\n      #optimole-app .pagination.is-right .pagination-list {\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n        -ms-flex-order: 3;\n            order: 3; } }\n  #optimole-app .panel {\n    font-size: 1rem; }\n    #optimole-app .panel:not(:last-child) {\n      margin-bottom: 1.5rem; }\n  #optimole-app .panel-heading,\n  #optimole-app .panel-tabs,\n  #optimole-app .panel-block {\n    border-bottom: 1px solid #dbdbdb;\n    border-left: 1px solid #dbdbdb;\n    border-right: 1px solid #dbdbdb; }\n    #optimole-app .panel-heading:first-child,\n    #optimole-app .panel-tabs:first-child,\n    #optimole-app .panel-block:first-child {\n      border-top: 1px solid #dbdbdb; }\n  #optimole-app .panel-heading {\n    background-color: whitesmoke;\n    border-radius: 4px 4px 0 0;\n    color: #363636;\n    font-size: 1.25em;\n    font-weight: 300;\n    line-height: 1.25;\n    padding: 0.5em 0.75em; }\n  #optimole-app .panel-tabs {\n    -ms-flex-align: end;\n        align-items: flex-end;\n    display: -ms-flexbox;\n    display: flex;\n    font-size: 0.875em;\n    -ms-flex-pack: center;\n        justify-content: center; }\n    #optimole-app .panel-tabs a {\n      border-bottom: 1px solid #dbdbdb;\n      margin-bottom: -1px;\n      padding: 0.5em; }\n      #optimole-app .panel-tabs a.is-active {\n        border-bottom-color: #4a4a4a;\n        color: #363636; }\n  #optimole-app .panel-list a {\n    color: #4a4a4a; }\n    #optimole-app .panel-list a:hover {\n      color: #3273dc; }\n  #optimole-app .panel-block {\n    -ms-flex-align: center;\n        align-items: center;\n    color: #363636;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-pack: start;\n        justify-content: flex-start;\n    padding: 0.5em 0.75em; }\n    #optimole-app .panel-block input[type=\"checkbox\"] {\n      margin-right: 0.75em; }\n    #optimole-app .panel-block > .control {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 1;\n          flex-shrink: 1;\n      width: 100%; }\n    #optimole-app .panel-block.is-wrapped {\n      -ms-flex-wrap: wrap;\n          flex-wrap: wrap; }\n    #optimole-app .panel-block.is-active {\n      border-left-color: #3273dc;\n      color: #363636; }\n      #optimole-app .panel-block.is-active .panel-icon {\n        color: #3273dc; }\n  #optimole-app a.panel-block,\n  #optimole-app label.panel-block {\n    cursor: pointer; }\n    #optimole-app a.panel-block:hover,\n    #optimole-app label.panel-block:hover {\n      background-color: whitesmoke; }\n  #optimole-app .panel-icon {\n    display: inline-block;\n    font-size: 14px;\n    height: 1em;\n    line-height: 1em;\n    text-align: center;\n    vertical-align: top;\n    width: 1em;\n    color: #7a7a7a;\n    margin-right: 0.75em; }\n    #optimole-app .panel-icon .fa {\n      font-size: inherit;\n      line-height: inherit; }\n  #optimole-app .tabs {\n    -webkit-overflow-scrolling: touch;\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: -ms-flexbox;\n    display: flex;\n    font-size: 1rem;\n    -ms-flex-pack: justify;\n        justify-content: space-between;\n    overflow: hidden;\n    overflow-x: auto;\n    white-space: nowrap; }\n    #optimole-app .tabs a {\n      -ms-flex-align: center;\n          align-items: center;\n      border-bottom-color: #dbdbdb;\n      border-bottom-style: solid;\n      border-bottom-width: 1px;\n      color: #4a4a4a;\n      display: -ms-flexbox;\n      display: flex;\n      -ms-flex-pack: center;\n          justify-content: center;\n      margin-bottom: -1px;\n      padding: 0.5em 1em;\n      vertical-align: top; }\n      #optimole-app .tabs a:hover {\n        border-bottom-color: #363636;\n        color: #363636; }\n    #optimole-app .tabs li {\n      display: block; }\n      #optimole-app .tabs li.is-active a {\n        border-bottom-color: #3273dc;\n        color: #3273dc; }\n    #optimole-app .tabs ul {\n      -ms-flex-align: center;\n          align-items: center;\n      border-bottom-color: #dbdbdb;\n      border-bottom-style: solid;\n      border-bottom-width: 1px;\n      display: -ms-flexbox;\n      display: flex;\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 0;\n          flex-shrink: 0;\n      -ms-flex-pack: start;\n          justify-content: flex-start; }\n      #optimole-app .tabs ul.is-left {\n        padding-right: 0.75em; }\n      #optimole-app .tabs ul.is-center {\n        -ms-flex: none;\n            flex: none;\n        -ms-flex-pack: center;\n            justify-content: center;\n        padding-left: 0.75em;\n        padding-right: 0.75em; }\n      #optimole-app .tabs ul.is-right {\n        -ms-flex-pack: end;\n            justify-content: flex-end;\n        padding-left: 0.75em; }\n    #optimole-app .tabs .icon:first-child {\n      margin-right: 0.5em; }\n    #optimole-app .tabs .icon:last-child {\n      margin-left: 0.5em; }\n    #optimole-app .tabs.is-centered ul {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .tabs.is-right ul {\n      -ms-flex-pack: end;\n          justify-content: flex-end; }\n    #optimole-app .tabs.is-boxed a {\n      border: 1px solid transparent;\n      border-radius: 4px 4px 0 0; }\n      #optimole-app .tabs.is-boxed a:hover {\n        background-color: whitesmoke;\n        border-bottom-color: #dbdbdb; }\n    #optimole-app .tabs.is-boxed li.is-active a {\n      background-color: white;\n      border-color: #dbdbdb;\n      border-bottom-color: transparent !important; }\n    #optimole-app .tabs.is-fullwidth li {\n      -ms-flex-positive: 1;\n          flex-grow: 1;\n      -ms-flex-negative: 0;\n          flex-shrink: 0; }\n    #optimole-app .tabs.is-toggle a {\n      border-color: #dbdbdb;\n      border-style: solid;\n      border-width: 1px;\n      margin-bottom: 0;\n      position: relative; }\n      #optimole-app .tabs.is-toggle a:hover {\n        background-color: whitesmoke;\n        border-color: #b5b5b5;\n        z-index: 2; }\n    #optimole-app .tabs.is-toggle li + li {\n      margin-left: -1px; }\n    #optimole-app .tabs.is-toggle li:first-child a {\n      border-radius: 4px 0 0 4px; }\n    #optimole-app .tabs.is-toggle li:last-child a {\n      border-radius: 0 4px 4px 0; }\n    #optimole-app .tabs.is-toggle li.is-active a {\n      background-color: #3273dc;\n      border-color: #3273dc;\n      color: #fff;\n      z-index: 1; }\n    #optimole-app .tabs.is-toggle ul {\n      border-bottom: none; }\n    #optimole-app .tabs.is-toggle.is-toggle-rounded li:first-child a {\n      border-bottom-left-radius: 290486px;\n      border-top-left-radius: 290486px;\n      padding-left: 1.25em; }\n    #optimole-app .tabs.is-toggle.is-toggle-rounded li:last-child a {\n      border-bottom-right-radius: 290486px;\n      border-top-right-radius: 290486px;\n      padding-right: 1.25em; }\n    #optimole-app .tabs.is-small {\n      font-size: 0.75rem; }\n    #optimole-app .tabs.is-medium {\n      font-size: 1.25rem; }\n    #optimole-app .tabs.is-large {\n      font-size: 1.5rem; }\n  #optimole-app .column {\n    display: block;\n    -ms-flex-preferred-size: 0;\n        flex-basis: 0;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 1;\n        flex-shrink: 1;\n    padding: 0.75rem; }\n    .columns.is-mobile > #optimole-app .column.is-narrow {\n      -ms-flex: none;\n          flex: none; }\n    .columns.is-mobile > #optimole-app .column.is-full {\n      -ms-flex: none;\n          flex: none;\n      width: 100%; }\n    .columns.is-mobile > #optimole-app .column.is-three-quarters {\n      -ms-flex: none;\n          flex: none;\n      width: 75%; }\n    .columns.is-mobile > #optimole-app .column.is-two-thirds {\n      -ms-flex: none;\n          flex: none;\n      width: 66.6666%; }\n    .columns.is-mobile > #optimole-app .column.is-half {\n      -ms-flex: none;\n          flex: none;\n      width: 50%; }\n    .columns.is-mobile > #optimole-app .column.is-one-third {\n      -ms-flex: none;\n          flex: none;\n      width: 33.3333%; }\n    .columns.is-mobile > #optimole-app .column.is-one-quarter {\n      -ms-flex: none;\n          flex: none;\n      width: 25%; }\n    .columns.is-mobile > #optimole-app .column.is-one-fifth {\n      -ms-flex: none;\n          flex: none;\n      width: 20%; }\n    .columns.is-mobile > #optimole-app .column.is-two-fifths {\n      -ms-flex: none;\n          flex: none;\n      width: 40%; }\n    .columns.is-mobile > #optimole-app .column.is-three-fifths {\n      -ms-flex: none;\n          flex: none;\n      width: 60%; }\n    .columns.is-mobile > #optimole-app .column.is-four-fifths {\n      -ms-flex: none;\n          flex: none;\n      width: 80%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-three-quarters {\n      margin-left: 75%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-two-thirds {\n      margin-left: 66.6666%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-half {\n      margin-left: 50%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-one-third {\n      margin-left: 33.3333%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-one-quarter {\n      margin-left: 25%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-one-fifth {\n      margin-left: 20%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-two-fifths {\n      margin-left: 40%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-three-fifths {\n      margin-left: 60%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-four-fifths {\n      margin-left: 80%; }\n    .columns.is-mobile > #optimole-app .column.is-1 {\n      -ms-flex: none;\n          flex: none;\n      width: 8.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-1 {\n      margin-left: 8.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-2 {\n      -ms-flex: none;\n          flex: none;\n      width: 16.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-2 {\n      margin-left: 16.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-3 {\n      -ms-flex: none;\n          flex: none;\n      width: 25%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-3 {\n      margin-left: 25%; }\n    .columns.is-mobile > #optimole-app .column.is-4 {\n      -ms-flex: none;\n          flex: none;\n      width: 33.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-4 {\n      margin-left: 33.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-5 {\n      -ms-flex: none;\n          flex: none;\n      width: 41.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-5 {\n      margin-left: 41.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-6 {\n      -ms-flex: none;\n          flex: none;\n      width: 50%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-6 {\n      margin-left: 50%; }\n    .columns.is-mobile > #optimole-app .column.is-7 {\n      -ms-flex: none;\n          flex: none;\n      width: 58.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-7 {\n      margin-left: 58.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-8 {\n      -ms-flex: none;\n          flex: none;\n      width: 66.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-8 {\n      margin-left: 66.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-9 {\n      -ms-flex: none;\n          flex: none;\n      width: 75%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-9 {\n      margin-left: 75%; }\n    .columns.is-mobile > #optimole-app .column.is-10 {\n      -ms-flex: none;\n          flex: none;\n      width: 83.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-10 {\n      margin-left: 83.33333%; }\n    .columns.is-mobile > #optimole-app .column.is-11 {\n      -ms-flex: none;\n          flex: none;\n      width: 91.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-11 {\n      margin-left: 91.66667%; }\n    .columns.is-mobile > #optimole-app .column.is-12 {\n      -ms-flex: none;\n          flex: none;\n      width: 100%; }\n    .columns.is-mobile > #optimole-app .column.is-offset-12 {\n      margin-left: 100%; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .column.is-narrow-mobile {\n        -ms-flex: none;\n            flex: none; }\n      #optimole-app .column.is-full-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-three-quarters-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-two-thirds-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 66.6666%; }\n      #optimole-app .column.is-half-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-one-third-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 33.3333%; }\n      #optimole-app .column.is-one-quarter-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-one-fifth-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 20%; }\n      #optimole-app .column.is-two-fifths-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 40%; }\n      #optimole-app .column.is-three-fifths-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 60%; }\n      #optimole-app .column.is-four-fifths-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 80%; }\n      #optimole-app .column.is-offset-three-quarters-mobile {\n        margin-left: 75%; }\n      #optimole-app .column.is-offset-two-thirds-mobile {\n        margin-left: 66.6666%; }\n      #optimole-app .column.is-offset-half-mobile {\n        margin-left: 50%; }\n      #optimole-app .column.is-offset-one-third-mobile {\n        margin-left: 33.3333%; }\n      #optimole-app .column.is-offset-one-quarter-mobile {\n        margin-left: 25%; }\n      #optimole-app .column.is-offset-one-fifth-mobile {\n        margin-left: 20%; }\n      #optimole-app .column.is-offset-two-fifths-mobile {\n        margin-left: 40%; }\n      #optimole-app .column.is-offset-three-fifths-mobile {\n        margin-left: 60%; }\n      #optimole-app .column.is-offset-four-fifths-mobile {\n        margin-left: 80%; }\n      #optimole-app .column.is-1-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .column.is-offset-1-mobile {\n        margin-left: 8.33333%; }\n      #optimole-app .column.is-2-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .column.is-offset-2-mobile {\n        margin-left: 16.66667%; }\n      #optimole-app .column.is-3-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-offset-3-mobile {\n        margin-left: 25%; }\n      #optimole-app .column.is-4-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .column.is-offset-4-mobile {\n        margin-left: 33.33333%; }\n      #optimole-app .column.is-5-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .column.is-offset-5-mobile {\n        margin-left: 41.66667%; }\n      #optimole-app .column.is-6-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-offset-6-mobile {\n        margin-left: 50%; }\n      #optimole-app .column.is-7-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .column.is-offset-7-mobile {\n        margin-left: 58.33333%; }\n      #optimole-app .column.is-8-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .column.is-offset-8-mobile {\n        margin-left: 66.66667%; }\n      #optimole-app .column.is-9-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-offset-9-mobile {\n        margin-left: 75%; }\n      #optimole-app .column.is-10-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .column.is-offset-10-mobile {\n        margin-left: 83.33333%; }\n      #optimole-app .column.is-11-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .column.is-offset-11-mobile {\n        margin-left: 91.66667%; }\n      #optimole-app .column.is-12-mobile {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-offset-12-mobile {\n        margin-left: 100%; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .column.is-narrow, #optimole-app .column.is-narrow-tablet {\n        -ms-flex: none;\n            flex: none; }\n      #optimole-app .column.is-full, #optimole-app .column.is-full-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-three-quarters, #optimole-app .column.is-three-quarters-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-two-thirds, #optimole-app .column.is-two-thirds-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 66.6666%; }\n      #optimole-app .column.is-half, #optimole-app .column.is-half-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-one-third, #optimole-app .column.is-one-third-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 33.3333%; }\n      #optimole-app .column.is-one-quarter, #optimole-app .column.is-one-quarter-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-one-fifth, #optimole-app .column.is-one-fifth-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 20%; }\n      #optimole-app .column.is-two-fifths, #optimole-app .column.is-two-fifths-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 40%; }\n      #optimole-app .column.is-three-fifths, #optimole-app .column.is-three-fifths-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 60%; }\n      #optimole-app .column.is-four-fifths, #optimole-app .column.is-four-fifths-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 80%; }\n      #optimole-app .column.is-offset-three-quarters, #optimole-app .column.is-offset-three-quarters-tablet {\n        margin-left: 75%; }\n      #optimole-app .column.is-offset-two-thirds, #optimole-app .column.is-offset-two-thirds-tablet {\n        margin-left: 66.6666%; }\n      #optimole-app .column.is-offset-half, #optimole-app .column.is-offset-half-tablet {\n        margin-left: 50%; }\n      #optimole-app .column.is-offset-one-third, #optimole-app .column.is-offset-one-third-tablet {\n        margin-left: 33.3333%; }\n      #optimole-app .column.is-offset-one-quarter, #optimole-app .column.is-offset-one-quarter-tablet {\n        margin-left: 25%; }\n      #optimole-app .column.is-offset-one-fifth, #optimole-app .column.is-offset-one-fifth-tablet {\n        margin-left: 20%; }\n      #optimole-app .column.is-offset-two-fifths, #optimole-app .column.is-offset-two-fifths-tablet {\n        margin-left: 40%; }\n      #optimole-app .column.is-offset-three-fifths, #optimole-app .column.is-offset-three-fifths-tablet {\n        margin-left: 60%; }\n      #optimole-app .column.is-offset-four-fifths, #optimole-app .column.is-offset-four-fifths-tablet {\n        margin-left: 80%; }\n      #optimole-app .column.is-1, #optimole-app .column.is-1-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .column.is-offset-1, #optimole-app .column.is-offset-1-tablet {\n        margin-left: 8.33333%; }\n      #optimole-app .column.is-2, #optimole-app .column.is-2-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .column.is-offset-2, #optimole-app .column.is-offset-2-tablet {\n        margin-left: 16.66667%; }\n      #optimole-app .column.is-3, #optimole-app .column.is-3-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-offset-3, #optimole-app .column.is-offset-3-tablet {\n        margin-left: 25%; }\n      #optimole-app .column.is-4, #optimole-app .column.is-4-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .column.is-offset-4, #optimole-app .column.is-offset-4-tablet {\n        margin-left: 33.33333%; }\n      #optimole-app .column.is-5, #optimole-app .column.is-5-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .column.is-offset-5, #optimole-app .column.is-offset-5-tablet {\n        margin-left: 41.66667%; }\n      #optimole-app .column.is-6, #optimole-app .column.is-6-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-offset-6, #optimole-app .column.is-offset-6-tablet {\n        margin-left: 50%; }\n      #optimole-app .column.is-7, #optimole-app .column.is-7-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .column.is-offset-7, #optimole-app .column.is-offset-7-tablet {\n        margin-left: 58.33333%; }\n      #optimole-app .column.is-8, #optimole-app .column.is-8-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .column.is-offset-8, #optimole-app .column.is-offset-8-tablet {\n        margin-left: 66.66667%; }\n      #optimole-app .column.is-9, #optimole-app .column.is-9-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-offset-9, #optimole-app .column.is-offset-9-tablet {\n        margin-left: 75%; }\n      #optimole-app .column.is-10, #optimole-app .column.is-10-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .column.is-offset-10, #optimole-app .column.is-offset-10-tablet {\n        margin-left: 83.33333%; }\n      #optimole-app .column.is-11, #optimole-app .column.is-11-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .column.is-offset-11, #optimole-app .column.is-offset-11-tablet {\n        margin-left: 91.66667%; }\n      #optimole-app .column.is-12, #optimole-app .column.is-12-tablet {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-offset-12, #optimole-app .column.is-offset-12-tablet {\n        margin-left: 100%; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .column.is-narrow-touch {\n        -ms-flex: none;\n            flex: none; }\n      #optimole-app .column.is-full-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-three-quarters-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-two-thirds-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 66.6666%; }\n      #optimole-app .column.is-half-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-one-third-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 33.3333%; }\n      #optimole-app .column.is-one-quarter-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-one-fifth-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 20%; }\n      #optimole-app .column.is-two-fifths-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 40%; }\n      #optimole-app .column.is-three-fifths-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 60%; }\n      #optimole-app .column.is-four-fifths-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 80%; }\n      #optimole-app .column.is-offset-three-quarters-touch {\n        margin-left: 75%; }\n      #optimole-app .column.is-offset-two-thirds-touch {\n        margin-left: 66.6666%; }\n      #optimole-app .column.is-offset-half-touch {\n        margin-left: 50%; }\n      #optimole-app .column.is-offset-one-third-touch {\n        margin-left: 33.3333%; }\n      #optimole-app .column.is-offset-one-quarter-touch {\n        margin-left: 25%; }\n      #optimole-app .column.is-offset-one-fifth-touch {\n        margin-left: 20%; }\n      #optimole-app .column.is-offset-two-fifths-touch {\n        margin-left: 40%; }\n      #optimole-app .column.is-offset-three-fifths-touch {\n        margin-left: 60%; }\n      #optimole-app .column.is-offset-four-fifths-touch {\n        margin-left: 80%; }\n      #optimole-app .column.is-1-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .column.is-offset-1-touch {\n        margin-left: 8.33333%; }\n      #optimole-app .column.is-2-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .column.is-offset-2-touch {\n        margin-left: 16.66667%; }\n      #optimole-app .column.is-3-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-offset-3-touch {\n        margin-left: 25%; }\n      #optimole-app .column.is-4-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .column.is-offset-4-touch {\n        margin-left: 33.33333%; }\n      #optimole-app .column.is-5-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .column.is-offset-5-touch {\n        margin-left: 41.66667%; }\n      #optimole-app .column.is-6-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-offset-6-touch {\n        margin-left: 50%; }\n      #optimole-app .column.is-7-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .column.is-offset-7-touch {\n        margin-left: 58.33333%; }\n      #optimole-app .column.is-8-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .column.is-offset-8-touch {\n        margin-left: 66.66667%; }\n      #optimole-app .column.is-9-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-offset-9-touch {\n        margin-left: 75%; }\n      #optimole-app .column.is-10-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .column.is-offset-10-touch {\n        margin-left: 83.33333%; }\n      #optimole-app .column.is-11-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .column.is-offset-11-touch {\n        margin-left: 91.66667%; }\n      #optimole-app .column.is-12-touch {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-offset-12-touch {\n        margin-left: 100%; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .column.is-narrow-desktop {\n        -ms-flex: none;\n            flex: none; }\n      #optimole-app .column.is-full-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-three-quarters-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-two-thirds-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 66.6666%; }\n      #optimole-app .column.is-half-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-one-third-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 33.3333%; }\n      #optimole-app .column.is-one-quarter-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-one-fifth-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 20%; }\n      #optimole-app .column.is-two-fifths-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 40%; }\n      #optimole-app .column.is-three-fifths-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 60%; }\n      #optimole-app .column.is-four-fifths-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 80%; }\n      #optimole-app .column.is-offset-three-quarters-desktop {\n        margin-left: 75%; }\n      #optimole-app .column.is-offset-two-thirds-desktop {\n        margin-left: 66.6666%; }\n      #optimole-app .column.is-offset-half-desktop {\n        margin-left: 50%; }\n      #optimole-app .column.is-offset-one-third-desktop {\n        margin-left: 33.3333%; }\n      #optimole-app .column.is-offset-one-quarter-desktop {\n        margin-left: 25%; }\n      #optimole-app .column.is-offset-one-fifth-desktop {\n        margin-left: 20%; }\n      #optimole-app .column.is-offset-two-fifths-desktop {\n        margin-left: 40%; }\n      #optimole-app .column.is-offset-three-fifths-desktop {\n        margin-left: 60%; }\n      #optimole-app .column.is-offset-four-fifths-desktop {\n        margin-left: 80%; }\n      #optimole-app .column.is-1-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .column.is-offset-1-desktop {\n        margin-left: 8.33333%; }\n      #optimole-app .column.is-2-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .column.is-offset-2-desktop {\n        margin-left: 16.66667%; }\n      #optimole-app .column.is-3-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-offset-3-desktop {\n        margin-left: 25%; }\n      #optimole-app .column.is-4-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .column.is-offset-4-desktop {\n        margin-left: 33.33333%; }\n      #optimole-app .column.is-5-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .column.is-offset-5-desktop {\n        margin-left: 41.66667%; }\n      #optimole-app .column.is-6-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-offset-6-desktop {\n        margin-left: 50%; }\n      #optimole-app .column.is-7-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .column.is-offset-7-desktop {\n        margin-left: 58.33333%; }\n      #optimole-app .column.is-8-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .column.is-offset-8-desktop {\n        margin-left: 66.66667%; }\n      #optimole-app .column.is-9-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-offset-9-desktop {\n        margin-left: 75%; }\n      #optimole-app .column.is-10-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .column.is-offset-10-desktop {\n        margin-left: 83.33333%; }\n      #optimole-app .column.is-11-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .column.is-offset-11-desktop {\n        margin-left: 91.66667%; }\n      #optimole-app .column.is-12-desktop {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-offset-12-desktop {\n        margin-left: 100%; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .column.is-narrow-widescreen {\n        -ms-flex: none;\n            flex: none; }\n      #optimole-app .column.is-full-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-three-quarters-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-two-thirds-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 66.6666%; }\n      #optimole-app .column.is-half-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-one-third-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 33.3333%; }\n      #optimole-app .column.is-one-quarter-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-one-fifth-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 20%; }\n      #optimole-app .column.is-two-fifths-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 40%; }\n      #optimole-app .column.is-three-fifths-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 60%; }\n      #optimole-app .column.is-four-fifths-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 80%; }\n      #optimole-app .column.is-offset-three-quarters-widescreen {\n        margin-left: 75%; }\n      #optimole-app .column.is-offset-two-thirds-widescreen {\n        margin-left: 66.6666%; }\n      #optimole-app .column.is-offset-half-widescreen {\n        margin-left: 50%; }\n      #optimole-app .column.is-offset-one-third-widescreen {\n        margin-left: 33.3333%; }\n      #optimole-app .column.is-offset-one-quarter-widescreen {\n        margin-left: 25%; }\n      #optimole-app .column.is-offset-one-fifth-widescreen {\n        margin-left: 20%; }\n      #optimole-app .column.is-offset-two-fifths-widescreen {\n        margin-left: 40%; }\n      #optimole-app .column.is-offset-three-fifths-widescreen {\n        margin-left: 60%; }\n      #optimole-app .column.is-offset-four-fifths-widescreen {\n        margin-left: 80%; }\n      #optimole-app .column.is-1-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .column.is-offset-1-widescreen {\n        margin-left: 8.33333%; }\n      #optimole-app .column.is-2-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .column.is-offset-2-widescreen {\n        margin-left: 16.66667%; }\n      #optimole-app .column.is-3-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-offset-3-widescreen {\n        margin-left: 25%; }\n      #optimole-app .column.is-4-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .column.is-offset-4-widescreen {\n        margin-left: 33.33333%; }\n      #optimole-app .column.is-5-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .column.is-offset-5-widescreen {\n        margin-left: 41.66667%; }\n      #optimole-app .column.is-6-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-offset-6-widescreen {\n        margin-left: 50%; }\n      #optimole-app .column.is-7-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .column.is-offset-7-widescreen {\n        margin-left: 58.33333%; }\n      #optimole-app .column.is-8-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .column.is-offset-8-widescreen {\n        margin-left: 66.66667%; }\n      #optimole-app .column.is-9-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-offset-9-widescreen {\n        margin-left: 75%; }\n      #optimole-app .column.is-10-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .column.is-offset-10-widescreen {\n        margin-left: 83.33333%; }\n      #optimole-app .column.is-11-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .column.is-offset-11-widescreen {\n        margin-left: 91.66667%; }\n      #optimole-app .column.is-12-widescreen {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-offset-12-widescreen {\n        margin-left: 100%; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .column.is-narrow-fullhd {\n        -ms-flex: none;\n            flex: none; }\n      #optimole-app .column.is-full-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-three-quarters-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-two-thirds-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 66.6666%; }\n      #optimole-app .column.is-half-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-one-third-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 33.3333%; }\n      #optimole-app .column.is-one-quarter-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-one-fifth-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 20%; }\n      #optimole-app .column.is-two-fifths-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 40%; }\n      #optimole-app .column.is-three-fifths-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 60%; }\n      #optimole-app .column.is-four-fifths-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 80%; }\n      #optimole-app .column.is-offset-three-quarters-fullhd {\n        margin-left: 75%; }\n      #optimole-app .column.is-offset-two-thirds-fullhd {\n        margin-left: 66.6666%; }\n      #optimole-app .column.is-offset-half-fullhd {\n        margin-left: 50%; }\n      #optimole-app .column.is-offset-one-third-fullhd {\n        margin-left: 33.3333%; }\n      #optimole-app .column.is-offset-one-quarter-fullhd {\n        margin-left: 25%; }\n      #optimole-app .column.is-offset-one-fifth-fullhd {\n        margin-left: 20%; }\n      #optimole-app .column.is-offset-two-fifths-fullhd {\n        margin-left: 40%; }\n      #optimole-app .column.is-offset-three-fifths-fullhd {\n        margin-left: 60%; }\n      #optimole-app .column.is-offset-four-fifths-fullhd {\n        margin-left: 80%; }\n      #optimole-app .column.is-1-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .column.is-offset-1-fullhd {\n        margin-left: 8.33333%; }\n      #optimole-app .column.is-2-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .column.is-offset-2-fullhd {\n        margin-left: 16.66667%; }\n      #optimole-app .column.is-3-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .column.is-offset-3-fullhd {\n        margin-left: 25%; }\n      #optimole-app .column.is-4-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .column.is-offset-4-fullhd {\n        margin-left: 33.33333%; }\n      #optimole-app .column.is-5-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .column.is-offset-5-fullhd {\n        margin-left: 41.66667%; }\n      #optimole-app .column.is-6-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .column.is-offset-6-fullhd {\n        margin-left: 50%; }\n      #optimole-app .column.is-7-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .column.is-offset-7-fullhd {\n        margin-left: 58.33333%; }\n      #optimole-app .column.is-8-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .column.is-offset-8-fullhd {\n        margin-left: 66.66667%; }\n      #optimole-app .column.is-9-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .column.is-offset-9-fullhd {\n        margin-left: 75%; }\n      #optimole-app .column.is-10-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .column.is-offset-10-fullhd {\n        margin-left: 83.33333%; }\n      #optimole-app .column.is-11-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .column.is-offset-11-fullhd {\n        margin-left: 91.66667%; }\n      #optimole-app .column.is-12-fullhd {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; }\n      #optimole-app .column.is-offset-12-fullhd {\n        margin-left: 100%; } }\n  #optimole-app .columns {\n    margin-left: -0.75rem;\n    margin-right: -0.75rem;\n    margin-top: -0.75rem; }\n    #optimole-app .columns:last-child {\n      margin-bottom: -0.75rem; }\n    #optimole-app .columns:not(:last-child) {\n      margin-bottom: calc(1.5rem - 0.75rem); }\n    #optimole-app .columns.is-centered {\n      -ms-flex-pack: center;\n          justify-content: center; }\n    #optimole-app .columns.is-gapless {\n      margin-left: 0;\n      margin-right: 0;\n      margin-top: 0; }\n      #optimole-app .columns.is-gapless > .column {\n        margin: 0;\n        padding: 0 !important; }\n      #optimole-app .columns.is-gapless:not(:last-child) {\n        margin-bottom: 1.5rem; }\n      #optimole-app .columns.is-gapless:last-child {\n        margin-bottom: 0; }\n    #optimole-app .columns.is-mobile {\n      display: -ms-flexbox;\n      display: flex; }\n    #optimole-app .columns.is-multiline {\n      -ms-flex-wrap: wrap;\n          flex-wrap: wrap; }\n    #optimole-app .columns.is-vcentered {\n      -ms-flex-align: center;\n          align-items: center; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns:not(.is-desktop) {\n        display: -ms-flexbox;\n        display: flex; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-desktop {\n        display: -ms-flexbox;\n        display: flex; } }\n  #optimole-app .columns.is-variable {\n    --columnGap: 0.75rem;\n    margin-left: calc(-1 * var(--columnGap));\n    margin-right: calc(-1 * var(--columnGap)); }\n    #optimole-app .columns.is-variable .column {\n      padding-left: var(--columnGap);\n      padding-right: var(--columnGap); }\n    #optimole-app .columns.is-variable.is-0 {\n      --columnGap: 0rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-0-mobile {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-0-tablet {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-0-tablet-only {\n        --columnGap: 0rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-0-touch {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-0-desktop {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-0-desktop-only {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-0-widescreen {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-0-widescreen-only {\n        --columnGap: 0rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-0-fullhd {\n        --columnGap: 0rem; } }\n    #optimole-app .columns.is-variable.is-1 {\n      --columnGap: 0.25rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-1-mobile {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-1-tablet {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-1-tablet-only {\n        --columnGap: 0.25rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-1-touch {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-1-desktop {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-1-desktop-only {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-1-widescreen {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-1-widescreen-only {\n        --columnGap: 0.25rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-1-fullhd {\n        --columnGap: 0.25rem; } }\n    #optimole-app .columns.is-variable.is-2 {\n      --columnGap: 0.5rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-2-mobile {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-2-tablet {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-2-tablet-only {\n        --columnGap: 0.5rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-2-touch {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-2-desktop {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-2-desktop-only {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-2-widescreen {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-2-widescreen-only {\n        --columnGap: 0.5rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-2-fullhd {\n        --columnGap: 0.5rem; } }\n    #optimole-app .columns.is-variable.is-3 {\n      --columnGap: 0.75rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-3-mobile {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-3-tablet {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-3-tablet-only {\n        --columnGap: 0.75rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-3-touch {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-3-desktop {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-3-desktop-only {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-3-widescreen {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-3-widescreen-only {\n        --columnGap: 0.75rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-3-fullhd {\n        --columnGap: 0.75rem; } }\n    #optimole-app .columns.is-variable.is-4 {\n      --columnGap: 1rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-4-mobile {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-4-tablet {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-4-tablet-only {\n        --columnGap: 1rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-4-touch {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-4-desktop {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-4-desktop-only {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-4-widescreen {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-4-widescreen-only {\n        --columnGap: 1rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-4-fullhd {\n        --columnGap: 1rem; } }\n    #optimole-app .columns.is-variable.is-5 {\n      --columnGap: 1.25rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-5-mobile {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-5-tablet {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-5-tablet-only {\n        --columnGap: 1.25rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-5-touch {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-5-desktop {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-5-desktop-only {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-5-widescreen {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-5-widescreen-only {\n        --columnGap: 1.25rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-5-fullhd {\n        --columnGap: 1.25rem; } }\n    #optimole-app .columns.is-variable.is-6 {\n      --columnGap: 1.5rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-6-mobile {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-6-tablet {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-6-tablet-only {\n        --columnGap: 1.5rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-6-touch {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-6-desktop {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-6-desktop-only {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-6-widescreen {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-6-widescreen-only {\n        --columnGap: 1.5rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-6-fullhd {\n        --columnGap: 1.5rem; } }\n    #optimole-app .columns.is-variable.is-7 {\n      --columnGap: 1.75rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-7-mobile {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-7-tablet {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-7-tablet-only {\n        --columnGap: 1.75rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-7-touch {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-7-desktop {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-7-desktop-only {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-7-widescreen {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-7-widescreen-only {\n        --columnGap: 1.75rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-7-fullhd {\n        --columnGap: 1.75rem; } }\n    #optimole-app .columns.is-variable.is-8 {\n      --columnGap: 2rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .columns.is-variable.is-8-mobile {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .columns.is-variable.is-8-tablet {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 769px) and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-8-tablet-only {\n        --columnGap: 2rem; } }\n    @media screen and (max-width: 1087px) {\n      #optimole-app .columns.is-variable.is-8-touch {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .columns.is-variable.is-8-desktop {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 1088px) and (max-width: 1279px) {\n      #optimole-app .columns.is-variable.is-8-desktop-only {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 1280px) {\n      #optimole-app .columns.is-variable.is-8-widescreen {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 1280px) and (max-width: 1471px) {\n      #optimole-app .columns.is-variable.is-8-widescreen-only {\n        --columnGap: 2rem; } }\n    @media screen and (min-width: 1472px) {\n      #optimole-app .columns.is-variable.is-8-fullhd {\n        --columnGap: 2rem; } }\n  #optimole-app .tile {\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: block;\n    -ms-flex-preferred-size: 0;\n        flex-basis: 0;\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 1;\n        flex-shrink: 1;\n    min-height: -webkit-min-content;\n    min-height: -moz-min-content;\n    min-height: min-content; }\n    #optimole-app .tile.is-ancestor {\n      margin-left: -0.75rem;\n      margin-right: -0.75rem;\n      margin-top: -0.75rem; }\n      #optimole-app .tile.is-ancestor:last-child {\n        margin-bottom: -0.75rem; }\n      #optimole-app .tile.is-ancestor:not(:last-child) {\n        margin-bottom: 0.75rem; }\n    #optimole-app .tile.is-child {\n      margin: 0 !important; }\n    #optimole-app .tile.is-parent {\n      padding: 0.75rem; }\n    #optimole-app .tile.is-vertical {\n      -ms-flex-direction: column;\n          flex-direction: column; }\n      #optimole-app .tile.is-vertical > .tile.is-child:not(:last-child) {\n        margin-bottom: 1.5rem !important; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .tile:not(.is-child) {\n        display: -ms-flexbox;\n        display: flex; }\n      #optimole-app .tile.is-1 {\n        -ms-flex: none;\n            flex: none;\n        width: 8.33333%; }\n      #optimole-app .tile.is-2 {\n        -ms-flex: none;\n            flex: none;\n        width: 16.66667%; }\n      #optimole-app .tile.is-3 {\n        -ms-flex: none;\n            flex: none;\n        width: 25%; }\n      #optimole-app .tile.is-4 {\n        -ms-flex: none;\n            flex: none;\n        width: 33.33333%; }\n      #optimole-app .tile.is-5 {\n        -ms-flex: none;\n            flex: none;\n        width: 41.66667%; }\n      #optimole-app .tile.is-6 {\n        -ms-flex: none;\n            flex: none;\n        width: 50%; }\n      #optimole-app .tile.is-7 {\n        -ms-flex: none;\n            flex: none;\n        width: 58.33333%; }\n      #optimole-app .tile.is-8 {\n        -ms-flex: none;\n            flex: none;\n        width: 66.66667%; }\n      #optimole-app .tile.is-9 {\n        -ms-flex: none;\n            flex: none;\n        width: 75%; }\n      #optimole-app .tile.is-10 {\n        -ms-flex: none;\n            flex: none;\n        width: 83.33333%; }\n      #optimole-app .tile.is-11 {\n        -ms-flex: none;\n            flex: none;\n        width: 91.66667%; }\n      #optimole-app .tile.is-12 {\n        -ms-flex: none;\n            flex: none;\n        width: 100%; } }\n  #optimole-app .hero {\n    -ms-flex-align: stretch;\n        align-items: stretch;\n    display: -ms-flexbox;\n    display: flex;\n    -ms-flex-direction: column;\n        flex-direction: column;\n    -ms-flex-pack: justify;\n        justify-content: space-between; }\n    #optimole-app .hero .navbar {\n      background: none; }\n    #optimole-app .hero .tabs ul {\n      border-bottom: none; }\n    #optimole-app .hero.is-white {\n      background-color: white;\n      color: #0a0a0a; }\n      #optimole-app .hero.is-white a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-white strong {\n        color: inherit; }\n      #optimole-app .hero.is-white .title {\n        color: #0a0a0a; }\n      #optimole-app .hero.is-white .subtitle {\n        color: rgba(10, 10, 10, 0.9); }\n        #optimole-app .hero.is-white .subtitle a:not(.button),\n        #optimole-app .hero.is-white .subtitle strong {\n          color: #0a0a0a; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-white .navbar-menu {\n          background-color: white; } }\n      #optimole-app .hero.is-white .navbar-item,\n      #optimole-app .hero.is-white .navbar-link {\n        color: rgba(10, 10, 10, 0.7); }\n      #optimole-app .hero.is-white a.navbar-item:hover, #optimole-app .hero.is-white a.navbar-item.is-active,\n      #optimole-app .hero.is-white .navbar-link:hover,\n      #optimole-app .hero.is-white .navbar-link.is-active {\n        background-color: #f2f2f2;\n        color: #0a0a0a; }\n      #optimole-app .hero.is-white .tabs a {\n        color: #0a0a0a;\n        opacity: 0.9; }\n        #optimole-app .hero.is-white .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-white .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-white .tabs.is-boxed a, #optimole-app .hero.is-white .tabs.is-toggle a {\n        color: #0a0a0a; }\n        #optimole-app .hero.is-white .tabs.is-boxed a:hover, #optimole-app .hero.is-white .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-white .tabs.is-boxed li.is-active a, #optimole-app .hero.is-white .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-white .tabs.is-toggle li.is-active a, #optimole-app .hero.is-white .tabs.is-toggle li.is-active a:hover {\n        background-color: #0a0a0a;\n        border-color: #0a0a0a;\n        color: white; }\n      #optimole-app .hero.is-white.is-bold {\n        background-image: linear-gradient(141deg, #e6e6e6 0%, white 71%, white 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-white.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #e6e6e6 0%, white 71%, white 100%); } }\n    #optimole-app .hero.is-black {\n      background-color: #0a0a0a;\n      color: white; }\n      #optimole-app .hero.is-black a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-black strong {\n        color: inherit; }\n      #optimole-app .hero.is-black .title {\n        color: white; }\n      #optimole-app .hero.is-black .subtitle {\n        color: rgba(255, 255, 255, 0.9); }\n        #optimole-app .hero.is-black .subtitle a:not(.button),\n        #optimole-app .hero.is-black .subtitle strong {\n          color: white; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-black .navbar-menu {\n          background-color: #0a0a0a; } }\n      #optimole-app .hero.is-black .navbar-item,\n      #optimole-app .hero.is-black .navbar-link {\n        color: rgba(255, 255, 255, 0.7); }\n      #optimole-app .hero.is-black a.navbar-item:hover, #optimole-app .hero.is-black a.navbar-item.is-active,\n      #optimole-app .hero.is-black .navbar-link:hover,\n      #optimole-app .hero.is-black .navbar-link.is-active {\n        background-color: black;\n        color: white; }\n      #optimole-app .hero.is-black .tabs a {\n        color: white;\n        opacity: 0.9; }\n        #optimole-app .hero.is-black .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-black .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-black .tabs.is-boxed a, #optimole-app .hero.is-black .tabs.is-toggle a {\n        color: white; }\n        #optimole-app .hero.is-black .tabs.is-boxed a:hover, #optimole-app .hero.is-black .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-black .tabs.is-boxed li.is-active a, #optimole-app .hero.is-black .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-black .tabs.is-toggle li.is-active a, #optimole-app .hero.is-black .tabs.is-toggle li.is-active a:hover {\n        background-color: white;\n        border-color: white;\n        color: #0a0a0a; }\n      #optimole-app .hero.is-black.is-bold {\n        background-image: linear-gradient(141deg, black 0%, #0a0a0a 71%, #181616 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-black.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, black 0%, #0a0a0a 71%, #181616 100%); } }\n    #optimole-app .hero.is-light {\n      background-color: whitesmoke;\n      color: #363636; }\n      #optimole-app .hero.is-light a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-light strong {\n        color: inherit; }\n      #optimole-app .hero.is-light .title {\n        color: #363636; }\n      #optimole-app .hero.is-light .subtitle {\n        color: rgba(54, 54, 54, 0.9); }\n        #optimole-app .hero.is-light .subtitle a:not(.button),\n        #optimole-app .hero.is-light .subtitle strong {\n          color: #363636; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-light .navbar-menu {\n          background-color: whitesmoke; } }\n      #optimole-app .hero.is-light .navbar-item,\n      #optimole-app .hero.is-light .navbar-link {\n        color: rgba(54, 54, 54, 0.7); }\n      #optimole-app .hero.is-light a.navbar-item:hover, #optimole-app .hero.is-light a.navbar-item.is-active,\n      #optimole-app .hero.is-light .navbar-link:hover,\n      #optimole-app .hero.is-light .navbar-link.is-active {\n        background-color: #e8e8e8;\n        color: #363636; }\n      #optimole-app .hero.is-light .tabs a {\n        color: #363636;\n        opacity: 0.9; }\n        #optimole-app .hero.is-light .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-light .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-light .tabs.is-boxed a, #optimole-app .hero.is-light .tabs.is-toggle a {\n        color: #363636; }\n        #optimole-app .hero.is-light .tabs.is-boxed a:hover, #optimole-app .hero.is-light .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-light .tabs.is-boxed li.is-active a, #optimole-app .hero.is-light .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-light .tabs.is-toggle li.is-active a, #optimole-app .hero.is-light .tabs.is-toggle li.is-active a:hover {\n        background-color: #363636;\n        border-color: #363636;\n        color: whitesmoke; }\n      #optimole-app .hero.is-light.is-bold {\n        background-image: linear-gradient(141deg, #dfd8d9 0%, whitesmoke 71%, white 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-light.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #dfd8d9 0%, whitesmoke 71%, white 100%); } }\n    #optimole-app .hero.is-dark {\n      background-color: #363636;\n      color: whitesmoke; }\n      #optimole-app .hero.is-dark a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-dark strong {\n        color: inherit; }\n      #optimole-app .hero.is-dark .title {\n        color: whitesmoke; }\n      #optimole-app .hero.is-dark .subtitle {\n        color: rgba(245, 245, 245, 0.9); }\n        #optimole-app .hero.is-dark .subtitle a:not(.button),\n        #optimole-app .hero.is-dark .subtitle strong {\n          color: whitesmoke; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-dark .navbar-menu {\n          background-color: #363636; } }\n      #optimole-app .hero.is-dark .navbar-item,\n      #optimole-app .hero.is-dark .navbar-link {\n        color: rgba(245, 245, 245, 0.7); }\n      #optimole-app .hero.is-dark a.navbar-item:hover, #optimole-app .hero.is-dark a.navbar-item.is-active,\n      #optimole-app .hero.is-dark .navbar-link:hover,\n      #optimole-app .hero.is-dark .navbar-link.is-active {\n        background-color: #292929;\n        color: whitesmoke; }\n      #optimole-app .hero.is-dark .tabs a {\n        color: whitesmoke;\n        opacity: 0.9; }\n        #optimole-app .hero.is-dark .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-dark .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-dark .tabs.is-boxed a, #optimole-app .hero.is-dark .tabs.is-toggle a {\n        color: whitesmoke; }\n        #optimole-app .hero.is-dark .tabs.is-boxed a:hover, #optimole-app .hero.is-dark .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-dark .tabs.is-boxed li.is-active a, #optimole-app .hero.is-dark .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-dark .tabs.is-toggle li.is-active a, #optimole-app .hero.is-dark .tabs.is-toggle li.is-active a:hover {\n        background-color: whitesmoke;\n        border-color: whitesmoke;\n        color: #363636; }\n      #optimole-app .hero.is-dark.is-bold {\n        background-image: linear-gradient(141deg, #1f191a 0%, #363636 71%, #46403f 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-dark.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #1f191a 0%, #363636 71%, #46403f 100%); } }\n    #optimole-app .hero.is-primary {\n      background-color: #EF686B;\n      color: #fff; }\n      #optimole-app .hero.is-primary a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-primary strong {\n        color: inherit; }\n      #optimole-app .hero.is-primary .title {\n        color: #fff; }\n      #optimole-app .hero.is-primary .subtitle {\n        color: rgba(255, 255, 255, 0.9); }\n        #optimole-app .hero.is-primary .subtitle a:not(.button),\n        #optimole-app .hero.is-primary .subtitle strong {\n          color: #fff; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-primary .navbar-menu {\n          background-color: #EF686B; } }\n      #optimole-app .hero.is-primary .navbar-item,\n      #optimole-app .hero.is-primary .navbar-link {\n        color: rgba(255, 255, 255, 0.7); }\n      #optimole-app .hero.is-primary a.navbar-item:hover, #optimole-app .hero.is-primary a.navbar-item.is-active,\n      #optimole-app .hero.is-primary .navbar-link:hover,\n      #optimole-app .hero.is-primary .navbar-link.is-active {\n        background-color: #ed5154;\n        color: #fff; }\n      #optimole-app .hero.is-primary .tabs a {\n        color: #fff;\n        opacity: 0.9; }\n        #optimole-app .hero.is-primary .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-primary .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-primary .tabs.is-boxed a, #optimole-app .hero.is-primary .tabs.is-toggle a {\n        color: #fff; }\n        #optimole-app .hero.is-primary .tabs.is-boxed a:hover, #optimole-app .hero.is-primary .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-primary .tabs.is-boxed li.is-active a, #optimole-app .hero.is-primary .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-primary .tabs.is-toggle li.is-active a, #optimole-app .hero.is-primary .tabs.is-toggle li.is-active a:hover {\n        background-color: #fff;\n        border-color: #fff;\n        color: #EF686B; }\n      #optimole-app .hero.is-primary.is-bold {\n        background-image: linear-gradient(141deg, #f52f54 0%, #EF686B 71%, #f58d7c 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-primary.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #f52f54 0%, #EF686B 71%, #f58d7c 100%); } }\n    #optimole-app .hero.is-link {\n      background-color: #3273dc;\n      color: #fff; }\n      #optimole-app .hero.is-link a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-link strong {\n        color: inherit; }\n      #optimole-app .hero.is-link .title {\n        color: #fff; }\n      #optimole-app .hero.is-link .subtitle {\n        color: rgba(255, 255, 255, 0.9); }\n        #optimole-app .hero.is-link .subtitle a:not(.button),\n        #optimole-app .hero.is-link .subtitle strong {\n          color: #fff; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-link .navbar-menu {\n          background-color: #3273dc; } }\n      #optimole-app .hero.is-link .navbar-item,\n      #optimole-app .hero.is-link .navbar-link {\n        color: rgba(255, 255, 255, 0.7); }\n      #optimole-app .hero.is-link a.navbar-item:hover, #optimole-app .hero.is-link a.navbar-item.is-active,\n      #optimole-app .hero.is-link .navbar-link:hover,\n      #optimole-app .hero.is-link .navbar-link.is-active {\n        background-color: #2366d1;\n        color: #fff; }\n      #optimole-app .hero.is-link .tabs a {\n        color: #fff;\n        opacity: 0.9; }\n        #optimole-app .hero.is-link .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-link .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-link .tabs.is-boxed a, #optimole-app .hero.is-link .tabs.is-toggle a {\n        color: #fff; }\n        #optimole-app .hero.is-link .tabs.is-boxed a:hover, #optimole-app .hero.is-link .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-link .tabs.is-boxed li.is-active a, #optimole-app .hero.is-link .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-link .tabs.is-toggle li.is-active a, #optimole-app .hero.is-link .tabs.is-toggle li.is-active a:hover {\n        background-color: #fff;\n        border-color: #fff;\n        color: #3273dc; }\n      #optimole-app .hero.is-link.is-bold {\n        background-image: linear-gradient(141deg, #1577c6 0%, #3273dc 71%, #4366e5 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-link.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #1577c6 0%, #3273dc 71%, #4366e5 100%); } }\n    #optimole-app .hero.is-info {\n      background-color: #5180C1;\n      color: #fff; }\n      #optimole-app .hero.is-info a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-info strong {\n        color: inherit; }\n      #optimole-app .hero.is-info .title {\n        color: #fff; }\n      #optimole-app .hero.is-info .subtitle {\n        color: rgba(255, 255, 255, 0.9); }\n        #optimole-app .hero.is-info .subtitle a:not(.button),\n        #optimole-app .hero.is-info .subtitle strong {\n          color: #fff; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-info .navbar-menu {\n          background-color: #5180C1; } }\n      #optimole-app .hero.is-info .navbar-item,\n      #optimole-app .hero.is-info .navbar-link {\n        color: rgba(255, 255, 255, 0.7); }\n      #optimole-app .hero.is-info a.navbar-item:hover, #optimole-app .hero.is-info a.navbar-item.is-active,\n      #optimole-app .hero.is-info .navbar-link:hover,\n      #optimole-app .hero.is-info .navbar-link.is-active {\n        background-color: #4173b7;\n        color: #fff; }\n      #optimole-app .hero.is-info .tabs a {\n        color: #fff;\n        opacity: 0.9; }\n        #optimole-app .hero.is-info .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-info .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-info .tabs.is-boxed a, #optimole-app .hero.is-info .tabs.is-toggle a {\n        color: #fff; }\n        #optimole-app .hero.is-info .tabs.is-boxed a:hover, #optimole-app .hero.is-info .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-info .tabs.is-boxed li.is-active a, #optimole-app .hero.is-info .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-info .tabs.is-toggle li.is-active a, #optimole-app .hero.is-info .tabs.is-toggle li.is-active a:hover {\n        background-color: #fff;\n        border-color: #fff;\n        color: #5180C1; }\n      #optimole-app .hero.is-info.is-bold {\n        background-image: linear-gradient(141deg, #2f7bb0 0%, #5180C1 71%, #5f7acd 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-info.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #2f7bb0 0%, #5180C1 71%, #5f7acd 100%); } }\n    #optimole-app .hero.is-success {\n      background-color: #34a85e;\n      color: #fff; }\n      #optimole-app .hero.is-success a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-success strong {\n        color: inherit; }\n      #optimole-app .hero.is-success .title {\n        color: #fff; }\n      #optimole-app .hero.is-success .subtitle {\n        color: rgba(255, 255, 255, 0.9); }\n        #optimole-app .hero.is-success .subtitle a:not(.button),\n        #optimole-app .hero.is-success .subtitle strong {\n          color: #fff; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-success .navbar-menu {\n          background-color: #34a85e; } }\n      #optimole-app .hero.is-success .navbar-item,\n      #optimole-app .hero.is-success .navbar-link {\n        color: rgba(255, 255, 255, 0.7); }\n      #optimole-app .hero.is-success a.navbar-item:hover, #optimole-app .hero.is-success a.navbar-item.is-active,\n      #optimole-app .hero.is-success .navbar-link:hover,\n      #optimole-app .hero.is-success .navbar-link.is-active {\n        background-color: #2e9553;\n        color: #fff; }\n      #optimole-app .hero.is-success .tabs a {\n        color: #fff;\n        opacity: 0.9; }\n        #optimole-app .hero.is-success .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-success .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-success .tabs.is-boxed a, #optimole-app .hero.is-success .tabs.is-toggle a {\n        color: #fff; }\n        #optimole-app .hero.is-success .tabs.is-boxed a:hover, #optimole-app .hero.is-success .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-success .tabs.is-boxed li.is-active a, #optimole-app .hero.is-success .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-success .tabs.is-toggle li.is-active a, #optimole-app .hero.is-success .tabs.is-toggle li.is-active a:hover {\n        background-color: #fff;\n        border-color: #fff;\n        color: #34a85e; }\n      #optimole-app .hero.is-success.is-bold {\n        background-image: linear-gradient(141deg, #1f8a34 0%, #34a85e 71%, #34c27f 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-success.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #1f8a34 0%, #34a85e 71%, #34c27f 100%); } }\n    #optimole-app .hero.is-warning {\n      background-color: #ffdd57;\n      color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .hero.is-warning a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-warning strong {\n        color: inherit; }\n      #optimole-app .hero.is-warning .title {\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .hero.is-warning .subtitle {\n        color: rgba(0, 0, 0, 0.9); }\n        #optimole-app .hero.is-warning .subtitle a:not(.button),\n        #optimole-app .hero.is-warning .subtitle strong {\n          color: rgba(0, 0, 0, 0.7); }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-warning .navbar-menu {\n          background-color: #ffdd57; } }\n      #optimole-app .hero.is-warning .navbar-item,\n      #optimole-app .hero.is-warning .navbar-link {\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .hero.is-warning a.navbar-item:hover, #optimole-app .hero.is-warning a.navbar-item.is-active,\n      #optimole-app .hero.is-warning .navbar-link:hover,\n      #optimole-app .hero.is-warning .navbar-link.is-active {\n        background-color: #ffd83d;\n        color: rgba(0, 0, 0, 0.7); }\n      #optimole-app .hero.is-warning .tabs a {\n        color: rgba(0, 0, 0, 0.7);\n        opacity: 0.9; }\n        #optimole-app .hero.is-warning .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-warning .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-warning .tabs.is-boxed a, #optimole-app .hero.is-warning .tabs.is-toggle a {\n        color: rgba(0, 0, 0, 0.7); }\n        #optimole-app .hero.is-warning .tabs.is-boxed a:hover, #optimole-app .hero.is-warning .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-warning .tabs.is-boxed li.is-active a, #optimole-app .hero.is-warning .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-warning .tabs.is-toggle li.is-active a, #optimole-app .hero.is-warning .tabs.is-toggle li.is-active a:hover {\n        background-color: rgba(0, 0, 0, 0.7);\n        border-color: rgba(0, 0, 0, 0.7);\n        color: #ffdd57; }\n      #optimole-app .hero.is-warning.is-bold {\n        background-image: linear-gradient(141deg, #ffaf24 0%, #ffdd57 71%, #fffa70 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-warning.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #ffaf24 0%, #ffdd57 71%, #fffa70 100%); } }\n    #optimole-app .hero.is-danger {\n      background-color: #D54222;\n      color: #fff; }\n      #optimole-app .hero.is-danger a:not(.button):not(.dropdown-item):not(.tag),\n      #optimole-app .hero.is-danger strong {\n        color: inherit; }\n      #optimole-app .hero.is-danger .title {\n        color: #fff; }\n      #optimole-app .hero.is-danger .subtitle {\n        color: rgba(255, 255, 255, 0.9); }\n        #optimole-app .hero.is-danger .subtitle a:not(.button),\n        #optimole-app .hero.is-danger .subtitle strong {\n          color: #fff; }\n      @media screen and (max-width: 1087px) {\n        #optimole-app .hero.is-danger .navbar-menu {\n          background-color: #D54222; } }\n      #optimole-app .hero.is-danger .navbar-item,\n      #optimole-app .hero.is-danger .navbar-link {\n        color: rgba(255, 255, 255, 0.7); }\n      #optimole-app .hero.is-danger a.navbar-item:hover, #optimole-app .hero.is-danger a.navbar-item.is-active,\n      #optimole-app .hero.is-danger .navbar-link:hover,\n      #optimole-app .hero.is-danger .navbar-link.is-active {\n        background-color: #bf3b1e;\n        color: #fff; }\n      #optimole-app .hero.is-danger .tabs a {\n        color: #fff;\n        opacity: 0.9; }\n        #optimole-app .hero.is-danger .tabs a:hover {\n          opacity: 1; }\n      #optimole-app .hero.is-danger .tabs li.is-active a {\n        opacity: 1; }\n      #optimole-app .hero.is-danger .tabs.is-boxed a, #optimole-app .hero.is-danger .tabs.is-toggle a {\n        color: #fff; }\n        #optimole-app .hero.is-danger .tabs.is-boxed a:hover, #optimole-app .hero.is-danger .tabs.is-toggle a:hover {\n          background-color: rgba(10, 10, 10, 0.1); }\n      #optimole-app .hero.is-danger .tabs.is-boxed li.is-active a, #optimole-app .hero.is-danger .tabs.is-boxed li.is-active a:hover, #optimole-app .hero.is-danger .tabs.is-toggle li.is-active a, #optimole-app .hero.is-danger .tabs.is-toggle li.is-active a:hover {\n        background-color: #fff;\n        border-color: #fff;\n        color: #D54222; }\n      #optimole-app .hero.is-danger.is-bold {\n        background-image: linear-gradient(141deg, #b31311 0%, #D54222 71%, #e46c2c 100%); }\n        @media screen and (max-width: 768px) {\n          #optimole-app .hero.is-danger.is-bold .navbar-menu {\n            background-image: linear-gradient(141deg, #b31311 0%, #D54222 71%, #e46c2c 100%); } }\n    #optimole-app .hero.is-small .hero-body {\n      padding-bottom: 1.5rem;\n      padding-top: 1.5rem; }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .hero.is-medium .hero-body {\n        padding-bottom: 9rem;\n        padding-top: 9rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .hero.is-large .hero-body {\n        padding-bottom: 18rem;\n        padding-top: 18rem; } }\n    #optimole-app .hero.is-halfheight .hero-body, #optimole-app .hero.is-fullheight .hero-body, #optimole-app .hero.is-fullheight-with-navbar .hero-body {\n      -ms-flex-align: center;\n          align-items: center;\n      display: -ms-flexbox;\n      display: flex; }\n      #optimole-app .hero.is-halfheight .hero-body > .container, #optimole-app .hero.is-fullheight .hero-body > .container, #optimole-app .hero.is-fullheight-with-navbar .hero-body > .container {\n        -ms-flex-positive: 1;\n            flex-grow: 1;\n        -ms-flex-negative: 1;\n            flex-shrink: 1; }\n    #optimole-app .hero.is-halfheight {\n      min-height: 50vh; }\n    #optimole-app .hero.is-fullheight {\n      min-height: 100vh; }\n  #optimole-app .hero-video {\n    overflow: hidden; }\n    #optimole-app .hero-video video {\n      left: 50%;\n      min-height: 100%;\n      min-width: 100%;\n      position: absolute;\n      top: 50%;\n      transform: translate3d(-50%, -50%, 0); }\n    #optimole-app .hero-video.is-transparent {\n      opacity: 0.3; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .hero-video {\n        display: none; } }\n  #optimole-app .hero-buttons {\n    margin-top: 1.5rem; }\n    @media screen and (max-width: 768px) {\n      #optimole-app .hero-buttons .button {\n        display: -ms-flexbox;\n        display: flex; }\n        #optimole-app .hero-buttons .button:not(:last-child) {\n          margin-bottom: 0.75rem; } }\n    @media screen and (min-width: 769px), print {\n      #optimole-app .hero-buttons {\n        display: -ms-flexbox;\n        display: flex;\n        -ms-flex-pack: center;\n            justify-content: center; }\n        #optimole-app .hero-buttons .button:not(:last-child) {\n          margin-right: 1.5rem; } }\n  #optimole-app .hero-head,\n  #optimole-app .hero-foot {\n    -ms-flex-positive: 0;\n        flex-grow: 0;\n    -ms-flex-negative: 0;\n        flex-shrink: 0; }\n  #optimole-app .hero-body {\n    -ms-flex-positive: 1;\n        flex-grow: 1;\n    -ms-flex-negative: 0;\n        flex-shrink: 0;\n    padding: 3rem 1.5rem; }\n  #optimole-app .section {\n    padding: 3rem 1.5rem; }\n    @media screen and (min-width: 1088px) {\n      #optimole-app .section.is-medium {\n        padding: 9rem 1.5rem; }\n      #optimole-app .section.is-large {\n        padding: 18rem 1.5rem; } }\n  #optimole-app .footer {\n    background-color: #fafafa;\n    padding: 3rem 1.5rem 6rem; }\n  #optimole-app .card {\n    transition: all 750ms ease-in-out;\n    border: 0;\n    border-radius: .1875rem;\n    box-shadow: 0 1px 15px 1px rgba(39, 39, 39, 0.1); }\n  #optimole-app .logo {\n    margin-bottom: 10px; }\n    #optimole-app .logo img {\n      max-width: 180px;\n      margin: 0 auto; }\n  #optimole-app .vue-js-switch {\n    -ms-flex-item-align: center;\n        -ms-grid-row-align: center;\n        align-self: center; }\n  #optimole-app .api-key-control {\n    padding: 0; }\n  #optimole-app .api-key-field .button.is-danger {\n    padding-left: 20px;\n    padding-right: 20px; }\n  #optimole-app .api-key-label {\n    -ms-flex-item-align: center;\n        -ms-grid-row-align: center;\n        align-self: center;\n    margin: 0.5em 10px 0.5em 0;\n    font-size: 1em; }\n  #optimole-app .header {\n    padding: 0 1.5rem 0; }\n    #optimole-app .header.level {\n      margin-bottom: 0; }\n  #optimole-app .account img {\n    border-top-right-radius: 4px;\n    border-bottom-right-radius: 4px; }\n  #optimole-app .account .label {\n    margin-bottom: 0; }\n  #optimole-app .optimized-images table td, #optimole-app .optimized-images table th {\n    vertical-align: middle; }\n  #optimole-app .media-diff {\n    position: relative;\n    margin: 0 auto; }\n    #optimole-app .media-diff video, #optimole-app .media-diff img {\n      display: block;\n      position: absolute;\n      top: 0;\n      left: 0;\n      width: 100%;\n      height: 100%; }\n  #optimole-app .origin-wrapper {\n    position: absolute;\n    left: 0;\n    top: 0;\n    width: 100%;\n    height: 100%;\n    overflow: hidden;\n    z-index: 1;\n    transform: translateZ(0);\n    will-change: width; }\n  #optimole-app .handle {\n    position: absolute;\n    top: 0;\n    bottom: 0;\n    color: rgba(255, 255, 255, 0.8);\n    background-color: rgba(255, 255, 255, 0.8);\n    width: 2px;\n    cursor: ew-resize;\n    transform: translateX(-50%) translateZ(0);\n    z-index: 2;\n    will-change: left;\n    left: 200px; }\n  #optimole-app .cursor {\n    position: absolute;\n    top: 50%;\n    left: 50%;\n    transform: translateX(-50%) translateZ(0); }\n    #optimole-app .cursor .circle {\n      background-color: rgba(255, 255, 255, 0.8);\n      width: 24px;\n      height: 24px;\n      border-radius: 50%; }\n  #optimole-app .no-padding-right {\n    padding-right: 0px !important; }\n\n.fade-enter-active, .fade-leave-active {\n  transition: opacity .5s; }\n\n.fade-enter, .fade-leave-to {\n  opacity: 0; }\n\n.media_page_optimole #wpbody-content > * {\n  display: none !important; }\n\n.media_page_optimole #wpbody-content > #optimole-app {\n  display: block !important; }\n\n#optimole-app img.optml-image {\n  float: left;\n  max-width: 100px;\n  width: auto;\n  margin: auto; }\n\n#optimole-app img.optml-image-watermark {\n  width: 50px; }\n\n.optml-ratio-feedback .emoji {\n  font-size: 1.5em; }\n\n.optml-ratio-feedback {\n  float: right;\n  padding-right: 20px; }\n\n.optml-image-heading {\n  text-align: left; }\n\nth.optml-image-ratio-heading {\n  text-align: right !important;\n  font-size: 150%; }\n\n@media screen and (max-width: 768px) {\n  li:not(.is-active) > a > span:not(.icon) {\n    visibility: hidden;\n    position: absolute; }\n  nav.tabs li:not(.is-active) {\n    -ms-flex-positive: 0;\n    flex-grow: 0;\n    -ms-flex-negative: 1;\n    flex-shrink: 1; }\n  .tabs .icon {\n    margin-left: 0.5em; } }\n\n.tabs li {\n  transition: flex-grow 1s ease;\n  transition: flex-grow 1s ease, -ms-flex-positive 1s ease; }\n\n#optimole-app .tabs a {\n  margin-bottom: -4px; }\n\n#optimole-app .optml-upgrade {\n  min-width: 200px; }\n\n#optimole-app .is-tab.no-images {\n  min-height: 400px; }\n\n#optimole-app .is-tab {\n  min-height: 700px; }\n", ""]);
 
 // exports
 
@@ -13688,6 +14482,7 @@ module.exports = {
 		return {
 			strings: optimoleDashboardApp.strings,
 			home: optimoleDashboardApp.home_url,
+			remove_images: optimoleDashboardApp.remove_latest_images === 'yes',
 			fetchStatus: false,
 			tab: 'dashboard'
 		};
@@ -13727,6 +14522,9 @@ module.exports = {
 	// 		min-width: 200px;
 	// 	}
 	//
+	// 	#optimole-app .is-tab.no-images{
+	// 		min-height: 400px;
+	// 	}
 	// 	#optimole-app .is-tab {
 	// 		min-height: 700px;
 	// 	}
@@ -13767,13 +14565,13 @@ module.exports = {
 // 									</ul>
 // 								</div>
 //
-// 								<div class="is-tab" v-if="tab === 'dashboard' ">
+// 								<div class="is-tab" v-if="tab === 'dashboard' " :class="remove_images ? 'no-images' : '' ">
 // 									<div class="notification is-success" v-if="strings.notice_just_activated.length > 0"
 // 									     v-html="strings.notice_just_activated"></div>
 // 									<api-key-form></api-key-form>
 // 									<cdn-details v-if="this.$store.state.userData"></cdn-details>
 // 									<hr/>
-// 									<last-images :status="fetchStatus"></last-images>
+// 									<last-images :status="fetchStatus" v-if="! remove_images"></last-images>
 // 								</div>
 // 								<div class="is-tab" v-if=" tab === 'settings'">
 // 									<options></options>
@@ -13807,7 +14605,7 @@ module.exports = {
 // 					<ul>
 // 						<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_1}}</li>
 // 						<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_2}}</li>
-// 						<li><span class="dashicons dashicons-yes"></span> {{strings.upgrade.reason_3}}</li>
+// 						<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_3}}</li>
 // 					</ul>
 // 				</div>
 // 				<div class="card-footer  ">
@@ -13880,7 +14678,7 @@ exports = module.exports = __webpack_require__(0)();
 
 
 // module
-exports.push([module.i, "\n\t@media ( min-width: 769px ) {\n\t\t#optimole-app hr[_v-b80baa74] {\n\t\t\tmargin: 0;\n\t\t}\n\t}\n", ""]);
+exports.push([module.i, "\r\n\t@media ( min-width: 769px ) {\r\n\t\t#optimole-app hr[_v-b80baa74] {\r\n\t\t\tmargin: 0;\r\n\t\t}\r\n\t}\r\n", ""]);
 
 // exports
 
@@ -14366,17 +15164,17 @@ Object.defineProperty(exports, "__esModule", {
 // 			<label v-if="isConnected"
 // 					class="label api-key-label has-text-grey-dark">{{strings.api_key_placeholder}}:</label>
 // 			<div class="control is-expanded api-key-control">
-// 				<input :type="isConnected ? 'password' : 'text'" :disabled="isConnected" name="api_key" class="input is-small"
+// 				<input :type="isConnected ? 'password' : 'text'" :disabled="isConnected" name="api_key" class="input  "
 // 						:class="validKey ? '' : 'is-danger'" :placeholder="strings.api_key_placeholder"
 // 						v-model="apiKey">
 // 			</div>
 // 			<div class="control">
-// 				<button v-if="! isConnected" class="button button is-success is-small"
+// 				<button v-if="! isConnected" class="button button is-success  "
 // 						@click="connect" :class="{ 'is-loading' : this.$store.state.isConnecting }">
 // 					<span class="icon"><i class="dashicons dashicons-admin-plugins"></i></span>
 // 					<span>{{strings.connect_btn}}</span>
 // 				</button>
-// 				<button v-else class="button is-danger is-small" @click="disconnect"
+// 				<button v-else class="button is-danger " @click="disconnect"
 // 						:class="{ 'is-loading' : this.$store.state.isConnecting }">
 // 					<span class="icon"><i class="dashicons dashicons-dismiss"></i></span>
 // 					<span>{{strings.disconnect_btn}}</span>
@@ -14433,7 +15231,7 @@ exports.default = {
 /* 29 */
 /***/ (function(module, exports) {
 
-module.exports = "\n\t<div>\n\t\t<div class=\"field has-addons api-key-field\">\n\t\t\t<label v-if=\"isConnected\"\n\t\t\t\t\tclass=\"label api-key-label has-text-grey-dark\">{{strings.api_key_placeholder}}:</label>\n\t\t\t<div class=\"control is-expanded api-key-control\">\n\t\t\t\t<input :type=\"isConnected ? 'password' : 'text'\" :disabled=\"isConnected\" name=\"api_key\" class=\"input is-small\"\n\t\t\t\t\t\t:class=\"validKey ? '' : 'is-danger'\" :placeholder=\"strings.api_key_placeholder\"\n\t\t\t\t\t\tv-model=\"apiKey\">\n\t\t\t</div>\n\t\t\t<div class=\"control\">\n\t\t\t\t<button v-if=\"! isConnected\" class=\"button button is-success is-small\"\n\t\t\t\t\t\t@click=\"connect\" :class=\"{ 'is-loading' : this.$store.state.isConnecting }\">\n\t\t\t\t\t<span class=\"icon\"><i class=\"dashicons dashicons-admin-plugins\"></i></span>\n\t\t\t\t\t<span>{{strings.connect_btn}}</span>\n\t\t\t\t</button>\n\t\t\t\t<button v-else class=\"button is-danger is-small\" @click=\"disconnect\"\n\t\t\t\t\t\t:class=\"{ 'is-loading' : this.$store.state.isConnecting }\">\n\t\t\t\t\t<span class=\"icon\"><i class=\"dashicons dashicons-dismiss\"></i></span>\n\t\t\t\t\t<span>{{strings.disconnect_btn}}</span>\n\t\t\t\t</button>\n\t\t\t</div>\n\t\t</div>\n\t\t<p v-if=\"! validKey\" class=\"help is-danger\">\n\t\t\t{{strings.invalid_key}}\n\t\t</p>\n\t</div>\n";
+module.exports = "\r\n\t<div>\r\n\t\t<div class=\"field has-addons api-key-field\">\r\n\t\t\t<label v-if=\"isConnected\"\r\n\t\t\t\t\tclass=\"label api-key-label has-text-grey-dark\">{{strings.api_key_placeholder}}:</label>\r\n\t\t\t<div class=\"control is-expanded api-key-control\">\r\n\t\t\t\t<input :type=\"isConnected ? 'password' : 'text'\" :disabled=\"isConnected\" name=\"api_key\" class=\"input  \"\r\n\t\t\t\t\t\t:class=\"validKey ? '' : 'is-danger'\" :placeholder=\"strings.api_key_placeholder\"\r\n\t\t\t\t\t\tv-model=\"apiKey\">\r\n\t\t\t</div>\r\n\t\t\t<div class=\"control\">\r\n\t\t\t\t<button v-if=\"! isConnected\" class=\"button button is-success  \"\r\n\t\t\t\t\t\t@click=\"connect\" :class=\"{ 'is-loading' : this.$store.state.isConnecting }\">\r\n\t\t\t\t\t<span class=\"icon\"><i class=\"dashicons dashicons-admin-plugins\"></i></span>\r\n\t\t\t\t\t<span>{{strings.connect_btn}}</span>\r\n\t\t\t\t</button>\r\n\t\t\t\t<button v-else class=\"button is-danger \" @click=\"disconnect\"\r\n\t\t\t\t\t\t:class=\"{ 'is-loading' : this.$store.state.isConnecting }\">\r\n\t\t\t\t\t<span class=\"icon\"><i class=\"dashicons dashicons-dismiss\"></i></span>\r\n\t\t\t\t\t<span>{{strings.disconnect_btn}}</span>\r\n\t\t\t\t</button>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t\t<p v-if=\"! validKey\" class=\"help is-danger\">\r\n\t\t\t{{strings.invalid_key}}\r\n\t\t</p>\r\n\t</div>\r\n";
 
 /***/ }),
 /* 30 */
@@ -15489,7 +16287,7 @@ exports = module.exports = __webpack_require__(0)();
 
 
 // module
-exports.push([module.i, "\n\t.optml-layout-grid .grid-button.is-selected[_v-3fe3cec8] {\n\t\tbackground: #4a4a4a;\n\t}\n\t\n\t.optml-layout-grid .grid-button[_v-3fe3cec8] {\n\t\twidth: 50px;\n\t\theight: 50px;\n\t\tdisplay: inline-block;\n\t\tmargin: 0;\n\t\tpadding: 0;\n\t\tborder-radius: 9px;\n\t\tborder: 5px solid #4a4a4a;\n\t}\n\t\n\t.optml-layout-grid[_v-3fe3cec8] {\n\t\twidth: 200px;\n\t\t\n\t}\n\t#optimole-app .input.is-small.is-tiny[_v-3fe3cec8]{\n\t\twidth:60px;\n\t}\n", ""]);
+exports.push([module.i, "\r\n\t.optml-layout-grid .grid-button.is-selected[_v-3fe3cec8] {\r\n\t\tbackground: #4a4a4a;\r\n\t}\r\n\t\r\n\t.optml-layout-grid .grid-button[_v-3fe3cec8] {\r\n\t\twidth: 50px;\r\n\t\theight: 50px;\r\n\t\tdisplay: inline-block;\r\n\t\tmargin: 0;\r\n\t\tpadding: 0;\r\n\t\tborder-radius: 9px;\r\n\t\tborder: 5px solid #4a4a4a;\r\n\t}\r\n\t\r\n\t.optml-layout-grid[_v-3fe3cec8] {\r\n\t\twidth: 200px;\r\n\t\t\r\n\t}\r\n\t#optimole-app .input.is-small.is-tiny[_v-3fe3cec8]{\r\n\t\twidth:60px;\r\n\t}\r\n", ""]);
 
 // exports
 
@@ -15952,7 +16750,7 @@ exports.default = {
 
 /*!
  * Name: vue-upload-component
- * Version: 2.8.18
+ * Version: 2.8.19
  * Author: LianYue
  */
 (function (global, factory) {
@@ -16371,7 +17169,7 @@ exports.default = {
       }
 
       /**
-       * Gets the file size
+       * Gets the file name
        */
 
     }, {
@@ -16529,9 +17327,11 @@ exports.default = {
       change: function change(e) {
         this.$parent.addInputFile(e.target);
         if (e.target.files) {
-          e.target.type = '';
           e.target.value = '';
-          e.target.type = 'file';
+          if (!/safari/i.test(navigator.userAgent)) {
+            e.target.type = '';
+            e.target.type = 'file';
+          }
         } else {
           // ie9 fix #219
           this.$destroy();
@@ -18054,7 +18854,7 @@ module.exports = "\n\t<div _v-3fe3cec8=\"\">\n\t\t<h4 _v-3fe3cec8=\"\">{{strings
 /* 52 */
 /***/ (function(module, exports) {
 
-module.exports = "\n\t<div class=\"columns is-desktop\">\n\t\t\n\t\t<div class=\"column  \">\n\t\t\t<div class=\"card\">\n\t\t\t\t<app-header></app-header>\n\t\t\t\t<div class=\"card-content\">\n\t\t\t\t\t<div class=\"content\">\n\t\t\t\t\t\t<connect-layout v-if=\"! this.$store.state.connected\"></connect-layout>\n\t\t\t\t\t\t<transition name=\"fade\" mode=\"out-in\">\n\t\t\t\t\t\t\t<div v-if=\"this.$store.state.connected\">\n\t\t\t\t\t\t\t\t<div class=\"tabs is-left is-boxed is-medium\">\n\t\t\t\t\t\t\t\t\t<ul class=\"is-marginless\">\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'dashboard' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('dashboard')\" class=\"is-size-6-mobile\">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile is-size-6-tablet  dashicons dashicons-admin-home\"></span>\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile   is-size-6-touch \">{{strings.dashboard_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'settings' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('settings')\" class=\"is-size-6-mobile  \">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile   is-size-6-tablet dashicons dashicons-admin-settings\"></span>\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile  is-size-6-touch\">{{strings.settings_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'watermarks' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('watermarks')\" class=\"is-size-6-mobile\">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-tag\"></span>\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile   is-size-6-touch\">{{strings.watermarks_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\"tab === 'dashboard' \">\n\t\t\t\t\t\t\t\t\t<div class=\"notification is-success\" v-if=\"strings.notice_just_activated.length > 0\"\n\t\t\t\t\t\t\t\t\t     v-html=\"strings.notice_just_activated\"></div>\n\t\t\t\t\t\t\t\t\t<api-key-form></api-key-form>\n\t\t\t\t\t\t\t\t\t<cdn-details v-if=\"this.$store.state.userData\"></cdn-details>\n\t\t\t\t\t\t\t\t\t<hr/>\n\t\t\t\t\t\t\t\t\t<last-images :status=\"fetchStatus\"></last-images>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\" tab === 'settings'\">\n\t\t\t\t\t\t\t\t\t<options></options>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\" tab === 'watermarks'\">\n\t\t\t\t\t\t\t\t\t<watermarks></watermarks>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</transition>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t\n\t\t\t\t<div class=\"level-right\">\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com\" target=\"_blank\">Optimole\n\t\t\t\t\t\tv{{strings.version}}</a></p>\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/terms/\"\n\t\t\t\t\t                         target=\"_blank\">{{strings.terms_menu}}</a></p>\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/privacy-policy/\" target=\"_blank\">{{strings.privacy_menu}}</a>\n\t\t\t\t\t</p>\n\t\t\t\t\t<p class=\"level-item\"><a :href=\"'https://speedtest.optimole.com/?url=' + home \" target=\"_blank\">{{strings.testdrive_menu}}</a>\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<div v-if=\"this.$store.state.connected && this.$store.state.userData.plan === 'free' \" class=\"column is-narrow is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile\">\n\t\t\t<div class=\"card optml-upgrade\">\n\t\t\t\t<div class=\"card-header\">\n\t\t\t\t\t<h3 class=\"is-size-5 card-header-title\"><span class=\"dashicons dashicons-chart-line\"></span>  {{strings.upgrade.title}}</h3>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"card-content\">\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_1}}</li>\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_2}}</li>\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span> {{strings.upgrade.reason_3}}</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"card-footer  \">\n\t\t\t\t\t<div class=\"card-footer-item\">\n\t\t\t\t\t<a href=\"https://optimole.com#pricing\" target=\"_blank\" class=\"button is-centered is-small is-success\"><span class=\"dashicons dashicons-external\"></span>{{strings.upgrade.cta}}</a>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n";
+module.exports = "\r\n\t<div class=\"columns is-desktop\">\r\n\t\t\r\n\t\t<div class=\"column  \">\r\n\t\t\t<div class=\"card\">\r\n\t\t\t\t<app-header></app-header>\r\n\t\t\t\t<div class=\"card-content\">\r\n\t\t\t\t\t<div class=\"content\">\r\n\t\t\t\t\t\t<connect-layout v-if=\"! this.$store.state.connected\"></connect-layout>\r\n\t\t\t\t\t\t<transition name=\"fade\" mode=\"out-in\">\r\n\t\t\t\t\t\t\t<div v-if=\"this.$store.state.connected\">\r\n\t\t\t\t\t\t\t\t<div class=\"tabs is-left is-boxed is-medium\">\r\n\t\t\t\t\t\t\t\t\t<ul class=\"is-marginless\">\r\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'dashboard' ? 'is-active' : ''\">\r\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('dashboard')\" class=\"is-size-6-mobile\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile is-size-6-tablet  dashicons dashicons-admin-home\"></span>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile   is-size-6-touch \">{{strings.dashboard_menu_item}}</span>\r\n\t\t\t\t\t\t\t\t\t\t\t</a>\r\n\t\t\t\t\t\t\t\t\t\t</li>\r\n\t\t\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'settings' ? 'is-active' : ''\">\r\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('settings')\" class=\"is-size-6-mobile  \">\r\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile   is-size-6-tablet dashicons dashicons-admin-settings\"></span>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile  is-size-6-touch\">{{strings.settings_menu_item}}</span>\r\n\t\t\t\t\t\t\t\t\t\t\t</a>\r\n\t\t\t\t\t\t\t\t\t\t</li>\r\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'watermarks' ? 'is-active' : ''\">\r\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('watermarks')\" class=\"is-size-6-mobile\">\r\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-tag\"></span>\r\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile   is-size-6-touch\">{{strings.watermarks_menu_item}}</span>\r\n\t\t\t\t\t\t\t\t\t\t\t</a>\r\n\t\t\t\t\t\t\t\t\t\t</li>\r\n\t\t\t\t\t\t\t\t\t</ul>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t\r\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\"tab === 'dashboard' \" :class=\"remove_images ? 'no-images' : '' \">\r\n\t\t\t\t\t\t\t\t\t<div class=\"notification is-success\" v-if=\"strings.notice_just_activated.length > 0\"\r\n\t\t\t\t\t\t\t\t\t     v-html=\"strings.notice_just_activated\"></div>\r\n\t\t\t\t\t\t\t\t\t<api-key-form></api-key-form>\r\n\t\t\t\t\t\t\t\t\t<cdn-details v-if=\"this.$store.state.userData\"></cdn-details>\r\n\t\t\t\t\t\t\t\t\t<hr/>\r\n\t\t\t\t\t\t\t\t\t<last-images :status=\"fetchStatus\" v-if=\"! remove_images\"></last-images>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\" tab === 'settings'\">\r\n\t\t\t\t\t\t\t\t\t<options></options>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\" tab === 'watermarks'\">\r\n\t\t\t\t\t\t\t\t\t<watermarks></watermarks>\r\n\t\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t\t</div>\r\n\t\t\t\t\t\t</transition>\r\n\t\t\t\t\t</div>\r\n\t\t\t\t</div>\r\n\t\t\t\t\r\n\t\t\t\t<div class=\"level-right\">\r\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com\" target=\"_blank\">Optimole\r\n\t\t\t\t\t\tv{{strings.version}}</a></p>\r\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/terms/\"\r\n\t\t\t\t\t                         target=\"_blank\">{{strings.terms_menu}}</a></p>\r\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/privacy-policy/\" target=\"_blank\">{{strings.privacy_menu}}</a>\r\n\t\t\t\t\t</p>\r\n\t\t\t\t\t<p class=\"level-item\"><a :href=\"'https://speedtest.optimole.com/?url=' + home \" target=\"_blank\">{{strings.testdrive_menu}}</a>\r\n\t\t\t\t\t</p>\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t\t<div v-if=\"this.$store.state.connected && this.$store.state.userData.plan === 'free' \" class=\"column is-narrow is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile\">\r\n\t\t\t<div class=\"card optml-upgrade\">\r\n\t\t\t\t<div class=\"card-header\">\r\n\t\t\t\t\t<h3 class=\"is-size-5 card-header-title\"><span class=\"dashicons dashicons-chart-line\"></span>  {{strings.upgrade.title}}</h3>\r\n\t\t\t\t</div>\r\n\t\t\t\t<div class=\"card-content\">\r\n\t\t\t\t\t<ul>\r\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_1}}</li>\r\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_2}}</li>\r\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_3}}</li>\r\n\t\t\t\t\t</ul>\r\n\t\t\t\t</div>\r\n\t\t\t\t<div class=\"card-footer  \">\r\n\t\t\t\t\t<div class=\"card-footer-item\">\r\n\t\t\t\t\t<a href=\"https://optimole.com#pricing\" target=\"_blank\" class=\"button is-centered is-small is-success\"><span class=\"dashicons dashicons-external\"></span>{{strings.upgrade.cta}}</a>\r\n\t\t\t\t\t</div>\r\n\t\t\t\t</div>\r\n\t\t\t</div>\r\n\t\t</div>\r\n\t</div>\r\n";
 
 /***/ }),
 /* 53 */

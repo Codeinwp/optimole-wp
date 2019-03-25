@@ -178,7 +178,7 @@ abstract class Optml_App_Replacer {
 			'thumb'  => array(
 				'width'  => intval( get_option( 'thumbnail_size_w' ) ),
 				'height' => intval( get_option( 'thumbnail_size_h' ) ),
-				'crop'   => get_option( 'thumbnail_crop', false ),
+				'crop'   => (bool) get_option( 'thumbnail_crop', false ),
 			),
 			'medium' => array(
 				'width'  => intval( get_option( 'medium_size_w' ) ),
@@ -225,13 +225,17 @@ abstract class Optml_App_Replacer {
 	 */
 	public function set_properties() {
 
-		$upload_data                           = wp_upload_dir();
-		$this->upload_resource                 = array(
+		$upload_data                         = wp_upload_dir();
+		$this->upload_resource               = array(
 			'url'       => str_replace( array( 'https://', 'http://' ), '', $upload_data['baseurl'] ),
 			'directory' => $upload_data['basedir'],
 		);
-		$this->upload_resource['url_length']   = strlen( $this->upload_resource['url'] );
-		$this->upload_resource['content_path'] = str_replace( get_home_url(), '', content_url() );
+		$this->upload_resource['url_length'] = strlen( $this->upload_resource['url'] );
+
+		$content_parts = parse_url( content_url() );
+
+		$this->upload_resource['content_path'] = $content_parts['path'];
+		$this->upload_resource['content_host'] = $content_parts['scheme'] . '://' . $content_parts['host'];
 
 		$service_data = $this->settings->get( 'service_data' );
 

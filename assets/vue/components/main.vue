@@ -33,13 +33,13 @@
 									</ul>
 								</div>
 								
-								<div class="is-tab" v-if="tab === 'dashboard' ">
+								<div class="is-tab" v-if="tab === 'dashboard' " :class="remove_images ? 'no-images' : '' ">
 									<div class="notification is-success" v-if="strings.notice_just_activated.length > 0"
 									     v-html="strings.notice_just_activated"></div>
 									<api-key-form></api-key-form>
 									<cdn-details v-if="this.$store.state.userData"></cdn-details>
 									<hr/>
-									<last-images :status="fetchStatus"></last-images>
+									<last-images :status="fetchStatus" v-if="! remove_images"></last-images>
 								</div>
 								<div class="is-tab" v-if=" tab === 'settings'">
 									<options></options>
@@ -101,6 +101,7 @@
 			return {
 				strings: optimoleDashboardApp.strings,
 				home: optimoleDashboardApp.home_url,
+				remove_images: optimoleDashboardApp.remove_latest_images === 'yes',
 				fetchStatus: false,
 				tab: 'dashboard'
 			}
@@ -141,6 +142,9 @@
 		min-width: 200px;
 	}
 	
+	#optimole-app .is-tab.no-images{
+		min-height: 400px;
+	}
 	#optimole-app .is-tab {
 		min-height: 700px;
 	}

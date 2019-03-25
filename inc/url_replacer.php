@@ -36,29 +36,6 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		return self::$instance;
 	}
 
-
-	/**
-	 * Handles the url replacement in options and theme mods.
-	 */
-	public function filter_options_and_mods() {
-		/**
-		 * `optml_imgcdn_options_with_url` is a filter that allows themes or plugins to select which option
-		 * holds an url and needs an optimization.
-		 */
-		$options_list = apply_filters(
-			'optml_imgcdn_options_with_url',
-			array(
-				'theme_mods_' . get_option( 'stylesheet' ),
-				'theme_mods_' . get_option( 'template' ),
-			)
-		);
-
-		foreach ( $options_list as $option ) {
-			add_filter( "option_$option", array( $this, 'replace_option_url' ) );
-		}
-
-	}
-
 	/**
 	 * A filter which turns a local url into an optimized CDN image url or an array of image urls.
 	 *
@@ -108,7 +85,6 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	public function init() {
 
 		add_filter( 'optml_replace_image', array( $this, 'build_image_url' ), 10, 2 );
-		add_filter( 'init', array( $this, 'filter_options_and_mods' ) );
 		parent::init();
 
 		Optml_Quality::$default_quality = $this->to_accepted_quality( $this->settings->get_quality() );

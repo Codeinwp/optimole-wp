@@ -23,6 +23,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	private static $lazyload_background_classes = null;
 	/**
+	 * Holds flags which remove noscript tag bundle causing issues on render, i.e slider plugins.
+	 *
+	 * @var array Noscript flags.
+	 */
+	private static $ignore_no_script_flags = null;
+	/**
 	 * Holds classes responsabile for watching lazyload behaviour.
 	 *
 	 * @var array Lazyload classes.
@@ -94,7 +100,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				return 1;
 			}
 		);
-		add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 5 );
+		add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 6 );
 
 	}
 
@@ -106,12 +112,13 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @param string $new_url The optimized URL.
 	 * @param array  $optml_args Options passed for URL optimization.
 	 * @param bool   $is_slashed If the url needs slashes.
+	 * @param string $full_tag Full tag, wrapper included.
 	 *
 	 * @return string
 	 */
-	public function lazyload_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed = false ) {
+	public function lazyload_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed = false, $full_tag = '' ) {
 
-		if ( ! $this->can_lazyload_for( $original_url, $new_tag ) ) {
+		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
 		$optml_args['quality'] = 'eco';
@@ -120,7 +127,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$low_url    = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 		$opt_format = '';
 
-		if ( $this->should_add_data_tag( $new_tag ) ) {
+		if ( $this->should_add_data_tag( $full_tag ) ) {
 			$opt_format = ' data-opt-src="%s" ';
 			$opt_format = $is_slashed ? addslashes( $opt_format ) : $opt_format;
 		}
@@ -134,21 +141,25 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			$new_url,
 			$new_tag
 		);
-		$new_tag       = str_replace(
+		$new_tag       = preg_replace(
 			[
-				$original_url,
-				' src=',
-				'srcset=', // Not ideal to disable srcset, we should aim to remove the srcset completely from code.
+				'/( src(?>=|"|\'|\s|\\\\)*)' . preg_quote( $original_url, '/' ) . '/m',
+				'/ src=/m',
 			],
 			[
-				$low_url,
+				"$1$low_url",
 				$opt_src . ' src=',
-				'old-srcset=',
 			],
-			$new_tag
+			$new_tag,
+			1
 		);
 
-		return '<noscript>' . $no_script_tag . '</noscript>' . $new_tag;
+		$new_tag = str_replace( 'srcset=', 'old-srcset=', $new_tag );
+
+		if ( ! $this->should_add_noscript( $new_tag ) ) {
+			return $new_tag;
+		}
+		return $new_tag . '<noscript>' . $no_script_tag . '</noscript>';
 	}
 
 	/**
@@ -200,6 +211,39 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Check if we should add the noscript tag.
+	 *
+	 * @param string $tag Html tag.
+	 *
+	 * @return bool Should add?
+	 */
+	public function should_add_noscript( $tag ) {
+		foreach ( self::get_ignore_noscript_flags() as $banned_string ) {
+			if ( strpos( $tag, $banned_string ) !== false ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Returns flags for ignoring noscript tag additional watch.
+	 *
+	 * @return array
+	 */
+	public static function get_ignore_noscript_flags() {
+
+		if ( null != self::$ignore_no_script_flags && is_array( self::$ignore_no_script_flags ) ) {
+			return self::$ignore_no_script_flags;
+		}
+
+		self::$ignore_no_script_flags = apply_filters( 'optml_ignore_noscript_on', [] );
+
+		return self::$ignore_no_script_flags;
 	}
 
 	/**
