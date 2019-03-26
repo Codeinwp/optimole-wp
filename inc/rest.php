@@ -49,6 +49,20 @@ class Optml_Rest {
 			)
 		);
 
+		register_rest_route(
+			$this->namespace,
+			'/request_update',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'request_update' ),
+				),
+			)
+		);
+
 		$this->register_image_routes();
 		$this->register_watermark_routes();
 	}
@@ -426,6 +440,20 @@ class Optml_Rest {
 		$request = new Optml_Api();
 
 		return $this->response( $request->remove_watermark( $post_id, $api_key ) );
+	}
+
+	/**
+	 * Request stats update for app.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function request_update( WP_REST_Request $request ) {
+		$api_key = $request->get_param( 'api_key' );
+		$request = new Optml_Api();
+
+		return $this->response( $request->request_update( $api_key ) );
 	}
 
 	/**

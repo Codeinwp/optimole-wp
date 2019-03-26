@@ -37,7 +37,9 @@
 			</div>
 		</div>
 		<progress class="progress is-success" :value="this.userData.usage" :max="this.userData.quota">60%</progress>
-
+        <div class="level-right">
+            <button class="button is-small is-info" v-on:click="requestUpdate"><span class="icon"><i class="dashicons dashicons-image-rotate"></i></span> <span>Refresh Stats</span></button>
+        </div>
 	</div>
 </template>
 
@@ -53,7 +55,10 @@
 		methods: {
 			computedPercentage() {
 				return ((this.userData.usage / this.userData.quota) * 100).toFixed( 2 );
-			}
+			},
+            requestUpdate() {
+	            this.$store.dispatch('requestStatsUpdate', {waitTime: 0, component: null});
+            }
 		},
 	}
 </script>

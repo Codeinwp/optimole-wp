@@ -236,6 +236,22 @@ const removeWatermark = function ( {commit, state}, data ) {
 	} );
 };
 
+
+const requestStatsUpdate = function ( {commit, state}, data ) {
+	Vue.http( {
+		url: optimoleDashboardApp.root + '/request_update',
+		method: 'GET',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		params: {'req': 'Update Stats'},
+		responseType: 'json',
+	} ).then( function ( response ) {
+		if( response.status === 200 ) {
+			// TODO give notice maybe?
+			console.log( response );
+		}
+	} );
+};
+
 export default {
 	connectOptimole,
 	registerOptimole,
@@ -244,5 +260,6 @@ export default {
 	sampleRate,
 	retrieveOptimizedImages,
 	retrieveWatermarks,
-	removeWatermark
+	removeWatermark,
+	requestStatsUpdate
 };
