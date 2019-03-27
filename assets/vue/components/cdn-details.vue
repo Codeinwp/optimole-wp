@@ -38,7 +38,8 @@
 		</div>
 		<progress class="progress is-success" :value="this.userData.usage" :max="this.userData.quota">60%</progress>
         <div class="level-right">
-            <button class="button is-small is-info" v-on:click="requestUpdate"><span class="icon"><i class="dashicons dashicons-image-rotate"></i></span> <span>Refresh Stats</span></button>
+            <button class="button is-small is-warning" v-if="this.$store.state.loading"><span class="icon"><i class="dashicons dashicons-backup"></i></span> <span>Updating Stats</span></button>
+            <button class="button is-small is-info" v-else v-on:click="requestUpdate"><span class="icon"><i class="dashicons dashicons-image-rotate"></i></span> <span>Refresh Stats</span></button>
         </div>
 	</div>
 </template>

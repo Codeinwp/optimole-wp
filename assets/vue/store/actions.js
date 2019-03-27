@@ -238,6 +238,7 @@ const removeWatermark = function ( {commit, state}, data ) {
 
 
 const requestStatsUpdate = function ( {commit, state}, data ) {
+	commit( 'toggleLoading', true );
 	Vue.http( {
 		url: optimoleDashboardApp.root + '/request_update',
 		method: 'GET',
@@ -245,9 +246,9 @@ const requestStatsUpdate = function ( {commit, state}, data ) {
 		params: {'req': 'Update Stats'},
 		responseType: 'json',
 	} ).then( function ( response ) {
+		commit( 'toggleLoading', false );
 		if( response.status === 200 ) {
-			// TODO give notice maybe?
-			console.log( response );
+			commit( 'updateUserData', response.body.data );
 		}
 	} );
 };
