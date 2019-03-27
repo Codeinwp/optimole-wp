@@ -7,14 +7,18 @@
  * @author     Optimole <friends@optimole.com>
  */
 final class Optml_Manager {
-
+	/**
+	 * Holds allowed compatibilities objects.
+	 *
+	 * @var Optml_compatibility[] Compatibilities objects.
+	 */
+	public static $loaded_compatibilities = [];
 	/**
 	 * Cached object instance.
 	 *
 	 * @var Optml_Manager
 	 */
 	protected static $instance = null;
-
 	/**
 	 * Holds the url replacer class.
 	 *
@@ -23,7 +27,6 @@ final class Optml_Manager {
 	 * @var Optml_Url_Replacer Replacer instance.
 	 */
 	public $url_replacer;
-
 	/**
 	 * Holds the tag replacer class.
 	 *
@@ -32,7 +35,6 @@ final class Optml_Manager {
 	 * @var Optml_Tag_Replacer Replacer instance.
 	 */
 	public $tag_replacer;
-
 	/**
 	 * Holds the lazyload replacer class.
 	 *
@@ -47,13 +49,12 @@ final class Optml_Manager {
 	 * @var Optml_Settings WordPress settings.
 	 */
 	protected $settings;
-
 	/**
 	 * Possible integrations with different plugins.
 	 *
 	 * @var array Integrations classes.
 	 */
-	private $compatibilities = array(
+	private $possible_compatibilities = array(
 		'shortcode_ultimate',
 		'foogallery',
 		'envira',
@@ -62,6 +63,7 @@ final class Optml_Manager {
 		'revslider',
 		'metaslider',
 		'woocommerce',
+		'yith_quick_view',
 	);
 
 	/**
@@ -92,6 +94,20 @@ final class Optml_Manager {
 
 		$this->settings = new Optml_Settings();
 
+		foreach ( $this->possible_compatibilities as $compatibility_class ) {
+			$compatibility_class = 'Optml_' . $compatibility_class;
+			$compatibility       = new $compatibility_class;
+
+			/**
+			 * Check if we should load compatibility.
+			 *
+			 * @var Optml_compatibility $compatibility Class to register.
+			 */
+			if ( $compatibility->should_load() ) {
+				self::$loaded_compatibilities[ $compatibility_class ] = $compatibility;
+			}
+		}
+
 		if ( ! $this->should_replace() ) {
 			return;
 		}
@@ -112,7 +128,6 @@ final class Optml_Manager {
 		if ( ( is_admin() && ! self::is_ajax_request() ) || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
 			return false; // @codeCoverageIgnore
 		}
-
 		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
 			return false; // @codeCoverageIgnore
 		}
@@ -140,7 +155,10 @@ final class Optml_Manager {
 	 * @return bool Is ajax request?
 	 */
 	public static function is_ajax_request() {
+		if ( apply_filters( 'optml_force_replacement_on', false ) === true ) {
 
+			return true;
+		}
 		if ( ! function_exists( 'is_user_logged_in' ) ) {
 			return false;
 		}
@@ -163,9 +181,7 @@ final class Optml_Manager {
 	 * Register frontend replacer hooks.
 	 */
 	public function register_hooks() {
-
 		do_action( 'optml_replacer_setup' );
-
 		add_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
 		/**
 		 * When we have to process cdn images, i.e MIRROR is defined,
@@ -180,23 +196,12 @@ final class Optml_Manager {
 			),
 			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
 		);
-
 		add_action( 'rest_api_init', array( $this, 'process_template_redirect_content' ), PHP_INT_MIN );
 
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
 
-		foreach ( $this->compatibilities as $compatibility_class ) {
-			$compatibility_class = 'Optml_' . $compatibility_class;
-			$compatibility       = new $compatibility_class;
-
-			/**
-			 * Check if we should load compatibility.
-			 *
-			 * @var Optml_compatibility $compatibility Class to register.
-			 */
-			if ( $compatibility->should_load() ) {
-				$compatibility->register();
-			}
+		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
+			$registered_compatibility->register();
 		}
 	}
 
@@ -324,6 +329,7 @@ final class Optml_Manager {
 	 * @return mixed Filtered content.
 	 */
 	public function replace_content( $html ) {
+
 		$html = $this->process_images_from_content( $html );
 
 		$html = $this->process_urls_from_content( $html );
