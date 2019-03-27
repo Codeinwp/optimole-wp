@@ -14871,7 +14871,8 @@ Object.defineProperty(exports, "__esModule", {
 // 		</div>
 // 		<progress class="progress is-success" :value="this.userData.usage" :max="this.userData.quota">60%</progress>
 //         <div class="level-right">
-//             <button class="button is-small is-info" v-on:click="requestUpdate"><span class="icon"><i class="dashicons dashicons-image-rotate"></i></span> <span>Refresh Stats</span></button>
+//             <button class="button is-small is-warning" v-if="this.$store.state.loading"><span class="icon"><i class="dashicons dashicons-backup"></i></span> <span>Updating Stats</span></button>
+//             <button class="button is-small is-info" v-else v-on:click="requestUpdate"><span class="icon"><i class="dashicons dashicons-image-rotate"></i></span> <span>Refresh Stats</span></button>
 //         </div>
 // 	</div>
 // </template>
@@ -14908,7 +14909,7 @@ exports.default = {
 /* 23 */
 /***/ (function(module, exports) {
 
-module.exports = "\n\t<div class=\"cdn-details\" _v-de4534c4=\"\">\n\t\t<hr _v-de4534c4=\"\">\n\t\t<div class=\"account level has-text-centered\" _v-de4534c4=\"\">\n\t\t\t<div class=\"level-left\" _v-de4534c4=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-de4534c4=\"\">{{strings.logged_in_as}}:</span>\n\t\t\t\t<p class=\"details level-item tags has-addons\" _v-de4534c4=\"\">\n\t\t\t\t\t<span class=\"tag is-light\" _v-de4534c4=\"\">{{userData.display_name}}</span>\n\t\t\t\t\t<span class=\"tag is-paddingless\" _v-de4534c4=\"\"><img :src=\"userData.picture\" class=\"image is-24x24 is-rounded\" :alt=\"userData.display_name\" _v-de4534c4=\"\"></span>\n\t\t\t\t</p>\n\t\t\t</div>\n\t\t\t<div class=\"level-right\" _v-de4534c4=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-de4534c4=\"\">{{strings.private_cdn_url}}:</span>\n\t\t\t\t<p class=\"details level-item tag is-light\" _v-de4534c4=\"\">{{userData.cdn_key}}.i.optimole.com</p>\n\t\t\t</div>\n\t\t</div>\n\t\t<hr _v-de4534c4=\"\">\n\t\t<div class=\"level stats\" _v-de4534c4=\"\">\n\t\t\t<div class=\"level-left\" _v-de4534c4=\"\">\n\t\t\t\t<div class=\"level-item\" _v-de4534c4=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-de4534c4=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-de4534c4=\"\">{{strings.usage}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-de4534c4=\"\">{{this.userData.usage_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<h4 class=\"level-item is-size-5 is-marginless has-text-grey\" _v-de4534c4=\"\">\n\t\t\t\t{{computedPercentage()}}%\n\t\t\t</h4>\n\t\t\t<div class=\"level-right\" _v-de4534c4=\"\">\n\t\t\t\t<div class=\"level-item\" _v-de4534c4=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-de4534c4=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-de4534c4=\"\">{{strings.quota}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-de4534c4=\"\">{{this.userData.quota_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<progress class=\"progress is-success\" :value=\"this.userData.usage\" :max=\"this.userData.quota\" _v-de4534c4=\"\">60%</progress>\n        <div class=\"level-right\" _v-de4534c4=\"\">\n            <button class=\"button is-small is-info\" v-on:click=\"requestUpdate\" _v-de4534c4=\"\"><span class=\"icon\" _v-de4534c4=\"\"><i class=\"dashicons dashicons-image-rotate\" _v-de4534c4=\"\"></i></span> <span _v-de4534c4=\"\">Refresh Stats</span></button>\n        </div>\n\t</div>\n";
+module.exports = "\n\t<div class=\"cdn-details\" _v-de4534c4=\"\">\n\t\t<hr _v-de4534c4=\"\">\n\t\t<div class=\"account level has-text-centered\" _v-de4534c4=\"\">\n\t\t\t<div class=\"level-left\" _v-de4534c4=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-de4534c4=\"\">{{strings.logged_in_as}}:</span>\n\t\t\t\t<p class=\"details level-item tags has-addons\" _v-de4534c4=\"\">\n\t\t\t\t\t<span class=\"tag is-light\" _v-de4534c4=\"\">{{userData.display_name}}</span>\n\t\t\t\t\t<span class=\"tag is-paddingless\" _v-de4534c4=\"\"><img :src=\"userData.picture\" class=\"image is-24x24 is-rounded\" :alt=\"userData.display_name\" _v-de4534c4=\"\"></span>\n\t\t\t\t</p>\n\t\t\t</div>\n\t\t\t<div class=\"level-right\" _v-de4534c4=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-de4534c4=\"\">{{strings.private_cdn_url}}:</span>\n\t\t\t\t<p class=\"details level-item tag is-light\" _v-de4534c4=\"\">{{userData.cdn_key}}.i.optimole.com</p>\n\t\t\t</div>\n\t\t</div>\n\t\t<hr _v-de4534c4=\"\">\n\t\t<div class=\"level stats\" _v-de4534c4=\"\">\n\t\t\t<div class=\"level-left\" _v-de4534c4=\"\">\n\t\t\t\t<div class=\"level-item\" _v-de4534c4=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-de4534c4=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-de4534c4=\"\">{{strings.usage}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-de4534c4=\"\">{{this.userData.usage_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<h4 class=\"level-item is-size-5 is-marginless has-text-grey\" _v-de4534c4=\"\">\n\t\t\t\t{{computedPercentage()}}%\n\t\t\t</h4>\n\t\t\t<div class=\"level-right\" _v-de4534c4=\"\">\n\t\t\t\t<div class=\"level-item\" _v-de4534c4=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-de4534c4=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-de4534c4=\"\">{{strings.quota}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-de4534c4=\"\">{{this.userData.quota_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<progress class=\"progress is-success\" :value=\"this.userData.usage\" :max=\"this.userData.quota\" _v-de4534c4=\"\">60%</progress>\n        <div class=\"level-right\" _v-de4534c4=\"\">\n            <button class=\"button is-small is-warning\" v-if=\"this.$store.state.loading\" _v-de4534c4=\"\"><span class=\"icon\" _v-de4534c4=\"\"><i class=\"dashicons dashicons-backup\" _v-de4534c4=\"\"></i></span> <span _v-de4534c4=\"\">Updating Stats</span></button>\n            <button class=\"button is-small is-info\" v-else=\"\" v-on:click=\"requestUpdate\" _v-de4534c4=\"\"><span class=\"icon\" _v-de4534c4=\"\"><i class=\"dashicons dashicons-image-rotate\" _v-de4534c4=\"\"></i></span> <span _v-de4534c4=\"\">Refresh Stats</span></button>\n        </div>\n\t</div>\n";
 
 /***/ }),
 /* 24 */
@@ -20191,6 +20192,7 @@ var requestStatsUpdate = function requestStatsUpdate(_ref9, data) {
 	var commit = _ref9.commit,
 	    state = _ref9.state;
 
+	commit('toggleLoading', true);
 	_vue2.default.http({
 		url: optimoleDashboardApp.root + '/request_update',
 		method: 'GET',
@@ -20198,9 +20200,9 @@ var requestStatsUpdate = function requestStatsUpdate(_ref9, data) {
 		params: { 'req': 'Update Stats' },
 		responseType: 'json'
 	}).then(function (response) {
+		commit('toggleLoading', false);
 		if (response.status === 200) {
-			// TODO give notice maybe?
-			console.log(response);
+			commit('updateUserData', response.body.data);
 		}
 	});
 };

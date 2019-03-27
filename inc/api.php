@@ -213,21 +213,6 @@ final class Optml_Api {
 	}
 
 	/**
-	 * Request a stats update job queue from the API.
-	 *
-	 * @param string $api_key The API key.
-	 *
-	 * @return array|bool
-	 */
-	public function request_update( $api_key = '' ) {
-		if ( ! empty( $api_key ) ) {
-			$this->api_key = $api_key;
-		}
-
-		return $this->request( '/optml/v1/stats/update' );
-	}
-
-	/**
 	 * Throw error on object clone
 	 *
 	 * The whole idea of the singleton design pattern is that there is a single

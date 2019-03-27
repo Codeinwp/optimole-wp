@@ -450,10 +450,9 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function request_update( WP_REST_Request $request ) {
-		$api_key = $request->get_param( 'api_key' );
-		$request = new Optml_Api();
-
-		return $this->response( $request->request_update( $api_key ) );
+		do_action( 'optml_daily_sync' );
+		$settings = new Optml_Settings();
+		return $this->response( $settings->get( 'service_data' ) );
 	}
 
 	/**
