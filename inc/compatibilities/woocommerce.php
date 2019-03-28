@@ -33,8 +33,6 @@ class Optml_woocommerce extends Optml_compatibility {
 	 * @return array New classes.
 	 */
 	public function add_watcher_class( $classes = array() ) {
-		$classes[] = 'zoomImg';
-
 		return $classes;
 	}
 
