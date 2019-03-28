@@ -63,6 +63,7 @@ final class Optml_Manager {
 		'revslider',
 		'metaslider',
 		'woocommerce',
+		'essential_grid',
 		'yith_quick_view',
 	);
 
