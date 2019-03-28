@@ -26,6 +26,13 @@ class Optml_essential_grid extends Optml_compatibility {
 		add_filter( 'optml_lazyload_bg_classes', [ $this, 'add_bg_class' ], PHP_INT_MAX, 1 );
 	}
 
+	/**
+	 * Adds essential grid listener class.
+	 *
+	 * @param array $classes Old classes.
+	 *
+	 * @return array New classes.
+	 */
 	public function add_bg_class( $classes ) {
 		$classes[] = 'esg-media-poster';
 
