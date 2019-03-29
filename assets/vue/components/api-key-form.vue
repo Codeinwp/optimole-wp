@@ -52,14 +52,12 @@
 		methods: {
 			connect: function () {
 				this.$store.dispatch( 'connectOptimole', {
-					req: 'Connect to OptiMole',
 					apiKey: this.apiKey,
 				} );
 			},
 			disconnect: function () {
 				this.apiKey = '';
 				this.$store.dispatch( 'disconnectOptimole', {
-					req: 'Disconnect from OptiMole',
 				} );
 			},
 		}

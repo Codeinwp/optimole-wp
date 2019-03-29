@@ -206,6 +206,18 @@ abstract class Optml_App_Replacer {
 		} else {
 			self::$image_sizes = $images;
 		}
+		self::$image_sizes = array_map(
+			function ( $value ) {
+				$value['crop'] = isset( $value['crop'] ) ?
+					( is_array( $value['crop'] )
+						? $value['crop'] :
+						(bool) $value['crop'] )
+					: false;
+
+				return $value;
+			},
+			self::$image_sizes
+		);
 
 		return is_array( self::$image_sizes ) ? self::$image_sizes : array();
 	}
