@@ -477,6 +477,8 @@ class Optml_Admin {
 			'service_details'               => __( 'Image optimization service', 'optimole-wp' ),
 			'connect_btn'                   => __( 'Connect to OptiMole Service', 'optimole-wp' ),
 			'disconnect_btn'                => __( 'Disconnect', 'optimole-wp' ),
+			'refresh_stats_cta'             => __( 'Refresh stats', 'optimole-wp' ),
+			'updating_stats_cta'            => __( 'Updating stats', 'optimole-wp' ),
 			'api_key_placeholder'           => __( 'API Key', 'optimole-wp' ),
 			'account_needed_heading'        => __( 'Sign-up for API key', 'optimole-wp' ),
 			'invalid_key'                   => __( 'Invalid API Key', 'optimole-wp' ),

@@ -452,6 +452,7 @@ class Optml_Rest {
 	public function request_update( WP_REST_Request $request ) {
 		do_action( 'optml_daily_sync' );
 		$settings = new Optml_Settings();
+
 		return $this->response( $settings->get( 'service_data' ) );
 	}
 

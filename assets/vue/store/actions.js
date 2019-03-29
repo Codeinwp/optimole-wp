@@ -243,7 +243,6 @@ const requestStatsUpdate = function ( {commit, state}, data ) {
 		url: optimoleDashboardApp.root + '/request_update',
 		method: 'GET',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		params: {'req': 'Update Stats'},
 		responseType: 'json',
 	} ).then( function ( response ) {
 		commit( 'toggleLoading', false );
