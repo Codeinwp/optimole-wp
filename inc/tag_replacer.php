@@ -67,6 +67,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		$sizes2crop  = self::size_to_crop();
 		foreach ( $images[0] as $index => $tag ) {
 			$width     = $height = false;
+			$crop = null;
 			$image_tag = $images['img_tag'][ $index ];
 
 			$is_slashed = strpos( $images['img_url'][ $index ], '\/' ) !== false;
@@ -105,7 +106,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 			if ( empty( $resize ) && isset( $sizes2crop[ $width . $height ] ) ) {
 				$resize = $this->to_optml_crop( $sizes2crop[ $width . $height ] );
-			} elseif ( isset( $crop ) ) {
+			} elseif ( $crop !== null ) {
 				$resize = $this->to_optml_crop( $crop );
 			}
 

@@ -6,7 +6,8 @@
 				<span class="label level-item">{{strings.logged_in_as}}:</span>
 				<p class="details level-item tags has-addons">
 					<span class="tag is-light">{{userData.display_name}}</span>
-					<span class="tag is-paddingless"><img :src="userData.picture" class="image is-24x24 is-rounded" :alt="userData.display_name"></span>
+					<span class="tag is-paddingless"><img :src="userData.picture" class="image is-24x24 is-rounded"
+					                                      :alt="userData.display_name"></span>
 				</p>
 			</div>
 			<div class="level-right">
@@ -36,8 +37,21 @@
 				</div>
 			</div>
 		</div>
+		
+		<div class="level-right">
+			
+			<div class="level-item optml-refresh-wrapper">
+			<a class="button is-small is-warning" v-if="this.$store.state.loading"><span class="icon"><i
+					class="dashicons dashicons-backup is-size-6"></i></span> <span>{{strings.updating_stats_cta}}</span>
+			</a>
+			<a class="button is-small is-info" v-else v-on:click="requestUpdate"><span class="icon"><i
+					class="dashicons dashicons-image-rotate  is-size-6"></i></span> <span>{{strings.refresh_stats_cta}}</span>
+			</a>
+			</div>
+		</div>
+		<hr/>
 		<progress class="progress is-success" :value="this.userData.usage" :max="this.userData.quota">60%</progress>
-
+	
 	</div>
 </template>
 
@@ -46,13 +60,20 @@
 		name: "cdn-details",
 		data() {
 			return {
-				userData: this.$store.state.userData,
 				strings: optimoleDashboardApp.strings
+			}
+		},
+		computed:{
+			userData:function(){
+                return  this.$store.state.userData;
 			}
 		},
 		methods: {
 			computedPercentage() {
-				return ((this.userData.usage / this.userData.quota) * 100).toFixed( 2 );
+				return ((this.userData.usage / this.userData.quota) * 100).toFixed(2);
+			},
+			requestUpdate() {
+				this.$store.dispatch('requestStatsUpdate', {waitTime: 0, component: null});
 			}
 		},
 	}
@@ -61,5 +82,9 @@
 <style scoped>
 	#optimole-app .label {
 		margin-top: 0;
+	}
+	.optml-refresh-wrapper i.dashicons{
+		width:auto;
+		height:auto;
 	}
 </style>

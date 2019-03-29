@@ -14816,7 +14816,7 @@ exports = module.exports = __webpack_require__(0)();
 
 
 // module
-exports.push([module.i, "\n\t#optimole-app .label[_v-5e7be7e5] {\n\t\tmargin-top: 0;\n\t}\n", ""]);
+exports.push([module.i, "\r\n\t#optimole-app .label[_v-5e7be7e5] {\r\n\t\tmargin-top: 0;\r\n\t}\r\n\t.optml-refresh-wrapper i.dashicons[_v-5e7be7e5]{\r\n\t\twidth:auto;\r\n\t\theight:auto;\r\n\t}\r\n", ""]);
 
 // exports
 
@@ -14839,7 +14839,8 @@ Object.defineProperty(exports, "__esModule", {
 // 				<span class="label level-item">{{strings.logged_in_as}}:</span>
 // 				<p class="details level-item tags has-addons">
 // 					<span class="tag is-light">{{userData.display_name}}</span>
-// 					<span class="tag is-paddingless"><img :src="userData.picture" class="image is-24x24 is-rounded" :alt="userData.display_name"></span>
+// 					<span class="tag is-paddingless"><img :src="userData.picture" class="image is-24x24 is-rounded"
+// 					                                      :alt="userData.display_name"></span>
 // 				</p>
 // 			</div>
 // 			<div class="level-right">
@@ -14869,6 +14870,19 @@ Object.defineProperty(exports, "__esModule", {
 // 				</div>
 // 			</div>
 // 		</div>
+//
+// 		<div class="level-right">
+//
+// 			<div class="level-item optml-refresh-wrapper">
+// 			<a class="button is-small is-warning" v-if="this.$store.state.loading"><span class="icon"><i
+// 					class="dashicons dashicons-backup is-size-6"></i></span> <span>{{strings.updating_stats_cta}}</span>
+// 			</a>
+// 			<a class="button is-small is-info" v-else v-on:click="requestUpdate"><span class="icon"><i
+// 					class="dashicons dashicons-image-rotate  is-size-6"></i></span> <span>{{strings.refresh_stats_cta}}</span>
+// 			</a>
+// 			</div>
+// 		</div>
+// 		<hr/>
 // 		<progress class="progress is-success" :value="this.userData.usage" :max="this.userData.quota">60%</progress>
 //
 // 	</div>
@@ -14879,14 +14893,21 @@ exports.default = {
 	name: "cdn-details",
 	data: function data() {
 		return {
-			userData: this.$store.state.userData,
 			strings: optimoleDashboardApp.strings
 		};
 	},
 
+	computed: {
+		userData: function userData() {
+			return this.$store.state.userData;
+		}
+	},
 	methods: {
 		computedPercentage: function computedPercentage() {
 			return (this.userData.usage / this.userData.quota * 100).toFixed(2);
+		},
+		requestUpdate: function requestUpdate() {
+			this.$store.dispatch('requestStatsUpdate', { waitTime: 0, component: null });
 		}
 	}
 	// </script>
@@ -14894,6 +14915,10 @@ exports.default = {
 	// <style scoped>
 	// 	#optimole-app .label {
 	// 		margin-top: 0;
+	// 	}
+	// 	.optml-refresh-wrapper i.dashicons{
+	// 		width:auto;
+	// 		height:auto;
 	// 	}
 	// </style>
 
@@ -14903,7 +14928,7 @@ exports.default = {
 /* 23 */
 /***/ (function(module, exports) {
 
-module.exports = "\n\t<div class=\"cdn-details\" _v-5e7be7e5=\"\">\n\t\t<hr _v-5e7be7e5=\"\">\n\t\t<div class=\"account level has-text-centered\" _v-5e7be7e5=\"\">\n\t\t\t<div class=\"level-left\" _v-5e7be7e5=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-5e7be7e5=\"\">{{strings.logged_in_as}}:</span>\n\t\t\t\t<p class=\"details level-item tags has-addons\" _v-5e7be7e5=\"\">\n\t\t\t\t\t<span class=\"tag is-light\" _v-5e7be7e5=\"\">{{userData.display_name}}</span>\n\t\t\t\t\t<span class=\"tag is-paddingless\" _v-5e7be7e5=\"\"><img :src=\"userData.picture\" class=\"image is-24x24 is-rounded\" :alt=\"userData.display_name\" _v-5e7be7e5=\"\"></span>\n\t\t\t\t</p>\n\t\t\t</div>\n\t\t\t<div class=\"level-right\" _v-5e7be7e5=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-5e7be7e5=\"\">{{strings.private_cdn_url}}:</span>\n\t\t\t\t<p class=\"details level-item tag is-light\" _v-5e7be7e5=\"\">{{userData.cdn_key}}.i.optimole.com</p>\n\t\t\t</div>\n\t\t</div>\n\t\t<hr _v-5e7be7e5=\"\">\n\t\t<div class=\"level stats\" _v-5e7be7e5=\"\">\n\t\t\t<div class=\"level-left\" _v-5e7be7e5=\"\">\n\t\t\t\t<div class=\"level-item\" _v-5e7be7e5=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-5e7be7e5=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-5e7be7e5=\"\">{{strings.usage}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-5e7be7e5=\"\">{{this.userData.usage_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<h4 class=\"level-item is-size-5 is-marginless has-text-grey\" _v-5e7be7e5=\"\">\n\t\t\t\t{{computedPercentage()}}%\n\t\t\t</h4>\n\t\t\t<div class=\"level-right\" _v-5e7be7e5=\"\">\n\t\t\t\t<div class=\"level-item\" _v-5e7be7e5=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-5e7be7e5=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-5e7be7e5=\"\">{{strings.quota}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-5e7be7e5=\"\">{{this.userData.quota_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<progress class=\"progress is-success\" :value=\"this.userData.usage\" :max=\"this.userData.quota\" _v-5e7be7e5=\"\">60%</progress>\n\n\t</div>\n";
+module.exports = "\n\t<div class=\"cdn-details\" _v-5e7be7e5=\"\">\n\t\t<hr _v-5e7be7e5=\"\">\n\t\t<div class=\"account level has-text-centered\" _v-5e7be7e5=\"\">\n\t\t\t<div class=\"level-left\" _v-5e7be7e5=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-5e7be7e5=\"\">{{strings.logged_in_as}}:</span>\n\t\t\t\t<p class=\"details level-item tags has-addons\" _v-5e7be7e5=\"\">\n\t\t\t\t\t<span class=\"tag is-light\" _v-5e7be7e5=\"\">{{userData.display_name}}</span>\n\t\t\t\t\t<span class=\"tag is-paddingless\" _v-5e7be7e5=\"\"><img :src=\"userData.picture\" class=\"image is-24x24 is-rounded\" :alt=\"userData.display_name\" _v-5e7be7e5=\"\"></span>\n\t\t\t\t</p>\n\t\t\t</div>\n\t\t\t<div class=\"level-right\" _v-5e7be7e5=\"\">\n\t\t\t\t<span class=\"label level-item\" _v-5e7be7e5=\"\">{{strings.private_cdn_url}}:</span>\n\t\t\t\t<p class=\"details level-item tag is-light\" _v-5e7be7e5=\"\">{{userData.cdn_key}}.i.optimole.com</p>\n\t\t\t</div>\n\t\t</div>\n\t\t<hr _v-5e7be7e5=\"\">\n\t\t<div class=\"level stats\" _v-5e7be7e5=\"\">\n\t\t\t<div class=\"level-left\" _v-5e7be7e5=\"\">\n\t\t\t\t<div class=\"level-item\" _v-5e7be7e5=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-5e7be7e5=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-5e7be7e5=\"\">{{strings.usage}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-5e7be7e5=\"\">{{this.userData.usage_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<h4 class=\"level-item is-size-5 is-marginless has-text-grey\" _v-5e7be7e5=\"\">\n\t\t\t\t{{computedPercentage()}}%\n\t\t\t</h4>\n\t\t\t<div class=\"level-right\" _v-5e7be7e5=\"\">\n\t\t\t\t<div class=\"level-item\" _v-5e7be7e5=\"\">\n\t\t\t\t\t<div class=\"tags has-addons\" _v-5e7be7e5=\"\">\n\t\t\t\t\t\t<span class=\"tag is-info\" _v-5e7be7e5=\"\">{{strings.quota}}:</span>\n\t\t\t\t\t\t<span class=\"tag\" _v-5e7be7e5=\"\">{{this.userData.quota_pretty}}</span>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t\n\t\t<div class=\"level-right\" _v-5e7be7e5=\"\">\n\t\t\t\n\t\t\t<div class=\"level-item optml-refresh-wrapper\" _v-5e7be7e5=\"\">\n\t\t\t<a class=\"button is-small is-warning\" v-if=\"this.$store.state.loading\" _v-5e7be7e5=\"\"><span class=\"icon\" _v-5e7be7e5=\"\"><i class=\"dashicons dashicons-backup is-size-6\" _v-5e7be7e5=\"\"></i></span> <span _v-5e7be7e5=\"\">{{strings.updating_stats_cta}}</span>\n\t\t\t</a>\n\t\t\t<a class=\"button is-small is-info\" v-else=\"\" v-on:click=\"requestUpdate\" _v-5e7be7e5=\"\"><span class=\"icon\" _v-5e7be7e5=\"\"><i class=\"dashicons dashicons-image-rotate  is-size-6\" _v-5e7be7e5=\"\"></i></span> <span _v-5e7be7e5=\"\">{{strings.refresh_stats_cta}}</span>\n\t\t\t</a>\n\t\t\t</div>\n\t\t</div>\n\t\t<hr _v-5e7be7e5=\"\">\n\t\t<progress class=\"progress is-success\" :value=\"this.userData.usage\" :max=\"this.userData.quota\" _v-5e7be7e5=\"\">60%</progress>\n\t\n\t</div>\n";
 
 /***/ }),
 /* 24 */
@@ -15212,15 +15237,12 @@ exports.default = {
 	methods: {
 		connect: function connect() {
 			this.$store.dispatch('connectOptimole', {
-				req: 'Connect to OptiMole',
 				apiKey: this.apiKey
 			});
 		},
 		disconnect: function disconnect() {
 			this.apiKey = '';
-			this.$store.dispatch('disconnectOptimole', {
-				req: 'Disconnect from OptiMole'
-			});
+			this.$store.dispatch('disconnectOptimole', {});
 		}
 	}
 	// </script>
@@ -20182,6 +20204,24 @@ var removeWatermark = function removeWatermark(_ref8, data) {
 	});
 };
 
+var requestStatsUpdate = function requestStatsUpdate(_ref9, data) {
+	var commit = _ref9.commit,
+	    state = _ref9.state;
+
+	commit('toggleLoading', true);
+	_vue2.default.http({
+		url: optimoleDashboardApp.root + '/request_update',
+		method: 'GET',
+		headers: { 'X-WP-Nonce': optimoleDashboardApp.nonce },
+		responseType: 'json'
+	}).then(function (response) {
+		commit('toggleLoading', false);
+		if (response.status === 200) {
+			commit('updateUserData', response.body.data);
+		}
+	});
+};
+
 exports.default = {
 	connectOptimole: connectOptimole,
 	registerOptimole: registerOptimole,
@@ -20190,7 +20230,8 @@ exports.default = {
 	sampleRate: sampleRate,
 	retrieveOptimizedImages: retrieveOptimizedImages,
 	retrieveWatermarks: retrieveWatermarks,
-	removeWatermark: removeWatermark
+	removeWatermark: removeWatermark,
+	requestStatsUpdate: requestStatsUpdate
 };
 
 /***/ }),
