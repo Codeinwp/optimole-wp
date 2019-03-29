@@ -17,21 +17,13 @@
     "url": "https://github.com/Codeinwp/optimole-wp/issues"
   },
   "scripts": {
-    "commitmsg": "commitlint -e .git/COMMIT_EDITMSG",
     "release": "semantic-release --debug && grunt wp_deploy:assets",
     "dev": "cross-env WEBPACK_ENV=dev webpack --progress --colors --watch",
     "readme": "grunt wp_readme_to_markdown:optimole",
     "prebuild": "cross-env WEBPACK_ENV=production webpack",
     "build": "npm run prebuild"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "composer run-script lint || exit 1"
-    }
-  },
   "devDependencies": {
-    "@commitlint/cli": "^7.5.2",
-    "@commitlint/config-conventional": "^7.5.0",
     "@semantic-release/changelog": "^3.0.2",
     "@semantic-release/exec": "^3.3.2",
     "@semantic-release/git": "^7.0.8",
@@ -87,5 +79,10 @@
     "vue-upload-component": "^2.8.19",
     "vuex": "^2.4.0",
     "y": "^0.3.2"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "composer run-script lint || exit 1"
+    }
   }
 }
