@@ -449,7 +449,7 @@ class Optml_Admin {
 			'assets_url'           => OPTML_URL . 'assets/',
 			'connection_status'    => empty( $service_data ) ? 'no' : 'yes',
 			'api_key'              => $api_key,
-			'root'                 => rest_url( OPTML_NAMESPACE . '/v1' ),
+			'root'                 => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),
 			'nonce'                => wp_create_nonce( 'wp_rest' ),
 			'user_data'            => $service_data,
 			'remove_latest_images' => defined( 'OPTML_REMOVE_LATEST_IMAGES' ) && constant( 'OPTML_REMOVE_LATEST_IMAGES' ) ? ( OPTML_REMOVE_LATEST_IMAGES ? 'yes' : 'no' ) : 'no',
