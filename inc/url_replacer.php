@@ -161,6 +161,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$args['height'] = $args['height'] > $this->max_height ? $this->max_height : $args['height'];
 		}
 
+		$args = apply_filters( 'optml_image_args', $args, $original_url );
+
 		$new_url = ( new Optml_Image( $url, $args ) )->get_url(
 			[
 				'signed'          => $this->settings->use_lazyload() ? false : $this->is_allowed_site,
