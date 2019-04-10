@@ -227,7 +227,7 @@ const removeWatermark = function ( {commit, state}, data ) {
 		url: optimoleDashboardApp.root + '/remove_watermark',
 		method: 'POST',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		params: {'req': 'Get Watermarks' , 'postID': data.postID },
+		params: { 'postID': data.postID },
 		responseType: 'json',
 	} ).then( function ( response ) {
 
