@@ -99,6 +99,16 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertNotContains( 'i0.wp.com', $replaced_content );
 	}
+	public function test_replacement_wrong_extension_with_query_string() {
+		$content = ' 
+					<img src="http://example.org/wp-content/plugins/test/generate-qr-code.php?3CRMB6qM1DvLswN6nxKjppX6W5ycjXpeZp">
+				 ';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+
+		$this->assertNotContains( 'i.optimole.com', $replaced_content );
+		$this->assertNotContains( 'data-opt-src', $replaced_content );
+	}
 
 	public function test_lazy_dont_lazy_load_headers() {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::HTML_TAGS_HEADER );

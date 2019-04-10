@@ -23,9 +23,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 *
 	 * @codeCoverageIgnore
 	 * @static
+	 * @return Optml_Url_Replacer
 	 * @since  1.0.0
 	 * @access public
-	 * @return Optml_Url_Replacer
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -112,22 +112,23 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
+		$original_url = $url;
 
-		$is_slashed = strpos( $url, '\/' ) !== false;
+		$is_slashed   = strpos( $url, '\/' ) !== false;
 
 		$url = $is_slashed ? stripslashes( $url ) : $url;
 
 		if ( strpos( $url, Optml_Config::$service_url ) !== false ) {
-			return $url;
+			return $original_url;
 		}
 		if ( ! $this->can_replace_url( $url ) ) {
-			return $url;
+			return $original_url;
 		}
 		// Remove any query strings that might affect conversion.
 		$url = strtok( $url, '?' );
 
 		if ( ! $this->is_valid_mimetype_from_url( $url ) ) {
-			return $url;
+			return $original_url;
 		}
 		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) ) {
 			$args['quality'] = $this->to_accepted_quality( $args['quality'] );
@@ -178,8 +179,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 *
 	 * @codeCoverageIgnore
 	 * @access public
-	 * @since  1.0.0
 	 * @return void
+	 * @since  1.0.0
 	 */
 	public function __clone() {
 		// Cloning instances of the class is forbidden.
@@ -191,8 +192,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 *
 	 * @codeCoverageIgnore
 	 * @access public
-	 * @since  1.0.0
 	 * @return void
+	 * @since  1.0.0
 	 */
 	public function __wakeup() {
 		// Unserializing instances of the class is forbidden.
