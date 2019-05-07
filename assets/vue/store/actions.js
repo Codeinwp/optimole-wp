@@ -252,6 +252,36 @@ const requestStatsUpdate = function ( {commit, state}, data ) {
 	} );
 };
 
+const retrieveConflicts = function ( {commit, state}, data ) {
+
+	commit( 'toggleLoading', true );
+	Vue.http( {
+		url: optimoleDashboardApp.root + '/poll_conflicts',
+		method: 'GET',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		params: {'req': 'Get Conflicts'},
+		responseType: 'json',
+	} ).then( function ( response ) {
+		commit( 'toggleLoading', false );
+		if( response.status === 200 ) {
+			console.log( response );
+			// data.component.watermarkData = [];
+			//
+			// for( let row in response.data.data ) {
+			// 	let tmp = response.data.data[row];
+			// 	let item = {
+			// 		ID: tmp.ID,
+			// 		post_title: tmp.post_title,
+			// 		post_mime_type: tmp.post_mime_type,
+			// 		guid: tmp.post_content || tmp.guid,
+			// 	}
+			// 	data.component.watermarkData.push( item )
+			// 	data.component.noImages = false;
+			// }
+		}
+	} );
+};
+
 export default {
 	connectOptimole,
 	registerOptimole,
@@ -261,5 +291,6 @@ export default {
 	retrieveOptimizedImages,
 	retrieveWatermarks,
 	removeWatermark,
-	requestStatsUpdate
+	requestStatsUpdate,
+	retrieveConflicts
 };

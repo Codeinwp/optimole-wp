@@ -1,5 +1,5 @@
 <?php
-class Optm_Test_conflict extends Optml_Abstract_Conflict {
+class Optml_Test_Conflict extends Optml_abstract_conflict {
 
 	public function __construct() {
 		$this->priority = 2;

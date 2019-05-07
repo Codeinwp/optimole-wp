@@ -13,8 +13,8 @@ class Optml_Conflict_Manager {
 
 	}
 
-	public function watch( Optml_Abstract_Conflict $conflict ) {
-		if ( $conflict instanceof Optml_Abstract_Conflict ) {
+	public function watch( $conflict ) {
+		if ( is_subclass_of( new $conflict,"Optml_Abstract_Conflict" ) ) {
 			array_push( $this->watched_conflicts, new $conflict );
 		}
 	}

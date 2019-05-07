@@ -24,6 +24,7 @@ const store = new Vuex.Store(
 			userData: optimoleDashboardApp.user_data ? optimoleDashboardApp.user_data : null,
 			optimizedImages: [],
 			watermarks: [],
+			conflicts: [],
 		},
 		mutations,
 		actions
