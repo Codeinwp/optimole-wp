@@ -65,6 +65,7 @@ final class Optml_Main {
 			add_filter( 'optimole_wp_feedback_review_message', array( __CLASS__, 'change_review_message' ) );
 			add_filter( 'optimole_wp_logger_heading', array( __CLASS__, 'change_review_message' ) );
 			add_filter( 'optml_default_settings', array( __CLASS__, 'change_lazyload_default' ) );
+			add_filter( 'optml_register_conflicts', array( __CLASS__, 'register_conflicts' ) );
 			self::$_instance          = new self();
 			self::$_instance->manager = Optml_Manager::instance();
 			self::$_instance->rest    = new Optml_Rest();
@@ -76,6 +77,16 @@ final class Optml_Main {
 		}
 
 		return self::$_instance;
+	}
+
+	public static function register_conflicts( $conflicts_to_register = array() ) {
+		$conflicts_to_register = array_merge(
+			$conflicts_to_register,
+			array(
+				'Optml_Test_Conflict',
+			)
+		);
+		return $conflicts_to_register;
 	}
 
 	/**
