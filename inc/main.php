@@ -84,6 +84,7 @@ final class Optml_Main {
 			$conflicts_to_register,
 			array(
 				'Optml_Test_Conflict',
+				'Optml_Test_Two_Conflict',
 			)
 		);
 		return $conflicts_to_register;

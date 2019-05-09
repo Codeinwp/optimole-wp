@@ -33,6 +33,38 @@ class Optml_Conflict_Manager {
 				array_push( $conflict_list, $conflict->get_conflict() );
 			}
 		}
+
+		usort(
+			$conflict_list,
+			function ( $item1, $item2 ) {
+				if ( ! isset( $item1['severity'] ) ) {
+					return -1;
+				}
+				if ( ! isset( $item2['severity'] ) ) {
+					return -1;
+				}
+				$severity_map = array(
+					'high' => 0,
+					'medium' => 1,
+					'low' => 1,
+				);
+
+				if ( $severity_map[$item1['severity']] === $severity_map[$item2['severity']] ) {
+					if ( ! isset( $item1['priority'] ) ) {
+						return 0;
+					}
+					if ( ! isset( $item2['priority'] ) ) {
+						return 0;
+					}
+					if ( $item1['priority'] === $item2['priority'] ) {
+						return 0;
+					}
+					return $item1['priority'] < $item2['priority'] ? -1 : +1;
+				}
+				return $severity_map[$item1['severity']] < $severity_map[$item2['severity']] ? -1 : 1;
+			}
+		);
+
 		return $conflict_list;
 	}
 

@@ -30,11 +30,11 @@
 												<span class="is-size-6-mobile is-size-6-touch">{{strings.watermarks_menu_item}}</span>
 											</a>
 										</li>
-                                        <li :class="tab === 'conflicts' ? 'is-active' : ''">
+                                        <li :class="tab === 'conflicts' ? 'is-active' : ''" v-if="conflictCount > 0">
                                             <a @click="changeTab('conflicts')" class="is-size-6-mobile">
                                                 <span class="icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-warning"></span>
                                                 <span class="is-size-6-mobile is-size-6-touch">{{strings.conflicts_menu_item}}</span>&nbsp;
-                                                <span class="tag is-rounded is-warning">0</span>
+                                                <span class="tag is-rounded is-warning">{{conflictCount}}</span>
                                             </a>
                                         </li>
 									</ul>
@@ -101,6 +101,7 @@
 	import CdnDetails from './cdn-details.vue';
 	import ConnectLayout from './connect-layout.vue';
 	import LastImages from './last-images.vue';
+	import Conflicts from './conflicts.vue';
 	import ApiKeyForm from "./api-key-form.vue";
 	import Options from "./options.vue";
 	import Watermarks from "./watermarks.vue";
@@ -116,6 +117,11 @@
 				tab: 'dashboard'
 			}
 		},
+        computed: {
+			conflictCount() {
+				return this.$store.state.conflicts.count || 0
+            }
+        },
 		components: {
 			AppHeader,
 			Options,
@@ -123,6 +129,7 @@
 			ConnectLayout,
 			ApiKeyForm,
 			CdnDetails,
+			Conflicts,
 			LastImages
 		},
 		mounted() {
