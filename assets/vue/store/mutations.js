@@ -40,6 +40,10 @@ const updateWatermark = ( state, data ) => {
 
 };
 
+const updateConflicts = ( state, data ) => {
+	state.conflicts = data.body.data;
+};
+
 export default {
 	toggleLoading,
 	toggleConnecting,
@@ -51,5 +55,6 @@ export default {
 	restApiNotWorking,
 	updateSettings,
 	updateWatermark,
+	updateConflicts,
 	updateOptimizedImages
 };

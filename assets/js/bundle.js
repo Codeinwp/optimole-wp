@@ -14462,6 +14462,10 @@ var _lastImages = __webpack_require__(31);
 
 var _lastImages2 = _interopRequireDefault(_lastImages);
 
+var _conflicts = __webpack_require__(60);
+
+var _conflicts2 = _interopRequireDefault(_conflicts);
+
 var _apiKeyForm = __webpack_require__(5);
 
 var _apiKeyForm2 = _interopRequireDefault(_apiKeyForm);
@@ -14476,62 +14480,7 @@ var _watermarks2 = _interopRequireDefault(_watermarks);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-module.exports = {
-	name: 'app',
-	data: function data() {
-		return {
-			strings: optimoleDashboardApp.strings,
-			home: optimoleDashboardApp.home_url,
-			remove_images: optimoleDashboardApp.remove_latest_images === 'yes',
-			fetchStatus: false,
-			tab: 'dashboard'
-		};
-	},
-
-	components: {
-		AppHeader: _appHeader2.default,
-		Options: _options2.default,
-		Watermarks: _watermarks2.default,
-		ConnectLayout: _connectLayout2.default,
-		ApiKeyForm: _apiKeyForm2.default,
-		CdnDetails: _cdnDetails2.default,
-		LastImages: _lastImages2.default
-	},
-	mounted: function mounted() {
-		var self = this;
-		if (this.$store.state.connected) {
-			this.$store.dispatch('retrieveOptimizedImages', { waitTime: 0, component: null });
-			this.$store.dispatch('retrieveConflicts', { waitTime: 0, component: null });
-			self.fetchStatus = true;
-		}
-	},
-
-	methods: {
-		changeTab: function changeTab(value) {
-			this.tab = value;
-		}
-	}
-	// </script>
-	// <style lang="sass-loader">
-	// 	@import '../../css/style.scss';
-	//
-	// 	#optimole-app .tabs a {
-	// 		margin-bottom: -4px;
-	// 	}
-	//
-	// 	#optimole-app .optml-upgrade {
-	// 		min-width: 200px;
-	// 	}
-	//
-	// 	#optimole-app .is-tab.no-images{
-	// 		min-height: 400px;
-	// 	}
-	// 	#optimole-app .is-tab {
-	// 		min-height: 700px;
-	// 	}
-	// </style>
-
-}; // <template>
+// <template>
 // 	<div class="columns is-desktop">
 //
 // 		<div class="column  ">
@@ -14563,11 +14512,11 @@ module.exports = {
 // 												<span class="is-size-6-mobile is-size-6-touch">{{strings.watermarks_menu_item}}</span>
 // 											</a>
 // 										</li>
-//                                         <li :class="tab === 'conflicts' ? 'is-active' : ''">
+//                                         <li :class="tab === 'conflicts' ? 'is-active' : ''" v-if="conflictCount > 0">
 //                                             <a @click="changeTab('conflicts')" class="is-size-6-mobile">
 //                                                 <span class="icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-warning"></span>
 //                                                 <span class="is-size-6-mobile is-size-6-touch">{{strings.conflicts_menu_item}}</span>&nbsp;
-//                                                 <span class="tag is-rounded is-warning">0</span>
+//                                                 <span class="tag is-rounded is-warning">{{conflictCount}}</span>
 //                                             </a>
 //                                         </li>
 // 									</ul>
@@ -14630,6 +14579,68 @@ module.exports = {
 // </template>
 //
 // <script>
+module.exports = {
+	name: 'app',
+	data: function data() {
+		return {
+			strings: optimoleDashboardApp.strings,
+			home: optimoleDashboardApp.home_url,
+			remove_images: optimoleDashboardApp.remove_latest_images === 'yes',
+			fetchStatus: false,
+			tab: 'dashboard'
+		};
+	},
+
+	computed: {
+		conflictCount: function conflictCount() {
+			return this.$store.state.conflicts.count || 0;
+		}
+	},
+	components: {
+		AppHeader: _appHeader2.default,
+		Options: _options2.default,
+		Watermarks: _watermarks2.default,
+		ConnectLayout: _connectLayout2.default,
+		ApiKeyForm: _apiKeyForm2.default,
+		CdnDetails: _cdnDetails2.default,
+		Conflicts: _conflicts2.default,
+		LastImages: _lastImages2.default
+	},
+	mounted: function mounted() {
+		var self = this;
+		if (this.$store.state.connected) {
+			this.$store.dispatch('retrieveOptimizedImages', { waitTime: 0, component: null });
+			this.$store.dispatch('retrieveConflicts', { waitTime: 0, component: null });
+			self.fetchStatus = true;
+		}
+	},
+
+	methods: {
+		changeTab: function changeTab(value) {
+			this.tab = value;
+		}
+	}
+	// </script>
+	// <style lang="sass-loader">
+	// 	@import '../../css/style.scss';
+	//
+	// 	#optimole-app .tabs a {
+	// 		margin-bottom: -4px;
+	// 	}
+	//
+	// 	#optimole-app .optml-upgrade {
+	// 		min-width: 200px;
+	// 	}
+	//
+	// 	#optimole-app .is-tab.no-images{
+	// 		min-height: 400px;
+	// 	}
+	// 	#optimole-app .is-tab {
+	// 		min-height: 700px;
+	// 	}
+	// </style>
+
+};
 
 /***/ }),
 /* 14 */
@@ -18887,7 +18898,7 @@ module.exports = "\n\t<div _v-e1cd007a=\"\">\n\t\t<h4 _v-e1cd007a=\"\">{{strings
 /* 52 */
 /***/ (function(module, exports) {
 
-module.exports = "\n\t<div class=\"columns is-desktop\">\n\t\t\n\t\t<div class=\"column  \">\n\t\t\t<div class=\"card\">\n\t\t\t\t<app-header></app-header>\n\t\t\t\t<div class=\"card-content\">\n\t\t\t\t\t<div class=\"content\">\n\t\t\t\t\t\t<connect-layout v-if=\"! this.$store.state.connected\"></connect-layout>\n\t\t\t\t\t\t<transition name=\"fade\" mode=\"out-in\">\n\t\t\t\t\t\t\t<div v-if=\"this.$store.state.connected\">\n\t\t\t\t\t\t\t\t<div class=\"tabs is-left is-boxed is-medium\">\n\t\t\t\t\t\t\t\t\t<ul class=\"is-marginless\">\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'dashboard' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('dashboard')\" class=\"is-size-6-mobile\">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile is-size-6-tablet  dashicons dashicons-admin-home\"></span>\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile is-size-6-touch \">{{strings.dashboard_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'settings' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('settings')\" class=\"is-size-6-mobile  \">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile   is-size-6-tablet dashicons dashicons-admin-settings\"></span>\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile is-size-6-touch\">{{strings.settings_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'watermarks' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('watermarks')\" class=\"is-size-6-mobile\">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-tag\"></span>\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile is-size-6-touch\">{{strings.watermarks_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t</li>\n                                        <li :class=\"tab === 'conflicts' ? 'is-active' : ''\">\n                                            <a @click=\"changeTab('conflicts')\" class=\"is-size-6-mobile\">\n                                                <span class=\"icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-warning\"></span>\n                                                <span class=\"is-size-6-mobile is-size-6-touch\">{{strings.conflicts_menu_item}}</span>&nbsp;\n                                                <span class=\"tag is-rounded is-warning\">0</span>\n                                            </a>\n                                        </li>\n\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\"tab === 'dashboard' \" :class=\"remove_images ? 'no-images' : '' \">\n\t\t\t\t\t\t\t\t\t<div class=\"notification is-success\" v-if=\"strings.notice_just_activated.length > 0\"\n\t\t\t\t\t\t\t\t\t     v-html=\"strings.notice_just_activated\"></div>\n\t\t\t\t\t\t\t\t\t<api-key-form></api-key-form>\n\t\t\t\t\t\t\t\t\t<cdn-details v-if=\"this.$store.state.userData\"></cdn-details>\n\t\t\t\t\t\t\t\t\t<hr/>\n\t\t\t\t\t\t\t\t\t<last-images :status=\"fetchStatus\" v-if=\"! remove_images\"></last-images>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\" tab === 'settings'\">\n\t\t\t\t\t\t\t\t\t<options></options>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\" tab === 'watermarks'\">\n\t\t\t\t\t\t\t\t\t<watermarks></watermarks>\n\t\t\t\t\t\t\t\t</div>\n                                <div class=\"is-tab\" v-if=\" tab === 'conflicts'\">\n                                    <conflicts></conflicts>\n                                </div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</transition>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t\n\t\t\t\t<div class=\"level-right\">\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com\" target=\"_blank\">Optimole\n\t\t\t\t\t\tv{{strings.version}}</a></p>\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/terms/\"\n\t\t\t\t\t                         target=\"_blank\">{{strings.terms_menu}}</a></p>\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/privacy-policy/\" target=\"_blank\">{{strings.privacy_menu}}</a>\n\t\t\t\t\t</p>\n\t\t\t\t\t<p class=\"level-item\"><a :href=\"'https://speedtest.optimole.com/?url=' + home \" target=\"_blank\">{{strings.testdrive_menu}}</a>\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<div v-if=\"this.$store.state.connected && this.$store.state.userData.plan === 'free' \" class=\"column is-narrow is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile\">\n\t\t\t<div class=\"card optml-upgrade\">\n\t\t\t\t<div class=\"card-header\">\n\t\t\t\t\t<h3 class=\"is-size-5 card-header-title\"><span class=\"dashicons dashicons-chart-line\"></span>  {{strings.upgrade.title}}</h3>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"card-content\">\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_1}}</li>\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_2}}</li>\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_3}}</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"card-footer  \">\n\t\t\t\t\t<div class=\"card-footer-item\">\n\t\t\t\t\t<a href=\"https://optimole.com#pricing\" target=\"_blank\" class=\"button is-centered is-small is-success\"><span class=\"dashicons dashicons-external\"></span>{{strings.upgrade.cta}}</a>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n";
+module.exports = "\n\t<div class=\"columns is-desktop\">\n\t\t\n\t\t<div class=\"column  \">\n\t\t\t<div class=\"card\">\n\t\t\t\t<app-header></app-header>\n\t\t\t\t<div class=\"card-content\">\n\t\t\t\t\t<div class=\"content\">\n\t\t\t\t\t\t<connect-layout v-if=\"! this.$store.state.connected\"></connect-layout>\n\t\t\t\t\t\t<transition name=\"fade\" mode=\"out-in\">\n\t\t\t\t\t\t\t<div v-if=\"this.$store.state.connected\">\n\t\t\t\t\t\t\t\t<div class=\"tabs is-left is-boxed is-medium\">\n\t\t\t\t\t\t\t\t\t<ul class=\"is-marginless\">\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'dashboard' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('dashboard')\" class=\"is-size-6-mobile\">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile is-size-6-tablet  dashicons dashicons-admin-home\"></span>\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile is-size-6-touch \">{{strings.dashboard_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'settings' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('settings')\" class=\"is-size-6-mobile  \">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile   is-size-6-tablet dashicons dashicons-admin-settings\"></span>\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile is-size-6-touch\">{{strings.settings_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'watermarks' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('watermarks')\" class=\"is-size-6-mobile\">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-tag\"></span>\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile is-size-6-touch\">{{strings.watermarks_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t</li>\n                                        <li :class=\"tab === 'conflicts' ? 'is-active' : ''\" v-if=\"conflictCount > 0\">\n                                            <a @click=\"changeTab('conflicts')\" class=\"is-size-6-mobile\">\n                                                <span class=\"icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-warning\"></span>\n                                                <span class=\"is-size-6-mobile is-size-6-touch\">{{strings.conflicts_menu_item}}</span>&nbsp;\n                                                <span class=\"tag is-rounded is-warning\">{{conflictCount}}</span>\n                                            </a>\n                                        </li>\n\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\"tab === 'dashboard' \" :class=\"remove_images ? 'no-images' : '' \">\n\t\t\t\t\t\t\t\t\t<div class=\"notification is-success\" v-if=\"strings.notice_just_activated.length > 0\"\n\t\t\t\t\t\t\t\t\t     v-html=\"strings.notice_just_activated\"></div>\n\t\t\t\t\t\t\t\t\t<api-key-form></api-key-form>\n\t\t\t\t\t\t\t\t\t<cdn-details v-if=\"this.$store.state.userData\"></cdn-details>\n\t\t\t\t\t\t\t\t\t<hr/>\n\t\t\t\t\t\t\t\t\t<last-images :status=\"fetchStatus\" v-if=\"! remove_images\"></last-images>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\" tab === 'settings'\">\n\t\t\t\t\t\t\t\t\t<options></options>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\" tab === 'watermarks'\">\n\t\t\t\t\t\t\t\t\t<watermarks></watermarks>\n\t\t\t\t\t\t\t\t</div>\n                                <div class=\"is-tab\" v-if=\" tab === 'conflicts'\">\n                                    <conflicts></conflicts>\n                                </div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</transition>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t\n\t\t\t\t<div class=\"level-right\">\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com\" target=\"_blank\">Optimole\n\t\t\t\t\t\tv{{strings.version}}</a></p>\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/terms/\"\n\t\t\t\t\t                         target=\"_blank\">{{strings.terms_menu}}</a></p>\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/privacy-policy/\" target=\"_blank\">{{strings.privacy_menu}}</a>\n\t\t\t\t\t</p>\n\t\t\t\t\t<p class=\"level-item\"><a :href=\"'https://speedtest.optimole.com/?url=' + home \" target=\"_blank\">{{strings.testdrive_menu}}</a>\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<div v-if=\"this.$store.state.connected && this.$store.state.userData.plan === 'free' \" class=\"column is-narrow is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile\">\n\t\t\t<div class=\"card optml-upgrade\">\n\t\t\t\t<div class=\"card-header\">\n\t\t\t\t\t<h3 class=\"is-size-5 card-header-title\"><span class=\"dashicons dashicons-chart-line\"></span>  {{strings.upgrade.title}}</h3>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"card-content\">\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_1}}</li>\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_2}}</li>\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_3}}</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"card-footer  \">\n\t\t\t\t\t<div class=\"card-footer-item\">\n\t\t\t\t\t<a href=\"https://optimole.com#pricing\" target=\"_blank\" class=\"button is-centered is-small is-success\"><span class=\"dashicons dashicons-external\"></span>{{strings.upgrade.cta}}</a>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n";
 
 /***/ }),
 /* 53 */
@@ -19954,6 +19965,10 @@ var updateWatermark = function updateWatermark(state, data) {
 	}
 };
 
+var updateConflicts = function updateConflicts(state, data) {
+	state.conflicts = data.body.data;
+};
+
 exports.default = {
 	toggleLoading: toggleLoading,
 	toggleConnecting: toggleConnecting,
@@ -19965,6 +19980,7 @@ exports.default = {
 	restApiNotWorking: restApiNotWorking,
 	updateSettings: updateSettings,
 	updateWatermark: updateWatermark,
+	updateConflicts: updateConflicts,
 	updateOptimizedImages: updateOptimizedImages
 };
 
@@ -20250,19 +20266,7 @@ var retrieveConflicts = function retrieveConflicts(_ref10, data) {
 		commit('toggleLoading', false);
 		if (response.status === 200) {
 			console.log(response);
-			// data.component.watermarkData = [];
-			//
-			// for( let row in response.data.data ) {
-			// 	let tmp = response.data.data[row];
-			// 	let item = {
-			// 		ID: tmp.ID,
-			// 		post_title: tmp.post_title,
-			// 		post_mime_type: tmp.post_mime_type,
-			// 		guid: tmp.post_content || tmp.guid,
-			// 	}
-			// 	data.component.watermarkData.push( item )
-			// 	data.component.noImages = false;
-			// }
+			commit('updateConflicts', response);
 		}
 	});
 };
@@ -21215,6 +21219,115 @@ module.exports = function listToStyles (parentId, list) {
 /******/ ]);
 });
 //# sourceMappingURL=index.js.map
+
+/***/ }),
+/* 60 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_script__, __vue_template__
+__vue_script__ = __webpack_require__(63)
+__vue_template__ = __webpack_require__(65)
+module.exports = __vue_script__ || {}
+if (module.exports.__esModule) module.exports = module.exports.default
+if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
+if (false) {(function () {  module.hot.accept()
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), true)
+  if (!hotAPI.compatible) return
+  var id = "/var/www/html/wp-minions/wp-content/plugins/optimole-wp/assets/vue/components/conflicts.vue"
+  if (!module.hot.data) {
+    hotAPI.createRecord(id, module.exports)
+  } else {
+    hotAPI.update(id, module.exports, __vue_template__)
+  }
+})()}
+
+/***/ }),
+/* 61 */,
+/* 62 */,
+/* 63 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+// <template>
+// 	<div>
+// 		<div class="conflicts-table">
+// 			<div v-if="!noConflicts">
+// 				<h3 class="has-text-centered">{{strings.title}}</h3>
+// 				<table class="table is-striped is-hoverable is-fullwidth">
+// 					<thead>
+// 					<tr>
+// 						<th class="optml-conflict-message-heading">{{strings.message}}</th>
+// 					</tr>
+// 					</thead>
+// 					<tbody>
+// 					<tr v-for="(item, index) in conflictData">
+// 						<td>
+//                             <div class="notification" :class="conflictClass( item.severity )">
+//                                 <button class="delete" style="box-sizing: border-box;"></button>
+//                                 {{item.message}}
+//                             </div>
+//                         </td>
+// 					</tr>
+// 					</tbody>
+// 				</table>
+// 			</div>
+// 		</div>
+// 		<table class="table is-striped is-hoverable is-fullwidth" v-if="noConflicts">
+// 			<thead>
+// 			<tr>
+// 				<th class="optml-image-heading has-text-centered" v-html="strings.no_conflicts_found"></th>
+// 			</tr>
+// 			</thead>
+// 		</table>
+// 	</div>
+// </template>
+//
+// <script>
+
+exports.default = {
+	name: "conflicts",
+	data: function data() {
+		return {
+			home_url: optimoleDashboardApp.home_url,
+			strings: optimoleDashboardApp.strings.conflicts
+		};
+	},
+
+	computed: {
+		noConflicts: function noConflicts() {
+			return this.$store.state.conflicts.count === 0;
+		},
+		conflictData: function conflictData() {
+			return this.$store.state.conflicts.conflicts !== null ? this.$store.state.conflicts.conflicts : [];
+		}
+	},
+	methods: {
+		conflictClass: function conflictClass(type) {
+			if (type === 'high') {
+				return 'is-danger';
+			}
+			if (type === 'medium') {
+				return 'is-warning';
+			}
+			return 'is-info';
+		}
+	}
+	// </script>
+
+};
+
+/***/ }),
+/* 64 */,
+/* 65 */
+/***/ (function(module, exports) {
+
+module.exports = "\n\t<div>\n\t\t<div class=\"conflicts-table\">\n\t\t\t<div v-if=\"!noConflicts\">\n\t\t\t\t<h3 class=\"has-text-centered\">{{strings.title}}</h3>\n\t\t\t\t<table class=\"table is-striped is-hoverable is-fullwidth\">\n\t\t\t\t\t<thead>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th class=\"optml-conflict-message-heading\">{{strings.message}}</th>\n\t\t\t\t\t</tr>\n\t\t\t\t\t</thead>\n\t\t\t\t\t<tbody>\n\t\t\t\t\t<tr v-for=\"(item, index) in conflictData\">\n\t\t\t\t\t\t<td>\n                            <div class=\"notification\" :class=\"conflictClass( item.severity )\">\n                                <button class=\"delete\" style=\"box-sizing: border-box;\"></button>\n                                {{item.message}}\n                            </div>\n                        </td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t</tbody>\n\t\t\t\t</table>\n\t\t\t</div>\n\t\t</div>\n\t\t<table class=\"table is-striped is-hoverable is-fullwidth\" v-if=\"noConflicts\">\n\t\t\t<thead>\n\t\t\t<tr>\n\t\t\t\t<th class=\"optml-image-heading has-text-centered\" v-html=\"strings.no_conflicts_found\"></th>\n\t\t\t</tr>\n\t\t\t</thead>\n\t\t</table>\n\t</div>\n";
 
 /***/ })
 /******/ ]);
