@@ -79,6 +79,15 @@ final class Optml_Main {
 		return self::$_instance;
 	}
 
+	/**
+	 * Register Conflicts to watch for
+	 *
+	 * @since   2.0.6
+	 * @access  public
+	 * @param array $conflicts_to_register A list of class names of conflicts to register.
+	 *
+	 * @return array
+	 */
 	public static function register_conflicts( $conflicts_to_register = array() ) {
 		$conflicts_to_register = array_merge(
 			$conflicts_to_register,

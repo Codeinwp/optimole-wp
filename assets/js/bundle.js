@@ -13602,7 +13602,7 @@ function xhrClient (request) {
 
 function nodeClient (request) {
 
-    var client = __webpack_require__(55);
+    var client = __webpack_require__(58);
 
     return new PromiseObj(function (resolve) {
 
@@ -14084,15 +14084,15 @@ var _main = __webpack_require__(10);
 
 var _main2 = _interopRequireDefault(_main);
 
-var _store = __webpack_require__(53);
+var _store = __webpack_require__(56);
 
 var _store2 = _interopRequireDefault(_store);
 
-var _vueResize = __webpack_require__(58);
+var _vueResize = __webpack_require__(61);
 
 var _vueResize2 = _interopRequireDefault(_vueResize);
 
-var _vueJsToggleButton = __webpack_require__(59);
+var _vueJsToggleButton = __webpack_require__(62);
 
 var _vueJsToggleButton2 = _interopRequireDefault(_vueJsToggleButton);
 
@@ -14383,7 +14383,7 @@ exports.clearImmediate = (typeof self !== "undefined" && self.clearImmediate) ||
 var __vue_script__, __vue_template__
 __webpack_require__(11)
 __vue_script__ = __webpack_require__(13)
-__vue_template__ = __webpack_require__(52)
+__vue_template__ = __webpack_require__(55)
 module.exports = __vue_script__ || {}
 if (module.exports.__esModule) module.exports = module.exports.default
 if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -14462,7 +14462,7 @@ var _lastImages = __webpack_require__(31);
 
 var _lastImages2 = _interopRequireDefault(_lastImages);
 
-var _conflicts = __webpack_require__(60);
+var _conflicts = __webpack_require__(36);
 
 var _conflicts2 = _interopRequireDefault(_conflicts);
 
@@ -14470,11 +14470,11 @@ var _apiKeyForm = __webpack_require__(5);
 
 var _apiKeyForm2 = _interopRequireDefault(_apiKeyForm);
 
-var _options = __webpack_require__(36);
+var _options = __webpack_require__(39);
 
 var _options2 = _interopRequireDefault(_options);
 
-var _watermarks = __webpack_require__(46);
+var _watermarks = __webpack_require__(49);
 
 var _watermarks2 = _interopRequireDefault(_watermarks);
 
@@ -15494,9 +15494,115 @@ module.exports = "\n\t<div _v-2f34b40b=\"\">\n\t\t<div class=\"optimized-images\
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_script__, __vue_template__
-__webpack_require__(37)
-__vue_script__ = __webpack_require__(39)
-__vue_template__ = __webpack_require__(45)
+__vue_script__ = __webpack_require__(37)
+__vue_template__ = __webpack_require__(38)
+module.exports = __vue_script__ || {}
+if (module.exports.__esModule) module.exports = module.exports.default
+if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
+if (false) {(function () {  module.hot.accept()
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), true)
+  if (!hotAPI.compatible) return
+  var id = "/var/www/html/wp-minions/wp-content/plugins/optimole-wp/assets/vue/components/conflicts.vue"
+  if (!module.hot.data) {
+    hotAPI.createRecord(id, module.exports)
+  } else {
+    hotAPI.update(id, module.exports, __vue_template__)
+  }
+})()}
+
+/***/ }),
+/* 37 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+// <template>
+// 	<div>
+// 		<div class="conflicts-table">
+//             <h3 class="has-text-centered">{{strings.title}}</h3>
+// 			<div v-if="!noConflicts">
+// 				<table class="table is-striped is-hoverable is-fullwidth">
+// 					<tbody>
+// 					<tr v-for="(item, index) in conflictData">
+// 						<td>
+//                             <div class="notification" :class="conflictClass( item.severity )">
+//                                 <button class="delete" style="box-sizing: border-box;" v-on:click="dismissConflict( item.id )"></button>
+//                                 {{item.message}}
+//                             </div>
+//                         </td>
+// 					</tr>
+// 					</tbody>
+// 				</table>
+// 			</div>
+//             <div v-if="noConflicts">
+//                 <table class="table is-striped is-hoverable is-fullwidth">
+//                     <thead>
+//                     <tr>
+//                         <th class="optml-image-heading has-text-centered" v-html="strings.no_conflicts_found"></th>
+//                     </tr>
+//                     </thead>
+//                 </table>
+//             </div>
+// 		</div>
+// 	</div>
+// </template>
+//
+// <script>
+
+exports.default = {
+	name: "conflicts",
+	data: function data() {
+		return {
+			home_url: optimoleDashboardApp.home_url,
+			strings: optimoleDashboardApp.strings.conflicts
+		};
+	},
+
+	computed: {
+		noConflicts: function noConflicts() {
+			return this.$store.state.conflicts.count === 0;
+		},
+		conflictData: function conflictData() {
+			return this.$store.state.conflicts.conflicts !== null ? this.$store.state.conflicts.conflicts : [];
+		}
+	},
+	methods: {
+		conflictClass: function conflictClass(type) {
+			if (type === 'high') {
+				return 'is-danger';
+			}
+			if (type === 'medium') {
+				return 'is-warning';
+			}
+			return 'is-info';
+		},
+		dismissConflict: function dismissConflict(conflictID) {
+			this.$store.dispatch('dismissConflict', { conflictID: conflictID, component: this });
+		}
+	}
+	// </script>
+
+};
+
+/***/ }),
+/* 38 */
+/***/ (function(module, exports) {
+
+module.exports = "\n\t<div>\n\t\t<div class=\"conflicts-table\">\n            <h3 class=\"has-text-centered\">{{strings.title}}</h3>\n\t\t\t<div v-if=\"!noConflicts\">\n\t\t\t\t<table class=\"table is-striped is-hoverable is-fullwidth\">\n\t\t\t\t\t<tbody>\n\t\t\t\t\t<tr v-for=\"(item, index) in conflictData\">\n\t\t\t\t\t\t<td>\n                            <div class=\"notification\" :class=\"conflictClass( item.severity )\">\n                                <button class=\"delete\" style=\"box-sizing: border-box;\" v-on:click=\"dismissConflict( item.id )\"></button>\n                                {{item.message}}\n                            </div>\n                        </td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t</tbody>\n\t\t\t\t</table>\n\t\t\t</div>\n            <div v-if=\"noConflicts\">\n                <table class=\"table is-striped is-hoverable is-fullwidth\">\n                    <thead>\n                    <tr>\n                        <th class=\"optml-image-heading has-text-centered\" v-html=\"strings.no_conflicts_found\"></th>\n                    </tr>\n                    </thead>\n                </table>\n            </div>\n\t\t</div>\n\t</div>\n";
+
+/***/ }),
+/* 39 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __vue_script__, __vue_template__
+__webpack_require__(40)
+__vue_script__ = __webpack_require__(42)
+__vue_template__ = __webpack_require__(48)
 module.exports = __vue_script__ || {}
 if (module.exports.__esModule) module.exports = module.exports.default
 if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -15513,13 +15619,13 @@ if (false) {(function () {  module.hot.accept()
 })()}
 
 /***/ }),
-/* 37 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(38);
+var content = __webpack_require__(41);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
 var update = __webpack_require__(1)(content, {});
@@ -15539,7 +15645,7 @@ if(false) {
 }
 
 /***/ }),
-/* 38 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)();
@@ -15553,7 +15659,7 @@ exports.push([module.i, "\n\t.saving--option[_v-5dc9f0cc] {\n\t\topacity: .75;\n
 
 
 /***/ }),
-/* 39 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -15563,7 +15669,7 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _image_diff = __webpack_require__(40);
+var _image_diff = __webpack_require__(43);
 
 var _image_diff2 = _interopRequireDefault(_image_diff);
 
@@ -15955,13 +16061,13 @@ exports.default = {
 // <script>
 
 /***/ }),
-/* 40 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_script__, __vue_template__
-__webpack_require__(41)
-__vue_script__ = __webpack_require__(43)
-__vue_template__ = __webpack_require__(44)
+__webpack_require__(44)
+__vue_script__ = __webpack_require__(46)
+__vue_template__ = __webpack_require__(47)
 module.exports = __vue_script__ || {}
 if (module.exports.__esModule) module.exports = module.exports.default
 if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -15978,13 +16084,13 @@ if (false) {(function () {  module.hot.accept()
 })()}
 
 /***/ }),
-/* 41 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(42);
+var content = __webpack_require__(45);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
 var update = __webpack_require__(1)(content, {});
@@ -16004,7 +16110,7 @@ if(false) {
 }
 
 /***/ }),
-/* 42 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)();
@@ -16018,7 +16124,7 @@ exports.push([module.i, "\n\t:root {\n\t\t--handle-bg: #4a4a4a;\n\t\t--handle-wi
 
 
 /***/ }),
-/* 43 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16262,25 +16368,25 @@ exports.default = {
 };
 
 /***/ }),
-/* 44 */
+/* 47 */
 /***/ (function(module, exports) {
 
 module.exports = "\n\t<div class=\"compare-wrapper\" @mouseenter=\"removeInitial\">\n\t\t<div class=\"compare\">\n\t\t\t\n\t\t\t<span class=\"compare_label compare_original\">{{this.first_label}}</span>\n\t\t\t<span class=\"compare_label compare_optimized\">{{this.second_label}}</span>\n\t\t\t<div class=\"compare__content \" :class=\"{'initial':!initial}\" :style=\"{'width': width}\">\n\t\t\t\t<slot name=\"first\"></slot>\n\t\t\t\n\t\t\t</div>\n\t\t\t\n\t\t\t<resize-observer @notify=\"handleResize\" style=\"display: none\"></resize-observer>\n\t\t\t<div class=\"handle-wrap\" :style=\"{left:`calc(${compareWidth + '%'} - var(--handle-line-width) / 2`}\">\n\t\t\t\t<div class=\"handle-icon\">\n\t\t\t\t\t<svg class=\"handle__arrow handle__arrow--l\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\"\n\t\t\t\t\t     height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"\n\t\t\t\t\t     stroke-linecap=\"round\" stroke-linejoin=\"round\">\n\t\t\t\t\t\t<polyline points=\"15 18 9 12 15 6\"></polyline>\n\t\t\t\t\t</svg>\n\t\t\t\t\t<svg class=\"handle__arrow handle__arrow--r\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\"\n\t\t\t\t\t     height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"\n\t\t\t\t\t     stroke-linecap=\"round\" stroke-linejoin=\"round\">\n\t\t\t\t\t\t<polyline points=\"9 18 15 12 9 6\"></polyline>\n\t\t\t\t\t</svg>\n\t\t\t\t\n\t\t\t\t</div>\n\t\t\t\t<span class=\"handle-line\"></span>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class=\"compare-overlay\" :class=\"{'initial':!initial}\" :style=\"{width:`calc(${compareWidth + '%'})`}\">\n\t\t\t\t<div class=\"compare-overlay__content\" :style=\"{ 'width': width}\">\n\t\t\t\t\t<slot name=\"second\"></slot>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\n\t\t</div>\n\t\t<input type=\"range\" min=\"0\" max=\"100\" :step=\"step\" class=\"compare__range\" :value=\"compareWidth\"\n\t\t       @input=\"handleInput\" tabindex=\"-1\">\n\t\n\t</div>\n";
 
 /***/ }),
-/* 45 */
+/* 48 */
 /***/ (function(module, exports) {
 
 module.exports = "\n\t<div :class=\"{ 'saving--option' : this.$store.state.loading }\" _v-5dc9f0cc=\"\">\n\t\t\n\t\t<div class=\"field  columns\" _v-5dc9f0cc=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-5dc9f0cc=\"\">\n\t\t\t\t{{strings.enable_image_replace}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t{{strings.replacer_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t<div class=\"column \" _v-5dc9f0cc=\"\">\n\t\t\t\t<toggle-button :class=\"'has-text-dark'\" v-model=\"getReplacerStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.enabled, unchecked: strings.disabled}\" :width=\"80\" :height=\"25\" color=\"#008ec2\" _v-5dc9f0cc=\"\"></toggle-button>\n\t\t\t</div>\n\t\t\n\t\t</div>\n\t\t<div class=\"field  is-fullwidth columns\" _v-5dc9f0cc=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-5dc9f0cc=\"\">\n\t\t\t\t{{strings.toggle_ab_item}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t{{strings.admin_bar_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t\n\t\t\t<div class=\"column \" _v-5dc9f0cc=\"\">\n\t\t\t\t<toggle-button :class=\"'has-text-dark'\" v-model=\"adminBarItemStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.show, unchecked: strings.hide}\" :width=\"80\" :height=\"25\" color=\"#008ec2\" _v-5dc9f0cc=\"\"></toggle-button>\n\t\t\t</div>\n\t\t</div>\n\n\t\t<div class=\"field  is-fullwidth columns\" _v-5dc9f0cc=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-5dc9f0cc=\"\">\n\t\t\t\t{{strings.toggle_lazyload}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t{{strings.lazyload_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\n\t\t\t<div class=\"column \" _v-5dc9f0cc=\"\">\n\t\t\t\t<toggle-button :class=\"'has-text-dark'\" v-model=\"lazyLoadStatus\" :disabled=\"this.$store.state.loading\" :labels=\"{checked: strings.enabled, unchecked: strings.disabled}\" :width=\"80\" :height=\"25\" color=\"#008ec2\" _v-5dc9f0cc=\"\"></toggle-button>\n\t\t\t</div>\n\t\t</div>\n\t\t\n\t\t<div class=\"field  is-fullwidth columns n\" _v-5dc9f0cc=\"\">\n\t\t\t<label class=\"label is-half column has-text-grey-dark no-padding-right \" _v-5dc9f0cc=\"\">\n\t\t\t\t{{strings.size_title}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t{{strings.size_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t\n\t\t\t<div class=\"column is-paddingless\" _v-5dc9f0cc=\"\">\n\t\t\t\t<div class=\"columns\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t<div class=\"field column is-narrow has-addons\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t<p class=\"control\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t<a class=\"button is-small is-static\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t\t{{strings.width_field}}\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t\t<p class=\"control \" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t<input v-model=\"widthStatus\" class=\"input is-small\" type=\"number\" min=\"100\" max=\"10000\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t</p>\n\t\t\t\t\t</div>\n\t\t\t\t\t<div class=\"field column is-small has-addons\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t<p class=\"control\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t<a class=\"button is-small is-static\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t\t{{strings.height_field}}\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t\t<p class=\"control  \" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t<input v-model=\"heightStatus\" class=\"input is-small\" type=\"number\" min=\"100\" max=\"10000\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t</p>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t\n\t\t<div class=\"field  columns\" _v-5dc9f0cc=\"\">\n\t\t\t<label class=\"label column has-text-grey-dark\" _v-5dc9f0cc=\"\">\n\t\t\t\t{{strings.quality_title}}\n\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t{{strings.quality_desc}}\n\t\t\t\t</p>\n\t\t\t</label>\n\t\t\t<div class=\"column  buttons \" _v-5dc9f0cc=\"\">\n\t\t\t\t<div class=\"field columns  \" _v-5dc9f0cc=\"\">\n\t\t\t\t\t<div class=\"column  field has-addons\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t<p class=\"control\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t<a @click=\"changeQuality('auto')\" :class=\"{ 'is-info':isActiveQuality ( 'auto'), '  is-selected':site_settings.quality === 'auto'  }\" class=\"button   is-small is-rounded\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-marker\" _v-5dc9f0cc=\"\"></span>\n\t\t\t\t\t\t\t\t<span _v-5dc9f0cc=\"\">{{strings.auto_q_title}}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t\t<p class=\"control\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t<a @click=\"changeQuality('high_c')\" :class=\"{  'is-info': isActiveQuality ('high_c'), 'is-selected':site_settings.quality === 'high_c'   }\" class=\"button    is-rounded is-small\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-menu\" _v-5dc9f0cc=\"\"></span>\n\t\t\t\t\t\t\t\t<span _v-5dc9f0cc=\"\">{{strings.high_q_title}}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\n\t\t\t\t\t\t<p class=\"control\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t<a @click=\"changeQuality('medium_c')\" :class=\"{  'is-info': isActiveQuality( 'medium_c' ), '  is-selected':site_settings.quality === 'medium_c'  }\" class=\"button   is-small\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-controls-pause\" _v-5dc9f0cc=\"\"></span>\n\t\t\t\t\t\t\t\t<span class=\" \" _v-5dc9f0cc=\"\">{{strings.medium_q_title}}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\n\t\t\t\t\t\t<p class=\"control\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t<a @click=\"changeQuality('low_c')\" :class=\"{  'is-info':isActiveQuality( 'low_c' ), ' is-selected':site_settings.quality === 'low_c'  }\" class=\"button   is-small\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t\t<span class=\"icon dashicons dashicons-minus  \" _v-5dc9f0cc=\"\"></span>\n\t\t\t\t\t\t\t\t<span _v-5dc9f0cc=\"\">{{strings.low_q_title}}</span>\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</p>\n\t\t\t\t\t</div>\n\t\t\t\t\t<p class=\"control column has-text-centered-desktop has-text-left-touch  \" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t<a @click=\"saveChanges()\" class=\"button is-small is-success \" :class=\"{'is-loading':loading}\" _v-5dc9f0cc=\"\">\n\t\t\t\t\t\t\t<span class=\"dashicons dashicons-yes icon\" _v-5dc9f0cc=\"\"></span>\n\t\t\t\t\t\t\t<span _v-5dc9f0cc=\"\">\t{{strings.save_changes}}</span>\n\t\t\t\t\t\t</a>\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n        <div v-if=\"showComparison\" _v-5dc9f0cc=\"\">\n            <div v-if=\"loading_images\" class=\"has-text-centered subtitle \" _v-5dc9f0cc=\"\">{{strings.sample_image_loading}}<span class=\"loader has-text-black-bis icon is-small\" _v-5dc9f0cc=\"\"></span>\n            </div>\n            <div v-else-if=\"sample_images.id &amp;&amp; sample_images.original_size > 0\" _v-5dc9f0cc=\"\">\n                <p class=\"title has-text-centered is-5 is-size-6-mobile\" _v-5dc9f0cc=\"\">{{strings.quality_slider_desc}}</p>\n                <div class=\"columns is-centered is-vcentered is-multiline is-mobile\" _v-5dc9f0cc=\"\">\n                    <a @click=\"newSample()\" class=\"button is-small is-pulled-right\" _v-5dc9f0cc=\"\">\n                        <span class=\"icon dashicons dashicons-image-rotate\" _v-5dc9f0cc=\"\"></span>\n                    </a>\n                    <div class=\"column visual-compare  is-half-fullhd is-half-desktop is-three-quarters-touch is-12-mobile  \" _v-5dc9f0cc=\"\">\n                        <div class=\"is-full progress-wrapper\" _v-5dc9f0cc=\"\">\n                            <p class=\"subtitle is-size-6 compress-optimization-ratio-done has-text-centered\" v-if=\"compressionRatio > 0\" _v-5dc9f0cc=\"\">\n                                <strong _v-5dc9f0cc=\"\">{{( 100 - compressionRatio )}}%</strong> smaller </p>\n                            <p class=\"subtitle  compress-optimization-ratio-nothing is-size-6 has-text-centered\" v-else=\"\" _v-5dc9f0cc=\"\">\n                                {{all_strings.latest_images.same_size}}\n                            </p>\n                            <progress class=\"  progress is-large is-success \" :value=\"compressionRatio\" :max=\"100\" _v-5dc9f0cc=\"\">\n                            </progress>\n                            <hr _v-5dc9f0cc=\"\">\n                        </div>\n                        <image_diff class=\"is-fullwidth\" value=\"50\" :first_label=\"strings.image_1_label\" :second_label=\"strings.image_2_label\" _v-5dc9f0cc=\"\">\n                            <img slot=\"first\" :src=\"sample_images.optimized\" _v-5dc9f0cc=\"\">\n                            <img slot=\"second\" :src=\"sample_images.original\" _v-5dc9f0cc=\"\">\n                        </image_diff>\n                    </div>\n                </div>\n            </div>\n            <div v-else-if=\" sample_images.id < 0\" _v-5dc9f0cc=\"\">\n                <p class=\"title has-text-centered is-5 is-size-6-mobile\" _v-5dc9f0cc=\"\">{{strings.no_images_found}}</p>\n            </div>\n        </div>\n\t\n\t</div>\n\n";
 
 /***/ }),
-/* 46 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __vue_script__, __vue_template__
-__webpack_require__(47)
-__vue_script__ = __webpack_require__(49)
-__vue_template__ = __webpack_require__(51)
+__webpack_require__(50)
+__vue_script__ = __webpack_require__(52)
+__vue_template__ = __webpack_require__(54)
 module.exports = __vue_script__ || {}
 if (module.exports.__esModule) module.exports = module.exports.default
 if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
@@ -16297,13 +16403,13 @@ if (false) {(function () {  module.hot.accept()
 })()}
 
 /***/ }),
-/* 47 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(48);
+var content = __webpack_require__(51);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // add the styles to the DOM
 var update = __webpack_require__(1)(content, {});
@@ -16323,7 +16429,7 @@ if(false) {
 }
 
 /***/ }),
-/* 48 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)();
@@ -16337,7 +16443,7 @@ exports.push([module.i, "\n\t.optml-layout-grid .grid-button.is-selected[_v-e1cd
 
 
 /***/ }),
-/* 49 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -16347,7 +16453,7 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _vueUploadComponent = __webpack_require__(50);
+var _vueUploadComponent = __webpack_require__(53);
 
 var _vueUploadComponent2 = _interopRequireDefault(_vueUploadComponent);
 
@@ -16789,7 +16895,7 @@ exports.default = {
 // <script>
 
 /***/ }),
-/* 50 */
+/* 53 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*!
@@ -18889,19 +18995,19 @@ exports.default = {
 
 
 /***/ }),
-/* 51 */
+/* 54 */
 /***/ (function(module, exports) {
 
 module.exports = "\n\t<div _v-e1cd007a=\"\">\n\t\t<h4 _v-e1cd007a=\"\">{{strings.add_desc}}</h4>\n\t\t<div class=\"field  columns\" _v-e1cd007a=\"\">\n\t\t\t<div class=\"column\" v-for=\"file in files\" _v-e1cd007a=\"\">\n                <span class=\"tag\" _v-e1cd007a=\"\">\n                    <i _v-e1cd007a=\"\">{{file.name}}</i>\n                    <i v-if=\"!file.active &amp;&amp; !file.success &amp;&amp; file.error === ''\" class=\"dashicons dashicons-yes icon has-text-grey-light\" _v-e1cd007a=\"\"></i>\n                    <i v-else-if=\"file.active\" class=\"dashicons dashicons-marker icon spin has-text-warning\" _v-e1cd007a=\"\"></i>\n                    <i v-else-if=\"!file.active &amp;&amp; file.success\" class=\"dashicons dashicons-yes icon has-text-success\" _v-e1cd007a=\"\"></i>\n                    <i v-else=\"\" class=\"dashicons dashicons-no-alt icon has-text-danger\" _v-e1cd007a=\"\"></i>\n                </span>\n\t\t\t</div>\n\t\t</div>\n\t\t<div class=\"column \" _v-e1cd007a=\"\">\n\t\t\t<file-upload class=\"button is-secondary is-rounded\" :post-action=\" global.root + '/add_watermark'\" :headers=\"{'X-WP-Nonce': global.nonce}\" extensions=\"gif,jpg,jpeg,png,webp\" accept=\"image/png,image/gif,image/jpeg,image/webp\" :size=\"1024 * 1024 * 10\" v-model=\"files\" @input-filter=\"inputFilter\" @input-file=\"inputFile\" :disabled=\"loading\" ref=\"upload\" _v-e1cd007a=\"\">\n\t\t\t\t<i class=\"dashicons dashicons-plus icon\" _v-e1cd007a=\"\"></i>\n\t\t\t\t{{strings.upload}}\n\t\t\t</file-upload>\n\t\t\t<br _v-e1cd007a=\"\"><br _v-e1cd007a=\"\"><span class=\"tag is-danger\" v-if=\"is_error\" _v-e1cd007a=\"\">{{error_message}}</span>\n\t\t</div>\n\t\t<hr _v-e1cd007a=\"\">\n\t\t<div class=\"box\" _v-e1cd007a=\"\">\n\t\t\t<h3 _v-e1cd007a=\"\"><span class=\"dashicons dashicons-menu\" _v-e1cd007a=\"\"></span> {{strings.list_header}} </h3>\n\t\t\t<small _v-e1cd007a=\"\"><i _v-e1cd007a=\"\">{{strings.max_allowed}}</i></small>\n\t\t\t\n\t\t\t<div class=\"optimized-images\" _v-e1cd007a=\"\">\n\t\t\t\t<div v-if=\"!noImages\" _v-e1cd007a=\"\">\n\t\t\t\t\t<h3 class=\"has-text-centered\" _v-e1cd007a=\"\">{{strings.last}} {{strings.optimized_images}}</h3>\n\t\t\t\t\t<table class=\"table is-striped is-hoverable is-fullwidth\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t<thead _v-e1cd007a=\"\">\n\t\t\t\t\t\t<tr _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t<th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.id}}</th>\n\t\t\t\t\t\t\t<th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.image}}</th>\n\t\t\t\t\t\t\t<th class=\"optml-image-heading\" _v-e1cd007a=\"\">{{strings.action}}</th>\n\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t</thead>\n\t\t\t\t\t\t<tbody _v-e1cd007a=\"\">\n\t\t\t\t\t\t<tr v-for=\"(item, index) in watermarkData\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t<td _v-e1cd007a=\"\"><code _v-e1cd007a=\"\">#{{item.ID}}</code></td>\n\t\t\t\t\t\t\t<td _v-e1cd007a=\"\"><img :src=\"item.guid\" class=\"optml-image-watermark\" width=\"50\" _v-e1cd007a=\"\"></td>\n\t\t\t\t\t\t\t<td width=\"50\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t<a @click=\"removeWatermark(item.ID)\" class=\"button is-small is-danger is-rounded\" :class=\"{'is-loading':loading}\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t\t<span class=\"dashicons dashicons-no-alt icon\" _v-e1cd007a=\"\"></span>\n\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t</td>\n\t\t\t\t\t\t</tr>\n\t\t\t\t\t\t</tbody>\n\t\t\t\t\t</table>\n\t\t\t\t\t\n\t\t\t\t\t<span class=\"tag is-success\" v-if=\"loading\" _v-e1cd007a=\"\">\n\t\t\t\t\t{{strings.loading_remove_watermark}}\n\t\t\t\t\t</span>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<table class=\"table is-striped is-hoverable is-fullwidth\" v-if=\"noImages\" _v-e1cd007a=\"\">\n\t\t\t\t<thead _v-e1cd007a=\"\">\n\t\t\t\t<tr _v-e1cd007a=\"\">\n\t\t\t\t\t<th class=\"optml-image-heading has-text-centered\" v-html=\"strings.no_images_found\" _v-e1cd007a=\"\"></th>\n\t\t\t\t</tr>\n\t\t\t\t</thead>\n\t\t\t</table>\n\t\t\t<hr _v-e1cd007a=\"\">\n\t\t\t<h3 _v-e1cd007a=\"\"><span class=\"dashicons dashicons-grid-view\" _v-e1cd007a=\"\"></span> {{strings.settings_header}} </h3>\n\t\t\t<br _v-e1cd007a=\"\">\n\t\t\t<div class=\"field  is-fullwidth columns\" _v-e1cd007a=\"\">\n\t\t\t\t<label class=\"label is-half column has-text-grey-dark no-padding-right \" _v-e1cd007a=\"\">\n\t\t\t\t\t{{strings.wm_title}}\n\t\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t{{strings.wm_desc}}\n\t\t\t\t\t</p>\n\t\t\t\t</label>\n\t\t\t\t\n\t\t\t\t<div class=\"column is-paddingless\" _v-e1cd007a=\"\">\n\t\t\t\t\t<div class=\"columns\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t<div class=\"field column is-narrow\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t<div class=\"select\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t<select title=\"Watermark Selection\" v-model=\"selectedWatermark\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t\t<option value=\"-1\" _v-e1cd007a=\"\">No watermark</option>\n\t\t\t\t\t\t\t\t\t<option v-for=\"(item, index) in watermarkData\" :value=\"item.ID\" _v-e1cd007a=\"\">#({{item.ID}})\n\t\t\t\t\t\t\t\t\t</option>\n\t\t\t\t\t\t\t\t</select>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class=\"field  is-fullwidth columns\" _v-e1cd007a=\"\">\n\t\t\t\t<label class=\"label is-half column has-text-grey-dark no-padding-right \" _v-e1cd007a=\"\">\n\t\t\t\t\t{{strings.opacity_title}}\n\t\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t{{strings.opacity_desc}}\n\t\t\t\t\t</p>\n\t\t\t\t</label>\n\t\t\t\t\n\t\t\t\t<div class=\"column is-paddingless\" _v-e1cd007a=\"\">\n\t\t\t\t\t<div class=\"columns\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t<div class=\"field column is-narrow has-addons\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t<p class=\"control\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t<a class=\"button is-small is-static\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t\t{{strings.opacity_field}}\n\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t<p class=\"control \" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t<input v-model=\"watermarkOpacity\" class=\"input is-small\" type=\"number\" min=\"0\" max=\"100\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class=\"field  columns\" _v-e1cd007a=\"\">\n\t\t\t\t<label class=\"label column has-text-grey-dark\" _v-e1cd007a=\"\">\n\t\t\t\t\t{{strings.position_title}}\n\t\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t{{strings.position_desc}}\n\t\t\t\t\t</p>\n\t\t\t\t</label>\n\t\t\t\t<div class=\"column  buttons \" _v-e1cd007a=\"\">\n\t\t\t\t\t<div class=\"field columns is-gapless is-marginless \" _v-e1cd007a=\"\">\n\t\t\t\t\t\t<div class=\"is-fullwidth  optml-layout-grid\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t<a @click=\"changePosition('nowe')\" :class=\"{ 'is-info':isActivePosition ('nowe'), '  is-selected':watermarkSettings.position === 'nowe'  }\" class=\"grid-button  \" :title=\"strings.pos_nowe_title\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t<a @click=\"changePosition('no')\" :class=\"{ 'is-info':isActivePosition ('no'), '  is-selected':watermarkSettings.position === 'no'  }\" class=\"grid-button  \" :title=\"strings.pos_no_title\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t<a @click=\"changePosition('noea')\" :class=\"{ 'is-info':isActivePosition ('noea'), '  is-selected':watermarkSettings.position === 'noea'  }\" class=\"grid-button\" :title=\"strings.pos_noea_title\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t<a @click=\"changePosition('we')\" :class=\"{ 'is-info':isActivePosition ('we'), '  is-selected':watermarkSettings.position === 'we'  }\" class=\"grid-button\" :title=\"strings.pos_we_title\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t<a @click=\"changePosition('ce')\" :class=\"{ 'is-info':isActivePosition ('ce'), '  is-selected':watermarkSettings.position === 'ce'  }\" class=\"grid-button\" :title=\"strings.pos_ce_title\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t<a @click=\"changePosition('ea')\" :class=\"{ 'is-info':isActivePosition ('ea'), '  is-selected':watermarkSettings.position === 'ea'  }\" class=\"grid-button\" :title=\"strings.pos_ea_title\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t<a @click=\"changePosition('sowe')\" :class=\"{ 'is-info':isActivePosition ('sowe'), '  is-selected':watermarkSettings.position === 'sowe'  }\" class=\"grid-button\" :title=\"strings.pos_sowe_title\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t<a @click=\"changePosition('so')\" :class=\"{ 'is-info':isActivePosition ('so'), '  is-selected':watermarkSettings.position === 'so'  }\" class=\"grid-button\" :title=\"strings.pos_so_title\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t<a @click=\"changePosition('soea')\" :class=\"{ 'is-info':isActivePosition ('soea'), '  is-selected':watermarkSettings.position === 'soea'  }\" class=\"grid-button\" :title=\"strings.pos_soea_title\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t\t<br _v-e1cd007a=\"\">\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class=\"field  is-fullwidth columns \" _v-e1cd007a=\"\">\n\t\t\t\t<label class=\"label is-half column has-text-grey-dark no-padding-right \" _v-e1cd007a=\"\">\n\t\t\t\t\t{{strings.offset_title}}\n\t\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t{{strings.offset_desc}}\n\t\t\t\t\t</p>\n\t\t\t\t</label>\n\t\t\t\t\n\t\t\t\t<div class=\"column is-paddingless\" _v-e1cd007a=\"\">\n\t\t\t\t\t<div class=\"columns\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t<div class=\"field column is-narrow   has-addons\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t<p class=\"control\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t<a class=\"button is-small is-static\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t\t{{strings.offset_x_field}}\n\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t<p class=\"control \" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t<input v-model=\"watermarkX\" class=\"input  is-tiny is-small\" type=\"number\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t\t<div class=\"field column is-narrow  has-addons\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t<p class=\"control\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t<a class=\"button is-small is-static\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t\t{{strings.offset_y_field}}\n\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t<p class=\"control \" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t<input v-model=\"watermarkY\" class=\"input is-small is-tiny\" type=\"number\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t\n\t\t\t<div class=\"field  is-fullwidth columns\" _v-e1cd007a=\"\">\n\t\t\t\t<label class=\"label is-half column has-text-grey-dark no-padding-right \" _v-e1cd007a=\"\">\n\t\t\t\t\t{{strings.scale_title}}\n\t\t\t\t\t<p class=\"is-italic has-text-weight-normal\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t{{strings.scale_desc}}\n\t\t\t\t\t</p>\n\t\t\t\t</label>\n\t\t\t\t\n\t\t\t\t<div class=\"column is-paddingless\" _v-e1cd007a=\"\">\n\t\t\t\t\t<div class=\"columns\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t<div class=\"field column is-narrow has-addons\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t<p class=\"control\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t<a class=\"button is-small is-static\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t\t{{strings.scale_field}}\n\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t\t<p class=\"control \" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t\t<input v-model=\"watermarkScale\" class=\"input is-small\" type=\"number\" min=\"0\" max=\"100\" _v-e1cd007a=\"\">\n\t\t\t\t\t\t\t</p>\n\t\t\t\t\t\t</div>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t\n\t\t\t<p class=\"control column has-text-centered-desktop has-text-left-touch  \" _v-e1cd007a=\"\">\n\t\t\t\t<a @click=\"saveChanges()\" class=\"button is-small is-success \" :class=\"{'is-loading':loading}\" _v-e1cd007a=\"\">\n\t\t\t\t\t<span class=\"dashicons dashicons-yes icon\" _v-e1cd007a=\"\"></span>\n\t\t\t\t\t<span _v-e1cd007a=\"\">\t{{strings.save_changes}}</span>\n\t\t\t\t</a>\n\t\t\t</p>\n\t\t</div>\n\t</div>\n";
 
 /***/ }),
-/* 52 */
+/* 55 */
 /***/ (function(module, exports) {
 
 module.exports = "\n\t<div class=\"columns is-desktop\">\n\t\t\n\t\t<div class=\"column  \">\n\t\t\t<div class=\"card\">\n\t\t\t\t<app-header></app-header>\n\t\t\t\t<div class=\"card-content\">\n\t\t\t\t\t<div class=\"content\">\n\t\t\t\t\t\t<connect-layout v-if=\"! this.$store.state.connected\"></connect-layout>\n\t\t\t\t\t\t<transition name=\"fade\" mode=\"out-in\">\n\t\t\t\t\t\t\t<div v-if=\"this.$store.state.connected\">\n\t\t\t\t\t\t\t\t<div class=\"tabs is-left is-boxed is-medium\">\n\t\t\t\t\t\t\t\t\t<ul class=\"is-marginless\">\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'dashboard' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('dashboard')\" class=\"is-size-6-mobile\">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile is-size-6-tablet  dashicons dashicons-admin-home\"></span>\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile is-size-6-touch \">{{strings.dashboard_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'settings' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('settings')\" class=\"is-size-6-mobile  \">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile   is-size-6-tablet dashicons dashicons-admin-settings\"></span>\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile is-size-6-touch\">{{strings.settings_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t</li>\n\t\t\t\t\t\t\t\t\t\t<li :class=\"tab === 'watermarks' ? 'is-active' : ''\">\n\t\t\t\t\t\t\t\t\t\t\t<a @click=\"changeTab('watermarks')\" class=\"is-size-6-mobile\">\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-tag\"></span>\n\t\t\t\t\t\t\t\t\t\t\t\t<span class=\"is-size-6-mobile is-size-6-touch\">{{strings.watermarks_menu_item}}</span>\n\t\t\t\t\t\t\t\t\t\t\t</a>\n\t\t\t\t\t\t\t\t\t\t</li>\n                                        <li :class=\"tab === 'conflicts' ? 'is-active' : ''\" v-if=\"conflictCount > 0\">\n                                            <a @click=\"changeTab('conflicts')\" class=\"is-size-6-mobile\">\n                                                <span class=\"icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-warning\"></span>\n                                                <span class=\"is-size-6-mobile is-size-6-touch\">{{strings.conflicts_menu_item}}</span>&nbsp;\n                                                <span class=\"tag is-rounded is-warning\">{{conflictCount}}</span>\n                                            </a>\n                                        </li>\n\t\t\t\t\t\t\t\t\t</ul>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\"tab === 'dashboard' \" :class=\"remove_images ? 'no-images' : '' \">\n\t\t\t\t\t\t\t\t\t<div class=\"notification is-success\" v-if=\"strings.notice_just_activated.length > 0\"\n\t\t\t\t\t\t\t\t\t     v-html=\"strings.notice_just_activated\"></div>\n\t\t\t\t\t\t\t\t\t<api-key-form></api-key-form>\n\t\t\t\t\t\t\t\t\t<cdn-details v-if=\"this.$store.state.userData\"></cdn-details>\n\t\t\t\t\t\t\t\t\t<hr/>\n\t\t\t\t\t\t\t\t\t<last-images :status=\"fetchStatus\" v-if=\"! remove_images\"></last-images>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\" tab === 'settings'\">\n\t\t\t\t\t\t\t\t\t<options></options>\n\t\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t\t\t<div class=\"is-tab\" v-if=\" tab === 'watermarks'\">\n\t\t\t\t\t\t\t\t\t<watermarks></watermarks>\n\t\t\t\t\t\t\t\t</div>\n                                <div class=\"is-tab\" v-if=\" tab === 'conflicts'\">\n                                    <conflicts></conflicts>\n                                </div>\n\t\t\t\t\t\t\t</div>\n\t\t\t\t\t\t</transition>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t\t\n\t\t\t\t<div class=\"level-right\">\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com\" target=\"_blank\">Optimole\n\t\t\t\t\t\tv{{strings.version}}</a></p>\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/terms/\"\n\t\t\t\t\t                         target=\"_blank\">{{strings.terms_menu}}</a></p>\n\t\t\t\t\t<p class=\"level-item\"><a href=\"https://optimole.com/privacy-policy/\" target=\"_blank\">{{strings.privacy_menu}}</a>\n\t\t\t\t\t</p>\n\t\t\t\t\t<p class=\"level-item\"><a :href=\"'https://speedtest.optimole.com/?url=' + home \" target=\"_blank\">{{strings.testdrive_menu}}</a>\n\t\t\t\t\t</p>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t\t<div v-if=\"this.$store.state.connected && this.$store.state.userData.plan === 'free' \" class=\"column is-narrow is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile\">\n\t\t\t<div class=\"card optml-upgrade\">\n\t\t\t\t<div class=\"card-header\">\n\t\t\t\t\t<h3 class=\"is-size-5 card-header-title\"><span class=\"dashicons dashicons-chart-line\"></span>  {{strings.upgrade.title}}</h3>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"card-content\">\n\t\t\t\t\t<ul>\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_1}}</li>\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_2}}</li>\n\t\t\t\t\t\t<li><span class=\"dashicons dashicons-yes\"></span>{{strings.upgrade.reason_3}}</li>\n\t\t\t\t\t</ul>\n\t\t\t\t</div>\n\t\t\t\t<div class=\"card-footer  \">\n\t\t\t\t\t<div class=\"card-footer-item\">\n\t\t\t\t\t<a href=\"https://optimole.com#pricing\" target=\"_blank\" class=\"button is-centered is-small is-success\"><span class=\"dashicons dashicons-external\"></span>{{strings.upgrade.cta}}</a>\n\t\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t</div>\n\t</div>\n";
 
 /***/ }),
-/* 53 */
+/* 56 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -18915,7 +19021,7 @@ var _vue = __webpack_require__(3);
 
 var _vue2 = _interopRequireDefault(_vue);
 
-var _vuex = __webpack_require__(54);
+var _vuex = __webpack_require__(57);
 
 var _vuex2 = _interopRequireDefault(_vuex);
 
@@ -18923,11 +19029,11 @@ var _vueResource = __webpack_require__(6);
 
 var _vueResource2 = _interopRequireDefault(_vueResource);
 
-var _mutations = __webpack_require__(56);
+var _mutations = __webpack_require__(59);
 
 var _mutations2 = _interopRequireDefault(_mutations);
 
-var _actions = __webpack_require__(57);
+var _actions = __webpack_require__(60);
 
 var _actions2 = _interopRequireDefault(_actions);
 
@@ -18961,7 +19067,7 @@ var store = new _vuex2.default.Store({
 exports.default = store;
 
 /***/ }),
-/* 54 */
+/* 57 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -19908,13 +20014,13 @@ var index_esm = {
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(4)))
 
 /***/ }),
-/* 55 */
+/* 58 */
 /***/ (function(module, exports) {
 
 /* (ignored) */
 
 /***/ }),
-/* 56 */
+/* 59 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -19985,7 +20091,7 @@ exports.default = {
 };
 
 /***/ }),
-/* 57 */
+/* 60 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -20271,6 +20377,28 @@ var retrieveConflicts = function retrieveConflicts(_ref10, data) {
 	});
 };
 
+var dismissConflict = function dismissConflict(_ref11, data) {
+	var commit = _ref11.commit,
+	    state = _ref11.state;
+
+	var self = this;
+	commit('toggleLoading', true);
+	_vue2.default.http({
+		url: optimoleDashboardApp.root + '/dismiss_conflict',
+		method: 'POST',
+		headers: { 'X-WP-Nonce': optimoleDashboardApp.nonce },
+		params: { 'conflictID': data.conflictID },
+		responseType: 'json'
+	}).then(function (response) {
+
+		commit('toggleLoading', false);
+		if (response.status === 200) {
+			console.log(response);
+			commit('updateConflicts', response);
+		}
+	});
+};
+
 exports.default = {
 	connectOptimole: connectOptimole,
 	registerOptimole: registerOptimole,
@@ -20281,11 +20409,12 @@ exports.default = {
 	retrieveWatermarks: retrieveWatermarks,
 	removeWatermark: removeWatermark,
 	requestStatsUpdate: requestStatsUpdate,
-	retrieveConflicts: retrieveConflicts
+	retrieveConflicts: retrieveConflicts,
+	dismissConflict: dismissConflict
 };
 
 /***/ }),
-/* 58 */
+/* 61 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -20411,7 +20540,7 @@ if (GlobalVue) {
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
 
 /***/ }),
-/* 59 */
+/* 62 */
 /***/ (function(module, exports, __webpack_require__) {
 
 (function webpackUniversalModuleDefinition(root, factory) {
@@ -21219,115 +21348,6 @@ module.exports = function listToStyles (parentId, list) {
 /******/ ]);
 });
 //# sourceMappingURL=index.js.map
-
-/***/ }),
-/* 60 */
-/***/ (function(module, exports, __webpack_require__) {
-
-var __vue_script__, __vue_template__
-__vue_script__ = __webpack_require__(63)
-__vue_template__ = __webpack_require__(65)
-module.exports = __vue_script__ || {}
-if (module.exports.__esModule) module.exports = module.exports.default
-if (__vue_template__) { (typeof module.exports === "function" ? module.exports.options : module.exports).template = __vue_template__ }
-if (false) {(function () {  module.hot.accept()
-  var hotAPI = require("vue-hot-reload-api")
-  hotAPI.install(require("vue"), true)
-  if (!hotAPI.compatible) return
-  var id = "/var/www/html/wp-minions/wp-content/plugins/optimole-wp/assets/vue/components/conflicts.vue"
-  if (!module.hot.data) {
-    hotAPI.createRecord(id, module.exports)
-  } else {
-    hotAPI.update(id, module.exports, __vue_template__)
-  }
-})()}
-
-/***/ }),
-/* 61 */,
-/* 62 */,
-/* 63 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-// <template>
-// 	<div>
-// 		<div class="conflicts-table">
-// 			<div v-if="!noConflicts">
-// 				<h3 class="has-text-centered">{{strings.title}}</h3>
-// 				<table class="table is-striped is-hoverable is-fullwidth">
-// 					<thead>
-// 					<tr>
-// 						<th class="optml-conflict-message-heading">{{strings.message}}</th>
-// 					</tr>
-// 					</thead>
-// 					<tbody>
-// 					<tr v-for="(item, index) in conflictData">
-// 						<td>
-//                             <div class="notification" :class="conflictClass( item.severity )">
-//                                 <button class="delete" style="box-sizing: border-box;"></button>
-//                                 {{item.message}}
-//                             </div>
-//                         </td>
-// 					</tr>
-// 					</tbody>
-// 				</table>
-// 			</div>
-// 		</div>
-// 		<table class="table is-striped is-hoverable is-fullwidth" v-if="noConflicts">
-// 			<thead>
-// 			<tr>
-// 				<th class="optml-image-heading has-text-centered" v-html="strings.no_conflicts_found"></th>
-// 			</tr>
-// 			</thead>
-// 		</table>
-// 	</div>
-// </template>
-//
-// <script>
-
-exports.default = {
-	name: "conflicts",
-	data: function data() {
-		return {
-			home_url: optimoleDashboardApp.home_url,
-			strings: optimoleDashboardApp.strings.conflicts
-		};
-	},
-
-	computed: {
-		noConflicts: function noConflicts() {
-			return this.$store.state.conflicts.count === 0;
-		},
-		conflictData: function conflictData() {
-			return this.$store.state.conflicts.conflicts !== null ? this.$store.state.conflicts.conflicts : [];
-		}
-	},
-	methods: {
-		conflictClass: function conflictClass(type) {
-			if (type === 'high') {
-				return 'is-danger';
-			}
-			if (type === 'medium') {
-				return 'is-warning';
-			}
-			return 'is-info';
-		}
-	}
-	// </script>
-
-};
-
-/***/ }),
-/* 64 */,
-/* 65 */
-/***/ (function(module, exports) {
-
-module.exports = "\n\t<div>\n\t\t<div class=\"conflicts-table\">\n\t\t\t<div v-if=\"!noConflicts\">\n\t\t\t\t<h3 class=\"has-text-centered\">{{strings.title}}</h3>\n\t\t\t\t<table class=\"table is-striped is-hoverable is-fullwidth\">\n\t\t\t\t\t<thead>\n\t\t\t\t\t<tr>\n\t\t\t\t\t\t<th class=\"optml-conflict-message-heading\">{{strings.message}}</th>\n\t\t\t\t\t</tr>\n\t\t\t\t\t</thead>\n\t\t\t\t\t<tbody>\n\t\t\t\t\t<tr v-for=\"(item, index) in conflictData\">\n\t\t\t\t\t\t<td>\n                            <div class=\"notification\" :class=\"conflictClass( item.severity )\">\n                                <button class=\"delete\" style=\"box-sizing: border-box;\"></button>\n                                {{item.message}}\n                            </div>\n                        </td>\n\t\t\t\t\t</tr>\n\t\t\t\t\t</tbody>\n\t\t\t\t</table>\n\t\t\t</div>\n\t\t</div>\n\t\t<table class=\"table is-striped is-hoverable is-fullwidth\" v-if=\"noConflicts\">\n\t\t\t<thead>\n\t\t\t<tr>\n\t\t\t\t<th class=\"optml-image-heading has-text-centered\" v-html=\"strings.no_conflicts_found\"></th>\n\t\t\t</tr>\n\t\t\t</thead>\n\t\t</table>\n\t</div>\n";
 
 /***/ })
 /******/ ]);

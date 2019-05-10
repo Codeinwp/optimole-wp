@@ -1,19 +1,14 @@
 <template>
 	<div>
 		<div class="conflicts-table">
+            <h3 class="has-text-centered">{{strings.title}}</h3>
 			<div v-if="!noConflicts">
-				<h3 class="has-text-centered">{{strings.title}}</h3>
 				<table class="table is-striped is-hoverable is-fullwidth">
-					<thead>
-					<tr>
-						<th class="optml-conflict-message-heading">{{strings.message}}</th>
-					</tr>
-					</thead>
 					<tbody>
 					<tr v-for="(item, index) in conflictData">
 						<td>
                             <div class="notification" :class="conflictClass( item.severity )">
-                                <button class="delete" style="box-sizing: border-box;"></button>
+                                <button class="delete" style="box-sizing: border-box;" v-on:click="dismissConflict( item.id )"></button>
                                 {{item.message}}
                             </div>
                         </td>
@@ -21,14 +16,16 @@
 					</tbody>
 				</table>
 			</div>
+            <div v-if="noConflicts">
+                <table class="table is-striped is-hoverable is-fullwidth">
+                    <thead>
+                    <tr>
+                        <th class="optml-image-heading has-text-centered" v-html="strings.no_conflicts_found"></th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
 		</div>
-		<table class="table is-striped is-hoverable is-fullwidth" v-if="noConflicts">
-			<thead>
-			<tr>
-				<th class="optml-image-heading has-text-centered" v-html="strings.no_conflicts_found"></th>
-			</tr>
-			</thead>
-		</table>
 	</div>
 </template>
 
@@ -59,7 +56,10 @@
 					return 'is-warning';
 				}
 				return 'is-info';
-            }
+            },
+			dismissConflict( conflictID ) {
+				this.$store.dispatch('dismissConflict', {conflictID: conflictID, component: this});
+			}
 		}
 	}
 </script>
