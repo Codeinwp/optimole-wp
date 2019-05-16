@@ -216,7 +216,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-		$original_url = null;
+		$original_url = $image_src;
 		$cropping     = null;
 		if ( count( $size_array ) === 2 ) {
 			$sizes    = self::size_to_crop();
