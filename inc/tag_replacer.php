@@ -141,9 +141,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$image_tag = apply_filters( 'optml_tag_replace', $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
 			}
 
-			error_log( json_encode( $images['img_tag'][ $index ] ) );
-			error_log( json_encode( $image_tag ) );
-
 			$content = str_replace( $images['img_tag'][ $index ], $image_tag, $content );
 		}
 
@@ -216,7 +213,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-		$original_url = $image_src;
+
 		$original_url = null;
 		$cropping     = null;
 		if ( count( $size_array ) === 2 ) {
