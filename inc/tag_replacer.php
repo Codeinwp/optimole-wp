@@ -193,7 +193,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * @return string
 	 */
 	public function regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed = false, $full_tag = '' ) {
-		$pattern = '/[^\/]+' . preg_quote( $original_url, '/' ) . '/i';
+		$pattern = '/(?<!\/)' . preg_quote( $original_url, '/' ) . '/i';
 		$replace = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 		return preg_replace( $pattern, $replace, $new_tag );
 	}
