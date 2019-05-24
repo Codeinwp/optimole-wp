@@ -78,7 +78,17 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$src = $tmp = untrailingslashit( $this->upload_resource['content_host'] ) . $src;
 
 				$new_src                     = $is_slashed ? addcslashes( $src, '/' ) : $src;
-				$image_tag                   = str_replace( $images['img_url'][ $index ], $new_src, $image_tag );
+				$image_tag                   = str_replace(
+					array(
+						'"' . $images['img_url'][ $index ] . '"',
+						"'" . $images['img_url'][ $index ] . "'",
+					),
+					array(
+						'"' . $new_src . '"',
+						"'" . $new_src . "''",
+					),
+					$image_tag
+				);
 				$images['img_url'][ $index ] = $new_src;
 			}
 
