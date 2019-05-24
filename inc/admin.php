@@ -526,6 +526,12 @@ The root cause might be either a security plugin which blocks this feature or so
 			'dashboard_menu_item'           => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'            => __( 'General Settings', 'optimole-wp' ),
 			'watermarks_menu_item'          => __( 'Watermark options', 'optimole-wp' ),
+			'conflicts_menu_item'           => __( 'Conflicts', 'optimole-wp' ),
+			'conflicts'                     => array(
+				'title'                 => __( 'Possible Conflicts', 'optimole-wp' ),
+				'message'               => __( 'Details', 'optimole-wp' ),
+				'no_conflicts_found'    => __( 'No conflicts found. We are all peachy now. 🍑', 'optimole-wp' ),
+			),
 			'upgrade'                       => array(
 				'title'    => __( 'Upgrade to Pro', 'optimole-wp' ),
 				'reason_1' => __( 'Faster CDN ( 130+ locations )', 'optimole-wp' ),

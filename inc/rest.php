@@ -65,6 +65,7 @@ class Optml_Rest {
 
 		$this->register_image_routes();
 		$this->register_watermark_routes();
+		$this->register_conflict_routes();
 	}
 
 	/**
@@ -196,6 +197,38 @@ class Optml_Rest {
 						return current_user_can( 'manage_options' );
 					},
 					'callback'            => array( $this, 'remove_watermark' ),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Method to register conflicts specific routes.
+	 */
+	public function register_conflict_routes() {
+		register_rest_route(
+			$this->namespace,
+			'/poll_conflicts',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'poll_conflicts' ),
+				),
+			)
+		);
+		register_rest_route(
+			$this->namespace,
+			'/dismiss_conflict',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'dismiss_conflict' ),
 				),
 			)
 		);
@@ -440,6 +473,36 @@ class Optml_Rest {
 		$request = new Optml_Api();
 
 		return $this->response( $request->remove_watermark( $post_id, $api_key ) );
+	}
+
+	/**
+	 * Get conflicts from API.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function poll_conflicts( WP_REST_Request $request ) {
+		$conflicts_to_register = apply_filters( 'optml_register_conflicts', array() );
+		$manager = new Optml_Conflict_Manager( $conflicts_to_register );
+
+		return $this->response( array( 'count' => $manager->get_conflict_count(), 'conflicts' => $manager->get_conflict_list() ) );
+	}
+
+	/**
+	 * Dismiss conflict.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function dismiss_conflict( WP_REST_Request $request ) {
+		$conflict_id = $request->get_param( 'conflictID' );
+		$conflicts_to_register = apply_filters( 'optml_register_conflicts', array() );
+		$manager = new Optml_Conflict_Manager( $conflicts_to_register );
+		$manager->dismiss_conflict( $conflict_id );
+
+		return $this->response( array( 'count' => $manager->get_conflict_count(), 'conflicts' => $manager->get_conflict_list() ) );
 	}
 
 	/**
