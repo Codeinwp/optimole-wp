@@ -80,12 +80,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$new_src                     = $is_slashed ? addcslashes( $src, '/' ) : $src;
 				$image_tag                   = str_replace(
 					array(
-						'"' . $images['img_url'][ $index ] . '"',
-						"'" . $images['img_url'][ $index ] . "'",
+						'"' . $images['img_url'][ $index ],
+						"'" . $images['img_url'][ $index ],
 					),
 					array(
-						'"' . $new_src . '"',
-						"'" . $new_src . "''",
+						'"' . $new_src,
+						"'" . $new_src,
 					),
 					$image_tag
 				);
