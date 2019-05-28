@@ -498,7 +498,7 @@ class Optml_Admin {
 			'usage'                         => __( 'Monthly Usage', 'optimole-wp' ),
 			'quota'                         => __( 'Monthly Quota', 'optimole-wp' ),
 			'logged_in_as'                  => __( 'Logged in as', 'optimole-wp' ),
-			'private_cdn_url'               => __( 'Private CDN url', 'optimole-wp' ),
+			'private_cdn_url'               => __( 'Images domain', 'optimole-wp' ),
 			'options'                       => __( 'Options', 'optimole-wp' ),
 			'notification_message_register' => __( 'We have sent you an email with the API key. Please copy and paste the key in the field below.', 'optimole-wp' ),
 			'account_needed_title'          => sprintf(
