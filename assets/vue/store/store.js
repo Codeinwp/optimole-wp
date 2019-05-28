@@ -19,6 +19,7 @@ const store = new Vuex.Store(
 			connected: optimoleDashboardApp.connection_status === 'yes',
 			apiKey: optimoleDashboardApp.api_key ? optimoleDashboardApp.api_key : '',
 			apiKeyValidity: true,
+			connectError:'',
 			sample_rate: {},
 			apiError: false,
 			userData: optimoleDashboardApp.user_data ? optimoleDashboardApp.user_data : null,

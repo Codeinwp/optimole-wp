@@ -32,6 +32,7 @@ const connectOptimole = function ( {commit, state}, data ) {
 
 			} else {
 				  commit( 'toggleKeyValidity', false );
+				  commit( 'updateServiceError', response.body.data );
 				  console.log( '%c Invalid API Key.', 'color: #E7602A' );
 			}
 		},

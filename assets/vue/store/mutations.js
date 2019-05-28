@@ -14,6 +14,9 @@ const toggleConnectedToOptml = ( state, data ) => {
 const updateUserData = ( state, data ) => {
 	state.userData = data;
 };
+const updateServiceError = ( state, data ) => {
+	state.connectError = data;
+};
 const updateApiKey = ( state, data ) => {
 	state.apiKey = data;
 };
@@ -54,6 +57,7 @@ export default {
 	updateSampleRate,
 	restApiNotWorking,
 	updateSettings,
+	updateServiceError,
 	updateWatermark,
 	updateConflicts,
 	updateOptimizedImages

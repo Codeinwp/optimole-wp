@@ -245,8 +245,17 @@ class Optml_Rest {
 		$api_key = $request->get_param( 'api_key' );
 		$request = new Optml_Api();
 		$data    = $request->get_user_data( $api_key );
-		if ( $data === false ) {
-			wp_send_json_error( __( 'Can not connect to optimole service', 'optimole-wp' ) );
+		if ( $data === false || is_wp_error( $data ) ) {
+			$extra = '';
+			if ( is_wp_error( $data ) ) {
+				/**
+				 * Error from api.
+				 *
+				 * @var WP_Error $data Error object.
+				 */
+				$extra = sprintf( __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
+			}
+			wp_send_json_error( __( 'Can not connect to Optimole service', 'optimole-wp' ) . $extra );
 		}
 		$settings = new Optml_Settings();
 		$settings->update( 'service_data', $data );
@@ -484,9 +493,14 @@ class Optml_Rest {
 	 */
 	public function poll_conflicts( WP_REST_Request $request ) {
 		$conflicts_to_register = apply_filters( 'optml_register_conflicts', array() );
-		$manager = new Optml_Conflict_Manager( $conflicts_to_register );
+		$manager               = new Optml_Conflict_Manager( $conflicts_to_register );
 
-		return $this->response( array( 'count' => $manager->get_conflict_count(), 'conflicts' => $manager->get_conflict_list() ) );
+		return $this->response(
+			array(
+				'count'     => $manager->get_conflict_count(),
+				'conflicts' => $manager->get_conflict_list(),
+			)
+		);
 	}
 
 	/**
@@ -497,12 +511,17 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function dismiss_conflict( WP_REST_Request $request ) {
-		$conflict_id = $request->get_param( 'conflictID' );
+		$conflict_id           = $request->get_param( 'conflictID' );
 		$conflicts_to_register = apply_filters( 'optml_register_conflicts', array() );
-		$manager = new Optml_Conflict_Manager( $conflicts_to_register );
+		$manager               = new Optml_Conflict_Manager( $conflicts_to_register );
 		$manager->dismiss_conflict( $conflict_id );
 
-		return $this->response( array( 'count' => $manager->get_conflict_count(), 'conflicts' => $manager->get_conflict_list() ) );
+		return $this->response(
+			array(
+				'count'     => $manager->get_conflict_count(),
+				'conflicts' => $manager->get_conflict_list(),
+			)
+		);
 	}
 
 	/**

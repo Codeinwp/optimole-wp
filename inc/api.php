@@ -80,6 +80,7 @@ final class Optml_Api {
 		if ( is_wp_error( $response ) ) {
 			return false;
 		}
+
 		$response = wp_remote_retrieve_body( $response );
 
 		if ( empty( $response ) ) {
@@ -219,8 +220,8 @@ final class Optml_Api {
 	 * object therefore, we don't want the object to be cloned.
 	 *
 	 * @access public
-	 * @since  1.0.0
 	 * @return void
+	 * @since  1.0.0
 	 */
 	public function __clone() {
 		// Cloning instances of the class is forbidden.
@@ -231,8 +232,8 @@ final class Optml_Api {
 	 * Disable unserializing of the class
 	 *
 	 * @access public
-	 * @since  1.0.0
 	 * @return void
+	 * @since  1.0.0
 	 */
 	public function __wakeup() {
 		// Unserializing instances of the class is forbidden.
