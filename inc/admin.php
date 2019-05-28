@@ -33,6 +33,7 @@ class Optml_Admin {
 		add_action( 'admin_notices', array( $this, 'add_notice' ) );
 		add_action( 'admin_notices', array( $this, 'add_notice_upgrade' ) );
 		add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
+		add_action( 'admin_head', array( $this, 'add_admin_css' ) );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
 		add_action( 'admin_bar_menu', array( $this, 'add_traffic_node' ), 9999 );
@@ -214,7 +215,7 @@ class Optml_Admin {
 							class="dashicons dashicons-external"></span><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 				</a>
 				<a class="button"
-				   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_upg' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I\'ve done this', 'optimole-wp' ); ?></a>
+						href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_upg' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I\'ve done this', 'optimole-wp' ); ?></a>
 			</p>
 		</div>
 		<?php
@@ -267,9 +268,9 @@ class Optml_Admin {
 			<p> <?php printf( __( 'Welcome to %1$sOptiMole%2$s, the easiest way to optimize your website images. Your users will enjoy a %3$sfaster%4$s website after you connect it with our service.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>' ); ?></p>
 			<p>
 				<a href="<?php echo esc_url( admin_url( 'upload.php?page=optimole' ) ); ?>"
-				   class="button button-primary"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?></a>
+						class="button button-primary"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?></a>
 				<a class="button"
-				   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_optin' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?></a>
+						href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_optin' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?></a>
 			</p>
 		</div>
 		<?php
@@ -528,9 +529,9 @@ The root cause might be either a security plugin which blocks this feature or so
 			'watermarks_menu_item'          => __( 'Watermark options', 'optimole-wp' ),
 			'conflicts_menu_item'           => __( 'Conflicts', 'optimole-wp' ),
 			'conflicts'                     => array(
-				'title'                 => __( 'Possible Conflicts', 'optimole-wp' ),
-				'message'               => __( 'Details', 'optimole-wp' ),
-				'no_conflicts_found'    => __( 'No conflicts found. We are all peachy now. 🍑', 'optimole-wp' ),
+				'title'              => __( 'Possible Conflicts', 'optimole-wp' ),
+				'message'            => __( 'Details', 'optimole-wp' ),
+				'no_conflicts_found' => __( 'No conflicts found. We are all peachy now. 🍑', 'optimole-wp' ),
 			),
 			'upgrade'                       => array(
 				'title'    => __( 'Upgrade to Pro', 'optimole-wp' ),
@@ -622,6 +623,26 @@ The root cause might be either a security plugin which blocks this feature or so
 	}
 
 	/**
+	 * Add admin css
+	 */
+	public function add_admin_css() {
+		?>
+		<style type="text/css">
+			#wpadminbar .optml-meter .ab-icon {
+				float: right !important;
+				margin-left: 3px;
+			}
+
+			#wpadminbar .optml-meter .ab-icon:before {
+				content: "\f534";
+				font-size: 80%;
+				color: #D54222 !important;
+			}
+		</style>
+		<?php
+	}
+
+	/**
 	 * Add top admin bar notice of traffic quota/usage.
 	 *
 	 * @param WP_Admin_Bar $wp_admin_bar Admin bar resource.
@@ -630,7 +651,6 @@ The root cause might be either a security plugin which blocks this feature or so
 		if ( ! is_user_logged_in() ) {
 			return;
 		}
-		$this->settings = new Optml_Settings();
 		if ( ! $this->settings->is_connected() ) {
 			return;
 		}
@@ -640,13 +660,21 @@ The root cause might be either a security plugin which blocks this feature or so
 		if ( empty( $service_data ) ) {
 			return;
 		}
+		$traffic = floatval( ( $service_data['usage'] / 1000 ) );
+		$quota   = floatval( ( $service_data['quota'] / 1000 ) );
+		if ( $traffic > $quota ) {
+			$text = sprintf( __( '%sGB overage', 'optimole-wp' ), number_format( ( $traffic - $quota ), 2 ) ) . '<span class="ab-icon"></span>';
+		} else {
+			$text = sprintf( __( '%1$s of %2$sGB', 'optimole-wp' ), number_format( $traffic, 1 ), number_format( $quota, 0 ) );
+		}
+
 		$args = array(
 			'id'    => 'optml_image_quota',
-			'title' => 'Optimole' . __( ' Image Traffic', 'optimole-wp' ) . ': ' . number_format( floatval( ( $service_data['usage'] / 1000 ) ), 3 ) . ' / ' . number_format( floatval( ( $service_data['quota'] / 1000 ) ), 0 ) . 'GB',
+			'title' => 'Optimole' . __( ' Quota', 'optimole-wp' ) . ': ' . $text,
 			'href'  => admin_url( 'upload.php?page=optimole' ),
 			'meta'  => array(
 				'target' => '_blank',
-				'class'  => $should_load !== 'enabled' ? 'hidden' : '',
+				'class'  => 'optml-meter ' . ( $should_load !== 'enabled' ? 'hidden' : '' ),
 			),
 		);
 		$wp_admin_bar->add_node( $args );
