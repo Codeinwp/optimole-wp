@@ -54,8 +54,8 @@ final class Optml_Main {
 	 *
 	 * Ensures only one instance of Starter_Plugin is loaded or can be loaded.
 	 *
-	 * @since 1.0.0
 	 * @return Optml_Main Plugin instance.
+	 * @since 1.0.0
 	 */
 	public static function instance() {
 		if ( null === self::$_instance ) {
@@ -65,6 +65,7 @@ final class Optml_Main {
 			add_filter( 'optimole_wp_feedback_review_message', array( __CLASS__, 'change_review_message' ) );
 			add_filter( 'optimole_wp_logger_heading', array( __CLASS__, 'change_review_message' ) );
 			add_filter( 'optml_default_settings', array( __CLASS__, 'change_lazyload_default' ) );
+			add_filter( 'optml_register_conflicts', array( __CLASS__, 'register_conflicts' ) );
 			self::$_instance          = new self();
 			self::$_instance->manager = Optml_Manager::instance();
 			self::$_instance->rest    = new Optml_Rest();
@@ -76,6 +77,30 @@ final class Optml_Main {
 		}
 
 		return self::$_instance;
+	}
+
+	/**
+	 * Register Conflicts to watch for
+	 *
+	 * @param array $conflicts_to_register A list of class names of conflicts to register.
+	 *
+	 * @return array
+	 * @since   2.0.6
+	 * @access  public
+	 */
+	public static function register_conflicts( $conflicts_to_register = array() ) {
+		$conflicts_to_register = array_merge(
+			$conflicts_to_register,
+			array(
+				'Optml_Elementor',
+				'Optml_Beaver',
+				'Optml_Jetpack_Photon',
+				'Optml_Jetpack_Lazyload',
+				'Optml_Wprocket',
+			)
+		);
+
+		return $conflicts_to_register;
 	}
 
 	/**

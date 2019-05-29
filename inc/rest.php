@@ -65,6 +65,7 @@ class Optml_Rest {
 
 		$this->register_image_routes();
 		$this->register_watermark_routes();
+		$this->register_conflict_routes();
 	}
 
 	/**
@@ -202,6 +203,38 @@ class Optml_Rest {
 	}
 
 	/**
+	 * Method to register conflicts specific routes.
+	 */
+	public function register_conflict_routes() {
+		register_rest_route(
+			$this->namespace,
+			'/poll_conflicts',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'poll_conflicts' ),
+				),
+			)
+		);
+		register_rest_route(
+			$this->namespace,
+			'/dismiss_conflict',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'dismiss_conflict' ),
+				),
+			)
+		);
+	}
+
+	/**
 	 * Connect to optimole service.
 	 *
 	 * @param WP_REST_Request $request connect rest request.
@@ -212,8 +245,17 @@ class Optml_Rest {
 		$api_key = $request->get_param( 'api_key' );
 		$request = new Optml_Api();
 		$data    = $request->get_user_data( $api_key );
-		if ( $data === false ) {
-			wp_send_json_error( __( 'Can not connect to optimole service', 'optimole-wp' ) );
+		if ( $data === false || is_wp_error( $data ) ) {
+			$extra = '';
+			if ( is_wp_error( $data ) ) {
+				/**
+				 * Error from api.
+				 *
+				 * @var WP_Error $data Error object.
+				 */
+				$extra = sprintf( __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
+			}
+			wp_send_json_error( __( 'Can not connect to Optimole service', 'optimole-wp' ) . $extra );
 		}
 		$settings = new Optml_Settings();
 		$settings->update( 'service_data', $data );
@@ -440,6 +482,46 @@ class Optml_Rest {
 		$request = new Optml_Api();
 
 		return $this->response( $request->remove_watermark( $post_id, $api_key ) );
+	}
+
+	/**
+	 * Get conflicts from API.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function poll_conflicts( WP_REST_Request $request ) {
+		$conflicts_to_register = apply_filters( 'optml_register_conflicts', array() );
+		$manager               = new Optml_Conflict_Manager( $conflicts_to_register );
+
+		return $this->response(
+			array(
+				'count'     => $manager->get_conflict_count(),
+				'conflicts' => $manager->get_conflict_list(),
+			)
+		);
+	}
+
+	/**
+	 * Dismiss conflict.
+	 *
+	 * @param WP_REST_Request $request rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function dismiss_conflict( WP_REST_Request $request ) {
+		$conflict_id           = $request->get_param( 'conflictID' );
+		$conflicts_to_register = apply_filters( 'optml_register_conflicts', array() );
+		$manager               = new Optml_Conflict_Manager( $conflicts_to_register );
+		$manager->dismiss_conflict( $conflict_id );
+
+		return $this->response(
+			array(
+				'count'     => $manager->get_conflict_count(),
+				'conflicts' => $manager->get_conflict_list(),
+			)
+		);
 	}
 
 	/**

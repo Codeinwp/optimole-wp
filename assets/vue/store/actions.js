@@ -13,7 +13,6 @@ const connectOptimole = function ( {commit, state}, data ) {
 			url: optimoleDashboardApp.root + '/connect',
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			params: {'req': data.req},
 			body: {
 				'api_key': data.apiKey,
 			},
@@ -32,6 +31,7 @@ const connectOptimole = function ( {commit, state}, data ) {
 
 			} else {
 				  commit( 'toggleKeyValidity', false );
+				  commit( 'updateServiceError', response.body.data );
 				  console.log( '%c Invalid API Key.', 'color: #E7602A' );
 			}
 		},
@@ -51,7 +51,6 @@ const registerOptimole = function ( {commit, state}, data ) {
 			url: optimoleDashboardApp.root + '/register',
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			params: {'req': data.req},
 			body: {
 				'email': data.email,
 			},
@@ -79,7 +78,6 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 			url: optimoleDashboardApp.root + '/disconnect',
 			method: 'GET',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			params: {'req': data.req},
 			emulateJSON: true,
 			responseType: 'json'
 		}
@@ -163,7 +161,6 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 					method: 'GET',
 					emulateJSON: true,
 					headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-					params: {'req': 'Get Optimized Images'},
 					responseType: 'json',
 					timeout: 10000
 				}
@@ -198,7 +195,6 @@ const retrieveWatermarks = function ( {commit, state}, data ) {
 		url: optimoleDashboardApp.root + '/poll_watermarks',
 		method: 'GET',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		params: {'req': 'Get Watermarks'},
 		responseType: 'json',
 	} ).then( function ( response ) {
 		commit( 'toggleLoading', false );
@@ -227,7 +223,7 @@ const removeWatermark = function ( {commit, state}, data ) {
 		url: optimoleDashboardApp.root + '/remove_watermark',
 		method: 'POST',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		params: {'req': 'Get Watermarks' , 'postID': data.postID },
+		params: { 'postID': data.postID },
 		responseType: 'json',
 	} ).then( function ( response ) {
 
@@ -252,6 +248,42 @@ const requestStatsUpdate = function ( {commit, state}, data ) {
 	} );
 };
 
+const retrieveConflicts = function ( {commit, state}, data ) {
+
+	commit( 'toggleLoading', true );
+	Vue.http( {
+		url: optimoleDashboardApp.root + '/poll_conflicts',
+		method: 'GET',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		responseType: 'json',
+	} ).then( function ( response ) {
+		commit( 'toggleLoading', false );
+		if( response.status === 200 ) {
+			console.log( response );
+			commit( 'updateConflicts', response );
+		}
+	} );
+};
+
+const dismissConflict = function ( {commit, state}, data ) {
+	let self = this;
+	commit( 'toggleLoading', true );
+	Vue.http( {
+		url: optimoleDashboardApp.root + '/dismiss_conflict',
+		method: 'POST',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		params: { 'conflictID': data.conflictID },
+		responseType: 'json',
+	} ).then( function ( response ) {
+
+		commit( 'toggleLoading', false );
+		if( response.status === 200 ) {
+			console.log( response );
+			commit( 'updateConflicts', response );
+		}
+	} );
+};
+
 export default {
 	connectOptimole,
 	registerOptimole,
@@ -261,5 +293,7 @@ export default {
 	retrieveOptimizedImages,
 	retrieveWatermarks,
 	removeWatermark,
-	requestStatsUpdate
+	requestStatsUpdate,
+	retrieveConflicts,
+	dismissConflict
 };

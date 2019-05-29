@@ -16,6 +16,7 @@ package.json
 package-lock.json
 composer.json
 composer.lock
+assets/js/bundle.js
 npm-debug.log
 bin
 node_modules

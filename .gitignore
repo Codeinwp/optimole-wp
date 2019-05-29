@@ -7,3 +7,4 @@ vendor
 code_quality
 build
 cc-test-reporter
+assets/js/bundle.js

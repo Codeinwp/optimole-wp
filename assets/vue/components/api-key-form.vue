@@ -22,7 +22,7 @@
 			</div>
 		</div>
 		<p v-if="! validKey" class="help is-danger">
-			{{strings.invalid_key}}
+			{{connectionError}}
 		</p>
 	</div>
 </template>
@@ -35,15 +35,19 @@
 				apiKey: this.$store.state.apiKey ? this.$store.state.apiKey : '',
 				connected: this.$store.state.connected,
 				strings: optimoleDashboardApp.strings,
+
 				isLoading: false
 			}
 		},
 		mounted:function(){
 		},
-		
+
 		computed: {
 			validKey() {
 				return this.$store.state.apiKeyValidity;
+			},
+			connectionError() {
+				return this.$store.state.connectError;
 			},
 			isConnected() {
 				return this.$store.state.connected;

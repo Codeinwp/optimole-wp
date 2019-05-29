@@ -78,7 +78,17 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$src = $tmp = untrailingslashit( $this->upload_resource['content_host'] ) . $src;
 
 				$new_src                     = $is_slashed ? addcslashes( $src, '/' ) : $src;
-				$image_tag                   = str_replace( $images['img_url'][ $index ], $new_src, $image_tag );
+				$image_tag                   = str_replace(
+					array(
+						'"' . $images['img_url'][ $index ],
+						"'" . $images['img_url'][ $index ],
+					),
+					array(
+						'"' . $new_src,
+						"'" . $new_src,
+					),
+					$image_tag
+				);
 				$images['img_url'][ $index ] = $new_src;
 			}
 
@@ -193,12 +203,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * @return string
 	 */
 	public function regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed = false, $full_tag = '' ) {
-
-		return str_replace(
-			$original_url,
-			$is_slashed ? addcslashes( $new_url, '/' ) : $new_url,
-			$new_tag
-		);
+		$pattern = '/(?<!\/)' . preg_quote( $original_url, '/' ) . '/i';
+		$replace = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
+		return preg_replace( $pattern, $replace, $new_tag );
 	}
 
 	/**
@@ -216,6 +223,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
+
 		$original_url = null;
 		$cropping     = null;
 		if ( count( $size_array ) === 2 ) {
