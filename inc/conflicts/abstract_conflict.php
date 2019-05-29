@@ -11,7 +11,7 @@
  *
  * @since   2.0.6
  */
-abstract  class Optml_Abstract_Conflict {
+abstract class Optml_Abstract_Conflict {
 	/**
 	 * Constant for low severity.
 	 *
@@ -74,37 +74,6 @@ abstract  class Optml_Abstract_Conflict {
 	}
 
 	/**
-	 * Get the id for the conflict.
-	 *
-	 * @since   2.0.6
-	 * @access  public
-	 * @param int $length Optional. A length for the generated ID.
-	 *
-	 * @return bool|string
-	 */
-	public function get_id( $length = 8 ) {
-		$hash = sha1( $this->message . $this->type . $this->severity . $this->priority );
-		return substr( $hash, 0, $length );
-	}
-
-	/**
-	 * Checks if conflict is active.
-	 *
-	 * @since   2.0.6
-	 * @access  public
-	 * @param array $dismissed_conflicts A list of dismissed conflicts. Passed by the manager.
-	 *
-	 * @return bool
-	 */
-	public function is_active( $dismissed_conflicts = array() ) {
-		$conflict_id = $this->get_id();
-		if ( isset( $dismissed_conflicts[ $conflict_id ] ) && $dismissed_conflicts[ $conflict_id ] === 'true' ) {
-			return false;
-		}
-		return $this->is_conflict_valid();
-	}
-
-	/**
 	 * Set the message property
 	 *
 	 * @since   2.0.6
@@ -113,28 +82,61 @@ abstract  class Optml_Abstract_Conflict {
 	abstract public function define_message();
 
 	/**
-	 * Determine if conflict is applicable.
+	 * Checks if conflict is active.
 	 *
+	 * @param array $dismissed_conflicts A list of dismissed conflicts. Passed by the manager.
+	 *
+	 * @return bool
 	 * @since   2.0.6
 	 * @access  public
+	 */
+	public function is_active( $dismissed_conflicts = array() ) {
+		$conflict_id = $this->get_id();
+		if ( isset( $dismissed_conflicts[ $conflict_id ] ) && $dismissed_conflicts[ $conflict_id ] === 'true' ) {
+			return false;
+		}
+
+		return $this->is_conflict_valid();
+	}
+
+	/**
+	 * Get the id for the conflict.
+	 *
+	 * @param int $length Optional. A length for the generated ID.
+	 *
+	 * @return bool|string
+	 * @since   2.0.6
+	 * @access  public
+	 */
+	public function get_id( $length = 8 ) {
+		$hash = sha1( strtolower( get_called_class() ) . $this->type . $this->severity . $this->priority );
+
+		return substr( $hash, 0, $length );
+	}
+
+	/**
+	 * Determine if conflict is applicable.
+	 *
 	 * @return bool
+	 * @since   2.0.6
+	 * @access  public
 	 */
 	abstract public function is_conflict_valid();
 
 	/**
 	 * Get the conflict information.
 	 *
+	 * @return array
 	 * @since   2.0.6
 	 * @access  public
-	 * @return array
 	 */
 	public function get_conflict() {
 		return array(
-			'id' => $this->get_id(),
-			'type' => $this->type,
+			'id'       => $this->get_id(),
+			'type'     => $this->type,
 			'priority' => $this->priority,
 			'severity' => $this->severity,
-			'message' => $this->message,
+			'message'  => $this->message,
 		);
 	}
 }

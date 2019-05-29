@@ -54,8 +54,8 @@ final class Optml_Main {
 	 *
 	 * Ensures only one instance of Starter_Plugin is loaded or can be loaded.
 	 *
-	 * @since 1.0.0
 	 * @return Optml_Main Plugin instance.
+	 * @since 1.0.0
 	 */
 	public static function instance() {
 		if ( null === self::$_instance ) {
@@ -82,20 +82,24 @@ final class Optml_Main {
 	/**
 	 * Register Conflicts to watch for
 	 *
-	 * @since   2.0.6
-	 * @access  public
 	 * @param array $conflicts_to_register A list of class names of conflicts to register.
 	 *
 	 * @return array
+	 * @since   2.0.6
+	 * @access  public
 	 */
 	public static function register_conflicts( $conflicts_to_register = array() ) {
 		$conflicts_to_register = array_merge(
 			$conflicts_to_register,
 			array(
-				'Optml_Test_Conflict',
-				'Optml_Test_Two_Conflict',
+				'Optml_Elementor',
+				'Optml_Beaver',
+				'Optml_Jetpack_Photon',
+				'Optml_Jetpack_Lazyload',
+				'Optml_Wprocket',
 			)
 		);
+
 		return $conflicts_to_register;
 	}
 

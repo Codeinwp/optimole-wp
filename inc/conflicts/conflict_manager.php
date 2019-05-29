@@ -29,6 +29,8 @@ class Optml_Conflict_Manager {
 	 */
 	protected $dismissed_conflicts = array();
 
+
+
 	/**
 	 * Optml_Conflict_Manager constructor.
 	 *
@@ -37,7 +39,6 @@ class Optml_Conflict_Manager {
 	 * @param array $register_conflicts A list of conflicts to be registered.
 	 */
 	public function __construct( $register_conflicts = array() ) {
-		delete_option( 'optml_dismissed_conflicts' );
 		$this->dismissed_conflicts = get_option( 'optml_dismissed_conflicts', array() );
 		if ( ! empty( $register_conflicts ) ) {
 			foreach ( $register_conflicts as $conflict_to_watch ) {

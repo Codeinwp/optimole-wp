@@ -13,7 +13,6 @@ const connectOptimole = function ( {commit, state}, data ) {
 			url: optimoleDashboardApp.root + '/connect',
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			params: {'req': data.req},
 			body: {
 				'api_key': data.apiKey,
 			},
@@ -52,7 +51,6 @@ const registerOptimole = function ( {commit, state}, data ) {
 			url: optimoleDashboardApp.root + '/register',
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			params: {'req': data.req},
 			body: {
 				'email': data.email,
 			},
@@ -80,7 +78,6 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 			url: optimoleDashboardApp.root + '/disconnect',
 			method: 'GET',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			params: {'req': data.req},
 			emulateJSON: true,
 			responseType: 'json'
 		}
@@ -164,7 +161,6 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 					method: 'GET',
 					emulateJSON: true,
 					headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-					params: {'req': 'Get Optimized Images'},
 					responseType: 'json',
 					timeout: 10000
 				}
@@ -199,7 +195,6 @@ const retrieveWatermarks = function ( {commit, state}, data ) {
 		url: optimoleDashboardApp.root + '/poll_watermarks',
 		method: 'GET',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		params: {'req': 'Get Watermarks'},
 		responseType: 'json',
 	} ).then( function ( response ) {
 		commit( 'toggleLoading', false );
@@ -260,7 +255,6 @@ const retrieveConflicts = function ( {commit, state}, data ) {
 		url: optimoleDashboardApp.root + '/poll_conflicts',
 		method: 'GET',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		params: {'req': 'Get Conflicts'},
 		responseType: 'json',
 	} ).then( function ( response ) {
 		commit( 'toggleLoading', false );

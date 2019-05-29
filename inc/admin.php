@@ -527,10 +527,11 @@ The root cause might be either a security plugin which blocks this feature or so
 			'dashboard_menu_item'           => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'            => __( 'General Settings', 'optimole-wp' ),
 			'watermarks_menu_item'          => __( 'Watermark options', 'optimole-wp' ),
-			'conflicts_menu_item'           => __( 'Conflicts', 'optimole-wp' ),
+			'conflicts_menu_item'           => __( 'Possible issues', 'optimole-wp' ),
 			'conflicts'                     => array(
-				'title'              => __( 'Possible Conflicts', 'optimole-wp' ),
+				'title'              => __( 'We might have some possible conflicts with the plugins that you use. In order to benefit from Optimole\'s full potential you will need to address this issues.', 'optimole-wp' ),
 				'message'            => __( 'Details', 'optimole-wp' ),
+				'conflict_close'            => __( 'I\'ve done this.', 'optimole-wp' ),
 				'no_conflicts_found' => __( 'No conflicts found. We are all peachy now. 🍑', 'optimole-wp' ),
 			),
 			'upgrade'                       => array(
