@@ -1,3 +1,22 @@
+#### [Version 2.0.7](https://github.com/Codeinwp/optimole-wp/compare/v2.0.6...v2.0.7) (2019-05-29)
+
+* **Bug Fixes**
+   * **rest:** WordPress core routes were called with double slashes ([2e47fe0](https://github.com/Codeinwp/optimole-wp/commit/2e47fe0))
+   * better replacement for relative paths ([c18be2f](https://github.com/Codeinwp/optimole-wp/commit/c18be2f))
+   * image replacement was breaking non-image urls with query strings ([2ef2212](https://github.com/Codeinwp/optimole-wp/commit/2ef2212))
+   * improve admin bar quota looking and copyright [#99](https://github.com/Codeinwp/optimole-wp/issues/99) ([200e746](https://github.com/Codeinwp/optimole-wp/commit/200e746))
+   * improve CDN domain label naming [#97](https://github.com/Codeinwp/optimole-wp/issues/97) ([8a2da71](https://github.com/Codeinwp/optimole-wp/commit/8a2da71))
+   * improve error reporting on connection to the service ([11ee514](https://github.com/Codeinwp/optimole-wp/commit/11ee514))
+   * remove image replacement on Thrive Architect editor ([3a8c46b](https://github.com/Codeinwp/optimole-wp/commit/3a8c46b))
+   * removes redundant api request parameters ([4385f68](https://github.com/Codeinwp/optimole-wp/commit/4385f68))
+
+* **Documentation**
+   * improve readme description ([4134b05](https://github.com/Codeinwp/optimole-wp/commit/4134b05))
+
+* **Features**
+   * **api:** adds filter before url replacement, for individual image args ([d936944](https://github.com/Codeinwp/optimole-wp/commit/d936944))
+   * adds possible conflicts tab which reports the most common problems that Optimole might have with various plugins ([3b1ec3f](https://github.com/Codeinwp/optimole-wp/commit/3b1ec3f))
+
 #### [Version 2.0.6](https://github.com/Codeinwp/optimole-wp/compare/v2.0.5...v2.0.6) (2019-03-29)
 
 * **Bug Fixes**

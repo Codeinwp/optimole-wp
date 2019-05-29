@@ -1,29 +1,26 @@
 # Image optimization service by Optimole #
 **Contributors:** [optimole](https://profiles.wordpress.org/optimole)  
-**Tags:** image optimization, cdn, image compression, compress image, images, optimization, perfomance, photos  
+**Tags:** image optimization, convert webp, responsive images, lazy load, images, optimization, performance, photos  
 **Requires at least:** 4.7  
-**Tested up to:** 5.1  
+**Tested up to:** 5.2  
 **Requires PHP:** 5.4  
 **License:** GPLv3  
 **License URI:** https://www.gnu.org/licenses/gpl-3.0.en.html  
 
-End-to-end image processing
-With OptiMole, your site’s images will be cropped, optimized and processed on-the-fly.
-
+Improve your site loading speed by delivering optimized image for each device. Lazy load included.
 
 ## Description ##
 
 > **What makes Optimole so special?**
 >
 > * Smaller images. Same quality
-> * Optimizes based on the visitor's actual device
 > * Fully automated; set and forget
 > * Supports all image types
 > * Supports both Retina and WebP images
 > * Serves images from a global CDN for free
 > * Optimizes based on the visitor's actual device (no more guesswork and width estimations)
 > * Full support for page builders like Elementor
-> * Lazy loading without jQuery (better)
+> * Lazy load without jQuery (better)
 > * Fully functional free version (we have paid plans as well)
 >
 
@@ -45,13 +42,13 @@ With the basic plan, you will be able to optimize 1GB of images per month with 5
 Better yet. The free version is fully functional and includes all of the following great features.
 
 **Format Based Optimization**
-Our cloud-based transformation process means we can offer optimizations based on the format. If your visitor is using a WebP capable browser, then Optimole will send a WebP image to their device.
+Our cloud-based transformation process means we can offer optimizations based on the format. If your visitor is using a WebP capable browser, then Optimole will convert to WebP the image and send it to their device.
 
 **Image Optimization**
 Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size.
 
 **Exact Used Size**
-Optimole will use just one image and resize it to fit perfectly on your visitors' devices. No more awkward guesses at potential screen widths.
+Optimole will use just one image and resize it delivering a responsive image to fit perfectly on your visitors' devices. No more awkward guesses at potential screen widths.
 
 **Retina Support**
 Optimole can detect Retina screens and deliver an image with the perfect Digital Pixel Ratio (DPR).
@@ -71,7 +68,7 @@ Optimole provides an option to downgrade the image quality when it detects a slo
 Optimole loves page builders and has unique tweaks to solve image replacements. It also has full compatibility with the new block editor in WordPress 5.0
 
 **CDN**
-Optimole provides free access to a CDN with 7 edge locations around the world. Even more with the Pro version.
+Optimole provides free access to a AWS CloudFront CDN with edge locations in Europe and North America. Even more with the Pro version.
 
 **What About Security?**
 The stripped EXGIF data is not stored on our service. Optimole likes to work behind the scenes, and won't interact with your site's visitors. No data is collected but you can check the [Terms of Service](https://optimole.com/terms/)
@@ -90,6 +87,27 @@ Premium users will be able to optimize 10GB images per month with a 50GB viewing
 4. Plugin settings
 
 ## Changelog ##
+
+#### [Version 2.0.7](https://github.com/Codeinwp/optimole-wp/compare/v2.0.6...v2.0.7) (2019-05-29)
+
+* **Bug Fixes**
+   * **rest:** WordPress core routes were called with double slashes ([2e47fe0](https://github.com/Codeinwp/optimole-wp/commit/2e47fe0))
+   * better replacement for relative paths ([c18be2f](https://github.com/Codeinwp/optimole-wp/commit/c18be2f))
+   * image replacement was breaking non-image urls with query strings ([2ef2212](https://github.com/Codeinwp/optimole-wp/commit/2ef2212))
+   * improve admin bar quota looking and copyright [#99](https://github.com/Codeinwp/optimole-wp/issues/99) ([200e746](https://github.com/Codeinwp/optimole-wp/commit/200e746))
+   * improve CDN domain label naming [#97](https://github.com/Codeinwp/optimole-wp/issues/97) ([8a2da71](https://github.com/Codeinwp/optimole-wp/commit/8a2da71))
+   * improve error reporting on connection to the service ([11ee514](https://github.com/Codeinwp/optimole-wp/commit/11ee514))
+   * remove image replacement on Thrive Architect editor ([3a8c46b](https://github.com/Codeinwp/optimole-wp/commit/3a8c46b))
+   * removes redundant api request parameters ([4385f68](https://github.com/Codeinwp/optimole-wp/commit/4385f68))
+
+* **Documentation**
+   * improve readme description ([4134b05](https://github.com/Codeinwp/optimole-wp/commit/4134b05))
+
+* **Features**
+   * **api:** adds filter before url replacement, for individual image args ([d936944](https://github.com/Codeinwp/optimole-wp/commit/d936944))
+   * adds possible conflicts tab which reports the most common problems that Optimole might have with various plugins ([3b1ec3f](https://github.com/Codeinwp/optimole-wp/commit/3b1ec3f))
+
+
 
 #### [Version 2.0.6](https://github.com/Codeinwp/optimole-wp/compare/v2.0.5...v2.0.6) (2019-03-29)
 
@@ -263,24 +281,24 @@ Premium users will be able to optimize 10GB images per month with a 50GB viewing
 
 ### 1.1.1 - 2018-12-10  ###
 
-* Improve the lazy loading mechanism and adds compatibility with the new javascript library. 
-* Improve sample images and quality selector integration. 
-* Adds a notice when the Rest API is not available. 
-* Adds notice for new users on how the plugin works. 
-* Tested up with WordPress 5.0, all working smooth. 
+* Improve the lazy loading mechanism and adds compatibility with the new javascript library.
+* Improve sample images and quality selector integration.
+* Adds a notice when the Rest API is not available.
+* Adds notice for new users on how the plugin works.
+* Tested up with WordPress 5.0, all working smooth.
 * Fix possible issues with thumbnails when the original image is available on a different url scheme.
 * Ignore lazyload replacement on feed/amp pages.
 
 
 ### 1.1.0 - 2018-11-16  ###
 
-* Integrates lazy load feature with support for low-quality placeholders ( LQIP ). 
+* Integrates lazy load feature with support for low-quality placeholders ( LQIP ).
 * Integrates Javascript library which delivers images at the right size for each device, including Retina.
 * Improve image replacement algorithm.
-* Improves compatibility with Elementor and Gutenberg. 
+* Improves compatibility with Elementor and Gutenberg.
 * Adds support for Custom CNAME and Client hints.
-* Improves support for custom CDN. 
-* Improves AMP support. 
+* Improves support for custom CDN.
+* Improves AMP support.
 * Improves compatibility with WordPress Multisites.
 
 
@@ -342,7 +360,7 @@ Once you exceed these, we will contact you and kindly ask to upgrade to the plan
 
 ### What Content Delivery Network (CDN) do you use? ###
 
-Our FREE plan uses our custom made CDN built with 7 locations around the globe. For the paid plans, we have direct integration with Amazon Cloudfront, with more than 130 locations around the globe.
+Our FREE plan uses our AWS CloudFront CDN with locations only in Europe and North America. For the paid plans, we have a global full coverage, with more than 130 locations around the globe.
 
 ### I'm already using a CDN, can I use that instead of yours ? ###
 
