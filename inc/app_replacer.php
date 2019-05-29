@@ -161,9 +161,9 @@ abstract class Optml_App_Replacer {
 	 * Returns the array of image sizes since `get_intermediate_image_sizes` and image metadata  doesn't include the
 	 * custom image sizes in a reliable way.
 	 *
+	 * @return array
 	 * @global $wp_additional_image_sizes
 	 *
-	 * @return array
 	 */
 	protected static function image_sizes() {
 
@@ -293,7 +293,7 @@ abstract class Optml_App_Replacer {
 	 */
 	protected function extract_domain_from_urls( $urls = array() ) {
 		if ( ! is_array( $urls ) ) {
-			return $urls;
+			return [];
 		}
 
 		$urls = array_map(
