@@ -155,7 +155,7 @@ class Optml_Settings {
 	/**
 	 * Check if key is allowed.
 	 *
-	 * @param  string $key Is key allowed or not.
+	 * @param string $key Is key allowed or not.
 	 *
 	 * @return bool Is key allowed or not.
 	 */
@@ -293,6 +293,9 @@ class Optml_Settings {
 		$service_data = $this->get( 'service_data' );
 		if ( ! isset( $service_data['cdn_key'] ) ) {
 			return '';
+		}
+		if ( defined( 'OPTML_CUSTOM_DOMAIN' ) && constant( 'OPTML_CUSTOM_DOMAIN' ) ) {
+			return parse_url( strtolower( OPTML_CUSTOM_DOMAIN ), PHP_URL_HOST );
 		}
 
 		return sprintf(
