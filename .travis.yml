@@ -10,18 +10,19 @@ cache:
     - "$HOME/.npm"
 jobs:
   include:
+    - stage: teste2e
+      php: 7.0
+      name: E2E tests
+      before_install:
+        - openssl aes-256-cbc -K $encrypted_75c2263357b3_key -iv $encrypted_75c2263357b3_iv -in key.enc -out /tmp/key -d
+      script:
+        - ./bin/run-e2e-tests.sh
     - stage: test
       php: 7.0
       name: Different linters
       script:
         - composer install
         - composer run-script lint
-    - php: 7.0
-      name: E2E tests
-      before_install:
-        - openssl aes-256-cbc -K $encrypted_75c2263357b3_key -iv $encrypted_75c2263357b3_iv -in key.enc -out /tmp/key -d
-      script:
-        - ./bin/run-e2e-tests.sh
     - php: 5.2
       env:
         - WP_VERSION=5.1.1
@@ -85,3 +86,5 @@ stages:
     if: branch = master and type != "pull_request" and repo = "Codeinwp/optimole-wp"
   - name: test
     if: type = "pull_request"
+  - name: teste2e
+    if: branch = development and type = "pull_request" and repo = "Codeinwp/optimole-wp"
