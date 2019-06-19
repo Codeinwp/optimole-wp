@@ -7,3 +7,4 @@ eval "$(ssh-agent -s)"
 chmod 600 /tmp/key
 ssh-add /tmp/key
 rsync -r --delete-after --quiet $TRAVIS_BUILD_DIR/dist/ root@testing.optimole.com:/var/www/optimole-wp
+npm run cypress:run

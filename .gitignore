@@ -3,6 +3,7 @@ node_modules
 logs
 dist
 artifact
+cypress/videos
 vendor
 code_quality
 build

@@ -22,6 +22,8 @@
     "readme": "grunt wp_readme_to_markdown:optimole",
     "prebuild": "cross-env WEBPACK_ENV=production webpack",
     "pre-e2e": "npm run prebuild && grunt deploy",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run --record",
     "build": "npm run prebuild"
   },
   "devDependencies": {
@@ -41,6 +43,7 @@
     "conventional-changelog-themeisle": "^1.1.2",
     "cross-env": "^5.1.3",
     "css-loader": "^0.23.0",
+    "cypress": "^3.3.1",
     "eslint": "^4.19.1",
     "eslint-config-standard": "^10.2.1",
     "eslint-loader": "^1.9.0",
