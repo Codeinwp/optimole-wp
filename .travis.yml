@@ -1,5 +1,7 @@
 language: php
 dist: trusty
+services:
+  - docker
 env:
   - WP_VERSION=latest
 addons:

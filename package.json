@@ -23,7 +23,7 @@
     "prebuild": "cross-env WEBPACK_ENV=production webpack",
     "pre-e2e": "npm run prebuild && grunt deploy",
     "cypress:open": "cypress open",
-    "cypress:run": "cypress run --record",
+    "cypress:run": "cd cypress && docker-compose up --exit-code-from cypress",
     "build": "npm run prebuild"
   },
   "devDependencies": {
