@@ -87,4 +87,4 @@ stages:
   - name: test
     if: type = "pull_request"
   - name: teste2e
-    if: branch = development and type = "pull_request" and repo = "Codeinwp/optimole-wp"
+    if: head_branch = development and type = "pull_request" and repo = "Codeinwp/optimole-wp"
