@@ -21,6 +21,7 @@
     "dev": "cross-env WEBPACK_ENV=dev webpack --progress --colors --watch",
     "readme": "grunt wp_readme_to_markdown:optimole",
     "prebuild": "cross-env WEBPACK_ENV=production webpack",
+    "pre-e2e": "npm run prebuild && grunt deploy",
     "build": "npm run prebuild"
   },
   "devDependencies": {
