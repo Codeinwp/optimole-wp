@@ -40,9 +40,9 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 *
 	 * @codeCoverageIgnore
 	 * @static
+	 * @return Optml_Tag_Replacer
 	 * @since  1.0.0
 	 * @access public
-	 * @return Optml_Tag_Replacer
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -121,9 +121,16 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
-		$optml_args['quality'] = 'eco';
 
-		$low_url    = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
+		$low_url    = apply_filters(
+			'optml_content_url',
+			$is_slashed ? stripslashes( $original_url ) : $original_url,
+			[
+				'width'   => 'auto',
+				'height'  => 'auto',
+				'quality' => 'eco',
+			]
+		);
 		$low_url    = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 		$opt_format = '';
 
@@ -159,6 +166,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->should_add_noscript( $new_tag ) ) {
 			return $new_tag;
 		}
+
 		return $new_tag . '<noscript>' . $no_script_tag . '</noscript>';
 	}
 
@@ -254,8 +262,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 *
 	 * @codeCoverageIgnore
 	 * @access public
-	 * @since  1.0.0
 	 * @return void
+	 * @since  1.0.0
 	 */
 	public function __clone() {
 		// Cloning instances of the class is forbidden.
@@ -267,8 +275,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 *
 	 * @codeCoverageIgnore
 	 * @access public
-	 * @since  1.0.0
 	 * @return void
+	 * @since  1.0.0
 	 */
 	public function __wakeup() {
 		// Unserializing instances of the class is forbidden.

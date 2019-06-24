@@ -114,7 +114,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		}
 		$original_url = $url;
 
-		$is_slashed   = strpos( $url, '\/' ) !== false;
+		$is_slashed = strpos( $url, '\/' ) !== false;
 
 		$url = $is_slashed ? stripslashes( $url ) : $url;
 
@@ -142,12 +142,16 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( substr( $url, 0, 2 ) === '//' ) {
 			$url = sprintf( '%s:%s', is_ssl() ? 'https' : 'http', $url );
 		}
+
 		$new_url = $this->strip_image_size_from_url( $url );
 
 		if ( $new_url !== $url ) {
-			list( $args['width'], $args['height'], $crop ) = $this->parse_dimensions_from_filename( $url );
-			if ( $crop ) {
-				$args['resize'] = $this->to_optml_crop( $crop );
+			if ( $args['quality'] !== 'eco' ) {
+				list( $args['width'], $args['height'], $crop ) = $this->parse_dimensions_from_filename( $url );
+
+				if ( $crop ) {
+					$args['resize'] = $this->to_optml_crop( $crop );
+				}
 			}
 			$url = $new_url;
 		}
