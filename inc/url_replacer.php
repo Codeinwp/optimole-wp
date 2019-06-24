@@ -104,9 +104,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 */
 	public function build_image_url(
 		$url, $args = array(
-			'width'  => 'auto',
-			'height' => 'auto',
-		)
+		'width'  => 'auto',
+		'height' => 'auto',
+	)
 	) {
 
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
@@ -146,7 +146,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		$new_url = $this->strip_image_size_from_url( $url );
 
 		if ( $new_url !== $url ) {
-			if ( $args['quality'] !== 'eco' ) {
+			if ( ! isset( $args['quality'] ) || $args['quality'] !== 'eco' ) {
 				list( $args['width'], $args['height'], $crop ) = $this->parse_dimensions_from_filename( $url );
 
 				if ( $crop ) {
