@@ -104,9 +104,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 */
 	public function build_image_url(
 		$url, $args = array(
-		'width'  => 'auto',
-		'height' => 'auto',
-	)
+			'width'  => 'auto',
+			'height' => 'auto',
+		)
 	) {
 
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
