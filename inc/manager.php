@@ -141,6 +141,9 @@ final class Optml_Manager {
 		if ( array_key_exists( 'ct_builder', $_GET ) && $_GET['ct_builder'] == 'true' ) {
 			return false; // @codeCoverageIgnore
 		}
+		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
+			return false; // @codeCoverageIgnore
+		}
 		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) {
 			return false; // @codeCoverageIgnore
 		}
