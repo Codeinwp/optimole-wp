@@ -4,6 +4,7 @@ logs
 dist
 artifact
 cypress/videos
+cypress/fixtures
 vendor
 code_quality
 build

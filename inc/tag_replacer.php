@@ -116,7 +116,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 			if ( empty( $resize ) && isset( $sizes2crop[ $width . $height ] ) ) {
 				$resize = $this->to_optml_crop( $sizes2crop[ $width . $height ] );
-			} elseif ( $crop !== null ) {
+			} elseif ( $crop === true ) {
 				$resize = $this->to_optml_crop( $crop );
 			}
 
