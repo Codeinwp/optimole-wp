@@ -121,16 +121,10 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
+		$optml_args['quality'] = 'eco';
+		$optml_args['resize']  = [];
 
-		$low_url    = apply_filters(
-			'optml_content_url',
-			$is_slashed ? stripslashes( $original_url ) : $original_url,
-			[
-				'width'   => 'auto',
-				'height'  => 'auto',
-				'quality' => 'eco',
-			]
-		);
+		$low_url = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
 		$low_url    = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 		$opt_format = '';
 
