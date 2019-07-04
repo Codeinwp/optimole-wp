@@ -78,7 +78,7 @@ final class Optml_Api {
 		$response = wp_remote_request( $url, $args );
 
 		if ( is_wp_error( $response ) ) {
-			return false;
+			return $response;
 		}
 
 		$response = wp_remote_retrieve_body( $response );
