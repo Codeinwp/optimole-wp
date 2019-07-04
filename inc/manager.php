@@ -144,7 +144,7 @@ final class Optml_Manager {
 		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) {
+		if ( ! empty( $_POST ) && isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( class_exists( 'FLBuilderModel', false ) ) {
@@ -216,10 +216,10 @@ final class Optml_Manager {
 	/**
 	 * Replace urls in post meta values.
 	 *
-	 * @param mixed  $metadata Metadata.
-	 * @param int    $object_id Post id.
+	 * @param mixed $metadata Metadata.
+	 * @param int $object_id Post id.
 	 * @param string $meta_key Meta key.
-	 * @param bool   $single Is single.
+	 * @param bool $single Is single.
 	 *
 	 * @return mixed Altered meta.
 	 */
@@ -300,7 +300,7 @@ final class Optml_Manager {
 	 * Process string content and replace possible urls.
 	 *
 	 * @param string $html String content.
-	 * @param array  $extracted_urls Urls to check.
+	 * @param array $extracted_urls Urls to check.
 	 *
 	 * @return string Processed html.
 	 */
@@ -437,7 +437,7 @@ final class Optml_Manager {
 						}
 						if ( $is_no_script ) {
 							$images['in_header'][ $url_key ] = true;
-							$is_no_script = strpos( $images[0][ $url_key ], '</noscript' ) !== false ? false : true;
+							$is_no_script                    = strpos( $images[0][ $url_key ], '</noscript' ) !== false ? false : true;
 						}
 					}
 				}
