@@ -338,6 +338,10 @@ final class Optml_Manager {
 	 */
 	public function replace_content( $html ) {
 
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST && is_user_logged_in() ) {
+			return $html;
+		}
+
 		$html = $this->process_images_from_content( $html );
 
 		$html = $this->process_urls_from_content( $html );
