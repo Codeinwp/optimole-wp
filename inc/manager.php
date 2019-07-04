@@ -144,7 +144,7 @@ final class Optml_Manager {
 		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( ! empty( $_POST ) && isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
+		if ( isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( class_exists( 'FLBuilderModel', false ) ) {
