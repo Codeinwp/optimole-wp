@@ -64,8 +64,8 @@
                             <span v-if="this.selected_filter===this.FILTER_TYPES.EXT" class="select  is-small">
                                 <select v-model="selected_value">
                                     <option value="svg">.SVG</option>
-                                    <option value="png">.JPG</option>
-                                    <option value="jpg">.PNG</option>
+                                    <option value="jpg">.JPG</option>
+                                    <option value="png">.PNG</option>
                                 </select>
                             </span>
                     <input v-else v-model="selected_value" class="input is-small" type="text" placeholder="word">

@@ -19,6 +19,9 @@ composer.lock
 assets/js/bundle.js
 npm-debug.log
 bin
+key.enc
+cypress
+cypress.json
 node_modules
 logs
 grunt

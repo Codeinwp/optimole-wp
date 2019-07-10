@@ -108,16 +108,11 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			'height' => 'auto',
 		)
 	) {
-
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
 
 		$original_url = $url;
-
-		if ( Optml_Filters::should_do_image( $original_url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_FILENAME ] ) === false ) {
-			return false;
-		}
 
 		$is_slashed = strpos( $url, '\/' ) !== false;
 

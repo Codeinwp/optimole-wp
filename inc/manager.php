@@ -144,7 +144,15 @@ final class Optml_Manager {
 		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( isset( $_SERVER['REQUEST_METHOD'] ) && $_SERVER['REQUEST_METHOD'] === 'POST' && is_user_logged_in() ) {
+		/**
+		 * Disable replacement on POST request and when user is logged in, but allows for sample image call widget in dashboard
+		 */
+		if (
+			isset( $_SERVER['REQUEST_METHOD'] ) &&
+			$_SERVER['REQUEST_METHOD'] === 'POST' &&
+			is_user_logged_in()
+			&& ( ! isset( $_GET['quality'] ) || ! current_user_can( 'manage_options' ) )
+		) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( class_exists( 'FLBuilderModel', false ) ) {
@@ -189,6 +197,7 @@ final class Optml_Manager {
 	 * Register frontend replacer hooks.
 	 */
 	public function register_hooks() {
+
 		do_action( 'optml_replacer_setup' );
 		add_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
 		/**

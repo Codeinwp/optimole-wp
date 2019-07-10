@@ -337,13 +337,20 @@ abstract class Optml_App_Replacer {
 		if ( ! is_string( $url ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		$url = parse_url( $url );
+		$url_parts = parse_url( $url );
 
-		if ( ! isset( $url['host'] ) ) {
+		if ( ! isset( $url_parts['host'] ) ) {
+			return false;
+		}
+		if ( false === ( isset( $this->possible_sources[ $url_parts['host'] ] ) || isset( $this->allowed_sources[ $url_parts['host'] ] ) ) ) {
 			return false;
 		}
 
-		return isset( $this->possible_sources[ $url['host'] ] ) || isset( $this->allowed_sources[ $url['host'] ] );
+		if ( false === Optml_Filters::should_do_image( $url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_FILENAME ] ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
