@@ -75,6 +75,7 @@
 						<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_1}}</li>
 						<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_2}}</li>
 						<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_3}}</li>
+						<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_4}}</li>
 					</ul>
 				</div>
 				<div class="card-footer  ">

@@ -33,10 +33,7 @@ class Optml_Admin {
 		add_action( 'admin_notices', array( $this, 'add_notice' ) );
 		add_action( 'admin_notices', array( $this, 'add_notice_upgrade' ) );
 		add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
-		add_action( 'admin_head', array( $this, 'add_admin_css' ) );
-
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
-		add_action( 'admin_bar_menu', array( $this, 'add_traffic_node' ), 9999 );
 		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
 		add_action( 'wp_head', array( $this, 'generator' ) );
@@ -540,9 +537,10 @@ The root cause might be either a security plugin which blocks this feature or so
 			),
 			'upgrade'                        => array(
 				'title'    => __( 'Upgrade to Pro', 'optimole-wp' ),
-				'reason_1' => __( 'Faster CDN ( 130+ locations )', 'optimole-wp' ),
+				'reason_1' => __( 'Faster CDN ( 180+ locations )', 'optimole-wp' ),
 				'reason_2' => __( 'Larger traffic bandwidth', 'optimole-wp' ),
 				'reason_3' => __( 'Optimize more images', 'optimole-wp' ),
+				'reason_4' => __( 'Custom domain', 'optimole-wp' ),
 				'cta'      => __( 'View plans', 'optimole-wp' ),
 			),
 			'options_strings'                => array(
@@ -644,61 +642,4 @@ The root cause might be either a security plugin which blocks this feature or so
 		);
 	}
 
-	/**
-	 * Add admin css
-	 */
-	public function add_admin_css() {
-		?>
-		<style type="text/css">
-			#wpadminbar .optml-meter .ab-icon {
-				float: right !important;
-				margin-left: 3px;
-			}
-
-			#wpadminbar .optml-meter .ab-icon:before {
-				content: "\f534";
-				font-size: 80%;
-				color: #D54222 !important;
-			}
-		</style>
-		<?php
-	}
-
-	/**
-	 * Add top admin bar notice of traffic quota/usage.
-	 *
-	 * @param WP_Admin_Bar $wp_admin_bar Admin bar resource.
-	 */
-	public function add_traffic_node( $wp_admin_bar ) {
-		if ( ! is_user_logged_in() ) {
-			return;
-		}
-		if ( ! $this->settings->is_connected() ) {
-			return;
-		}
-		$should_load = $this->settings->get( 'admin_bar_item' );
-
-		$service_data = $this->settings->get( 'service_data' );
-		if ( empty( $service_data ) ) {
-			return;
-		}
-		$traffic = floatval( ( $service_data['usage'] / 1000 ) );
-		$quota   = floatval( ( $service_data['quota'] / 1000 ) );
-		if ( $traffic > $quota ) {
-			$text = sprintf( __( '%sGB overage', 'optimole-wp' ), number_format( ( $traffic - $quota ), 2 ) ) . '<span class="ab-icon"></span>';
-		} else {
-			$text = sprintf( __( '%1$s of %2$sGB', 'optimole-wp' ), number_format( $traffic, 1 ), number_format( $quota, 0 ) );
-		}
-
-		$args = array(
-			'id'    => 'optml_image_quota',
-			'title' => 'Optimole' . __( ' Quota', 'optimole-wp' ) . ': ' . $text,
-			'href'  => admin_url( 'upload.php?page=optimole' ),
-			'meta'  => array(
-				'target' => '_blank',
-				'class'  => 'optml-meter ' . ( $should_load !== 'enabled' ? 'hidden' : '' ),
-			),
-		);
-		$wp_admin_bar->add_node( $args );
-	}
 }
