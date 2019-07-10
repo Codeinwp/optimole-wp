@@ -33,8 +33,8 @@ final class Optml_Filters {
 	/**
 	 * Check if image qualifies for processing.
 	 *
-	 * @param $image_url
-	 * @param $flags
+	 * @param string $image_url Image url.
+	 * @param array  $flags Flags array.
 	 *
 	 * @return bool Should we process the image?
 	 */
@@ -54,8 +54,8 @@ final class Optml_Filters {
 	 *
 	 * Check if the image should be processed based on the extension.
 	 *
-	 * @param $flags
-	 * @param $ext
+	 * @param array  $flags Flags array.
+	 * @param string $ext Extension string.
 	 *
 	 * @return bool Should we do the processing?
 	 */
