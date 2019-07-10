@@ -94,6 +94,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
+
+		if ( ! Optml_Filters::should_do_page( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_URL ] ) ) {
+			return;
+		}
+
 		add_filter(
 			'max_srcset_image_width',
 			function () {
@@ -124,7 +129,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$optml_args['quality'] = 'eco';
 		$optml_args['resize']  = [];
 
-		$low_url = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
+		$low_url    = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
 		$low_url    = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 		$opt_format = '';
 
@@ -179,23 +184,27 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			}
 		}
 
-		if ( ! defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) ) {
-			return true;
-		}
-		if ( ! OPTML_DISABLE_PNG_LAZYLOAD ) {
-			return true; // @codeCoverageIgnore
+		if ( false === Optml_Filters::should_do_image( $url, self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_FILENAME ] ) ) {
+			return false;
 		}
 		$type = wp_check_filetype(
 			basename( $url ),
-			array(
-				'png' => 'image/png',
-			)
+			Optml_Config::$extensions
 		);
+
 		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
-			return true;
+			return false;
 		}
 
-		return false;
+		if ( false === Optml_Filters::should_do_extension( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_EXT ], $type['ext'] ) ) {
+			return false;
+		}
+
+		if ( defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) && OPTML_DISABLE_PNG_LAZYLOAD ) {
+			return $type['ext'] !== 'png';
+		}
+
+		return true;
 	}
 
 	/**

@@ -154,7 +154,7 @@ final class Optml_Manager {
 			}
 		}
 
-		return true;
+		return Optml_Filters::should_do_page( $this->settings->get_filters()[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_URL ] );
 	}
 
 	/**

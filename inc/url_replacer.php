@@ -112,7 +112,12 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
+
 		$original_url = $url;
+
+		if ( Optml_Filters::should_do_image( $original_url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_FILENAME ] ) === false ) {
+			return false;
+		}
 
 		$is_slashed = strpos( $url, '\/' ) !== false;
 
@@ -127,7 +132,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		// Remove any query strings that might affect conversion.
 		$url = strtok( $url, '?' );
 
-		if ( ! $this->is_valid_mimetype_from_url( $url ) ) {
+		if ( ! $this->is_valid_mimetype_from_url( $url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_EXT ] ) ) {
 			return $original_url;
 		}
 		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) ) {
@@ -164,7 +169,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		} elseif ( $args['height'] > 0 ) {
 			$args['height'] = $args['height'] > $this->max_height ? $this->max_height : $args['height'];
 		}
-
+		if ( isset( $args['resize'], $args['resize']['gravity'] ) && $this->settings->is_smart_cropping() ) {
+			$args['resize']['gravity'] = Optml_Resize::GRAVITY_SMART;
+		}
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
 
 		$new_url = ( new Optml_Image( $url, $args ) )->get_url(

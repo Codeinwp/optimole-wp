@@ -30,12 +30,6 @@
 												<span class="is-size-6-mobile is-size-6-touch">{{strings.settings_menu_item}}</span>
 											</a>
 										</li>
-										<li :class="tab === 'watermarks' ? 'is-active' : ''">
-											<a @click="changeTab('watermarks')" class="is-size-6-mobile">
-												<span class="icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-tag"></span>
-												<span class="is-size-6-mobile is-size-6-touch">{{strings.watermarks_menu_item}}</span>
-											</a>
-										</li>
 
 									</ul>
 								</div>
@@ -50,9 +44,6 @@
 								</div>
 								<div class="is-tab" v-if=" tab === 'settings'">
 									<options></options>
-								</div>
-								<div class="is-tab" v-if=" tab === 'watermarks'">
-									<watermarks></watermarks>
 								</div>
                                 <div class="is-tab" v-if=" tab === 'conflicts'">
                                     <conflicts></conflicts>

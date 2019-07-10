@@ -97,7 +97,6 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 };
 
 const saveSettings = function ( {commit, state}, data ) {
-	commit( 'updateSettings', data.settings );
 	commit( 'toggleLoading', true );
 	return Vue.http(
 		{

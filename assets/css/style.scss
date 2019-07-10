@@ -118,6 +118,31 @@
   .no-padding-right{
     padding-right:0px !important;
   }
+  #filters-list .list {
+    border: none;
+    background: none;
+    box-shadow: none;
+  }
+
+  #filters-list .list-item {
+    border: none;
+  }
+
+  #filters-list .exclusion-filter .tag.is-link strong {
+    white-space: initial;
+  }
+
+  #filters-list .exclusion-filter .tag.is-link i {
+    margin-right: 5px;
+  }
+
+  #filters-list .exclusion-filter .tag.is-link {
+    text-decoration: none;
+    width: 80%;
+    height: auto;
+    min-height: 2em;
+    justify-content: left;
+  }
 }
 
 //Fade animation.

@@ -9,6 +9,12 @@
 abstract class Optml_App_Replacer {
 
 	/**
+	 * Filters used for lazyload.
+	 *
+	 * @var null Lazyload filters.
+	 */
+	protected static $filters = null;
+	/**
 	 * Holds an array of image sizes.
 	 *
 	 * @var array
@@ -227,6 +233,8 @@ abstract class Optml_App_Replacer {
 	public function init() {
 		$this->settings = new Optml_Settings();
 		$this->set_properties();
+
+		self::$filters = $this->settings->get_filters();
 
 	}
 
