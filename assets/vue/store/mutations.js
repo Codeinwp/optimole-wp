@@ -11,6 +11,9 @@ const toggleKeyValidity = ( state, data ) => {
 const toggleConnectedToOptml = ( state, data ) => {
 	state.connected = data;
 };
+const toggleIsServiceLoaded = ( state, data ) => {
+	state.is_loaded = data;
+};
 const updateUserData = ( state, data ) => {
 	state.userData = data;
 };
@@ -52,6 +55,7 @@ export default {
 	toggleConnecting,
 	toggleKeyValidity,
 	toggleConnectedToOptml,
+	toggleIsServiceLoaded,
 	updateUserData,
 	updateApiKey,
 	updateSampleRate,

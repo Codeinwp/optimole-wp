@@ -88,6 +88,7 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 			commit( 'updateApiKey', '' );
 			if ( response.ok ) {
 				  commit( 'toggleConnectedToOptml', false );
+				  commit( 'toggleIsServiceLoaded', false );
 				  console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
 			} else {
 				  console.error( response );

@@ -513,7 +513,7 @@ class Optml_Admin {
 				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using our default CDN.', 'optimole-wp' )
 			),
 			'notice_just_activated'          => ! $this->settings->is_connected() ?
-				sprintf( __( '%1$sImage optimisation is currently running.%2$s Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You can relax, we\'ll take it from here', 'optimole-wp' ), '<strong>', '</strong>' )
+				sprintf( __( '%1$sImage optimisation is currently running.%2$s Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You can relax, we\'ll take it from here. %3$s You can read more about this process %4$shere%5$s', 'optimole-wp' ), '<strong>', '</strong>', '<br/>', '<a href="https://docs.optimole.com/article/1099-how-optimole-is-processing-the-images" target="_blank">', '<i class="dashicons dashicons-external"></i></a>' )
 				: '',
 			'notice_api_not_working'         => __(
 				'It seems there is an issue with your WordPress configuration and the core REST API functionality is not available. This is crucial as Optimole relies on this functionality in order to work.<br/>
