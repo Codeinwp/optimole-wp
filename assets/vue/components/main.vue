@@ -185,16 +185,16 @@
 				let message = '';
 
 				if (this.step_no === 0) {
-					message = 'Connecting your site to the Optimole service. ';
+					message = strings.options_strings.connect_step_0;
 				}
 				if (this.step_no === 1) {
-					message = 'Checking for possible conflicts. ';
+					message = strings.options_strings.connect_step_1;
 				}
 				if (this.step_no === 2) {
-					message = 'Inspecting the images from your site. ';
+					message = strings.options_strings.connect_step_2;
 				}
 				if (this.step_no === 3) {
-					message = 'All done, Optimole is currently optimizing your site. ';
+					message = strings.options_strings.connect_step_3;
 				}
 
 				return `${message} (${this.loading_percent}%)`

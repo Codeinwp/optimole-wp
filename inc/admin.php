@@ -510,7 +510,7 @@ class Optml_Admin {
 				'</strong>'
 			),
 			'account_needed_subtitle_2'      => sprintf(
-				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using our default CDN.', 'optimole-wp' )
+				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CDN.', 'optimole-wp' )
 			),
 			'notice_just_activated'          => ! $this->settings->is_connected() ?
 				sprintf( __( '%1$sImage optimisation is currently running.%2$s <br/> Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You might see for the very first image request being redirected to the original URL while we do the optimization in the background.<br/> You can relax, we\'ll take it from here.', 'optimole-wp' ), '<strong>', '</strong>' )
@@ -569,6 +569,10 @@ The root cause might be either a security plugin which blocks this feature or so
 				'height_field'              => __( 'Height', 'optimole-wp' ),
 				'low_q_title'               => __( 'Low', 'optimole-wp' ),
 				'auto_q_title'              => __( 'Auto', 'optimole-wp' ),
+				'connect_step_0'            => __( 'Connecting your site to the Optimole service.', 'optimole-wp' ),
+				'connect_step_1'            => __( 'Checking for possible conflicts.', 'optimole-wp' ),
+				'connect_step_2'            => __( 'Inspecting the images from your site.', 'optimole-wp' ),
+				'connect_step_3'            => __( 'All done, Optimole is currently optimizing your site.', 'optimole-wp' ),
 				'quality_title'             => __( 'Compression level', 'optimole-wp' ),
 				'quality_desc'              => __( 'A higher compression might result in a small loss of image quality. Select the most appropriate value for your images.', 'optimole-wp' ),
 				'enabled'                   => __( 'Enabled', 'optimole-wp' ),
