@@ -185,16 +185,16 @@
 				let message = '';
 
 				if (this.step_no === 0) {
-					message = strings.options_strings.connect_step_0;
+					message = this.strings.options_strings.connect_step_0;
 				}
 				if (this.step_no === 1) {
-					message = strings.options_strings.connect_step_1;
+					message = this.strings.options_strings.connect_step_1;
 				}
 				if (this.step_no === 2) {
-					message = strings.options_strings.connect_step_2;
+					message = this.strings.options_strings.connect_step_2;
 				}
 				if (this.step_no === 3) {
-					message = strings.options_strings.connect_step_3;
+					message = this.strings.options_strings.connect_step_3;
 				}
 
 				return `${message} (${this.loading_percent}%)`

@@ -34,6 +34,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @var array Lazyload classes.
 	 */
 	private static $lazyload_watcher_classes = null;
+	/**
+	 * Should we use the generic placeholder?
+	 *
+	 * @var bool Lazyload placeholder flag.
+	 */
+	private static $is_lazyload_placeholder = false;
 
 	/**
 	 * Class instance method.
@@ -48,6 +54,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 			add_action( 'optml_replacer_setup', array( self::$instance, 'init' ) );
+			self::$is_lazyload_placeholder = self::$instance->settings->get( 'lazyload_placeholder' ) === 'enabled';
 		}
 
 		return self::$instance;
@@ -126,11 +133,18 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
-		$optml_args['quality'] = 'eco';
-		$optml_args['resize']  = [];
+		if ( ! self::$is_lazyload_placeholder ) {
+			$optml_args['quality'] = 'eco';
+			$optml_args['resize']  = [];
+			$low_url               = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
+			$low_url               = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
+		} else {
+			$low_url = self::get_svg_for(
+				isset( $optml_args['width'] ) ? $optml_args['width'] : '100%',
+				isset( $optml_args['height'] ) ? $optml_args['height'] : '100%'
+			);
+		}
 
-		$low_url    = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
-		$low_url    = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 		$opt_format = '';
 
 		if ( $this->should_add_data_tag( $full_tag ) ) {
@@ -222,6 +236,32 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get SVG markup with specific width/height.
+	 *
+	 * @param int $width Markup Width.
+	 * @param int $height Markup Height.
+	 *
+	 * @return string SVG code.
+	 */
+	public static function get_svg_for( $width, $height ) {
+		$width  = ! is_numeric( $width ) ? '100%' : $width;
+		$height = ! is_numeric( $height ) ? '100%' : $height;
+
+		static $SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="#width#" height="#height#" style=""> <rect id="backgroundrect" width="100%" height="100%" x="0" y="0" fill="#FFFFFF" stroke="none"/> <g style="" class="currentLayer"> <rect fill="#ffffff" stroke="#ffffff" stroke-width="2" stroke-linejoin="round" stroke-dashoffset="" fill-rule="nonzero"   style="color: rgb(0, 0, 0);" class="selected" stroke-opacity="1" fill-opacity="1"/></g></svg>';
+
+		return 'data:image/svg+xml,' . rawurlencode(
+			str_replace(
+				[ '#width#', '#height#' ],
+				[
+					$width,
+					$height,
+				],
+				$SVG
+			)
+		);
 	}
 
 	/**

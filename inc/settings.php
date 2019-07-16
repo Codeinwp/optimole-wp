@@ -23,6 +23,7 @@ class Optml_Settings {
 		'admin_bar_item'       => 'enabled',
 		'lazyload'             => 'disabled',
 		'network_optimization' => 'disabled',
+		'lazyload_placeholder' => 'disabled',
 		'resize_smart'         => 'disabled',
 		'filters'              => [],
 		'quality'              => 'auto',
@@ -87,6 +88,7 @@ class Optml_Settings {
 				$filters[ $filter_key ][ self::FILTER_URL ] = [];
 			}
 		}
+
 		return $filters;
 	}
 
@@ -105,6 +107,7 @@ class Optml_Settings {
 				case 'lazyload':
 				case 'image_replacer':
 				case 'network_optimization':
+				case 'lazyload_placeholder':
 				case 'resize_smart':
 					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
 					break;
@@ -251,6 +254,7 @@ class Optml_Settings {
 			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
 			'lazyload'             => $this->get( 'lazyload' ),
 			'network_optimization' => $this->get( 'network_optimization' ),
+			'lazyload_placeholder' => $this->get( 'lazyload_placeholder' ),
 			'resize_smart'         => $this->get( 'resize_smart' ),
 			'image_replacer'       => $this->get( 'image_replacer' ),
 			'max_width'            => $this->get( 'max_width' ),

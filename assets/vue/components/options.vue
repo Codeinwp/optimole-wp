@@ -20,6 +20,10 @@
                                :class="tab === 'resize' ? 'is-active' : ''"
                                :title="all_strings.settings_resize_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_resize_menu_item}}</a>
                         </li>
+                        <li><a @click="changeTab('lazyload')" href="#"
+                               :class="tab === 'lazyload' ? 'is-active' : ''"
+                               :title="all_strings.lazyload_settings_menu_item+' '+all_strings.lazyload_settings_menu_item">{{all_strings.lazyload_settings_menu_item}}</a>
+                        </li>
                         <li><a href="#"
                                @click="changeTab('exclusions')" href="#"
                                :class="tab === 'exclusions' ? 'is-active' : ''"
@@ -42,6 +46,7 @@
                 <Compression v-if="tab === 'compression' "></Compression>
                 <Watermarks v-if="tab ==='watermark'"></Watermarks>
                 <Resize v-if="tab ==='resize'"></Resize>
+                <Lazyload v-if="tab ==='lazyload'"></Lazyload>
                 <Exclusions v-if="tab ==='exclusions'"></Exclusions>
             </div>
         </div>
@@ -54,10 +59,11 @@
     import Watermarks from "./watermarks.vue";
     import Resize from "./resize.vue";
     import Exclusions from "./exclusions.vue";
+	import Lazyload from "./lazyload.vue";
 
     export default {
         name: "options",
-        components: {Exclusions, Resize, Watermarks, Compression, General},
+        components: {Lazyload, Exclusions, Resize, Watermarks, Compression, General},
         data() {
             return {
                 strings: optimoleDashboardApp.strings.options_strings,
