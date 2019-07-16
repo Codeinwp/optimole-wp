@@ -1,0 +1,11 @@
+version: '3.2'
+services:
+  cypress:
+    ipc: host
+    image: "cypress/included:3.4.0"
+    environment:
+      - CYPRESS_RECORD_KEY
+    working_dir: /e2e
+    volumes:
+      - ./integration:/e2e/cypress/integration
+      - ../cypress.json/:/e2e/cypress.json

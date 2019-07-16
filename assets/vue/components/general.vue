@@ -1,0 +1,113 @@
+<template>
+    <div :class="{ 'saving--option' : this.$store.state.loading }">
+        <div class="field  columns">
+            <label class="label column has-text-grey-dark">
+                {{strings.enable_image_replace}}
+                <p class="is-italic has-text-weight-normal">
+                    {{strings.replacer_desc}}
+                </p>
+            </label>
+            <div class="column is-3">
+                <toggle-button :class="'has-text-dark'"
+                               v-model="getReplacerStatus"
+                               :disabled="this.$store.state.loading"
+                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
+                               :width="80"
+                               :height="25"
+                               color="#008ec2"></toggle-button>
+            </div>
+
+        </div>
+        <div class="field  is-fullwidth columns" :class="{'is-field-disabled':isReplacerOff }">
+            <label class="label column has-text-grey-dark">
+                {{strings.toggle_lazyload}}
+                <p class="is-italic has-text-weight-normal">
+                    {{strings.lazyload_desc}}
+                </p>
+            </label>
+
+            <div class="column is-3 ">
+                <toggle-button :class="'has-text-dark'"
+                               v-model="lazyLoadStatus"
+                               :disabled="this.$store.state.loading"
+                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
+                               :width="80"
+                               :height="25"
+                               color="#008ec2"></toggle-button>
+            </div>
+        </div>
+        <div class="field  is-fullwidth columns ">
+            <div class="column is-left">
+                <button @click="saveChanges()" class="button is-success is-small "
+                        :class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">
+                    {{strings.save_changes}}
+                </button>
+            </div>
+        </div>
+
+    </div>
+</template>
+
+<script>
+    export default {
+        name: "general",
+        components: {},
+        data() {
+            return {
+                strings: optimoleDashboardApp.strings.options_strings,
+                all_strings: optimoleDashboardApp.strings,
+                showNotification: false,
+                showSave: false,
+                isReplacerOff: false,
+                new_data: {},
+
+            }
+        },
+        mounted: function () {
+            this.isReplacerOff = (this.site_settings.image_replacer === 'disabled');
+
+            this.$emit('update-status', !this.isReplacerOff);
+        },
+        methods: {
+            saveChanges: function () {
+                this.$store.dispatch('saveSettings', {
+                    settings: this.new_data
+                });
+            }
+
+        },
+        computed: {
+            site_settings() {
+                return this.$store.state.site_settings;
+            },
+            getReplacerStatus: {
+                get: function () {
+                    return !(this.site_settings.image_replacer === 'disabled');
+                },
+                set: function (value) {
+                    this.showSave = true;
+                    this.isReplacerOff = !value;
+                    this.$emit('update-status', value)
+                    this.new_data.image_replacer = value ? 'enabled' : 'disabled'
+                }
+            },
+            lazyLoadStatus: {
+                set: function (value) {
+                    this.showSave = true;
+                    this.new_data.lazyload = value ? 'enabled' : 'disabled';
+                },
+                get: function () {
+                    return !(this.site_settings.lazyload === 'disabled');
+                }
+            }
+
+        }
+    }
+</script>
+
+<style scoped>
+    .is-field-disabled {
+        opacity: 0.5;
+    }
+
+</style>

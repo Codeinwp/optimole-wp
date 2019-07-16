@@ -54,10 +54,12 @@ class Optml_shortcode_ultimate extends Optml_compatibility {
 		}
 
 		add_filter( 'optml_default_crop', [ $this, 'change_default_crop' ] );
+		add_filter( 'optml_parse_resize_from_tag', [ $this, 'change_default_crop' ] );
 
 		$output = Optml_Main::instance()->manager->process_images_from_content( $output );
 
 		remove_filter( 'optml_default_crop', [ $this, 'change_default_crop' ] );
+		remove_filter( 'optml_parse_resize_from_tag', [ $this, 'change_default_crop' ] );
 
 		return $output;
 	}

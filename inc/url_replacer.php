@@ -108,13 +108,13 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			'height' => 'auto',
 		)
 	) {
-
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
+
 		$original_url = $url;
 
-		$is_slashed   = strpos( $url, '\/' ) !== false;
+		$is_slashed = strpos( $url, '\/' ) !== false;
 
 		$url = $is_slashed ? stripslashes( $url ) : $url;
 
@@ -127,7 +127,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		// Remove any query strings that might affect conversion.
 		$url = strtok( $url, '?' );
 
-		if ( ! $this->is_valid_mimetype_from_url( $url ) ) {
+		if ( ! $this->is_valid_mimetype_from_url( $url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_EXT ] ) ) {
 			return $original_url;
 		}
 		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) ) {
@@ -142,12 +142,16 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( substr( $url, 0, 2 ) === '//' ) {
 			$url = sprintf( '%s:%s', is_ssl() ? 'https' : 'http', $url );
 		}
+
 		$new_url = $this->strip_image_size_from_url( $url );
 
 		if ( $new_url !== $url ) {
-			list( $args['width'], $args['height'], $crop ) = $this->parse_dimensions_from_filename( $url );
-			if ( $crop ) {
-				$args['resize'] = $this->to_optml_crop( $crop );
+			if ( ! isset( $args['quality'] ) || $args['quality'] !== 'eco' ) {
+				list( $args['width'], $args['height'], $crop ) = $this->parse_dimensions_from_filename( $url );
+
+				if ( $crop ) {
+					$args['resize'] = $this->to_optml_crop( $crop );
+				}
 			}
 			$url = $new_url;
 		}
@@ -160,7 +164,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		} elseif ( $args['height'] > 0 ) {
 			$args['height'] = $args['height'] > $this->max_height ? $this->max_height : $args['height'];
 		}
-
+		if ( isset( $args['resize'], $args['resize']['gravity'] ) && $this->settings->is_smart_cropping() ) {
+			$args['resize']['gravity'] = Optml_Resize::GRAVITY_SMART;
+		}
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
 
 		$new_url = ( new Optml_Image( $url, $args ) )->get_url(

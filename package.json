@@ -21,6 +21,9 @@
     "dev": "cross-env WEBPACK_ENV=dev webpack --progress --colors --watch",
     "readme": "grunt wp_readme_to_markdown:optimole",
     "prebuild": "cross-env WEBPACK_ENV=production webpack",
+    "pre-e2e": "npm run prebuild && grunt deploy",
+    "cypress:open": "cypress open",
+    "cypress:run": "cd cypress && docker-compose up --exit-code-from cypress",
     "build": "npm run prebuild"
   },
   "devDependencies": {
@@ -40,6 +43,7 @@
     "conventional-changelog-themeisle": "^1.1.2",
     "cross-env": "^5.1.3",
     "css-loader": "^0.23.0",
+    "cypress": "^3.3.1",
     "eslint": "^4.19.1",
     "eslint-config-standard": "^10.2.1",
     "eslint-loader": "^1.9.0",
@@ -56,7 +60,7 @@
     "grunt-wp-deploy": "github:selul/grunt-wp-deploy",
     "html-loader": "^0.5.1",
     "load-project-config": "~0.2.0",
-    "node-sass": "^4.11.0",
+    "node-sass": "^4.12.0",
     "replace-in-file": "^3.4.3",
     "sass-loader": "^7.1.0",
     "semantic-release": "^15.13.3",
@@ -75,6 +79,7 @@
     "vue-js-toggle-button": "^1.3.1",
     "vue-resize": "^0.4.5",
     "vue-resource": "^1.3.4",
+    "vue-slider-component": "^3.0.33",
     "vue-upload-component": "^2.8.19",
     "vuex": "^2.4.0",
     "y": "^0.3.2"

@@ -71,9 +71,9 @@ final class Optml_Manager {
 	 *
 	 * @codeCoverageIgnore
 	 * @static
+	 * @return Optml_Manager
 	 * @since  1.0.0
 	 * @access public
-	 * @return Optml_Manager
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -141,7 +141,18 @@ final class Optml_Manager {
 		if ( array_key_exists( 'ct_builder', $_GET ) && $_GET['ct_builder'] == 'true' ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) {
+		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
+			return false; // @codeCoverageIgnore
+		}
+		/**
+		 * Disable replacement on POST request and when user is logged in, but allows for sample image call widget in dashboard
+		 */
+		if (
+			isset( $_SERVER['REQUEST_METHOD'] ) &&
+			$_SERVER['REQUEST_METHOD'] === 'POST' &&
+			is_user_logged_in()
+			&& ( ! isset( $_GET['quality'] ) || ! current_user_can( 'manage_options' ) )
+		) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( class_exists( 'FLBuilderModel', false ) ) {
@@ -151,7 +162,7 @@ final class Optml_Manager {
 			}
 		}
 
-		return true;
+		return Optml_Filters::should_do_page( $this->settings->get_filters()[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_URL ] );
 	}
 
 	/**
@@ -186,6 +197,7 @@ final class Optml_Manager {
 	 * Register frontend replacer hooks.
 	 */
 	public function register_hooks() {
+
 		do_action( 'optml_replacer_setup' );
 		add_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
 		/**
@@ -335,6 +347,10 @@ final class Optml_Manager {
 	 */
 	public function replace_content( $html ) {
 
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST && is_user_logged_in() ) {
+			return $html;
+		}
+
 		$html = $this->process_images_from_content( $html );
 
 		$html = $this->process_urls_from_content( $html );
@@ -405,7 +421,7 @@ final class Optml_Manager {
 			$header_end   = $header_start + strlen( $matches[0][0] );
 		}
 
-		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<\s*noscript\s*>\s*)?<img[^>]*?\s+?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:\s*<\/a>)?/ism', $content, $images, PREG_OFFSET_CAPTURE ) ) {
+		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s+?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:<\/noscript\s*>)?(?:\s*<\/a>)?/ism', $content, $images, PREG_OFFSET_CAPTURE ) ) {
 
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.
@@ -413,14 +429,25 @@ final class Optml_Manager {
 					unset( $images[ $key ] );
 					continue;
 				}
+				$is_no_script = false;
 				foreach ( $unused as $url_key => $url_value ) {
 					if ( $key === 'img_url' ) {
 						$images[ $key ][ $url_key ] = rtrim( $url_value[0], '\\' );
 						continue;
 					}
 					$images[ $key ][ $url_key ] = $url_value[0];
+
 					if ( $key === 0 ) {
 						$images['in_header'][ $url_key ] = $header_start !== null ? ( $url_value[1] > $header_start && $url_value[1] < $header_end ) : false;
+
+						// Check if we are in the noscript context.
+						if ( $is_no_script === false ) {
+							$is_no_script = strpos( $images[0][ $url_key ], '<noscript' ) !== false ? true : false;
+						}
+						if ( $is_no_script ) {
+							$images['in_header'][ $url_key ] = true;
+							$is_no_script                    = strpos( $images[0][ $url_key ], '</noscript' ) !== false ? false : true;
+						}
 					}
 				}
 			}
@@ -484,8 +511,8 @@ final class Optml_Manager {
 	 *
 	 * @codeCoverageIgnore
 	 * @access public
-	 * @since  1.0.0
 	 * @return void
+	 * @since  1.0.0
 	 */
 	public function __clone() {
 		// Cloning instances of the class is forbidden.
@@ -497,8 +524,8 @@ final class Optml_Manager {
 	 *
 	 * @codeCoverageIgnore
 	 * @access public
-	 * @since  1.0.0
 	 * @return void
+	 * @since  1.0.0
 	 */
 	public function __wakeup() {
 		// Unserializing instances of the class is forbidden.

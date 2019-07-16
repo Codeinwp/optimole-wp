@@ -5,27 +5,35 @@
  */
 class Optml_Settings {
 	use Optml_Normalizer;
-
+	const FILTER_EXT = 'extension';
+	const FILTER_URL = 'page_url';
+	const FILTER_FILENAME = 'filename';
+	const FILTER_TYPE_LAZYLOAD = 'lazyload';
+	const FILTER_TYPE_OPTIMIZE = 'optimize';
 	/**
 	 * Default settings schema.
 	 *
 	 * @var array Settings schema.
 	 */
 	private $default_schema = array(
-		'api_key'        => '',
-		'service_data'   => '',
-		'max_height'     => 1500,
-		'max_width'      => 2000,
-		'admin_bar_item' => 'enabled',
-		'lazyload'       => 'disabled',
-		'quality'        => 'auto',
-		'wm_id'          => - 1,
-		'wm_opacity'     => 1,
-		'wm_position'    => Optml_Resize::GRAVITY_SOUTH_EAST,
-		'wm_x'           => 0,
-		'wm_y'           => 0,
-		'wm_scale'       => 0,
-		'image_replacer' => 'enabled',
+		'api_key'              => '',
+		'service_data'         => '',
+		'max_height'           => 1500,
+		'max_width'            => 2000,
+		'admin_bar_item'       => 'enabled',
+		'lazyload'             => 'disabled',
+		'network_optimization' => 'disabled',
+		'lazyload_placeholder' => 'disabled',
+		'resize_smart'         => 'disabled',
+		'filters'              => [],
+		'quality'              => 'auto',
+		'wm_id'                => - 1,
+		'wm_opacity'           => 1,
+		'wm_position'          => Optml_Resize::GRAVITY_SOUTH_EAST,
+		'wm_x'                 => 0,
+		'wm_y'                 => 0,
+		'wm_scale'             => 0,
+		'image_replacer'       => 'enabled',
 	);
 	/**
 	 * Option key.
@@ -47,11 +55,41 @@ class Optml_Settings {
 		$this->namespace      = OPTML_NAMESPACE . '_settings';
 		$this->default_schema = apply_filters( 'optml_default_settings', $this->default_schema );
 		$this->options        = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
+
 		if ( defined( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && $this->to_boolean( constant( 'OPTIML_ENABLED_MU' ) ) && constant( 'OPTIML_MU_SITE_ID' ) ) {
 			switch_to_blog( constant( 'OPTIML_MU_SITE_ID' ) );
 			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 			restore_current_blog();
 		}
+	}
+
+	/**
+	 * Return filter definitions.
+	 *
+	 * @return mixed|null Filter values.
+	 */
+	public function get_filters() {
+
+		$filters = $this->get( 'filters' );
+		if ( ! isset( $filters[ self::FILTER_TYPE_LAZYLOAD ] ) ) {
+			$filters[ self::FILTER_TYPE_LAZYLOAD ] = [];
+		}
+		if ( ! isset( $filters[ self::FILTER_TYPE_OPTIMIZE ] ) ) {
+			$filters[ self::FILTER_TYPE_OPTIMIZE ] = [];
+		}
+		foreach ( $filters as $filter_key => $filter_rules ) {
+			if ( ! isset( $filter_rules[ self::FILTER_EXT ] ) ) {
+				$filters[ $filter_key ][ self::FILTER_EXT ] = [];
+			}
+			if ( ! isset( $filter_rules[ self::FILTER_FILENAME ] ) ) {
+				$filters[ $filter_key ][ self::FILTER_FILENAME ] = [];
+			}
+			if ( ! isset( $filter_rules[ self::FILTER_URL ] ) ) {
+				$filters[ $filter_key ][ self::FILTER_URL ] = [];
+			}
+		}
+
+		return $filters;
 	}
 
 	/**
@@ -68,6 +106,9 @@ class Optml_Settings {
 				case 'admin_bar_item':
 				case 'lazyload':
 				case 'image_replacer':
+				case 'network_optimization':
+				case 'lazyload_placeholder':
+				case 'resize_smart':
 					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
 					break;
 				case 'max_width':
@@ -75,19 +116,25 @@ class Optml_Settings {
 					$sanitized_value = $this->to_bound_integer( $value, 100, 5000 );
 					break;
 				case 'quality':
-					$sanitized_value = $this->to_map_values(
-						$value,
-						array(
-							'low_c',
-							'medium_c',
-							'high_c',
-							'auto',
-						),
-						'auto'
-					);
+					$sanitized_value = $this->to_bound_integer( $value, 1, 100 );
 					break;
 				case 'wm_id':
 					$sanitized_value = intval( $value );
+					break;
+				case 'filters':
+					$current_filters = $this->get_filters();
+					$sanitized_value = array_replace_recursive( $current_filters, $value );
+					// Remove falsy vars.
+					foreach ( $sanitized_value as $filter_type => $filter_values ) {
+						foreach ( $filter_values as $filter_rule_type => $filter_rules_value ) {
+							$sanitized_value[ $filter_type ][ $filter_rule_type ] = array_filter(
+								$filter_rules_value,
+								function ( $value ) {
+									return ( $value !== 'false' && $value !== false );
+								}
+							);
+						}
+					}
 					break;
 				case 'wm_opacity':
 				case 'wm_scale':
@@ -155,7 +202,7 @@ class Optml_Settings {
 	/**
 	 * Check if key is allowed.
 	 *
-	 * @param  string $key Is key allowed or not.
+	 * @param string $key Is key allowed or not.
 	 *
 	 * @return bool Is key allowed or not.
 	 */
@@ -203,13 +250,17 @@ class Optml_Settings {
 	public function get_site_settings() {
 
 		return array(
-			'quality'        => $this->get_quality(),
-			'admin_bar_item' => $this->get( 'admin_bar_item' ),
-			'lazyload'       => $this->get( 'lazyload' ),
-			'image_replacer' => $this->get( 'image_replacer' ),
-			'max_width'      => $this->get( 'max_width' ),
-			'max_height'     => $this->get( 'max_height' ),
-			'watermark'      => $this->get_watermark(),
+			'quality'              => $this->get_quality(),
+			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
+			'lazyload'             => $this->get( 'lazyload' ),
+			'network_optimization' => $this->get( 'network_optimization' ),
+			'lazyload_placeholder' => $this->get( 'lazyload_placeholder' ),
+			'resize_smart'         => $this->get( 'resize_smart' ),
+			'image_replacer'       => $this->get( 'image_replacer' ),
+			'max_width'            => $this->get( 'max_width' ),
+			'max_height'           => $this->get( 'max_height' ),
+			'filters'              => $this->get_filters(),
+			'watermark'            => $this->get_watermark(),
 		);
 	}
 
@@ -249,6 +300,15 @@ class Optml_Settings {
 			'y_offset' => $this->get( 'wm_y' ),
 			'scale'    => $this->get( 'wm_scale' ),
 		);
+	}
+
+	/**
+	 * Check if smart cropping is enabled.
+	 *
+	 * @return bool Is smart cropping enabled.
+	 */
+	public function is_smart_cropping() {
+		return $this->get( 'resize_smart' ) === 'enabled';
 	}
 
 	/**
@@ -293,6 +353,9 @@ class Optml_Settings {
 		$service_data = $this->get( 'service_data' );
 		if ( ! isset( $service_data['cdn_key'] ) ) {
 			return '';
+		}
+		if ( defined( 'OPTML_CUSTOM_DOMAIN' ) && constant( 'OPTML_CUSTOM_DOMAIN' ) ) {
+			return parse_url( strtolower( OPTML_CUSTOM_DOMAIN ), PHP_URL_HOST );
 		}
 
 		return sprintf(

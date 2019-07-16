@@ -1,4 +1,4 @@
-=== Image optimization service by Optimole ===
+=== Image optimization & Lazy Load by Optimole ===
 Contributors: optimole
 Tags: image optimization, convert webp, responsive images, lazy load, images, optimization, performance, photos
 Requires at least: 4.7
@@ -7,7 +7,7 @@ Requires PHP: 5.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-Improve your site loading speed by delivering optimized image for each device. Lazy load included.
+Improve your site loading speed by delivering optimized WebP image for each device. Lazy load included.
 
 == Description ==
 

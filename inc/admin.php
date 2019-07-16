@@ -33,10 +33,7 @@ class Optml_Admin {
 		add_action( 'admin_notices', array( $this, 'add_notice' ) );
 		add_action( 'admin_notices', array( $this, 'add_notice_upgrade' ) );
 		add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
-		add_action( 'admin_head', array( $this, 'add_admin_css' ) );
-
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
-		add_action( 'admin_bar_menu', array( $this, 'add_traffic_node' ), 9999 );
 		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
 		add_action( 'wp_head', array( $this, 'generator' ) );
@@ -64,8 +61,8 @@ class Optml_Admin {
 
 		$bgclasses       = empty( $bgclasses ) ? '' : sprintf( '"%s"', implode( '","', (array) $bgclasses ) );
 		$watcher_classes = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
-
-		$output = sprintf(
+		$default_network = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
+		$output          = sprintf(
 			'
 		<style type="text/css">
 			img[data-opt-src]:not([data-opt-lazy-loaded]) {
@@ -103,7 +100,7 @@ class Optml_Admin {
 			$min,
 			$bgclasses,
 			$watcher_classes,
-			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? ( OPTML_NETWORK_ON ? 'true' : 'false' ) : 'false',
+			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? ( OPTML_NETWORK_ON ? 'true' : 'false' ) : ( $default_network ? 'true' : 'false' ),
 			$this->settings->get_numeric_quality()
 		);
 		echo $output;
@@ -215,7 +212,7 @@ class Optml_Admin {
 							class="dashicons dashicons-external"></span><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 				</a>
 				<a class="button"
-						href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_upg' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I\'ve done this', 'optimole-wp' ); ?></a>
+				   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_upg' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I\'ve done this', 'optimole-wp' ); ?></a>
 			</p>
 		</div>
 		<?php
@@ -268,9 +265,9 @@ class Optml_Admin {
 			<p> <?php printf( __( 'Welcome to %1$sOptiMole%2$s, the easiest way to optimize your website images. Your users will enjoy a %3$sfaster%4$s website after you connect it with our service.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>' ); ?></p>
 			<p>
 				<a href="<?php echo esc_url( admin_url( 'upload.php?page=optimole' ) ); ?>"
-						class="button button-primary"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?></a>
+				   class="button button-primary"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?></a>
 				<a class="button"
-						href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_optin' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?></a>
+				   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_optin' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?></a>
 			</p>
 		</div>
 		<?php
@@ -470,107 +467,136 @@ class Optml_Admin {
 	 */
 	private function get_dashboard_strings() {
 		return array(
-			'optimole'                      => 'Optimole',
-			'version'                       => OPTML_VERSION,
-			'terms_menu'                    => __( 'Terms', 'optimole-wp' ),
-			'privacy_menu'                  => __( 'Privacy', 'optimole-wp' ),
-			'testdrive_menu'                => __( 'Test Optimole', 'optimole-wp' ),
-			'service_details'               => __( 'Image optimization service', 'optimole-wp' ),
-			'connect_btn'                   => __( 'Connect to OptiMole Service', 'optimole-wp' ),
-			'disconnect_btn'                => __( 'Disconnect', 'optimole-wp' ),
-			'refresh_stats_cta'             => __( 'Refresh stats', 'optimole-wp' ),
-			'updating_stats_cta'            => __( 'Updating stats', 'optimole-wp' ),
-			'api_key_placeholder'           => __( 'API Key', 'optimole-wp' ),
-			'account_needed_heading'        => __( 'Sign-up for API key', 'optimole-wp' ),
-			'invalid_key'                   => __( 'Invalid API Key', 'optimole-wp' ),
-			'status'                        => __( 'Status', 'optimole-wp' ),
-			'email_address_label'           => __( 'Your email address', 'optimole-wp' ),
-			'register_btn'                  => __( 'Register & Email API key', 'optimole-wp' ),
-			'step_one_api_title'            => __( 'Enter your API key.', 'optimole-wp' ),
-			'step_one_api_desc'             => sprintf( __( 'Copy the API key you have received via email or you can get it from %1$s Optimole dashboard%2$s. <br/>', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/" target="_blank"> ', '</a>' ),
-			'step_two_api_title'            => __( 'Connect to Optimole.', 'optimole-wp' ),
-			'step_two_api_desc'             => __( ' Fill in the upper API key field and connect to Optimole service.', 'optimole-wp' ),
-			'api_exists'                    => __( 'I already have an API key.', 'optimole-wp' ),
-			'back_to_register'              => __( 'Register account', 'optimole-wp' ),
-			'back_to_connect'               => __( 'Connect account', 'optimole-wp' ),
-			'error_register'                => sprintf( __( 'Error registering account. You can try again %1$shere%2$s ', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/register" target="_blank"> ', '</a>' ),
-			'connected'                     => __( 'Connected', 'optimole-wp' ),
-			'not_connected'                 => __( 'Not connected', 'optimole-wp' ),
-			'usage'                         => __( 'Monthly Usage', 'optimole-wp' ),
-			'quota'                         => __( 'Monthly Quota', 'optimole-wp' ),
-			'logged_in_as'                  => __( 'Logged in as', 'optimole-wp' ),
-			'private_cdn_url'               => __( 'Images domain', 'optimole-wp' ),
-			'options'                       => __( 'Options', 'optimole-wp' ),
-			'notification_message_register' => __( 'We have sent you an email with the API key. Please copy and paste the key in the field below.', 'optimole-wp' ),
-			'account_needed_title'          => sprintf(
+			'optimole'                       => 'Optimole',
+			'version'                        => OPTML_VERSION,
+			'terms_menu'                     => __( 'Terms', 'optimole-wp' ),
+			'privacy_menu'                   => __( 'Privacy', 'optimole-wp' ),
+			'testdrive_menu'                 => __( 'Test Optimole', 'optimole-wp' ),
+			'service_details'                => __( 'Image optimization service', 'optimole-wp' ),
+			'connect_btn'                    => __( 'Connect to OptiMole Service', 'optimole-wp' ),
+			'disconnect_btn'                 => __( 'Disconnect', 'optimole-wp' ),
+			'refresh_stats_cta'              => __( 'Refresh stats', 'optimole-wp' ),
+			'updating_stats_cta'             => __( 'Updating stats', 'optimole-wp' ),
+			'api_key_placeholder'            => __( 'API Key', 'optimole-wp' ),
+			'account_needed_heading'         => __( 'Sign-up for API key', 'optimole-wp' ),
+			'invalid_key'                    => __( 'Invalid API Key', 'optimole-wp' ),
+			'status'                         => __( 'Status', 'optimole-wp' ),
+			'email_address_label'            => __( 'Your email address', 'optimole-wp' ),
+			'register_btn'                   => __( 'Register & Email API key', 'optimole-wp' ),
+			'step_one_api_title'             => __( 'Enter your API key.', 'optimole-wp' ),
+			'step_one_api_desc'              => sprintf( __( 'Copy the API key you have received via email or you can get it from %1$s Optimole dashboard%2$s. <br/>', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/" target="_blank"> ', '</a>' ),
+			'step_two_api_title'             => __( 'Connect to Optimole.', 'optimole-wp' ),
+			'step_two_api_desc'              => __( ' Fill in the upper API key field and connect to Optimole service.', 'optimole-wp' ),
+			'api_exists'                     => __( 'I already have an API key.', 'optimole-wp' ),
+			'back_to_register'               => __( 'Register account', 'optimole-wp' ),
+			'back_to_connect'                => __( 'Connect account', 'optimole-wp' ),
+			'error_register'                 => sprintf( __( 'Error registering account. You can try again %1$shere%2$s ', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/register" target="_blank"> ', '</a>' ),
+			'connected'                      => __( 'Connected', 'optimole-wp' ),
+			'not_connected'                  => __( 'Not connected', 'optimole-wp' ),
+			'usage'                          => __( 'Monthly Usage', 'optimole-wp' ),
+			'quota'                          => __( 'Monthly Quota', 'optimole-wp' ),
+			'logged_in_as'                   => __( 'Logged in as', 'optimole-wp' ),
+			'private_cdn_url'                => __( 'Images domain', 'optimole-wp' ),
+			'notification_message_register'  => __( 'We have sent you an email with the API key. Please copy and paste the key in the field below.', 'optimole-wp' ),
+			'account_needed_title'           => sprintf(
 				__( 'In order to get access to free image optimization service you will need an API key from %s.', 'optimole-wp' ),
 				' <a href="https://dashboard.optimole.com/register" target="_blank">optimole.com</a>'
 			),
-			'account_needed_subtitle_1'     => sprintf(
+			'account_needed_subtitle_1'      => sprintf(
 				__( 'You will get access to our image optimization service for %1$sFREE%2$s in the limit of %3$s1GB%4$s traffic per month. ', 'optimole-wp' ),
 				'<strong>',
 				'</strong>',
 				'<strong>',
 				'</strong>'
 			),
-			'account_needed_subtitle_2'     => sprintf(
-				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using our default CDN.', 'optimole-wp' )
+			'account_needed_subtitle_2'      => sprintf(
+				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CDN.', 'optimole-wp' )
 			),
-			'notice_just_activated'         => ! $this->settings->is_connected() ?
-				sprintf( __( '%1$sImage optimisation is currently running.%2$s Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You can relax, we\'ll take it from here', 'optimole-wp' ), '<strong>', '</strong>' )
+			'notice_just_activated'          => ! $this->settings->is_connected() ?
+				sprintf( __( '%1$sImage optimisation is currently running.%2$s <br/> Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You might see for the very first image request being redirected to the original URL while we do the optimization in the background.<br/> You can relax, we\'ll take it from here.', 'optimole-wp' ), '<strong>', '</strong>' )
 				: '',
-			'notice_api_not_working'        => __(
+			'notice_api_not_working'         => __(
 				'It seems there is an issue with your WordPress configuration and the core REST API functionality is not available. This is crucial as Optimole relies on this functionality in order to work.<br/>
 The root cause might be either a security plugin which blocks this feature or some faulty server configuration which constrain this WordPress feature.You can try to disable any of the security plugins that you use in order to see if the issue persists or ask the hosting company to further investigate.',
 				'optimole-wp'
 			),
-			'dashboard_menu_item'           => __( 'Dashboard', 'optimole-wp' ),
-			'settings_menu_item'            => __( 'General Settings', 'optimole-wp' ),
-			'watermarks_menu_item'          => __( 'Watermark options', 'optimole-wp' ),
-			'conflicts_menu_item'           => __( 'Possible issues', 'optimole-wp' ),
-			'conflicts'                     => array(
+			'dashboard_menu_item'            => __( 'Dashboard', 'optimole-wp' ),
+			'settings_menu_item'             => __( 'Settings', 'optimole-wp' ),
+			'settings_exclusions_menu_item'  => __( 'Exclusions', 'optimole-wp' ),
+			'settings_resize_menu_item'      => __( 'Resize', 'optimole-wp' ),
+			'settings_compression_menu_item' => __( 'Compression', 'optimole-wp' ),
+			'advanced_settings_menu_item'    => __( 'Advanced', 'optimole-wp' ),
+			'general_settings_menu_item'     => __( 'General', 'optimole-wp' ),
+			'lazyload_settings_menu_item'    => __( 'Lazyload', 'optimole-wp' ),
+			'watermarks_menu_item'           => __( 'Watermark', 'optimole-wp' ),
+			'conflicts_menu_item'            => __( 'Possible issues', 'optimole-wp' ),
+			'conflicts'                      => array(
 				'title'              => __( 'We might have some possible conflicts with the plugins that you use. In order to benefit from Optimole\'s full potential you will need to address this issues.', 'optimole-wp' ),
 				'message'            => __( 'Details', 'optimole-wp' ),
-				'conflict_close'            => __( 'I\'ve done this.', 'optimole-wp' ),
+				'conflict_close'     => __( 'I\'ve done this.', 'optimole-wp' ),
 				'no_conflicts_found' => __( 'No conflicts found. We are all peachy now. 🍑', 'optimole-wp' ),
 			),
-			'upgrade'                       => array(
+			'upgrade'                        => array(
 				'title'    => __( 'Upgrade to Pro', 'optimole-wp' ),
-				'reason_1' => __( 'Faster CDN ( 130+ locations )', 'optimole-wp' ),
+				'reason_1' => __( 'Faster CDN ( 180+ locations )', 'optimole-wp' ),
 				'reason_2' => __( 'Larger traffic bandwidth', 'optimole-wp' ),
 				'reason_3' => __( 'Optimize more images', 'optimole-wp' ),
+				'reason_4' => __( 'Custom domain', 'optimole-wp' ),
 				'cta'      => __( 'View plans', 'optimole-wp' ),
 			),
-			'options_strings'               => array(
-				'toggle_ab_item'       => __( 'Admin bar status', 'optimole-wp' ),
-				'toggle_lazyload'      => __( 'Javascript replacement & Lazy load', 'optimole-wp' ),
-				'enable_image_replace' => __( 'Enable image replacement', 'optimole-wp' ),
-				'show'                 => __( 'Show', 'optimole-wp' ),
-				'hide'                 => __( 'Hide', 'optimole-wp' ),
-				'high_q_title'         => __( 'High', 'optimole-wp' ),
-				'medium_q_title'       => __( 'Medium', 'optimole-wp' ),
-				'size_title'           => __( 'Resize large images.', 'optimole-wp' ),
-				'size_desc'            => __( 'We will resize all images with sizes greater than this values.', 'optimole-wp' ),
-				'width_field'          => __( 'Width', 'optimole-wp' ),
-				'height_field'         => __( 'Height', 'optimole-wp' ),
-				'low_q_title'          => __( 'Low', 'optimole-wp' ),
-				'auto_q_title'         => __( 'Auto', 'optimole-wp' ),
-				'quality_title'        => __( 'Compression level', 'optimole-wp' ),
-				'quality_desc'         => __( 'A higher compression might result in a small loss of image quality. Select the most appropriate value for your images.', 'optimole-wp' ),
-				'enabled'              => __( 'Enabled', 'optimole-wp' ),
-				'option_saved'         => __( 'Option saved.', 'optimole-wp' ),
-				'disabled'             => __( 'Disabled', 'optimole-wp' ),
-				'image_1_label'        => __( 'Original', 'optimole-wp' ),
-				'image_2_label'        => __( 'Optimized', 'optimole-wp' ),
-				'save_changes'         => __( 'Save changes', 'optimole-wp' ),
-				'sample_image_loading' => __( ' Loading a sample image. ', 'optimole-wp' ),
-				'no_images_found'      => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
-				'quality_slider_desc'  => __( ' See one sample image which will help you choose the right quality of the compression.', 'optimole-wp' ),
-				'replacer_desc'        => __( 'Replace all the image urls from your website with the ones optimized by Optimole.', 'optimole-wp' ),
-				'admin_bar_desc'       => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),
-				'lazyload_desc'        => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload.', 'optimole-wp' ),
+			'options_strings'                => array(
+				'toggle_ab_item'                    => __( 'Admin bar status', 'optimole-wp' ),
+				'toggle_lazyload'                   => __( 'Scale images & Lazy load', 'optimole-wp' ),
+				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
+				'enable_network_opt_title'          => __( 'Enable network based optimizations', 'optimole-wp' ),
+				'enable_resize_smart_title'         => __( 'Enable Smart Cropping', 'optimole-wp' ),
+				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
+				'enable_lazyload_placeholder_desc'  => __( 'Optimole will use a generic lazyload placeholder instead of the low quality version of your image when doing the lazyload.', 'optimole-wp' ),
+				'show'                              => __( 'Show', 'optimole-wp' ),
+				'filter_operator_contains'          => __( 'contains', 'optimole-wp' ),
+				'filter_operator_is'                => __( 'is', 'optimole-wp' ),
+				'filter_filename'                   => __( 'Image filename', 'optimole-wp' ),
+				'filter_url'                        => __( 'Page URL', 'optimole-wp' ),
+				'filter_ext'                        => __( 'Image extension', 'optimole-wp' ),
+				'exclude_title_optimize'            => __( 'Don\'t optimize images if', 'optimole-wp' ),
+				'exclude_title_lazyload'            => __( 'Don\'t lazyload images if', 'optimole-wp' ),
+				'exclude_filename_desc'             => __( 'Image filename contains', 'optimole-wp' ),
+				'exclude_url_desc'                  => __( 'Page url contains', 'optimole-wp' ),
+				'exclude_ext_desc'                  => __( 'Image extension is', 'optimole-wp' ),
+				'hide'                              => __( 'Hide', 'optimole-wp' ),
+				'high_q_title'                      => __( 'High', 'optimole-wp' ),
+				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),
+				'size_title'                        => __( 'Resize large images.', 'optimole-wp' ),
+				'size_desc'                         => __( 'We will resize all images with sizes greater than this values.', 'optimole-wp' ),
+				'width_field'                       => __( 'Width', 'optimole-wp' ),
+				'height_field'                      => __( 'Height', 'optimole-wp' ),
+				'low_q_title'                       => __( 'Low', 'optimole-wp' ),
+				'auto_q_title'                      => __( 'Auto', 'optimole-wp' ),
+				'connect_step_0'                    => __( 'Connecting your site to the Optimole service.', 'optimole-wp' ),
+				'connect_step_1'                    => __( 'Checking for possible conflicts.', 'optimole-wp' ),
+				'connect_step_2'                    => __( 'Inspecting the images from your site.', 'optimole-wp' ),
+				'connect_step_3'                    => __( 'All done, Optimole is currently optimizing your site.', 'optimole-wp' ),
+				'quality_title'                     => __( 'Compression level', 'optimole-wp' ),
+				'quality_desc'                      => __( 'A higher compression might result in a small loss of image quality. Select the most appropriate value for your images.', 'optimole-wp' ),
+				'enabled'                           => __( 'Enabled', 'optimole-wp' ),
+				'option_saved'                      => __( 'Option saved.', 'optimole-wp' ),
+				'disabled'                          => __( 'Disabled', 'optimole-wp' ),
+				'image_1_label'                     => __( 'Original', 'optimole-wp' ),
+				'image_2_label'                     => __( 'Optimized', 'optimole-wp' ),
+				'save_changes'                      => __( 'Save changes', 'optimole-wp' ),
+				'add_filter'                        => __( 'Add filter', 'optimole-wp' ),
+				'view_sample_image'                 => __( 'View sample image', 'optimole-wp' ),
+				'quality_selected_value'            => __( 'Selected value', 'optimole-wp' ),
+				'sample_image_loading'              => __( 'Loading a sample image. ', 'optimole-wp' ),
+				'no_images_found'                   => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
+				'quality_slider_desc'               => __( 'See one sample image which will help you choose the right quality of the compression.', 'optimole-wp' ),
+				'replacer_desc'                     => __( 'Replace all the image urls from your website with the ones optimized by Optimole.', 'optimole-wp' ),
+				'admin_bar_desc'                    => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),
+				'enable_network_opt_desc'           => __( 'Optimole provides an option to automatically downgrade the image quality when it detects a slower network.', 'optimole-wp' ),
+				'enable_resize_smart_desc'          => __( 'Detects the most interesting section of the image and considers it as the center of the resulting image.', 'optimole-wp' ),
+				'lazyload_desc'                     => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload.', 'optimole-wp' ),
 			),
-			'watermarks'                    => array(
+			'watermarks'                     => array(
 				'image'                    => __( 'Image', 'optimole-wp' ),
 				'loading_remove_watermark' => __( 'Removing watermark resource ...', 'optimole-wp' ),
 				'max_allowed'              => __( 'You are allowed to save maximum 5 images.', 'optimole-wp' ),
@@ -608,9 +634,9 @@ The root cause might be either a security plugin which blocks this feature or so
 				'scale_desc'               => __( 'A value between 0 and 300 for the scale of the watermark (100 is the original size and 300 is 3x the size) relative to the resulting image size. If set to 0 it will default to the original size.', 'optimole-wp' ),
 				'save_changes'             => __( 'Save changes', 'optimole-wp' ),
 			),
-			'latest_images'                 => array(
+			'latest_images'                  => array(
 				'image'                 => __( 'Image', 'optimole-wp' ),
-				'no_images_found'       => sprintf( __( 'We might have a delay finding optimized images. Meanwhile you can visit your %1$shomepage%2$s and check how our plugin performs. ', 'optimole-wp' ), '<a href="' . esc_url( home_url() ) . '" target="_blank" >', '</a>' ),
+				'no_images_found'       => sprintf( __( 'We are currently optimizing your images. Meanwhile you can visit your %1$shomepage%2$s and check how our plugin performs. ', 'optimole-wp' ), '<a href="' . esc_url( home_url() ) . '" target="_blank" >', '</a>' ),
 				'compression'           => __( 'Optimization', 'optimole-wp' ),
 				'loading_latest_images' => __( 'Loading your optimized images...', 'optimole-wp' ),
 				'last'                  => __( 'Last', 'optimole-wp' ),
@@ -623,61 +649,4 @@ The root cause might be either a security plugin which blocks this feature or so
 		);
 	}
 
-	/**
-	 * Add admin css
-	 */
-	public function add_admin_css() {
-		?>
-		<style type="text/css">
-			#wpadminbar .optml-meter .ab-icon {
-				float: right !important;
-				margin-left: 3px;
-			}
-
-			#wpadminbar .optml-meter .ab-icon:before {
-				content: "\f534";
-				font-size: 80%;
-				color: #D54222 !important;
-			}
-		</style>
-		<?php
-	}
-
-	/**
-	 * Add top admin bar notice of traffic quota/usage.
-	 *
-	 * @param WP_Admin_Bar $wp_admin_bar Admin bar resource.
-	 */
-	public function add_traffic_node( $wp_admin_bar ) {
-		if ( ! is_user_logged_in() ) {
-			return;
-		}
-		if ( ! $this->settings->is_connected() ) {
-			return;
-		}
-		$should_load = $this->settings->get( 'admin_bar_item' );
-
-		$service_data = $this->settings->get( 'service_data' );
-		if ( empty( $service_data ) ) {
-			return;
-		}
-		$traffic = floatval( ( $service_data['usage'] / 1000 ) );
-		$quota   = floatval( ( $service_data['quota'] / 1000 ) );
-		if ( $traffic > $quota ) {
-			$text = sprintf( __( '%sGB overage', 'optimole-wp' ), number_format( ( $traffic - $quota ), 2 ) ) . '<span class="ab-icon"></span>';
-		} else {
-			$text = sprintf( __( '%1$s of %2$sGB', 'optimole-wp' ), number_format( $traffic, 1 ), number_format( $quota, 0 ) );
-		}
-
-		$args = array(
-			'id'    => 'optml_image_quota',
-			'title' => 'Optimole' . __( ' Quota', 'optimole-wp' ) . ': ' . $text,
-			'href'  => admin_url( 'upload.php?page=optimole' ),
-			'meta'  => array(
-				'target' => '_blank',
-				'class'  => 'optml-meter ' . ( $should_load !== 'enabled' ? 'hidden' : '' ),
-			),
-		);
-		$wp_admin_bar->add_node( $args );
-	}
 }

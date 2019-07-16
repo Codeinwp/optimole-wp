@@ -34,15 +34,21 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @var array Lazyload classes.
 	 */
 	private static $lazyload_watcher_classes = null;
+	/**
+	 * Should we use the generic placeholder?
+	 *
+	 * @var bool Lazyload placeholder flag.
+	 */
+	private static $is_lazyload_placeholder = false;
 
 	/**
 	 * Class instance method.
 	 *
 	 * @codeCoverageIgnore
 	 * @static
+	 * @return Optml_Tag_Replacer
 	 * @since  1.0.0
 	 * @access public
-	 * @return Optml_Tag_Replacer
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -94,12 +100,17 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
+		if ( ! Optml_Filters::should_do_page( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_URL ] ) ) {
+			return;
+		}
+
 		add_filter(
 			'max_srcset_image_width',
 			function () {
 				return 1;
 			}
 		);
+		self::$is_lazyload_placeholder = self::$instance->settings->get( 'lazyload_placeholder' ) === 'enabled';
 		add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 6 );
 
 	}
@@ -121,10 +132,18 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
-		$optml_args['quality'] = 'eco';
+		if ( ! self::$is_lazyload_placeholder ) {
+			$optml_args['quality'] = 'eco';
+			$optml_args['resize']  = [];
+			$low_url               = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
+			$low_url               = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
+		} else {
+			$low_url = self::get_svg_for(
+				isset( $optml_args['width'] ) ? $optml_args['width'] : '100%',
+				isset( $optml_args['height'] ) ? $optml_args['height'] : '100%'
+			);
+		}
 
-		$low_url    = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
-		$low_url    = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 		$opt_format = '';
 
 		if ( $this->should_add_data_tag( $full_tag ) ) {
@@ -159,6 +178,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->should_add_noscript( $new_tag ) ) {
 			return $new_tag;
 		}
+
 		return $new_tag . '<noscript>' . $no_script_tag . '</noscript>';
 	}
 
@@ -177,23 +197,27 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			}
 		}
 
-		if ( ! defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) ) {
-			return true;
-		}
-		if ( ! OPTML_DISABLE_PNG_LAZYLOAD ) {
-			return true; // @codeCoverageIgnore
+		if ( false === Optml_Filters::should_do_image( $url, self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_FILENAME ] ) ) {
+			return false;
 		}
 		$type = wp_check_filetype(
 			basename( $url ),
-			array(
-				'png' => 'image/png',
-			)
+			Optml_Config::$extensions
 		);
+
 		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
-			return true;
+			return false;
 		}
 
-		return false;
+		if ( false === Optml_Filters::should_do_extension( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_EXT ], $type['ext'] ) ) {
+			return false;
+		}
+
+		if ( defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) && OPTML_DISABLE_PNG_LAZYLOAD ) {
+			return $type['ext'] !== 'png';
+		}
+
+		return true;
 	}
 
 	/**
@@ -211,6 +235,32 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get SVG markup with specific width/height.
+	 *
+	 * @param int $width Markup Width.
+	 * @param int $height Markup Height.
+	 *
+	 * @return string SVG code.
+	 */
+	public static function get_svg_for( $width, $height ) {
+		$width  = ! is_numeric( $width ) ? '100%' : $width;
+		$height = ! is_numeric( $height ) ? '100%' : $height;
+
+		static $SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="#width#" height="#height#" style=""> <rect id="backgroundrect" width="100%" height="100%" x="0" y="0" fill="#FFFFFF" stroke="none"/> <g style="" class="currentLayer"> <rect fill="#ffffff" stroke="#ffffff" stroke-width="2" stroke-linejoin="round" stroke-dashoffset="" fill-rule="nonzero"   style="color: rgb(0, 0, 0);" class="selected" stroke-opacity="1" fill-opacity="1"/></g></svg>';
+
+		return 'data:image/svg+xml,' . rawurlencode(
+			str_replace(
+				[ '#width#', '#height#' ],
+				[
+					$width,
+					$height,
+				],
+				$SVG
+			)
+		);
 	}
 
 	/**
@@ -254,8 +304,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 *
 	 * @codeCoverageIgnore
 	 * @access public
-	 * @since  1.0.0
 	 * @return void
+	 * @since  1.0.0
 	 */
 	public function __clone() {
 		// Cloning instances of the class is forbidden.
@@ -267,8 +317,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 *
 	 * @codeCoverageIgnore
 	 * @access public
-	 * @since  1.0.0
 	 * @return void
+	 * @since  1.0.0
 	 */
 	public function __wakeup() {
 		// Unserializing instances of the class is forbidden.

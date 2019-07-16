@@ -9,6 +9,12 @@
 abstract class Optml_App_Replacer {
 
 	/**
+	 * Filters used for lazyload.
+	 *
+	 * @var null Lazyload filters.
+	 */
+	protected static $filters = null;
+	/**
 	 * Holds an array of image sizes.
 	 *
 	 * @var array
@@ -161,9 +167,8 @@ abstract class Optml_App_Replacer {
 	 * Returns the array of image sizes since `get_intermediate_image_sizes` and image metadata  doesn't include the
 	 * custom image sizes in a reliable way.
 	 *
-	 * @global $wp_additional_image_sizes
-	 *
 	 * @return array
+	 * @global $wp_additional_image_sizes
 	 */
 	protected static function image_sizes() {
 
@@ -229,6 +234,8 @@ abstract class Optml_App_Replacer {
 		$this->settings = new Optml_Settings();
 		$this->set_properties();
 
+		self::$filters = $this->settings->get_filters();
+
 	}
 
 
@@ -293,7 +300,7 @@ abstract class Optml_App_Replacer {
 	 */
 	protected function extract_domain_from_urls( $urls = array() ) {
 		if ( ! is_array( $urls ) ) {
-			return $urls;
+			return [];
 		}
 
 		$urls = array_map(
@@ -330,13 +337,20 @@ abstract class Optml_App_Replacer {
 		if ( ! is_string( $url ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		$url = parse_url( $url );
+		$url_parts = parse_url( $url );
 
-		if ( ! isset( $url['host'] ) ) {
+		if ( ! isset( $url_parts['host'] ) ) {
+			return false;
+		}
+		if ( false === ( isset( $this->possible_sources[ $url_parts['host'] ] ) || isset( $this->allowed_sources[ $url_parts['host'] ] ) ) ) {
 			return false;
 		}
 
-		return isset( $this->possible_sources[ $url['host'] ] ) || isset( $this->allowed_sources[ $url['host'] ] );
+		if ( false === Optml_Filters::should_do_image( $url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_FILENAME ] ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
