@@ -54,7 +54,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
 			add_action( 'optml_replacer_setup', array( self::$instance, 'init' ) );
-			self::$is_lazyload_placeholder = self::$instance->settings->get( 'lazyload_placeholder' ) === 'enabled';
 		}
 
 		return self::$instance;
@@ -101,7 +100,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
-
 		if ( ! Optml_Filters::should_do_page( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_URL ] ) ) {
 			return;
 		}
@@ -112,6 +110,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				return 1;
 			}
 		);
+		self::$is_lazyload_placeholder = self::$instance->settings->get( 'lazyload_placeholder' ) === 'enabled';
 		add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 6 );
 
 	}
