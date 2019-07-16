@@ -1,6 +1,7 @@
 version: '3.2'
 services:
   cypress:
+    ipc: host
     image: "cypress/included:3.2.0"
     environment:
       - CYPRESS_RECORD_KEY
