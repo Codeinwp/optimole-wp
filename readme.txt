@@ -88,6 +88,28 @@ Premium users will be able to optimize 10GB images per month with a 50GB viewing
 
 == Changelog ==
 
+### [Version 2.1.0](https://github.com/Codeinwp/optimole-wp/compare/v2.0.7...v2.1.0) (2019-07-16)
+
+* #### Bug Fixes
+   * api request should return error message, if fails ([51e180e](https://github.com/Codeinwp/optimole-wp/commit/51e180e))
+   * compatibility with shortcode ultimate, adds more usecases to test ([c6673eb](https://github.com/Codeinwp/optimole-wp/commit/c6673eb))
+   * disable REST API image replacement when the user is logged in ([f577723](https://github.com/Codeinwp/optimole-wp/commit/f577723))
+   * disable rest api replacement when we are in the edit context ([58d83b0](https://github.com/Codeinwp/optimole-wp/commit/58d83b0))
+   * duplicate requests when generating the lazyload placeholder, using an unified url for every source url, fix [#103](https://github.com/Codeinwp/optimole-wp/issues/103) ([1c00c0c](https://github.com/Codeinwp/optimole-wp/commit/1c00c0c))
+   * ignore lazyload tag on noscript list of images, improve compatibility with Envira ([74219b1](https://github.com/Codeinwp/optimole-wp/commit/74219b1))
+   * improve compatibility with Envira, ignora optimole lazyload on them ([00b68fd](https://github.com/Codeinwp/optimole-wp/commit/00b68fd))
+   * possible issues when list of allowed domains is not an array ([2ee9997](https://github.com/Codeinwp/optimole-wp/commit/2ee9997))
+   * prefetch custom domain instead of the assigned one, when custom domain is used ([cedbb79](https://github.com/Codeinwp/optimole-wp/commit/cedbb79))
+   * remove replacement on POST requests ([f4637ba](https://github.com/Codeinwp/optimole-wp/commit/f4637ba))
+   * removes admin bar traffic node ([0e21fe8](https://github.com/Codeinwp/optimole-wp/commit/0e21fe8))
+
+* #### Features
+   * adds basic filter, smart cropping and network optimization dashboard settings, fix [#105](https://github.com/Codeinwp/optimole-wp/issues/105), [#104](https://github.com/Codeinwp/optimole-wp/issues/104), [#96](https://github.com/Codeinwp/optimole-wp/issues/96) ([aba242d](https://github.com/Codeinwp/optimole-wp/commit/aba242d))
+   * adds compatibility with new optimization service, improving resizing and compression with up to 15% smaller images than before ([1f2528f](https://github.com/Codeinwp/optimole-wp/commit/1f2528f))
+   * adds generic lazyload placeholder option as a setting ([43b33fb](https://github.com/Codeinwp/optimole-wp/commit/43b33fb))
+
+
+
 #### [Version 2.0.7](https://github.com/Codeinwp/optimole-wp/compare/v2.0.6...v2.0.7) (2019-05-29)
 
 * **Bug Fixes**
