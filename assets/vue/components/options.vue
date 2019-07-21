@@ -54,14 +54,14 @@
 </template>
 
 <script>
-    import General from "./general.vue";
-    import Compression from "./compression.vue";
-    import Watermarks from "./watermarks.vue";
-    import Resize from "./resize.vue";
-    import Exclusions from "./exclusions.vue";
+	import General from "./general.vue";
+	import Compression from "./compression.vue";
+	import Watermarks from "./watermarks.vue";
+	import Resize from "./resize.vue";
+	import Exclusions from "./exclusions.vue";
 	import Lazyload from "./lazyload.vue";
 
-    export default {
+	export default {
         name: "options",
         components: {Lazyload, Exclusions, Resize, Watermarks, Compression, General},
         data() {
@@ -79,6 +79,13 @@
         methods: {
             ToggleAdvanced() {
                 this.advancedOpen = !this.advancedOpen;
+
+	            if (!this.advancedOpen) {
+		            this.tab = 'general';
+	            }
+	            if (this.advancedOpen) {
+		            this.tab = 'compression';
+	            }
             },
             changeTab(value) {
                 this.tab = value;
