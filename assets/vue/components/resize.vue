@@ -26,7 +26,7 @@
                 </p>
             </label>
 
-            <div class="column is-5 ">
+            <div class="column is-6 ">
                 <div class="columns">
                     <div class="field column is-narrow has-addons">
                         <p class="control">

@@ -1,10 +1,11 @@
 <template>
     <div :class="{ 'saving--option' : this.$store.state.loading }">
-        <div class="columns is-desktop" id="filters-list">
-            <div class="column  ">
+        <div  id="filters-list">
+            <div class="columns  ">
                 <filter-control :type="'optimize'"></filter-control>
             </div>
-            <div class="column  " v-if="this.$store.state.site_settings.lazyload === 'enabled'">
+	        <hr/>
+            <div class="columns  " v-if="this.$store.state.site_settings.lazyload === 'enabled'">
                 <filter-control :type="'lazyload'"></filter-control>
             </div>
         </div>
