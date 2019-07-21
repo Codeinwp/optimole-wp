@@ -20,7 +20,7 @@
                                :class="tab === 'resize' ? 'is-active' : ''"
                                :title="all_strings.settings_resize_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_resize_menu_item}}</a>
                         </li>
-                        <li><a @click="changeTab('lazyload')" href="#"
+                        <li v-if="this.$store.state.site_settings.lazyload==='enabled'"><a @click="changeTab('lazyload')" href="#"
                                :class="tab === 'lazyload' ? 'is-active' : ''"
                                :title="all_strings.lazyload_settings_menu_item+' '+all_strings.lazyload_settings_menu_item">{{all_strings.lazyload_settings_menu_item}}</a>
                         </li>
