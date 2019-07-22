@@ -355,7 +355,7 @@ class Optml_Admin {
 
 		$request = new Optml_Api();
 		$data    = $request->get_user_data( $api_key );
-		if ( $data === false ) {
+		if ( $data === false || is_wp_error( $data ) ) {
 			return;
 		}
 
@@ -551,7 +551,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_network_opt_title'          => __( 'Enable network based optimizations', 'optimole-wp' ),
 				'enable_resize_smart_title'         => __( 'Enable Smart Cropping', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
-				'enable_lazyload_placeholder_desc'  => __( 'Optimole will use a generic lazyload placeholder instead of the low quality version of your image when doing the lazyload.', 'optimole-wp' ),
+				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ),
 				'show'                              => __( 'Show', 'optimole-wp' ),
 				'filter_operator_contains'          => __( 'contains', 'optimole-wp' ),
 				'filter_operator_is'                => __( 'is', 'optimole-wp' ),
