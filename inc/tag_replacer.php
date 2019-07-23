@@ -96,24 +96,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 					$image_tag
 				);
 				$images['img_url'][ $index ] = $new_src;
-			}
-			 
+			}	
 			
-
-				// error_log(json_encode(wp_get_attachment_metadata(
-				// 	attachment_url_to_postid('http://localhost:8888/wp-content/uploads/2019/07/Screenshot-from-2019-07-02-18-13-09.png'))));
-
-
-			//	error_log(mime_content_type('http://localhost:8888/wp-content/uploads/2019/07/Screenshot-from-2019-07-02-18-13-09.png')); //error
-
-			// $filename = 'https://3v14en34n4qsadzlwpatrq14-wpengine.netdna-ssl.com/wp-content/uploads/2017/03/woodland_wanderer_dribbble.gif';
-            // $file_info = new finfo(FILEINFO_MIME_TYPE);
-            // $mime_type = $file_info->buffer(file_get_contents($filename));
-			// error_log($mime_type);
-			
-			
-			$file = get_headers($images['img_url'][ $index ], 1);
-		
+			$file = get_headers($images['img_url'][ $index ], 1);		
 			
 			$link = 'http://techslides.com/demos/sample-videos/small.mp4';
 			$link3 = 'http://techslides.com/demos/sample-videos/small.webm';
@@ -125,14 +110,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$content = str_replace( $images['img_tag'][ $index ], $video_tag, $content );
 				return $content;
              
-			}
-			       
-		    
-
-			
-
-			
-				
+			}		
             
 			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
 				 false !== strpos( $src, Optml_Config::$service_url ) ||
@@ -141,12 +119,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 				continue; // @codeCoverageIgnore
 			}
-			// add_filter('optml_ignore_image_link', function($intial_response, $url){
-			// 	if($url === 'example.png'){
-			// 		return true; 
-			// 	}
-			// 	return false; 
-			// })
+		
 			$resize = apply_filters( 'optml_default_crop', array() );
 
 			list( $width, $height, $resize ) = self::parse_dimensions_from_tag(
