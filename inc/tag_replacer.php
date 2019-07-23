@@ -6,6 +6,9 @@
  * @package    \Optml\Inc
  * @author     Optimole <friends@optimole.com>
  */
+
+
+
 final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	use Optml_Normalizer;
 	use Optml_Validator;
@@ -62,22 +65,25 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 *
 	 * @return mixed
 	 */
-	public function process_image_tags( $content, $images = array() ) {
+	public function process_image_tags( $content, $images = array() ) {	
+       
 		$image_sizes = self::image_sizes();
 		$sizes2crop  = self::size_to_crop();
+		
 		foreach ( $images[0] as $index => $tag ) {
 			$width     = $height = false;
 			$crop = null;
 			$image_tag = $images['img_tag'][ $index ];
-
+			// error_log($images['img_url'][ $index ]);
 			$is_slashed = strpos( $images['img_url'][ $index ], '\/' ) !== false;
-
-			$src = $tmp = $is_slashed ? stripslashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ];
+			
+			
+			$src = $tmp = $is_slashed ? stripslashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ]; // remove \
 
 			if ( strpos( $src, $this->upload_resource['content_path'] ) === 0 ) {
-				$src = $tmp = untrailingslashit( $this->upload_resource['content_host'] ) . $src;
-
-				$new_src                     = $is_slashed ? addcslashes( $src, '/' ) : $src;
+				$src = $tmp = untrailingslashit( $this->upload_resource['content_host'] ) . $src;   //remove last /
+                
+				$new_src                     = $is_slashed ? addcslashes( $src, '/' ) : $src;    // make //
 				$image_tag                   = str_replace(
 					array(
 						'"' . $images['img_url'][ $index ],
@@ -85,13 +91,49 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 					),
 					array(
 						'"' . $new_src,
-						"'" . $new_src,
+						"'" . $new_src, 
 					),
 					$image_tag
 				);
 				$images['img_url'][ $index ] = $new_src;
 			}
+			 
+			
 
+				// error_log(json_encode(wp_get_attachment_metadata(
+				// 	attachment_url_to_postid('http://localhost:8888/wp-content/uploads/2019/07/Screenshot-from-2019-07-02-18-13-09.png'))));
+
+
+			//	error_log(mime_content_type('http://localhost:8888/wp-content/uploads/2019/07/Screenshot-from-2019-07-02-18-13-09.png')); //error
+
+			// $filename = 'https://3v14en34n4qsadzlwpatrq14-wpengine.netdna-ssl.com/wp-content/uploads/2017/03/woodland_wanderer_dribbble.gif';
+            // $file_info = new finfo(FILEINFO_MIME_TYPE);
+            // $mime_type = $file_info->buffer(file_get_contents($filename));
+			// error_log($mime_type);
+			
+			
+			$file = get_headers($images['img_url'][ $index ], 1);
+		
+			
+			$link = 'http://techslides.com/demos/sample-videos/small.mp4';
+			$link3 = 'http://techslides.com/demos/sample-videos/small.webm';
+			if (strcmp($file['Content-Type'],'image/gif')===0) {
+				
+				$video_tag='<video autoplay muted loop playsinline> 
+				<source src="'.$link.'">'.'<source src="'.$link3.'">'.
+				'</video>';
+				$content = str_replace( $images['img_tag'][ $index ], $video_tag, $content );
+				return $content;
+             
+			}
+			       
+		    
+
+			
+
+			
+				
+            
 			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
 				 false !== strpos( $src, Optml_Config::$service_url ) ||
 				 ! $this->can_replace_url( $src )
@@ -99,7 +141,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 				continue; // @codeCoverageIgnore
 			}
-
+			// add_filter('optml_ignore_image_link', function($intial_response, $url){
+			// 	if($url === 'example.png'){
+			// 		return true; 
+			// 	}
+			// 	return false; 
+			// })
 			$resize = apply_filters( 'optml_default_crop', array() );
 
 			list( $width, $height, $resize ) = self::parse_dimensions_from_tag(
