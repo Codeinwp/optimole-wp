@@ -52,6 +52,8 @@ class Optml_Image {
 	 */
 	private $source_url = '';
 
+	
+	
 	/**
 	 * Optml_Image constructor.
 	 *
@@ -65,7 +67,7 @@ class Optml_Image {
 			throw new \InvalidArgumentException( 'Optimole image builder requires the source url to optimize.' ); // @codeCoverageIgnore
 		}
 		$this->set_defaults();
-
+       
 		$this->width->set( $args['width'] );
 		$this->height->set( $args['height'] );
 
@@ -97,9 +99,9 @@ class Optml_Image {
 	 *
 	 * @return string Transformed image url.
 	 */
-	public function get_url( $params = [] ) {
+	public function get_url( $params = [] ) {    // here i will add f:
 		$path_parts = array();
-
+        
 		$path_parts[] = $this->width->toString();
 		$path_parts[] = $this->height->toString();
 		$path_parts[] = $this->quality->toString();
@@ -111,8 +113,8 @@ class Optml_Image {
 		if ( isset( $params['apply_watermark'] ) && $params['apply_watermark'] && is_array( self::$watermark->get() ) && isset( self::$watermark->get()['id'] ) && self::$watermark->get()['id'] > 0 ) {
 			$path_parts[] = self::$watermark->toString();
 		}
-
-		$path = '/' . $this->source_url;
+		
+		$path = '/f:'.$params['format'].'/' . $this->source_url;
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
