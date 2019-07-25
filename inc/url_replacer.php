@@ -124,7 +124,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( strpos( $url, Optml_Config::$service_url ) !== false ) {
 			return $original_url;
 		}
-		error_log($format);
+		
 
 		if ( ! $this->can_replace_url( $url ) ) {     //here gif exclude
 			

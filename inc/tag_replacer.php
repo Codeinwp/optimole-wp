@@ -96,38 +96,35 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 					$image_tag
 				);
 				$images['img_url'][ $index ] = $new_src; 
-			}	
-
-		/*	<video autoplay loop muted playsinline poster="http://token.i.optimole/w:auto/h:auto/q:auto/f:svg/https://path.to.resource/original.gif">
-			<source src="http://token.i.optimole/w:auto/h:auto/q:auto/f:webm/https://path.to.resource/original.gif" type="video/webm">
-			<source src="http://token.i.optimole/w:auto/h:auto/q:auto/f:webp/https://path.to.resource/original.gif" type="video/webp">
-			<source src="http://token.i.optimole/w:auto/h:auto/q:auto/f:mp4/https://path.to.resource/original.gif" type="video/mp4">
-		    </video> */
+			}		
 			
-			$file = get_headers($images['img_url'][ $index ], 1);
-			
+			$file = get_headers($images['img_url'][ $index ], 1);			
 
-			if (strcmp($file['Content-Type'],'image/gif')===0) {	
-				$link_mp4 = Optml_Url_Replacer::instance()->build_image_url($images['img_url'][ $index ],
-				                                                               array('width'=> 'auto', 
-				                                                                      'height' => 'auto', 
-				                                                                      'format' => 'mp4',));
-				$link_webm = Optml_Url_Replacer::instance()->build_image_url($images['img_url'][ $index ],
-			                                                                	array('width'=> 'auto', 
-				                                                                      'height' => 'auto', 
-					                                                                  'format' => 'webm',));			
-				$link_webp = Optml_Url_Replacer::instance()->build_image_url($images['img_url'][ $index ],
-				                                        					    array('width'=> 'auto', 
-																				      'height' => 'auto', 
-																					  'format' => 'webp',));		
-				$link_svg = Optml_Url_Replacer::instance()->build_image_url($images['img_url'][ $index ],
-				                                                                array('width'=> 'auto', 
-																				      'height' => 'auto', 
-																					  'format' => 'svg',));																	 
-				
+			if (strcmp($file['Content-Type'],'image/gif')===0) {		
+
+				$link_webp=apply_filters( 'optml_content_url', $images['img_url'][ $index ],
+				                                         array('width'=> 'auto', 
+					                                           'height' => 'auto', 
+															   'format' => 'webp',)); 
+
+				$link_mp4=apply_filters( 'optml_content_url', $images['img_url'][ $index ],
+				                                         array('width'=> 'auto', 
+				                                               'height' => 'auto', 
+															   'format' => 'mp4',)); 
+
+			    $link_webm=apply_filters( 'optml_content_url', $images['img_url'][ $index ],
+			                                             array('width'=> 'auto', 
+		  	                                         	       'height' => 'auto', 
+																  'format' => 'webm',)); 
+																  												   															   
+			    $link_svg=apply_filters( 'optml_content_url', $images['img_url'][ $index ],
+			                                             array('width'=> 'auto', 
+		  	                                         	       'height' => 'auto', 
+		  	                                         	       'format' => 'svg',)); 	          											  
+                                
 				$video_tag='<video autoplay muted loop playsinline poster="'.$link_svg.'">'.
-				                  '<source src="'.$link_webm.'">
-								  <source src="'.$link_mp4.'">
+				                  '<source src="'.$link_mp4.'">
+								  <source src="'.$link_webm.'">
 								  <source src="'.$link_webp.'">'.
 				            '</video>';
 				$content = str_replace( $images['img_tag'][ $index ], $video_tag, $content );				
