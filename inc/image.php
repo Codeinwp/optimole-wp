@@ -99,7 +99,7 @@ class Optml_Image {
 	 *
 	 * @return string Transformed image url.
 	 */
-	public function get_url( $params = [] ) {    // here i will add f:
+	public function get_url( $params = [] ) {    
 		$path_parts = array();
         
 		$path_parts[] = $this->width->toString();
@@ -113,8 +113,12 @@ class Optml_Image {
 		if ( isset( $params['apply_watermark'] ) && $params['apply_watermark'] && is_array( self::$watermark->get() ) && isset( self::$watermark->get()['id'] ) && self::$watermark->get()['id'] > 0 ) {
 			$path_parts[] = self::$watermark->toString();
 		}
-		
-		$path = '/f:'.$params['format'].'/' . $this->source_url;
+		if ($params['format']==='none') {
+			$path = '/' . $this->source_url;
+		} else {
+			$path = '/f:'.$params['format'].'/' . $this->source_url;
+		} 
+		   
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
@@ -125,7 +129,7 @@ class Optml_Image {
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 
 	}
-
+	
 	/**
 	 * Return the url signature.
 	 *

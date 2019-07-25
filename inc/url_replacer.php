@@ -108,7 +108,12 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			'height' => 'auto',
 			'format' => 'none',
 		)
-	) {	
+	) {
+		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) {
+			$format=$args['format'];
+		} else {
+			$format='none';
+		}		
 		
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
@@ -124,7 +129,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			return $original_url;
 		}
 		
-
+		
 		if ( ! $this->can_replace_url( $url ) ) {     //here gif exclude
 			
 			return $original_url;
@@ -184,12 +189,14 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			[
 				'signed'          => $this->settings->use_lazyload() ? false : $this->is_allowed_site,
 				'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
-				'format'          => $args['format'],
+				'format'          => $format,
 			]
 		);
 		
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
+
+
 	/**
 	 * Throw error on object clone
 	 *
