@@ -108,8 +108,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			'height' => 'auto',
 			'format' => 'none',
 		)
-	) {
-		$format=$args['format'];
+	) {	
 		
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
@@ -185,14 +184,12 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			[
 				'signed'          => $this->settings->use_lazyload() ? false : $this->is_allowed_site,
 				'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
-				'format'          => $format,
+				'format'          => $args['format'],
 			]
 		);
 		
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
-
-
 	/**
 	 * Throw error on object clone
 	 *
