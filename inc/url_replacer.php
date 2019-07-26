@@ -105,15 +105,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	public function build_image_url(
 		$url, $args = array(
 			'width'  => 'auto',
-			'height' => 'auto',
-			'format' => 'none',
+			'height' => 'auto',			
 		)
 	) {
-		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) {
-			$format=$args['format'];
-		} else {
-			$format='none';
-		}		
+			
 		
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
@@ -183,15 +178,18 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		}
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
 		
+        $arguments = [
+			'signed'          => $this->settings->use_lazyload() ? false : $this->is_allowed_site,
+			'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
+			
+		];
+
+
+		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) { 
+			$arguments['format'] = $args['format'];
+		}	         
 		
-		
-		$new_url = ( new Optml_Image( $url, $args ) )->get_url(
-			[
-				'signed'          => $this->settings->use_lazyload() ? false : $this->is_allowed_site,
-				'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
-				'format'          => $format,
-			]
-		);
+		$new_url = ( new Optml_Image( $url, $args ) )->get_url( $arguments );
 		
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
