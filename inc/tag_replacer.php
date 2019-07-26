@@ -65,6 +65,53 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 *
 	 * @return mixed
 	 */
+
+	 /**
+	  *  Replace in given content the given image tags with video tags is image is gif
+	  *	  
+	  *  @param string $image_url Image url to process
+      *  @param string $image_tag The tah to replace
+      *  @param string $content The content to process
+	  */
+	public function img_to_video( $image_url , $image_tag, & $content)
+	{
+		
+		$file = get_headers($image_url, 1);	
+
+		if (strcmp($file['Content-Type'],'image/gif')===0) {		
+
+			$link_webp=apply_filters( 'optml_content_url',$image_url,
+													 array('width'=> 'auto', 
+														   'height' => 'auto', 
+														   'format' => 'webp',)); 
+
+			$link_mp4=apply_filters( 'optml_content_url', $image_url,
+													 array('width'=> 'auto', 
+														   'height' => 'auto', 
+														   'format' => 'mp4',)); 
+
+			$link_webm=apply_filters( 'optml_content_url', $image_url,
+													 array('width'=> 'auto', 
+															  'height' => 'auto', 
+															  'format' => 'webm',)); 
+																																												
+			$link_svg=apply_filters( 'optml_content_url', $image_url,
+													 array('width'=> 'auto', 
+															  'height' => 'auto', 
+															  'format' => 'svg',)); 	          											  
+							
+			$video_tag='<video autoplay muted loop playsinline poster="'.$link_svg.'">'.
+							  '<source src="'.$link_mp4.'">
+							  <source src="'.$link_webm.'">
+							  <source src="'.$link_webp.'">'.
+						'</video>';
+			$content = str_replace( $image_tag, $video_tag, $content );
+			return 1;	
+	    }
+	return 0;
+    } 
+
+
 	public function process_image_tags( $content, $images = array() ) {	
        
 		$image_sizes = self::image_sizes();
@@ -96,41 +143,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 					$image_tag
 				);
 				$images['img_url'][ $index ] = $new_src; 
-			}		
-			
-			$file = get_headers($images['img_url'][ $index ], 1);			
+			}						
 
-			if (strcmp($file['Content-Type'],'image/gif')===0) {		
-
-				$link_webp=apply_filters( 'optml_content_url', $images['img_url'][ $index ],
-				                                         array('width'=> 'auto', 
-					                                           'height' => 'auto', 
-															   'format' => 'webp',)); 
-
-				$link_mp4=apply_filters( 'optml_content_url', $images['img_url'][ $index ],
-				                                         array('width'=> 'auto', 
-				                                               'height' => 'auto', 
-															   'format' => 'mp4',)); 
-
-			    $link_webm=apply_filters( 'optml_content_url', $images['img_url'][ $index ],
-			                                             array('width'=> 'auto', 
-		  	                                         	       'height' => 'auto', 
-																  'format' => 'webm',)); 
-																  												   															   
-			    $link_svg=apply_filters( 'optml_content_url', $images['img_url'][ $index ],
-			                                             array('width'=> 'auto', 
-		  	                                         	       'height' => 'auto', 
-		  	                                         	       'format' => 'svg',)); 	          											  
-                                
-				$video_tag='<video autoplay muted loop playsinline poster="'.$link_svg.'">'.
-				                  '<source src="'.$link_mp4.'">
-								  <source src="'.$link_webm.'">
-								  <source src="'.$link_webp.'">'.
-				            '</video>';
-				$content = str_replace( $images['img_tag'][ $index ], $video_tag, $content );				
+			if ( $this->img_to_video( $images['img_url'][ $index ], $images['img_tag'][ $index ], $content ) ) {			
 				continue;
-             
-			}		
+			}			
             
 			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
 				 false !== strpos( $src, Optml_Config::$service_url ) ||
@@ -192,8 +209,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 
 			$content = str_replace( $images['img_tag'][ $index ], $image_tag, $content );
-		}
-
+		}		
 		return $content;
 	}
 
