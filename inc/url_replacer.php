@@ -108,9 +108,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			'height' => 'auto',			
 		)
 	) {
-			
-		
-		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
+	    if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
         
@@ -124,11 +122,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			return $original_url;
 		}
 		
-		
-		if ( ! $this->can_replace_url( $url ) ) {     //here gif exclude
-			
+		if ( ! $this->can_replace_url( $url ) ) {
 			return $original_url;
-			
 		}
 		
 		// Remove any query strings that might affect conversion.
@@ -136,7 +131,6 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		if ( ! $this->is_valid_mimetype_from_url( $url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_EXT ] ) ) {
 			return $original_url;
-			
 		}
 		
 		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) ) {

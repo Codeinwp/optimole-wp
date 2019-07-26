@@ -66,13 +66,15 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * @return mixed
 	 */
 
-	 /**
-	  *  Replace in given content the given image tags with video tags is image is gif
-	  *	  
-	  *  @param string $image_url Image url to process
-      *  @param string $image_tag The tah to replace
-      *  @param string $content The content to process
-	  */
+    /**
+     *  Replace in given content the given image tags with video tags is image is gif
+     *
+     * @param string $image_url Image url to process
+     * @param string $image_tag The tah to replace
+     * @param string $content The content to process
+     *
+     * @return int Returns 1 if image is gif and content is changed else 0
+     */
 	public function img_to_video( $image_url , $image_tag, & $content)
 	{
 		
@@ -102,8 +104,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 							
 			$video_tag='<video autoplay muted loop playsinline poster="'.$link_svg.'">'.
 							  '<source src="'.$link_mp4.'">
-							  <source src="'.$link_webm.'">
-							  <source src="'.$link_webp.'">'.
+                               <source src="'.$link_webm.'">
+						       <source src="'.$link_webp.'">'.
 						'</video>';
 			$content = str_replace( $image_tag, $video_tag, $content );
 			return 1;	
