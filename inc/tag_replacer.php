@@ -75,43 +75,48 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
      *
      * @return int Returns 1 if image is gif and content is changed else 0
      */
-	public function img_to_video( $image_url , $image_tag, & $content)
-	{
-		
-		$file = get_headers($image_url, 1);	
+	public function img_to_video( $image_url , $image_tag, & $content, $toggle='disabled')
+    {
+        if ($toggle === 'disabled')
+            return 0;
+        if ($toggle === 'enabled') {
 
-		if (strcmp($file['Content-Type'],'image/gif')===0) {		
+            $file = get_headers($image_url, 1);
 
-			$link_webp=apply_filters( 'optml_content_url',$image_url,
-													 array('width'=> 'auto', 
-														   'height' => 'auto', 
-														   'format' => 'webp',)); 
+            if (strcmp($file['Content-Type'], 'image/gif') === 0) {
 
-			$link_mp4=apply_filters( 'optml_content_url', $image_url,
-													 array('width'=> 'auto', 
-														   'height' => 'auto', 
-														   'format' => 'mp4',)); 
+                $link_webp = apply_filters('optml_content_url', $image_url,
+                    array('width' => 'auto',
+                        'height' => 'auto',
+                        'format' => 'webp',));
 
-			$link_webm=apply_filters( 'optml_content_url', $image_url,
-													 array('width'=> 'auto', 
-															  'height' => 'auto', 
-															  'format' => 'webm',)); 
-																																												
-			$link_svg=apply_filters( 'optml_content_url', $image_url,
-													 array('width'=> 'auto', 
-															  'height' => 'auto', 
-															  'format' => 'svg',)); 	          											  
-							
-			$video_tag='<video autoplay muted loop playsinline poster="'.$link_svg.'">'.
-							  '<source src="'.$link_mp4.'">
-                               <source src="'.$link_webm.'">
-						       <source src="'.$link_webp.'">'.
-						'</video>';
-			$content = str_replace( $image_tag, $video_tag, $content );
-			return 1;	
-	    }
-	return 0;
-    } 
+                $link_mp4 = apply_filters('optml_content_url', $image_url,
+                    array('width' => 'auto',
+                        'height' => 'auto',
+                        'format' => 'mp4',));
+
+                $link_webm = apply_filters('optml_content_url', $image_url,
+                    array('width' => 'auto',
+                        'height' => 'auto',
+                        'format' => 'webm',));
+
+                $link_svg = apply_filters('optml_content_url', $image_url,
+                    array('width' => 'auto',
+                        'height' => 'auto',
+                        'format' => 'svg',));
+
+                $video_tag = '<video autoplay muted loop playsinline poster="' . $link_svg . '">' .
+                    '<source src="' . $link_mp4 . '">
+                               <source src="' . $link_webm . '">
+						       <source src="' . $link_webp . '">' .
+                    '</video>';
+                $content = str_replace($image_tag, $video_tag, $content);
+                return 1;
+            }
+        }
+            return 0;
+
+    }
 
 
 	public function process_image_tags( $content, $images = array() ) {	
@@ -145,9 +150,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 					$image_tag
 				);
 				$images['img_url'][ $index ] = $new_src; 
-			}						
+			}
 
-			if ( $this->img_to_video( $images['img_url'][ $index ], $images['img_tag'][ $index ], $content ) ) {			
+			if ( $this->img_to_video( $images['img_url'][ $index ], $images['img_tag'][ $index ], $content, $this->settings->get('img_to_video') ) ) {
 				continue;
 			}			
             
