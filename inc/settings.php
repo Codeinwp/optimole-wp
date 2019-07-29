@@ -34,6 +34,8 @@ class Optml_Settings {
 		'wm_y'                 => 0,
 		'wm_scale'             => 0,
 		'image_replacer'       => 'enabled',
+        'img_to_video'         => 'disabled',
+
 	);
 	/**
 	 * Option key.

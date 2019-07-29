@@ -231,7 +231,7 @@ abstract class Optml_App_Replacer {
 	 * The initialize method.
 	 */
 	public function init() {
-		$this->settings = new Optml_Settings();
+		$this->settings = new Optml_Settings();                                        //
 		$this->set_properties();
 
 		self::$filters = $this->settings->get_filters();
