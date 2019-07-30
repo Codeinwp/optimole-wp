@@ -106,7 +106,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
                         'format' => 'svg',));
 
                 $video_tag = '<video autoplay muted loop playsinline poster="' . $link_svg . '">' .
-                    '<source src="' . $link_mp4 . '">
+                              '<source src="' . $link_mp4 . '">
                                <source src="' . $link_webm . '">
 						       <source src="' . $link_webp . '">' .
                     '</video>';
