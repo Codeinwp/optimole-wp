@@ -1,5 +1,6 @@
 <template>
     <div :class="{ 'saving--option' : this.$store.state.loading }">
+        <!--Enable image replacement button -->
         <div class="field  columns">
             <label class="label column has-text-grey-dark">
                 {{strings.enable_image_replace}}
@@ -18,9 +19,31 @@
             </div>
 
         </div>
+        <!-- GIF replacement toggle button -->
+        <div class="field  columns">
+            <label class="label column has-text-grey-dark">
+                {{strings.enable_gif_replace}}
+
+                <p class="is-italic has-text-weight-normal">
+                    {{strings.gif_replacer_desc}}
+                </p>
+            </label>
+
+            <div class="column is-3 ">
+                <toggle-button :class="'has-text-dark'"
+                               v-model="gifReplacementStatus"
+                               :disabled="this.$store.state.loading"
+                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
+                               :width="80"
+                               :height="25"
+                               color="#008ec2"></toggle-button>
+            </div>
+        </div>
+        <!--Scale and lazy load toggle -->
         <div class="field  is-fullwidth columns" :class="{'is-field-disabled':isReplacerOff }">
             <label class="label column has-text-grey-dark">
                 {{strings.toggle_lazyload}}
+
                 <p class="is-italic has-text-weight-normal">
                     {{strings.lazyload_desc}}
                 </p>
@@ -36,6 +59,7 @@
                                color="#008ec2"></toggle-button>
             </div>
         </div>
+        <!-- Save changes button -->
         <div class="field  is-fullwidth columns ">
             <div class="column is-left">
                 <button @click="saveChanges()" class="button is-success is-small "
@@ -87,8 +111,18 @@
                 set: function (value) {
                     this.showSave = true;
                     this.isReplacerOff = !value;
-                    this.$emit('update-status', value)
+                    this.$emit('update-status', value);
                     this.new_data.image_replacer = value ? 'enabled' : 'disabled'
+                }
+            },
+            gifReplacementStatus: {
+                set: function (value) {
+                    this.showSave = true;
+                    this.new_data.img_to_video = value ? 'enabled' : 'disabled';
+                },
+                get: function () {
+                    return !(this.site_settings.img_to_video === 'disabled');
+
                 }
             },
             lazyLoadStatus: {
