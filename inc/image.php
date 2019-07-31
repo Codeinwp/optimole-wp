@@ -52,8 +52,8 @@ class Optml_Image {
 	 */
 	private $source_url = '';
 
-	
-	
+
+
 	/**
 	 * Optml_Image constructor.
 	 *
@@ -67,7 +67,7 @@ class Optml_Image {
 			throw new \InvalidArgumentException( 'Optimole image builder requires the source url to optimize.' ); // @codeCoverageIgnore
 		}
 		$this->set_defaults();
-       
+
 		$this->width->set( $args['width'] );
 		$this->height->set( $args['height'] );
 
@@ -99,9 +99,9 @@ class Optml_Image {
 	 *
 	 * @return string Transformed image url.
 	 */
-	public function get_url( $params = [] ) {    
+	public function get_url( $params = [] ) {
 		$path_parts = array();
-        
+
 		$path_parts[] = $this->width->toString();
 		$path_parts[] = $this->height->toString();
 		$path_parts[] = $this->quality->toString();
@@ -109,7 +109,7 @@ class Optml_Image {
 		if ( isset( $this->resize->get()['type'] ) ) {
 			$path_parts[] = $this->resize->toString();
 		}
-		// format is not a must that's what we are changing 
+		// format is not a must that's what we are changing
 
 		if ( isset( $params['apply_watermark'] ) && $params['apply_watermark'] && is_array( self::$watermark->get() ) && isset( self::$watermark->get()['id'] ) && self::$watermark->get()['id'] > 0 ) {
 			$path_parts[] = self::$watermark->toString();
@@ -117,10 +117,10 @@ class Optml_Image {
 
 		$path = '/' . $this->source_url;
 
-		if ( isset( $params['format'] ) && ! empty( $params['format'] ) ) { 
-			$path = '/f:'.$params['format'].'/' . $this->source_url;
-		}	   
-		
+		if ( isset( $params['format'] ) && ! empty( $params['format'] ) ) {
+			$path = '/f:' . $params['format'] . '/' . $this->source_url;
+		}
+
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
 		if ( isset( $params['signed'] ) && $params['signed'] ) {
@@ -130,7 +130,7 @@ class Optml_Image {
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 
 	}
-	
+
 	/**
 	 * Return the url signature.
 	 *
