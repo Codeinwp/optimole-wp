@@ -84,7 +84,7 @@ function optml() {
 	}
 
 	if ( ! defined( 'OPTML_DEBUG' ) ) {
-		//define( 'OPTML_DEBUG', ( defined( 'TEST_GROUND' ) && TEST_GROUND ) ? true : false );
+		// define( 'OPTML_DEBUG', ( defined( 'TEST_GROUND' ) && TEST_GROUND ) ? true : false );
 		define( 'OPTML_DEBUG', true );
 	}
 

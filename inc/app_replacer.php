@@ -231,7 +231,7 @@ abstract class Optml_App_Replacer {
 	 * The initialize method.
 	 */
 	public function init() {
-		$this->settings = new Optml_Settings();                                        //
+		$this->settings = new Optml_Settings();
 		$this->set_properties();
 
 		self::$filters = $this->settings->get_filters();
@@ -337,9 +337,9 @@ abstract class Optml_App_Replacer {
 		if ( ! is_string( $url ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		
+
 		$url_parts = parse_url( $url );
-        
+
 		if ( ! isset( $url_parts['host'] ) ) {
 			return false;
 		}
@@ -349,13 +349,13 @@ abstract class Optml_App_Replacer {
 		// 642f74656e6f722e6769663f6974656d69643d3131363939363038.gif
 		// $this->set_properties();
 		if ( false === ( isset( $this->possible_sources[ $url_parts['host'] ] ) || isset( $this->allowed_sources[ $url_parts['host'] ] ) ) ) {
-			return false;                     //here 
+			return false;                     // here
 		}
-	    
+
 		if ( false === Optml_Filters::should_do_image( $url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_FILENAME ] ) ) {
 			return false;
 		}
-        
+
 		return true;
 	}
 
