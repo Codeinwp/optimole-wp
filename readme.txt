@@ -88,6 +88,16 @@ Premium users will be able to optimize 10GB images per month with a 50GB viewing
 
 == Changelog ==
 
+#### [Version 2.1.1](https://github.com/Codeinwp/optimole-wp/compare/v2.1.0...v2.1.1) (2019-07-22)
+
+* **Bug Fixes**
+   * clicking on advanced menu move the focus to the focus to the compression tab, fix [#118](https://github.com/Codeinwp/optimole-wp/issues/118) ([178d1fc](https://github.com/Codeinwp/optimole-wp/commit/178d1fc))
+   * improve generic lazyload setting description and behaviour, fix [#119](https://github.com/Codeinwp/optimole-wp/issues/119) ([13ce758](https://github.com/Codeinwp/optimole-wp/commit/13ce758))
+   * improve responsivness behaviour on small screens, fix [#117](https://github.com/Codeinwp/optimole-wp/issues/117) ([10484bb](https://github.com/Codeinwp/optimole-wp/commit/10484bb))
+   * when service update cron returns an error, we should use the old data ([4f80cc0](https://github.com/Codeinwp/optimole-wp/commit/4f80cc0))
+
+
+
 ### [Version 2.1.0](https://github.com/Codeinwp/optimole-wp/compare/v2.0.7...v2.1.0) (2019-07-16)
 
 * #### Bug Fixes
