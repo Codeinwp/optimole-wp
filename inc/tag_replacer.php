@@ -6,6 +6,9 @@
  * @package    \Optml\Inc
  * @author     Optimole <friends@optimole.com>
  */
+
+
+
 final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	use Optml_Normalizer;
 	use Optml_Validator;
@@ -62,9 +65,81 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 *
 	 * @return mixed
 	 */
+
+	/**
+	 *  Replace in given content the given image tags with video tags is image is gif
+	 *
+	 * @param string $image_url Image url to process
+	 * @param string $image_tag The tah to replace
+	 * @param string $content The content to process
+	 *
+	 * @return int Returns 1 if image is gif and content is changed else 0
+	 */
+	public function img_to_video( $image_url, $image_tag, & $content, $toggle = 'disabled' ) {
+		if ( $toggle === 'disabled' ) {
+			return 0;
+		}
+		if ( $toggle === 'enabled' ) {
+
+			$file = get_headers( $image_url, 1 );
+
+			if ( strcmp( $file['Content-Type'], 'image/gif' ) === 0 ) {
+
+				$link_webp = apply_filters(
+					'optml_content_url',
+					$image_url,
+					array('width' => 'auto',
+						'height' => 'auto',
+						'format' => 'webp',
+					)
+				);
+
+				$link_mp4 = apply_filters(
+					'optml_content_url',
+					$image_url,
+					array('width' => 'auto',
+						'height' => 'auto',
+						'format' => 'mp4',
+					)
+				);
+
+				$link_webm = apply_filters(
+					'optml_content_url',
+					$image_url,
+					array('width' => 'auto',
+						'height' => 'auto',
+						'format' => 'webm',
+					)
+				);
+
+				$link_svg = apply_filters(
+					'optml_content_url',
+					$image_url,
+					array('width' => 'auto',
+						'height' => 'auto',
+						'format' => 'svg',
+					)
+				);
+
+				$video_tag = '<video autoplay muted loop playsinline poster="' . $link_svg . '">' .
+							  '<source src="' . $link_mp4 . '">
+                               <source src="' . $link_webm . '">
+						       <source src="' . $link_webp . '">' .
+					'</video>';
+				$content = str_replace( $image_tag, $video_tag, $content );
+				return 1;
+			}
+		}
+			return 0;
+
+	}
+
+
 	public function process_image_tags( $content, $images = array() ) {
+
 		$image_sizes = self::image_sizes();
 		$sizes2crop  = self::size_to_crop();
+
 		foreach ( $images[0] as $index => $tag ) {
 			$width     = $height = false;
 			$crop = null;
@@ -72,12 +147,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 			$is_slashed = strpos( $images['img_url'][ $index ], '\/' ) !== false;
 
-			$src = $tmp = $is_slashed ? stripslashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ];
+			$src = $tmp = $is_slashed ? stripslashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ]; // remove \
 
 			if ( strpos( $src, $this->upload_resource['content_path'] ) === 0 ) {
-				$src = $tmp = untrailingslashit( $this->upload_resource['content_host'] ) . $src;
+				$src = $tmp = untrailingslashit( $this->upload_resource['content_host'] ) . $src;   // remove last /
 
-				$new_src                     = $is_slashed ? addcslashes( $src, '/' ) : $src;
+				$new_src                     = $is_slashed ? addcslashes( $src, '/' ) : $src;    // make //
 				$image_tag                   = str_replace(
 					array(
 						'"' . $images['img_url'][ $index ],
@@ -98,6 +173,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			) {
 
 				continue; // @codeCoverageIgnore
+			}
+
+			if ( $this->img_to_video( $images['img_url'][ $index ], $images['img_tag'][ $index ], $content, $this->settings->get( 'img_to_video' ) ) ) {
+				continue;
 			}
 
 			$resize = apply_filters( 'optml_default_crop', array() );
@@ -153,7 +232,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 			$content = str_replace( $images['img_tag'][ $index ], $image_tag, $content );
 		}
-
 		return $content;
 	}
 
