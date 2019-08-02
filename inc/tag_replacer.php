@@ -6,9 +6,6 @@
  * @package    \Optml\Inc
  * @author     Optimole <friends@optimole.com>
  */
-
-
-
 final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	use Optml_Normalizer;
 	use Optml_Validator;
@@ -69,72 +66,75 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	/**
 	 *  Replace in given content the given image tags with video tags is image is gif
 	 *
-	 * @param string $image_url Image url to process
-	 * @param string $image_tag The tah to replace
-	 * @param string $content The content to process
+	 * @param string $image_url Image url to process.
+	 * @param string $image_tag The tag to replace.
+	 * @param string $content The content to process.
 	 *
-	 * @return int Returns 1 if image is gif and content is changed else 0
+	 * @return bool
 	 */
-	public function img_to_video( $image_url, $image_tag, & $content, $toggle = 'disabled' ) {
-		if ( $toggle === 'disabled' ) {
-			return 0;
+	public function img_to_video( $image_url, $image_tag, &$content ) {
+		if ( $this->settings->get( 'img_to_video' ) === 'disabled' ) {
+			return false;
 		}
-		if ( $toggle === 'enabled' ) {
 
-			$file = get_headers( $image_url, 1 );
-
-			if ( strcmp( $file['Content-Type'], 'image/gif' ) === 0 ) {
-
-				$link_webp = apply_filters(
-					'optml_content_url',
-					$image_url,
-					array('width' => 'auto',
-						'height' => 'auto',
-						'format' => 'webp',
-					)
-				);
-
-				$link_mp4 = apply_filters(
-					'optml_content_url',
-					$image_url,
-					array('width' => 'auto',
-						'height' => 'auto',
-						'format' => 'mp4',
-					)
-				);
-
-				$link_webm = apply_filters(
-					'optml_content_url',
-					$image_url,
-					array('width' => 'auto',
-						'height' => 'auto',
-						'format' => 'webm',
-					)
-				);
-
-				$link_svg = apply_filters(
-					'optml_content_url',
-					$image_url,
-					array('width' => 'auto',
-						'height' => 'auto',
-						'format' => 'svg',
-					)
-				);
-
-				$video_tag = '<video autoplay muted loop playsinline poster="' . $link_svg . '">' .
-							  '<source src="' . $link_mp4 . '">
-                               <source src="' . $link_webm . '">
-						       <source src="' . $link_webp . '">' .
-					'</video>';
-				$content = str_replace( $image_tag, $video_tag, $content );
-				return 1;
-			}
+		$file = get_headers( $image_url, 1 );
+		if ( strcmp( $file['Content-Type'], 'image/gif' ) !== 0 ) {
+			return false;
 		}
-			return 0;
 
+		$link_webp = apply_filters(
+			'optml_content_url',
+			$image_url,
+			array('width' => 'auto',
+				'height' => 'auto',
+				'format' => 'webp',
+			)
+		);
+
+		$link_mp4 = apply_filters(
+			'optml_content_url',
+			$image_url,
+			array('width' => 'auto',
+				'height' => 'auto',
+				'format' => 'mp4',
+			)
+		);
+
+		$link_webm = apply_filters(
+			'optml_content_url',
+			$image_url,
+			array('width' => 'auto',
+				'height' => 'auto',
+				'format' => 'webm',
+			)
+		);
+
+		$link_svg = apply_filters(
+			'optml_content_url',
+			$image_url,
+			array('width' => 'auto',
+				'height' => 'auto',
+				'format' => 'svg',
+			)
+		);
+
+		$video_tag = '<video autoplay muted loop playsinline poster="' . $link_svg . '">' .
+					  '<source src="' . $link_mp4 . '">
+                       <source src="' . $link_webm . '">
+				       <source src="' . $link_webp . '">' .
+			'</video>';
+		$content = str_replace( $image_tag, $video_tag, $content );
+		return true;
 	}
 
-
+	/**
+	 * Method invoked by `optml_content_images_tags` filter.
+	 *
+	 * @param string $content The content to be processed.
+	 * @param array  $images A list of images.
+	 *
+	 * @return mixed
+	 */
 	public function process_image_tags( $content, $images = array() ) {
 
 		$image_sizes = self::image_sizes();
@@ -175,7 +175,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				continue; // @codeCoverageIgnore
 			}
 
-			if ( $this->img_to_video( $images['img_url'][ $index ], $images['img_tag'][ $index ], $content, $this->settings->get( 'img_to_video' ) ) ) {
+			if ( $this->img_to_video( $images['img_url'][ $index ], $images['img_tag'][ $index ], $content ) ) {
 				continue;
 			}
 
