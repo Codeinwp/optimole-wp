@@ -8,6 +8,8 @@ services:
       - 7025:8080
   mysql:
     image: mysql:5.7
+    ports:
+      - 3307:3306
     volumes:
       - ~/optmlwp/db_data:/var/lib/mysql
     restart: always
