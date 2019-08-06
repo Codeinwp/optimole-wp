@@ -171,7 +171,15 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 
 	}
+	public function test_replacement_strange_chars(){
+		$content = '
+		https://www.example.org/wp-content/uploads/2018/05/@brands.png
+		https://www.example.org/wp-content/uploads/2018/05/%brands.png
+		';
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertEquals( 2, substr_count( $replaced_content, 'i.optimole.com' ) );
 
+	}
 	// TODO We need to extend this to single url replacement. If we make the url extractor regex with option scheme, the parsing will take huge amount of time. We need to think alternatives.
 	public function test_replacement_without_scheme() {
 		$content          = '<div class="before-footer">
