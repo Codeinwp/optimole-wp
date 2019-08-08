@@ -77,10 +77,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return false;
 		}
 
-		$file = get_headers( $image_url, 1 );
-		if ( strcmp( $file['Content-Type'], 'image/gif' ) !== 0 ) {
+		if ( $this->is_valid_mimetype_from_url( $image_url, [ 'gif' => false ] ) ) {
 			return false;
 		}
+
+
 
 		$link_webp = apply_filters(
 			'optml_content_url',
@@ -109,20 +110,30 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			)
 		);
 
-		$link_svg = apply_filters(
+		$link_png = apply_filters(
 			'optml_content_url',
 			$image_url,
 			array('width' => 'auto',
 				'height' => 'auto',
-				'format' => 'svg',
+				'format' => 'png',
 			)
 		);
 
-		$video_tag = '<video autoplay muted loop playsinline poster="' . $link_svg . '">' .
-					  '<source src="' . $link_mp4 . '">
-                       <source src="' . $link_webm . '">
-				       <source src="' . $link_webp . '">' .
-			'</video>';
+		$video_tag = $image_tag;
+
+		$video_tag = str_replace(
+			[
+				'src=',
+				'<img',
+				'/>',
+			],
+			[
+				'original-src=',
+				'<video autoplay muted loop playsinline poster="' . $link_png . '"',
+				'><source src="' . $link_mp4 . '" type="video/mp4"><source src="' . $link_webm . '" type="video/webm">sss</video',
+			],
+			$video_tag
+		);
 		$content = str_replace( $image_tag, $video_tag, $content );
 		return true;
 	}
