@@ -10,6 +10,10 @@ class Optml_Settings {
 	const FILTER_FILENAME = 'filename';
 	const FILTER_TYPE_LAZYLOAD = 'lazyload';
 	const FILTER_TYPE_OPTIMIZE = 'optimize';
+
+	const WATCHER_TYPE_LAZYLOAD = 'lazyload';
+	const WATCH_CLASS = 'class';
+	const WATCH_ID = 'id';
 	/**
 	 * Default settings schema.
 	 *
@@ -26,6 +30,7 @@ class Optml_Settings {
 		'lazyload_placeholder' => 'disabled',
 		'resize_smart'         => 'disabled',
 		'filters'              => [],
+		'watchers'             => [],
 		'quality'              => 'auto',
 		'wm_id'                => - 1,
 		'wm_opacity'           => 1,
@@ -63,6 +68,29 @@ class Optml_Settings {
 			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 			restore_current_blog();
 		}
+	}
+
+	/**
+	 * Return filter definitions.
+	 *
+	 * @return mixed|null Filter values.
+	 */
+	public function get_watchers() {
+
+		$watchers = $this->get( 'watchers' );
+		if ( ! isset( $watchers[ self::WATCHER_TYPE_LAZYLOAD ] ) ) {
+			$watchers[ self::WATCHER_TYPE_LAZYLOAD ] = [];
+		}
+		foreach ( $watchers as $watch_key => $watch_rules ) {
+			if ( ! isset( $watch_rules[ self::WATCH_CLASS ] ) ) {
+				$watchers[ $watch_key ][ self::WATCH_CLASS ] = [];
+			}
+			if ( ! isset( $watch_rules[ self::WATCH_ID ] ) ) {
+				$watchers[ $watch_key ][ self::WATCH_ID ] = [];
+			}
+		}
+
+		return $watchers;
 	}
 
 	/**
@@ -132,6 +160,21 @@ class Optml_Settings {
 						foreach ( $filter_values as $filter_rule_type => $filter_rules_value ) {
 							$sanitized_value[ $filter_type ][ $filter_rule_type ] = array_filter(
 								$filter_rules_value,
+								function ( $value ) {
+									return ( $value !== 'false' && $value !== false );
+								}
+							);
+						}
+					}
+					break;
+				case 'watchers':
+					$current_watchers = $this->get_watchers();
+					$sanitized_value = array_replace_recursive( $current_watchers, $value );
+					// Remove falsy vars.
+					foreach ( $sanitized_value as $watch_type => $watch_values ) {
+						foreach ( $watch_values as $watch_rule_type => $watch_rules_value ) {
+							$sanitized_value[ $watch_type ][ $watch_rule_type ] = array_filter(
+								$watch_rules_value,
 								function ( $value ) {
 									return ( $value !== 'false' && $value !== false );
 								}
@@ -264,6 +307,7 @@ class Optml_Settings {
 			'max_width'            => $this->get( 'max_width' ),
 			'max_height'           => $this->get( 'max_height' ),
 			'filters'              => $this->get_filters(),
+			'watchers'             => $this->get_watchers(),
 			'watermark'            => $this->get_watermark(),
 			'img_to_video'         => $this->get( 'img_to_video' ),
 		);
