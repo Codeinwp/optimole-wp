@@ -16,7 +16,11 @@
                                :height="25"
                                color="#008ec2"></toggle-button>
             </div>
-
+        </div>
+        <div  id="filters-list">
+            <div class="columns  ">
+                <watch-control :type="'lazyload'"></watch-control>
+            </div>
         </div>
         <div class="field  is-fullwidth columns ">
             <div class="column is-left">
@@ -31,9 +35,11 @@
 </template>
 
 <script>
+	import WatchControl from "./watch-control.vue";
 
 	export default {
 		name: "lazyload",
+		components: {WatchControl},
 		data() {
 			return {
 				strings: optimoleDashboardApp.strings.options_strings,
