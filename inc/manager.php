@@ -141,6 +141,9 @@ final class Optml_Manager {
 		if ( array_key_exists( 'ct_builder', $_GET ) && $_GET['ct_builder'] == 'true' ) {
 			return false; // @codeCoverageIgnore
 		}
+		if ( array_key_exists( 'et_fb', $_GET ) && ( $_GET['et_fb'] == 'true' || $_GET['et_fb'] == '1' ) ) {
+			return false; // @codeCoverageIgnore
+		}
 		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
 			return false; // @codeCoverageIgnore
 		}
