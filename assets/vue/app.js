@@ -5,10 +5,11 @@ import store from './store/store';
 
 import VueResize from 'vue-resize'
 import ToggleButton from 'vue-js-toggle-button';
+import VueTextareaAutosize from 'vue-textarea-autosize'
 
 
 Vue.use( ToggleButton );
-
+Vue.use( VueTextareaAutosize );
 Vue.use( VueResize );
 
 

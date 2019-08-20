@@ -61,18 +61,8 @@ class Optml_Admin {
 
 		$watchers = $this->settings->get_watchers();
 		$lazyload_bg_selectors = [];
-		foreach ( $watchers[ Optml_Settings::WATCHER_TYPE_LAZYLOAD ] as $type => $rules ) {
-			if ( $type === Optml_Settings::WATCH_CLASS ) {
-				foreach ( $rules as $key => $value ) {
-					$lazyload_bg_selectors[] = '.' . $key;
-					$bgclasses[] = $key;
-				}
-			}
-			if ( $type === Optml_Settings::WATCH_ID ) {
-				foreach ( $rules as $key => $value ) {
-					$lazyload_bg_selectors[] = '#' . $key;
-				}
-			}
+		foreach ( $watchers[ Optml_Settings::WATCHER_TYPE_LAZYLOAD ] as $selector ) {
+			$lazyload_bg_selectors[] = $selector;
 		}
 		foreach ( $bgclasses as $key ) {
 			$lazyload_bg_selectors[] = '.' . $key;
@@ -108,7 +98,7 @@ class Optml_Admin {
 						w.optimoleData = {
 							backgroundReplaceClasses: [%s],
 							watchClasses: [%s],
-							backgroundLazySelectors: "%s",
+							backgroundLazySelectors: %s,
 							network_optimizations: %s,
 							quality: %d
 						}
@@ -303,21 +293,8 @@ class Optml_Admin {
 		}
 
 		$css = '';
-		foreach ( $watchers as $watch_rules ) {
-			if ( isset( $watch_rules[ Optml_Settings::WATCH_CLASS ] ) ) {
-				foreach ( $watch_rules[ Optml_Settings::WATCH_CLASS ] as $key => $value ) {
-					if ( $value !== 'false' && $value !== false ) {
-						$css .= '.' . $key . ':not(.optml-bg-lazyloaded) { background-image: none !important; } ';
-					}
-				}
-			}
-			if ( isset( $watch_rules[ Optml_Settings::WATCH_ID ] ) ) {
-				foreach ( $watch_rules[ Optml_Settings::WATCH_ID ] as $key => $value ) {
-					if ( $value !== 'false' && $value !== false ) {
-						$css .= '#' . $key . ':not(.optml-bg-lazyloaded) { background-image: none !important; } ';
-					}
-				}
-			}
+		foreach ( $watchers[ Optml_Settings::WATCHER_TYPE_LAZYLOAD ] as $selector ) {
+			$css .= $selector . ':not(.optml-bg-lazyloaded) { background-image: none !important; } ';
 		}
 
 		wp_register_style( 'optm_lazyload_background_style', false );
@@ -616,14 +593,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exclude_filename_desc'             => __( 'Image filename contains', 'optimole-wp' ),
 				'exclude_url_desc'                  => __( 'Page url contains', 'optimole-wp' ),
 				'exclude_ext_desc'                  => __( 'Image extension is', 'optimole-wp' ),
-
-				'watch_class'                       => __( 'Element class', 'optimole-wp' ),
-				'watch_id'                          => __( 'Element id', 'optimole-wp' ),
-				'add_watch'                         => __( 'Add rule', 'optimole-wp' ),
-				'watch_title_lazyload'              => __( 'Lazyload background images if', 'optimole-wp' ),
-				'watch_class_desc'                  => __( 'Lazyload background for class', 'optimole-wp' ),
-				'watch_id_desc'                     => __( 'Lazyload background for id', 'optimole-wp' ),
-
+				'watch_title_lazyload'              => __( 'Lazyload background images for selectors:', 'optimole-wp' ),
+				'watch_desc_lazyload'               => __( 'Put each selector group on a new line ending with "," (comma).', 'optimole-wp' ),
 				'hide'                              => __( 'Hide', 'optimole-wp' ),
 				'high_q_title'                      => __( 'High', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),

@@ -79,14 +79,6 @@ class Optml_Settings {
 		if ( ! isset( $watchers[ self::WATCHER_TYPE_LAZYLOAD ] ) ) {
 			$watchers[ self::WATCHER_TYPE_LAZYLOAD ] = [];
 		}
-		foreach ( $watchers as $watch_key => $watch_rules ) {
-			if ( ! isset( $watch_rules[ self::WATCH_CLASS ] ) ) {
-				$watchers[ $watch_key ][ self::WATCH_CLASS ] = [];
-			}
-			if ( ! isset( $watch_rules[ self::WATCH_ID ] ) ) {
-				$watchers[ $watch_key ][ self::WATCH_ID ] = [];
-			}
-		}
 
 		return $watchers;
 	}
@@ -165,19 +157,17 @@ class Optml_Settings {
 					}
 					break;
 				case 'watchers':
-					$current_watchers = $this->get_watchers();
-					$sanitized_value = array_replace_recursive( $current_watchers, $value );
-					// Remove falsy vars.
-					foreach ( $sanitized_value as $watch_type => $watch_values ) {
-						foreach ( $watch_values as $watch_rule_type => $watch_rules_value ) {
-							$sanitized_value[ $watch_type ][ $watch_rule_type ] = array_filter(
-								$watch_rules_value,
-								function ( $value ) {
-									return ( $value !== 'false' && $value !== false );
-								}
-							);
-						}
+					$new_watchers = $value;
+					$sanitized_value = $new_watchers;
+					foreach ( $new_watchers as $watcher_type => $watcher_selectors ) {
+						$sanitized_value[$watcher_type] = array_filter(
+							$watcher_selectors,
+							function ( $value ) {
+								return ( $value !== '' && $value !== ',' && $value !== false );
+							}
+						);
 					}
+
 					break;
 				case 'wm_opacity':
 				case 'wm_scale':
