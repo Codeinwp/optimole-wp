@@ -128,7 +128,7 @@ final class Optml_Manager {
 		if ( ( is_admin() && ! self::is_ajax_request() ) || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
+		if ( array_key_exists( 'preview', $_GET ) && ! empty( $_GET['preview'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
 
@@ -138,10 +138,10 @@ final class Optml_Manager {
 		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'ct_builder', $_GET ) && $_GET['ct_builder'] == 'true' ) {
+		if ( array_key_exists( 'ct_builder', $_GET ) && ! empty( $_GET['ct_builder'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'et_fb', $_GET ) && ( $_GET['et_fb'] == 'true' || $_GET['et_fb'] == '1' ) ) {
+		if ( array_key_exists( 'et_fb', $_GET ) && ! empty( $_GET['et_fb'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
