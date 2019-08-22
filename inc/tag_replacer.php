@@ -81,8 +81,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return false;
 		}
 
-
-
 		$link_webp = apply_filters(
 			'optml_content_url',
 			$image_url,
