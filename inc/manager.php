@@ -296,8 +296,7 @@ final class Optml_Manager {
 
 		$urls = array_map(
 			function ( $value ) {
-				// I have removed the '\\' from here since it alters the json escaped unicode
-				return rtrim( html_entity_decode( $value ), '";\'' );
+				return rtrim( html_entity_decode( $value ), '\\";\'' );
 			},
 			$urls
 		);
