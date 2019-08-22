@@ -296,7 +296,8 @@ final class Optml_Manager {
 
 		$urls = array_map(
 			function ( $value ) {
-				return rtrim( html_entity_decode( $value ), '\\";\'' );
+				// I have removed the '\\' from here since it alters the json escaped unicode
+				return rtrim( html_entity_decode( $value ), '";\'' );
 			},
 			$urls
 		);
@@ -481,7 +482,7 @@ final class Optml_Manager {
 	 * @return array
 	 */
 	public function extract_image_urls_from_content( $content ) {
-		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\?{1}[\w|=|&|\-|\.|:|;]*)?/';
+		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*(?:[' . Optml_Config::$chars . '])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\?{1}[\w|=|&|\-|\.|:|;]*)?/';
 		preg_match_all(
 			$regex,
 			$content,

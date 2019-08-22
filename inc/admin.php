@@ -67,7 +67,7 @@ class Optml_Admin {
 		foreach ( $bgclasses as $key ) {
 			$lazyload_bg_selectors[] = '.' . $key;
 		}
-		$lazyload_bg_selectors = empty( $lazyload_bg_selectors ) ? '' : sprintf( '"%s"', implode( '","', (array) $lazyload_bg_selectors ) );
+		$lazyload_bg_selectors = empty( $lazyload_bg_selectors ) ? '' : sprintf( '%s', implode( ', ', (array) $lazyload_bg_selectors ) );
 
 		$bgclasses       = empty( $bgclasses ) ? '' : sprintf( '"%s"', implode( '","', (array) $bgclasses ) );
 		$watcher_classes = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
@@ -88,6 +88,7 @@ class Optml_Admin {
 		
 		</style>
 		<script type="application/javascript">
+					document.documentElement.className += "optimole_has_js";
 					(function(w, d){ 
 						var b = d.getElementsByTagName("head")[0];
 						var s = d.createElement("script");
@@ -98,7 +99,7 @@ class Optml_Admin {
 						w.optimoleData = {
 							backgroundReplaceClasses: [%s],
 							watchClasses: [%s],
-							backgroundLazySelectors: %s,
+							backgroundLazySelectors: "%s",
 							network_optimizations: %s,
 							quality: %d
 						}
@@ -285,6 +286,9 @@ class Optml_Admin {
 		<?php
 	}
 
+	/**
+	 * Add style classes for lazy loading background images.
+	 */
 	protected function add_background_lazy_css() {
 
 		$watchers = $this->settings->get_watchers();
@@ -294,7 +298,7 @@ class Optml_Admin {
 
 		$css = '';
 		foreach ( $watchers[ Optml_Settings::WATCHER_TYPE_LAZYLOAD ] as $selector ) {
-			$css .= $selector . ':not(.optml-bg-lazyloaded) { background-image: none !important; } ';
+			$css .= 'html.optimole_has_js ' . $selector . ':not(.optml-bg-lazyloaded) { background-image: none !important; } ';
 		}
 
 		wp_register_style( 'optm_lazyload_background_style', false );
