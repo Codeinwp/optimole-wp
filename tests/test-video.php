@@ -37,14 +37,15 @@ class Test_Video_Tag extends WP_UnitTestCase {
     public function test_replace_tag () {
         $image_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQK4kPpuaFciC2HriDrMGbBpnbOVMoIwCAa08l5q20ZUOWU067E";
         $img_tag = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQK4kPpuaFciC2HriDrMGbBpnbOVMoIwCAa08l5q20ZUOWU067E" >';
-        $content          = '<div class="before-footer">
-			<div class="codeinwp-container">
-				<p class="featuredon">Featured On</p>
-				<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQK4kPpuaFciC2HriDrMGbBpnbOVMoIwCAa08l5q20ZUOWU067E"> 
-			</div>
-		</div>';
+        $content = '<div class="before-footer">
+			            <div class="codeinwp-container">
+			            	<p class="featuredon">Featured On</p>
+			            	<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQK4kPpuaFciC2HriDrMGbBpnbOVMoIwCAa08l5q20ZUOWU067E"> 
+		            	</div>
+	            	</div>';
         $this -> assertTrue( Optml_Tag_Replacer::instance()->img_to_video($image_url, $img_tag, $content ));
         $this->assertContains( 'i.optimole.com', $content );
+        $this->assertContains( '<video autoplay muted loop playsinline poster', $content );
         $this->assertContains( 'https://encrypted-tbn0.gstatic.com', $content );
       }
 }
