@@ -343,13 +343,8 @@ abstract class Optml_App_Replacer {
 		if ( ! isset( $url_parts['host'] ) ) {
 			return false;
 		}
-		// https://mlynllm40tdp.i.optimole.com/HNUQD3PR0fo/w:auto/h:auto/q:auto/
-		// http://c37866cd.ngrok.io/wp-content/uploads/2019/07/68747470733a2f2f6d65646961312e7465
-		// 6e6f722e636f6d2f696d616765732f65616337663764383533346630383433656264373037313031623865663766
-		// 642f74656e6f722e6769663f6974656d69643d3131363939363038.gif
-		// $this->set_properties();
 		if ( false === ( isset( $this->possible_sources[ $url_parts['host'] ] ) || isset( $this->allowed_sources[ $url_parts['host'] ] ) ) ) {
-			return false;                     // here
+			return false;
 		}
 
 		if ( false === Optml_Filters::should_do_image( $url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_FILENAME ] ) ) {

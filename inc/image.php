@@ -109,7 +109,6 @@ class Optml_Image {
 		if ( isset( $this->resize->get()['type'] ) ) {
 			$path_parts[] = $this->resize->toString();
 		}
-		// format is not a must that's what we are changing
 		if ( isset( $params['apply_watermark'] ) && $params['apply_watermark'] && is_array( self::$watermark->get() ) && isset( self::$watermark->get()['id'] ) && self::$watermark->get()['id'] > 0 ) {
 			$path_parts[] = self::$watermark->toString();
 		}
