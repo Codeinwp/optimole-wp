@@ -9,6 +9,17 @@
  */
 class Test_Video_Tag extends WP_UnitTestCase {
 
+    const IMG_TAGS_GIF = '<div id="wp-custom-header" class="wp-custom-header">
+                        <img src="https://www.example.org/wp-content/uploads/2018/05/brands.gif"/>
+                        </div> <div> <img src="https://www.example.org/wp-content/uploads/2018/05/image.gif"/>  </div>';
+    const IMG_TAGS_NOT_GIF = '<div id="wp-custom-header" class="wp-custom-header">
+                        <img src="https://www.example.org/wp-content/uploads/2018/05/brands.png"/>
+                        <img src="https://www.example.org/wp-content/uploads/2018/05/brands.jpg"/>
+                        <img src="https://www.example.org/wp-content/uploads/2018/05/brands.webp"/>
+                        <img src="https://www.example.org/wp-content/uploads/2018/05/brands"/>
+                     </div>';
+
+    public static $sample_post;
     public function setUp() {
 
         parent::setUp();
@@ -16,11 +27,12 @@ class Test_Video_Tag extends WP_UnitTestCase {
         $settings->update( 'service_data', [
             'cdn_key'    => 'test123',
             'cdn_secret' => '12345',
-            'whitelist'  => [ 'encrypted-tbn0.gstatic.com' ],
-            'img_to_video' => 'enabled'
+            'whitelist'  => [ 'example.com' ],
 
         ] );
         $settings->update( 'lazyload', 'disabled' );
+        $settings->update( 'img_to_video', 'enabled' );
+
 
         Optml_Url_Replacer::instance()->init();
         Optml_Tag_Replacer::instance()->init();
@@ -28,28 +40,40 @@ class Test_Video_Tag extends WP_UnitTestCase {
 
         self::$sample_post        = self::factory()->post->create( [
                 'post_title'   => 'Test post',
-                'post_content' => self::IMG_TAGS
+                'post_content' => self::IMG_TAGS_GIF
             ]
         );
-        self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/logo.png' );
+    }
+    public function test_should_replace_tag () {
+
+        $replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_GIF );
+        $this->assertContains( 'i.optimole.com', $replaced_content );
+        $this->assertContains( '<video autoplay muted loop playsinline poster', $replaced_content );
+        $this->assertContains( 'type="video/mp4', $replaced_content );
+        $this->assertContains( 'type="video/webm', $replaced_content );
+        $this->assertContains( '/f:mp4', $replaced_content );
+        $this->assertContains( '/f:webm', $replaced_content );
+        $this->assertContains( 'https://www.example.org', $replaced_content );
+      }
+    public function test_should_not_replace_tag () {
+
+        $replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_NOT_GIF );
+        $this->assertNotContains( '<video autoplay muted loop playsinline poster', $replaced_content );
+        $this->assertNotContains( 'type="video/mp4', $replaced_content );
+        $this->assertNotContains( 'type="video/webm', $replaced_content );
+        $this->assertNotContains( '/f:mp4', $replaced_content );
+        $this->assertNotContains( '/f:webm', $replaced_content );
 
     }
-    public function test_replace_tag () {
-        $image_url = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQK4kPpuaFciC2HriDrMGbBpnbOVMoIwCAa08l5q20ZUOWU067E";
-        $img_tag = '<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQK4kPpuaFciC2HriDrMGbBpnbOVMoIwCAa08l5q20ZUOWU067E" >';
-        $content = '<div class="before-footer">
-			            <div class="codeinwp-container">
-			            	<p class="featuredon">Featured On</p>
-			            	<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQK4kPpuaFciC2HriDrMGbBpnbOVMoIwCAa08l5q20ZUOWU067E"> 
-		            	</div>
-	            	</div>';
-        $this -> assertTrue( Optml_Tag_Replacer::instance()->img_to_video($image_url, $img_tag, $content ));
-        $this->assertContains( 'i.optimole.com', $content );
-        $this->assertContains( '<video autoplay muted loop playsinline poster', $content );
-        $this->assertContains( 'type="video/mp4', $content );
-        $this->assertContains( 'type="video/webm', $content );
-        $this->assertContains( '/f:mp4', $content );
-        $this->assertContains( '/f:webm', $content );
-        $this->assertContains( 'https://encrypted-tbn0.gstatic.com', $content );
-      }
+    public function test_should_replace_tag_disabled () {
+
+        $replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_NOT_GIF );
+        $this->assertNotContains( '<video autoplay muted loop playsinline poster', $replaced_content );
+        $this->assertNotContains( 'type="video/mp4', $replaced_content );
+        $this->assertNotContains( 'type="video/webm', $replaced_content );
+        $this->assertNotContains( '/f:mp4', $replaced_content );
+        $this->assertNotContains( '/f:webm', $replaced_content );
+
+    }
+
 }

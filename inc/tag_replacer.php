@@ -76,11 +76,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( $this->settings->get( 'img_to_video' ) === 'disabled' ) {
 			return false;
 		}
-
 		if ( $this->is_valid_mimetype_from_url( $image_url, [ 'gif' => false ] ) ) {
 			return false;
 		}
-
+		if ( ! $this->is_valid_mimetype_from_url( $image_url ) ) {
+			return false;
+		}
 		$link_mp4 = apply_filters(
 			'optml_content_url',
 			$image_url,
