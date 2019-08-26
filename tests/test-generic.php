@@ -25,6 +25,6 @@ class Test_Generic extends WP_UnitTestCase {
 	 */
 	function test_debug_mode() {
 
-		$this->assertFalse( OPTML_DEBUG );
+		$this->assertTrue( OPTML_DEBUG );
 	}
 }
