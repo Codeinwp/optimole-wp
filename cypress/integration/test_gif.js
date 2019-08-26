@@ -8,6 +8,7 @@ describe( 'Check gif page', function () {
 		cy.get( 'video' ).should( 'have.attr', 'loop' ).and( 'contain', '' );
 		cy.get( 'video' ).should( 'have.attr', 'playsinline' ).and( 'contain', '' );
 		cy.get( 'video' ).should( 'have.attr', 'poster' ).and( 'contain', 'i.optimole.com' );
+		cy.get( 'video' ).should( 'have.attr', 'poster' ).and( 'contain', 'f:png' );
 		cy.get( 'video > source' ).should( 'have.attr', 'src' ).and( 'contain', 'f:mp4' );
 		cy.get( 'video > source' ).should( 'have.attr', 'src' ).and( 'contain', 'i.optimole.com' );
 		cy.get( 'video > source' ).should( 'have.attr', 'type' ).and( 'contain', 'video/mp4' );
