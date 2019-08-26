@@ -46,6 +46,10 @@ class Test_Video_Tag extends WP_UnitTestCase {
         $this -> assertTrue( Optml_Tag_Replacer::instance()->img_to_video($image_url, $img_tag, $content ));
         $this->assertContains( 'i.optimole.com', $content );
         $this->assertContains( '<video autoplay muted loop playsinline poster', $content );
+        $this->assertContains( 'type="video/mp4', $content );
+        $this->assertContains( 'type="video/webm', $content );
+        $this->assertContains( '/f:mp4', $content );
+        $this->assertContains( '/f:webm', $content );
         $this->assertContains( 'https://encrypted-tbn0.gstatic.com', $content );
       }
 }
