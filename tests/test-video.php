@@ -65,15 +65,4 @@ class Test_Video_Tag extends WP_UnitTestCase {
         $this->assertNotContains( '/f:webm', $replaced_content );
 
     }
-    public function test_should_replace_tag_disabled () {
-
-        $replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_NOT_GIF );
-        $this->assertNotContains( '<video autoplay muted loop playsinline poster', $replaced_content );
-        $this->assertNotContains( 'type="video/mp4', $replaced_content );
-        $this->assertNotContains( 'type="video/webm', $replaced_content );
-        $this->assertNotContains( '/f:mp4', $replaced_content );
-        $this->assertNotContains( '/f:webm', $replaced_content );
-
-    }
-
 }
