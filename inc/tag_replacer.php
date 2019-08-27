@@ -153,7 +153,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			if ( strpos( $src, $this->upload_resource['content_path'] ) === 0 ) {
 				$src = $tmp = untrailingslashit( $this->upload_resource['content_host'] ) . $src;   // remove last /
 
-				$new_src                     = $is_slashed ? addcslashes( $src, '/' ) : $src;    // make //
+				$new_src                     = $is_slashed ? addcslashes( $src, '/' ) : $src;
 				$image_tag                   = str_replace(
 					array(
 						'"' . $images['img_url'][ $index ],
