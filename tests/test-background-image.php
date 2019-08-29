@@ -10,8 +10,8 @@
 class Test_Background_Image extends WP_UnitTestCase
 {
 
-    const BACKGROUND_IMG = '<div data-hash="5c2602bbe76e6f966a846fb661b9d76d" data-desktop="//366b4e08.ngrok.io/wp-content/uploads/2019/08/image3-10-5.jpg" class="n2-ss-slide-background-image" data-blur="0" style="background-image:url("//example.org/wp-content/themes/test/assets/images/header-300x300.png");">  </div>';
-    const BACKGROUND_IMG_SECOND = '<div data-hash="5c2602bbe76e6f966a846fb661b9d76d" data-desktop="://www.example.org/wp-content/uploads/2018/05/brands2.png?test=whatever7_whatever" class="n2-ss-slide-background-image" data-blur="0" style="background-image:url("//example.org/wp-content/themes/test/assets/images/header-300x300.png?test=whatever7_whatever");">  </div>';
+    const BACKGROUND_IMG = '<div data-hash="5c2602bbe76e6f966a846fb661b9d76d" class="n2-ss-slide-background-image" data-blur="0" style="background-image:url("//example.org/wp-content/themes/test/assets/images/header-300x300.png");">  </div>';
+    const BACKGROUND_IMG_SECOND = '<div data-hash="5c2602bbe76e6f966a846fb661b9d76d"  class="n2-ss-slide-background-image" data-blur="0" style="background-image:url("//example.org/wp-content/themes/test/assets/images/header-300x300.png?test=whatever7_whatever");">  </div>';
     const SHOULD_NOT_REPLACE = '<div data-hash="5c2602bbe76e6f966a846fb661b9d76d"  class="n2-ss-slide-background-image" data-blur="0" style="background-image:url("//example.org/wp-content/themes/test/assets/images/header-300x300");">  </div>';
     const SHOULD_NOT_REPLACE_SECOND = '<div data-hash="5c2602bbe76e6f966a846fb661b9d76d"  class="n2-ss-slide-background-image" data-blur="0" style="background-image:url("//example.org/wp-content/themes/test/assets/images/header-300x300?test=whatever7_whatever");">  </div>';
 
