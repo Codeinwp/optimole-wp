@@ -12,8 +12,6 @@ class Optml_Settings {
 	const FILTER_TYPE_OPTIMIZE = 'optimize';
 
 	const WATCHER_TYPE_LAZYLOAD = 'lazyload';
-	const WATCH_CLASS = 'class';
-	const WATCH_ID = 'id';
 	/**
 	 * Default settings schema.
 	 *

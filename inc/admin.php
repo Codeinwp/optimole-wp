@@ -88,7 +88,7 @@ class Optml_Admin {
 		
 		</style>
 		<script type="application/javascript">
-					document.documentElement.className += "optimole_has_js";
+					document.documentElement.className += " optimole_has_js";
 					(function(w, d){ 
 						var b = d.getElementsByTagName("head")[0];
 						var s = d.createElement("script");
@@ -298,7 +298,7 @@ class Optml_Admin {
 
 		$css = '';
 		foreach ( $watchers[ Optml_Settings::WATCHER_TYPE_LAZYLOAD ] as $selector ) {
-			$css .= 'html.optimole_has_js ' . $selector . ':not(.optml-bg-lazyloaded) { background-image: none !important; } ';
+			$css .= 'html.optimole_has_js ' . esc_attr( $selector ) . ':not(.optml-bg-lazyloaded) { background-image: none !important; } ';
 		}
 
 		wp_register_style( 'optm_lazyload_background_style', false );
