@@ -9,15 +9,11 @@
  */
 class Test_Lazyload_Query extends WP_UnitTestCase
 {
-
     const IMG = '<img src="https://example.org/photos/814499/pexels-photo-814499.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">';
-
-
     public static $sample_post;
 
     public function setUp()
     {
-
         parent::setUp();
         $settings = new Optml_Settings();
         $settings->update('service_data', [
@@ -28,7 +24,6 @@ class Test_Lazyload_Query extends WP_UnitTestCase
         ]);
         $settings->update('lazyload', 'enabled');
         $settings->update('img_to_video', 'enabled');
-
 
         Optml_Url_Replacer::instance()->init();
         Optml_Tag_Replacer::instance()->init();
@@ -42,9 +37,11 @@ class Test_Lazyload_Query extends WP_UnitTestCase
     }
     public function test_should_replace_url()
     {
+
         $replaced_content = Optml_Manager::instance()->replace_content(self::IMG);
-        var_dump($replaced_content);
         $this->assertContains('i.optimole.com', $replaced_content);
         $this->assertContains('data-opt-src', $replaced_content);
+        $this->assertContains('example.org', $replaced_content);
+
     }
 }
