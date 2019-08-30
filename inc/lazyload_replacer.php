@@ -202,8 +202,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 		$url = parse_url( $url );
 		unset( $url['query'] );
-		array_shift( $url ) . '://' . implode( $url );
-
 		$type = wp_check_filetype(
 			basename( $url['path'] ),
 			Optml_Config::$extensions
