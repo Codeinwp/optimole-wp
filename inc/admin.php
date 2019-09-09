@@ -372,7 +372,9 @@ class Optml_Admin {
 	 * @return array Altered hints array.
 	 */
 	public function add_dns_prefetch( $hints, $relation_type ) {
-		if ( 'dns-prefetch' !== $relation_type ) {
+		if ( 'dns-prefetch' !== $relation_type ||
+			 'preconnect' !== $relation_type
+		) {
 			return $hints;
 		}
 		if ( ! $this->settings->is_connected() ) {
