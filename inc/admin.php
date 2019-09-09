@@ -383,10 +383,10 @@ class Optml_Admin {
 		if ( ! $this->settings->is_enabled() ) {
 			return $hints;
 		}
-		$hints[] = sprintf( '//%s', $this->settings->get_cdn_url() );
+		$hints[] = sprintf( 'https://%s', $this->settings->get_cdn_url() );
 
-		if ( ! $this->settings->use_lazyload() ) {
-			$hints[] = sprintf( '//%s', OPTML_JS_CDN );
+		if ( $this->settings->use_lazyload() ) {
+			$hints[] = sprintf( 'https://%s', OPTML_JS_CDN );
 		}
 
 		return $hints;
