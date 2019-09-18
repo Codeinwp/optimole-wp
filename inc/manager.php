@@ -332,7 +332,7 @@ final class Optml_Manager {
 		);
 
 		foreach ( $urls as $origin => $replace ) {
-            $origin = strtok ($origin, '?');
+			$origin = strtok( $origin, '?' );
 			$html = preg_replace( '/(?<!\/)' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
 		}
 
