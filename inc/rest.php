@@ -429,6 +429,15 @@ class Optml_Rest {
 
 		$final_images = array_splice( $images['list'], 0, 10 );
 
+		$final_images = array_map(
+			function ( $item ) {
+					$item['ex_size_raw'] = intval( $item['ex_size'] );
+					$item['new_size_raw'] = intval( $item['new_size'] );
+					return $item;
+			},
+			$final_images
+		);
+
 		return $this->response( $final_images );
 	}
 
