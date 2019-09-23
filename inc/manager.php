@@ -64,6 +64,7 @@ final class Optml_Manager {
 		'metaslider',
 		'essential_grid',
 		'yith_quick_view',
+		'cache_enabler',
 	);
 
 	/**
