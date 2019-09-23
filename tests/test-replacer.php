@@ -19,6 +19,8 @@ class Test_Replacer extends WP_UnitTestCase {
 	http://example.org/wp-content/themes/test/assets/images/header.png 
 	http://example.org/wp-content/themes/test/assets/images/header.jpeg
 	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png 
+	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png?width=500&cr=small
+	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png%3Fwidth%3D500%26cr%3Dsmall
 	 ';
 	const CSS_STYLE = '
 	<style>
@@ -127,7 +129,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
 
-		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 5, substr_count( $replaced_content, 'i.optimole.com' ) );
 	}
 
 	public function test_style_replacement() {
