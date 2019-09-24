@@ -85,14 +85,14 @@ class Test_Replacer extends WP_UnitTestCase {
 		$html = [
 			'image' => "https://www.example.org/wp-content/uploads/2018/05/brands.png",
 			'image2' => "https://www.example.org/wp-content/uploads/2018/05/brands2.png?test=123",
-			'image2' => "https://www.example.org/wp-content/uploads/2018/05/brands2.png?test=123&amp;new=val",
+			'image3' => "https://www.example.org/wp-content/uploads/2018/05/brands2.png?test=123&amp;new=val",
 		];
 
 
 		$html = wp_json_encode( $html );
 		$html = _wp_specialchars( $html, ENT_QUOTES, 'UTF-8', true );
 		$replaced_content = Optml_Manager::instance()->process_urls_from_content( $html );
-		$this->assertEquals( 2, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
 		$this->assertNotContains('?test=123',$replaced_content );
 
 		$replaced_content = wp_specialchars_decode( $replaced_content, ENT_QUOTES );
