@@ -296,7 +296,7 @@ final class Optml_Manager {
 
 		$urls = array_map(
 			function ( $value ) {
-				return rtrim( html_entity_decode( $value ), '\\";\'' );
+				return rtrim( $value, '\\"\'' );
 			},
 			$urls
 		);
@@ -332,11 +332,7 @@ final class Optml_Manager {
 		);
 
 		foreach ( $urls as $origin => $replace ) {
-			if ( strstr( $origin, '?' ) !== false ) {
-				$origin = explode( '?', $origin );
-				$origin[1] = htmlentities( $origin[1] );
-				$origin = join( '?', $origin );
-			}
+			$origin = str_replace( '&quot;', '', $origin );
 			$html = preg_replace( '/(?<!\/)' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
 		}
 
