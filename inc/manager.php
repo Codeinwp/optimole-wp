@@ -296,7 +296,8 @@ final class Optml_Manager {
 
 		$urls = array_map(
 			function ( $value ) {
-				return rtrim( $value, '\\"\'' );
+				$value = str_replace( '&quot;', '', $value );
+				return rtrim( $value, '\\";\'' );
 			},
 			$urls
 		);
@@ -324,6 +325,7 @@ final class Optml_Manager {
 		$urls = array_map(
 			function ( $url ) {
 				$is_slashed = strpos( $url, '\/' ) !== false;
+				$url        = html_entity_decode( $url );
 				$new_url    = apply_filters( 'optml_content_url', $url );
 
 				return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
@@ -332,7 +334,6 @@ final class Optml_Manager {
 		);
 
 		foreach ( $urls as $origin => $replace ) {
-			$origin = str_replace( '&quot;', '', $origin );
 			$html = preg_replace( '/(?<!\/)' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
 		}
 

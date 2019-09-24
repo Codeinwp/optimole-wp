@@ -85,6 +85,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		$html = [
 			'image' => "https://www.example.org/wp-content/uploads/2018/05/brands.png",
 			'image2' => "https://www.example.org/wp-content/uploads/2018/05/brands2.png?test=123",
+			'image2' => "https://www.example.org/wp-content/uploads/2018/05/brands2.png?test=123&amp;new=val",
 		];
 
 
