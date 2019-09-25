@@ -38,8 +38,8 @@ Optimole's format based optimization is handled in the cloud on a case-by-case b
 When the image is requested, Optimole will apply the specific transformations required by the device and deliver it to your visitors. This means every image is perfectly sized for every device. The final result will be cached for a month to ensure ongoing fast delivery and more site speed.
 
 **How many images can be optimized?**
-With the basic plan, you will be able to optimize unmetered number of images for up to 5k monthly active [users](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All delivered from more than 100+ locations in Europe and North America.
-Better yet. The free version is fully functional and includes all of the following great features.
+With the basic plan, you will be able to optimize unmetered number of images for up to 5k monthly [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All delivered from more than 100+ locations in Europe and North America.
+Better yet. The free version is fully functional and includes all of the following great features:
 
 **Format Based Optimization**
 Our cloud-based transformation process means we can optimize images based on the format as well as serve images in next-gen formats. If your visitor is using a WebP capable browser, then Optimole will convert to WebP the image and send it to their device.
@@ -64,6 +64,7 @@ Who has time for adding watermarks? Optimole will do the hard work for you. Just
 
 **Downgrade Quality For Slower Connections**
 Optimole provides an option to downgrade the image quality when it detects a slower network. Efficiently encode images by making up to 40% smaller with this neat feature to help visitors in a bottleneck.
+
 **Compatibility**
 Optimole loves page builders and has unique tweaks to solve image replacements. It also has full compatibility with the new block editor in WordPress 5.0
 
@@ -404,7 +405,7 @@ Click on upload at the top.
 
 = How many images I can optimize with each plan? =
 
-The number of images that you can optimize depends on your original image size and the number of transformations you do for it.  Using the Free plan you can optimize up to 1 GB of images, which means around 2000 images at an average of 500Kb per image.
+The number of images that you can optimize or store is unlimited, we care only about the number of visits you have per month.
 
 = What happens if I exceed plan limits? =
 
@@ -412,7 +413,7 @@ Once you exceed these, we will contact you and kindly ask to upgrade to the plan
 
 = What Content Delivery Network (CDN) do you use? =
 
-Our FREE plan uses our AWS CloudFront CDN with locations only in Europe and North America. For the paid plans, we have a global full coverage, with more than 130 locations around the globe.
+Our FREE plan uses our AWS CloudFront CDN with locations only in Europe and North America. For the paid plans, we have a global full coverage, with more than 180 locations around the globe.
 
 = I'm already using a CDN, can I use that instead of yours ? =
 
@@ -426,7 +427,7 @@ You don’t need to change your existing optimization plugin, image optimization
 
 Yes, we do. By default, Optimole handle images delivered from your ajax content from admin-ajax.php ( not logged in users ) as well as WordPress REST API routes.
 
-= Can i remove the blurry placeholder from the lazyload effct ? =
+= Can I remove the blurry placeholder from the lazyload effct ? =
 
 Yes, you can. We have bundled this tweak into a plugin you can install while you have Optimole active. The blurry placeholder will be removed and the images will be still lazy-loaded. You can find the plugin tweak here -> http://bit.ly/optml-rm-lqip
 
