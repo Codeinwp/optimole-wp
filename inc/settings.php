@@ -8,6 +8,7 @@ class Optml_Settings {
 	const FILTER_EXT = 'extension';
 	const FILTER_URL = 'page_url';
 	const FILTER_FILENAME = 'filename';
+	const FILTER_CLASS = 'class';
 	const FILTER_TYPE_LAZYLOAD = 'lazyload';
 	const FILTER_TYPE_OPTIMIZE = 'optimize';
 	/**
@@ -86,6 +87,9 @@ class Optml_Settings {
 			}
 			if ( ! isset( $filter_rules[ self::FILTER_URL ] ) ) {
 				$filters[ $filter_key ][ self::FILTER_URL ] = [];
+			}
+			if ( ! isset( $filter_rules[ self::FILTER_CLASS ] ) ) {
+				$filters[ $filter_key ][ self::FILTER_CLASS ] = [];
 			}
 		}
 

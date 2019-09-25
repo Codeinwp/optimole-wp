@@ -40,6 +40,17 @@
                             </div>
                         </div>
                     </div>
+                    <div class="list-item exclusion-filter"
+                         v-for="(item, index) in filters[this.FILTER_TYPES.CLASS]">
+                        <div class="control">
+                            <div class="tags is-centered has-addons">
+                                <a class="tag  is-marginless   is-link has-text-left"><i>{{strings.exclude_class_desc}}</i>
+                                    <strong>{{index}}</strong></a>
+                                <a class="tag  is-marginless  is-delete"
+                                   @click="removeRule(FILTER_TYPES.CLASS,index)"></a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -52,6 +63,7 @@
                                 <option :value="FILTER_TYPES.FILENAME">{{strings.filter_filename}}</option>
                                 <option :value="FILTER_TYPES.EXT">{{strings.filter_ext}}</option>
                                 <option :value="FILTER_TYPES.URL">{{strings.filter_url}}</option>
+                                <option v-if="type === 'lazyload'" :value="FILTER_TYPES.CLASS">{{strings.filter_class}}</option>
                               </select>
                             </span>
                 </p>
@@ -101,7 +113,8 @@
 				FILTER_TYPES: {
 					EXT: 'extension',
 					URL: 'page_url',
-					FILENAME: 'filename'
+					FILENAME: 'filename',
+                    CLASS: 'class'
 				}
 			}
 		},
@@ -152,6 +165,10 @@
 				if (event.target.value === this.FILTER_TYPES.FILENAME) {
 					this.filter_operator = this.strings.filter_operator_contains;
 				}
+                if (event.target.value === this.FILTER_TYPES.CLASS) {
+                    this.filter_operator = this.strings.filter_operator_contains;
+                }
+
 
 				this.selected_filter = event.target.value;
 

@@ -54,6 +54,14 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 	}
 
+	public function contains_banned_lazyload_class( $image_tag ) {
+		foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] as $rule_flag => $status ) {
+			$regex = '/(class="*' . $rule_flag . '*")/m';
+			return preg_match( $regex, $image_tag );
+		}
+	}
+
+
 	/**
 	 * Called by hook to replace image tags in content.
 	 *
@@ -145,7 +153,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			);
 
 			// If the image is in header, we need to do the regular replace.
-			if ( $images['in_header'][ $index ] ) {
+			if ( $images['in_header'][ $index ] || $this->contains_banned_lazyload_class( $image_tag ) ) {
 				$image_tag = $this->regular_tag_replace( $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
 			} else {
 				$image_tag = apply_filters( 'optml_tag_replace', $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );

@@ -99,6 +99,7 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 
 const saveSettings = function ( {commit, state}, data ) {
 	commit( 'toggleLoading', true );
+
 	return Vue.http(
 		{
 			url: optimoleDashboardApp.root + '/update_option',
