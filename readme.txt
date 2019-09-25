@@ -88,6 +88,26 @@ Premium users will be able to optimize 10GB images per month with a 50GB viewing
 
 == Changelog ==
 
+#### [Version 2.1.2](https://github.com/Codeinwp/optimole-wp/compare/v2.1.1...v2.1.2) (2019-09-25)
+
+* **Bug Fixes**
+   * adds preconnect hint for image domain and js library domain ([11b697d](https://github.com/Codeinwp/optimole-wp/commit/11b697d))
+   * compatibility with cache_enabler [#136](https://github.com/Codeinwp/optimole-wp/issues/136) ([483262f](https://github.com/Codeinwp/optimole-wp/commit/483262f))
+   * improve checking for editing context when the replacement should be off ([e7510f6](https://github.com/Codeinwp/optimole-wp/commit/e7510f6))
+   * lazyload query urls part of [#145](https://github.com/Codeinwp/optimole-wp/issues/145) ([a048f68](https://github.com/Codeinwp/optimole-wp/commit/a048f68))
+   * preload lazyload js file when lazyload setting is active ([828e1de](https://github.com/Codeinwp/optimole-wp/commit/828e1de))
+   * remove replacement on Divi theme builder ([86ab6d2](https://github.com/Codeinwp/optimole-wp/commit/86ab6d2))
+   * replacement was not working for urls with special chars ([48a4966](https://github.com/Codeinwp/optimole-wp/commit/48a4966))
+   * replacing url's with query strings without the query in the modified url [#141](https://github.com/Codeinwp/optimole-wp/issues/141) ([0025559](https://github.com/Codeinwp/optimole-wp/commit/0025559))
+   * replacing url's with regex in <a> tags [#141](https://github.com/Codeinwp/optimole-wp/issues/141) ([4b2264f](https://github.com/Codeinwp/optimole-wp/commit/4b2264f))
+   * resource hints condition check [skip release] ([a0f30e7](https://github.com/Codeinwp/optimole-wp/commit/a0f30e7))
+
+* **Features**
+   * adds retina settings control which enable/disable serving of HiDPI images ([73c8712](https://github.com/Codeinwp/optimole-wp/commit/73c8712))
+   * adds visitors based plan integration ([ea07a94](https://github.com/Codeinwp/optimole-wp/commit/ea07a94))
+
+
+
 #### [Version 2.1.1](https://github.com/Codeinwp/optimole-wp/compare/v2.1.0...v2.1.1) (2019-07-22)
 
 * **Bug Fixes**
