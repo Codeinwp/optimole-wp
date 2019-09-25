@@ -200,6 +200,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( false === Optml_Filters::should_do_image( $url, self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_FILENAME ] ) ) {
 			return false;
 		}
+		$url = strtok( $url, '?' );
+
 		$type = wp_check_filetype(
 			basename( $url ),
 			Optml_Config::$extensions

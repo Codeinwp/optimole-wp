@@ -7,7 +7,7 @@ Requires PHP: 5.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-Improve your site loading speed by delivering optimized WebP image for each device. Lazy load included.
+Automatically compress, optimize and serve scaled images along with next-gen WebP all from CloudFront CDN. Lazy load included ⚡
 
 == Description ==
 
@@ -34,21 +34,21 @@ So, if you have been looking for one plugin that provides lazy loading with a CD
 
 
 **How does it do all these great things?**
-Optimole's format based optimization is handled in the cloud on a case-by-case basis. Once you have the plugin installed, Optimole will replace all of your image URLs with cloud-based URLs. We don't replace any images on your website.
+Optimole's format based optimization is handled in the cloud on a case-by-case basis. Once you have the plugin installed, Optimole will replace all of your image URLs with cloud-based URLs. We don't replace any images on your website, we compress images on the fly.
 When the image is requested, Optimole will apply the specific transformations required by the device and deliver it to your visitors. This means every image is perfectly sized for every device. The final result will be cached for a month to ensure ongoing fast delivery and more site speed.
 
 **How many images can be optimized?**
-With the basic plan, you will be able to optimize 1GB of images per month with 5GB viewing bandwidth. All delivered from 7 edge locations all over the world.
+With the basic plan, you will be able to optimize unmetered number of images for up to 5k monthly active [users](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All delivered from 7 edge locations all over the world.
 Better yet. The free version is fully functional and includes all of the following great features.
 
 **Format Based Optimization**
-Our cloud-based transformation process means we can offer optimizations based on the format. If your visitor is using a WebP capable browser, then Optimole will convert to WebP the image and send it to their device.
+Our cloud-based transformation process means we can optimize images based on the format as well as serve images in next-gen formats. If your visitor is using a WebP capable browser, then Optimole will convert to WebP the image and send it to their device.
 
 **Image Optimization**
 Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size.
 
 **Exact Used Size**
-Optimole will use just one image and resize it delivering a responsive image to fit perfectly on your visitors' devices. No more awkward guesses at potential screen widths.
+Optimole will use just one image and resize it delivering a responsive image to fit perfectly on your visitors' devices. No more awkward guesses at potential screen widths. Serve scaled images instantly.
 
 **Retina Support**
 Optimole can detect Retina screens and deliver an image with the perfect Digital Pixel Ratio (DPR).
@@ -57,13 +57,13 @@ Optimole can detect Retina screens and deliver an image with the perfect Digital
 If you'd like to keep the most interesting part of an image; then you can enable smart cropping to help keep the image well sized without losing focus.
 
 **No Content Shifting**
-The lazy load option is perfectly sized for the container to provide a seamless viewing experience without any content shifting.
+The lazy load option defer offscreen images and is perfectly sized for the container to provide a seamless viewing experience without any content shifting.
 
 **Watermarks**
 Who has time for adding watermarks? Optimole will do the hard work for you. Just set it up and pick your preferred location and Optimole will add the watermark to all of your future images.
 
 **Downgrade Quality For Slower Connections**
-Optimole provides an option to downgrade the image quality when it detects a slower network. Make the images up to 40% smaller with this neat feature to help visitors in a bottleneck.
+Optimole provides an option to downgrade the image quality when it detects a slower network. Efficiently encode images by making up to 40% smaller with this neat feature to help visitors in a bottleneck.
 **Compatibility**
 Optimole loves page builders and has unique tweaks to solve image replacements. It also has full compatibility with the new block editor in WordPress 5.0
 
