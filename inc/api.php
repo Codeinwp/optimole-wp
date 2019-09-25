@@ -140,7 +140,7 @@ final class Optml_Api {
 			'POST',
 			array(
 				'email'   => $email,
-				'version' => '2.1.2',
+				'version' => OPTML_VERSION,
 				'site'    => get_home_url(),
 			)
 		);
