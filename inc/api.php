@@ -139,8 +139,9 @@ final class Optml_Api {
 			'optml/v1/user/register-remote',
 			'POST',
 			array(
-				'email' => $email,
-				'site'  => get_home_url(),
+				'email'   => $email,
+				'version' => '2.1.2',
+				'site'    => get_home_url(),
 			)
 		);
 	}

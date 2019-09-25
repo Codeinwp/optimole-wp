@@ -246,7 +246,8 @@ class Optml_Admin {
 		if ( $service_data['plan'] !== 'free' ) {
 			return false;
 		}
-		if ( $service_data['usage'] < 800 ) {
+		$visitors = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
+		if ( $service_data['usage'] < 800 && $visitors === 0 ) {
 			return false;
 		}
 
@@ -505,11 +506,13 @@ class Optml_Admin {
 				' <a href="https://dashboard.optimole.com/register" target="_blank">optimole.com</a>'
 			),
 			'account_needed_subtitle_1'      => sprintf(
-				__( 'You will get access to our image optimization service for %1$sFREE%2$s in the limit of %3$s1GB%4$s traffic per month. ', 'optimole-wp' ),
+				__( 'You will get access to our image optimization service for %1$sFREE%2$s in the limit of %3$s5k%4$s %5$svisitors%6$s per month. ', 'optimole-wp' ),
 				'<strong>',
 				'</strong>',
 				'<strong>',
-				'</strong>'
+				'</strong>',
+				'<a href="https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors" target="_blank">',
+				'</a>'
 			),
 			'account_needed_subtitle_2'      => sprintf(
 				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CDN.', 'optimole-wp' )
