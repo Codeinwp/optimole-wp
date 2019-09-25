@@ -62,6 +62,7 @@ class Optml_Admin {
 		$bgclasses       = empty( $bgclasses ) ? '' : sprintf( '"%s"', implode( '","', (array) $bgclasses ) );
 		$watcher_classes = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
 		$default_network = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
+		$retina_ready    = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
 		$output          = sprintf(
 			'
 		<style type="text/css">
@@ -89,6 +90,7 @@ class Optml_Admin {
 							backgroundReplaceClasses: [%s],
 							watchClasses: [%s],
 							network_optimizations: %s,
+							ignoreDpr: %s,
 							quality: %d
 						}
 						
@@ -101,6 +103,7 @@ class Optml_Admin {
 			$bgclasses,
 			$watcher_classes,
 			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? ( OPTML_NETWORK_ON ? 'true' : 'false' ) : ( $default_network ? 'true' : 'false' ),
+			$retina_ready ? 'true' : 'false',
 			$this->settings->get_numeric_quality()
 		);
 		echo $output;
@@ -553,6 +556,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'toggle_ab_item'                    => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'                   => __( 'Scale images & Lazy load', 'optimole-wp' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
+				'enable_retina_title'               => __( 'Enable Retina images', 'optimole-wp' ),
+				'enable_retina_desc'                => __( 'Deliver retina ready images to your visitors', 'optimole-wp' ),
 				'enable_network_opt_title'          => __( 'Enable network based optimizations', 'optimole-wp' ),
 				'enable_resize_smart_title'         => __( 'Enable Smart Cropping', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
