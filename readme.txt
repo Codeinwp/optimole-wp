@@ -38,7 +38,7 @@ Optimole's format based optimization is handled in the cloud on a case-by-case b
 When the image is requested, Optimole will apply the specific transformations required by the device and deliver it to your visitors. This means every image is perfectly sized for every device. The final result will be cached for a month to ensure ongoing fast delivery and more site speed.
 
 **How many images can be optimized?**
-With the basic plan, you will be able to optimize unmetered number of images for up to 5k monthly active [users](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All delivered from 7 edge locations all over the world.
+With the basic plan, you will be able to optimize unmetered number of images for up to 5k monthly active [users](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All delivered from more than 100+ locations in Europe and North America.
 Better yet. The free version is fully functional and includes all of the following great features.
 
 **Format Based Optimization**
@@ -77,7 +77,7 @@ The stripped EXGIF data is not stored on our service. Optimole likes to work beh
 Optimole can be installed in a few clicks and then left in the back-end to do its job. Not happy with it? Optimole has a clean uninstall and your site will be just as before Optimole was installed.
 
 **Go Pro**
-Premium users will be able to optimize 10GB images per month with a 50GB viewing bandwidth. Images in the Premium plan are served from AWS Cloudfront with over 130 locations.
+Premium users will be able to optimize images for more than 25k monthly active users. Images in the Premium plan are served from AWS Cloudfront with over 180 locations all over the world.
 
 == Screenshots ==
 
