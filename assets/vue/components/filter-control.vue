@@ -114,7 +114,7 @@
 					EXT: 'extension',
 					URL: 'page_url',
 					FILENAME: 'filename',
-                    CLASS: 'class'
+					CLASS: 'class'
 				}
 			}
 		},
@@ -165,10 +165,10 @@
 				if (event.target.value === this.FILTER_TYPES.FILENAME) {
 					this.filter_operator = this.strings.filter_operator_contains;
 				}
-                if (event.target.value === this.FILTER_TYPES.CLASS) {
-                    this.filter_operator = this.strings.filter_operator_contains;
-                }
 
+				if (event.target.value === this.FILTER_TYPES.CLASS) {
+					this.filter_operator = this.strings.filter_operator_contains;
+				}
 
 				this.selected_filter = event.target.value;
 
