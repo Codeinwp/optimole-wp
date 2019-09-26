@@ -74,12 +74,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		$image_sizes = self::image_sizes();
 		$sizes2crop  = self::size_to_crop();
 		$defined_lazyload_exclusion = empty( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] ) === false;
-		$check_lazyload_exclusion = function ( $var = '' ) {
-			return false;
-		};
-		if ( $defined_lazyload_exclusion ) {
-			$check_lazyload_exclusion = 'contains_banned_lazyload_class';
-		}
 		foreach ( $images[0] as $index => $tag ) {
 			$width     = $height = false;
 			$crop = null;
@@ -160,7 +154,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			);
 
 			// If the image is in header or has a class excluded from lazyload, we need to do the regular replace.
-			if ( $images['in_header'][ $index ] || $check_lazyload_exclusion( $image_tag ) ) {
+			if ( $images['in_header'][ $index ] || ( ( $defined_lazyload_exclusion ) ? $this->contains_banned_lazyload_class( $image_tag ) : false ) ) {
 				$image_tag = $this->regular_tag_replace( $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
 			} else {
 				$image_tag = apply_filters( 'optml_tag_replace', $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
