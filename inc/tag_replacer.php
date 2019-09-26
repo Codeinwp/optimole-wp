@@ -55,10 +55,27 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	}
 
 	public function contains_banned_lazyload_class( $image_tag ) {
-		foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] as $rule_flag => $status ) {
-			$regex = '/(class="*' . $rule_flag . '*")/m';
-			return preg_match( $regex, $image_tag );
+		$class_list = strstr( $image_tag, 'class="' );
+		$tmp_class_list = $class_list;
+		if ( $class_list === false ) {
+			return false;
 		}
+		foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] as $rule_flag => $status ) {
+			$class = strtok( $tmp_class_list, '" ' );
+			$loop = true;
+			while ( $class !== false && $loop === true ) {
+				if ( substr( $class, -1 ) === '"' ) {
+					$class = substr( $class, 0, strlen( $class ) - 1 );
+					$loop = false;
+				}
+				if ( $class === $rule_flag ) {
+					return true;
+				}
+				$class = strtok( ' ' );
+			}
+			$tmp_class_list = $class_list;
+		}
+		return false;
 	}
 
 
