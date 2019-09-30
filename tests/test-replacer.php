@@ -19,6 +19,8 @@ class Test_Replacer extends WP_UnitTestCase {
 	http://example.org/wp-content/themes/test/assets/images/header.png 
 	http://example.org/wp-content/themes/test/assets/images/header.jpeg
 	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png 
+	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png?width=500&cr=small
+	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png%3Fwidth%3D500%26cr%3Dsmall
 	 ';
 	const CSS_STYLE = '
 	<style>
@@ -83,13 +85,14 @@ class Test_Replacer extends WP_UnitTestCase {
 		$html = [
 			'image' => "https://www.example.org/wp-content/uploads/2018/05/brands.png",
 			'image2' => "https://www.example.org/wp-content/uploads/2018/05/brands2.png?test=123",
+			'image3' => "https://www.example.org/wp-content/uploads/2018/05/brands2.png?test=123&amp;new=val",
 		];
 
 
 		$html = wp_json_encode( $html );
 		$html = _wp_specialchars( $html, ENT_QUOTES, 'UTF-8', true );
 		$replaced_content = Optml_Manager::instance()->process_urls_from_content( $html );
-		$this->assertEquals( 2, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
 		$this->assertNotContains('?test=123',$replaced_content );
 
 		$replaced_content = wp_specialchars_decode( $replaced_content, ENT_QUOTES );
@@ -127,7 +130,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
 
-		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 5, substr_count( $replaced_content, 'i.optimole.com' ) );
 	}
 
 	public function test_style_replacement() {
@@ -171,7 +174,15 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 
 	}
+	public function test_replacement_strange_chars(){
+		$content = '
+		https://www.example.org/wp-content/uploads/2018/05/@brands.png
+		https://www.example.org/wp-content/uploads/2018/05/%brands.png
+		';
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertEquals( 2, substr_count( $replaced_content, 'i.optimole.com' ) );
 
+	}
 	// TODO We need to extend this to single url replacement. If we make the url extractor regex with option scheme, the parsing will take huge amount of time. We need to think alternatives.
 	public function test_replacement_without_scheme() {
 		$content          = '<div class="before-footer">

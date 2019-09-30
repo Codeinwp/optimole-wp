@@ -62,6 +62,7 @@ class Optml_Admin {
 		$bgclasses       = empty( $bgclasses ) ? '' : sprintf( '"%s"', implode( '","', (array) $bgclasses ) );
 		$watcher_classes = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
 		$default_network = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
+		$retina_ready    = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
 		$output          = sprintf(
 			'
 		<style type="text/css">
@@ -89,6 +90,7 @@ class Optml_Admin {
 							backgroundReplaceClasses: [%s],
 							watchClasses: [%s],
 							network_optimizations: %s,
+							ignoreDpr: %s,
 							quality: %d
 						}
 						
@@ -101,6 +103,7 @@ class Optml_Admin {
 			$bgclasses,
 			$watcher_classes,
 			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? ( OPTML_NETWORK_ON ? 'true' : 'false' ) : ( $default_network ? 'true' : 'false' ),
+			$retina_ready ? 'true' : 'false',
 			$this->settings->get_numeric_quality()
 		);
 		echo $output;
@@ -246,7 +249,8 @@ class Optml_Admin {
 		if ( $service_data['plan'] !== 'free' ) {
 			return false;
 		}
-		if ( $service_data['usage'] < 800 ) {
+		$visitors = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
+		if ( $service_data['usage'] < 800 && $visitors === 0 ) {
 			return false;
 		}
 
@@ -372,7 +376,9 @@ class Optml_Admin {
 	 * @return array Altered hints array.
 	 */
 	public function add_dns_prefetch( $hints, $relation_type ) {
-		if ( 'dns-prefetch' !== $relation_type ) {
+		if ( 'dns-prefetch' !== $relation_type &&
+			 'preconnect' !== $relation_type
+		) {
 			return $hints;
 		}
 		if ( ! $this->settings->is_connected() ) {
@@ -381,10 +387,10 @@ class Optml_Admin {
 		if ( ! $this->settings->is_enabled() ) {
 			return $hints;
 		}
-		$hints[] = sprintf( '//%s', $this->settings->get_cdn_url() );
+		$hints[] = sprintf( 'https://%s', $this->settings->get_cdn_url() );
 
-		if ( ! $this->settings->use_lazyload() ) {
-			$hints[] = sprintf( '//%s', OPTML_JS_CDN );
+		if ( $this->settings->use_lazyload() ) {
+			$hints[] = sprintf( 'https://%s', OPTML_JS_CDN );
 		}
 
 		return $hints;
@@ -503,11 +509,13 @@ class Optml_Admin {
 				' <a href="https://dashboard.optimole.com/register" target="_blank">optimole.com</a>'
 			),
 			'account_needed_subtitle_1'      => sprintf(
-				__( 'You will get access to our image optimization service for %1$sFREE%2$s in the limit of %3$s1GB%4$s traffic per month. ', 'optimole-wp' ),
+				__( 'You will get access to our image optimization service for %1$sFREE%2$s in the limit of %3$s5k%4$s %5$svisitors%6$s per month. ', 'optimole-wp' ),
 				'<strong>',
 				'</strong>',
 				'<strong>',
-				'</strong>'
+				'</strong>',
+				'<a href="https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors" target="_blank">',
+				'</a>'
 			),
 			'account_needed_subtitle_2'      => sprintf(
 				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CDN.', 'optimole-wp' )
@@ -550,6 +558,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
 				'enable_gif_replace'                => __( 'Enable GIF replacement', 'optimole-wp' ),
 				'gif_replacer_desc'                 => __( 'Replace all <img> tags that contain GIF images with <video> tags, that contain the optimized video versions of the images', 'optimole-wp' ),
+				'enable_retina_title'               => __( 'Enable Retina images', 'optimole-wp' ),
+				'enable_retina_desc'                => __( 'Deliver retina ready images to your visitors', 'optimole-wp' ),
 				'enable_network_opt_title'          => __( 'Enable network based optimizations', 'optimole-wp' ),
 				'enable_resize_smart_title'         => __( 'Enable Smart Cropping', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
