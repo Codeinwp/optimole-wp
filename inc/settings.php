@@ -78,7 +78,9 @@ class Optml_Settings {
 			$watchers[ self::WATCHER_TYPE_LAZYLOAD ] = [];
 		}
 
-		return $watchers;
+		$default_watchers = [ '.elementor-section[data-settings*="background_background"]' ];
+
+		return array_merge( array_diff( $watchers, $default_watchers ), array_diff( $default_watchers, $watchers ) );
 	}
 
 	/**
