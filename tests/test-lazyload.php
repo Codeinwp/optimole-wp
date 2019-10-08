@@ -255,4 +255,12 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertEquals( 2, substr_count( $replaced_content2, '/http:\/\/example.org' ) );
 	}
 
+	public function test_should_replace_query_string_url() {
+		$content = '<img src="https://example.org/photos/814499/pexels-photo-814499.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">';
+		$replaced_content = Optml_Manager::instance()->replace_content($content);
+		$this->assertContains('i.optimole.com', $replaced_content);
+		$this->assertContains('data-opt-src', $replaced_content);
+		$this->assertContains('example.org', $replaced_content);
+	}
+
 }

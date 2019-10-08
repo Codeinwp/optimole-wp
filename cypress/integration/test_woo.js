@@ -17,7 +17,7 @@ describe( 'Check product page', function () {
 		cy.get( '.woocommerce-product-gallery__wrapper .zoomImg' ).should( 'have.attr', 'src' ).and( 'include', 'i.optimole.com' ).and( 'include', 'w:auto/h:auto' );
 	} );
 	it( 'All images should have proper tags', function () {
-		cy.get( 'img' ).should( 'have.attr', 'src' ).and( 'include', 'i.optimole.com' );
+		cy.get( 'img:not(.emoji)' ).should( 'have.attr', 'src' ).and( 'include', 'i.optimole.com' );
 	} );
 } );
 describe( 'Test quick view', function () {

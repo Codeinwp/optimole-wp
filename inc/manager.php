@@ -64,6 +64,7 @@ final class Optml_Manager {
 		'metaslider',
 		'essential_grid',
 		'yith_quick_view',
+		'cache_enabler',
 	);
 
 	/**
@@ -128,7 +129,7 @@ final class Optml_Manager {
 		if ( ( is_admin() && ! self::is_ajax_request() ) || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'preview', $_GET ) && 'true' == $_GET['preview'] ) {
+		if ( array_key_exists( 'preview', $_GET ) && ! empty( $_GET['preview'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
 
@@ -138,7 +139,10 @@ final class Optml_Manager {
 		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'ct_builder', $_GET ) && $_GET['ct_builder'] == 'true' ) {
+		if ( array_key_exists( 'ct_builder', $_GET ) && ! empty( $_GET['ct_builder'] ) ) {
+			return false; // @codeCoverageIgnore
+		}
+		if ( array_key_exists( 'et_fb', $_GET ) && ! empty( $_GET['et_fb'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
@@ -275,7 +279,7 @@ final class Optml_Manager {
 	 * @return array array of urls.
 	 */
 	public function extract_urls_from_json( $content ) {
-		$regex = '/(?<!(=|\\\\)(?:"|\'|"))(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\??[\w|=|&|\-|\.|:]*)/';
+		$regex = '/(?<!(=|\\\\)(?:"|\'|"))(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|@|%|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\??[\w|=|&|\-|\.|:]*)/';
 		preg_match_all(
 			$regex,
 			$content,
@@ -296,7 +300,8 @@ final class Optml_Manager {
 
 		$urls = array_map(
 			function ( $value ) {
-				return rtrim( html_entity_decode( $value ), '\\";\'' );
+				$value = str_replace( '&quot;', '', $value );
+				return rtrim( $value, '\\";\'' );
 			},
 			$urls
 		);
@@ -324,6 +329,7 @@ final class Optml_Manager {
 		$urls = array_map(
 			function ( $url ) {
 				$is_slashed = strpos( $url, '\/' ) !== false;
+				$url        = html_entity_decode( $url );
 				$new_url    = apply_filters( 'optml_content_url', $url );
 
 				return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;

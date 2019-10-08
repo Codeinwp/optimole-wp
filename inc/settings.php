@@ -26,6 +26,7 @@ class Optml_Settings {
 		'lazyload'             => 'disabled',
 		'network_optimization' => 'disabled',
 		'lazyload_placeholder' => 'disabled',
+		'retina_images' => 'disabled',
 		'resize_smart'         => 'disabled',
 		'filters'              => [],
 		'watchers'             => [],
@@ -128,6 +129,7 @@ class Optml_Settings {
 				case 'image_replacer':
 				case 'network_optimization':
 				case 'lazyload_placeholder':
+				case 'retina_images':
 				case 'resize_smart':
 					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
 					break;
@@ -287,6 +289,7 @@ class Optml_Settings {
 			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
 			'lazyload'             => $this->get( 'lazyload' ),
 			'network_optimization' => $this->get( 'network_optimization' ),
+			'retina_images' => $this->get( 'retina_images' ),
 			'lazyload_placeholder' => $this->get( 'lazyload_placeholder' ),
 			'resize_smart'         => $this->get( 'resize_smart' ),
 			'image_replacer'       => $this->get( 'image_replacer' ),
