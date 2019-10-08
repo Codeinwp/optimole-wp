@@ -80,8 +80,8 @@ class Optml_Settings {
 		}
 
 		$default_watchers = [ '.elementor-section[data-settings*="background_background"]' ];
-
-		return array_merge( array_diff( $watchers, $default_watchers ), array_diff( $default_watchers, $watchers ) );
+		$watchers[ self::WATCHER_TYPE_LAZYLOAD ] = array_merge( array_diff( $watchers[ self::WATCHER_TYPE_LAZYLOAD ], $default_watchers ), array_diff( $default_watchers, $watchers[ self::WATCHER_TYPE_LAZYLOAD ] ) );
+		return $watchers;
 	}
 
 	/**
@@ -289,7 +289,7 @@ class Optml_Settings {
 			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
 			'lazyload'             => $this->get( 'lazyload' ),
 			'network_optimization' => $this->get( 'network_optimization' ),
-			'retina_images' => $this->get( 'retina_images' ),
+			'retina_images'        => $this->get( 'retina_images' ),
 			'lazyload_placeholder' => $this->get( 'lazyload_placeholder' ),
 			'resize_smart'         => $this->get( 'resize_smart' ),
 			'image_replacer'       => $this->get( 'image_replacer' ),
