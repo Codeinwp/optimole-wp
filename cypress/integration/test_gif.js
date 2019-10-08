@@ -1,6 +1,6 @@
 describe( 'Check gif page', function () {
 	it( 'successfully loads', function () {
-		cy.visit( '/hello-world/' )
+		cy.visit( '/gif-test/' )
 	} );
 	it( 'Gallery images all attributes replaced properly', function () {
 		cy.get( 'video' ).should( 'have.attr', 'autoplay' ).and( 'contain', '' );

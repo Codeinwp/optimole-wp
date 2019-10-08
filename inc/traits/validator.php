@@ -24,6 +24,23 @@ trait Optml_Validator {
 	}
 
 	/**
+	 * Check if the URl is a GIF url.
+	 *
+	 * @param string $url URL to check.
+	 *
+	 * @return bool Is Gif?
+	 */
+	public function is_valid_gif( $url ) {
+		$type = wp_check_filetype( $url, [ 'gif' => 'image/gif' ] );
+
+		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Check if the url has an accepted mime type extension.
 	 *
 	 * @param mixed $url The url to check.
