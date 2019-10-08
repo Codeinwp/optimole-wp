@@ -18,6 +18,7 @@ class Optml_Config {
 		'png'          => 'image/png',
 		'webp'         => 'image/webp',
 		'svg'          => 'image/svg+xml',
+		'gif'          => 'image/gif',
 	);
 
 	/**

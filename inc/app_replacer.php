@@ -337,6 +337,7 @@ abstract class Optml_App_Replacer {
 		if ( ! is_string( $url ) ) {
 			return false; // @codeCoverageIgnore
 		}
+
 		$url_parts = parse_url( $url );
 
 		if ( ! isset( $url_parts['host'] ) ) {

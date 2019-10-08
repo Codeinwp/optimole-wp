@@ -35,6 +35,8 @@ class Optml_Settings {
 		'wm_y'                 => 0,
 		'wm_scale'             => 0,
 		'image_replacer'       => 'enabled',
+		'img_to_video'         => 'disabled',
+
 	);
 	/**
 	 * Option key.
@@ -111,6 +113,7 @@ class Optml_Settings {
 				case 'lazyload_placeholder':
 				case 'retina_images':
 				case 'resize_smart':
+				case 'img_to_video':
 					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
 					break;
 				case 'max_width':
@@ -164,6 +167,7 @@ class Optml_Settings {
 				default:
 					$sanitized_value = '';
 					break;
+
 			}
 
 			$sanitized[ $key ] = $sanitized_value;
@@ -264,6 +268,7 @@ class Optml_Settings {
 			'max_height'           => $this->get( 'max_height' ),
 			'filters'              => $this->get_filters(),
 			'watermark'            => $this->get_watermark(),
+			'img_to_video'         => $this->get( 'img_to_video' ),
 		);
 	}
 
