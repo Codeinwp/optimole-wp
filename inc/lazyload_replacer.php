@@ -132,7 +132,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
-		if ( ! self::$is_lazyload_placeholder ) {
+		if ( ! self::$is_lazyload_placeholder && ! $this->is_gif( $original_url ) ) {
 			$optml_args['quality'] = 'eco';
 			$optml_args['resize']  = [];
 			$low_url               = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
@@ -180,6 +180,28 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return $new_tag . '<noscript>' . $no_script_tag . '</noscript>';
+	}
+
+	/**
+	 * Check if url is GIF
+	 *
+	 * @param string $url Url.
+	 *
+	 * @return bool
+	 */
+	public function is_gif( $url ) {
+		$url = strtok( $url, '?' );
+
+		$type = wp_check_filetype(
+			basename( $url ),
+			Optml_Config::$extensions
+		);
+
+		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+			return false;
+		}
+
+		return $type['ext'] === 'gif';
 	}
 
 	/**
