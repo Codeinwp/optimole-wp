@@ -87,6 +87,7 @@ class Optml_Admin {
 						s.src = "%s/v2/latest/optimole_lib" + v  + "%s.js"; 
 						b.appendChild(s);
 						w.optimoleData = {
+							lazyloadOnly: "optimole-lazy-only"
 							backgroundReplaceClasses: [%s],
 							watchClasses: [%s],
 							network_optimizations: %s,
