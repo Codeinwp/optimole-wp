@@ -132,7 +132,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
-		if ( ! self::$is_lazyload_placeholder ) {
+		if ( ! self::$is_lazyload_placeholder && ! $this->is_valid_gif( $original_url ) ) {
 			$optml_args['quality'] = 'eco';
 			$optml_args['resize']  = [];
 			$low_url               = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
@@ -174,6 +174,14 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		);
 
 		$new_tag = str_replace( 'srcset=', 'old-srcset=', $new_tag );
+
+		if ( $this->is_valid_gif( $original_url ) ) {
+			if ( strpos( $new_tag, 'class=' ) === -1 ) {
+				$new_tag = str_replace( '<img', '<img class="optimole-lazy-only"', $new_tag );
+			} else {
+				$new_tag = str_replace( 'class="', 'class="optimole-lazy-only ', $new_tag );
+			}
+		}
 
 		if ( ! $this->should_add_noscript( $new_tag ) ) {
 			return $new_tag;

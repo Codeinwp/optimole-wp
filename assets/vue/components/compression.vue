@@ -17,7 +17,26 @@
                                :height="25"
                                color="#008ec2"></toggle-button>
             </div>
+        </div>
+        <!-- GIF replacement toggle button -->
+        <div class="field  columns">
+            <label class="label column has-text-grey-dark">
+                {{strings.enable_gif_replace}}
 
+                <p class="is-italic has-text-weight-normal">
+                    {{strings.gif_replacer_desc}}
+                </p>
+            </label>
+
+            <div class="column is-3 ">
+                <toggle-button :class="'has-text-dark'"
+                               v-model="gifReplacementStatus"
+                               :disabled="this.$store.state.loading"
+                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
+                               :width="80"
+                               :height="25"
+                               color="#008ec2"></toggle-button>
+            </div>
         </div>
         <div class="field  columns">
             <label class="label column has-text-grey-dark">
@@ -210,7 +229,16 @@
             site_settings() {
                 return this.$store.state.site_settings;
             },
+	        gifReplacementStatus: {
+		        set: function (value) {
+			        this.showSave = true;
+			        this.new_data.img_to_video = value ? 'enabled' : 'disabled';
+		        },
+		        get: function () {
+			        return !(this.site_settings.img_to_video === 'disabled');
 
+		        }
+	        },
             compressionRatio() {
                 return (parseFloat(this.sample_images.optimized_size / this.sample_images.original_size) * 100).toFixed(0);
             },
