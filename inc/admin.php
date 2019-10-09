@@ -590,6 +590,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'toggle_ab_item'                    => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'                   => __( 'Scale images & Lazy load', 'optimole-wp' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
+				'enable_gif_replace'                => __( 'Enable GIF replacement', 'optimole-wp' ),
+				'gif_replacer_desc'                 => __( 'Replace all <img> tags that contain GIF images with <video> tags, that contain the optimized video versions of the images', 'optimole-wp' ),
 				'enable_retina_title'               => __( 'Enable Retina images', 'optimole-wp' ),
 				'enable_retina_desc'                => __( 'Deliver retina ready images to your visitors', 'optimole-wp' ),
 				'enable_network_opt_title'          => __( 'Enable network based optimizations', 'optimole-wp' ),

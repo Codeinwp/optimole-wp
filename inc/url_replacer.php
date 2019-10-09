@@ -123,15 +123,18 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( strpos( $url, Optml_Config::$service_url ) !== false ) {
 			return $original_url;
 		}
+
 		if ( ! $this->can_replace_url( $url ) ) {
 			return $original_url;
 		}
+
 		// Remove any query strings that might affect conversion.
 		$url = strtok( $url, '?' );
 
 		if ( ! $this->is_valid_mimetype_from_url( $url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_EXT ] ) ) {
 			return $original_url;
 		}
+
 		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) ) {
 			$args['quality'] = $this->to_accepted_quality( $args['quality'] );
 		}
@@ -171,15 +174,21 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		}
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
 
-		$new_url = ( new Optml_Image( $url, $args ) )->get_url(
-			[
-				'signed'          => $this->settings->use_lazyload() ? false : $this->is_allowed_site,
-				'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
-			]
-		);
+		$arguments = [
+			'signed'          => $this->settings->use_lazyload() ? false : $this->is_allowed_site,
+			'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
+
+		];
+
+		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) {
+			$arguments['format'] = $args['format'];
+		}
+
+		$new_url = ( new Optml_Image( $url, $args ) )->get_url( $arguments );
 
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
+
 
 	/**
 	 * Throw error on object clone
