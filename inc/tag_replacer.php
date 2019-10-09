@@ -117,7 +117,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			[
 				'original-src=',
 				'<video autoplay muted loop playsinline poster="' . $link_png . '"',
-				'><source src="' . $link_mp4 . '" type="video/mp4"><source src="' . $link_webm . '" type="video/webm"></video>',
+				'><source src="' . $link_webm . '" type="video/webm"><source src="' . $link_mp4 . '" type="video/mp4"></video>',
 			],
 			$video_tag
 		);
