@@ -10,6 +10,8 @@ class Optml_Settings {
 	const FILTER_FILENAME = 'filename';
 	const FILTER_TYPE_LAZYLOAD = 'lazyload';
 	const FILTER_TYPE_OPTIMIZE = 'optimize';
+
+	const WATCHER_TYPE_LAZYLOAD = 'lazyload';
 	/**
 	 * Default settings schema.
 	 *
@@ -27,6 +29,7 @@ class Optml_Settings {
 		'retina_images' => 'disabled',
 		'resize_smart'         => 'disabled',
 		'filters'              => [],
+		'watchers'             => [],
 		'quality'              => 'auto',
 		'wm_id'                => - 1,
 		'wm_opacity'           => 1,
@@ -64,6 +67,23 @@ class Optml_Settings {
 			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 			restore_current_blog();
 		}
+	}
+
+	/**
+	 * Return filter definitions.
+	 *
+	 * @return mixed|null Filter values.
+	 */
+	public function get_watchers() {
+
+		$watchers = $this->get( 'watchers' );
+		if ( ! isset( $watchers[ self::WATCHER_TYPE_LAZYLOAD ] ) ) {
+			$watchers[ self::WATCHER_TYPE_LAZYLOAD ] = [];
+		}
+
+		$default_watchers = [ '.elementor-section[data-settings*="background_background"]' ];
+		$watchers[ self::WATCHER_TYPE_LAZYLOAD ] = array_merge( array_diff( $watchers[ self::WATCHER_TYPE_LAZYLOAD ], $default_watchers ), array_diff( $default_watchers, $watchers[ self::WATCHER_TYPE_LAZYLOAD ] ) );
+		return $watchers;
 	}
 
 	/**
@@ -140,6 +160,19 @@ class Optml_Settings {
 							);
 						}
 					}
+					break;
+				case 'watchers':
+					$new_watchers = $value;
+					$sanitized_value = $new_watchers;
+					foreach ( $new_watchers as $watcher_type => $watcher_selectors ) {
+						$sanitized_value[ $watcher_type ] = array_filter(
+							$watcher_selectors,
+							function ( $value ) {
+								return ( $value !== '' && $value !== ',' && $value !== false );
+							}
+						);
+					}
+
 					break;
 				case 'wm_opacity':
 				case 'wm_scale':
@@ -260,13 +293,14 @@ class Optml_Settings {
 			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
 			'lazyload'             => $this->get( 'lazyload' ),
 			'network_optimization' => $this->get( 'network_optimization' ),
-			'retina_images' => $this->get( 'retina_images' ),
+			'retina_images'        => $this->get( 'retina_images' ),
 			'lazyload_placeholder' => $this->get( 'lazyload_placeholder' ),
 			'resize_smart'         => $this->get( 'resize_smart' ),
 			'image_replacer'       => $this->get( 'image_replacer' ),
 			'max_width'            => $this->get( 'max_width' ),
 			'max_height'           => $this->get( 'max_height' ),
 			'filters'              => $this->get_filters(),
+			'watchers'             => $this->get_watchers(),
 			'watermark'            => $this->get_watermark(),
 			'img_to_video'         => $this->get( 'img_to_video' ),
 		);

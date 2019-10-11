@@ -116,7 +116,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		$is_slashed = strpos( $url, '\/' ) !== false;
 
-		$url = $is_slashed ? stripslashes( $url ) : $url;
+		// We do a little hack here, for json unicode chars we first replace them with html special chars,
+		// we then strip slashes to normalize the URL and last we convert html special chars back to get a clean URL
+		$url = $is_slashed ? html_entity_decode( stripslashes( preg_replace( '/\\\u([\da-fA-F]{4})/', '&#x\1;', $url ) ) ) : $url;
 
 		if ( strpos( $url, Optml_Config::$service_url ) !== false ) {
 			return $original_url;

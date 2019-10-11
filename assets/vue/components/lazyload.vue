@@ -1,6 +1,6 @@
 <template>
     <div :class="{ 'saving--option' : this.$store.state.loading }">
-        <div class="field  columns">
+        <div class="field columns">
             <label class="label column has-text-grey-dark">
                 {{strings.enable_lazyload_placeholder_title}}
                 <p class="is-italic has-text-weight-normal">
@@ -16,7 +16,25 @@
                                :height="25"
                                color="#008ec2"></toggle-button>
             </div>
-
+        </div>
+        <div class="field columns">
+            <div class="column">
+                <label class="label has-text-grey-dark">
+                    <span>{{strings.watch_title_lazyload}}</span>
+                    <p class="is-italic has-text-weight-normal">
+                        {{strings.watch_desc_lazyload}}
+                    </p>
+                </label>
+                <div>
+                    <textarea-autosize
+                            class="textarea is-secondary is-small"
+                            :placeholder="strings.watch_desc_lazyload"
+                            v-model="lazyloadSelectors"
+                            :min-height="3"
+                            :max-height="350"
+                    ></textarea-autosize>
+                </div>
+            </div>
         </div>
         <div class="field  is-fullwidth columns ">
             <div class="column is-left">
@@ -31,7 +49,6 @@
 </template>
 
 <script>
-
 	export default {
 		name: "lazyload",
 		data() {
@@ -64,7 +81,16 @@
 				get: function () {
 					return !(this.site_settings.lazyload_placeholder === 'disabled');
 				}
-			}
+			},
+            lazyloadSelectors: {
+	            set: function ( value ) {
+                    this.showSave = true;
+		            this.new_data.watchers = { lazyload: value.split(",\n") };
+	            },
+	            get: function () {
+		            return this.site_settings.watchers.lazyload.join(",\n");
+	            }
+            }
 		}
 	}
 </script>

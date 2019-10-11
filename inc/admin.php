@@ -59,6 +59,16 @@ class Optml_Admin {
 		$bgclasses       = Optml_Lazyload_Replacer::get_lazyload_bg_classes();
 		$watcher_classes = Optml_Lazyload_Replacer::get_watcher_lz_classes();
 
+		$watchers = $this->settings->get_watchers();
+		$lazyload_bg_selectors = [];
+		foreach ( $watchers[ Optml_Settings::WATCHER_TYPE_LAZYLOAD ] as $selector ) {
+			$lazyload_bg_selectors[] = $selector;
+		}
+		foreach ( $bgclasses as $key ) {
+			$lazyload_bg_selectors[] = '.' . $key;
+		}
+		$lazyload_bg_selectors = empty( $lazyload_bg_selectors ) ? '' : sprintf( '%s', implode( ', ', (array) $lazyload_bg_selectors ) );
+
 		$bgclasses       = empty( $bgclasses ) ? '' : sprintf( '"%s"', implode( '","', (array) $bgclasses ) );
 		$watcher_classes = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
 		$default_network = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
@@ -79,6 +89,7 @@ class Optml_Admin {
 		
 		</style>
 		<script type="application/javascript">
+					document.documentElement.className += " optimole_has_js";
 					(function(w, d){ 
 						var b = d.getElementsByTagName("head")[0];
 						var s = d.createElement("script");
@@ -90,6 +101,7 @@ class Optml_Admin {
 							lazyloadOnly: "optimole-lazy-only",
 							backgroundReplaceClasses: [%s],
 							watchClasses: [%s],
+							backgroundLazySelectors: "%s",
 							network_optimizations: %s,
 							ignoreDpr: %s,
 							quality: %d
@@ -103,6 +115,7 @@ class Optml_Admin {
 			$min,
 			$bgclasses,
 			$watcher_classes,
+			$lazyload_bg_selectors,
 			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? ( OPTML_NETWORK_ON ? 'true' : 'false' ) : ( $default_network ? 'true' : 'false' ),
 			$retina_ready ? 'true' : 'false',
 			$this->settings->get_numeric_quality()
@@ -279,6 +292,26 @@ class Optml_Admin {
 	}
 
 	/**
+	 * Add style classes for lazy loading background images.
+	 */
+	protected function add_background_lazy_css() {
+
+		$watchers = $this->settings->get_watchers();
+		if ( ! isset( $watchers[ Optml_Settings::WATCHER_TYPE_LAZYLOAD ] ) ) {
+			return;
+		}
+
+		$css = '';
+		foreach ( $watchers[ Optml_Settings::WATCHER_TYPE_LAZYLOAD ] as $selector ) {
+			$css .= 'html.optimole_has_js ' . esc_attr( $selector ) . ':not(.optml-bg-lazyloaded) { background-image: none !important; } ';
+		}
+
+		wp_register_style( 'optm_lazyload_background_style', false );
+		wp_enqueue_style( 'optm_lazyload_background_style' );
+		wp_add_inline_style( 'optm_lazyload_background_style', $css );
+	}
+
+	/**
 	 * Enqueue frontend scripts.
 	 */
 	public function frontend_scripts() {
@@ -286,6 +319,7 @@ class Optml_Admin {
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
+		$this->add_background_lazy_css();
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
 		wp_add_inline_style( 'optm_lazyload_noscript_style', '.optimole-no-script img[data-opt-src] { display: none !important; }' );
@@ -574,6 +608,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exclude_filename_desc'             => __( 'Image filename contains', 'optimole-wp' ),
 				'exclude_url_desc'                  => __( 'Page url contains', 'optimole-wp' ),
 				'exclude_ext_desc'                  => __( 'Image extension is', 'optimole-wp' ),
+				'watch_title_lazyload'              => __( 'Lazyload background images for selectors:', 'optimole-wp' ),
+				'watch_desc_lazyload'               => __( 'Put each selector group on a new line ending with "," (comma).', 'optimole-wp' ),
 				'hide'                              => __( 'Hide', 'optimole-wp' ),
 				'high_q_title'                      => __( 'High', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),
