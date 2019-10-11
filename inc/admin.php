@@ -55,25 +55,19 @@ class Optml_Admin {
 	public function inline_bootstrap_script() {
 		$domain = 'https://' . OPTML_JS_CDN;
 
-		$min             = ! OPTML_DEBUG ? '.min' : '';
-		$bgclasses       = Optml_Lazyload_Replacer::get_lazyload_bg_classes();
-		$watcher_classes = Optml_Lazyload_Replacer::get_watcher_lz_classes();
-
-		$watchers = $this->settings->get_watchers();
-		$lazyload_bg_selectors = [];
-		foreach ( $watchers[ Optml_Settings::WATCHER_TYPE_LAZYLOAD ] as $selector ) {
-			$lazyload_bg_selectors[] = $selector;
-		}
+		$min                   = ! OPTML_DEBUG ? '.min' : '';
+		$bgclasses             = Optml_Lazyload_Replacer::get_lazyload_bg_classes();
+		$watcher_classes       = Optml_Lazyload_Replacer::get_watcher_lz_classes();
+		$lazyload_bg_selectors = Optml_Lazyload_Replacer::get_background_lazyload_selectors();
 		foreach ( $bgclasses as $key ) {
 			$lazyload_bg_selectors[] = '.' . $key;
 		}
 		$lazyload_bg_selectors = empty( $lazyload_bg_selectors ) ? '' : sprintf( '%s', implode( ', ', (array) $lazyload_bg_selectors ) );
-
-		$bgclasses       = empty( $bgclasses ) ? '' : sprintf( '"%s"', implode( '","', (array) $bgclasses ) );
-		$watcher_classes = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
-		$default_network = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
-		$retina_ready    = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
-		$output          = sprintf(
+		$bgclasses             = empty( $bgclasses ) ? '' : sprintf( '"%s"', implode( '","', (array) $bgclasses ) );
+		$watcher_classes       = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
+		$default_network       = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
+		$retina_ready          = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
+		$output                = sprintf(
 			'
 		<style type="text/css">
 			img[data-opt-src]:not([data-opt-lazy-loaded]) {
@@ -115,7 +109,7 @@ class Optml_Admin {
 			$min,
 			$bgclasses,
 			$watcher_classes,
-			$lazyload_bg_selectors,
+			addcslashes( $lazyload_bg_selectors, '"' ),
 			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? ( OPTML_NETWORK_ON ? 'true' : 'false' ) : ( $default_network ? 'true' : 'false' ),
 			$retina_ready ? 'true' : 'false',
 			$this->settings->get_numeric_quality()
@@ -296,19 +290,17 @@ class Optml_Admin {
 	 */
 	protected function add_background_lazy_css() {
 
-		$watchers = $this->settings->get_watchers();
-		if ( ! isset( $watchers[ Optml_Settings::WATCHER_TYPE_LAZYLOAD ] ) ) {
-			return;
-		}
+		$watchers = Optml_Lazyload_Replacer::get_background_lazyload_selectors();
 
-		$css = '';
-		foreach ( $watchers[ Optml_Settings::WATCHER_TYPE_LAZYLOAD ] as $selector ) {
-			$css .= 'html.optimole_has_js ' . esc_attr( $selector ) . ':not(.optml-bg-lazyloaded) { background-image: none !important; } ';
+		$css = [];
+		foreach ( $watchers as $selector ) {
+			$css[] = 'html.optimole_has_js ' . $selector . ':not(.optml-bg-lazyloaded)';
 		}
+		$css = implode( ",\n", $css ) . ' { background-image: none !important; } ';
 
 		wp_register_style( 'optm_lazyload_background_style', false );
 		wp_enqueue_style( 'optm_lazyload_background_style' );
-		wp_add_inline_style( 'optm_lazyload_background_style', $css );
+		wp_add_inline_style( 'optm_lazyload_background_style', strip_tags( $css ) );
 	}
 
 	/**
@@ -609,7 +601,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exclude_url_desc'                  => __( 'Page url contains', 'optimole-wp' ),
 				'exclude_ext_desc'                  => __( 'Image extension is', 'optimole-wp' ),
 				'watch_title_lazyload'              => __( 'Lazyload background images for selectors:', 'optimole-wp' ),
-				'watch_desc_lazyload'               => __( 'Put each selector group on a new line ending with "," (comma).', 'optimole-wp' ),
+				'watch_desc_lazyload'               => __( 'You can add each CSS selector on a new line or separated by comma(,).', 'optimole-wp' ),
 				'hide'                              => __( 'Hide', 'optimole-wp' ),
 				'high_q_title'                      => __( 'High', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),

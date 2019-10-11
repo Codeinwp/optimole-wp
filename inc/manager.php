@@ -301,6 +301,7 @@ final class Optml_Manager {
 		$urls = array_map(
 			function ( $value ) {
 				$value = str_replace( '&quot;', '', $value );
+
 				return rtrim( $value, '\\";\'' );
 			},
 			$urls
@@ -463,7 +464,6 @@ final class Optml_Manager {
 
 		return array();
 	}
-
 
 	/**
 	 * Process url replacement from raw html strings.

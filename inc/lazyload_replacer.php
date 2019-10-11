@@ -23,6 +23,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	private static $lazyload_background_classes = null;
 	/**
+	 * Selectors used for background lazyload.
+	 *
+	 * @var array Lazyload background CSS selectors.
+	 */
+	private static $background_lazyload_selectors = null;
+	/**
 	 * Holds flags which remove noscript tag bundle causing issues on render, i.e slider plugins.
 	 *
 	 * @var array Noscript flags.
@@ -57,6 +63,30 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return self::$instance;
+	}
+
+	/**
+	 * Return lazyload selectors for background images.
+	 *
+	 * @return array Lazyload selectors.
+	 */
+	public static function get_background_lazyload_selectors() {
+
+		if ( null != self::$background_lazyload_selectors && is_array( self::$background_lazyload_selectors ) ) {
+			return self::$background_lazyload_selectors;
+		}
+
+		$default_watchers = [ '.elementor-section[data-settings*="background_background"]' ];
+
+		$saved_watchers = self::instance()->settings->get_watchers();
+
+		$saved_watchers = str_replace( [ "\n", "\r" ], ',', $saved_watchers );
+		$saved_watchers = explode( ',', $saved_watchers );
+		$all_watchers   = array_merge( $default_watchers, $saved_watchers, apply_filters( 'optml_lazyload_bg_selectors', [] ) );
+
+		self::$background_lazyload_selectors = $all_watchers;
+
+		return self::$background_lazyload_selectors;
 	}
 
 	/**
@@ -176,7 +206,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$new_tag = str_replace( 'srcset=', 'old-srcset=', $new_tag );
 
 		if ( $this->is_valid_gif( $original_url ) ) {
-			if ( strpos( $new_tag, 'class=' ) === -1 ) {
+			if ( strpos( $new_tag, 'class=' ) === - 1 ) {
 				$new_tag = str_replace( '<img', '<img class="optimole-lazy-only"', $new_tag );
 			} else {
 				$new_tag = str_replace( 'class="', 'class="optimole-lazy-only ', $new_tag );

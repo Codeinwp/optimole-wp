@@ -10,8 +10,6 @@ class Optml_Settings {
 	const FILTER_FILENAME = 'filename';
 	const FILTER_TYPE_LAZYLOAD = 'lazyload';
 	const FILTER_TYPE_OPTIMIZE = 'optimize';
-
-	const WATCHER_TYPE_LAZYLOAD = 'lazyload';
 	/**
 	 * Default settings schema.
 	 *
@@ -26,7 +24,7 @@ class Optml_Settings {
 		'lazyload'             => 'disabled',
 		'network_optimization' => 'disabled',
 		'lazyload_placeholder' => 'disabled',
-		'retina_images' => 'disabled',
+		'retina_images'        => 'disabled',
 		'resize_smart'         => 'disabled',
 		'filters'              => [],
 		'watchers'             => [],
@@ -76,14 +74,8 @@ class Optml_Settings {
 	 */
 	public function get_watchers() {
 
-		$watchers = $this->get( 'watchers' );
-		if ( ! isset( $watchers[ self::WATCHER_TYPE_LAZYLOAD ] ) ) {
-			$watchers[ self::WATCHER_TYPE_LAZYLOAD ] = [];
-		}
+		return $this->get( 'watchers' );
 
-		$default_watchers = [ '.elementor-section[data-settings*="background_background"]' ];
-		$watchers[ self::WATCHER_TYPE_LAZYLOAD ] = array_merge( array_diff( $watchers[ self::WATCHER_TYPE_LAZYLOAD ], $default_watchers ), array_diff( $default_watchers, $watchers[ self::WATCHER_TYPE_LAZYLOAD ] ) );
-		return $watchers;
 	}
 
 	/**
@@ -162,7 +154,7 @@ class Optml_Settings {
 					}
 					break;
 				case 'watchers':
-					$new_watchers = $value;
+					$new_watchers    = $value;
 					$sanitized_value = $new_watchers;
 					foreach ( $new_watchers as $watcher_type => $watcher_selectors ) {
 						$sanitized_value[ $watcher_type ] = array_filter(

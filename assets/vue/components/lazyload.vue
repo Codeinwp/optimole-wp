@@ -85,10 +85,10 @@
             lazyloadSelectors: {
 	            set: function ( value ) {
                     this.showSave = true;
-		            this.new_data.watchers = { lazyload: value.split(",\n") };
+		            this.new_data.watchers = value;
 	            },
 	            get: function () {
-		            return this.site_settings.watchers.lazyload.join(",\n");
+		            return this.site_settings.watchers;
 	            }
             }
 		}
