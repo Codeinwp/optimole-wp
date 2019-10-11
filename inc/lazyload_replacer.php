@@ -76,7 +76,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return self::$background_lazyload_selectors;
 		}
 
-		$default_watchers = [ '.elementor-section[data-settings*="background_background"]' ];
+		$default_watchers = [
+			'.elementor-section[data-settings*="background_background"]',
+			'.elementor-section > .elementor-background-overlay',
+			'.wp-block-cover[style*="background-image"]',
+		];
 
 		$saved_watchers = self::instance()->settings->get_watchers();
 
