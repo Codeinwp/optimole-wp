@@ -288,7 +288,7 @@ class Optml_Admin {
 	/**
 	 * Add style classes for lazy loading background images.
 	 */
-	protected function add_background_lazy_css() {
+	protected function get_background_lazy_css() {
 
 		$watchers = Optml_Lazyload_Replacer::get_background_lazyload_selectors();
 
@@ -298,9 +298,7 @@ class Optml_Admin {
 		}
 		$css = implode( ",\n", $css ) . ' { background-image: none !important; } ';
 
-		wp_register_style( 'optm_lazyload_background_style', false );
-		wp_enqueue_style( 'optm_lazyload_background_style' );
-		wp_add_inline_style( 'optm_lazyload_background_style', strip_tags( $css ) );
+		return strip_tags( $css );
 	}
 
 	/**
@@ -311,10 +309,11 @@ class Optml_Admin {
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
-		$this->add_background_lazy_css();
+		$bg_css = $this->get_background_lazy_css();
+
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
-		wp_add_inline_style( 'optm_lazyload_noscript_style', '.optimole-no-script img[data-opt-src] { display: none !important; }' );
+		wp_add_inline_style( 'optm_lazyload_noscript_style', ".optimole-no-script img[data-opt-src] { display: none !important; } \n " . $bg_css );
 	}
 
 	/**
