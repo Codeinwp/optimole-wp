@@ -33,20 +33,27 @@ class Optml_Admin {
 		add_action( 'admin_notices', array( $this, 'add_notice' ) );
 		add_action( 'admin_notices', array( $this, 'add_notice_upgrade' ) );
 		add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
-		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
-		add_action( 'wp_head', array( $this, 'generator' ) );
 		add_action( 'admin_init', array( $this, 'maybe_redirect' ) );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
 			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 		}
+		add_action( 'optml_replacer_setup', array( $this, 'register_public_actions' ), 999999 );
+
+	}
+
+	/**
+	 * Register public actions.
+	 */
+	public function register_public_actions() {
+		add_action( 'wp_head', array( $this, 'generator' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
+		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 
 		if ( $this->settings->use_lazyload() ) {
 			add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
 			add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 		}
-
 	}
 
 	/**

@@ -21,7 +21,7 @@ describe( 'Check gif page', function () {
 		cy.visit( '/gif-test/' )
 	} );
 	it( 'Images with gifs has proper tags', function () {
-		cy.get( '.wp-block-image img' ).should( 'have.attr', 'src' ).and( 'include', 'i.optimole.com' );
+		cy.get( '.wp-block-image img' ).should( 'have.attr', 'src' ).and( 'include', 'data:image/svg+xml' );
 		cy.get( '.wp-block-image img' ).should( 'have.attr', 'data-opt-src' ).and( 'include', 'i.optimole.com' );
 	} );
 } );
