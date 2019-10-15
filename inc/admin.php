@@ -612,7 +612,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'high_q_title'                      => __( 'High', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),
 				'size_title'                        => __( 'Resize large images.', 'optimole-wp' ),
-				'size_desc'                         => __( 'We will resize all images with sizes greater than this values.', 'optimole-wp' ),
+				'size_desc'                         => __( 'We will resize all images with sizes greater than these values.', 'optimole-wp' ),
 				'width_field'                       => __( 'Width', 'optimole-wp' ),
 				'height_field'                      => __( 'Height', 'optimole-wp' ),
 				'low_q_title'                       => __( 'Low', 'optimole-wp' ),
