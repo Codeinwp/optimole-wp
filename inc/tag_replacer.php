@@ -102,7 +102,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$image_url,
 			array('width' => 'auto',
 				'height' => 'auto',
-				'format' => 'png',
+				'quality' => 'eco',
 			)
 		);
 
