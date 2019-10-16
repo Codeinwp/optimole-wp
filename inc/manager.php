@@ -332,7 +332,11 @@ final class Optml_Manager {
 		);
 
 		foreach ( $urls as $origin => $replace ) {
-			$html = preg_replace( '/(?<!\/)' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
+			if ( substr( $origin, 0, 2 ) === '//' ) {
+				$html = preg_replace( '/(?<!:)' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
+			}
+			else
+				$html = preg_replace( '/(?<!\/)' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
 		}
 
 		return $html;
