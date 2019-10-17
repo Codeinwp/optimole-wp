@@ -1,3 +1,11 @@
+// Added as per. https://docs.cypress.io/api/events/catalog-of-events.html#Uncaught-Exceptions
+// https://docs.cypress.io/guides/references/error-messages.html#Uncaught-exceptions-from-your-application
+Cypress.on( 'uncaught:exception', ( err, runnable ) => {
+	// returning false here prevents Cypress from
+	// failing the test
+	return false
+} );
+
 describe( 'Check gif page', function () {
 	it( 'successfully loads', function () {
 		cy.visit( '/no-builder/testing-gif-with-video/' )
@@ -18,7 +26,7 @@ describe( 'Check gif page', function () {
 		cy.get( 'video > source' ).eq( 1 ).should( 'have.attr', 'type' ).and( 'contain', 'video/mp4' );
 	} );
 	it( 'successfully loads', function () {
-		cy.visit( '/gif-test/' )
+		cy.visit( '/gif-test/' );
 	} );
 	it( 'Images with gifs has proper tags', function () {
 		cy.get( '.wp-block-image img' ).should( 'have.attr', 'src' ).and( 'include', 'data:image/svg+xml' );
