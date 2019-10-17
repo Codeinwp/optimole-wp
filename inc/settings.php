@@ -27,7 +27,7 @@ class Optml_Settings {
 		'retina_images'        => 'disabled',
 		'resize_smart'         => 'disabled',
 		'filters'              => [],
-		'watchers'             => [],
+		'watchers'             => '',
 		'quality'              => 'auto',
 		'wm_id'                => - 1,
 		'wm_opacity'           => 1,
