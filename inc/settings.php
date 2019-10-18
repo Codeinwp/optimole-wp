@@ -154,17 +154,7 @@ class Optml_Settings {
 					}
 					break;
 				case 'watchers':
-					$new_watchers    = $value;
-					$sanitized_value = $new_watchers;
-					foreach ( $new_watchers as $watcher_type => $watcher_selectors ) {
-						$sanitized_value[ $watcher_type ] = array_filter(
-							$watcher_selectors,
-							function ( $value ) {
-								return ( $value !== '' && $value !== ',' && $value !== false );
-							}
-						);
-					}
-
+					$sanitized_value = $value;
 					break;
 				case 'wm_opacity':
 				case 'wm_scale':

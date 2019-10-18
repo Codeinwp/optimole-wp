@@ -88,6 +88,13 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$saved_watchers = explode( ',', $saved_watchers );
 		$all_watchers   = array_merge( $default_watchers, $saved_watchers, apply_filters( 'optml_lazyload_bg_selectors', [] ) );
 
+		$all_watchers = array_filter(
+			$all_watchers,
+			function( $value ) {
+				return ! is_null( $value ) && $value !== '';
+			}
+		);
+
 		self::$background_lazyload_selectors = $all_watchers;
 
 		return self::$background_lazyload_selectors;
