@@ -91,7 +91,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$all_watchers = array_filter(
 			$all_watchers,
 			function( $value ) {
-				return ! is_null( $value ) && $value !== '';
+				return ! empty( $value ) && strlen( $value ) >= 2;
 			}
 		);
 
