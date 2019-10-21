@@ -601,6 +601,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
 				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ),
 				'show'                              => __( 'Show', 'optimole-wp' ),
+				'enable_gif_replace_title'          => __( 'Enable Gif to Video conversion', 'optimole-wp' ),
+				'gif_replacer_desc'                 => __( 'Automatically convert GIF images to Video files(MP4 and WebM)', 'optimole-wp' ),
 				'filter_operator_contains'          => __( 'contains', 'optimole-wp' ),
 				'filter_operator_is'                => __( 'is', 'optimole-wp' ),
 				'filter_filename'                   => __( 'Image filename', 'optimole-wp' ),
