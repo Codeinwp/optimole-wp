@@ -24,9 +24,11 @@ class Optml_Settings {
 		'lazyload'             => 'disabled',
 		'network_optimization' => 'disabled',
 		'lazyload_placeholder' => 'disabled',
-		'retina_images' => 'disabled',
+		'bg_replacer'          => 'enabled',
+		'retina_images'        => 'disabled',
 		'resize_smart'         => 'disabled',
 		'filters'              => [],
+		'watchers'             => '',
 		'quality'              => 'auto',
 		'wm_id'                => - 1,
 		'wm_opacity'           => 1,
@@ -35,6 +37,8 @@ class Optml_Settings {
 		'wm_y'                 => 0,
 		'wm_scale'             => 0,
 		'image_replacer'       => 'enabled',
+		'img_to_video'         => 'disabled',
+
 	);
 	/**
 	 * Option key.
@@ -62,6 +66,17 @@ class Optml_Settings {
 			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 			restore_current_blog();
 		}
+	}
+
+	/**
+	 * Return filter definitions.
+	 *
+	 * @return mixed|null Filter values.
+	 */
+	public function get_watchers() {
+
+		return $this->get( 'watchers' );
+
 	}
 
 	/**
@@ -111,6 +126,8 @@ class Optml_Settings {
 				case 'lazyload_placeholder':
 				case 'retina_images':
 				case 'resize_smart':
+				case 'bg_replacer':
+				case 'img_to_video':
 					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
 					break;
 				case 'max_width':
@@ -138,6 +155,9 @@ class Optml_Settings {
 						}
 					}
 					break;
+				case 'watchers':
+					$sanitized_value = $value;
+					break;
 				case 'wm_opacity':
 				case 'wm_scale':
 				case 'wm_x':
@@ -164,6 +184,7 @@ class Optml_Settings {
 				default:
 					$sanitized_value = '';
 					break;
+
 			}
 
 			$sanitized[ $key ] = $sanitized_value;
@@ -256,14 +277,17 @@ class Optml_Settings {
 			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
 			'lazyload'             => $this->get( 'lazyload' ),
 			'network_optimization' => $this->get( 'network_optimization' ),
-			'retina_images' => $this->get( 'retina_images' ),
+			'retina_images'        => $this->get( 'retina_images' ),
 			'lazyload_placeholder' => $this->get( 'lazyload_placeholder' ),
+			'bg_replacer'          => $this->get( 'bg_replacer' ),
 			'resize_smart'         => $this->get( 'resize_smart' ),
 			'image_replacer'       => $this->get( 'image_replacer' ),
 			'max_width'            => $this->get( 'max_width' ),
 			'max_height'           => $this->get( 'max_height' ),
 			'filters'              => $this->get_filters(),
+			'watchers'             => $this->get_watchers(),
 			'watermark'            => $this->get_watermark(),
+			'img_to_video'         => $this->get( 'img_to_video' ),
 		);
 	}
 

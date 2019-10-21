@@ -49,7 +49,7 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @var Optml_Settings $settings
 	 */
-	protected $settings = null;
+	public $settings = null;
 	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
@@ -162,6 +162,7 @@ abstract class Optml_App_Replacer {
 
 		return self::$size_to_crop;
 	}
+
 
 	/**
 	 * Returns the array of image sizes since `get_intermediate_image_sizes` and image metadata  doesn't include the
@@ -337,6 +338,7 @@ abstract class Optml_App_Replacer {
 		if ( ! is_string( $url ) ) {
 			return false; // @codeCoverageIgnore
 		}
+
 		$url_parts = parse_url( $url );
 
 		if ( ! isset( $url_parts['host'] ) ) {

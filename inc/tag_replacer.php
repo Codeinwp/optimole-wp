@@ -62,9 +62,82 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 *
 	 * @return mixed
 	 */
+
+	/**
+	 *  Replace in given content the given image tags with video tags is image is gif
+	 *
+	 * @param string $image_url Image url to process.
+	 * @param string $image_tag The tag to replace.
+	 * @param string $content The content to process.
+	 *
+	 * @return bool
+	 */
+	public function img_to_video( $image_url, $image_tag, &$content ) {
+		if ( $this->settings->get( 'img_to_video' ) === 'disabled' ) {
+			return false;
+		}
+		if ( ! $this->is_valid_gif( $image_url ) ) {
+			return false;
+		}
+		$link_mp4 = apply_filters(
+			'optml_content_url',
+			$image_url,
+			array('width' => 'auto',
+				'height' => 'auto',
+				'format' => 'mp4',
+			)
+		);
+
+		$link_webm = apply_filters(
+			'optml_content_url',
+			$image_url,
+			array('width' => 'auto',
+				'height' => 'auto',
+				'format' => 'webm',
+			)
+		);
+
+		$link_png = apply_filters(
+			'optml_content_url',
+			$image_url,
+			array('width' => 'auto',
+				'height' => 'auto',
+				'quality' => 'eco',
+			)
+		);
+
+		$video_tag = $image_tag;
+
+		$video_tag = str_replace(
+			[
+				'src=',
+				'<img',
+				'/>',
+			],
+			[
+				'original-src=',
+				'<video autoplay muted loop playsinline poster="' . $link_png . '"',
+				'><source src="' . $link_webm . '" type="video/webm"><source src="' . $link_mp4 . '" type="video/mp4"></video>',
+			],
+			$video_tag
+		);
+		$content = str_replace( $image_tag, $video_tag, $content );
+		return true;
+	}
+
+	/**
+	 * Method invoked by `optml_content_images_tags` filter.
+	 *
+	 * @param string $content The content to be processed.
+	 * @param array  $images A list of images.
+	 *
+	 * @return mixed
+	 */
 	public function process_image_tags( $content, $images = array() ) {
+
 		$image_sizes = self::image_sizes();
 		$sizes2crop  = self::size_to_crop();
+
 		foreach ( $images[0] as $index => $tag ) {
 			$width     = $height = false;
 			$crop = null;
@@ -98,6 +171,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			) {
 
 				continue; // @codeCoverageIgnore
+			}
+
+			if ( $this->img_to_video( $images['img_url'][ $index ], $images['img_tag'][ $index ], $content ) ) {
+				continue;
 			}
 
 			$resize = apply_filters( 'optml_default_crop', array() );
@@ -153,7 +230,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 			$content = str_replace( $images['img_tag'][ $index ], $image_tag, $content );
 		}
-
 		return $content;
 	}
 
