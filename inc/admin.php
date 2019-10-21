@@ -303,6 +303,9 @@ class Optml_Admin {
 		foreach ( $watchers as $selector ) {
 			$css[] = 'html.optimole_has_js ' . $selector . ':not(.optml-bg-lazyloaded)';
 		}
+		if ( empty( $css ) ) {
+			return '';
+		}
 		$css = implode( ",\n", $css ) . ' { background-image: none !important; } ';
 
 		return strip_tags( $css );
@@ -590,6 +593,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'toggle_lazyload'                   => __( 'Scale images & Lazy load', 'optimole-wp' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
 				'enable_retina_title'               => __( 'Enable Retina images', 'optimole-wp' ),
+				'enable_bg_lazyload_title'          => __( 'Enable lazyload for background images', 'optimole-wp' ),
+				'enable_bg_lazyload_desc'           => __( 'Lazyload images used as CSS backgrounds.', 'optimole-wp' ),
 				'enable_retina_desc'                => __( 'Deliver retina ready images to your visitors', 'optimole-wp' ),
 				'enable_network_opt_title'          => __( 'Enable network based optimizations', 'optimole-wp' ),
 				'enable_resize_smart_title'         => __( 'Enable Smart Cropping', 'optimole-wp' ),

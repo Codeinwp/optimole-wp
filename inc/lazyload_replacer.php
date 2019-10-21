@@ -75,7 +75,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( null != self::$background_lazyload_selectors && is_array( self::$background_lazyload_selectors ) ) {
 			return self::$background_lazyload_selectors;
 		}
+		if ( self::instance()->settings->get( 'bg_replacer' ) === 'disabled' ) {
+			self::$background_lazyload_selectors = [];
 
+			return self::$background_lazyload_selectors;
+		}
 		$default_watchers = [
 			'.elementor-section[data-settings*="background_background"]',
 			'.elementor-section > .elementor-background-overlay',
@@ -90,7 +94,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		$all_watchers = array_filter(
 			$all_watchers,
-			function( $value ) {
+			function ( $value ) {
 				return ! empty( $value ) && strlen( $value ) >= 2;
 			}
 		);

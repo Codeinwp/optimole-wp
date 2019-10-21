@@ -18,6 +18,23 @@
             </div>
         </div>
         <div class="field columns">
+            <label class="label column has-text-grey-dark">
+                {{strings.enable_bg_lazyload_title}}
+                <p class="is-italic has-text-weight-normal">
+                    {{strings.enable_bg_lazyload_desc}}
+                </p>
+            </label>
+            <div class="column is-3">
+                <toggle-button :class="'has-text-dark'"
+                               v-model="lazyloadBgImages"
+                               :disabled="this.$store.state.loading"
+                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
+                               :width="80"
+                               :height="25"
+                               color="#008ec2"></toggle-button>
+            </div>
+        </div>
+        <div class="field columns" v-if="showBgSelectors">
             <div class="column">
                 <label class="label has-text-grey-dark">
                     <span>{{strings.watch_title_lazyload}}</span>
@@ -56,6 +73,7 @@
 				strings: optimoleDashboardApp.strings.options_strings,
 				all_strings: optimoleDashboardApp.strings,
 				showSave: false,
+                showBgSelectors: this.$store.state.site_settings.bg_replacer=== 'enabled',
 				new_data: {},
 			}
 		},
@@ -80,6 +98,16 @@
 				},
 				get: function () {
 					return !(this.site_settings.lazyload_placeholder === 'disabled');
+				}
+			},
+			lazyloadBgImages: {
+				set: function (value) {
+					this.showSave = true;
+					this.new_data.bg_replacer = value ? 'enabled' : 'disabled';
+					this.showBgSelectors = value;
+				},
+				get: function () {
+					return !(this.site_settings.bg_replacer === 'disabled');
 				}
 			},
             lazyloadSelectors: {
