@@ -21,7 +21,7 @@
         <!-- GIF replacement toggle button -->
         <div class="field  columns">
             <label class="label column has-text-grey-dark">
-                {{strings.enable_gif_replace}}
+                {{strings.enable_gif_replace_title}}
 
                 <p class="is-italic has-text-weight-normal">
                     {{strings.gif_replacer_desc}}
