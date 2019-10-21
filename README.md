@@ -89,6 +89,13 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 ## Changelog ##
 
+#### [Version 2.2.1](https://github.com/Codeinwp/optimole-wp/compare/v2.2.0...v2.2.1) (2019-10-21)
+
+* **Bug Fixes**
+   * gif to video setting description ([063d37b](https://github.com/Codeinwp/optimole-wp/commit/063d37b))
+
+
+
 ### [Version 2.2.0](https://github.com/Codeinwp/optimole-wp/compare/v2.1.2...v2.2.0) (2019-10-21)
 
 * #### Bug Fixes
