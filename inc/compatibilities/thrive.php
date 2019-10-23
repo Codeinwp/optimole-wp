@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Class Optml_elementor_builder
+ * Class Optml_thrive.
  *
- * @reason Adding selectors for background lazyload
+ * @reason @reason Adding selectors for background lazyload
  */
-class Optml_elementor_builder extends Optml_compatibility {
+class Optml_thrive extends Optml_compatibility {
 
 
 	/**
@@ -16,7 +16,7 @@ class Optml_elementor_builder extends Optml_compatibility {
 	function should_load() {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
-		return is_plugin_active( 'elementor/elementor.php' );
+		return is_plugin_active( 'thrive-visual-editor/thrive-visual-editor.php' );
 	}
 
 	/**
@@ -26,10 +26,10 @@ class Optml_elementor_builder extends Optml_compatibility {
 		add_filter(
 			'optml_lazyload_bg_selectors',
 			function ( $all_watchers ) {
-				$all_watchers = array_merge( $all_watchers, ['.elementor-widget-container', '.elementor-background-overlay'] );
+				$all_watchers = array_merge( $all_watchers, ['.tve-content-box-background', '.tve-page-section-out', '.thrv_text_element'] );
 				return $all_watchers;
 			}
 		);
 	}
-
 }
+

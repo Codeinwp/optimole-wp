@@ -67,6 +67,7 @@ final class Optml_Manager {
 		'cache_enabler',
 		'elementor_builder',
 		'divi_builder',
+		'thrive',
 	);
 	/**
 	 * Class instance method.
