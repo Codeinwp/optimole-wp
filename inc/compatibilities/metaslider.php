@@ -27,6 +27,13 @@ class Optml_metaslider extends Optml_compatibility {
 		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_ignore_lazyload' ], PHP_INT_MAX, 1 );
 		add_filter( 'optml_watcher_lz_classes', [ $this, 'add_watcher_class' ], 10, 1 );
 		add_filter( 'metaslider_coin_slider_image_attributes', [ $this, 'setup_listner' ], PHP_INT_MAX, 1 );
+		add_filter(
+			'optml_lazyload_bg_selectors',
+			function ( $all_watchers ) {
+				$all_watchers = array_merge( $all_watchers, ['.coin-slider > .coin-slider > a', '.coin-slider > .coin-slider'] );
+				return $all_watchers;
+			}
+		);
 	}
 
 	/**
