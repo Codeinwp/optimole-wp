@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Class Optml_elementor_builder
+ * Class Optml_divi_builder
  *
  * @reason Adding selectors for background lazyload
  */
