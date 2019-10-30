@@ -249,6 +249,10 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				return false;
 			}
 		}
+		self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_FILENAME ] = apply_filters(
+			'optml_lazyload_filename_excluded',
+			self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_FILENAME ]
+		);
 
 		if ( false === Optml_Filters::should_do_image( $url, self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_FILENAME ] ) ) {
 			return false;
