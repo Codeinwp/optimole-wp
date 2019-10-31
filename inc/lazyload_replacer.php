@@ -91,8 +91,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$saved_watchers = str_replace( [ "\n", "\r" ], ',', $saved_watchers );
 		$saved_watchers = explode( ',', $saved_watchers );
 		$all_watchers   = array_merge( $default_watchers, $saved_watchers );
-		$all_watchers = apply_filters( 'optml_lazyload_bg_selectors', $all_watchers );
-		$all_watchers = array_filter(
+		$all_watchers   = apply_filters( 'optml_lazyload_bg_selectors', $all_watchers );
+		$all_watchers   = array_filter(
 			$all_watchers,
 			function ( $value ) {
 				return ! empty( $value ) && strlen( $value ) >= 2;
@@ -177,7 +177,9 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
-		if ( ! self::$is_lazyload_placeholder && ! $this->is_valid_gif( $original_url ) ) {
+		$should_ignore_rescale = ! $this->is_valid_mimetype_from_url( $original_url, [ 'gif' => true, 'svg' => true ] );
+
+		if ( ! self::$is_lazyload_placeholder && ! $should_ignore_rescale ) {
 			$optml_args['quality'] = 'eco';
 			$optml_args['resize']  = [];
 			$low_url               = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
@@ -193,9 +195,19 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		if ( $this->should_add_data_tag( $full_tag ) ) {
 			$opt_format = ' data-opt-src="%s" ';
+			if ( $should_ignore_rescale ) {
+				if ( strpos( $new_tag, 'class=' ) === false ) {
+					$opt_format .= ' class="optimole-lazy-only" ';
+				} else {
+					$new_tag = str_replace(
+						( $is_slashed ? 'class=\"' : 'class="' ),
+						( $is_slashed ? 'class=\"optimole-lazy-only ' : 'class="optimole-lazy-only ' ),
+						$new_tag
+					);
+				}
+			}
 			$opt_format = $is_slashed ? addslashes( $opt_format ) : $opt_format;
 		}
-
 		$new_url = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 
 		$opt_src = sprintf( $opt_format, $new_url );
@@ -219,14 +231,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		);
 
 		$new_tag = str_replace( 'srcset=', 'old-srcset=', $new_tag );
-
-		if ( $this->is_valid_gif( $original_url ) ) {
-			if ( strpos( $new_tag, 'class=' ) === - 1 ) {
-				$new_tag = str_replace( '<img', '<img class="optimole-lazy-only"', $new_tag );
-			} else {
-				$new_tag = str_replace( 'class="', 'class="optimole-lazy-only ', $new_tag );
-			}
-		}
 
 		if ( ! $this->should_add_noscript( $new_tag ) ) {
 			return $new_tag;
