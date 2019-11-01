@@ -17,10 +17,10 @@ describe( 'Check Thrive Background Page', function () {
 	it( 'tve-content-box-background that is not in view should have background nonde', function () {
 		cy.get( '#main-content' ).find( '.tve-content-box-background' ).eq( 1 ).should( 'have.css', 'background-image' ).and( 'match', /none/ );
 	} );
-	it( 'tve-content-box-background that is not in view should have background nonde', function () {
+	it( 'tve-page-section-out that is not in view should have background nonde', function () {
 		cy.get( '#main-content' ).find( '.tve-page-section-out' ).eq( 1 ).should( 'have.css', 'background-image' ).and( 'match', /none/ );
 	} );
-	it( 'tve-content-box-background that is not in view should have background nonde', function () {
+	it( 'thrv_text_element that is not in view should have background nonde', function () {
 		cy.get( '#main-content' ).find( '.thrv_text_element' ).eq( 2 ).should( 'have.css', 'background-image' ).and( 'match', /none/ );
 	} );
 } );
