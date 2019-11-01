@@ -254,8 +254,10 @@ abstract class Optml_App_Replacer {
 
 		$content_parts = parse_url( content_url() );
 
-		$this->upload_resource['content_path'] = $content_parts['path'];
-		$this->upload_resource['content_host'] = $content_parts['scheme'] . '://' . $content_parts['host'];
+		$this->upload_resource['content_path']          = $content_parts['path'];
+		$this->upload_resource['content_folder']        = ltrim( $content_parts['path'], '/' );
+		$this->upload_resource['content_folder_length'] = strlen( $this->upload_resource['content_folder'] );
+		$this->upload_resource['content_host']          = $content_parts['scheme'] . '://' . $content_parts['host'];
 
 		$service_data = $this->settings->get( 'service_data' );
 

@@ -10,6 +10,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	use Optml_Normalizer;
 	use Optml_Validator;
 
+	const SVG_PLACEHOLDER = 'data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20#width#%20#height#%22%20width%3D%22#width#%22%20height%3D%22#height#%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3C%2Fsvg%3E';
 	/**
 	 * Cached object instance.
 	 *
@@ -185,9 +186,10 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			$low_url               = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
 			$low_url               = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 		} else {
-			$low_url = self::get_svg_for(
+			$low_url = $this->get_svg_for(
 				isset( $optml_args['width'] ) ? $optml_args['width'] : '100%',
-				isset( $optml_args['height'] ) ? $optml_args['height'] : '100%'
+				isset( $optml_args['height'] ) ? $optml_args['height'] : '100%',
+				( $should_ignore_rescale ? null : $original_url )
 			);
 		}
 
@@ -299,27 +301,41 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	/**
 	 * Get SVG markup with specific width/height.
 	 *
-	 * @param int $width Markup Width.
-	 * @param int $height Markup Height.
+	 * @param int         $width Markup Width.
+	 * @param int         $height Markup Height.
+	 * @param string|null $url Original URL.
 	 *
 	 * @return string SVG code.
 	 */
-	public static function get_svg_for( $width, $height ) {
+	public function get_svg_for( $width, $height, $url = null ) {
+
+		if ( $url !== null && ! is_numeric( $width ) ) {
+			$url   = strtok( $url, '?' );
+			$key   = crc32( $url );
+			$sizes = wp_cache_get( $key, 'optml_sources' );
+			if ( $sizes === false ) {
+				$filepath = substr( $url, strpos( $url, $this->upload_resource['content_folder'] ) + $this->upload_resource['content_folder_length'] );
+				$filepath = WP_CONTENT_DIR . $filepath;
+				if ( is_file( $filepath ) ) {
+					$sizes = getimagesize( $filepath );
+					wp_cache_add( $key, [ $sizes[0], $sizes[1] ], 'optml_sources', DAY_IN_SECONDS );
+				}
+			}
+			list( $width, $height ) = $sizes;
+		}
+
 		$width  = ! is_numeric( $width ) ? '100%' : $width;
 		$height = ! is_numeric( $height ) ? '100%' : $height;
 
-		static $SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="#width#" height="#height#" style=""> <rect id="backgroundrect" width="100%" height="100%" x="0" y="0" fill="#FFFFFF" stroke="none"/> <g style="" class="currentLayer"> <rect fill="#ffffff" stroke="#ffffff" stroke-width="2" stroke-linejoin="round" stroke-dashoffset="" fill-rule="nonzero"   style="color: rgb(0, 0, 0);" class="selected" stroke-opacity="1" fill-opacity="1"/></g></svg>';
-
-		return 'data:image/svg+xml,' . rawurlencode(
+		return
 			str_replace(
 				[ '#width#', '#height#' ],
 				[
 					$width,
 					$height,
 				],
-				$SVG
-			)
-		);
+				self::SVG_PLACEHOLDER
+			);
 	}
 
 	/**
