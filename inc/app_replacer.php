@@ -366,7 +366,7 @@ abstract class Optml_App_Replacer {
 	 **/
 	public function strip_image_size_from_url( $url ) {
 
-		if ( preg_match( '#(-\d+x\d+(?:_c)?)\.(' . implode( '|', array_keys( Optml_Config::$extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
+		if ( preg_match( '#(-\d+x\d+(?:_c)?|(@2x))\.(' . implode( '|', array_keys( Optml_Config::$extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
 			$stripped_url = str_replace( $src_parts[1], '', $url );
 			// Extracts the file path to the image minus the base url
 			$file_path = substr( $stripped_url, strpos( $stripped_url, $this->upload_resource['url'] ) + $this->upload_resource['url_length'] );
