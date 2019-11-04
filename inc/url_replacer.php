@@ -175,7 +175,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
 
 		$arguments = [
-			'signed'          => $this->settings->use_lazyload() ? false : $this->is_allowed_site,
+			'signed'          => $this->settings->use_lazyload() ? false : ! $this->is_allowed_site,
 			'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
 
 		];

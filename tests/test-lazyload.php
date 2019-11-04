@@ -107,6 +107,43 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertNotContains( 'i0.wp.com', $replaced_content );
 	}
 
+	public function test_lazyload_only_gif() {
+		$content = '<div class="before-footer">
+				<div class="codeinwp-container">
+					<p class="featuredon">Featured On</p>
+					<img class="sample-class" src="http://www.example.org/wp-content/uploads/2018/05/brands.gif">
+					<img src="http://www.example.org/wp-content/uploads/2018/05/brands2.gif">
+					<img src="http://www.example.org/wp-content/uploads/2018/05/brands.svg">
+				</div>
+			</div>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertEquals( 6, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 4, substr_count( $replaced_content, 'optimole-lazy-only' ) );
+		$this->assertEquals( 3, substr_count( $replaced_content, 'data:image/svg+xml' ) );
+	}
+
+	public function test_lazyload_only_with_json() {
+		$some_html_content = [
+			'html' => '<div class="before-footer">
+				<div class="codeinwp-container">
+					<p class="featuredon">Featured On</p>
+					<img class="sample-class" src="http://www.example.org/wp-content/uploads/2018/05/brands.gif">
+					<img src="http://www.example.org/wp-content/uploads/2018/05/brands2.gif">
+					<img src="http://www.example.org/wp-content/uploads/2018/05/brands.svg">
+				</div>
+			</div>'
+		];
+		$content           = wp_json_encode( $some_html_content );
+		$replaced_content  = Optml_Manager::instance()->replace_content( $content );
+		$this->assertEquals( $replaced_content, $replaced_content );
+		$this->assertArrayHasKey( 'html', json_decode( $replaced_content, true ) );
+		$this->assertEquals( 6, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 4, substr_count( $replaced_content, 'optimole-lazy-only' ) );
+		$this->assertEquals( 3, substr_count( $replaced_content, 'data:image/svg+xml' ) );
+
+	}
+
 	public function test_replacement_wrong_extension_with_query_string() {
 		$content = ' 
 					<img src="http://example.org/wp-content/plugins/test/generate-qr-code.php?3CRMB6qM1DvLswN6nxKjppX6W5ycjXpeZp">
@@ -191,6 +228,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertEquals( 1, substr_count( $replaced_content, '<noscript>' ) );
 		$this->assertEquals( 2, substr_count( $replaced_content, 'i.optimole.com' ) );
 	}
+
 	public function test_check_with_multiple_images_in_no_script() {
 		$content = '<img width="1612" height="1116" src="data:image/gif;base64,R0lGODdhAQABAPAAAP///wAAACwAAAAAAQABAEACAkQBADs=" data-lazy-src="http://example.org/wp-content/uploads/2018/11/gradient.png" class="attachment-twentyseventeen-featured-image size-twentyseventeen-featured-image wp-post-image" alt="" data-lazy-sizes="(max-width: 767px) 89vw, (max-width: 1000px) 54vw, (max-width: 1071px) 543px, 580px" />
 					<noscript>
@@ -263,11 +301,11 @@ class Test_Lazyload extends WP_UnitTestCase {
 	}
 
 	public function test_should_replace_query_string_url() {
-		$content = '<img src="https://example.org/photos/814499/pexels-photo-814499.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">';
-		$replaced_content = Optml_Manager::instance()->replace_content($content);
-		$this->assertContains('i.optimole.com', $replaced_content);
-		$this->assertContains('data-opt-src', $replaced_content);
-		$this->assertContains('example.org', $replaced_content);
+		$content          = '<img src="https://example.org/photos/814499/pexels-photo-814499.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">';
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'data-opt-src', $replaced_content );
+		$this->assertContains( 'example.org', $replaced_content );
 	}
 
 }
