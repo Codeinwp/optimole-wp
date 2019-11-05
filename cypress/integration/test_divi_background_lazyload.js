@@ -42,4 +42,16 @@ describe( 'Check Divi Background Page', function () {
 	it( 'Divi module that is not in view should have background', function () {
 		cy.get( '.entry-content' ).find( '.et_pb_with_background' ).eq( 1 ).should( 'have.css', 'background-image' ).and( 'match', /none/ );
 	} );
+	it( 'After scroll the background images that come in view should be loaded', function () {
+		cy.scrollTo( 0, 4250 )
+
+		cy.get( '.entry-content' ).find( '.et_pb_slides > .et_pb_slide_3' ).eq( 0 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
+
+		cy.get( '.entry-content' ).find( '.et_pb_module' ).eq( 4 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
+
+		cy.get( '.entry-content' ).find( '.et_pb_row_3' ).eq( 0 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
+
+		cy.get( '.entry-content' ).find( '.et_pb_with_background' ).eq( 1 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
+
+	} );
 } );
