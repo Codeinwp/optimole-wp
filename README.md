@@ -89,6 +89,13 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 ## Changelog ##
 
+#### [Version 2.2.4](https://github.com/Codeinwp/optimole-wp/compare/v2.2.3...v2.2.4) (2019-11-05)
+
+* **Bug Fixes**
+   * conditions for close to limit notice ([e3530b8](https://github.com/Codeinwp/optimole-wp/commit/e3530b8))
+
+
+
 #### [Version 2.2.3](https://github.com/Codeinwp/optimole-wp/compare/v2.2.2...v2.2.3) (2019-11-05)
 
 * **Bug Fixes**
