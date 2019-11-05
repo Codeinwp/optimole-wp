@@ -1,6 +1,6 @@
 describe( 'Check Elementor Background Page', function () {
 	it( 'successfully loads', function () {
-		cy.visit( '/elementor_background_lazyload/' )
+		cy.visit( '/elementor/' )
 	} );
 	it( 'Elementor widgets should have background lazyloaded', function () {
 		cy.get( '.elementor-inner' ).find( '.elementor-widget-container' ).eq( 0 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
@@ -8,9 +8,11 @@ describe( 'Check Elementor Background Page', function () {
 	it( 'Elementor widgets should have background lazyloaded', function () {
 		cy.get( '.elementor-inner' ).find( '.elementor-widget-container' ).eq( 1 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
 	} );
+	it( 'Elementor widgets should have background lazyloaded', function () {
+		cy.get( '.elementor-inner' ).find( '.elementor-widget-container' ).eq( 2 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
+	} );
 	it( 'Elementor widgets  image not in view should have no background', function () {
-		cy.get( '.elementor-inner' ).find( '.elementor-widget-container' ).eq( 2 ).should( 'have.css', 'background-image' ).and( 'match', /none/ );
-
+		cy.get( '.elementor-inner' ).find( '.elementor-widget-container' ).eq( 3 ).should( 'have.css', 'background-image' ).and( 'match', /none/ );
 	} );
 	it( 'Elementor background images should have background lazyloaded', function () {
 		cy.get( '.elementor-inner' ).find( '.elementor-background-overlay' ).eq( 0 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
