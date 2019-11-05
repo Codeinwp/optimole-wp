@@ -45,7 +45,7 @@
                 <div>
                     <textarea-autosize
                             class="textarea is-secondary is-small"
-                            :placeholder="strings.watch_desc_lazyload"
+                            placeholder="e.g: .image, #item-id, div.with-background-image"
                             v-model="lazyloadSelectors"
                             :min-height="3"
                             :max-height="350"
