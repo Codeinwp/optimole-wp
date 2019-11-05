@@ -264,11 +264,14 @@ class Optml_Admin {
 		if ( $service_data['plan'] !== 'free' ) {
 			return false;
 		}
-		$visitors = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
-		if ( $visitors < 3000 ) {
+		$visitors_limit = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
+		$visitors_left = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
+		if ( $visitors_limit === 0 ) {
 			return false;
 		}
-
+		if ( $visitors_left > 2000 ) {
+			return false;
+		}
 		return true;
 	}
 
