@@ -27,7 +27,6 @@ describe( 'Check Homepage', function () {
 		cy.scrollTo( 0, 2500 )
 
 		cy.get( '.entry-content' ).find( '.fl-col-content' ).eq( 4 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
-
 		cy.get( '.entry-content' ).find( '.fl-row-bg-photo > .fl-row-content-wrap' ).eq( 1 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
 
 	} );
