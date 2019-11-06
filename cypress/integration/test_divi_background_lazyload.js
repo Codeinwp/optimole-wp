@@ -24,9 +24,6 @@ describe( 'Check Divi Background Page', function () {
 	it( 'Divi module that is in view should have optml-bg-lazyloaded', function () {
 		cy.get( '.entry-content' ).find( '.et_pb_module' ).eq( 1 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
 	} );
-	it( 'Divi module that is in view should have optml-bg-lazyloaded', function () {
-		cy.get( '.entry-content' ).find( '.et_pb_module' ).eq( 2 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
-	} );
 	it( 'Divi slide that is not in view should have optml-bg-lazyloaded', function () {
 		cy.get( '.entry-content' ).find( '.et_pb_slides > .et_pb_slide_3' ).eq( 0 ).should( 'have.css', 'background-image' ).and( 'match', /none/ );
 	} );

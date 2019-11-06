@@ -14,9 +14,6 @@ describe( 'Check Homepage', function () {
 	it( 'Beaver row content should have background lazyloaded', function () {
 		cy.get( '.entry-content' ).find( '.fl-row-bg-photo > .fl-row-content-wrap' ).eq( 0 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
 	} );
-	it( 'Beaver column should have background lazyloaded', function () {
-		cy.get( '.entry-content' ).find( '.fl-col-content' ).eq( 3 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
-	} );
 	it( 'Beaver row content not in view should  have no background', function () {
 		cy.get( '.entry-content' ).find( '.fl-row-bg-photo > .fl-row-content-wrap' ).eq( 1 ).should( 'have.css', 'background-image' ).and( 'match', /none/ );
 	} );
