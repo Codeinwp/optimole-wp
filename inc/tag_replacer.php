@@ -61,7 +61,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return false;
 		}
 		foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] as $rule_flag => $status ) {
-			error_log( $rule_flag, 3, '/var/www/html/otimole.log' );
 			$class = strtok( $tmp_class_list, '" ' );
 			$loop = true;
 			while ( $class !== false && $loop === true ) {
