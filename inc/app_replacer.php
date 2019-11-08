@@ -49,7 +49,7 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @var Optml_Settings $settings
 	 */
-	protected $settings = null;
+	public $settings = null;
 	/**
 	 * Defines which is the maximum width accepted in the optimization process.
 	 *
@@ -163,6 +163,7 @@ abstract class Optml_App_Replacer {
 		return self::$size_to_crop;
 	}
 
+
 	/**
 	 * Returns the array of image sizes since `get_intermediate_image_sizes` and image metadata  doesn't include the
 	 * custom image sizes in a reliable way.
@@ -253,8 +254,10 @@ abstract class Optml_App_Replacer {
 
 		$content_parts = parse_url( content_url() );
 
-		$this->upload_resource['content_path'] = $content_parts['path'];
-		$this->upload_resource['content_host'] = $content_parts['scheme'] . '://' . $content_parts['host'];
+		$this->upload_resource['content_path']          = $content_parts['path'];
+		$this->upload_resource['content_folder']        = ltrim( $content_parts['path'], '/' );
+		$this->upload_resource['content_folder_length'] = strlen( $this->upload_resource['content_folder'] );
+		$this->upload_resource['content_host']          = $content_parts['scheme'] . '://' . $content_parts['host'];
 
 		$service_data = $this->settings->get( 'service_data' );
 
@@ -337,6 +340,7 @@ abstract class Optml_App_Replacer {
 		if ( ! is_string( $url ) ) {
 			return false; // @codeCoverageIgnore
 		}
+
 		$url_parts = parse_url( $url );
 
 		if ( ! isset( $url_parts['host'] ) ) {
@@ -362,7 +366,7 @@ abstract class Optml_App_Replacer {
 	 **/
 	public function strip_image_size_from_url( $url ) {
 
-		if ( preg_match( '#(-\d+x\d+(?:_c)?)\.(' . implode( '|', array_keys( Optml_Config::$extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
+		if ( preg_match( '#(-\d+x\d+(?:_c)?|(@2x))\.(' . implode( '|', array_keys( Optml_Config::$extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
 			$stripped_url = str_replace( $src_parts[1], '', $url );
 			// Extracts the file path to the image minus the base url
 			$file_path = substr( $stripped_url, strpos( $stripped_url, $this->upload_resource['url'] ) + $this->upload_resource['url_length'] );

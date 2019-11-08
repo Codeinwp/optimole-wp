@@ -10,6 +10,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	use Optml_Normalizer;
 	use Optml_Validator;
 
+	const SVG_PLACEHOLDER = 'data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20#width#%20#height#%22%20width%3D%22#width#%22%20height%3D%22#height#%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3C%2Fsvg%3E';
 	/**
 	 * Cached object instance.
 	 *
@@ -22,6 +23,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @var array Lazyload background classes.
 	 */
 	private static $lazyload_background_classes = null;
+	/**
+	 * Selectors used for background lazyload.
+	 *
+	 * @var array Lazyload background CSS selectors.
+	 */
+	private static $background_lazyload_selectors = null;
 	/**
 	 * Holds flags which remove noscript tag bundle causing issues on render, i.e slider plugins.
 	 *
@@ -57,6 +64,45 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return self::$instance;
+	}
+
+	/**
+	 * Return lazyload selectors for background images.
+	 *
+	 * @return array Lazyload selectors.
+	 */
+	public static function get_background_lazyload_selectors() {
+
+		if ( null != self::$background_lazyload_selectors && is_array( self::$background_lazyload_selectors ) ) {
+			return self::$background_lazyload_selectors;
+		}
+		if ( self::instance()->settings->get( 'bg_replacer' ) === 'disabled' ) {
+			self::$background_lazyload_selectors = [];
+
+			return self::$background_lazyload_selectors;
+		}
+		$default_watchers = [
+			'.elementor-section[data-settings*="background_background"]',
+			'.elementor-section > .elementor-background-overlay',
+			'.wp-block-cover[style*="background-image"]',
+		];
+
+		$saved_watchers = self::instance()->settings->get_watchers();
+
+		$saved_watchers = str_replace( [ "\n", "\r" ], ',', $saved_watchers );
+		$saved_watchers = explode( ',', $saved_watchers );
+		$all_watchers   = array_merge( $default_watchers, $saved_watchers );
+		$all_watchers   = apply_filters( 'optml_lazyload_bg_selectors', $all_watchers );
+		$all_watchers   = array_filter(
+			$all_watchers,
+			function ( $value ) {
+				return ! empty( $value ) && strlen( $value ) >= 2;
+			}
+		);
+
+		self::$background_lazyload_selectors = $all_watchers;
+
+		return self::$background_lazyload_selectors;
 	}
 
 	/**
@@ -132,15 +178,18 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
-		if ( ! self::$is_lazyload_placeholder ) {
+		$should_ignore_rescale = ! $this->is_valid_mimetype_from_url( $original_url, [ 'gif' => true, 'svg' => true ] );
+
+		if ( ! self::$is_lazyload_placeholder && ! $should_ignore_rescale ) {
 			$optml_args['quality'] = 'eco';
 			$optml_args['resize']  = [];
 			$low_url               = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
 			$low_url               = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 		} else {
-			$low_url = self::get_svg_for(
+			$low_url = $this->get_svg_for(
 				isset( $optml_args['width'] ) ? $optml_args['width'] : '100%',
-				isset( $optml_args['height'] ) ? $optml_args['height'] : '100%'
+				isset( $optml_args['height'] ) ? $optml_args['height'] : '100%',
+				( $should_ignore_rescale ? null : $original_url )
 			);
 		}
 
@@ -148,9 +197,19 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		if ( $this->should_add_data_tag( $full_tag ) ) {
 			$opt_format = ' data-opt-src="%s" ';
+			if ( $should_ignore_rescale ) {
+				if ( strpos( $new_tag, 'class=' ) === false ) {
+					$opt_format .= ' class="optimole-lazy-only" ';
+				} else {
+					$new_tag = str_replace(
+						( $is_slashed ? 'class=\"' : 'class="' ),
+						( $is_slashed ? 'class=\"optimole-lazy-only ' : 'class="optimole-lazy-only ' ),
+						$new_tag
+					);
+				}
+			}
 			$opt_format = $is_slashed ? addslashes( $opt_format ) : $opt_format;
 		}
-
 		$new_url = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 
 		$opt_src = sprintf( $opt_format, $new_url );
@@ -242,27 +301,41 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	/**
 	 * Get SVG markup with specific width/height.
 	 *
-	 * @param int $width Markup Width.
-	 * @param int $height Markup Height.
+	 * @param int         $width Markup Width.
+	 * @param int         $height Markup Height.
+	 * @param string|null $url Original URL.
 	 *
 	 * @return string SVG code.
 	 */
-	public static function get_svg_for( $width, $height ) {
+	public function get_svg_for( $width, $height, $url = null ) {
+
+		if ( $url !== null && ! is_numeric( $width ) ) {
+			$url   = strtok( $url, '?' );
+			$key   = crc32( $url );
+			$sizes = wp_cache_get( $key, 'optml_sources' );
+			if ( $sizes === false ) {
+				$filepath = substr( $url, strpos( $url, $this->upload_resource['content_folder'] ) + $this->upload_resource['content_folder_length'] );
+				$filepath = WP_CONTENT_DIR . $filepath;
+				if ( is_file( $filepath ) ) {
+					$sizes = getimagesize( $filepath );
+					wp_cache_add( $key, [ $sizes[0], $sizes[1] ], 'optml_sources', DAY_IN_SECONDS );
+				}
+			}
+			list( $width, $height ) = $sizes;
+		}
+
 		$width  = ! is_numeric( $width ) ? '100%' : $width;
 		$height = ! is_numeric( $height ) ? '100%' : $height;
 
-		static $SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="#width#" height="#height#" style=""> <rect id="backgroundrect" width="100%" height="100%" x="0" y="0" fill="#FFFFFF" stroke="none"/> <g style="" class="currentLayer"> <rect fill="#ffffff" stroke="#ffffff" stroke-width="2" stroke-linejoin="round" stroke-dashoffset="" fill-rule="nonzero"   style="color: rgb(0, 0, 0);" class="selected" stroke-opacity="1" fill-opacity="1"/></g></svg>';
-
-		return 'data:image/svg+xml,' . rawurlencode(
+		return
 			str_replace(
 				[ '#width#', '#height#' ],
 				[
 					$width,
 					$height,
 				],
-				$SVG
-			)
-		);
+				self::SVG_PLACEHOLDER
+			);
 	}
 
 	/**

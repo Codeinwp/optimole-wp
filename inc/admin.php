@@ -33,20 +33,27 @@ class Optml_Admin {
 		add_action( 'admin_notices', array( $this, 'add_notice' ) );
 		add_action( 'admin_notices', array( $this, 'add_notice_upgrade' ) );
 		add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
-		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
-		add_action( 'wp_head', array( $this, 'generator' ) );
 		add_action( 'admin_init', array( $this, 'maybe_redirect' ) );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
 			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 		}
+		add_action( 'optml_replacer_setup', array( $this, 'register_public_actions' ), 999999 );
+
+	}
+
+	/**
+	 * Register public actions.
+	 */
+	public function register_public_actions() {
+		add_action( 'wp_head', array( $this, 'generator' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
+		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 
 		if ( $this->settings->use_lazyload() ) {
 			add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
 			add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 		}
-
 	}
 
 	/**
@@ -55,15 +62,19 @@ class Optml_Admin {
 	public function inline_bootstrap_script() {
 		$domain = 'https://' . OPTML_JS_CDN;
 
-		$min             = ! OPTML_DEBUG ? '.min' : '';
-		$bgclasses       = Optml_Lazyload_Replacer::get_lazyload_bg_classes();
-		$watcher_classes = Optml_Lazyload_Replacer::get_watcher_lz_classes();
-
-		$bgclasses       = empty( $bgclasses ) ? '' : sprintf( '"%s"', implode( '","', (array) $bgclasses ) );
-		$watcher_classes = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
-		$default_network = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
-		$retina_ready    = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
-		$output          = sprintf(
+		$min                   = ! OPTML_DEBUG ? '.min' : '';
+		$bgclasses             = Optml_Lazyload_Replacer::get_lazyload_bg_classes();
+		$watcher_classes       = Optml_Lazyload_Replacer::get_watcher_lz_classes();
+		$lazyload_bg_selectors = Optml_Lazyload_Replacer::get_background_lazyload_selectors();
+		foreach ( $bgclasses as $key ) {
+			$lazyload_bg_selectors[] = '.' . $key;
+		}
+		$lazyload_bg_selectors = empty( $lazyload_bg_selectors ) ? '' : sprintf( '%s', implode( ', ', (array) $lazyload_bg_selectors ) );
+		$bgclasses             = empty( $bgclasses ) ? '' : sprintf( '"%s"', implode( '","', (array) $bgclasses ) );
+		$watcher_classes       = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
+		$default_network       = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
+		$retina_ready          = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
+		$output                = sprintf(
 			'
 		<style type="text/css">
 			img[data-opt-src]:not([data-opt-lazy-loaded]) {
@@ -79,6 +90,7 @@ class Optml_Admin {
 		
 		</style>
 		<script type="application/javascript">
+					document.documentElement.className += " optimole_has_js";
 					(function(w, d){ 
 						var b = d.getElementsByTagName("head")[0];
 						var s = d.createElement("script");
@@ -87,8 +99,10 @@ class Optml_Admin {
 						s.src = "%s/v2/latest/optimole_lib" + v  + "%s.js"; 
 						b.appendChild(s);
 						w.optimoleData = {
+							lazyloadOnly: "optimole-lazy-only",
 							backgroundReplaceClasses: [%s],
 							watchClasses: [%s],
+							backgroundLazySelectors: "%s",
 							network_optimizations: %s,
 							ignoreDpr: %s,
 							quality: %d
@@ -102,6 +116,7 @@ class Optml_Admin {
 			$min,
 			$bgclasses,
 			$watcher_classes,
+			addcslashes( $lazyload_bg_selectors, '"' ),
 			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? ( OPTML_NETWORK_ON ? 'true' : 'false' ) : ( $default_network ? 'true' : 'false' ),
 			$retina_ready ? 'true' : 'false',
 			$this->settings->get_numeric_quality()
@@ -209,7 +224,7 @@ class Optml_Admin {
 		}
 		?>
 		<div class="notice notice-warning optml-notice-optin">
-			<p> <?php printf( __( 'It seems your are close to the %1$s1GB%2$s limit of images optimized with %3$sOptiMole%4$s for this month. You might want to check the upgrade plans for a larger quota. %5$s %6$s What happens if i exceed the quota ?%7$s We will need to deliver back your %8$sun-optimized%9$s images which might decrease your site speed perfomance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
+			<p> <?php printf( __( 'It seems your are close to the %1$s5.0000%2$s visits limit with %3$sOptiMole%4$s for this month. You might want to check the upgrade plans for a larger quota. %5$s %6$s What happens if i exceed the quota ?%7$s We will need to deliver back your original %8$sun-optimized%9$s images which might decrease your site speed perfomance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
 			<p>
 				<a href="https://optimole.com/#pricing" target="_blank" class="button button-primary"><span
 							class="dashicons dashicons-external"></span><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
@@ -249,11 +264,14 @@ class Optml_Admin {
 		if ( $service_data['plan'] !== 'free' ) {
 			return false;
 		}
-		$visitors = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
-		if ( $service_data['usage'] < 800 && $visitors === 0 ) {
+		$visitors_limit = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
+		$visitors_left = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
+		if ( $visitors_limit === 0 ) {
 			return false;
 		}
-
+		if ( $visitors_left > 2000 ) {
+			return false;
+		}
 		return true;
 	}
 
@@ -278,6 +296,25 @@ class Optml_Admin {
 	}
 
 	/**
+	 * Add style classes for lazy loading background images.
+	 */
+	protected function get_background_lazy_css() {
+
+		$watchers = Optml_Lazyload_Replacer::get_background_lazyload_selectors();
+
+		$css = [];
+		foreach ( $watchers as $selector ) {
+			$css[] = 'html.optimole_has_js ' . $selector . ':not(.optml-bg-lazyloaded)';
+		}
+		if ( empty( $css ) ) {
+			return '';
+		}
+		$css = implode( ",\n", $css ) . ' { background-image: none !important; } ';
+
+		return strip_tags( $css );
+	}
+
+	/**
 	 * Enqueue frontend scripts.
 	 */
 	public function frontend_scripts() {
@@ -285,9 +322,11 @@ class Optml_Admin {
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
+		$bg_css = $this->get_background_lazy_css();
+
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
-		wp_add_inline_style( 'optm_lazyload_noscript_style', '.optimole-no-script img[data-opt-src] { display: none !important; }' );
+		wp_add_inline_style( 'optm_lazyload_noscript_style', ".optimole-no-script img[data-opt-src] { display: none !important; } \n " . $bg_css );
 	}
 
 	/**
@@ -557,12 +596,16 @@ The root cause might be either a security plugin which blocks this feature or so
 				'toggle_lazyload'                   => __( 'Scale images & Lazy load', 'optimole-wp' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
 				'enable_retina_title'               => __( 'Enable Retina images', 'optimole-wp' ),
+				'enable_bg_lazyload_title'          => __( 'Enable lazyload for background images', 'optimole-wp' ),
+				'enable_bg_lazyload_desc'           => __( 'Lazyload images used as CSS backgrounds.', 'optimole-wp' ),
 				'enable_retina_desc'                => __( 'Deliver retina ready images to your visitors', 'optimole-wp' ),
 				'enable_network_opt_title'          => __( 'Enable network based optimizations', 'optimole-wp' ),
 				'enable_resize_smart_title'         => __( 'Enable Smart Cropping', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
 				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ),
 				'show'                              => __( 'Show', 'optimole-wp' ),
+				'enable_gif_replace_title'          => __( 'Enable Gif to Video conversion', 'optimole-wp' ),
+				'gif_replacer_desc'                 => __( 'Automatically convert GIF images to Video files(MP4 and WebM)', 'optimole-wp' ),
 				'filter_operator_contains'          => __( 'contains', 'optimole-wp' ),
 				'filter_operator_is'                => __( 'is', 'optimole-wp' ),
 				'filter_filename'                   => __( 'Image filename', 'optimole-wp' ),
@@ -574,12 +617,14 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exclude_filename_desc'             => __( 'Image filename contains', 'optimole-wp' ),
 				'exclude_url_desc'                  => __( 'Page url contains', 'optimole-wp' ),
 				'exclude_ext_desc'                  => __( 'Image extension is', 'optimole-wp' ),
+				'watch_title_lazyload'              => __( 'Lazyload background images for selectors:', 'optimole-wp' ),
+				'watch_desc_lazyload'               => __( 'You can add each CSS selector on a new line or separated by comma(,).', 'optimole-wp' ),
 				'exclude_class_desc'                => __( 'Image containes class', 'optimole-wp' ),
 				'hide'                              => __( 'Hide', 'optimole-wp' ),
 				'high_q_title'                      => __( 'High', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),
 				'size_title'                        => __( 'Resize large images.', 'optimole-wp' ),
-				'size_desc'                         => __( 'We will resize all images with sizes greater than this values.', 'optimole-wp' ),
+				'size_desc'                         => __( 'We will resize all images with sizes greater than these values.', 'optimole-wp' ),
 				'width_field'                       => __( 'Width', 'optimole-wp' ),
 				'height_field'                      => __( 'Height', 'optimole-wp' ),
 				'low_q_title'                       => __( 'Low', 'optimole-wp' ),
@@ -588,8 +633,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'connect_step_1'                    => __( 'Checking for possible conflicts.', 'optimole-wp' ),
 				'connect_step_2'                    => __( 'Inspecting the images from your site.', 'optimole-wp' ),
 				'connect_step_3'                    => __( 'All done, Optimole is currently optimizing your site.', 'optimole-wp' ),
-				'quality_title'                     => __( 'Compression level', 'optimole-wp' ),
-				'quality_desc'                      => __( 'A higher compression might result in a small loss of image quality. Select the most appropriate value for your images.', 'optimole-wp' ),
+				'quality_title'                     => __( 'Image quality', 'optimole-wp' ),
+				'quality_desc'                      => __( 'Lower image quality might not always be perceived by users and would result in a boost of your loading speed by lowering the page size. Try experimenting with the setting, then click the View sample image link to see what option works best for you.', 'optimole-wp' ),
 				'enabled'                           => __( 'Enabled', 'optimole-wp' ),
 				'option_saved'                      => __( 'Option saved.', 'optimole-wp' ),
 				'disabled'                          => __( 'Disabled', 'optimole-wp' ),

@@ -52,6 +52,8 @@ class Optml_Image {
 	 */
 	private $source_url = '';
 
+
+
 	/**
 	 * Optml_Image constructor.
 	 *
@@ -107,12 +109,15 @@ class Optml_Image {
 		if ( isset( $this->resize->get()['type'] ) ) {
 			$path_parts[] = $this->resize->toString();
 		}
-
 		if ( isset( $params['apply_watermark'] ) && $params['apply_watermark'] && is_array( self::$watermark->get() ) && isset( self::$watermark->get()['id'] ) && self::$watermark->get()['id'] > 0 ) {
 			$path_parts[] = self::$watermark->toString();
 		}
 
 		$path = '/' . $this->source_url;
+
+		if ( isset( $params['format'] ) && ! empty( $params['format'] ) ) {
+			$path = '/f:' . $params['format'] . '/' . $this->source_url;
+		}
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 

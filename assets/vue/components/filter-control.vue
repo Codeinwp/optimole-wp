@@ -78,6 +78,7 @@
                                     <option value="svg">.SVG</option>
                                     <option value="jpg">.JPG</option>
                                     <option value="png">.PNG</option>
+                                    <option value="gif">.GIF</option>
                                 </select>
                             </span>
                     <input v-else v-model="selected_value" class="input is-small" type="text" placeholder="word">
