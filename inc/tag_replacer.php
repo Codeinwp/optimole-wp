@@ -61,6 +61,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return false;
 		}
 		foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] as $rule_flag => $status ) {
+			error_log( $rule_flag, 3, '/var/www/html/otimole.log' );
 			$class = strtok( $tmp_class_list, '" ' );
 			$loop = true;
 			while ( $class !== false && $loop === true ) {
@@ -162,6 +163,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		$image_sizes = self::image_sizes();
 		$sizes2crop  = self::size_to_crop();
+		self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] = apply_filters(
+			'optml_lazyload_class_excluded',
+			self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ]
+		);
 		$defined_lazyload_exclusion = empty( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] ) === false;
 		foreach ( $images[0] as $index => $tag ) {
 			$width     = $height = false;
