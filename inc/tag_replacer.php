@@ -53,7 +53,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes_attr' ), 1, 2 );
 
 	}
-
+	/**
+	 * Check if a img tag contains a banned lazyload class
+	 *
+	 * @param $image_tag
+	 * @return bool
+	 */
 	public function contains_banned_lazyload_class( $image_tag ) {
 		$class_list = strstr( $image_tag, 'class="' );
 		$tmp_class_list = $class_list;
