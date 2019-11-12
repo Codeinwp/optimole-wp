@@ -224,7 +224,7 @@ class Optml_Admin {
 		}
 		?>
 		<div class="notice notice-warning optml-notice-optin">
-			<p> <?php printf( __( 'It seems your are close to the %1$s1GB%2$s limit of images optimized with %3$sOptiMole%4$s for this month. You might want to check the upgrade plans for a larger quota. %5$s %6$s What happens if i exceed the quota ?%7$s We will need to deliver back your %8$sun-optimized%9$s images which might decrease your site speed perfomance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
+			<p> <?php printf( __( 'It seems your are close to the %1$s5.0000%2$s visits limit with %3$sOptiMole%4$s for this month. You might want to check the upgrade plans for a larger quota. %5$s %6$s What happens if i exceed the quota ?%7$s We will need to deliver back your original %8$sun-optimized%9$s images which might decrease your site speed perfomance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
 			<p>
 				<a href="https://optimole.com/#pricing" target="_blank" class="button button-primary"><span
 							class="dashicons dashicons-external"></span><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
@@ -264,11 +264,14 @@ class Optml_Admin {
 		if ( $service_data['plan'] !== 'free' ) {
 			return false;
 		}
-		$visitors = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
-		if ( $service_data['usage'] < 800 && $visitors === 0 ) {
+		$visitors_limit = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
+		$visitors_left = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
+		if ( $visitors_limit === 0 ) {
 			return false;
 		}
-
+		if ( $visitors_left > 2000 ) {
+			return false;
+		}
 		return true;
 	}
 
@@ -628,8 +631,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'connect_step_1'                    => __( 'Checking for possible conflicts.', 'optimole-wp' ),
 				'connect_step_2'                    => __( 'Inspecting the images from your site.', 'optimole-wp' ),
 				'connect_step_3'                    => __( 'All done, Optimole is currently optimizing your site.', 'optimole-wp' ),
-				'quality_title'                     => __( 'Compression level', 'optimole-wp' ),
-				'quality_desc'                      => __( 'A higher compression might result in a small loss of image quality. Select the most appropriate value for your images.', 'optimole-wp' ),
+				'quality_title'                     => __( 'Image quality', 'optimole-wp' ),
+				'quality_desc'                      => __( 'Lower image quality might not always be perceived by users and would result in a boost of your loading speed by lowering the page size. Try experimenting with the setting, then click the View sample image link to see what option works best for you.', 'optimole-wp' ),
 				'enabled'                           => __( 'Enabled', 'optimole-wp' ),
 				'option_saved'                      => __( 'Option saved.', 'optimole-wp' ),
 				'disabled'                          => __( 'Disabled', 'optimole-wp' ),

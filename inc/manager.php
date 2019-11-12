@@ -147,6 +147,9 @@ final class Optml_Manager {
 		if ( array_key_exists( 'et_fb', $_GET ) && ! empty( $_GET['et_fb'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
+		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) {
+			return false; // @codeCoverageIgnore
+		}
 		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
 			return false; // @codeCoverageIgnore
 		}

@@ -165,7 +165,7 @@
                     dotStyle: {
                         borderColor: '#3273dc'
                     },
-                    min: 1,
+                    min: 50,
                     max: 100,
                     tooltipFormatter: function (value) {
                        return qualityNumberToString(value);
