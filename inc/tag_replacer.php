@@ -56,7 +56,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	/**
 	 * Check if a img tag contains a banned lazyload class
 	 *
-	 * @param $image_tag
+	 * @param $image_tag The image tag to check
 	 * @return bool
 	 */
 	public function contains_banned_lazyload_class( $image_tag ) {
