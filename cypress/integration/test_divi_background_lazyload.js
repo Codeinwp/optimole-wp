@@ -15,9 +15,6 @@ describe( 'Check Divi Background Page', function () {
 	//to here we test the slider
 	//from here we test the standard divi module where you can have background images
 	//and the row background, section background
-	it( 'Divi section that is in view should have optml-bg-lazyloaded', function () {
-		cy.get( '.entry-content' ).find( '.et_pb_with_background' ).eq( 0 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
-	} );
 	it( 'Divi row that is in view should have optml-bg-lazyloaded', function () {
 		cy.get( '.entry-content' ).find( '.et_pb_row_0' ).eq( 0 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
 	} );
