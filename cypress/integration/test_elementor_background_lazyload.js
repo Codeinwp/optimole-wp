@@ -24,9 +24,4 @@ describe( 'Check Elementor Background Page', function () {
 
 		cy.get( '.elementor-inner' ).find( '.elementor-widget-container' ).eq( 3 ).should( 'have.attr', 'class' ).and( 'include', 'optml-bg-lazyloaded' );
 	} );
-	// need to add div-with-background to page
-	// it( 'Elementor background image should be properly replaced', function () {
-	// 	cy.get('.div-with-background .elementor-column-wrap ').should('have.css', 'background-image').and('include', 'i.optimole.com');
-	// } );
-
 } );
