@@ -65,6 +65,9 @@ final class Optml_Manager {
 		'essential_grid',
 		'yith_quick_view',
 		'cache_enabler',
+		'elementor_builder',
+		'divi_builder',
+		'thrive',
 		'smart_slider_3',
 		'master_slider',
 	);
