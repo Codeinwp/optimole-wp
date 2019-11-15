@@ -35,10 +35,12 @@ class Optml_master_slider extends Optml_compatibility {
 
 		if ( $settings->get( 'lazyload' ) === 'enabled' ) {
 			add_filter(
-				'optml_lazyload_filename_excluded',
-				function ( $array ) {
-					$array['blank.gif'] = true;
-					return $array;
+				'optml_dont_replace_url',
+				function ( $arg, $url ) {
+					if ( strpos( $url, 'blank.gif' ) !== false ) {
+						return true;
+					}
+					return $arg;
 				}
 			);
 		}
