@@ -26,7 +26,9 @@ class Optml_beaver_builder extends Optml_compatibility {
 		add_filter(
 			'optml_lazyload_bg_selectors',
 			function ( $all_watchers ) {
-				$all_watchers = array_merge( $all_watchers, ['.fl-col-content', '.fl-row-bg-photo > .fl-row-content-wrap'] );
+				$all_watchers[] = '.fl-col-content';
+				$all_watchers[] = '.fl-row-bg-photo > .fl-row-content-wrap';
+
 				return $all_watchers;
 			}
 		);

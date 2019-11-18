@@ -26,7 +26,10 @@ class Optml_thrive extends Optml_compatibility {
 		add_filter(
 			'optml_lazyload_bg_selectors',
 			function ( $all_watchers ) {
-				$all_watchers = array_merge( $all_watchers, ['.tve-content-box-background', '.tve-page-section-out', '.thrv_text_element'] );
+				$all_watchers[] = '.tve-content-box-background';
+				$all_watchers[] = '.tve-page-section-out';
+				$all_watchers[] = '.thrv_text_element';
+
 				return $all_watchers;
 			}
 		);
