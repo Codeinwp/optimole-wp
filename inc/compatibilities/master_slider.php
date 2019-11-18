@@ -27,7 +27,7 @@ class Optml_master_slider extends Optml_compatibility {
 		add_filter(
 			'optml_lazyload_bg_selectors',
 			function ( $all_watchers ) {
-				$all_watchers = array_merge( $all_watchers, ['.master-slider'] );
+				$all_watchers[] = '.master-slider';
 				return $all_watchers;
 			}
 		);

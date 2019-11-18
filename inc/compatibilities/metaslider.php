@@ -30,7 +30,8 @@ class Optml_metaslider extends Optml_compatibility {
 		add_filter(
 			'optml_lazyload_bg_selectors',
 			function ( $all_watchers ) {
-				$all_watchers = array_merge( $all_watchers, ['.coin-slider > .coin-slider > a', '.coin-slider > .coin-slider'] );
+				$all_watchers[] = '.coin-slider > .coin-slider > a';
+				$all_watchers[] = '.coin-slider > .coin-slider';
 				return $all_watchers;
 			}
 		);

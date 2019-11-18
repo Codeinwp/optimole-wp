@@ -27,7 +27,7 @@ class Optml_smart_slider_3 extends Optml_compatibility {
 		add_filter(
 			'optml_lazyload_bg_selectors',
 			function ( $all_watchers ) {
-				$all_watchers = array_merge( $all_watchers, ['.n2-ss-slide-background-image'] );
+				$all_watchers[] = '.n2-ss-slide-background-image';
 				return $all_watchers;
 			}
 		);
