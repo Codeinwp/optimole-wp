@@ -90,6 +90,18 @@ class Optml_Resize extends Optml_Property_Type {
 	 * @var string Resize type string.
 	 */
 	private $resize_type = '';
+	/**
+	 * Should enlarge.
+	 *
+	 * @var string Enlarge flag
+	 */
+	private $enlarge = false;
+	/**
+	 * Global default enlarge.
+	 *
+	 * @var string Enlarge flag
+	 */
+	public static $default_enlarge = false;
 
 	/**
 	 * Gravity type.
@@ -112,6 +124,7 @@ class Optml_Resize extends Optml_Property_Type {
 	 */
 	public function set( $value ) {
 		$this->resize_type = isset( $value['type'] ) ? $value['type'] : '';
+		$this->enlarge     = isset( $value['enlarge'] ) ? $value['enlarge'] : self::$default_enlarge;
 		$this->gravity     = isset( $value['gravity'] ) ? is_array( $value['gravity'] ) ? self::GRAVITY_FOCUS_POINT : $value['gravity'] : '';
 		if ( $this->gravity === self::GRAVITY_FOCUS_POINT ) {
 			$this->focus_point_x = $value['gravity'][0];
@@ -139,6 +152,7 @@ class Optml_Resize extends Optml_Property_Type {
 		return [
 			'type'    => $this->resize_type,
 			'gravity' => $this->gravity,
+			'enlarge' => $this->enlarge,
 		];
 	}
 
@@ -152,6 +166,10 @@ class Optml_Resize extends Optml_Property_Type {
 		$resize = sprintf( 'rt:%s', $this->resize_type );
 
 		$resize .= sprintf( '/g:%s', $this->gravity );
+
+		if ( $this->enlarge ) {
+			$resize .= '/el:1';
+		}
 
 		if ( $this->gravity === self::GRAVITY_FOCUS_POINT ) {
 			$resize .= sprintf( ':%s:%s', $this->focus_point_x, $this->focus_point_y );
