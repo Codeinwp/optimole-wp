@@ -68,7 +68,10 @@ final class Optml_Manager {
 		'elementor_builder',
 		'divi_builder',
 		'thrive',
+		'smart_slider_3',
+		'master_slider',
 	);
+
 	/**
 	 * Class instance method.
 	 *
