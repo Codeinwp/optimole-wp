@@ -14,7 +14,10 @@ class Optml_divi_builder extends Optml_compatibility {
 	 * @return bool Should we load.
 	 */
 	function should_load() {
-		return strcmp( wp_get_theme(), 'Divi' ) === 0;
+		return (
+			strcmp( wp_get_theme(), 'Divi' ) === 0 ||
+			is_plugin_active( 'divi-builder/divi-builder.php' )
+		);
 	}
 
 	/**
