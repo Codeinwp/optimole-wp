@@ -31,6 +31,17 @@ class Optml_master_slider extends Optml_compatibility {
 				return $all_watchers;
 			}
 		);
+		add_filter(
+			'optml_dont_replace_url',
+			function ( $old, $url = null ) {
+				if ( strpos( $url, 'blank.gif' ) !== false ) {
+					return true;
+				}
+					return $old;
+			},
+			10,
+			2
+		);
 
 	}
 }
