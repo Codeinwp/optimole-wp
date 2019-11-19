@@ -33,11 +33,11 @@ class Optml_master_slider extends Optml_compatibility {
 		);
 		add_filter(
 			'optml_dont_replace_url',
-			function ( $arg, $url = null ) {
+			function ( $old, $url = null ) {
 				if ( strpos( $url, 'blank.gif' ) !== false ) {
 					return true;
 				}
-					return $arg;
+					return $old;
 			},
 			10,
 			2
