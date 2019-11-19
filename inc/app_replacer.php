@@ -162,6 +162,9 @@ abstract class Optml_App_Replacer {
 		}
 
 		foreach ( self::image_sizes() as $size_data ) {
+			if ( isset( self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] ) && isset( $size_data['enlarge'] ) ) {
+				continue;
+			}
 			self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] =
 				isset( $size_data['enlarge'] ) ? [
 					'crop'    => $size_data['crop'],
