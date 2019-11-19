@@ -115,15 +115,23 @@ trait Optml_Normalizer {
 	 * @return array
 	 */
 	public function to_optml_crop( $crop_args = array() ) {
+
+		$enlarge = false;
+		if ( isset( $crop_args['enlarge'] ) ) {
+			$crop_args = $crop_args['crop'];
+			$enlarge = $crop_args['enlarge'];
+		}
 		if ( $crop_args === true ) {
 			return array(
 				'type'    => Optml_Resize::RESIZE_FILL,
+				'enlarge' => $enlarge,
 				'gravity' => Optml_Resize::GRAVITY_CENTER,
 			);
 		}
 		if ( $crop_args === false || ! is_array( $crop_args ) || count( $crop_args ) != 2 ) {
 			return array();
 		}
+
 		$allowed_x         = [
 			'left'   => true,
 			'center' => true,
@@ -161,6 +169,7 @@ trait Optml_Normalizer {
 
 		return array(
 			'type'    => Optml_Resize::RESIZE_FILL,
+			'enlarge' => $enlarge,
 			'gravity' => $gravity,
 		);
 	}
