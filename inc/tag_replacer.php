@@ -62,7 +62,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	public function contains_banned_lazyload_class( $image_tag ) {
 		foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] as $rule_flag => $status ) {
 			if ( strpos( $image_tag, $rule_flag ) !== false ) {
-				return false;
+				return true;
 			}
 		}
 		return false;
