@@ -23,6 +23,15 @@ class Optml_beaver_builder extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
+		add_filter(
+			'optml_lazyload_bg_selectors',
+			function ( $all_watchers ) {
+				$all_watchers[] = '.fl-col-content';
+				$all_watchers[] = '.fl-row-bg-photo > .fl-row-content-wrap';
+
+				return $all_watchers;
+			}
+		);
 		add_filter( 'fl_builder_render_css', [ Optml_Main::instance()->manager, 'replace_content' ], PHP_INT_MAX, 1 );
 	}
 

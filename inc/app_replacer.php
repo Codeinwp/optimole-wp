@@ -75,7 +75,12 @@ abstract class Optml_App_Replacer {
 	 * @var array Domains.
 	 */
 	protected $possible_sources = array();
-
+	/**
+	 * Possible custom sizes definitions.
+	 *
+	 * @var array Custom sizes definitions.
+	 */
+	private static $custom_size_buffer = array();
 	/**
 	 * Whitelisted domains sources to optimize from, according to optimole service.
 	 *
@@ -157,12 +162,38 @@ abstract class Optml_App_Replacer {
 		}
 
 		foreach ( self::image_sizes() as $size_data ) {
-			self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] = $size_data['crop'];
+			if ( isset( self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] ) && isset( $size_data['enlarge'] ) ) {
+				continue;
+			}
+			self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] =
+				isset( $size_data['enlarge'] ) ? [
+					'crop'    => $size_data['crop'],
+					'enlarge' => true,
+				] : $size_data['crop'];
 		}
 
 		return self::$size_to_crop;
 	}
 
+	/**
+	 * Set possible custom size.
+	 *
+	 * @param null $width Width value.
+	 * @param null $height Height Value.
+	 * @param null $crop Croping.
+	 */
+	public static function add_size( $width = null, $height = null, $crop = null ) {
+		if ( empty( $width ) || empty( $height ) ) {
+			return;
+		}
+		self::$custom_size_buffer[ 'cmole' . $width . $height ] = [
+			'width'   => (int) $width,
+			'height'  => (int) $height,
+			'enlarge' => true,
+			'crop'    => $crop,
+		];
+
+	}
 
 	/**
 	 * Returns the array of image sizes since `get_intermediate_image_sizes` and image metadata  doesn't include the
@@ -212,6 +243,8 @@ abstract class Optml_App_Replacer {
 		} else {
 			self::$image_sizes = $images;
 		}
+
+		self::$image_sizes = array_merge( self::$image_sizes, self::$custom_size_buffer );
 		self::$image_sizes = array_map(
 			function ( $value ) {
 				$value['crop'] = isset( $value['crop'] ) ?
@@ -291,7 +324,30 @@ abstract class Optml_App_Replacer {
 		$this->max_width  = $this->settings->get( 'max_width' );
 
 		add_filter( 'optml_strip_image_size_from_url', [ $this, 'strip_image_size_from_url' ], 10, 1 );
+		add_filter(
+			'image_resize_dimensions',
+			[ __CLASS__, 'listen_to_sizes' ],
+			999999,
+			6
+		);
+	}
 
+	/**
+	 * List to resizes and save the crop for later re-use.
+	 *
+	 * @param null  $value Original resize.
+	 * @param int   $orig_w Original W.
+	 * @param int   $orig_h Original H.
+	 * @param int   $dest_w Output W.
+	 * @param int   $dest_h Output H.
+	 * @param mixed $crop Cropping behaviour.
+	 *
+	 * @return mixed Original value.
+	 */
+	static function listen_to_sizes( $value, $orig_w, $orig_h, $dest_w, $dest_h, $crop ) {
+		self::add_size( $dest_w, $dest_h, $crop );
+
+		return $value;
 	}
 
 	/**

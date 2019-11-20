@@ -89,7 +89,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		Optml_Quality::$default_quality = $this->to_accepted_quality( $this->settings->get_quality() );
 		Optml_Image::$watermark         = new Optml_Watermark( $this->settings->get_site_settings()['watermark'] );
-
+		Optml_Resize::$default_enlarge  = apply_filters( 'optml_always_enlarge', false );
 		add_filter( 'optml_content_url', array( $this, 'build_image_url' ), 1, 2 );
 
 	}
@@ -153,7 +153,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( $new_url !== $url ) {
 			if ( ! isset( $args['quality'] ) || $args['quality'] !== 'eco' ) {
 				list( $args['width'], $args['height'], $crop ) = $this->parse_dimensions_from_filename( $url );
-
+				if ( ! $crop ) {
+					$sizes2crop = self::size_to_crop();
+					$crop       = isset( $sizes2crop[ $args['width'] . $args['height'] ] ) ? $sizes2crop[ $args['width'] . $args['height'] ] : false;
+				}
 				if ( $crop ) {
 					$args['resize'] = $this->to_optml_crop( $crop );
 				}

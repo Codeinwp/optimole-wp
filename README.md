@@ -2,7 +2,7 @@
 **Contributors:** [optimole](https://profiles.wordpress.org/optimole)  
 **Tags:** image optimization, convert webp, responsive images, lazy load, images, optimization, performance, photos  
 **Requires at least:** 4.7  
-**Tested up to:** 5.2  
+**Tested up to:** 5.3  
 **Requires PHP:** 5.4  
 **License:** GPLv3  
 **License URI:** https://www.gnu.org/licenses/gpl-3.0.en.html  
@@ -88,6 +88,17 @@ Premium users will be able to optimize images for more than 25k monthly active u
 4. Plugin settings
 
 ## Changelog ##
+
+#### [Version 2.2.5](https://github.com/Codeinwp/optimole-wp/compare/v2.2.4...v2.2.5) (2019-11-18)
+
+* **Bug Fixes**
+   * inherit custom sizes desired cropping, adds enlarge compatibility ([84f7056](https://github.com/Codeinwp/optimole-wp/commit/84f7056))
+
+* **Features**
+   * adds compatibility with multiple slider plugins ([d78fd1b](https://github.com/Codeinwp/optimole-wp/commit/d78fd1b))
+   * improve compatibility with various page builders: Divi, Thrive, Elementor, Beaver ([a4391b4](https://github.com/Codeinwp/optimole-wp/commit/a4391b4))
+
+
 
 #### [Version 2.2.4](https://github.com/Codeinwp/optimole-wp/compare/v2.2.3...v2.2.4) (2019-11-05)
 
