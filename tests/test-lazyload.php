@@ -244,6 +244,22 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertEquals( 4, substr_count( $replaced_content, 'i.optimole.com' ) );
 	}
 
+	public function test_check_lazy_load_after_no_script() {
+		$content = '<noscript><img height="1" width="1" style="display:none" alt="fbpx" src="https://www.facebook.com/tr?id=dasda&ev=PageView&noscript=1" /></noscript>
+			<a href="/project/test-one"><span class="et_pb_image_wrap"><img src="http://example.org/wp-content/uploads/2018/11/gradient.png" alt="" /></span></a>
+			<a href="/project/test-two"><span class="et_pb_image_wrap"><img src="http://example.org/wp-content/uploads/2018/11/gradient.png" alt="" /></span></a>
+			<a href="/project/test-three"><span class="et_pb_image_wrap"><img src="http://example.org/wp-content/uploads/2018/11/gradient.png" alt="" /></span></a>
+		';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+
+		$this->assertContains( '<noscript>', $replaced_content );
+		$this->assertEquals( 4, substr_count( $replaced_content, '<noscript>' ) );
+		$this->assertEquals( 9, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 3, substr_count( $replaced_content, 'data-opt-src' ) );
+		$this->assertEquals( 3, substr_count( $replaced_content, '/q:eco/' ) );
+		$this->assertEquals( 6, substr_count( $replaced_content, '/q:auto/' ) );
+	}
 
 	public function test_replacement_with_data_attr() {
 		$content = '<div class="before-footer">
