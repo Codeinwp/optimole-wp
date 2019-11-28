@@ -443,8 +443,9 @@ final class Optml_Manager {
 					unset( $images[ $key ] );
 					continue;
 				}
-				$is_no_script = false;
+
 				foreach ( $unused as $url_key => $url_value ) {
+					$is_no_script = false;
 					if ( $key === 'img_url' ) {
 						$images[ $key ][ $url_key ] = rtrim( $url_value[0], '\\' );
 						continue;
