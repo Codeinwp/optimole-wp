@@ -22,21 +22,25 @@ class Optml_revslider extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		$settings = new Optml_Settings();
-		if ( $settings->get( 'lazyload' ) === 'enabled' ) {
-			add_filter(
-				'optml_lazyload_class_excluded',
-				function ( $array ) {
-					$array['rev-slidebg'] = true;
-					return $array;
-				}
-			);
-		}
 
+		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_lazyflag' ], 10, 2 );
 		add_filter( 'optml_ignore_data_opt_flag', [$this, 'add_data_ignore'], 10, 3 );
 		add_filter( 'optml_lazyload_bg_classes', [$this, 'add_bg_class'], 10, 1 );
 	}
 
+	/**
+	 * Add Slider Revolution lazyload flag.
+	 *
+	 * @param array $strings Old strings.
+	 *
+	 * @return array New flags.
+	 */
+	function add_lazyflag( $strings = array() ) {
+
+		$strings[] = 'rev-slidebg';
+
+		return $strings;
+	}
 
 	/**
 	 * Add classes for lazyload on background.

@@ -61,8 +61,9 @@ class Test_Lazyload_Class_Exclusion extends WP_UnitTestCase
 						<img class="whatever_code_test" src="http://example.org/img.jpg" alt=""/>;          
 					</div>';
 		$replaced_content = Optml_Manager::instance()->process_images_from_content($content);
-		$this->assertEquals( 6, substr_count( $replaced_content, 'i.optimole.com' ) );
-		$this->assertEquals( 2, substr_count( $replaced_content, 'data-opt-src' ) );
-		$this->assertEquals( 2, substr_count( $replaced_content, '<noscript>' ) );
+
+		$this->assertEquals( 4, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
+		$this->assertEquals( 1, substr_count( $replaced_content, '<noscript>' ) );
 	}
 }
