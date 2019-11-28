@@ -619,7 +619,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exclude_ext_desc'                  => __( 'Image extension is', 'optimole-wp' ),
 				'watch_title_lazyload'              => __( 'Lazyload background images for selectors:', 'optimole-wp' ),
 				'watch_desc_lazyload'               => __( 'You can add each CSS selector on a new line or separated by comma(,).', 'optimole-wp' ),
-				'exclude_class_desc'                => __( 'Image containes class', 'optimole-wp' ),
+				'exclude_class_desc'                => __( 'Image tag contains class', 'optimole-wp' ),
 				'hide'                              => __( 'Hide', 'optimole-wp' ),
 				'high_q_title'                      => __( 'High', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),
