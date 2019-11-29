@@ -94,7 +94,7 @@ class Optml_Admin {
 					(function(w, d){ 
 						var b = d.getElementsByTagName("head")[0];
 						var s = d.createElement("script");
-						var v = ("IntersectionObserver" in w) ? "_no_poly" : "";
+						var v = ("IntersectionObserver" in w && "isIntersecting" in w) ? "_no_poly" : "";
 						s.async = true;  
 						s.src = "%s/v2/latest/optimole_lib" + v  + "%s.js"; 
 						b.appendChild(s);
