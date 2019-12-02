@@ -53,7 +53,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		add_filter( 'wp_calculate_image_sizes', array( $this, 'filter_sizes_attr' ), 1, 2 );
 
 	}
-
 	/**
 	 * Called by hook to replace image tags in content.
 	 *
@@ -137,7 +136,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		$image_sizes = self::image_sizes();
 		$sizes2crop  = self::size_to_crop();
-
 		foreach ( $images[0] as $index => $tag ) {
 			$width     = $height = false;
 			$crop = null;
@@ -221,7 +219,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$image_tag
 			);
 
-			// If the image is in header, we need to do the regular replace.
+			// If the image is in header or has a class excluded from lazyload, we need to do the regular replace.
 			if ( $images['in_header'][ $index ] ) {
 				$image_tag = $this->regular_tag_replace( $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
 			} else {

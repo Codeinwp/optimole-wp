@@ -94,7 +94,7 @@ class Optml_Admin {
 					(function(w, d){ 
 						var b = d.getElementsByTagName("head")[0];
 						var s = d.createElement("script");
-						var v = ("IntersectionObserver" in w) ? "_no_poly" : "";
+						var v = ("IntersectionObserver" in w && "isIntersecting" in w.IntersectionObserverEntry.prototype) ? "_no_poly" : "";
 						s.async = true;  
 						s.src = "%s/v2/latest/optimole_lib" + v  + "%s.js"; 
 						b.appendChild(s);
@@ -611,6 +611,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'filter_filename'                   => __( 'Image filename', 'optimole-wp' ),
 				'filter_url'                        => __( 'Page URL', 'optimole-wp' ),
 				'filter_ext'                        => __( 'Image extension', 'optimole-wp' ),
+				'filter_class'                      => __( 'Image class', 'optimole-wp' ),
 				'exclude_title_optimize'            => __( 'Don\'t optimize images if', 'optimole-wp' ),
 				'exclude_title_lazyload'            => __( 'Don\'t lazyload images if', 'optimole-wp' ),
 				'exclude_filename_desc'             => __( 'Image filename contains', 'optimole-wp' ),
@@ -618,6 +619,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exclude_ext_desc'                  => __( 'Image extension is', 'optimole-wp' ),
 				'watch_title_lazyload'              => __( 'Lazyload background images for selectors:', 'optimole-wp' ),
 				'watch_desc_lazyload'               => __( 'You can add each CSS selector on a new line or separated by comma(,).', 'optimole-wp' ),
+				'exclude_class_desc'                => __( 'Image tag contains class', 'optimole-wp' ),
 				'hide'                              => __( 'Hide', 'optimole-wp' ),
 				'high_q_title'                      => __( 'High', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),

@@ -435,7 +435,7 @@ final class Optml_Manager {
 			$header_end   = $header_start + strlen( $matches[0][0] );
 		}
 
-		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s+?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>){1}(?:<\/noscript\s*>)?(?:\s*<\/a>)?/ism', $content, $images, PREG_OFFSET_CAPTURE ) ) {
+		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s+?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>(?:<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ism', $content, $images, PREG_OFFSET_CAPTURE ) ) {
 
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.
@@ -443,6 +443,7 @@ final class Optml_Manager {
 					unset( $images[ $key ] );
 					continue;
 				}
+
 				$is_no_script = false;
 				foreach ( $unused as $url_key => $url_value ) {
 					if ( $key === 'img_url' ) {

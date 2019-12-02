@@ -162,7 +162,7 @@ abstract class Optml_App_Replacer {
 		}
 
 		foreach ( self::image_sizes() as $size_data ) {
-			if ( isset( self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] ) ) {
+			if ( isset( self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] ) && isset( $size_data['enlarge'] ) ) {
 				continue;
 			}
 			self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] =
@@ -269,7 +269,17 @@ abstract class Optml_App_Replacer {
 		$this->set_properties();
 
 		self::$filters = $this->settings->get_filters();
-
+		add_filter(
+			'optml_possible_lazyload_flags',
+			function( $strings = array() ) {
+				foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] as $rule_flag => $status ) {
+					$strings[] = $rule_flag;
+				}
+				return $strings;
+			},
+			10,
+			2
+		);
 	}
 
 
