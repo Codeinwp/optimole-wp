@@ -245,7 +245,11 @@ class Test_Lazyload extends WP_UnitTestCase {
 	}
 
 	public function test_check_lazy_load_after_no_script() {
-		$content = '<noscript><img height="1" width="1" style="display:none" alt="fbpx" src="https://www.facebook.com/tr?id=dasda&ev=PageView&noscript=1" /></noscript>
+		$content = '
+<noscript>
+<img height="1" width="1" style="display:none" alt="fbpx"
+src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
+</noscript>
 			<a href="/project/test-one"><span class="et_pb_image_wrap"><img src="http://example.org/wp-content/uploads/2018/11/gradient.png" alt="" /></span></a>
 			<a href="/project/test-two"><span class="et_pb_image_wrap"><img src="http://example.org/wp-content/uploads/2018/11/gradient.png" alt="" /></span></a>
 			<a href="/project/test-three"><span class="et_pb_image_wrap"><img src="http://example.org/wp-content/uploads/2018/11/gradient.png" alt="" /></span></a>
