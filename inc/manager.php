@@ -336,9 +336,18 @@ final class Optml_Manager {
 		$urls = array_combine( $extracted_urls, $extracted_urls );
 		$urls = array_map(
 			function ( $url ) {
+				$is_relative = strpos( $url, '//' ) === 0;
+				if ( $is_relative ) {
+					$url = substr( $url, strpos( $url, '//' ) );
+				}
+
 				$is_slashed = strpos( $url, '\/' ) !== false;
 				$url        = html_entity_decode( $url );
 				$new_url    = apply_filters( 'optml_content_url', $url );
+
+				if ( $is_relative ) {
+					$new_url = substr( $new_url, strpos( $new_url, '//' ) );
+				}
 
 				return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 			},
@@ -346,7 +355,7 @@ final class Optml_Manager {
 		);
 
 		foreach ( $urls as $origin => $replace ) {
-			$html = preg_replace( '/(?<!\/)' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
+			$html = preg_replace( '/(?<![\/|:])' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
 		}
 
 		return $html;
@@ -495,7 +504,7 @@ final class Optml_Manager {
 	 * @return array
 	 */
 	public function extract_image_urls_from_content( $content ) {
-		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*(?:[' . Optml_Config::$chars . '])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\?{1}[\w|=|&|\-|\.|:|;]*)?/';
+		$regex = '/(?:http(?:s?):)?(?:[\/\\\\|.|\w|-])*(?:[' . Optml_Config::$chars . '])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:[\?|%3F]{1}[\w|=|&|\-|\.|:|;|%]*)?/';
 		preg_match_all(
 			$regex,
 			$content,
