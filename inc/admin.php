@@ -60,10 +60,7 @@ class Optml_Admin {
 	 * Adds script for lazyload/js replacement.
 	 */
 	public function inline_bootstrap_script() {
-		$blur = 'filter: blur(5px);';
-		if ( strpos( $_SERVER['HTTP_USER_AGENT'], 'Mac OS' ) !== false && strpos( $_SERVER['HTTP_USER_AGENT'], 'Safari' ) !== false ) {
-			$blur = '';
-		}
+
 		$domain = 'https://' . OPTML_JS_CDN;
 
 		$min                   = ! OPTML_DEBUG ? '.min' : '';
@@ -89,7 +86,6 @@ class Optml_Admin {
 			}
 			img[data-opt-src]:not([data-opt-lazy-loaded]) {
 				opacity: .75;
-				%s
 			}
 		
 		</style>
@@ -116,7 +112,6 @@ class Optml_Admin {
 					
 					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
 		</script>',
-			$blur,
 			esc_url( $domain ),
 			$min,
 			$bgclasses,
