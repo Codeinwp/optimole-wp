@@ -26,6 +26,7 @@ class Optml_Divi extends Optml_abstract_conflict {
 		$this->message = sprintf( __( 'It seems your are using %1$sDivi%2$s right now. %3$s In order for Optimole to replace the images in your Divi pages, you will need to go to %4$sDivi -> Theme Options -> Builder -> Advanced -> Static CSS File Generations%5$s and click on Clear for the images to be processed. ', 'optimole-wp' ), '<b>', '</b>', '<br/>', '<a target="_blank" href="' . admin_url( 'admin.php?page=et_divi_options' ) . '">', '</a>' );
 	}
 
+
 	/**
 	 * Determine if conflict is applicable.
 	 *
@@ -35,8 +36,11 @@ class Optml_Divi extends Optml_abstract_conflict {
 	 */
 	public function is_conflict_valid() {
 
-		if ( ! ( strcmp( wp_get_theme(), 'Divi' ) === 0 ||
-			is_plugin_active( 'divi-builder/divi-builder.php' ) ) ) {
+		if ( ! strcmp( wp_get_theme(), 'Divi' ) === 0 ) {
+			return false;
+		}
+
+		if ( 'off' === et_get_option( 'et_pb_static_css_file', 'on' ) ) {
 			return false;
 		}
 
