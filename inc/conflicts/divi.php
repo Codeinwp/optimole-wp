@@ -35,7 +35,8 @@ class Optml_Divi extends Optml_abstract_conflict {
 	 */
 	public function is_conflict_valid() {
 
-		if ( ! is_plugin_active( 'divi-builder/divi-builder.php' ) ) {
+		if ( ! ( strcmp( wp_get_theme(), 'Divi' ) === 0 ||
+			is_plugin_active( 'divi-builder/divi-builder.php' ) ) ) {
 			return false;
 		}
 
