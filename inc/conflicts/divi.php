@@ -36,10 +36,13 @@ class Optml_Divi extends Optml_abstract_conflict {
 	 */
 	public function is_conflict_valid() {
 
-		if ( ! strcmp( wp_get_theme(), 'Divi' ) === 0 ) {
+		if ( ! ( strcmp( wp_get_theme(), 'Divi' ) === 0 ||
+			is_plugin_active( 'divi-builder/divi-builder.php' ) ) ) {
 			return false;
 		}
-
+		if ( ! function_exists( 'et_get_option' ) ) {
+			return false;
+		}
 		if ( 'off' === et_get_option( 'et_pb_static_css_file', 'on' ) ) {
 			return false;
 		}
