@@ -319,6 +319,25 @@ final class Optml_Manager {
 	}
 
 	/**
+	 * Method to check haystack with needles array
+	 *
+	 * @param string $haystack The haystack.
+	 * @param array  $needles The needles array.
+	 *
+	 * @return false|int
+	 */
+	private function substr_in_array( $haystack, array $needles ) {
+		foreach ( $needles as $needle ) {
+			$pos = strpos( $haystack, $needle );
+			if ( false !== $pos ) {
+				return $pos;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Process string content and replace possible urls.
 	 *
 	 * @param string $html String content.
@@ -336,16 +355,21 @@ final class Optml_Manager {
 		$urls = array_combine( $extracted_urls, $extracted_urls );
 		$urls = array_map(
 			function ( $url ) {
-				$is_relative = strpos( $url, '//' ) === 0;
-				if ( $is_relative ) {
+				$is_schemaless = strpos( $url, '//' ) === 0;
+				if ( $is_schemaless ) {
 					$url = substr( $url, strpos( $url, '//' ) );
+				}
+
+				$is_relative = $this->substr_in_array( $url, [ '/wp-content', '/wp-includes' ] ) === 0;
+				if ( $is_relative ) {
+					$url = get_site_url() . $url;
 				}
 
 				$is_slashed = strpos( $url, '\/' ) !== false;
 				$url        = html_entity_decode( $url );
 				$new_url    = apply_filters( 'optml_content_url', $url );
 
-				if ( $is_relative ) {
+				if ( $is_schemaless ) {
 					$new_url = substr( $new_url, strpos( $new_url, '//' ) );
 				}
 
@@ -354,8 +378,13 @@ final class Optml_Manager {
 			$urls
 		);
 
+		$settings = new Optml_Settings();
+		$service_data = $settings->get( 'service_data' );
+		$possible_domains = implode( ',', $service_data['whitelist'] );
+		$possible_domains = preg_quote( $possible_domains, '/' );
+		$possible_domains = str_replace( ',', '|', $possible_domains );
 		foreach ( $urls as $origin => $replace ) {
-			$html = preg_replace( '/(?<![\/|:])' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
+			$html = preg_replace( '/(?<![\/|:|' . $possible_domains . '])' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
 		}
 
 		return $html;
