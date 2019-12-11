@@ -38,7 +38,7 @@ class Optml_Divi extends Optml_abstract_conflict {
 		$show_message = false;
 		$theme = wp_get_theme( 'Divi' );
 		if ( $theme->exists() ) {
-			if ( strcmp( $theme, 'Divi' ) === 0 ) {
+			if ( strcmp( $theme->get( 'Name' ), 'Divi' ) === 0 ) {
 				$show_message = true;
 			}
 		}
