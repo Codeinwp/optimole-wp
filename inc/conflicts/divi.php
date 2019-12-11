@@ -37,19 +37,17 @@ class Optml_Divi extends Optml_abstract_conflict {
 	public function is_conflict_valid() {
 		$show_message = false;
 		$theme = wp_get_theme( 'Divi' );
-		if ( $theme->exists() ) {
-			if ( strcmp( $theme->get( 'Name' ), 'Divi' ) === 0 ) {
+		if ( $theme->exists() && strcmp( $theme->get( 'Name' ), 'Divi' ) === 0 ) {
 				$show_message = true;
-			}
 		}
+
 		if ( is_plugin_active( 'divi-builder/divi-builder.php' ) ) {
 			$show_message = true;
 		}
-		if ( get_template_directory() !== get_stylesheet_directory() ) {
-			if ( strcmp( wp_get_theme( get_template() )->get( 'Author' ), 'Divi' ) === 0 ) {
+		if ( get_template_directory() !== get_stylesheet_directory() && strcmp( wp_get_theme( get_template() )->get( 'Author' ), 'Divi' ) === 0 ) {
 				$show_message = true;
-			}
 		}
+
 		if ( ! function_exists( 'et_get_option' ) ) {
 			return false;
 		}
