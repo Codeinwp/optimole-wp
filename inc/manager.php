@@ -319,25 +319,6 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Method to check haystack with needles array
-	 *
-	 * @param string $haystack The haystack.
-	 * @param array  $needles The needles array.
-	 *
-	 * @return false|int
-	 */
-	private function substr_in_array( $haystack, array $needles ) {
-		foreach ( $needles as $needle ) {
-			$pos = strpos( $haystack, $needle );
-			if ( false !== $pos ) {
-				return $pos;
-			}
-		}
-
-		return false;
-	}
-
-	/**
 	 * Process string content and replace possible urls.
 	 *
 	 * @param string $html String content.
@@ -361,9 +342,9 @@ final class Optml_Manager {
 					$url = substr( $url, strpos( $url, '//' ) );
 				}
 
-				$is_relative = $this->substr_in_array( $url, [ $upload_resource['content_path'] ] ) === 0;
+				$is_relative = strpos( $url, $upload_resource['content_path'] ) === 0;
 				if ( $is_relative ) {
-					$url = get_site_url() . $url;
+					$url = $upload_resource['content_host'] . $url;
 				}
 
 				$is_slashed = strpos( $url, '\/' ) !== false;
@@ -371,7 +352,7 @@ final class Optml_Manager {
 				$new_url    = apply_filters( 'optml_content_url', $url );
 
 				if ( $is_schemaless ) {
-					$new_url = substr( $new_url, strpos( $new_url, '//' ) );
+					$url = '//' . $url;
 				}
 
 				return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
