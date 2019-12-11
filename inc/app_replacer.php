@@ -343,6 +343,15 @@ abstract class Optml_App_Replacer {
 	}
 
 	/**
+	 * Method to expose upload resource property.
+	 *
+	 * @return null
+	 */
+	public function get_upload_resource() {
+		return $this->upload_resource;
+	}
+
+	/**
 	 * List to resizes and save the crop for later re-use.
 	 *
 	 * @param null  $value Original resize.

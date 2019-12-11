@@ -352,15 +352,16 @@ final class Optml_Manager {
 			return $html;
 		}
 
+		$upload_resource = $this->tag_replacer->get_upload_resource();
 		$urls = array_combine( $extracted_urls, $extracted_urls );
 		$urls = array_map(
-			function ( $url ) {
+			function ( $url ) use ( $upload_resource ) {
 				$is_schemaless = strpos( $url, '//' ) === 0;
 				if ( $is_schemaless ) {
 					$url = substr( $url, strpos( $url, '//' ) );
 				}
 
-				$is_relative = $this->substr_in_array( $url, [ '/wp-content', '/wp-includes' ] ) === 0;
+				$is_relative = $this->substr_in_array( $url, [ $upload_resource['content_path'] ] ) === 0;
 				if ( $is_relative ) {
 					$url = get_site_url() . $url;
 				}
@@ -378,13 +379,8 @@ final class Optml_Manager {
 			$urls
 		);
 
-		$settings = new Optml_Settings();
-		$service_data = $settings->get( 'service_data' );
-		$possible_domains = implode( ',', $service_data['whitelist'] );
-		$possible_domains = preg_quote( $possible_domains, '/' );
-		$possible_domains = str_replace( ',', '|', $possible_domains );
 		foreach ( $urls as $origin => $replace ) {
-			$html = preg_replace( '/(?<![\/|:|' . $possible_domains . '])' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
+			$html = preg_replace( '/(?<![\/|:|\\w])' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
 		}
 
 		return $html;
