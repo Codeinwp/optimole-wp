@@ -104,7 +104,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( 'i0.wp.com', $replaced_content );
+		$this->assertContains( 'i0.wp.com', $replaced_content );
 	}
 
 	public function test_lazyload_only_gif() {

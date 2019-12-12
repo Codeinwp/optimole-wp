@@ -334,8 +334,8 @@ final class Optml_Manager {
 		}
 
 		$upload_resource = $this->tag_replacer->get_upload_resource();
-		$urls = array_combine( $extracted_urls, $extracted_urls );
-		$urls = array_map(
+		$urls            = array_combine( $extracted_urls, $extracted_urls );
+		$urls            = array_map(
 			function ( $url ) use ( $upload_resource ) {
 				$is_relative = strpos( $url, $upload_resource['content_path'] ) === 0;
 				if ( $is_relative ) {
@@ -501,14 +501,14 @@ final class Optml_Manager {
 	 * @return array
 	 */
 	public function extract_image_urls_from_content( $content ) {
-		$regex = '/(?:http(?:s?):)?(?:[\/\\\\|.|\w|-])*(?:[' . Optml_Config::$chars . '])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\?{1}[\w|=|&|\-|\.|:|;]*)?/';
+		$regex = '/(?:[(|\s\';",])((?:http|\/|\\\\){1}(?:[\/:,\\\\.\-\d_' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/U';
 		preg_match_all(
 			$regex,
 			$content,
 			$urls
 		);
 
-		return $this->normalize_urls( $urls[0] );
+		return $this->normalize_urls( $urls[1] );
 	}
 
 	/**

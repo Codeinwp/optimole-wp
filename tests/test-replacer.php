@@ -52,6 +52,15 @@ class Test_Replacer extends WP_UnitTestCase {
 	.body div {
 		background-image:url("/wp-content/themes/test/assets/images/header2-300x300.png");
 	}
+	.body div {
+		background-image:url(/wp-content/themes/test/assets/images/head1er2-300x300.png);
+	}
+	.body{
+		background-image:url(http://example.org/wp-content/themes/test/assets/images/heade2r-300x300.png);
+	}
+	.body div {
+		background-image:url(//example.org/wp-content/themes/test/assets/images/he3ader3-300x300.png);
+	}
 	</style>
 	 ';
 	const WRONG_EXTENSION = '   http://example.org/wp-content/themes/twentyseventeen/assets/images/header.gif   ';
@@ -126,7 +135,6 @@ class Test_Replacer extends WP_UnitTestCase {
 		$html = _wp_specialchars( $html, ENT_QUOTES, 'UTF-8', true );
 		$replaced_content = Optml_Manager::instance()->process_urls_from_content( $html );
 		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
-		$this->assertNotContains('?test=123',$replaced_content );
 
 		$replaced_content = wp_specialchars_decode( $replaced_content, ENT_QUOTES );
 		$replaced_content = json_decode( $replaced_content, true );
@@ -171,7 +179,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'http://example.org', $replaced_content );
-		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 6, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 	}
 
@@ -349,7 +357,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 
 	public function test_max_size_height() {
-		$new_url = Optml_Manager::instance()->replace_content( 'http://example.org/wp-content/themes/test/assets/images/header.png', [
+		$new_url = Optml_Manager::instance()->replace_content( ' http://example.org/wp-content/themes/test/assets/images/header.png ', [
 			'width'  => 99999,
 			'height' => 99999
 		] );
@@ -491,7 +499,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		//Adds possible image size format.
 		$content = str_replace( '.png', '-300x300.png', $old_url );
 
-		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$replaced_content = Optml_Manager::instance()->replace_content( " ". $content. " " );
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertNotContains( '-300x300.png', $replaced_content );
