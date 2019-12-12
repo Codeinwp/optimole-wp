@@ -501,7 +501,7 @@ final class Optml_Manager {
 	 * @return array
 	 */
 	public function extract_image_urls_from_content( $content ) {
-		$regex = '/(?:http(?:s?):)?(?:[\/\\\\|.|\w|-])*(?:[' . Optml_Config::$chars . '])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:[\?|%3F]{1}[\w|=|&|\-|\.|:|;|%]*)?/';
+		$regex = '/(?:http(?:s?):)?(?:[\/\\\\|.|\w|-])*(?:[' . Optml_Config::$chars . '])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\?{1}[\w|=|&|\-|\.|:|;]*)?/';
 		preg_match_all(
 			$regex,
 			$content,

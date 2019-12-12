@@ -21,9 +21,9 @@ class Test_Replacer extends WP_UnitTestCase {
 	const IMG_URLS = '
 	http://example.org/wp-content/themes/test/assets/images/header.png 
 	http://example.org/wp-content/themes/test/assets/images/header.jpeg
-	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png 
-	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png?width=500&cr=small
-	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png%3Fwidth%3D500%26cr%3Dsmall
+	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo1.png 
+	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo2.png?width=500&cr=small
+	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo3.png%3Fwidth%3D500%26cr%3Dsmall
 	http://example.org/wp-content/uploads/2018/05/umlauts_image_äöü.jpg
 	http://example.org/uploads/2018/05/umlauts_image_a\u0308o\u0308u\u0308.jpg
 	//example.org/wp-content/themes/test/assets/images/header2.png 
@@ -162,8 +162,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertContains( 'http://example.org', $replaced_content );
 
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
-		print_r($replaced_content);
-		die();
+
 		$this->assertEquals( 21, substr_count( $replaced_content, 'i.optimole.com' ) );
 	}
 
