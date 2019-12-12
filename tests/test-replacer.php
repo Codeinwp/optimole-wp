@@ -26,20 +26,20 @@ class Test_Replacer extends WP_UnitTestCase {
 	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png%3Fwidth%3D500%26cr%3Dsmall
 	http://example.org/wp-content/uploads/2018/05/umlauts_image_äöü.jpg
 	http://example.org/uploads/2018/05/umlauts_image_a\u0308o\u0308u\u0308.jpg
-	//example.org/wp-content/themes/test/assets/images/header.png 
-	//example.org/wp-content/themes/test/assets/images/header.jpeg
-	//example.org/wp-content/plugins/optimole-wp/assets/img/logo.png 
-	//example.org/wp-content/plugins/optimole-wp/assets/img/logo.png?width=500&cr=small
-	//example.org/wp-content/plugins/optimole-wp/assets/img/logo.png%3Fwidth%3D500%26cr%3Dsmall
-	//example.org/wp-content/uploads/2018/05/umlauts_image_äöü.jpg
-	//example.org/uploads/2018/05/umlauts_image_a\u0308o\u0308u\u0308.jpg
-	/wp-content/themes/test/assets/images/header.png 
-	/wp-content/themes/test/assets/images/header.jpeg
-	/wp-content/plugins/optimole-wp/assets/img/logo.png 
-	/wp-content/plugins/optimole-wp/assets/img/logo.png?width=500&cr=small
-	/wp-content/plugins/optimole-wp/assets/img/logo.png%3Fwidth%3D500%26cr%3Dsmall
-	/wp-content/uploads/2018/05/umlauts_image_äöü.jpg
-	/wp-content/uploads/2018/05/umlauts_image_a\u0308o\u0308u\u0308.jpg
+	//example.org/wp-content/themes/test/assets/images/header2.png 
+	//example.org/wp-content/themes/test/assets/images/header2.jpeg
+	//example.org/wp-content/plugins/optimole-wp/assets/img/logo4.png 
+	//example.org/wp-content/plugins/optimole-wp/assets/img/logo2.png?width=500&cr=small
+	//example.org/wp-content/plugins/optimole-wp/assets/img/logo3.png%3Fwidth%3D500%26cr%3Dsmall
+	//example.org/wp-content/uploads/2018/05/umlauts_im4age_äöü.jpg
+	//example.org/uploads/2018/05/umlauts_5image_a\u0308o\u0308u\u0308.jpg
+	/wp-content/themes/test/assets/images/header4.png 
+	/wp-content/themes/test/assets/images/header7.jpeg
+	/wp-content/plugins/optimole-wp/assets/img/logo9.png 
+	/wp-content/plugins/optimole-wp/assets/img/lo2go.png?width=500&cr=small
+	/wp-content/plugins/optimole-wp/assets/img/log4.png%3Fwidth%3D500%26cr%3Dsmall
+	/wp-content/uploads/2018/05/umlau1ts_image_äöü.jpg
+	/wp-content/uploads/2018/05/umlau1ts_image_a\u0308o\u0308u\u0308.jpg
 	 ';
 	const CSS_STYLE = '
 	<style>
@@ -47,7 +47,10 @@ class Test_Replacer extends WP_UnitTestCase {
 		background-image:url("http://example.org/wp-content/themes/test/assets/images/header-300x300.png");
 	}
 	.body div {
-		background-image:url("//example.org/wp-content/themes/test/assets/images/header-300x300.png");
+		background-image:url("//example.org/wp-content/themes/test/assets/images/header3-300x300.png");
+	}
+	.body div {
+		background-image:url("/wp-content/themes/test/assets/images/header2-300x300.png");
 	}
 	</style>
 	 ';
@@ -55,8 +58,8 @@ class Test_Replacer extends WP_UnitTestCase {
 	const IMAGE_SIZE_DATA = '
 		http://example.org/wp-content/uploads/optimole-wp/assets/img/logo-282x123.png
 		http://example.org/wp-content/plugins/optimole-wp/assets/img/test-282x123.png
-		//example.org/wp-content/uploads/optimole-wp/assets/img/logo-282x123.png
-		//example.org/wp-content/plugins/optimole-wp/assets/img/test-282x123.png
+		//example.org/wp-content/uploads/optimole-wp/assets/img/log2o-282x123.png
+		//example.org/wp-content/plugins/optimole-wp/assets/img/tes3t-282x123.png
 	';
 	const IMAGE_SIZE_NO_CLASS = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header-100x100.png" alt="Test" /></div></div>';
 
@@ -159,7 +162,8 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertContains( 'http://example.org', $replaced_content );
 
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
-
+		print_r($replaced_content);
+		die();
 		$this->assertEquals( 21, substr_count( $replaced_content, 'i.optimole.com' ) );
 	}
 
@@ -168,7 +172,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'http://example.org', $replaced_content );
-		$this->assertEquals( 2, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 	}
 
