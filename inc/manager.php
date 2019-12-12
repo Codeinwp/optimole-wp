@@ -337,11 +337,6 @@ final class Optml_Manager {
 		$urls = array_combine( $extracted_urls, $extracted_urls );
 		$urls = array_map(
 			function ( $url ) use ( $upload_resource ) {
-				$is_schemaless = strpos( $url, '//' ) === 0;
-				if ( $is_schemaless ) {
-					$url = substr( $url, strpos( $url, '//' ) );
-				}
-
 				$is_relative = strpos( $url, $upload_resource['content_path'] ) === 0;
 				if ( $is_relative ) {
 					$url = $upload_resource['content_host'] . $url;
@@ -350,10 +345,6 @@ final class Optml_Manager {
 				$is_slashed = strpos( $url, '\/' ) !== false;
 				$url        = html_entity_decode( $url );
 				$new_url    = apply_filters( 'optml_content_url', $url );
-
-				if ( $is_schemaless ) {
-					$url = '//' . $url;
-				}
 
 				return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 			},
