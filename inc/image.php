@@ -125,8 +125,24 @@ class Optml_Image {
 			$path = sprintf( '/%s%s', $this->get_signature( $path ), $path );
 		}
 
+		$path = sprintf( '/%s%s', $this->get_cache_token(), $path );
+
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 
+	}
+
+	public function get_cache_token() {
+
+		$parts = parse_url( $this->source_url );
+		$domain = isset( $parts['host'] ) ? str_replace( 'www.', '', $parts['host'] ) : '';
+
+		$binary_domain    = hash_hmac( 'sha256', $domain, Optml_Config::$key, true );
+		$binary_domain    = pack( 'A' . 5, $binary_domain );
+
+		$binary_url    = hash_hmac( 'sha256', $this->source_url, Optml_Config::$key, true );
+		$binary_url    = pack( 'A' . 8, $binary_url );
+
+		return rtrim( strtr( base64_encode( $binary_domain ), '+/', '-_' ), '=' ) . '-' . rtrim( strtr( base64_encode( $binary_url ), '+/', '-_' ), '=' );
 	}
 
 	/**
