@@ -131,6 +131,11 @@ class Optml_Image {
 
 	}
 
+	/**
+	 * Generate a unique cache token for url
+	 *
+	 * @return string
+	 */
 	public function get_cache_token() {
 
 		$parts = parse_url( $this->source_url );
