@@ -439,6 +439,9 @@ class Optml_Admin {
 	 * Add the dashboard page.
 	 */
 	public function add_dashboard_page() {
+		if ( defined( 'OPTIOMLE_HIDE_ADMIN_AREA' ) && OPTIOMLE_HIDE_ADMIN_AREA ) {
+			return;
+		}
 		add_media_page( 'Optimole', 'Optimole', 'manage_options', 'optimole', array( $this, 'render_dashboard_page' ) );
 	}
 
