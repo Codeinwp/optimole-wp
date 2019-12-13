@@ -125,29 +125,51 @@ class Optml_Image {
 			$path = sprintf( '/%s%s', $this->get_signature( $path ), $path );
 		}
 
-		$path = sprintf( '/%s%s', $this->get_cache_token(), $path );
+		$path = sprintf( '/%s%s', $this->get_domain_token() . '-' . $this->get_url_token(), $path );
 
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 
 	}
 
 	/**
-	 * Generate a unique cache token for url
+	 * Method to generate tokens and cache them for further requests.
+	 *
+	 * @param string $source The source string to tokenize.
+	 * @param int    $size The size of bites for the generated token.
 	 *
 	 * @return string
 	 */
-	public function get_cache_token() {
+	private function get_cache_token( $source, $size = 8 ) {
+		$key   = crc32( $source );
+		$cache_token = wp_cache_get( $key, 'optml_cache_tokens' );
+		if ( $cache_token === false ) {
+			$binary_source    = hash_hmac( 'sha256', $source, Optml_Config::$key, true );
+			$binary_source    = pack( 'A' . $size, $binary_source );
+			$cache_token = rtrim( strtr( base64_encode( $binary_source ), '+/', '-_' ), '=' );
+			wp_cache_add( $key, $cache_token, 'optml_cache_tokens', DAY_IN_SECONDS );
+		}
+		return $cache_token;
+	}
 
+	/**
+	 * Get the token for the domain.
+	 *
+	 * @return string
+	 */
+	public function get_domain_token() {
 		$parts = parse_url( $this->source_url );
 		$domain = isset( $parts['host'] ) ? str_replace( 'www.', '', $parts['host'] ) : '';
+		return $this->get_cache_token( $domain, 5 );
+	}
 
-		$binary_domain    = hash_hmac( 'sha256', $domain, Optml_Config::$key, true );
-		$binary_domain    = pack( 'A' . 5, $binary_domain );
-
-		$binary_url    = hash_hmac( 'sha256', $this->source_url, Optml_Config::$key, true );
-		$binary_url    = pack( 'A' . 8, $binary_url );
-
-		return rtrim( strtr( base64_encode( $binary_domain ), '+/', '-_' ), '=' ) . '-' . rtrim( strtr( base64_encode( $binary_url ), '+/', '-_' ), '=' );
+	/**
+	 * Get the token for the url.
+	 *
+	 * @return string
+	 */
+	public function get_url_token() {
+		$url   = strtok( $this->source_url, '?' );
+		return $this->get_cache_token( $url, 8 );
 	}
 
 	/**
