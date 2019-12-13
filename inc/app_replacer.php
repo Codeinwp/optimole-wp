@@ -271,10 +271,11 @@ abstract class Optml_App_Replacer {
 		self::$filters = $this->settings->get_filters();
 		add_filter(
 			'optml_possible_lazyload_flags',
-			function( $strings = array() ) {
+			function ( $strings = array() ) {
 				foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] as $rule_flag => $status ) {
 					$strings[] = $rule_flag;
 				}
+
 				return $strings;
 			},
 			10,
@@ -310,9 +311,6 @@ abstract class Optml_App_Replacer {
 				'secret' => $service_data['cdn_secret'],
 			)
 		);
-		$this->site_mappings['//i0.wp.com/'] = '//';
-		$this->site_mappings['//i1.wp.com/'] = '//';
-		$this->site_mappings['//i2.wp.com/'] = '//';
 
 		if ( defined( 'OPTML_SITE_MIRROR' ) && constant( 'OPTML_SITE_MIRROR' ) ) {
 			$this->site_mappings[ rtrim( get_home_url(), '/' ) ] = rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' );
@@ -326,9 +324,12 @@ abstract class Optml_App_Replacer {
 			)
 		);
 
-		$this->allowed_sources = $this->extract_domain_from_urls( $service_data['whitelist'] );
-
-		$this->is_allowed_site = count( array_diff_key( $this->possible_sources, $this->allowed_sources ) ) > 0;
+		$this->allowed_sources              = $this->extract_domain_from_urls( $service_data['whitelist'] );
+		// Allways allow Photon urls.
+		$this->allowed_sources['i0.wp.com'] = true;
+		$this->allowed_sources['i1.wp.com'] = true;
+		$this->allowed_sources['i2.wp.com'] = true;
+		$this->is_allowed_site              = count( array_diff_key( $this->possible_sources, $this->allowed_sources ) ) > 0;
 
 		$this->max_height = $this->settings->get( 'max_height' );
 		$this->max_width  = $this->settings->get( 'max_width' );
@@ -340,6 +341,15 @@ abstract class Optml_App_Replacer {
 			999999,
 			6
 		);
+	}
+
+	/**
+	 * Method to expose upload resource property.
+	 *
+	 * @return null
+	 */
+	public function get_upload_resource() {
+		return $this->upload_resource;
 	}
 
 	/**
