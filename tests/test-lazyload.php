@@ -320,6 +320,28 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertEquals( 2, substr_count( $replaced_content2, '/http:\/\/example.org' ) );
 	}
 
+	public function test_json_lazyload_replacement() {
+		$html = Test_Replacer::get_html_array();
+
+		$replaced_content = Optml_Manager::instance()->replace_content( json_encode( $html ) );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertEquals( ( 6 + ( 3 * 48 ) ), substr_count( $replaced_content, 'i.optimole.com' ) );
+
+		$this->assertTrue( is_array( json_decode( $replaced_content, true ) ) );
+		$this->assertNotContains( "\"https:\/\/www.example.org\/wp-content", $replaced_content );
+		$this->assertNotContains( "\"\/\/www.example.org\/wp-content", $replaced_content );
+		$this->assertNotContains( "\"\/wp-content", $replaced_content );
+		$count_unicode = 0;
+		$replaced_html = json_decode( $replaced_content, true );
+
+		foreach ( $replaced_html as $value ) {
+			$count_unicode += substr_count( $value, Test_Replacer::DECODED_UNICODE );
+
+		}
+
+		$this->assertEquals( $count_unicode, ( ( 24 * 3 ) + 3 ) );
+	}
+
 	public function test_should_replace_query_string_url() {
 		$content          = '<img src="https://example.org/photos/814499/pexels-photo-814499.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
