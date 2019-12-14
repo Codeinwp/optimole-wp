@@ -200,6 +200,9 @@ final class Optml_Manager {
 		if ( ! wp_doing_ajax() ) {
 			return false;
 		}
+		if ( isset( $_REQUEST['action'] ) && strpos( $_REQUEST['action'], 'wpmdb' ) !== false ) {
+			return false;
+		}
 
 		return true;
 	}
