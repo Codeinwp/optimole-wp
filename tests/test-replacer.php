@@ -193,7 +193,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( '?param=123', $replaced_content );
+		$this->assertContains( '?param=123', $replaced_content );
 	}
 
 	public function test_replacement_with_relative_url() {
@@ -202,6 +202,16 @@ class Test_Replacer extends WP_UnitTestCase {
 					<p class="featuredon">Featured On</p>
 					<img src="/wp-content/uploads/2018/05/brands.png"> 
 				</div>
+			</div>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+
+	}
+	public function test_replacement_without_quotes() {
+		$content = '<div  > 
+					<p custom-attr=http://example.org/wp-content/uploads/2018/05/brands.png>  
 			</div>';
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
