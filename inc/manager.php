@@ -200,6 +200,9 @@ final class Optml_Manager {
 		if ( ! wp_doing_ajax() ) {
 			return false;
 		}
+		if ( isset( $_REQUEST['action'] ) && strpos( $_REQUEST['action'], 'wpmdb' ) !== false ) {
+			return false;
+		}
 
 		return true;
 	}
@@ -257,99 +260,11 @@ final class Optml_Manager {
 				return $metadata;
 			}
 
-			return $this->process_urls_from_json( $current_meta );
+			return $this->replace_content( $current_meta );
 		}
 
 		// Return original if the check does not pass
 		return $metadata;
-	}
-
-	/**
-	 * Process json string.
-	 *
-	 * @param string $json Json string.
-	 *
-	 * @return string Processed string.
-	 */
-	public function process_urls_from_json( $json ) {
-
-		$extracted_urls = $this->extract_urls_from_json( $json );
-
-		return $this->do_url_replacement( $json, $extracted_urls );
-	}
-
-	/**
-	 * Extract urls used as values in json string, i.e not prefixed by =("|') char.
-	 *
-	 * @param string $content Raw json string.
-	 *
-	 * @return array array of urls.
-	 */
-	public function extract_urls_from_json( $content ) {
-		$regex = '/(?<!(=|\\\\)(?:"|\'|"))(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|@|%|-])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\??[\w|=|&|\-|\.|:]*)/';
-		preg_match_all(
-			$regex,
-			$content,
-			$urls
-		);
-
-		return $this->normalize_urls( $urls[0] );
-	}
-
-	/**
-	 * Normalize extracted urls.
-	 *
-	 * @param array $urls Raw urls extracted.
-	 *
-	 * @return array Normalized array.
-	 */
-	private function normalize_urls( $urls ) {
-
-		$urls = array_map(
-			function ( $value ) {
-				$value = str_replace( '&quot;', '', $value );
-
-				return rtrim( $value, '\\";\'' );
-			},
-			$urls
-		);
-		$urls = array_unique( $urls );
-
-		return array_values( $urls );
-	}
-
-	/**
-	 * Process string content and replace possible urls.
-	 *
-	 * @param string $html String content.
-	 * @param array  $extracted_urls Urls to check.
-	 *
-	 * @return string Processed html.
-	 */
-	private function do_url_replacement( $html, $extracted_urls ) {
-		$extracted_urls = apply_filters( 'optml_extracted_urls', $extracted_urls );
-
-		if ( empty( $extracted_urls ) ) {
-			return $html;
-		}
-
-		$urls = array_combine( $extracted_urls, $extracted_urls );
-		$urls = array_map(
-			function ( $url ) {
-				$is_slashed = strpos( $url, '\/' ) !== false;
-				$url        = html_entity_decode( $url );
-				$new_url    = apply_filters( 'optml_content_url', $url );
-
-				return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
-			},
-			$urls
-		);
-
-		foreach ( $urls as $origin => $replace ) {
-			$html = preg_replace( '/(?<!\/)' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
-		}
-
-		return $html;
 	}
 
 	/**
@@ -434,8 +349,9 @@ final class Optml_Manager {
 			$header_start = $matches[0][1];
 			$header_end   = $header_start + strlen( $matches[0][0] );
 		}
+		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ism';
 
-		if ( preg_match_all( '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s+?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=\\\\?["|\'](?P<img_url>[^\s]+?)["|\'].*?>(?:<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ism', $content, $images, PREG_OFFSET_CAPTURE ) ) {
+		if ( preg_match_all( $regex, $content, $images, PREG_OFFSET_CAPTURE ) ) {
 
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.
@@ -495,14 +411,88 @@ final class Optml_Manager {
 	 * @return array
 	 */
 	public function extract_image_urls_from_content( $content ) {
-		$regex = '/(?:http(?:s?):)(?:[\/\\\\|.|\w|\s|-])*(?:[' . Optml_Config::$chars . '])*\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')(?:\?{1}[\w|=|&|\-|\.|:|;]*)?/';
+
+		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/U';
 		preg_match_all(
 			$regex,
 			$content,
 			$urls
 		);
 
-		return $this->normalize_urls( $urls[0] );
+		return $this->normalize_urls( $urls[1] );
+	}
+
+	/**
+	 * Normalize extracted urls.
+	 *
+	 * @param array $urls Raw urls extracted.
+	 *
+	 * @return array Normalized array.
+	 */
+	private function normalize_urls( $urls ) {
+
+		$urls = array_map(
+			function ( $value ) {
+				$value = str_replace( '&quot;', '', $value );
+
+				return rtrim( $value, '\\";\'' );
+			},
+			$urls
+		);
+		$urls = array_unique( $urls );
+
+		return array_values( $urls );
+	}
+
+	/**
+	 * Process string content and replace possible urls.
+	 *
+	 * @param string $html String content.
+	 * @param array  $extracted_urls Urls to check.
+	 *
+	 * @return string Processed html.
+	 */
+	private function do_url_replacement( $html, $extracted_urls ) {
+		$extracted_urls = apply_filters( 'optml_extracted_urls', $extracted_urls );
+
+		if ( empty( $extracted_urls ) ) {
+			return $html;
+		}
+		$slashed_config = addcslashes( Optml_Config::$service_url, '/' );
+
+		$extracted_urls  = array_filter(
+			$extracted_urls,
+			function ( $value ) use ( $slashed_config ) {
+				return strpos( $value, Optml_Config::$service_url ) === false && strpos( $value, $slashed_config ) === false;
+			}
+		);
+		$upload_resource = $this->tag_replacer->get_upload_resource();
+		$urls            = array_combine( $extracted_urls, $extracted_urls );
+
+		$urls = array_map(
+			function ( $url ) use ( $upload_resource ) {
+				$is_slashed  = strpos( $url, '\/' ) !== false;
+				$is_relative = strpos(
+					$url,
+					$is_slashed ?
+									   addcslashes( $upload_resource['content_path'], '/' ) :
+									   $upload_resource['content_path']
+				) === 0;
+				if ( $is_relative ) {
+					$url = $upload_resource['content_host'] . $url;
+				}
+				$new_url = apply_filters( 'optml_content_url', $url );
+
+				return $new_url;
+			},
+			$urls
+		);
+
+		foreach ( $urls as $origin => $replace ) {
+			$html = preg_replace( '/(?<![\/|:|\\w])' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
+		}
+
+		return $html;
 	}
 
 	/**

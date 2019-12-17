@@ -14,32 +14,66 @@
 class Test_Replacer extends WP_UnitTestCase {
 	const IMG_TAGS = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" /></div></div> ';
 	const IMG_TAGS_WITH_SRCSET = '<img class="alignnone size-full wp-image-26" src="http://example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp.jpg" alt="" width="1450" height="740" srcset="http://example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp.jpg 1450w, http://example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-300x153.jpg 300w, http://example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-768x392.jpg 768w, http://example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-1024x523.jpg 1024w" sizes="(max-width: 1450px) 100vw, 1450px"> ';
+	const IMG_TAGS_WITH_SRCSET_SCHEMALESS = '<img class="alignnone size-full wp-image-26" src="//example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp.jpg" alt="" width="1450" height="740" srcset="//example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp.jpg 1450w, //example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-300x153.jpg 300w, //example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-768x392.jpg 768w, //example.org/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-1024x523.jpg 1024w" sizes="(max-width: 1450px) 100vw, 1450px"> ';
+	const IMG_TAGS_WITH_SRCSET_RELATIVE = '<img class="alignnone size-full wp-image-26" src="/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp.jpg" alt="" width="1450" height="740" srcset="/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp.jpg 1450w, /wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-300x153.jpg 300w, /wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-768x392.jpg 768w, /wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-1024x523.jpg 1024w" sizes="(max-width: 1450px) 100vw, 1450px"> ';
 	const IMG_TAGS_PNG = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.png" width="2000" height="1200" alt="Test" /></div></div>';
 	const IMG_TAGS_GIF = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.gif" width="2000" height="1200" alt="Test" /></div></div>';
+	const DECODED_UNICODE2 = "/wp-content/uploads/2018/05//umlau1ts_image_a\u0308o\u0308u\u0308.";
+	const DECODED_UNICODE = "/wp-content/uploads/2018/05/umlau1ts_image_äöü";
+	const NOROMAL_URL = "/wp-content/themes/test/assets/images/header";
 	const IMG_URLS = '
 	http://example.org/wp-content/themes/test/assets/images/header.png 
 	http://example.org/wp-content/themes/test/assets/images/header.jpeg
-	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png 
-	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png?width=500&cr=small
-	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo.png%3Fwidth%3D500%26cr%3Dsmall
+	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo1.png 
+	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo2.png?width=500&cr=small
+	http://example.org/wp-content/plugins/optimole-wp/assets/img/logo3.png%3Fwidth%3D500%26cr%3Dsmall
+	http://example.org/wp-content/uploads/2018/05/umlauts_image_äöü.jpg
+	http://example.org/uploads/2018/05/umlauts_image_a\u0308o\u0308u\u0308.jpg
+	//example.org/wp-content/themes/test/assets/images/header2.png 
+	//example.org/wp-content/themes/test/assets/images/header2.jpeg
+	//example.org/wp-content/plugins/optimole-wp/assets/img/logo4.png 
+	//example.org/wp-content/plugins/optimole-wp/assets/img/logo2.png?width=500&cr=small
+	//example.org/wp-content/plugins/optimole-wp/assets/img/logo3.png%3Fwidth%3D500%26cr%3Dsmall
+	//example.org/wp-content/uploads/2018/05/umlauts_im4age_äöü.jpg
+	//example.org/uploads/2018/05/umlauts_5image_a\u0308o\u0308u\u0308.jpg
+	/wp-content/themes/test/assets/images/header4.png 
+	/wp-content/themes/test/assets/images/header7.jpeg
+	/wp-content/plugins/optimole-wp/assets/img/logo9.png 
+	/wp-content/plugins/optimole-wp/assets/img/lo2go.png?width=500&cr=small
+	/wp-content/plugins/optimole-wp/assets/img/log4.png%3Fwidth%3D500%26cr%3Dsmall
+	/wp-content/uploads/2018/05/umlau1ts_image_äöü.jpg
+	/wp-content/uploads/2018/05/umlau1ts_image_a\u0308o\u0308u\u0308.jpg
 	 ';
 	const CSS_STYLE = '
 	<style>
 	.body{
-	
 		background-image:url("http://example.org/wp-content/themes/test/assets/images/header-300x300.png");
-	}</style>
+	}
+	.body div {
+		background-image:url("//example.org/wp-content/themes/test/assets/images/header3-300x300.png");
+	}
+	.body div {
+		background-image:url("/wp-content/themes/test/assets/images/header2-300x300.png");
+	}
+	.body div {
+		background-image:url(/wp-content/themes/test/assets/images/head1er2-300x300.png);
+	}
+	.body{
+		background-image:url(http://example.org/wp-content/themes/test/assets/images/heade2r-300x300.png);
+	}
+	.body div {
+		background-image:url(//example.org/wp-content/themes/test/assets/images/he3ader3-300x300.png);
+	}
+	</style>
 	 ';
 	const WRONG_EXTENSION = '   http://example.org/wp-content/themes/twentyseventeen/assets/images/header.gif   ';
 	const IMAGE_SIZE_DATA = '
 		http://example.org/wp-content/uploads/optimole-wp/assets/img/logo-282x123.png
 		http://example.org/wp-content/plugins/optimole-wp/assets/img/test-282x123.png
+		//example.org/wp-content/uploads/optimole-wp/assets/img/log2o-282x123.png
+		//example.org/wp-content/plugins/optimole-wp/assets/img/tes3t-282x123.png
 	';
 	const IMAGE_SIZE_NO_CLASS = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header-100x100.png" alt="Test" /></div></div>';
-
-	const ELEMENTOR_DATA = '[{"id":"428f250c","elType":"section","settings":{"structure":"<img alt=\"\"src=\"https:\/\/www.example.org\/wp-content\/uploads\/2018\/05\/test2.png\" \/>","content_width":{"unit":"px","size":1140},"content_position":"middle","gap":"extended","padding":{"unit":"px","top":"10","right":"0","bottom":"10","left":"0","isLinked":false},"padding_mobile":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":true}},"elements":[{"id":"1b041a88","elType":"column","settings":{"_column_size":25,"_inline_size":20.66,"_inline_size_tablet":25,"_inline_size_mobile":50,"content_position":"top"},"elements":[{"id":"34d685ef","elType":"widget","settings":{"image":{"id":36009,"url":"https:\/\/www.example.org\/wp-content\/uploads\/2018\/05\/codeinwp-logo.svg"},"image_size":"full","link_to":"custom","link":{"url":"https:\/\/www.example.org\/","is_external":"","nofollow":""},"align":"left","width":{"unit":"px","size":120},"space":{"unit":"%","size":100},"opacity":{"unit":"px","size":1},"_margin":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":false},"_element_id":"logo"},"elements":[],"widgetType":"image"}],"isInner":false},{"id":"437f5756","elType":"column","settings":{"_column_size":50,"_inline_size":71.992000000000004,"_inline_size_tablet":70,"_inline_size_mobile":40,"padding_mobile":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":true}},"elements":[{"id":"3c7d3ebf","elType":"widget","settings":{"align_items":"right","pointer":"none","color_menu_item":"#0a4266","menu_typography_typography":"custom","menu_typography_font_weight":"bold","menu_typography_text_transform":"lowercase","color_menu_item_hover":"#ec4646","color_menu_item_active":"#ec4646","menu_typography_font_size":{"unit":"px","size":18},"_margin":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":false},"indicator":"none","dropdown":"mobile","full_width":"stretch","menu_typography_font_size_tablet":{"unit":"px","size":18},"padding_horizontal_menu_item_tablet":{"unit":"px","size":14},"toggle_size":{"unit":"px","size":25},"_padding":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":false},"color_dropdown_item":"#0a4266","color_dropdown_item_hover":"#ec4646","background_color_dropdown_item_hover":"rgba(0,0,0,0)","dropdown_typography_typography":"custom","dropdown_typography_font_family":"proxima-nova","dropdown_typography_font_size":{"unit":"px","size":16},"menu_typography_font_size_mobile":{"unit":"px","size":18},"dropdown_typography_font_size_mobile":{"unit":"px","size":25},"dropdown_typography_text_transform":"lowercase","menu":"main-menu-homepage"},"elements":[],"widgetType":"nav-menu"}],"isInner":false},{"id":"7fafd26c","elType":"column","settings":{"_column_size":25,"_inline_size":7.3479999999999999,"_inline_size_tablet":5,"_inline_size_mobile":2},"elements":[{"id":"8f16004","elType":"widget","settings":{"image":{"url":"https:\/\/www.example.org\/wp-content\/uploads\/2018\/05\/test.png","id":36135},"image_size":"custom","width":{"unit":"px","size":30},"space":{"unit":"%","size":30},"_element_id":"header-trigger"},"elements":[],"widgetType":"image"}],"isInner":false}],"isInner":false}]';
-
-	const ELEMENTOR_DATA_UNICODE = '[{"id":"428f250c","elType":"section","settings":{"structure":"<img alt=\"\"src=\"https:\/\/www.example.org\/wp-content\/uploads\/2018\/05\/umlauts_image_a\u0308o\u0308u\u0308.jpg\" \/>","content_width":{"unit":"px","size":1140},"content_position":"middle","gap":"extended","padding":{"unit":"px","top":"10","right":"0","bottom":"10","left":"0","isLinked":false},"padding_mobile":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":true}},"elements":[{"id":"1b041a88","elType":"column","settings":{"_column_size":25,"_inline_size":20.66,"_inline_size_tablet":25,"_inline_size_mobile":50,"content_position":"top"},"elements":[{"id":"34d685ef","elType":"widget","settings":{"image":{"id":36009,"url":"https:\/\/www.example.org\/wp-content\/uploads\/2018\/05\/codeinwp-logo.svg"},"image_size":"full","link_to":"custom","link":{"url":"https:\/\/www.example.org\/","is_external":"","nofollow":""},"align":"left","width":{"unit":"px","size":120},"space":{"unit":"%","size":100},"opacity":{"unit":"px","size":1},"_margin":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":false},"_element_id":"logo"},"elements":[],"widgetType":"image"}],"isInner":false},{"id":"437f5756","elType":"column","settings":{"_column_size":50,"_inline_size":71.992000000000004,"_inline_size_tablet":70,"_inline_size_mobile":40,"padding_mobile":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":true}},"elements":[{"id":"3c7d3ebf","elType":"widget","settings":{"align_items":"right","pointer":"none","color_menu_item":"#0a4266","menu_typography_typography":"custom","menu_typography_font_weight":"bold","menu_typography_text_transform":"lowercase","color_menu_item_hover":"#ec4646","color_menu_item_active":"#ec4646","menu_typography_font_size":{"unit":"px","size":18},"_margin":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":false},"indicator":"none","dropdown":"mobile","full_width":"stretch","menu_typography_font_size_tablet":{"unit":"px","size":18},"padding_horizontal_menu_item_tablet":{"unit":"px","size":14},"toggle_size":{"unit":"px","size":25},"_padding":{"unit":"px","top":"0","right":"0","bottom":"0","left":"0","isLinked":false},"color_dropdown_item":"#0a4266","color_dropdown_item_hover":"#ec4646","background_color_dropdown_item_hover":"rgba(0,0,0,0)","dropdown_typography_typography":"custom","dropdown_typography_font_family":"proxima-nova","dropdown_typography_font_size":{"unit":"px","size":16},"menu_typography_font_size_mobile":{"unit":"px","size":18},"dropdown_typography_font_size_mobile":{"unit":"px","size":25},"dropdown_typography_text_transform":"lowercase","menu":"main-menu-homepage"},"elements":[],"widgetType":"nav-menu"}],"isInner":false},{"id":"7fafd26c","elType":"column","settings":{"_column_size":25,"_inline_size":7.3479999999999999,"_inline_size_tablet":5,"_inline_size_mobile":2},"elements":[{"id":"8f16004","elType":"widget","settings":{"image":{"url":"https:\/\/www.example.org\/wp-content\/uploads\/2018\/05\/test.png","id":36135},"image_size":"custom","width":{"unit":"px","size":30},"space":{"unit":"%","size":30},"_element_id":"header-trigger"},"elements":[],"widgetType":"image"}],"isInner":false}],"isInner":false}]';
 
 	const TEST_STAGING = '<div class="before-footer">
 				<div class="codeinwp-container">
@@ -57,7 +91,6 @@ class Test_Replacer extends WP_UnitTestCase {
 	public static $sample_post;
 	public static $sample_attachement;
 
-
 	public function setUp() {
 
 
@@ -66,7 +99,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		$settings->update( 'service_data', [
 			'cdn_key'    => 'test123',
 			'cdn_secret' => '12345',
-			'whitelist'  => [ 'example.com' ],
+			'whitelist'  => [ 'example.com', 'example.org' ],
 
 		] );
 		$settings->update( 'lazyload', 'disabled' );
@@ -86,17 +119,15 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	public function test_wc_json_replacement() {
 		$html = [
-			'image' => "https://www.example.org/wp-content/uploads/2018/05/brands.png",
+			'image'  => "https://www.example.org/wp-content/uploads/2018/05/brands.png",
 			'image2' => "https://www.example.org/wp-content/uploads/2018/05/brands2.png?test=123",
 			'image3' => "https://www.example.org/wp-content/uploads/2018/05/brands2.png?test=123&amp;new=val",
 		];
 
-
-		$html = wp_json_encode( $html );
-		$html = _wp_specialchars( $html, ENT_QUOTES, 'UTF-8', true );
+		$html             = wp_json_encode( $html );
+		$html             = _wp_specialchars( $html, ENT_QUOTES, 'UTF-8', true );
 		$replaced_content = Optml_Manager::instance()->process_urls_from_content( $html );
 		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
-		$this->assertNotContains('?test=123',$replaced_content );
 
 		$replaced_content = wp_specialchars_decode( $replaced_content, ENT_QUOTES );
 		$replaced_content = json_decode( $replaced_content, true );
@@ -133,7 +164,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
 
-		$this->assertEquals( 5, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 21, substr_count( $replaced_content, 'i.optimole.com' ) );
 	}
 
 	public function test_style_replacement() {
@@ -141,6 +172,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'http://example.org', $replaced_content );
+		$this->assertEquals( 6, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 	}
 
@@ -161,7 +193,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( '?param=123', $replaced_content );
+		$this->assertContains( '?param=123', $replaced_content );
 	}
 
 	public function test_replacement_with_relative_url() {
@@ -177,8 +209,19 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 
 	}
-	public function test_replacement_strange_chars(){
-		$content = '
+	public function test_replacement_without_quotes() {
+		$content = '<div  > 
+					<p custom-attr=http://example.org/wp-content/uploads/2018/05/brands.png>  
+			</div>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+
+	}
+
+	public function test_replacement_strange_chars() {
+		$content          = '
 		https://www.example.org/wp-content/uploads/2018/05/@brands.png
 		https://www.example.org/wp-content/uploads/2018/05/%brands.png
 		';
@@ -186,7 +229,9 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertEquals( 2, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 	}
+
 	// TODO We need to extend this to single url replacement. If we make the url extractor regex with option scheme, the parsing will take huge amount of time. We need to think alternatives.
+
 	public function test_replacement_without_scheme() {
 		$content          = '<div class="before-footer">
 				<div class="codeinwp-container">
@@ -196,7 +241,7 @@ class Test_Replacer extends WP_UnitTestCase {
 			</div>';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( 'http://www.example.org', $replaced_content );;
+		$this->assertContains( 'http://www.example.org', $replaced_content );
 	}
 
 	public function test_non_allowed_extensions() {
@@ -207,46 +252,69 @@ class Test_Replacer extends WP_UnitTestCase {
 	}
 
 	public function test_elementor_data() {
-		$replaced_content = Optml_Manager::instance()->process_urls_from_json( ( self::ELEMENTOR_DATA ) );
+		$html             = self::get_html_array();
+		$replaced_content = Optml_Manager::instance()->replace_content( json_encode( $html ) );
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertEquals( 54, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 		//Ensure the json is not corrupted after replacement.
-		$this->assertTrue( is_array( json_decode( $replaced_content ) ) );
-
-		//Make sure the image tag is unprocessed.
-		$this->assertContains( "src=\\\"https:\/\/www.example.org\/wp-content", $replaced_content );
-
-		//Do the html replacement.
-		$replaced_content = Optml_Manager::instance()->replace_content( ( $replaced_content ) );
+		$this->assertTrue( is_array( json_decode( $replaced_content, true ) ) );
 
 		//The content should be sucessfully processed.
 		$this->assertNotContains( "\"https:\/\/www.example.org\/wp-content", $replaced_content );
-
-		$replaced_content = Optml_Manager::instance()->process_urls_from_json( ( self::ELEMENTOR_DATA_UNICODE ) );
-
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-
-		//Ensure the json is not corrupted after replacement.
-		$this->assertTrue( is_array( json_decode( $replaced_content ) ) );
-
-		//Make sure the image tag is unprocessed.
-		$this->assertContains( "src=\\\"https:\/\/www.example.org\/wp-content", $replaced_content );
-
-		//Do the html replacement.
-		$replaced_content = Optml_Manager::instance()->replace_content( ( $replaced_content ) );
-
-		//The content should be sucessfully processed.
-		$this->assertNotContains( "\"https:\/\/www.example.org\/wp-content", $replaced_content );
-
-		//Make sure the image chars are converted back to UTF-8.
-		$this->assertContains( "umlauts_image_äöü.jpg", $replaced_content );
+		$this->assertNotContains( "\"\/\/www.example.org\/wp-content", $replaced_content );
+		$this->assertNotContains( "\"\/wp-content", $replaced_content );
+		$count_unicode = 0;
+		$replaced_html = json_decode( $replaced_content, true );
+		foreach ( $replaced_html as $value ) {
+			if ( strpos( $value, self::DECODED_UNICODE ) !== false ) {
+				$count_unicode ++;
+			}
+		}
+		$this->assertEquals( $count_unicode, 27 );
 
 	}
 
+	public static function get_html_array() {
+
+		$html = [];
+
+		$html['relative_normal']  = self::NOROMAL_URL . 'a.jpg';
+		$html['relative_unicode'] = self::DECODED_UNICODE . 'a.jpg';
+
+		$html['schemaless_normal'] = "//example.org" . self::NOROMAL_URL . 'b.jpg';
+		$html['unicode_normal']    = "//example.org" . self::DECODED_UNICODE . 'b.jpg';
+
+		$html['full_normal']  = "http://example.org" . self::NOROMAL_URL . 'c.jpg';
+		$html['full_unicode'] = "http://example.org" . self::DECODED_UNICODE . 'c.jpg';
+		$i                    = 0;
+		foreach ( $html as $key => $value ) {
+			$i ++;
+			$value                                      = str_replace( [ "a.jpg", "b.jpg", "c.jpg" ], [
+				"a" . $i . ".jpg",
+				"b" . $i . ".jpg",
+				"c" . $i . ".jpg",
+			], $value );
+			$html[ $key . '_img_simple' ]               = '<img src="' . $value . '" > ';
+			$html[ $key . '_img_with_alt' ]             = '<img alt="" src="' . $value . '" > ';
+			$html[ $key . '_img_with_alt_near_src' ]    = '<img alt=""src="' . $value . '" > ';
+			$html[ $key . '_img_with_ending' ]          = '<img src="' . $value . '" /> ';
+			$html[ $key . '_img_with_ending_no_space' ] = '<img src="' . $value . '"/> ';
+			$html[ $key . '_img_with_class' ]           = '<img class="one-class" src="' . $value . '" /> ';
+			$html[ $key . '_img_anchor' ]               = '<a href="http://example.org/blog/how-to-monetize-a-blog/">                      <img class="one-class" src="' . $value . '" /> </a> ';
+			$html[ $key . '_img_more_html' ]            = '<div class="before-footer">
+				<div class="codeinwp-container"> 
+				<img class="one-class" src="' . $value . '" /> 
+				</div>
+				</div> ';
+		};
+
+		return $html;
+	}
 
 	public function test_max_size_height() {
-		$new_url = Optml_Manager::instance()->replace_content( 'http://example.org/wp-content/themes/test/assets/images/header.png', [
+		$new_url = Optml_Manager::instance()->replace_content( ' http://example.org/wp-content/themes/test/assets/images/header.png ', [
 			'width'  => 99999,
 			'height' => 99999
 		] );
@@ -317,6 +385,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		//Test fake sample image size.
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( '282x123', $replaced_content );
+		$this->assertEquals( 4, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 		//Test valid wordpress image size, it should strip the size suffix.
 		$attachement_url  = wp_get_attachment_image_src( self::$sample_attachement, 'medium' );
@@ -350,6 +419,14 @@ class Test_Replacer extends WP_UnitTestCase {
 		$replaced_content = Optml_Manager::instance()->replace_content( Test_Replacer::IMG_TAGS_WITH_SRCSET );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertEquals( 5, substr_count( $replaced_content, 'i.optimole.com' ) );
+
+		$replaced_content = Optml_Manager::instance()->replace_content( Test_Replacer::IMG_TAGS_WITH_SRCSET_SCHEMALESS );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertEquals( 5, substr_count( $replaced_content, 'i.optimole.com' ) );
+
+		$replaced_content = Optml_Manager::instance()->replace_content( Test_Replacer::IMG_TAGS_WITH_SRCSET_RELATIVE );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertEquals( 5, substr_count( $replaced_content, 'i.optimole.com' ) );
 	}
 
 	public function test_double_replacement() {
@@ -379,7 +456,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		//Adds possible image size format.
 		$content = str_replace( '.png', '-300x300.png', $old_url );
 
-		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$replaced_content = Optml_Manager::instance()->replace_content( " " . $content . " " );
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertNotContains( '-300x300.png', $replaced_content );
