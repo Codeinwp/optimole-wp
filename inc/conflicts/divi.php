@@ -35,19 +35,19 @@ class Optml_Divi extends Optml_abstract_conflict {
 	 * @access  public
 	 */
 	public function is_conflict_valid() {
-		$show_message = false;
-		$theme = wp_get_theme( 'Divi' );
-		if ( $theme->exists() && strcmp( $theme->get( 'Name' ), 'Divi' ) === 0 ) {
-				$show_message = true;
+		if ( ! is_plugin_active( 'divi-builder/divi-builder.php' ) ) {
+			return false;
 		}
 
-		if ( is_plugin_active( 'divi-builder/divi-builder.php' ) ) {
-			$show_message = true;
+		$theme = wp_get_theme();
+		// No divi, no child theme.
+		if ( strcmp( $theme->get( 'Name' ), 'Divi' ) !== 0 && $theme->parent() === false ) {
+			return false;
 		}
-		if ( get_template_directory() !== get_stylesheet_directory() && strcmp( wp_get_theme( get_template() )->get( 'Author' ), 'Divi' ) === 0 ) {
-				$show_message = true;
+		// Child theme, no parent divi.
+		if ( $theme->parent() !== false && strcmp( $theme->parent()->get( 'Name' ), 'Divi' ) !== 0 ) {
+			return false;
 		}
-
 		if ( ! function_exists( 'et_get_option' ) ) {
 			return false;
 		}
@@ -55,6 +55,6 @@ class Optml_Divi extends Optml_abstract_conflict {
 			return false;
 		}
 
-		return $show_message;
+		return true;
 	}
 }
