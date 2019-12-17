@@ -60,6 +60,7 @@ class Optml_Admin {
 	 * Adds script for lazyload/js replacement.
 	 */
 	public function inline_bootstrap_script() {
+
 		$domain = 'https://' . OPTML_JS_CDN;
 
 		$min                   = ! OPTML_DEBUG ? '.min' : '';
@@ -85,7 +86,6 @@ class Optml_Admin {
 			}
 			img[data-opt-src]:not([data-opt-lazy-loaded]) {
 				opacity: .75;
-				filter: blur(5px);
 			}
 		
 		</style>
@@ -439,6 +439,9 @@ class Optml_Admin {
 	 * Add the dashboard page.
 	 */
 	public function add_dashboard_page() {
+		if ( defined( 'OPTIOMLE_HIDE_ADMIN_AREA' ) && OPTIOMLE_HIDE_ADMIN_AREA ) {
+			return;
+		}
 		add_media_page( 'Optimole', 'Optimole', 'manage_options', 'optimole', array( $this, 'render_dashboard_page' ) );
 	}
 

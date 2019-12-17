@@ -47,6 +47,7 @@ class Test_Video_Tag extends WP_UnitTestCase {
     public function test_should_replace_tag () {
 
         $replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_GIF );
+
         $this->assertContains( 'i.optimole.com', $replaced_content );
         $this->assertContains( '<video autoplay muted loop playsinline poster', $replaced_content );
         $this->assertContains( 'type="video/mp4', $replaced_content );

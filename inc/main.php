@@ -97,6 +97,7 @@ final class Optml_Main {
 				'Optml_Jetpack_Photon',
 				'Optml_Jetpack_Lazyload',
 				'Optml_Wprocket',
+				'Optml_Divi',
 			)
 		);
 
