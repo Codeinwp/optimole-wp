@@ -38,7 +38,8 @@ class Optml_sassy_social_share extends Optml_compatibility {
 		add_action(
 			'wp_enqueue_scripts',
 			function () {
-				wp_enqueue_script( 'optml-typekit', ' ' );
+				wp_register_script( 'optml-typekit', false );
+				wp_enqueue_script( 'optml-typekit' );
 				$script = '
 			(function(w, d){
 					w.addEventListener("load", function(){
