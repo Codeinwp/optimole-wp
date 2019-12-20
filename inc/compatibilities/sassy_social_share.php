@@ -14,15 +14,16 @@ class Optml_sassy_social_share extends Optml_compatibility {
 	function should_load() {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
-		if ( is_plugin_active( 'sassy-social-share/sassy-social-share.php' ) ) {
-			$ss_options = get_option( 'heateor_sss' );
-			$ss_bars = ['vertical_re_providers', 'horizontal_re_providers'];
-			foreach ( $ss_bars as $key => $bar ) {
-				foreach ( $ss_options[ $bar ] as $index => $value ) {
-					if ( isset( $value ) && is_string( $value ) ) {
-						if ( strpos( $value, 'pinterest' ) !== false ) {
-							return true;
-						}
+		if ( ! is_plugin_active( 'sassy-social-share/sassy-social-share.php' ) ) {
+			return false;
+		}
+		$ss_options = get_option( 'heateor_sss' );
+		$ss_bars = ['vertical_re_providers', 'horizontal_re_providers'];
+		foreach ( $ss_bars as $key => $bar ) {
+			foreach ( $ss_options[ $bar ] as $index => $value ) {
+				if ( isset( $value ) && is_string( $value ) ) {
+					if ( strpos( $value, 'pinterest' ) !== false ) {
+						return true;
 					}
 				}
 			}
@@ -35,11 +36,11 @@ class Optml_sassy_social_share extends Optml_compatibility {
 	 */
 	public function register() {
 		add_action(
-			'wp_head',
+			'wp_enqueue_scripts',
 			function () {
-				$output = '
-		<script type="application/javascript">
-			(function(w, d){ 
+				wp_enqueue_script( 'optml-typekit', ' ' );
+				$script = '
+			(function(w, d){
 					w.addEventListener("load", function(){
 						let p=d.querySelectorAll( ".heateorSssSharing.heateorSssPinterestBackground" );
 						p.forEach ( function (button,index)  {
@@ -55,8 +56,8 @@ class Optml_sassy_social_share extends Optml_compatibility {
 						
 					});
 			}(window, document));
-		</script>';
-				echo $output;
+		';
+				wp_add_inline_script( 'optml-typekit', $script );
 			}
 		);
 	}
