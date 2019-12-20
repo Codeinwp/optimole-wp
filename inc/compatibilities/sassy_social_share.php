@@ -48,14 +48,10 @@ class Optml_sassy_social_share extends Optml_compatibility {
 						p.forEach ( function (button,index)  {
 							button.addEventListener( "mouseover", () => {
 							let images = d.getElementsByTagName( "img" );
-							for ( let i = 0; i < images.length; i++ ) {		
-								if ( images[i].hasAttribute( "data-opt-src" ) ) {
-										images[i].src = images[i].dataset.optSrc ;			
-								}
-								//the below variant is also good I\'ll look into the speed of it vs above
-								// if ( "optSrc" in images[i].dataset ) {			
-								// 	images[i].src = images[i].dataset.optSrc ;
-								// }
+							for ( let i = 0; i < images.length; i++ ) {
+								 if ( "optSrc" in images[i].dataset ) {
+								 	images[i].src = images[i].dataset.optSrc ;
+								 }
 								}
 							},{once:true} );
 						});
