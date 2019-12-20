@@ -1,13 +1,11 @@
 <?php
 
 /**
- * Class Optml_cache_enabler.
+ * Class Optml_sassy_social_share.
  *
- * @reason Cache_enabler stores the content of the page before Optimole starts replacing url's
+ * @reason Sassy social share picks eco images to share
  */
 class Optml_sassy_social_share extends Optml_compatibility {
-
-
 	/**
 	 * Should we load the integration logic.
 	 *
