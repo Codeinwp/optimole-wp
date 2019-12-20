@@ -16,13 +16,27 @@ class Optml_sassy_social_share extends Optml_compatibility {
 	function should_load() {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
-		return is_plugin_active( 'sassy-social-share/sassy-social-share.php' );
+		if ( is_plugin_active( 'sassy-social-share/sassy-social-share.php' ) ) {
+			$ss_options = get_option( 'heateor_sss' );
+			$ss_bars = ['vertical_re_providers', 'horizontal_re_providers'];
+			foreach ( $ss_bars as $key => $bar ) {
+				foreach ( $ss_options[ $bar ] as $index => $value ) {
+					if ( isset( $value ) && is_string( $value ) ) {
+						if ( strpos( $value, 'pinterest' ) !== false ) {
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
 	}
 
 	/**
 	 * Register integration details.
 	 */
 	public function register() {
+
 		add_action(
 			'wp_head',
 			function () {
