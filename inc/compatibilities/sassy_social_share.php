@@ -36,7 +36,6 @@ class Optml_sassy_social_share extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-
 		add_action(
 			'wp_head',
 			function () {
