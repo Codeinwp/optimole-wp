@@ -374,16 +374,6 @@ class Optml_Admin {
 			return;
 		}
 		echo '<meta name="generator" content="Optimole ' . esc_attr( OPTML_VERSION ) . '">';
-
-		if ( ! current_theme_supports( 'custom-logo' ) ) {
-			return;
-		}
-		$custom_logo_id = get_theme_mod( 'custom_logo' );
-		$image          = wp_get_attachment_image_src( $custom_logo_id, 'full' );
-		if ( empty( $image ) ) {
-			return;
-		}
-		echo '<link rel="preload" href="' . esc_url( $image[0] ) . '" as="image">';
 	}
 
 	/**
