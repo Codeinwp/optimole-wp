@@ -47,13 +47,18 @@ class Optml_Admin {
 	 */
 	public function register_public_actions() {
 		add_action( 'wp_head', array( $this, 'generator' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
 		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 
-		if ( $this->settings->use_lazyload() ) {
-			add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
-			add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
+		if ( ! $this->settings->use_lazyload() ) {
+			return;
 		}
+		if ( Optml_Manager::should_ignore_image_tags() ) {
+			return;
+		}
+		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
+		add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
+		add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
+
 	}
 
 	/**
@@ -318,10 +323,6 @@ class Optml_Admin {
 	 * Enqueue frontend scripts.
 	 */
 	public function frontend_scripts() {
-
-		if ( ! $this->settings->use_lazyload() ) {
-			return;
-		}
 		$bg_css = $this->get_background_lazy_css();
 
 		wp_register_style( 'optm_lazyload_noscript_style', false );
@@ -418,7 +419,7 @@ class Optml_Admin {
 		}
 		$hints[] = sprintf( 'https://%s', $this->settings->get_cdn_url() );
 
-		if ( $this->settings->use_lazyload() ) {
+		if ( ! $this->settings->use_lazyload() && ! Optml_Manager::should_ignore_image_tags() ) {
 			$hints[] = sprintf( 'https://%s', OPTML_JS_CDN );
 		}
 
