@@ -227,7 +227,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertNotEquals( $replaced_content, $html );
 		$this->assertNotContains( 'q:eco/rt:fill/g:ce', $replaced_content );
 		$this->assertContains( '/rt:fill/g:ce', $replaced_content );
-		$this->assertContains( 'optimole.com/w:100/h:100/q:eco/http://example.org/', $replaced_content );
+		$this->assertContains( '/w:100/h:100/q:eco/http://example.org/', $replaced_content );
 
 	}
 
