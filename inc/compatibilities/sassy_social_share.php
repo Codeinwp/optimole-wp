@@ -19,11 +19,15 @@ class Optml_sassy_social_share extends Optml_compatibility {
 		}
 		$ss_options = get_option( 'heateor_sss' );
 		$ss_bars = ['vertical_re_providers', 'horizontal_re_providers'];
-		foreach ( $ss_bars as $key => $bar ) {
-			foreach ( $ss_options[ $bar ] as $index => $value ) {
-				if ( isset( $value ) && is_string( $value ) ) {
-					if ( strpos( $value, 'pinterest' ) !== false ) {
-						return true;
+		if ( ! empty( $ss_options ) && is_array( $ss_options ) ) {
+			foreach ( $ss_bars as $key => $bar ) {
+				if ( array_key_exists( $bar, $ss_options ) ) {
+					foreach ( $ss_options[ $bar ] as $index => $value ) {
+						if ( isset( $value ) && is_string( $value ) ) {
+							if ( strpos( $value, 'pinterest' ) !== false ) {
+								return true;
+							}
+						}
 					}
 				}
 			}
