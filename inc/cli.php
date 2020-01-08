@@ -23,6 +23,8 @@ class Optml_Cli {
 	const CLI_NAMESPACE = 'optimole';
 
 	/**
+	 * CLI controllers
+	 *
 	 * @var array List of CLI controllers.
 	 */
 	private $commands = array(
