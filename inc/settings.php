@@ -402,9 +402,12 @@ class Optml_Settings {
 	 * @return bool Reset action status.
 	 */
 	public function reset() {
-		$update = update_option( $this->namespace, $this->default_schema );
+		$reset_schema = $this->default_schema;
+		$reset_schema['filters'] = $this->options['filters'];
+
+		$update = update_option( $this->namespace, $reset_schema );
 		if ( $update ) {
-			$this->options = $this->default_schema;
+			$this->options = $reset_schema;
 		}
 
 		return $update;
