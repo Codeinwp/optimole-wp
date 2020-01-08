@@ -1,11 +1,14 @@
 <?php
+/**
+ * CLI commands responsible for the Optimole settings.
+ */
 
 if ( ! class_exists( 'WP_CLI' ) ) {
 	return;
 }
 
 /**
- * CLI commands responsible for the Optimole settings.
+ * Class Optml_Cli_Settings
  */
 class Optml_Cli_Settings extends WP_CLI_Command {
 	/**
