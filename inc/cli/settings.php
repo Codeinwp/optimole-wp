@@ -132,6 +132,13 @@ class Optml_Cli_Settings extends WP_CLI_Command {
 		\WP_CLI::success( sprintf( 'Optimole quality is: %s', $new_value['quality'] ) );
 	}
 
+	/**
+	 * Utility method to update setting
+	 *
+	 * @param mixed $new_setting The setting to parse.
+	 *
+	 * @return array
+	 */
 	protected function update_setting( $new_setting ) {
 		if ( empty( $new_setting ) ) {
 			\WP_CLI::error( __( 'No setting to update', 'optimole-wp' ) );
