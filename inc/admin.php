@@ -90,7 +90,15 @@ class Optml_Admin {
 				-o-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 			}
 			img[data-opt-src]:not([data-opt-lazy-loaded]) {
-				opacity: .75;
+				  opacity: .75;	 
+				  -webkit-filter: blur(8px);
+				  -moz-filter: blur(8px);
+				  -o-filter: blur(8px);
+				  -ms-filter: blur(8px);
+				  filter: blur(8px);
+				  transform: scale(1.04);
+				  animation: 0.1s ease-in;
+				  -webkit-transform: translate3d(0, 0, 0);
 			}
 		
 		</style>
