@@ -558,6 +558,11 @@ class Optml_Admin {
 				'<a href="https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors" target="_blank">',
 				'</a>'
 			),
+			'account_needed_subtitle_3'      => sprintf(
+				__( 'Here’s %1$show%2$s to install Optimole on your WordPress site in 3 steps.', 'optimole-wp' ),
+				'<a target="_blank" href="https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps">',
+				'</a>'
+			),
 			'account_needed_subtitle_2'      => sprintf(
 				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CDN.', 'optimole-wp' )
 			),
