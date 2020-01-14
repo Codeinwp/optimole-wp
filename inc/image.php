@@ -155,7 +155,7 @@ class Optml_Image {
 		$parts  = parse_url( $this->source_url );
 		$domain = isset( $parts['host'] ) ? str_replace( 'www.', '', $parts['host'] ) : '';
 
-		return $this->get_cache_token( $domain, 5 );
+		return $this->get_cache_token( $domain, 4 );
 	}
 
 	/**
@@ -166,7 +166,7 @@ class Optml_Image {
 	public function get_url_token() {
 		$url = strtok( $this->source_url, '?' );
 
-		return $this->get_cache_token( $url, 8 );
+		return $this->get_cache_token( $url, 6 );
 	}
 
 	/**
