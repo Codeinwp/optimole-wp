@@ -239,7 +239,7 @@ class Optml_Admin {
 		<div class="notice notice-warning optml-notice-optin">
 			<p> <?php printf( __( 'It seems your are close to the %1$s5.0000%2$s visits limit with %3$sOptiMole%4$s for this month. You might want to check the upgrade plans for a larger quota. %5$s %6$s What happens if i exceed the quota ?%7$s We will need to deliver back your original %8$sun-optimized%9$s images which might decrease your site speed perfomance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
 			<p>
-				<a href="https://optimole.com/#pricing" target="_blank" class="button button-primary"><span
+				<a href="https://optimole.com/pricing" target="_blank" class="button button-primary"><span
 							class="dashicons dashicons-external"></span><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 				</a>
 				<a class="button"
@@ -592,10 +592,10 @@ The root cause might be either a security plugin which blocks this feature or so
 			),
 			'upgrade'                        => array(
 				'title'    => __( 'Upgrade to Pro', 'optimole-wp' ),
-				'reason_1' => __( 'Faster CDN ( 180+ locations )', 'optimole-wp' ),
-				'reason_2' => __( 'Larger traffic bandwidth', 'optimole-wp' ),
-				'reason_3' => __( 'Optimize more images', 'optimole-wp' ),
-				'reason_4' => __( 'Custom domain', 'optimole-wp' ),
+				'reason_1' => __( 'More CDN locations( 200+ locations )', 'optimole-wp' ),
+				'reason_4' => __( 'Starting at $4.99 per month.', 'optimole-wp' ),
+				'reason_2' => __( 'Optimize more images', 'optimole-wp' ),
+				'reason_3' => __( 'Custom domain', 'optimole-wp' ),
 				'cta'      => __( 'View plans', 'optimole-wp' ),
 			),
 			'options_strings'                => array(

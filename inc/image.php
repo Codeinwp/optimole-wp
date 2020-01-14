@@ -86,9 +86,9 @@ class Optml_Image {
 	 * Set defaults for image transformations.
 	 */
 	private function set_defaults() {
-		$this->width  = new Optml_Width( 'auto' );
-		$this->height = new Optml_Height( 'auto' );
-		$this->resize = new Optml_Resize();
+		$this->width   = new Optml_Width( 'auto' );
+		$this->height  = new Optml_Height( 'auto' );
+		$this->resize  = new Optml_Resize();
 		$this->quality = new Optml_Quality();
 	}
 
@@ -121,10 +121,6 @@ class Optml_Image {
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
-		if ( isset( $params['signed'] ) && $params['signed'] ) {
-			$path = sprintf( '/%s%s', $this->get_signature( $path ), $path );
-		}
-
 		$path = sprintf( '/%s%s', $this->get_domain_token() . '-' . $this->get_url_token(), $path );
 
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
@@ -140,14 +136,13 @@ class Optml_Image {
 	 * @return string
 	 */
 	private function get_cache_token( $source, $size = 8 ) {
-		$key   = crc32( $source );
+		$key         = crc32( $source );
 		$cache_token = wp_cache_get( $key, 'optml_cache_tokens' );
 		if ( $cache_token === false ) {
-			$binary_source    = hash_hmac( 'sha256', $source, Optml_Config::$key, true );
-			$binary_source    = pack( 'A' . $size, $binary_source );
-			$cache_token = rtrim( strtr( base64_encode( $binary_source ), '+/', '-_' ), '=' );
+			$cache_token = $this->get_signature( $source, $size );
 			wp_cache_add( $key, $cache_token, 'optml_cache_tokens', DAY_IN_SECONDS );
 		}
+
 		return $cache_token;
 	}
 
@@ -157,8 +152,9 @@ class Optml_Image {
 	 * @return string
 	 */
 	public function get_domain_token() {
-		$parts = parse_url( $this->source_url );
+		$parts  = parse_url( $this->source_url );
 		$domain = isset( $parts['host'] ) ? str_replace( 'www.', '', $parts['host'] ) : '';
+
 		return $this->get_cache_token( $domain, 5 );
 	}
 
@@ -168,21 +164,22 @@ class Optml_Image {
 	 * @return string
 	 */
 	public function get_url_token() {
-		$url   = strtok( $this->source_url, '?' );
+		$url = strtok( $this->source_url, '?' );
+
 		return $this->get_cache_token( $url, 8 );
 	}
 
 	/**
 	 * Return the url signature.
 	 *
-	 * @param string $path The path from url.
+	 * @param string $string The path from url.
 	 *
 	 * @return bool|string
 	 */
-	public function get_signature( $path = '' ) {
+	public function get_signature( $string = '', $size = self::SIGNATURE_SIZE ) {
 
-		$binary    = hash_hmac( 'sha256', Optml_Config::$secret . $path, Optml_Config::$key, true );
-		$binary    = pack( 'A' . self::SIGNATURE_SIZE, $binary );
+		$binary    = hash_hmac( 'sha256', Optml_Config::$secret . $string, Optml_Config::$key, true );
+		$binary    = pack( 'A' . $size, $binary );
 		$signature = rtrim( strtr( base64_encode( $binary ), '+/', '-_' ), '=' );
 
 		return $signature;
