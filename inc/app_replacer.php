@@ -130,7 +130,7 @@ abstract class Optml_App_Replacer {
 			return self::$ignore_lazyload_strings;
 		}
 
-		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', [ 'skip-lazy' ] );
+		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', [ 'skip-lazy', 'data-skip-lazy' ] );
 
 		return array_merge( self::$possible_src_attributes, [ '<noscript' ] );
 	}

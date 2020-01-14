@@ -47,13 +47,18 @@ class Optml_Admin {
 	 */
 	public function register_public_actions() {
 		add_action( 'wp_head', array( $this, 'generator' ) );
-		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
 		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 
-		if ( $this->settings->use_lazyload() ) {
-			add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
-			add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
+		if ( ! $this->settings->use_lazyload() ) {
+			return;
 		}
+		if ( Optml_Manager::should_ignore_image_tags() ) {
+			return;
+		}
+		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
+		add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
+		add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
+
 	}
 
 	/**
@@ -85,7 +90,15 @@ class Optml_Admin {
 				-o-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 			}
 			img[data-opt-src]:not([data-opt-lazy-loaded]) {
-				opacity: .75;
+				  opacity: .75;	 
+				  -webkit-filter: blur(8px);
+				  -moz-filter: blur(8px);
+				  -o-filter: blur(8px);
+				  -ms-filter: blur(8px);
+				  filter: blur(8px);
+				  transform: scale(1.04);
+				  animation: 0.1s ease-in;
+				  -webkit-transform: translate3d(0, 0, 0);
 			}
 		
 		</style>
@@ -226,7 +239,7 @@ class Optml_Admin {
 		<div class="notice notice-warning optml-notice-optin">
 			<p> <?php printf( __( 'It seems your are close to the %1$s5.0000%2$s visits limit with %3$sOptiMole%4$s for this month. You might want to check the upgrade plans for a larger quota. %5$s %6$s What happens if i exceed the quota ?%7$s We will need to deliver back your original %8$sun-optimized%9$s images which might decrease your site speed perfomance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
 			<p>
-				<a href="https://optimole.com/#pricing" target="_blank" class="button button-primary"><span
+				<a href="https://optimole.com/pricing" target="_blank" class="button button-primary"><span
 							class="dashicons dashicons-external"></span><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 				</a>
 				<a class="button"
@@ -318,10 +331,6 @@ class Optml_Admin {
 	 * Enqueue frontend scripts.
 	 */
 	public function frontend_scripts() {
-
-		if ( ! $this->settings->use_lazyload() ) {
-			return;
-		}
 		$bg_css = $this->get_background_lazy_css();
 
 		wp_register_style( 'optm_lazyload_noscript_style', false );
@@ -374,16 +383,6 @@ class Optml_Admin {
 			return;
 		}
 		echo '<meta name="generator" content="Optimole ' . esc_attr( OPTML_VERSION ) . '">';
-
-		if ( ! current_theme_supports( 'custom-logo' ) ) {
-			return;
-		}
-		$custom_logo_id = get_theme_mod( 'custom_logo' );
-		$image          = wp_get_attachment_image_src( $custom_logo_id, 'full' );
-		if ( empty( $image ) ) {
-			return;
-		}
-		echo '<link rel="preload" href="' . esc_url( $image[0] ) . '" as="image">';
 	}
 
 	/**
@@ -428,7 +427,7 @@ class Optml_Admin {
 		}
 		$hints[] = sprintf( 'https://%s', $this->settings->get_cdn_url() );
 
-		if ( $this->settings->use_lazyload() ) {
+		if ( ! $this->settings->use_lazyload() && ! Optml_Manager::should_ignore_image_tags() ) {
 			$hints[] = sprintf( 'https://%s', OPTML_JS_CDN );
 		}
 
@@ -559,6 +558,11 @@ class Optml_Admin {
 				'<a href="https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors" target="_blank">',
 				'</a>'
 			),
+			'account_needed_subtitle_3'      => sprintf(
+				__( 'Here’s %1$show%2$s to install Optimole on your WordPress site in 3 steps.', 'optimole-wp' ),
+				'<a target="_blank" href="https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps">',
+				'</a>'
+			),
 			'account_needed_subtitle_2'      => sprintf(
 				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CDN.', 'optimole-wp' )
 			),
@@ -588,10 +592,10 @@ The root cause might be either a security plugin which blocks this feature or so
 			),
 			'upgrade'                        => array(
 				'title'    => __( 'Upgrade to Pro', 'optimole-wp' ),
-				'reason_1' => __( 'Faster CDN ( 180+ locations )', 'optimole-wp' ),
-				'reason_2' => __( 'Larger traffic bandwidth', 'optimole-wp' ),
-				'reason_3' => __( 'Optimize more images', 'optimole-wp' ),
-				'reason_4' => __( 'Custom domain', 'optimole-wp' ),
+				'reason_1' => __( 'More CDN locations( 200+ locations )', 'optimole-wp' ),
+				'reason_4' => __( 'Starting at $4.99 per month.', 'optimole-wp' ),
+				'reason_2' => __( 'Optimize more images', 'optimole-wp' ),
+				'reason_3' => __( 'Custom domain', 'optimole-wp' ),
 				'cta'      => __( 'View plans', 'optimole-wp' ),
 			),
 			'options_strings'                => array(

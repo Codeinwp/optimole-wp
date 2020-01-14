@@ -9,6 +9,9 @@
 
   @import "~bulma/bulma";
 
+  .select:not(.is-multiple):not(.is-loading)::after{
+    display: none;
+  }
   .card {
     transition: all 750ms ease-in-out;
     border: 0;
@@ -206,7 +209,6 @@ th.optml-image-ratio-heading {
     -ms-flex-negative: 1;
     flex-shrink: 1;
   }
-
   .tabs .icon {
     margin-left: 0.5em;
   }

@@ -42,6 +42,15 @@ final class Optml_Main {
 	public $admin;
 
 	/**
+	 * Holds the cli class.
+	 *
+	 * @access  public
+	 * @since   1.0.0
+	 * @var Optml_Cli Cli instance.
+	 */
+	public $cli;
+
+	/**
 	 * Optml_Main constructor.
 	 */
 	public function __construct() {
@@ -70,6 +79,9 @@ final class Optml_Main {
 			self::$_instance->manager = Optml_Manager::instance();
 			self::$_instance->rest    = new Optml_Rest();
 			self::$_instance->admin   = new Optml_Admin();
+			if ( class_exists( 'WP_CLI' ) ) {
+				self::$_instance->cli = new Optml_Cli();
+			}
 		}
 		$vendor_file = OPTML_PATH . 'vendor/autoload.php';
 		if ( is_readable( $vendor_file ) ) {

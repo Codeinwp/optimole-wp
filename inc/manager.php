@@ -69,6 +69,7 @@ final class Optml_Manager {
 		'divi_builder',
 		'thrive',
 		'master_slider',
+		'sassy_social_share',
 	);
 
 	/**
@@ -295,7 +296,7 @@ final class Optml_Manager {
 	 * @return mixed
 	 */
 	public function process_images_from_content( $content ) {
-		if ( $this->should_ignore_image_tags() ) {
+		if ( self::should_ignore_image_tags() ) {
 			return $content;
 		}
 		$images = self::parse_images_from_html( $content );
@@ -313,7 +314,7 @@ final class Optml_Manager {
 	 *
 	 * @return bool
 	 */
-	protected function should_ignore_image_tags() {
+	public static function should_ignore_image_tags() {
 		// Ignore image tags replacement in amp context as they are not available.
 		if ( function_exists( 'is_amp_endpoint' ) ) {
 			return is_amp_endpoint();
