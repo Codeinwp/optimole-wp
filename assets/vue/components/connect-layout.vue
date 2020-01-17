@@ -60,6 +60,15 @@
 									   v-html="strings.account_needed_subtitle_2"></p>
 								</div>
 							</div>
+							<div class="columns  is-vcentered">
+								<div class=" is-narrow is-hidden-touch column">
+									<span class="dashicons   icon dashicons-format-aside is-size-4 "></span>
+								</div>
+								<div class="column">
+									<p class="subtitle column is-size-6 is-vcentered has-text-left"
+									   v-html="strings.account_needed_subtitle_3"></p>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>

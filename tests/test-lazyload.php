@@ -93,6 +93,24 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertEquals( 2, substr_count( $replaced_content, 'old-srcset' ) );
 
 	}
+	public function test_lazyload_skip_standard_class() {
+		$text = ' <img class="alignnone wp-image-36442 size-full skip-lazy" src="http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png" >';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $text );
+
+		$this->assertNotContains( 'noscript', $replaced_content );
+
+		$this->assertEquals( 1, substr_count( $replaced_content, 'i.optimole.com' ) );
+	}
+	public function test_lazyload_skip_standard_attr() {
+		$text = ' <img class="alignnone wp-image-36442 size-full" data-skip-lazy src="http://example.org/wp-content/uploads/2018/06/start-a-blog-1-5.png" >';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $text );
+
+		$this->assertNotContains( 'noscript', $replaced_content );
+
+		$this->assertEquals( 1, substr_count( $replaced_content, 'i.optimole.com' ) );
+	}
 
 	public function test_replacement_with_jetpack_photon() {
 		$content = '<div class="before-footer">
