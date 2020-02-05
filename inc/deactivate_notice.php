@@ -9,7 +9,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Uninstall feedback module for ThemeIsle SDK.
  */
 class Optml_Deactivate_Notice {
-
+	/**
+	 * Optml_Deactivate_Notice The single instance of this class
+	 *
+	 * @var    object
+	 * @access   private
+	 */
 	private static $_instance = null;
 
 	/**
