@@ -92,7 +92,6 @@ function optml() {
 
 spl_autoload_register( 'optml_autoload' );
 
- $test = new Optml_Deactivate_Notice();
- $test -> load();
+Optml_Deactivate_Notice::instance();
 
 optml();

@@ -9,6 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Uninstall feedback module for ThemeIsle SDK.
  */
 class Optml_Deactivate_Notice {
+
+	private static $_instance = null;
+
 	/**
 	 * Default options for plugins.
 	 *
@@ -57,9 +60,24 @@ class Optml_Deactivate_Notice {
 		$this->add_plugin_feedback_popup_js();
 		$this->render_plugin_feedback_popup();
 	}
+	/**
+	 *  Constructor, hook all we need
+	 */
+	private function __construct() {
+		add_action( 'admin_head', array( $this, 'load_resources' ) );
+		add_action( 'wp_ajax_optml_uninstall_feedback', array( $this, 'post_deactivate' ) );
 
-
-
+		return $this;
+	}
+	/**
+	 * Create class instance, only if it has not been created
+	 */
+	public static function instance() {
+		if ( null === self::$_instance ) {
+			self::$_instance = new self();
+		}
+		return self::$_instance;
+	}
 	/**
 	 * Add feedback styles.
 	 */
@@ -73,7 +91,6 @@ class Optml_Deactivate_Notice {
 				box-shadow: 0 0 15px -5px rgba(0, 0, 0, .5);
 				transition: all .3s ease-out;
 			}
-
 
 			.optml-feedback .popup--header {
 				position: relative;
@@ -138,19 +155,6 @@ class Optml_Deactivate_Notice {
 				flex-wrap: wrap;
 			}
 
-
-
-			.optml-feedback .info-disclosure-content {
-				max-height: 0;
-				overflow: hidden;
-				width: 100%;
-				transition: .3s ease;
-			}
-
-			.optml-feedback .info-disclosure-content.active {
-				max-height: 300px;
-			}
-
 			.optml-feedback .info-disclosure-content p {
 				margin: 0;
 			}
@@ -177,15 +181,6 @@ class Optml_Deactivate_Notice {
 			.optml-feedback .buttons input:last-child {
 				margin-left: auto;
 			}
-
-
-
-
-
-
-
-
-
 
 			.optml-plugin-uninstall-feedback-popup .popup--header:before {
 				content: "";
@@ -366,21 +361,8 @@ class Optml_Deactivate_Notice {
 
 					$('<?php echo esc_attr( $popup_id ); ?> input[type="radio"]').on('change', function () {
 						var radio = $(this);
-						if (radio.parent().find('textarea').length > 0 &&
-							radio.parent().find('textarea').val().length === 0) {
-							$('<?php echo esc_attr( $popup_id ); ?> #optml-deactivate-yes').attr('disabled', 'disabled');
-							radio.parent().find('textarea').on('keyup', function (e) {
-								if ($(this).val().length === 0) {
-									$('<?php echo esc_attr( $popup_id ); ?> #optml-deactivate-yes').attr('disabled', 'disabled');
-								} else {
-									$('<?php echo esc_attr( $popup_id ); ?> #optml-deactivate-yes').removeAttr('disabled');
-								}
-							});
-						} else {
-							$('<?php echo esc_attr( $popup_id ); ?> #optml-deactivate-yes').removeAttr('disabled');
-						}
+						$('<?php echo esc_attr( $popup_id ); ?> #optml-deactivate-yes').removeAttr('disabled');
 					});
-
 					$('<?php echo esc_attr( $popup_id ); ?> #optml-deactivate-no').on('click', function (e) {
 						e.preventDefault();
 						e.stopPropagation();
@@ -391,7 +373,6 @@ class Optml_Deactivate_Notice {
 							location.href = redirectUrl;
 						}
 					});
-
 					$('<?php echo esc_attr( $popup_id ); ?> #optml-deactivate-yes').on('click', function (e) {
 						e.preventDefault();
 						e.stopPropagation();
@@ -402,8 +383,6 @@ class Optml_Deactivate_Notice {
 							'action': '<?php echo 'optml_uninstall_feedback'; ?>',
 							'nonce': '<?php echo wp_create_nonce( (string) __CLASS__ ); ?>',
 							'id': selectedOption.parent().attr('optml-option-id'),
-							'type': 'plugin',
-							'key': '<?php echo esc_attr( $key ); ?>'
 						};
 						$.ajax({
 							type: 'POST',
@@ -454,11 +433,5 @@ class Optml_Deactivate_Notice {
 		}
 		wp_send_json( [] );
 
-	}
-	public function load() {
-		add_action( 'admin_head', array( $this, 'load_resources' ) );
-		add_action( 'wp_ajax_optml_uninstall_feedback', array( $this, 'post_deactivate' ) );
-
-		return $this;
 	}
 }
