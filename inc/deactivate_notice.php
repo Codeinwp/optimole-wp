@@ -420,7 +420,7 @@ class Optml_Deactivate_Notice {
 
 		if ( empty( $_POST['id'] ) ) {
 
-			wp_send_json( [] );
+			wp_send_json( array() );
 
 			return;
 		}
@@ -430,7 +430,7 @@ class Optml_Deactivate_Notice {
 				delete_option( $option );
 			}
 		}
-		wp_send_json( [] );
+		wp_send_json( array() );
 
 	}
 }
