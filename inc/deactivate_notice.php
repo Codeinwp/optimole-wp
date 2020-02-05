@@ -26,7 +26,6 @@ class Optml_Deactivate_Notice {
 		),
 	);
 
-
 	/**
 	 * Default heading for plugin.
 	 *
@@ -262,8 +261,6 @@ class Optml_Deactivate_Notice {
 		<?php
 	}
 
-
-
 	/**
 	 * Render the options list.
 	 *
@@ -409,9 +406,6 @@ class Optml_Deactivate_Notice {
 		<?php
 
 	}
-
-
-
 
 	/**
 	 * Called when the deactivate button is clicked.
