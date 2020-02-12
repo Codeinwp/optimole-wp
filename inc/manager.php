@@ -70,6 +70,7 @@ final class Optml_Manager {
 		'thrive',
 		'master_slider',
 		'sassy_social_share',
+		'shareaholic',
 	);
 
 	/**
