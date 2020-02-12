@@ -156,6 +156,9 @@ final class Optml_Manager {
 		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
 			return false; // @codeCoverageIgnore
 		}
+		if ( array_key_exists( 'fb-edit', $_GET ) && ! empty( $_GET['fb-edit'] ) ) {
+			return false; // @codeCoverageIgnore
+		}
 		/**
 		 * Disable replacement on POST request and when user is logged in, but allows for sample image call widget in dashboard
 		 */
