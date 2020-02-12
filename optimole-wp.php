@@ -45,6 +45,10 @@ function optml_autoload( $class ) {
  */
 function optml_deactivate() {
 	if ( is_plugin_active( 'optimole-wp/optimole-wp.php' ) ) {
+		$option_name = array('optml-version', 'optml_dismissed_conflicts', 'optml_settings', 'optml_notice_optin');
+		foreach ( $option_name as $index => $option ) {
+			delete_option( $option );
+		}
 		deactivate_plugins( 'optimole-wp/optimole-wp.php' );
 	}
 }
@@ -91,7 +95,5 @@ function optml() {
 }
 
 spl_autoload_register( 'optml_autoload' );
-
-Optml_Deactivate_Notice::instance();
 
 optml();
