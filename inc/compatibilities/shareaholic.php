@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Class Optml_sassy_social_share.
+ * Class Optml_shareaholic.
  *
  * @reason Shareaholic picks eco images to share
  */
@@ -27,8 +27,8 @@ class Optml_shareaholic extends Optml_compatibility {
 		add_action(
 			'wp_enqueue_scripts',
 			function () {
-				wp_register_script( 'optml-typekit', false );
-				wp_enqueue_script( 'optml-typekit' );
+				wp_register_script( 'optml-shareaholic', false );
+				wp_enqueue_script( 'optml-shareaholic' );
 				$script = '
 			(function(w, d){
 					w.addEventListener("load", function(){
@@ -47,7 +47,7 @@ class Optml_shareaholic extends Optml_compatibility {
 					});
 			}(window, document));
 		';
-				wp_add_inline_script( 'optml-typekit', $script );
+				wp_add_inline_script( 'optml-shareaholic', $script );
 			}
 		);
 	}
