@@ -564,7 +564,7 @@ class Optml_Admin {
 				'</a>'
 			),
 			'account_needed_subtitle_2'      => sprintf(
-				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CDN.', 'optimole-wp' )
+				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CD from 200 locations.', 'optimole-wp' )
 			),
 			'notice_just_activated'          => ! $this->settings->is_connected() ?
 				sprintf( __( '%1$sImage optimisation is currently running.%2$s <br/> Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You might see for the very first image request being redirected to the original URL while we do the optimization in the background.<br/> You can relax, we\'ll take it from here.', 'optimole-wp' ), '<strong>', '</strong>' )
@@ -592,10 +592,10 @@ The root cause might be either a security plugin which blocks this feature or so
 			),
 			'upgrade'                        => array(
 				'title'    => __( 'Upgrade to Pro', 'optimole-wp' ),
-				'reason_1' => __( 'More CDN locations( 200+ locations )', 'optimole-wp' ),
-				'reason_4' => __( 'Starting at $4.99 per month.', 'optimole-wp' ),
-				'reason_2' => __( 'Optimize more images', 'optimole-wp' ),
+				'reason_1' => __( 'Priority & Live Chat support', 'optimole-wp' ),
+				'reason_2' => __( 'Extend visits limit', 'optimole-wp' ),
 				'reason_3' => __( 'Custom domain', 'optimole-wp' ),
+				'reason_4' => __( 'Site audit', 'optimole-wp' ),
 				'cta'      => __( 'View plans', 'optimole-wp' ),
 			),
 			'options_strings'                => array(

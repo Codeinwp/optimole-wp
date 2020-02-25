@@ -29,12 +29,12 @@
                                :class="tab === 'exclusions' ? 'is-active' : ''"
                                :title="all_strings.settings_exclusions_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_exclusions_menu_item}}</a>
                         </li>
-                        <li><a
-                                @click="changeTab('watermark')" href="#"
-                                :class="tab === 'watermark' ? 'is-active' : ''"
-                                :title="all_strings.watermarks_menu_item+' '+all_strings.settings_menu_item">{{all_strings.watermarks_menu_item}}
-                            <span
-                                    class=" optml-beta is-normal tag is-warning">Beta</span></a></li>
+<!--                        <li><a-->
+<!--                                @click="changeTab('watermark')" href="#"-->
+<!--                                :class="tab === 'watermark' ? 'is-active' : ''"-->
+<!--                                :title="all_strings.watermarks_menu_item+' '+all_strings.settings_menu_item">{{all_strings.watermarks_menu_item}}-->
+<!--                            <span-->
+<!--                                    class=" optml-beta is-normal tag is-warning">Beta</span></a></li>-->
                     </ul>
                 </li>
             </ul>
