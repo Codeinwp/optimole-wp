@@ -183,7 +183,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! self::$is_lazyload_placeholder && ! $should_ignore_rescale ) {
 			$optml_args['quality'] = 'eco';
 			$optml_args['resize']  = [];
-			$low_url               = apply_filters( 'optml_content_url', $is_slashed ? stripslashes( $original_url ) : $original_url, $optml_args );
+			$low_url               = apply_filters( 'optml_content_url', $original_url, $optml_args );
 			$low_url               = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 		} else {
 			$low_url = $this->get_svg_for(
@@ -221,12 +221,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		);
 		$new_tag       = preg_replace(
 			[
-				'/( src(?>=|"|\'|\s|\\\\)*)' . preg_quote( $original_url, '/' ) . '/m',
-				'/ src=/m',
+				'/((?:\s|\'|"){1,}src(?>=|"|\'|\s|\\\\)*)' . preg_quote( $original_url, '/' ) . '/m',
+				'/<img/im',
 			],
 			[
 				"$1$low_url",
-				$opt_src . ' src=',
+				'<img' . $opt_src,
 			],
 			$new_tag,
 			1

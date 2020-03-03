@@ -28,6 +28,16 @@ trait Optml_Normalizer {
 	}
 
 	/**
+	 * Strip slashes on unicode encoded strings.
+	 *
+	 * @param string $string Input string.
+	 *
+	 * @return string Decoded string.
+	 */
+	public function strip_slashes( $string ) {
+		return html_entity_decode( stripslashes( preg_replace( '/\\\u([\da-fA-F]{4})/', '&#x\1;', $string ) ) );
+	}
+	/**
 	 * Normalize value to an integer within bounds.
 	 *
 	 * @param mixed   $value Value to process.

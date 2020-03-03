@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Image optimization service by Optimole
  * Description:       Complete handling of your website images.
- * Version:           2.2.6
+ * Version:           2.2.9
  * Author:            Optimole
  * Author URI:        https://optimole.com
  * License:           GPL-2.0+
@@ -26,7 +26,7 @@ function optml_autoload( $class ) {
 	if ( strpos( $class, $prefix ) !== 0 ) {
 		return;
 	}
-	foreach ( array( '/inc/', '/inc/traits/', '/inc/image_properties/', '/inc/compatibilities/', '/inc/conflicts/' ) as $folder ) {
+	foreach ( array( '/inc/', '/inc/traits/', '/inc/image_properties/', '/inc/compatibilities/', '/inc/conflicts/', '/inc/cli/' ) as $folder ) {
 		$file = str_replace( $prefix . '_', '', $class );
 		$file = strtolower( $file );
 		$file = dirname( __FILE__ ) . $folder . $file . '.php';
@@ -75,7 +75,7 @@ function optml() {
 	define( 'OPTML_URL', plugin_dir_url( __FILE__ ) );
 	define( 'OPTML_JS_CDN', 'd5jmkjjpb7yfg.cloudfront.net' );
 	define( 'OPTML_PATH', plugin_dir_path( __FILE__ ) );
-	define( 'OPTML_VERSION', '2.2.6' );
+	define( 'OPTML_VERSION', '2.2.9' );
 	define( 'OPTML_NAMESPACE', 'optml' );
 	define( 'OPTML_BASEFILE', __FILE__ );
 	// Fallback for old PHP versions when this constant is not defined.

@@ -105,7 +105,7 @@
                 </div>
                 <div class="card-footer  ">
                     <div class="card-footer-item">
-                        <a href="https://optimole.com#pricing" target="_blank"
+                        <a href="https://optimole.com/pricing" target="_blank"
                            class="button is-centered is-small is-success"><span
                                 class="dashicons dashicons-external"></span>{{strings.upgrade.cta}}</a>
                     </div>

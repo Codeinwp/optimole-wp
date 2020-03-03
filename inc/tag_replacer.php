@@ -87,15 +87,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			)
 		);
 
-		$link_webm = apply_filters(
-			'optml_content_url',
-			$image_url,
-			array('width' => 'auto',
-				'height' => 'auto',
-				'format' => 'webm',
-			)
-		);
-
 		$link_png = apply_filters(
 			'optml_content_url',
 			$image_url,
@@ -116,7 +107,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			[
 				'original-src=',
 				'<video autoplay muted loop playsinline poster="' . $link_png . '"',
-				'><source src="' . $link_webm . '" type="video/webm"><source src="' . $link_mp4 . '" type="video/mp4"></video>',
+				'><source src="' . $link_mp4 . '" type="video/mp4"></video>',
 			],
 			$video_tag
 		);
@@ -143,7 +134,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 			$is_slashed = strpos( $images['img_url'][ $index ], '\/' ) !== false;
 
-			$src = $tmp = $is_slashed ? stripslashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ];
+			$src = $tmp = $is_slashed ? $this->strip_slashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ];
 
 			if ( strpos( $src, $this->upload_resource['content_path'] ) === 0 ) {
 				$src = $tmp = untrailingslashit( $this->upload_resource['content_host'] ) . $src;

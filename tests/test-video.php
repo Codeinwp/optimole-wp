@@ -47,12 +47,11 @@ class Test_Video_Tag extends WP_UnitTestCase {
     public function test_should_replace_tag () {
 
         $replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_GIF );
+
         $this->assertContains( 'i.optimole.com', $replaced_content );
         $this->assertContains( '<video autoplay muted loop playsinline poster', $replaced_content );
         $this->assertContains( 'type="video/mp4', $replaced_content );
-        $this->assertContains( 'type="video/webm', $replaced_content );
         $this->assertContains( '/f:mp4', $replaced_content );
-        $this->assertContains( '/f:webm', $replaced_content );
         $this->assertContains( 'https://www.example.org', $replaced_content );
       }
     public function test_should_not_replace_tag () {
@@ -60,9 +59,7 @@ class Test_Video_Tag extends WP_UnitTestCase {
         $replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_NOT_GIF );
         $this->assertNotContains( '<video autoplay muted loop playsinline poster', $replaced_content );
         $this->assertNotContains( 'type="video/mp4', $replaced_content );
-        $this->assertNotContains( 'type="video/webm', $replaced_content );
         $this->assertNotContains( '/f:mp4', $replaced_content );
-        $this->assertNotContains( '/f:webm', $replaced_content );
 
     }
 }
