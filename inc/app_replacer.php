@@ -104,6 +104,13 @@ abstract class Optml_App_Replacer {
 	protected $is_allowed_site = array();
 
 	/**
+	 * Holds the most recent value for the cache buster.
+	 *
+	 * @var string Cache Buster value.
+	 */
+	protected $active_cache_buster = '1';
+
+	/**
 	 * Returns possible src attributes.
 	 *
 	 * @return array
@@ -325,6 +332,7 @@ abstract class Optml_App_Replacer {
 		);
 
 		$this->allowed_sources              = $this->extract_domain_from_urls( $service_data['whitelist'] );
+		$this->active_cache_buster          = isset( $service_data['cache_buster'] ) ? $service_data['cache_buster'] : crc32( Optml_Config::$key );
 		// Allways allow Photon urls.
 		$this->allowed_sources['i0.wp.com'] = true;
 		$this->allowed_sources['i1.wp.com'] = true;

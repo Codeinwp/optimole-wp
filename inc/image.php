@@ -52,6 +52,13 @@ class Optml_Image {
 	 */
 	private $source_url = '';
 
+	/**
+	 * Cache Buster passed from  Optimole Service.
+	 *
+	 * @var string Active Cache Buster
+	 */
+	private $cache_buster = '1';
+
 
 
 	/**
@@ -62,7 +69,7 @@ class Optml_Image {
 	 *
 	 * @throws \InvalidArgumentException In case that the url is not provided.
 	 */
-	public function __construct( $url = '', $args = array() ) {
+	public function __construct( $url = '', $args = array(), $cache_buster = '1' ) {
 		if ( empty( $url ) ) {
 			throw new \InvalidArgumentException( 'Optimole image builder requires the source url to optimize.' ); // @codeCoverageIgnore
 		}
@@ -79,6 +86,8 @@ class Optml_Image {
 			$this->resize->set( $args['resize'] );
 		}
 		$this->source_url = $url;
+
+		$this->cache_buster = $cache_buster;
 
 	}
 
@@ -172,10 +181,9 @@ class Optml_Image {
 	 * @return string
 	 */
 	public function get_cache_token() {
-		$cache_buster = get_option( 'cache_buster', '1' );
 		$url = strtok( $this->source_url, '?' );
-		$string = $this->get_token_from_cache( $url, 3 ) . $cache_buster;
-		return $this->get_token_from_cache( $string, 3 ) . ':' . dechex( $cache_buster );
+		$string = $this->get_token_from_cache( $url, 3 ) . $this->cache_buster;
+		return $this->get_token_from_cache( $string, 3 ) . '~' . dechex( $this->cache_buster );
 	}
 
 	/**
