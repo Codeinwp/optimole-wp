@@ -121,7 +121,7 @@ class Optml_Image {
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
-		$path = sprintf( '/%s%s', $this->get_domain_token() . '-' . $this->get_url_token(), $path );
+		$path = sprintf( '/%s%s', $this->get_domain_token() . '-' . $this->get_url_token() . '-' . $this->get_cache_token(), $path );
 
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 
@@ -135,8 +135,8 @@ class Optml_Image {
 	 *
 	 * @return string
 	 */
-	private function get_cache_token( $source, $size = 8, $cache_buster = '' ) {
-		$key         = crc32( $source . $cache_buster );
+	private function get_token_from_cache( $source, $size = 8 ) {
+		$key         = crc32( $source );
 		$cache_token = wp_cache_get( $key, 'optml_cache_tokens' );
 		if ( $cache_token === false ) {
 			$cache_token = $this->get_signature( $source, $size );
@@ -153,7 +153,7 @@ class Optml_Image {
 	public function get_domain_token() {
 		$parts  = parse_url( $this->source_url );
 		$domain = isset( $parts['host'] ) ? str_replace( 'www.', '', $parts['host'] ) : '';
-		return $this->get_cache_token( $domain, 5 );
+		return $this->get_token_from_cache( $domain, 5 );
 	}
 
 	/**
@@ -163,8 +163,19 @@ class Optml_Image {
 	 */
 	public function get_url_token() {
 		$url = strtok( $this->source_url, '?' );
-		$cache_buster = get_option( 'optm_cache_buster', '1' );
-		return $this->get_cache_token( $url, 6, $cache_buster );
+		return $this->get_token_from_cache( $url, 3 );
+	}
+
+	/**
+	 * Get the token for the cache.
+	 *
+	 * @return string
+	 */
+	public function get_cache_token() {
+		$cache_buster = get_option( 'cache_buster', '1' );
+		$url = strtok( $this->source_url, '?' );
+		$string = $this->get_token_from_cache( $url, 3 ) . $cache_buster;
+		return $this->get_token_from_cache( $string, 3 ) . ':' . dechex( $cache_buster );
 	}
 
 	/**
