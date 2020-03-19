@@ -14,7 +14,8 @@ final class Optml_Api {
 	 *
 	 * @var string Api root.
 	 */
-	private $api_root = 'https://dashboard.optimole.com/api/';
+	//private $api_root = 'https://dashboard.optimole.com/api/';
+	private $api_root = 'http://6821029a.ngrok.io/api/';
 	/**
 	 * Hold the user api key.
 	 *
@@ -41,6 +42,19 @@ final class Optml_Api {
 		}
 
 		return $this->request( '/optml/v1/image/details', 'POST' );
+	}
+
+	/**
+	 * Get cache token from service.
+	 *
+	 * @return array|bool User data.
+	 */
+	public function get_cache_token( $api_key = '' ) {
+		if ( ! empty( $api_key ) ) {
+			$this->api_key = $api_key;
+		}
+
+		return $this->request( '/optml/v1/settings/tokens', 'POST' );
 	}
 
 	/**
