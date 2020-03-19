@@ -102,9 +102,12 @@ const clearCache = function ( {commit, state}, data ) {
 	return Vue.http(
 		{
 			url: optimoleDashboardApp.root + '/clear_cache',
-			method: 'GET',
+			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
+			body: {
+				'token': data.token
+			},
 			responseType: 'json'
 		}
 	).then(

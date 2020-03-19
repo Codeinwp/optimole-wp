@@ -86,11 +86,15 @@
         mounted: function () {
             this.isReplacerOff = (this.site_settings.image_replacer === 'disabled');
 
+            if ( this.site_settings.cache_buster === '' ) {
+            	this.clearCache()
+            }
+
             this.$emit('update-status', !this.isReplacerOff);
         },
         methods: {
 	        clearCache: function () {
-		        this.$store.dispatch('clearCache', {});
+		        this.$store.dispatch('clearCache', { token: this.site_settings.cache_buster });
             },
             saveChanges: function () {
                 this.$store.dispatch('saveSettings', {

@@ -244,11 +244,17 @@ class Optml_Rest {
 			'/clear_cache',
 			array(
 				array(
-					'methods'             => \WP_REST_Server::READABLE,
+					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
 					'callback'            => array( $this, 'clear_cache_request' ),
+					'args'                => array(
+						'token' => array(
+							'type'     => 'string',
+							'required' => true,
+						),
+					),
 				),
 			)
 		);
@@ -262,9 +268,10 @@ class Optml_Rest {
 	 * @return WP_Error|WP_REST_Response
 	 */
 	public function clear_cache_request( WP_REST_Request $request ) {
+		$token = $request->get_param( 'token' );
 		$request = new Optml_Api();
-		$data    = $request->get_cache_token();
-		if ( $data === false || is_wp_error( $data ) || empty( $data ) || ! isset( $data[0]['token'] ) ) {
+		$data    = $request->get_cache_token( $token );
+		if ( $data === false || is_wp_error( $data ) || empty( $data ) || ! isset( $data['token'] ) ) {
 			$extra = '';
 			if ( is_wp_error( $data ) ) {
 				/**
@@ -277,10 +284,8 @@ class Optml_Rest {
 			wp_send_json_error( __( 'Can not get new token from Optimole service', 'optimole-wp' ) . $extra );
 		}
 		$settings = new Optml_Settings();
-		$service_data = $settings->get( 'service_data' );
-		$service_data['cache_buster'] = $data[0]['token'];
-		$settings->update( 'service_data', $service_data );
-		return $service_data;
+		$settings->update( 'cache_buster', $data['token'] );
+		return $this->response( $settings->get_site_settings() );
 	}
 
 	/**

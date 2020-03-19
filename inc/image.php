@@ -130,7 +130,7 @@ class Optml_Image {
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
-		$path = sprintf( '/%s%s', $this->get_domain_token() . '-' . $this->get_url_token() . '-' . $this->get_cache_token(), $path );
+		$path = sprintf( '/%s%s', $this->get_domain_token() . '-' . $this->cache_buster, $path );
 
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 
@@ -163,27 +163,6 @@ class Optml_Image {
 		$parts  = parse_url( $this->source_url );
 		$domain = isset( $parts['host'] ) ? str_replace( 'www.', '', $parts['host'] ) : '';
 		return $this->get_token_from_cache( $domain, 5 );
-	}
-
-	/**
-	 * Get the token for the url.
-	 *
-	 * @return string
-	 */
-	public function get_url_token() {
-		$url = strtok( $this->source_url, '?' );
-		return $this->get_token_from_cache( $url, 3 );
-	}
-
-	/**
-	 * Get the token for the cache.
-	 *
-	 * @return string
-	 */
-	public function get_cache_token() {
-		$url = strtok( $this->source_url, '?' );
-		$string = $this->get_token_from_cache( $url, 3 ) . $this->cache_buster;
-		return $this->get_token_from_cache( $string, 3 ) . '~' . dechex( $this->cache_buster );
 	}
 
 	/**

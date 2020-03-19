@@ -49,12 +49,12 @@ final class Optml_Api {
 	 *
 	 * @return array|bool User data.
 	 */
-	public function get_cache_token( $api_key = '' ) {
+	public function get_cache_token( $token = '', $api_key = '' ) {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
 
-		return $this->request( '/optml/v1/settings/tokens', 'POST' );
+		return $this->request( '/optml/v1/settings/tokens', 'POST', array( 'token' => $token ) );
 	}
 
 	/**

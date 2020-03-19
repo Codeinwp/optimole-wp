@@ -33,13 +33,12 @@ const restApiNotWorking = ( state, data ) => {
 	state.apiError = data;
 };
 const updateCache = ( state, data ) => {
-	state.userData = data;
+	updateSettings( state, data );
 };
 const updateSettings = ( state, data ) => {
-
 	for ( var setting in data ) {
-		state.site_settings[setting] = data[setting]; }
-
+		state.site_settings[setting] = data[setting];
+	}
 };
 
 const updateWatermark = ( state, data ) => {
