@@ -32,6 +32,9 @@ const updateSampleRate = ( state, data ) => {
 const restApiNotWorking = ( state, data ) => {
 	state.apiError = data;
 };
+const updateCache = ( state, data ) => {
+	state.userData = data;
+};
 const updateSettings = ( state, data ) => {
 
 	for ( var setting in data ) {
@@ -51,18 +54,19 @@ const updateConflicts = ( state, data ) => {
 };
 
 export default {
-	toggleLoading,
-	toggleConnecting,
-	toggleKeyValidity,
-	toggleConnectedToOptml,
-	toggleIsServiceLoaded,
-	updateUserData,
-	updateApiKey,
-	updateSampleRate,
 	restApiNotWorking,
-	updateSettings,
-	updateServiceError,
-	updateWatermark,
+	toggleConnectedToOptml,
+	toggleConnecting,
+	toggleIsServiceLoaded,
+	toggleKeyValidity,
+	toggleLoading,
+	updateApiKey,
+	updateCache,
 	updateConflicts,
-	updateOptimizedImages
+	updateOptimizedImages,
+	updateSampleRate,
+	updateServiceError,
+	updateSettings,
+	updateUserData,
+	updateWatermark
 };

@@ -66,6 +66,7 @@ class Optml_Rest {
 		$this->register_image_routes();
 		$this->register_watermark_routes();
 		$this->register_conflict_routes();
+		$this->register_cache_routes();
 	}
 
 	/**
@@ -232,6 +233,51 @@ class Optml_Rest {
 				),
 			)
 		);
+	}
+
+	/**
+	 * Method to register cache specific routes.
+	 */
+	public function register_cache_routes() {
+		register_rest_route(
+			$this->namespace,
+			'/clear_cache',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'clear_cache_request' ),
+				),
+			)
+		);
+	}
+
+	/**
+	 * Clear Cache request.
+	 *
+	 * @param WP_REST_Request $request clear cache rest request.
+	 *
+	 * @return WP_Error|WP_REST_Response
+	 */
+	public function clear_cache_request( WP_REST_Request $request ) {
+		$request = new Optml_Api();
+		$data    = $request->get_cache_token();
+		if ( $data === false || is_wp_error( $data ) ) {
+			$extra = '';
+			if ( is_wp_error( $data ) ) {
+				/**
+				 * Error from api.
+				 *
+				 * @var WP_Error $data Error object.
+				 */
+				$extra = sprintf( __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
+			}
+			wp_send_json_error( __( 'Can not get new token from Optimole service', 'optimole-wp' ) . $extra );
+		}
+		$settings = new Optml_Settings();
+		return $settings->get( 'service_data' );
 	}
 
 	/**
