@@ -14,8 +14,7 @@ final class Optml_Api {
 	 *
 	 * @var string Api root.
 	 */
-	//private $api_root = 'https://dashboard.optimole.com/api/';
-	private $api_root = 'http://6821029a.ngrok.io/api/';
+	private $api_root = 'https://dashboard.optimole.com/api/';
 	/**
 	 * Hold the user api key.
 	 *

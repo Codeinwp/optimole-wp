@@ -86,10 +86,6 @@
         mounted: function () {
             this.isReplacerOff = (this.site_settings.image_replacer === 'disabled');
 
-            if ( this.site_settings.cache_buster === '' ) {
-            	this.clearCache()
-            }
-
             this.$emit('update-status', !this.isReplacerOff);
         },
         methods: {
