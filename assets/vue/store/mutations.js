@@ -32,9 +32,6 @@ const updateSampleRate = ( state, data ) => {
 const restApiNotWorking = ( state, data ) => {
 	state.apiError = data;
 };
-const updateCache = ( state, data ) => {
-	updateSettings( state, data );
-};
 const updateSettings = ( state, data ) => {
 	for ( var setting in data ) {
 		state.site_settings[setting] = data[setting];
@@ -60,7 +57,6 @@ export default {
 	toggleKeyValidity,
 	toggleLoading,
 	updateApiKey,
-	updateCache,
 	updateConflicts,
 	updateOptimizedImages,
 	updateSampleRate,

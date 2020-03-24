@@ -105,15 +105,14 @@ const clearCache = function ( {commit, state}, data ) {
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
-			body: {
-				'token': data.token
-			},
 			responseType: 'json'
 		}
 	).then(
 		function ( response ) {
 			if ( response.body.code === 'success' ) {
-				commit( 'updateCache', response.body.data );
+				console.log( '%c New cache token generated.', 'color: #59B278' );
+			} else {
+				console.log( '%c Could not generate cache token.', 'color: #E7602A' );
 			}
 			commit( 'toggleLoading', false );
 

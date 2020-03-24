@@ -283,7 +283,6 @@ class Optml_Settings {
 		return array(
 			'quality'              => $this->get_quality(),
 			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
-			'cache_buster'         => $this->get( 'cache_buster' ),
 			'lazyload'             => $this->get( 'lazyload' ),
 			'network_optimization' => $this->get( 'network_optimization' ),
 			'retina_images'        => $this->get( 'retina_images' ),

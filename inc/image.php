@@ -57,7 +57,7 @@ class Optml_Image {
 	 *
 	 * @var string Active Cache Buster
 	 */
-	private $cache_buster = '1';
+	private $cache_buster = '';
 
 
 
@@ -69,7 +69,7 @@ class Optml_Image {
 	 *
 	 * @throws \InvalidArgumentException In case that the url is not provided.
 	 */
-	public function __construct( $url = '', $args = array(), $cache_buster = '1' ) {
+	public function __construct( $url = '', $args = array(), $cache_buster = '' ) {
 		if ( empty( $url ) ) {
 			throw new \InvalidArgumentException( 'Optimole image builder requires the source url to optimize.' ); // @codeCoverageIgnore
 		}
@@ -130,7 +130,7 @@ class Optml_Image {
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
-		$path = sprintf( '/%s%s', $this->get_domain_token() . '-' . $this->cache_buster, $path );
+		$path = sprintf( '/%s%s', $this->get_domain_token() . '-' . $this->get_cache_buster(), $path );
 
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 
@@ -163,6 +163,28 @@ class Optml_Image {
 		$parts  = parse_url( $this->source_url );
 		$domain = isset( $parts['host'] ) ? str_replace( 'www.', '', $parts['host'] ) : '';
 		return $this->get_token_from_cache( $domain, 5 );
+	}
+
+	/**
+	 * Get token for the url.
+	 *
+	 * @return string
+	 */
+	private function get_url_token() {
+		$url = strtok( $this->source_url, '?' );
+		return $this->get_token_from_cache( $url, 6 );
+	}
+
+	/**
+	 * Return a the cache buster, defaults to the url token used previously.
+	 *
+	 * @return string
+	 */
+	public function get_cache_buster() {
+		if ( $this->cache_buster !== '' ) {
+			return $this->cache_buster;
+		}
+		return $this->get_url_token();
 	}
 
 	/**

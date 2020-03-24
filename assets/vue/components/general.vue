@@ -90,7 +90,7 @@
         },
         methods: {
 	        clearCache: function () {
-		        this.$store.dispatch('clearCache', { token: this.site_settings.cache_buster });
+		        this.$store.dispatch('clearCache', {});
             },
             saveChanges: function () {
                 this.$store.dispatch('saveSettings', {
