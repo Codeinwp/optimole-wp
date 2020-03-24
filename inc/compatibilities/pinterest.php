@@ -24,7 +24,7 @@ class Optml_pinterest extends Optml_compatibility {
 		$load = false;
 		$selectorsArray = array();
 		if ( $this->isShareaholic() ) {
-			$selectorsArray[] = 'li.shareaholic-share-button[data-service=\'pinterest\']';
+			$selectorsArray[] = 'li.shareaholic-share-button[data-service=\"pinterest\"]';
 			$load = true;
 		}
 		if ( $this->isSassySocialShare() ) {
@@ -47,20 +47,33 @@ class Optml_pinterest extends Optml_compatibility {
 				$script = sprintf(
 					'
 			(function(w, d){
-					w.addEventListener("load", function(){
-						let p=d.querySelectorAll( "%s" );
-						p.forEach ( function (button,index)  {
-							button.addEventListener( "mouseover", () => {							
-							let images = d.getElementsByTagName( "img" );
-							for ( let i = 0; i < images.length; i++ ) {
-								 if ( "optSrc" in images[i].dataset ) {
-								 	images[i].src = images[i].dataset.optSrc ;
-								 }
-								}
-							},{once:true} );
-						});
-						
+			w.addEventListener("load", function() {
+					const addCustomEventListener = function (selector, event, handler) {
+		                let rootElement = document.querySelector(\'body\');
+		                 //since the root element is set to be body for our current dealings
+		                  rootElement.addEventListener(event, function (evt) {
+			                  var targetElement = evt.target;
+			                  while (targetElement != null) {
+				                  if (targetElement.matches(selector)) {
+					                  handler(evt);
+					                  return;
+				                  }
+			                      targetElement = targetElement.parentElement;
+			                  }
+		                  },
+		                  true
+		                   );
+                   };
+					//adding the Event Listeners to all the li tasks
+					addCustomEventListener(\'%s\',\'mouseover\',function(){
+						let images = d.getElementsByTagName( "img" );
+						for ( let i = 0; i < images.length; i++ ) {
+							if ( "optSrc" in images[i].dataset ) {
+								images[i].src = images[i].dataset.optSrc ;
+							}
+						}
 					});
+			});		
 			}(window, document));
 		',
 					$this->selectors
