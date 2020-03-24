@@ -69,8 +69,7 @@ final class Optml_Manager {
 		'divi_builder',
 		'thrive',
 		'master_slider',
-		'sassy_social_share',
-		'shareaholic',
+		'pinterest',
 	);
 
 	/**
