@@ -50,15 +50,14 @@ class Optml_pinterest extends Optml_compatibility {
 					w.addEventListener("load", function(){
 						let p=d.querySelectorAll( "%s" );
 						p.forEach ( function (button,index)  {
-							button.addEventListener( "mouseover", () => {
-							console.log("here");
+							button.addEventListener( "mouseover", () => {							
 							let images = d.getElementsByTagName( "img" );
 							for ( let i = 0; i < images.length; i++ ) {
 								 if ( "optSrc" in images[i].dataset ) {
 								 	images[i].src = images[i].dataset.optSrc ;
 								 }
 								}
-							},{once:false} );
+							},{once:true} );
 						});
 						
 					});
