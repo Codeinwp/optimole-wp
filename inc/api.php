@@ -53,7 +53,7 @@ final class Optml_Api {
 			$this->api_key = $api_key;
 		}
 
-		return $this->request( '/optml/v1/settings/tokens', 'POST', array( 'token' => $token ) );
+		return $this->request( '/optml/v1/cache/tokens', 'POST', array( 'token' => $token ) );
 	}
 
 	/**

@@ -249,12 +249,6 @@ class Optml_Rest {
 						return current_user_can( 'manage_options' );
 					},
 					'callback'            => array( $this, 'clear_cache_request' ),
-					'args'                => array(
-						'token' => array(
-							'type'     => 'string',
-							'required' => true,
-						),
-					),
 				),
 			)
 		);
@@ -285,7 +279,7 @@ class Optml_Rest {
 			wp_send_json_error( __( 'Can not get new token from Optimole service', 'optimole-wp' ) . $extra );
 		}
 		$settings->update( 'cache_buster', $data['token'] );
-		return $this->response( $settings->get_site_settings() );
+		return $this->response( $data['token'], '200' );
 	}
 
 	/**
