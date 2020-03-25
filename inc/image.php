@@ -130,7 +130,7 @@ class Optml_Image {
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
-		$path = sprintf( '/%s%s', $this->get_domain_token() . '-' . $this->get_cache_buster(), $path );
+		$path = sprintf( '/%s%s', $this->get_domain_token() . $this->get_cache_buster(), $path );
 
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 
@@ -182,9 +182,9 @@ class Optml_Image {
 	 */
 	public function get_cache_buster() {
 		if ( $this->cache_buster !== '' ) {
-			return $this->cache_buster;
+			return '.' . $this->cache_buster;
 		}
-		return $this->get_url_token();
+		return '-' . $this->get_url_token();
 	}
 
 	/**
