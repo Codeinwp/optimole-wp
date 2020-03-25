@@ -69,6 +69,9 @@ final class Optml_Main {
 	public static function instance() {
 		if ( null === self::$_instance ) {
 			add_filter( 'themeisle_sdk_products', array( __CLASS__, 'register_sdk' ) );
+			add_filter( 'ti_custom_deactivate_cleanup', function ($key) {
+				return $key === 'optimole_wp';
+			} );
 			add_filter( 'optimole-wp_uninstall_feedback_icon', array( __CLASS__, 'change_icon' ) );
 			add_filter( 'optimole_wp_uninstall_feedback_after_css', array( __CLASS__, 'adds_uf_css' ) );
 			add_filter( 'optimole_wp_feedback_review_message', array( __CLASS__, 'change_review_message' ) );
