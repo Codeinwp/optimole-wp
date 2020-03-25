@@ -50,7 +50,6 @@ class Optml_pinterest extends Optml_compatibility {
 			w.addEventListener("load", function() {
 					const addCustomEventListener = function (selector, event, handler) {
 		                let rootElement = document.querySelector(\'body\');
-		                 //since the root element is set to be body for our current dealings
 		                  rootElement.addEventListener(event, function (evt) {
 			                  var targetElement = evt.target;
 			                  while (targetElement != null) {
@@ -64,7 +63,6 @@ class Optml_pinterest extends Optml_compatibility {
 		                  true
 		                   );
                    };
-					//adding the Event Listeners to all the li tasks
 					addCustomEventListener(\'%s\',\'mouseover\',function(){
 						let images = d.getElementsByTagName( "img" );
 						for ( let i = 0; i < images.length; i++ ) {
