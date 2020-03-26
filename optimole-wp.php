@@ -63,7 +63,16 @@ function optml_php_notice() {
 	</div>
 	<?php
 }
-
+/**
+ * Cleanup database on deactivation.
+ *
+ * @param boolean $should_cleanup Value from sdk.
+ */
+function deactivate_cleanup( $should_cleanup ) {
+	if ( $should_cleanup === true ) {
+		optml_deactivate();
+	}
+}
 /**
  * Initiate the Optimole plugin.
  *
@@ -76,11 +85,7 @@ function optml() {
 
 		return null;
 	}
-	add_action( 'sdk_deactivate_cleanup', function( $shouldCleanup ) {
-		if ( $shouldCleanup === true ) {
-		    optml_deactivate();
-		}
-	});
+	add_action( 'optimole_wp_deactivate_cleanup', 'deactivate_cleanup' );
 	define( 'OPTML_URL', plugin_dir_url( __FILE__ ) );
 	define( 'OPTML_JS_CDN', 'd5jmkjjpb7yfg.cloudfront.net' );
 	define( 'OPTML_PATH', plugin_dir_path( __FILE__ ) );
