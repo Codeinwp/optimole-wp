@@ -185,7 +185,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$arguments['format'] = $args['format'];
 		}
 
-		$new_url = ( new Optml_Image( $url, $args ) )->get_url( $arguments );
+		$new_url = ( new Optml_Image( $url, $args, $this->active_cache_buster ) )->get_url( $arguments );
 
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
