@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 composer install --no-dev
-npm install
-npm run-script pre-e2e
+npm ci
+
+npm run-script build
+npm run-script dist
 
 eval "$(ssh-agent -s)"
-chmod 600 /tmp/key
-ssh-add /tmp/key
-rsync -r --delete-after --quiet $TRAVIS_BUILD_DIR/dist/ root@testing.optimole.com:/var/www/optimole-wp
+mkdir $HOME/.ssh
+echo "$SSH_KEY" > "$HOME/.ssh/key"
+chmod 600 "$HOME/.ssh/key"
+
+rsync --delete-before -rc --force --exclude-from="$GITHUB_WORKSPACE/.distignore" -e "ssh -i $HOME/.ssh/key -o StrictHostKeyChecking=no -p $SSH_PORT" "$GITHUB_WORKSPACE/" $SSH_USERNAME@$SSH_HOST:$SSH_PATH
 ssh root@testing.optimole.com "cd /var/www && docker-compose run --rm cli wp elementor flush_css --url=http://testing.optimole.com"
-npm run cypress:run

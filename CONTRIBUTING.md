@@ -100,81 +100,16 @@ That's it! Thank you for your contribution!
 - Ensure that your code is compatible with PHP 5.4+.
 - Push the changes to your fork and submit a pull request on the master branch of the `optimole-wp` repository.
 
-## <a name="commit"></a> Commit Message Guidelines
+## Releasing
 
-We have very precise rules over how our git commit messages can be formatted.  This leads to **more
-readable messages** that are easy to follow when looking through the **project history**.  But also,
-we use the git commit messages to **generate the Optimole Changelog**.
+This repository uses conventional [changelog commit](https://github.com/Codeinwp/conventional-changelog-simple-preset) messages to trigger release 
 
-### Commit Message Format
-Each commit message consists of a **header**, a **body** and a **footer**.  The header has a special
-format that includes a **type**, a **scope** and a **subject**:
+How to release a new version:
 
-```
-<type>(<scope>): <subject>
-<BLANK LINE>
-<body>
-<BLANK LINE>
-<footer>
-```
-
-The **header** is mandatory and the **scope** of the header is optional.
-
-Any line of the commit message cannot be longer 100 characters! This allows the message to be easier
-to read on GitHub as well as in various git tools.
-
-The footer should contain a [closing reference to an issue](https://help.github.com/articles/closing-issues-via-commit-messages/) if any.
-
-```
-fix(rest): adds missing parameter in the authentication REST request
-```
-```
-fix(settings): improve validation of the height control
-
-The height control was allowing null values to be saved.
-```
- 
-### Type
-Must be one of the following:
-
-* **build**: Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)
-* **ci**: Changes to our CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)
-* **docs**: Documentation only changes
-* **feat**: A new feature
-* **fix**: A bug fix
-* **perf**: A code change that improves performance
-* **refactor**: A code change that neither fixes a bug nor adds a feature
-* **style**: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
-* **test**: Adding missing tests or correcting existing tests
-
-### Scope
-The scope should be the name of the npm package affected (as perceived by the person reading the changelog generated from commit messages.
-
-The following is the list of supported scopes:
-
-* **settings**
-* **api**
-* **rest**
-* **ui**
-* **admin**
-* **cron**
-* **replacer**
-* **lazyload**
-
-### Subject
-The subject contains a succinct description of the change:
-
-* use the imperative, present tense: "change" not "changed" nor "changes"
-* don't capitalize the first letter
-* no dot (.) at the end
-
-### Body
-Just as in the **subject**, use the imperative, present tense: "change" not "changed" nor "changes".
-The body should include the motivation for the change and contrast this with previous behavior.
-
-### Footer
-The footer should contain any information about **Breaking Changes** and is also the place to
-reference GitHub issues that this commit **Closes**.
-
-**Breaking Changes** should start with the word `BREAKING CHANGE:` with a space or two newlines. The rest of the commit message is then used for this.
- 
+- Clone the master branch
+- Do your changes
+- Send a PR to master and merge it using the following subject message
+  - `release: <release short description>` - for patch release
+  - `release(minor): <release short description>` - for minor release
+  - `release(major): <release short description>` - for major release
+The release notes will inherit the body of the commit message which triggered the release. For more details check the [simple-preset](https://github.com/Codeinwp/conventional-changelog-simple-preset) that we use.

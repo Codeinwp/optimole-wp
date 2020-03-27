@@ -1,12 +1,40 @@
 /* jshint node:true */
 /* global require */
+
 module.exports = function (grunt) {
-	'use strict';
+	grunt.loadNpmTasks('grunt-version');
+	grunt.loadNpmTasks('grunt-wp-readme-to-markdown');
+	grunt.initConfig({
+		version: {
+			json: {
+				options: {
+					flags: ''
+				},
+				src: [ 'package.json', 'package-lock.json' ]
+			},
+			metatag: {
+				options: {
+					prefix: 'Version:\\s*',
+					flags: ''
+				},
+				src: [ 'optimole-wp.php' ]
+			},
+			php: {
+				options: {
+					prefix: 'OPTML_VERSION\', \'',
+					flags: ''
+				},
+				src: [ 'optimole-wp.php' ]
 
-	var loader = require('load-project-config'),
-		config = require('grunt-plugin-fleet');
-	config = config();
-	config.files.js.push( '!assets/js/bundle.js' );
+			}
+		},
+		wp_readme_to_markdown: {
+			plugin: {
+				files: {
+					'README.md': 'readme.txt'
+				},
+			},
+		},
+	});
 
-	loader(grunt, config).init();
 };
