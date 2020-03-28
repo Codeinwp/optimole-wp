@@ -52,7 +52,10 @@ final class Optml_Api {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
-
+		$lock = get_transient( 'optml_cache_lock' );
+		if ( $lock === 'yes' ) {
+			return new WP_Error( 'cache_throttle', __( 'You can clear cache only once per 5 minutes.', 'optimole-wp' ) );
+		}
 		return $this->request( '/optml/v1/cache/tokens', 'POST', array( 'token' => $token ) );
 	}
 
