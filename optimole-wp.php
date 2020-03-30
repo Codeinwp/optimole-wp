@@ -35,7 +35,15 @@ function optml_autoload( $class ) {
 		}
 	}
 }
-
+/**
+ * Deletes optimole fields from database
+ */
+function cleanup_database() {
+	$option_name = array('optml-version', 'optml_dismissed_conflicts', 'optml_settings', 'optml_notice_optin');
+	foreach ( $option_name as $index => $option ) {
+		delete_option( $option );
+	}
+}
 /**
  * Deactivates optimole plugin.
  *
@@ -45,10 +53,7 @@ function optml_autoload( $class ) {
  */
 function optml_deactivate() {
 	if ( is_plugin_active( 'optimole-wp/optimole-wp.php' ) ) {
-		$option_name = array('optml-version', 'optml_dismissed_conflicts', 'optml_settings', 'optml_notice_optin');
-		foreach ( $option_name as $index => $option ) {
-			delete_option( $option );
-		}
+		cleanup_database();
 		deactivate_plugins( 'optimole-wp/optimole-wp.php' );
 	}
 }
