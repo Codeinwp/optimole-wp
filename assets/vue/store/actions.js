@@ -97,6 +97,29 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 	);
 };
 
+const clearCache = function ( {commit, state}, data ) {
+	commit( 'toggleLoading', true );
+	return Vue.http(
+		{
+			url: optimoleDashboardApp.root + '/clear_cache',
+			method: 'POST',
+			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+			emulateJSON: true,
+			responseType: 'json'
+		}
+	).then(
+		function ( response ) {
+			if ( response.body.code === 'success' ) {
+				console.log( '%c New cache token generated.', 'color: #59B278' );
+			} else {
+				console.log( '%c Could not generate cache token.', 'color: #E7602A' );
+			}
+			commit( 'toggleLoading', false );
+
+		}
+	);
+};
+
 const saveSettings = function ( {commit, state}, data ) {
 	commit( 'toggleLoading', true );
 	return Vue.http(
@@ -285,15 +308,16 @@ const dismissConflict = function ( {commit, state}, data ) {
 };
 
 export default {
+	clearCache,
 	connectOptimole,
-	registerOptimole,
 	disconnectOptimole,
-	saveSettings,
-	sampleRate,
-	retrieveOptimizedImages,
-	retrieveWatermarks,
+	dismissConflict,
+	registerOptimole,
 	removeWatermark,
 	requestStatsUpdate,
 	retrieveConflicts,
-	dismissConflict
+	retrieveOptimizedImages,
+	retrieveWatermarks,
+	sampleRate,
+	saveSettings
 };

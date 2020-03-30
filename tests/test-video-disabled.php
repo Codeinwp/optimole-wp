@@ -45,8 +45,6 @@ class Test_Video_Tag_Disabled extends WP_UnitTestCase
         $replaced_content = Optml_Manager::instance()->process_images_from_content(self::IMG_TAGS_GIF);
         $this->assertNotContains('<video autoplay muted loop playsinline poster', $replaced_content);
         $this->assertNotContains('type="video/mp4', $replaced_content);
-        $this->assertNotContains('type="video/webm', $replaced_content);
         $this->assertNotContains('/f:mp4', $replaced_content);
-        $this->assertNotContains('/f:webm', $replaced_content);
     }
 }

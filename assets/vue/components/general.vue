@@ -39,6 +39,22 @@
                                color="#008ec2"></toggle-button>
             </div>
         </div>
+        <!-- Clear Cache button -->
+        <div class="field  is-fullwidth columns ">
+            <label class="label column has-text-grey-dark">
+                {{strings.cache_title}}
+
+                <p class="is-italic has-text-weight-normal">
+                    {{strings.cache_desc}}
+                </p>
+            </label>
+            <div class="column is-3 is-right">
+                <button @click="clearCache()" class="button is-primary is-small "
+                        :class="this.$store.state.loading ? 'is-loading'  : '' ">
+                    {{strings.clear_cache}}
+                </button>
+            </div>
+        </div>
         <!-- Save changes button -->
         <div class="field  is-fullwidth columns ">
             <div class="column is-left">
@@ -73,6 +89,9 @@
             this.$emit('update-status', !this.isReplacerOff);
         },
         methods: {
+	        clearCache: function () {
+		        this.$store.dispatch('clearCache', {});
+            },
             saveChanges: function () {
                 this.$store.dispatch('saveSettings', {
                     settings: this.new_data

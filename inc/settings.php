@@ -19,6 +19,7 @@ class Optml_Settings {
 	private $default_schema = array(
 		'api_key'              => '',
 		'service_data'         => '',
+		'cache_buster'         => '',
 		'max_height'           => 1500,
 		'max_width'            => 2000,
 		'admin_bar_item'       => 'enabled',
@@ -143,6 +144,9 @@ class Optml_Settings {
 					break;
 				case 'wm_id':
 					$sanitized_value = intval( $value );
+					break;
+				case 'cache_buster':
+					$sanitized_value = is_string( $value ) ? $value : '';
 					break;
 				case 'filters':
 					$current_filters = $this->get_filters();

@@ -38,7 +38,7 @@ Optimole's format based optimization is handled in the cloud on a case-by-case b
 When the image is requested, Optimole will apply the specific transformations required by the device and deliver it to your visitors. This means every image is perfectly sized for every device. The final result will be cached for a month to ensure ongoing fast delivery and more site speed.
 
 **How many images can be optimized?**
-With the basic plan, you will be able to optimize unmetered number of images for up to 5k monthly [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All delivered from more than 100+ locations in Europe and North America.
+With the basic plan, you will be able to optimize unmetered number of images for up to 5k monthly [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All delivered from more than 200+ locations around the globe.
 Better yet. The free version is fully functional and includes all of the following great features:
 
 **Format Based Optimization**
@@ -69,7 +69,7 @@ Optimole provides an option to downgrade the image quality when it detects a slo
 Optimole loves page builders and has unique tweaks to solve image replacements. It also has full compatibility with the new block editor in WordPress 5.0
 
 **CDN**
-Optimole provides free access to a AWS CloudFront CDN with edge locations in Europe and North America. Even more with the Pro version.
+Optimole provides free access to a AWS CloudFront CDN with edge locations in more than 200 cities around the globe.
 
 **What About Security?**
 The stripped EXGIF data is not stored on our service. Optimole likes to work behind the scenes, and won't interact with your site's visitors. No data is collected but you can check the [Terms of Service](https://optimole.com/terms/)
@@ -78,7 +78,7 @@ The stripped EXGIF data is not stored on our service. Optimole likes to work beh
 Optimole can be installed in a few clicks and then left in the back-end to do its job. Not happy with it? Optimole has a clean uninstall and your site will be just as before Optimole was installed.
 
 **Go Pro**
-Premium users will be able to optimize images for more than 25k monthly active users. Images in the Premium plan are served from AWS Cloudfront with over 180 locations all over the world.
+Premium users will be able to optimize images for more than 25k monthly active users. Images in the Premium plan are served from AWS Cloudfront with over 200 locations all over the world.
 
 == Screenshots ==
 
@@ -88,6 +88,14 @@ Premium users will be able to optimize images for more than 25k monthly active u
 4. Plugin settings
 
 == Changelog ==
+
+#### [Version 2.2.9](https://github.com/Codeinwp/optimole-wp/compare/v2.2.8...v2.2.9) (2020-02-25)
+
+* **Bug Fixes**
+   * compatibility with Fusion builder, remove replacement when in edit mode ([b16683b](https://github.com/Codeinwp/optimole-wp/commit/b16683b))
+   * improve compatibility with Divi builder ([efdabfe](https://github.com/Codeinwp/optimole-wp/commit/efdabfe))
+
+
 
 #### [Version 2.2.8](https://github.com/Codeinwp/optimole-wp/compare/v2.2.7...v2.2.8) (2020-01-14)
 
@@ -522,7 +530,7 @@ Once you exceed these, we will contact you and kindly ask to upgrade to the plan
 
 = What Content Delivery Network (CDN) do you use? =
 
-Our FREE plan uses our AWS CloudFront CDN with locations only in Europe and North America. For the paid plans, we have a global full coverage, with more than 180 locations around the globe.
+For both FREE and Paid plans we use AWS CloudFront CDN with more than 200 locations around the globe.
 
 = I'm already using a CDN, can I use that instead of yours ? =
 
