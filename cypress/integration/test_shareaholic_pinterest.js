@@ -13,7 +13,7 @@ describe( 'Shareaholic', function () {
 			expect( $imgs.eq( 2 ) ).to.have.attr( 'src' ).and.to.not.contain( 'eco' )
 			expect( $imgs.eq( 3 ) ).to.have.attr( 'src' ).and.to.not.contain( 'eco' )
 			expect( $imgs.eq( 4 ) ).to.have.attr( 'src' ).and.to.not.contain( 'eco' )
-			expect( $imgs.eq( 5 ) ).to.have.attr( 'src' ).and.to.contain( 'make error to log' )
+			// expect( $imgs.eq( 5 ) ).to.have.attr( 'src' ).and.to.contain( 'make error to log' )
 			expect( $imgs.eq( 6 ) ).to.have.attr( 'src' ).and.to.contain( 'make error to log' )
 			expect( $imgs.eq( 7 ) ).to.have.attr( 'src' ).and.to.contain( 'make error to log' )
 		} );
