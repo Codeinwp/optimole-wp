@@ -401,20 +401,20 @@ final class Optml_Manager {
 	 * @return string Processed string.
 	 */
 	public function process_urls_from_content( $html ) {
-		$extracted_urls = $this->extract_image_urls_from_content( $html );
+		$extracted_urls = $this->extract_assets_urls_from_content( $html );
 
 		return $this->do_url_replacement( $html, $extracted_urls );
 
 	}
 
 	/**
-	 * Method to extract images from content.
+	 * Method to extract assets from content.
 	 *
 	 * @param string $content The HTML content.
 	 *
 	 * @return array
 	 */
-	public function extract_image_urls_from_content( $content ) {
+	public function extract_assets_urls_from_content( $content ) {
 
 		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/U';
 		preg_match_all(
@@ -485,9 +485,13 @@ final class Optml_Manager {
 				if ( $is_relative ) {
 					$url = $upload_resource['content_host'] . $url;
 				}
-				$new_url = apply_filters( 'optml_content_url', $url );
 
-				return $new_url;
+				$wp_filter_to_use = 'optml_content_url';
+				if ( strpos( $url, '.css' ) || strpos( $url, '.js' ) ) {
+					$wp_filter_to_use = 'optml_cdn_url';
+				}
+
+				return apply_filters( $wp_filter_to_use, $url );
 			},
 			$urls
 		);
