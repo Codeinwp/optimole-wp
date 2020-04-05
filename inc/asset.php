@@ -62,14 +62,13 @@ class Optml_Asset extends Optml_Resource {
 	 */
 	public function get_url( $params = [] ) {
 		$path_parts = array();
+		if ( ! empty( $this->type ) ) {
+			$path_parts[] = 'f:' . $this->type;
+		}
 
 		$path_parts[] = $this->quality->toString();
 
 		$path = '/' . $this->source_url;
-
-		if ( ! empty( $this->type ) ) {
-			$path = '/f:' . $this->type . '/' . $this->source_url;
-		}
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
