@@ -1,3 +1,11 @@
+#### [Version 2.3.0](https://github.com/Codeinwp/optimole-wp/compare/v2.2.9...v2.3.0) (2020-04-06)
+
+#### Features
+- Adds clear image cache feature
+#### Fixes
+- Improve compatibility with Pinterest sharing plugins
+- Improve compatibility with Unicode image names.
+
 #### [Version 2.2.9](https://github.com/Codeinwp/optimole-wp/compare/v2.2.8...v2.2.9) (2020-02-25)
 
 * **Bug Fixes**
