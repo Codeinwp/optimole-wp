@@ -503,11 +503,27 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertTrue( ! empty( $response ) );
 		$this->assertTrue( is_array( $response ) );
 	}
+
 	public function test_replacement_hebrew() {
 		$content          = '<div class="codeinwp-container">
 					<img src="https://www.example.org/wp-content/uploads/2018/05/ס@וככי-תבל-לוגו.jpg"> 
 					<img src="https://www.example.org/wp-content/uploads/2018/05/סוtextדךי-תב700ל-לוגו.jpg"> 
 					<img src="https://www.example.org/wp-content/uploads/2018/כwhateverכי-ת.png"> 
+				</div>
+			';
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+
+		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
+
+	}
+
+	public function test_replacement_chinese() {
+		$content          = '<div class="codeinwp-container">
+					<img src="https://www.example.org/wp-content/uploads/2020/03/年轮钟2号-Annual-Rings-Clock-II-白背景.jpg"> 
+					<img src="https://www.example.org/wp-content/uploads/2020/03/年轮钟2号-白背景.jpg"> 
+					<img src="https://www.example.org/wp-content/uploads/2020/03/年轮钟3年轮钟.jpg"> 
 				</div>
 			';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );

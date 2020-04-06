@@ -1,4 +1,9 @@
 .git
+.idea
+.wordpress-org
+.codeclimate.yml
+.eslintrc.js
+.releaserc.yml
 .distignore
 .gitignore
 .travis.yml
