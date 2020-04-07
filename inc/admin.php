@@ -38,7 +38,7 @@ class Optml_Admin {
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
 			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 		}
-		add_action( 'optml_replacer_setup', array( $this, 'register_public_actions' ), 999999 );
+		add_action( 'template_redirect', array( $this, 'register_public_actions' ), 999999 );
 
 	}
 
@@ -52,6 +52,9 @@ class Optml_Admin {
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
+		if ( Optml_Manager::should_ignore_image_tags() ) {
+			return;
+		}
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
 		add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
 		add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
@@ -62,9 +65,6 @@ class Optml_Admin {
 	 * Adds script for lazyload/js replacement.
 	 */
 	public function inline_bootstrap_script() {
-		if ( Optml_Manager::should_ignore_image_tags() ) {
-			return;
-		}
 
 		$domain = 'https://' . OPTML_JS_CDN;
 
@@ -145,10 +145,7 @@ class Optml_Admin {
 	 * @return array
 	 */
 	public function adds_body_classes( $classes ) {
-		if ( ! Optml_Manager::should_ignore_image_tags() ) {
-			$classes[] = 'optimole-no-script';
-		}
-
+		$classes[] = 'optimole-no-script';
 		return $classes;
 	}
 
@@ -333,9 +330,6 @@ class Optml_Admin {
 	 * Enqueue frontend scripts.
 	 */
 	public function frontend_scripts() {
-		if ( Optml_Manager::should_ignore_image_tags() ) {
-			return;
-		}
 
 		$bg_css = $this->get_background_lazy_css();
 
