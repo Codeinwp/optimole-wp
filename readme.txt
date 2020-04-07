@@ -2,7 +2,7 @@
 Contributors: optimole
 Tags: image optimization, convert webp, responsive images, lazy load, images, optimization, performance, photos
 Requires at least: 4.7
-Tested up to: 5.3
+Tested up to: 5.4
 Requires PHP: 5.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -88,6 +88,17 @@ Premium users will be able to optimize images for more than 25k monthly active u
 4. Plugin settings
 
 == Changelog ==
+
+#### [Version 2.3.0](https://github.com/Codeinwp/optimole-wp/compare/v2.2.9...v2.3.0) (2020-04-06)
+
+#### Features
+- Adds clear image cache feature
+#### Fixes
+- Improve compatibility with Pinterest sharing plugins
+- Improve compatibility with Unicode image names.
+
+
+
 
 #### [Version 2.2.9](https://github.com/Codeinwp/optimole-wp/compare/v2.2.8...v2.2.9) (2020-02-25)
 
