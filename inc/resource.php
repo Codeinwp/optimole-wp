@@ -23,21 +23,31 @@ abstract class Optml_Resource {
 	 */
 	protected $source_url = '';
 
+	/**
+	 * Cache Buster passed from  Optimole Service.
+	 *
+	 * @var string Active Cache Buster
+	 */
+	protected $cache_buster = '';
+
 
 
 	/**
 	 * Optml_Resource constructor.
 	 *
 	 * @param string $url Source image url.
+	 * @param string $cache_buster The cache buster.
 	 *
 	 * @throws \InvalidArgumentException In case that the url is not provided.
 	 */
-	public function __construct( $url = '' ) {
+	public function __construct( $url = '', $cache_buster = '' ) {
 		if ( empty( $url ) ) {
 			throw new \InvalidArgumentException( 'Optimole resource builder requires the source url to optimize.' ); // @codeCoverageIgnore
 		}
 		$this->set_defaults();
 		$this->source_url = $url;
+
+		$this->cache_buster = $cache_buster;
 	}
 
 	/**
@@ -62,14 +72,13 @@ abstract class Optml_Resource {
 	 *
 	 * @return string
 	 */
-	private function get_cache_token( $source, $size = 8 ) {
+	private function get_token_from_cache( $source, $size = 8 ) {
 		$key         = crc32( $source );
 		$cache_token = wp_cache_get( $key, 'optml_cache_tokens' );
 		if ( $cache_token === false ) {
 			$cache_token = $this->get_signature( $source, $size );
 			wp_cache_add( $key, $cache_token, 'optml_cache_tokens', DAY_IN_SECONDS );
 		}
-
 		return $cache_token;
 	}
 
@@ -81,19 +90,29 @@ abstract class Optml_Resource {
 	public function get_domain_token() {
 		$parts  = parse_url( $this->source_url );
 		$domain = isset( $parts['host'] ) ? str_replace( 'www.', '', $parts['host'] ) : '';
-
-		return $this->get_cache_token( $domain, 4 );
+		return $this->get_token_from_cache( $domain, 5 );
 	}
 
 	/**
-	 * Get the token for the url.
+	 * Get token for the url.
 	 *
 	 * @return string
 	 */
-	public function get_url_token() {
+	private function get_url_token() {
 		$url = strtok( $this->source_url, '?' );
+		return $this->get_token_from_cache( $url, 6 );
+	}
 
-		return $this->get_cache_token( $url, 6 );
+	/**
+	 * Return a the cache buster, defaults to the url token used previously.
+	 *
+	 * @return string
+	 */
+	public function get_cache_buster() {
+		if ( $this->cache_buster !== '' ) {
+			return '.' . $this->cache_buster;
+		}
+		return '-' . $this->get_url_token();
 	}
 
 	/**

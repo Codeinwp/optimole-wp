@@ -49,8 +49,8 @@ class Optml_Image extends Optml_Resource {
 	 *
 	 * @throws \InvalidArgumentException In case that the url is not provided.
 	 */
-	public function __construct( $url = '', $args = array() ) {
-		parent::__construct( $url );
+	public function __construct( $url = '', $args = array(), $cache_buster = '' ) {
+		parent::__construct( $url, $cache_buster );
 
 		$this->width->set( $args['width'] );
 		$this->height->set( $args['height'] );
@@ -62,7 +62,6 @@ class Optml_Image extends Optml_Resource {
 		if ( isset( $args['resize'] ) ) {
 			$this->resize->set( $args['resize'] );
 		}
-
 	}
 
 	/**
@@ -104,10 +103,9 @@ class Optml_Image extends Optml_Resource {
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
-		$path = sprintf( '/%s%s', $this->get_domain_token() . '-' . $this->get_url_token(), $path );
+		$path = sprintf( '/%s%s', $this->get_domain_token() . $this->get_cache_buster(), $path );
 
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 
 	}
-
 }

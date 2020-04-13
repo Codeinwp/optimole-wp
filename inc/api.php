@@ -44,6 +44,22 @@ final class Optml_Api {
 	}
 
 	/**
+	 * Get cache token from service.
+	 *
+	 * @return array|bool User data.
+	 */
+	public function get_cache_token( $token = '', $api_key = '' ) {
+		if ( ! empty( $api_key ) ) {
+			$this->api_key = $api_key;
+		}
+		$lock = get_transient( 'optml_cache_lock' );
+		if ( $lock === 'yes' ) {
+			return new WP_Error( 'cache_throttle', __( 'You can clear cache only once per 5 minutes.', 'optimole-wp' ) );
+		}
+		return $this->request( '/optml/v1/cache/tokens', 'POST', array( 'token' => $token ) );
+	}
+
+	/**
 	 * Request constructor.
 	 *
 	 * @param string $path The request url.

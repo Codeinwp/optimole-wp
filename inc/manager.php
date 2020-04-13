@@ -69,7 +69,7 @@ final class Optml_Manager {
 		'divi_builder',
 		'thrive',
 		'master_slider',
-		'sassy_social_share',
+		'pinterest',
 	);
 
 	/**
@@ -416,7 +416,7 @@ final class Optml_Manager {
 	 */
 	public function extract_assets_urls_from_content( $content ) {
 
-		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/U';
+		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';
 		preg_match_all(
 			$regex,
 			$content,

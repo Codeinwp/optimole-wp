@@ -139,7 +139,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$url = sprintf( '%s:%s', is_ssl() ? 'https' : 'http', $url );
 		}
 
-		$new_url = ( new Optml_Asset( $url, $args ) )->get_url();
+		$new_url = ( new Optml_Asset( $url, $args, $this->active_cache_buster ) )->get_url();
 
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
@@ -235,7 +235,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$arguments['format'] = $args['format'];
 		}
 
-		$new_url = ( new Optml_Image( $url, $args ) )->get_url( $arguments );
+		$new_url = ( new Optml_Image( $url, $args, $this->active_cache_buster ) )->get_url( $arguments );
 
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
