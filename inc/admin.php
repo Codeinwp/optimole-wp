@@ -38,7 +38,7 @@ class Optml_Admin {
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
 			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 		}
-		add_action( 'template_redirect', array( $this, 'register_public_actions' ), 999999 );
+		add_action( 'optml_after_setup', array( $this, 'register_public_actions' ), 999999 );
 
 	}
 

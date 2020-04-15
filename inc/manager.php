@@ -231,6 +231,7 @@ final class Optml_Manager {
 			),
 			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
 		);
+		add_action( 'template_redirect', array( $this, 'register_after_setup' ) );
 		add_action( 'rest_api_init', array( $this, 'process_template_redirect_content' ), PHP_INT_MIN );
 
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
@@ -240,6 +241,12 @@ final class Optml_Manager {
 		}
 	}
 
+	/**
+	 * Run after Optimole is fully setup.
+	 */
+	public function register_after_setup() {
+		do_action( 'optml_after_setup' );
+	}
 	/**
 	 * Replace urls in post meta values.
 	 *
