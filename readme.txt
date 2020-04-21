@@ -91,7 +91,7 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 ##### [Version 2.3.1](https://github.com/Codeinwp/optimole-wp/compare/v2.3.0...v2.3.1) (2020-04-21)
 
-### Bug Fixes
+#### Bug Fixes
 - improve AMP compatibility, solve the issue when we were loading non-AMP resources on AMP context, props [@westonruter](https://github.com/westonruter) 
 - improve lazy-loading on non-Latin image filenames
 
