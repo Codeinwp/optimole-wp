@@ -231,6 +231,7 @@ final class Optml_Manager {
 			),
 			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
 		);
+		add_action( 'template_redirect', array( $this, 'register_after_setup' ) );
 		add_action( 'rest_api_init', array( $this, 'process_template_redirect_content' ), PHP_INT_MIN );
 
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
@@ -240,6 +241,12 @@ final class Optml_Manager {
 		}
 	}
 
+	/**
+	 * Run after Optimole is fully setup.
+	 */
+	public function register_after_setup() {
+		do_action( 'optml_after_setup' );
+	}
 	/**
 	 * Replace urls in post meta values.
 	 *
@@ -353,7 +360,7 @@ final class Optml_Manager {
 			$header_start = $matches[0][1];
 			$header_end   = $header_start + strlen( $matches[0][0] );
 		}
-		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ism';
+		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ismu';
 
 		if ( preg_match_all( $regex, $content, $images, PREG_OFFSET_CAPTURE ) ) {
 

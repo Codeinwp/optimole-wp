@@ -381,4 +381,12 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertContains( 'example.org', $replaced_content );
 	}
 
+	public function test_should_replace_non_latin_string_url() {
+		$content          = '<img src="https://example.org/wp-content/uploads/2020/02/Herren-Halskette-Leder-50-cm-und-Anhänger-Thor-Hammer-aus-Edelstahl-k.jpg" alt>';
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertContains( 'data-opt-src', $replaced_content );
+		$this->assertContains( 'example.org', $replaced_content );
+	}
+
 }

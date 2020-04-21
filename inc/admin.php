@@ -38,7 +38,7 @@ class Optml_Admin {
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
 			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
 		}
-		add_action( 'optml_replacer_setup', array( $this, 'register_public_actions' ), 999999 );
+		add_action( 'optml_after_setup', array( $this, 'register_public_actions' ), 999999 );
 
 	}
 
@@ -146,7 +146,6 @@ class Optml_Admin {
 	 */
 	public function adds_body_classes( $classes ) {
 		$classes[] = 'optimole-no-script';
-
 		return $classes;
 	}
 
@@ -331,6 +330,7 @@ class Optml_Admin {
 	 * Enqueue frontend scripts.
 	 */
 	public function frontend_scripts() {
+
 		$bg_css = $this->get_background_lazy_css();
 
 		wp_register_style( 'optm_lazyload_noscript_style', false );
