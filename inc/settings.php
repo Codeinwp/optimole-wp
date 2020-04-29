@@ -383,6 +383,17 @@ class Optml_Settings {
 	}
 
 	/**
+	 * Check if replacer is enabled.
+	 *
+	 * @return bool Replacer enabled
+	 */
+	public function use_cdn() {
+		$status = $this->get( 'cdn' );
+
+		return $this->to_boolean( $status );
+	}
+
+	/**
 	 * Return cdn url.
 	 *
 	 * @return string CDN url.

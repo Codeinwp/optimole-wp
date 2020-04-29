@@ -487,7 +487,7 @@ final class Optml_Manager {
 				}
 
 				$wp_filter_to_use = 'optml_content_url';
-				if ( strpos( $url, '.css' ) || strpos( $url, '.js' ) ) {
+				if ( $this->settings->use_cdn() && ( strpos( $url, '.css' ) || strpos( $url, '.js' ) ) ) {
 					$wp_filter_to_use = 'optml_cdn_url';
 				}
 
