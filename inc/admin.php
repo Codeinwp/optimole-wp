@@ -80,6 +80,7 @@ class Optml_Admin {
 		$watcher_classes       = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
 		$default_network       = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
 		$retina_ready          = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
+		$scale                = ( $this->settings->get( 'scale' ) === 'enabled' );
 		$output                = sprintf(
 			'
 		<style type="text/css">
@@ -112,8 +113,8 @@ class Optml_Admin {
 						s.src = "%s/v2/latest/optimole_lib" + v  + "%s.js"; 
 						b.appendChild(s);
 						w.optimoleData = {
-							lazyloadOnly: "optimole-lazy-only",
 							backgroundReplaceClasses: [%s],
+							lazyloadOnly: %s,
 							watchClasses: [%s],
 							backgroundLazySelectors: "%s",
 							network_optimizations: %s,
@@ -128,6 +129,7 @@ class Optml_Admin {
 			esc_url( $domain ),
 			$min,
 			$bgclasses,
+			$scale ? '"optimole-lazy-only"' : 'true',
 			$watcher_classes,
 			addcslashes( $lazyload_bg_selectors, '"' ),
 			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? ( OPTML_NETWORK_ON ? 'true' : 'false' ) : ( $default_network ? 'true' : 'false' ),
@@ -641,7 +643,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'high_q_title'                      => __( 'High', 'optimole-wp' ),
 				'image_1_label'                     => __( 'Original', 'optimole-wp' ),
 				'image_2_label'                     => __( 'Optimized', 'optimole-wp' ),
-				'lazyload_desc'                     => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload.', 'optimole-wp' ),
+				'lazyload_desc'                     => __( 'We will render images using javascript without blocking the page execution via lazyload.', 'optimole-wp' ),
+				'scale_desc'                        => __( 'We will generate images size based on your visitor\'s screen using javascript.', 'optimole-wp' ),
 				'low_q_title'                       => __( 'Low', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),
 				'no_images_found'                   => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
@@ -657,7 +660,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'size_desc'                         => __( 'We will resize all images with sizes greater than these values.', 'optimole-wp' ),
 				'size_title'                        => __( 'Resize large images.', 'optimole-wp' ),
 				'toggle_ab_item'                    => __( 'Admin bar status', 'optimole-wp' ),
-				'toggle_lazyload'                   => __( 'Scale images & Lazy load', 'optimole-wp' ),
+				'toggle_lazyload'                   => __( 'Lazy load', 'optimole-wp' ),
+				'toggle_scale'                      => __( 'Scale images', 'optimole-wp' ),
 				'view_sample_image'                 => __( 'View sample image', 'optimole-wp' ),
 				'watch_desc_lazyload'               => __( 'You can add each CSS selector on a new line or separated by comma(,).', 'optimole-wp' ),
 				'watch_title_lazyload'              => __( 'Lazyload background images for selectors:', 'optimole-wp' ),

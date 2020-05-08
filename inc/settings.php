@@ -24,6 +24,7 @@ class Optml_Settings {
 		'max_width'            => 2000,
 		'admin_bar_item'       => 'enabled',
 		'lazyload'             => 'disabled',
+		'scale'                => 'disabled',
 		'network_optimization' => 'disabled',
 		'lazyload_placeholder' => 'disabled',
 		'bg_replacer'          => 'enabled',
@@ -126,6 +127,7 @@ class Optml_Settings {
 			switch ( $key ) {
 				case 'admin_bar_item':
 				case 'lazyload':
+				case 'scale':
 				case 'image_replacer':
 				case 'network_optimization':
 				case 'lazyload_placeholder':
@@ -296,6 +298,7 @@ class Optml_Settings {
 			'watchers'             => $this->get_watchers(),
 			'watermark'            => $this->get_watermark(),
 			'img_to_video'         => $this->get( 'img_to_video' ),
+			'scale'                => $this->get( 'scale' ),
 		);
 	}
 
