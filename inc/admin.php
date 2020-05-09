@@ -662,6 +662,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'watch_desc_lazyload'               => __( 'You can add each CSS selector on a new line or separated by comma(,).', 'optimole-wp' ),
 				'watch_title_lazyload'              => __( 'Lazyload background images for selectors:', 'optimole-wp' ),
 				'width_field'                       => __( 'Width', 'optimole-wp' ),
+				'toggle_cdn'                        => __( 'Serve CSS & JS through CDN', 'optimole-wp' ),
+				'cdn_desc'                          => __( 'We will minimise and serve CSS and JS assets through our CDN.', 'optimole-wp' ),
 			),
 			'watermarks'                     => array(
 				'image'                    => __( 'Image', 'optimole-wp' ),

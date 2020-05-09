@@ -19,6 +19,8 @@ class Optml_Config {
 		'webp'         => 'image/webp',
 		'svg'          => 'image/svg+xml',
 		'gif'          => 'image/gif',
+		'css'          => 'text/css',
+		'js'           => 'text/javascript',
 	);
 
 	/**
