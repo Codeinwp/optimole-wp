@@ -12,8 +12,8 @@ describe( 'Check gutenberg page', function () {
 		cy.get( '.wp-block-image > noscript' ).should( 'exist' );
 		cy.get( '.wp-block-image > noscript' ).should( 'contain', 'img' ).should( 'contain', 'i.optimole.com' )
 	} );
-
 	it( 'Gutenberg block cover background image should be properly replaced', function () {
-		cy.get( '.wp-block-cover ' ).should( 'have.css','background-image' ).and( 'include', 'i.optimole.com' );
+
+		cy.get( '.wp-block-cover ' ).scrollIntoView().should( 'have.css','background-image' ).and( 'include', 'i.optimole.com' );
 	} );
 } );
