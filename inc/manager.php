@@ -247,6 +247,7 @@ final class Optml_Manager {
 	public function register_after_setup() {
 		do_action( 'optml_after_setup' );
 	}
+
 	/**
 	 * Replace urls in post meta values.
 	 *
@@ -408,7 +409,7 @@ final class Optml_Manager {
 	 * @return string Processed string.
 	 */
 	public function process_urls_from_content( $html ) {
-		$extracted_urls = $this->extract_assets_urls_from_content( $html );
+		$extracted_urls = $this->extract_urls_from_content( $html );
 
 		return $this->do_url_replacement( $html, $extracted_urls );
 
@@ -421,9 +422,12 @@ final class Optml_Manager {
 	 *
 	 * @return array
 	 */
-	public function extract_assets_urls_from_content( $content ) {
-
-		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';
+	public function extract_urls_from_content( $content ) {
+		$extensions = array_keys( Optml_Config::$image_extensions );
+		if ( $this->settings->use_cdn() ) {
+			$extensions = array_merge( $extensions, array_keys( Optml_Config::$assets_extensions ) );
+		}
+		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';
 		preg_match_all(
 			$regex,
 			$content,
@@ -493,12 +497,7 @@ final class Optml_Manager {
 					$url = $upload_resource['content_host'] . $url;
 				}
 
-				$wp_filter_to_use = 'optml_content_url';
-				if ( $this->settings->use_cdn() && ( strpos( $url, '.css' ) || strpos( $url, '.js' ) ) ) {
-					$wp_filter_to_use = 'optml_cdn_url';
-				}
-
-				return apply_filters( $wp_filter_to_use, $url );
+				return apply_filters( 'optml_content_url', $url );
 			},
 			$urls
 		);

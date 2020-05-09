@@ -111,6 +111,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		] );
 		$settings->update( 'lazyload', 'disabled' );
+		$settings->update( 'cdn', 'enabled' );
 
 		Optml_Url_Replacer::instance()->init();
 		Optml_Tag_Replacer::instance()->init();
