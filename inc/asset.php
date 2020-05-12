@@ -9,11 +9,18 @@
 class Optml_Asset extends Optml_Resource {
 
 	/**
-	 * Quality of the resulting image.
+	 * Quality of the images urls inside the assets.
 	 *
 	 * @var Optml_Quality Quality;
 	 */
 	public $quality = null;
+
+	/**
+	 * Minify of the resulting asset.
+	 *
+	 * @var Optml_Minify Minify;
+	 */
+	public $minify = null;
 
 	/**
 	 * Type of asset
@@ -33,12 +40,20 @@ class Optml_Asset extends Optml_Resource {
 	public function __construct( $url = '', $args = array(), $cache_buster = '' ) {
 		parent::__construct( $url, $cache_buster );
 
+		$settings = new Optml_Settings();
+
+		if ( isset( $args['minify'] ) ) {
+			$this->minify->set( $args['minify'] );
+		}
+
 		if ( strpos( $url, '.css' ) ) {
 			$this->type = 'css';
+			$this->minify->set( (int) $settings->get( 'css_minify' ) === "enabled" );
 		}
 
 		if ( strpos( $url, '.js' ) ) {
 			$this->type = 'js';
+			$this->minify->set( (int) $settings->get( 'js_minify' ) === "enabled" );
 		}
 
 		if ( isset( $args['quality'] ) ) {
@@ -67,6 +82,7 @@ class Optml_Asset extends Optml_Resource {
 		}
 
 		$path_parts[] = $this->quality->toString();
+		$path_parts[] = $this->minify->toString();
 
 		$path = '/' . $this->source_url;
 

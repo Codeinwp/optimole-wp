@@ -103,7 +103,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 *
 	 * @return string
 	 */
-	public function build_asset_url( $url, $args = array( 'quality' => 'auto' ) ) {
+	public function build_asset_url( $url, $args = array( 'quality' => 'auto', 'minify' => 'auto' ) ) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
@@ -128,6 +128,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) ) {
 			$args['quality'] = $this->to_accepted_quality( $args['quality'] );
+		}
+
+		if ( isset( $args['minify'] ) && ! empty( $args['minify'] ) ) {
+			$args['minify'] = $this->to_accepted_minify( $args['minify'] );
 		}
 
 		// this will authorize the image
