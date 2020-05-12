@@ -138,6 +138,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$args['quality'] = $this->to_accepted_quality( $args['quality'] );
 		}
 
+		if ( isset( $args['minify'] ) && ! empty( $args['minify'] ) ) {
+			$args['minify'] = $this->to_accepted_minify( $args['minify'] );
+		}
+
 		// this will authorize the image
 		if ( ! empty( $this->site_mappings ) ) {
 			$url = str_replace( array_keys( $this->site_mappings ), array_values( $this->site_mappings ), $url );
@@ -148,7 +152,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( isset( Optml_Config::$image_extensions[ $ext ] ) ) {
 			$new_url = $this->normalize_image( $url, $original_url, $args );
 		} else {
-			$new_url = ( new Optml_Asset( $url, $args, $this->active_cache_buster ) )->get_url();
+			$new_url = ( new Optml_Asset( $url, $args, $this->active_cache_buster, $this->is_css_minify_on, $this->is_js_minify_on ) )->get_url();
 		}
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}

@@ -128,19 +128,8 @@ trait Optml_Normalizer {
 		if ( is_numeric( $value ) ) {
 			return $this->to_bound_integer( $value, 0, 1 );
 		}
-		$value = trim( $value );
 
-		$accepted_qualities = array(
-			'auto'     => 'auto',
-			'on'       => 1,
-			'off'      => 0,
-		);
-
-		if ( array_key_exists( $value, $accepted_qualities ) ) {
-			return $accepted_qualities[ $value ];
-		}
-
-		return "auto";
+		return 'auto';
 	}
 
 	/**

@@ -30,6 +30,20 @@ class Optml_Asset extends Optml_Resource {
 	protected $type = '';
 
 	/**
+	 * CSS minify
+	 *
+	 * @var string
+	 */
+	protected $minify_css = 1;
+
+	/**
+	 * JS minify
+	 *
+	 * @var string
+	 */
+	protected $minify_js = 0;
+
+	/**
 	 * Optml_Asset constructor.
 	 *
 	 * @param string $url Source image url.
@@ -37,24 +51,21 @@ class Optml_Asset extends Optml_Resource {
 	 *
 	 * @throws \InvalidArgumentException In case that the url is not provided.
 	 */
-	public function __construct( $url = '', $args = array(), $cache_buster = '' ) {
+	public function __construct( $url = '', $args = array(), $cache_buster = '', $minify_css = 1, $minify_js = 0 ) {
 		parent::__construct( $url, $cache_buster );
 
-		$settings = new Optml_Settings();
-
-		if ( isset( $args['minify'] ) ) {
-			$this->minify->set( $args['minify'] );
-		}
+		$this->minify_css = $minify_css;
+		$this->minify_js = $minify_js;
 
 		if ( strpos( $url, '.css' ) ) {
 			$this->type = 'css';
-			$this->minify->set( (int) $settings->get( 'css_minify' ) === "enabled" );
 		}
 
 		if ( strpos( $url, '.js' ) ) {
 			$this->type = 'js';
-			$this->minify->set( (int) $settings->get( 'js_minify' ) === "enabled" );
 		}
+
+		$this->minify->set( $this->{'minify_' . $this->type} );
 
 		if ( isset( $args['quality'] ) ) {
 			$this->quality->set( $args['quality'] );
@@ -66,6 +77,7 @@ class Optml_Asset extends Optml_Resource {
 	 */
 	protected function set_defaults() {
 		$this->quality = new Optml_Quality();
+		$this->minify = new Optml_Minify();
 	}
 
 	/**

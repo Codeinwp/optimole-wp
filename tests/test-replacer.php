@@ -187,6 +187,14 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertEquals( 6, substr_count( $replaced_content, 'i.optimole.com' ) );
 		$this->assertEquals( 3, substr_count( $replaced_content, '/f:css/' ) );
 		$this->assertEquals( 3, substr_count( $replaced_content, '/f:js/' ) );
+		$this->assertEquals( 3, substr_count( $replaced_content, '/m:0/' ) );
+		$this->assertEquals( 3, substr_count( $replaced_content, '/m:1/' ) );
+
+		$settings = new Optml_Settings();
+		$settings->update( 'css_minify', 'disabled' );
+		Optml_Manager::instance()->init();
+		$replaced_content = Optml_Manager::instance()->replace_content( self::ASSETS_URL );
+		$this->assertEquals( 6, substr_count( $replaced_content, '/m:0/' ) );
 
 
 	}

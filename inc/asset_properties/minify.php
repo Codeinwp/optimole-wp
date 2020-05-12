@@ -10,7 +10,7 @@ class Optml_Minify extends Optml_Property_Type {
 	 *
 	 * @var string Minify value.
 	 */
-	public static $default_minify = 'auto';
+	public static $default_minify = 0;
 	/**
 	 * Minify Property.
 	 *
@@ -36,19 +36,6 @@ class Optml_Minify extends Optml_Property_Type {
 	 * @param mixed $value Value to set.
 	 */
 	public function set( $value ) {
-
-		if ( $value === 'auto' ) {
-			$this->minify = 'auto';
-
-			return;
-		}
-
-		if ( ! $this->is_valid_numeric( $value ) ) {
-			$this->minify = 'auto';
-
-			return;
-		}
-
 		$this->minify = $this->to_bound_integer( $value, 0, 1 );
 
 	}
@@ -63,7 +50,7 @@ class Optml_Minify extends Optml_Property_Type {
 	}
 
 	/**
-	 * Return ImageProxy URL formatted string property.
+	 * Return minify asset URL formatted string property.
 	 *
 	 * @return mixed
 	 */
