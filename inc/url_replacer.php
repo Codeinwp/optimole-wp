@@ -84,68 +84,14 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 */
 	public function init() {
 
-		add_filter( 'optml_replace_image', array( $this, 'build_image_url' ), 10, 2 );
+		add_filter( 'optml_replace_image', array( $this, 'build_url' ), 10, 2 );
 		parent::init();
 
 		Optml_Quality::$default_quality = $this->to_accepted_quality( $this->settings->get_quality() );
 		Optml_Image::$watermark         = new Optml_Watermark( $this->settings->get_site_settings()['watermark'] );
 		Optml_Resize::$default_enlarge  = apply_filters( 'optml_always_enlarge', false );
-		add_filter( 'optml_content_url', array( $this, 'build_image_url' ), 1, 2 );
-		add_filter( 'optml_cdn_url', array( $this, 'build_asset_url' ), 1, 2 );
+		add_filter( 'optml_content_url', array( $this, 'build_url' ), 1, 2 );
 
-	}
-
-	/**
-	 * Returns a signed asset url authorized to be used in our CDN.
-	 *
-	 * @param string $url The url which should be signed.
-	 * @param array  $args Dimension params; Supports `quality`.
-	 *
-	 * @return string
-	 */
-	public function build_asset_url( $url, $args = array( 'quality' => 'auto', 'minify' => 'auto' ) ) {
-		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
-			return $url;
-		}
-
-		$original_url = $url;
-
-		$is_slashed = strpos( $url, '\/' ) !== false;
-
-		// We do a little hack here, for json unicode chars we first replace them with html special chars,
-		// we then strip slashes to normalize the URL and last we convert html special chars back to get a clean URL
-		$url = $is_slashed ? html_entity_decode( stripslashes( preg_replace( '/\\\u([\da-fA-F]{4})/', '&#x\1;', $url ) ) ) : ( $url );
-		if ( strpos( $url, Optml_Config::$service_url ) !== false ) {
-			return $original_url;
-		}
-
-		if ( ! $this->can_replace_url( $url ) ) {
-			return $original_url;
-		}
-
-		// Remove any query strings that might affect conversion.
-		$url = strtok( $url, '?' );
-
-		if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) ) {
-			$args['quality'] = $this->to_accepted_quality( $args['quality'] );
-		}
-
-		if ( isset( $args['minify'] ) && ! empty( $args['minify'] ) ) {
-			$args['minify'] = $this->to_accepted_minify( $args['minify'] );
-		}
-
-		// this will authorize the image
-		if ( ! empty( $this->site_mappings ) ) {
-			$url = str_replace( array_keys( $this->site_mappings ), array_values( $this->site_mappings ), $url );
-		}
-
-		if ( substr( $url, 0, 2 ) === '//' ) {
-			$url = sprintf( '%s:%s', is_ssl() ? 'https' : 'http', $url );
-		}
-
-		$new_url = ( new Optml_Asset( $url, $args, $this->active_cache_buster ) )->get_url();
-
-		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
 
 	/**
@@ -156,7 +102,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 *
 	 * @return string
 	 */
-	public function build_image_url(
+	public function build_url(
 		$url, $args = array(
 			'width'  => 'auto',
 			'height' => 'auto',
@@ -183,8 +129,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		// Remove any query strings that might affect conversion.
 		$url = strtok( $url, '?' );
-
-		if ( ! $this->is_valid_mimetype_from_url( $url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_EXT ] ) ) {
+		$ext = $this->is_valid_mimetype_from_url( $url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_EXT ] );
+		if ( false === $ext ) {
 			return $original_url;
 		}
 
@@ -196,10 +142,27 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( ! empty( $this->site_mappings ) ) {
 			$url = str_replace( array_keys( $this->site_mappings ), array_values( $this->site_mappings ), $url );
 		}
-
 		if ( substr( $url, 0, 2 ) === '//' ) {
 			$url = sprintf( '%s:%s', is_ssl() ? 'https' : 'http', $url );
 		}
+		if ( isset( Optml_Config::$image_extensions[ $ext ] ) ) {
+			$new_url = $this->normalize_image( $url, $original_url, $args );
+		} else {
+			$new_url = ( new Optml_Asset( $url, $args, $this->active_cache_buster ) )->get_url();
+		}
+		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
+	}
+
+	/**
+	 * Apply extra normalization to image.
+	 *
+	 * @param string $url Image url.
+	 * @param string $original_url Original image url.
+	 * @param array  $args Args.
+	 *
+	 * @return string
+	 */
+	private function normalize_image( $url, $original_url, $args ) {
 
 		$new_url = $this->strip_image_size_from_url( $url );
 
@@ -232,18 +195,15 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		$arguments = [
 			'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
-
 		];
 
 		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) {
 			$arguments['format'] = $args['format'];
 		}
 
-		$new_url = ( new Optml_Image( $url, $args, $this->active_cache_buster ) )->get_url( $arguments );
+		return  ( new Optml_Image( $url, $args, $this->active_cache_buster ) )->get_url( $arguments );
 
-		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
-
 
 	/**
 	 * Throw error on object clone
