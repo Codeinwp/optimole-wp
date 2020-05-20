@@ -62,6 +62,19 @@ class Optml_Rest {
 				),
 			)
 		);
+		register_rest_route(
+			$this->namespace,
+			'/check_redirects',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::EDITABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'check_redirects' ),
+				),
+			)
+		);
 
 		$this->register_image_routes();
 		$this->register_watermark_routes();
@@ -607,6 +620,37 @@ class Optml_Rest {
 		$sanitized = $settings->parse_settings( $new_settings );
 
 		return $this->response( $sanitized );
+	}
+	/**
+	 * Update options method.
+	 *
+	 * @param WP_REST_Request $request option update rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function check_redirects( WP_REST_Request $request ) {
+		if ( empty( $request ) ) {
+			wp_send_json_error( 'No option key set.' );
+		}
+		foreach ($request->get_param( 'images' ) as $value) {
+//			error_log($value["src"],3,'/var/www/html/optimole.log');
+			$response = wp_remote_get( $value["src"] );
+			
+			if ( is_array( $response ) && ! is_wp_error( $response ) ) {
+				error_log("here",3,'/var/www/html/optimole.log');
+				$headers = $response['headers']; // array of http header lines
+				$body    = $response['body']; // use the content
+				error_log(json_encode($headers),3,'/var/www/html/optimole.log');
+			}
+		}
+		return new WP_REST_Response(
+			array(
+				'data'    => "whatever",
+				'message' => __( 'Error creating account.', 'optimole-wp' ),
+				'code'    => 'error',
+			),
+			200
+		);
 	}
 
 }

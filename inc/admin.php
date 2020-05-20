@@ -48,7 +48,9 @@ class Optml_Admin {
 	public function register_public_actions() {
 		add_action( 'wp_head', array( $this, 'generator' ) );
 		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
-
+		if ( current_user_can( 'manage_options' ) ) {
+			add_action( 'wp_head', array($this, 'diagnosis_script') );
+		}
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
@@ -133,6 +135,32 @@ class Optml_Admin {
 			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? ( OPTML_NETWORK_ON ? 'true' : 'false' ) : ( $default_network ? 'true' : 'false' ),
 			$retina_ready ? 'true' : 'false',
 			$this->settings->get_numeric_quality()
+		);
+		echo $output;
+	}
+	/**
+	 * Adds script for lazyload/js replacement.
+	 */
+	public function diagnosis_script() {
+		$output = sprintf(
+			'<script type="application/javascript">
+					(function(w, d){
+						console.log("here");
+						var b = d.getElementsByTagName("head")[0];
+						var admin = d.createElement("script");
+						admin.src = "http://127.0.0.1/optimole_admin_lib/src/index.js";
+						admin.async = true;
+						b.appendChild(admin);
+						w.redirectScript  = {
+							restUrl : "%s" + \'/check_redirects\',
+							nonce : "%s"
+						};
+					}(window, document));
+					
+					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
+		</script>',
+			untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),
+			wp_create_nonce( 'wp_rest' )
 		);
 		echo $output;
 	}
