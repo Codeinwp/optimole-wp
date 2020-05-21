@@ -632,22 +632,26 @@ class Optml_Rest {
 		if ( empty( $request ) ) {
 			wp_send_json_error( 'No option key set.' );
 		}
-		foreach ($request->get_param( 'images' ) as $value) {
-//			error_log($value["src"],3,'/var/www/html/optimole.log');
-			$response = wp_remote_get( $value["src"] );
-			
+		foreach ( $request->get_param( 'images' ) as $value ) {
+			$args = array(
+				'method' => 'GET',
+				'redirection' => 0,
+			);
+			$response = wp_remote_get( $value['src'], $args );
+
 			if ( is_array( $response ) && ! is_wp_error( $response ) ) {
-				error_log("here",3,'/var/www/html/optimole.log');
 				$headers = $response['headers']; // array of http header lines
-				$body    = $response['body']; // use the content
-				error_log(json_encode($headers),3,'/var/www/html/optimole.log');
+				foreach ( $headers as $headName => $headVal ) {
+					error_log( $headName, 3, '/var/www/html/optimole.log' );
+					error_log( '  :   ', 3, '/var/www/html/optimole.log' );
+					error_log( $headVal, 3, '/var/www/html/optimole.log' );
+					error_log( "  \n   ", 3, '/var/www/html/optimole.log' );
+				}
 			}
 		}
 		return new WP_REST_Response(
 			array(
-				'data'    => "whatever",
-				'message' => __( 'Error creating account.', 'optimole-wp' ),
-				'code'    => 'error',
+				'data'    => 'whatever',
 			),
 			200
 		);
