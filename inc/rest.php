@@ -632,26 +632,42 @@ class Optml_Rest {
 		if ( empty( $request ) ) {
 			wp_send_json_error( 'No option key set.' );
 		}
-		foreach ( $request->get_param( 'images' ) as $value ) {
+		$result = [];
+		foreach ( $request->get_param( 'images' ) as $domain => $value ) {
 			$args = array(
 				'method' => 'GET',
 				'redirection' => 0,
 			);
-			$response = wp_remote_get( $value['src'], $args );
+			$processed_images = 0;
+			if ( isset( $value['src'] ) ) {
+				$processed_images = count( $value['src'] );
+			}
+			if ( isset( $value['ignoredUrls'] ) && $value['ignoredUrls'] > $processed_images / 2 ) {
+				$result[ $domain ] = 'not whitelisted domain';
+				continue;
+			}
+			if ( $processed_images > 0 ) {
+				$response = wp_remote_get( $value['src'][ rand( 0, $processed_images - 1 ) ], $args );
 
-			if ( is_array( $response ) && ! is_wp_error( $response ) ) {
-				$headers = $response['headers']; // array of http header lines
-				foreach ( $headers as $headName => $headVal ) {
-					error_log( $headName, 3, '/var/www/html/optimole.log' );
-					error_log( '  :   ', 3, '/var/www/html/optimole.log' );
-					error_log( $headVal, 3, '/var/www/html/optimole.log' );
-					error_log( "  \n   ", 3, '/var/www/html/optimole.log' );
+				if ( is_array( $response ) && ! is_wp_error( $response ) ) {
+					$headers = $response['headers']; // array of http header lines
+					$status_code = $response['response']['code'];
+					if ( $status_code === 302 ) {
+						$result [ $domain ] = 'some redirect';  // to do check headers for more info
+					}
+					foreach ( $headers as $headName => $headVal ) {
+						 error_log( $headName, 3, '/var/www/html/optimole.log' );
+						 error_log( '  :   ', 3, '/var/www/html/optimole.log' );
+						 error_log( $headVal, 3, '/var/www/html/optimole.log' );
+						 error_log( "  \n   ", 3, '/var/www/html/optimole.log' );
+					}
 				}
 			}
 		}
+
 		return new WP_REST_Response(
 			array(
-				'data'    => 'whatever',
+				'data'    => $result,
 			),
 			200
 		);
