@@ -214,7 +214,7 @@ class Optml_Admin {
 									console.log(optmlAdmin);
 									switch ( data.status ) {
 										case  "deactivated" : {
-											optmlAdmin.textContent = "Your account is permanently disabled ";
+											optmlAdmin.innerHTML = "<li><div class=\'ab-item ab-empty-item\'>Your account is permanently disabled<div><li>";
 											break;
 										}
 										case  "log" : {
@@ -231,7 +231,7 @@ class Optml_Admin {
 											break;
 										}
 										default : {
-											optmlAdmin.textContent = "Everything is ok";
+											optmlAdmin.innerHTML = "<li><div class=\'ab-item ab-empty-item\'>Everything is ok<div><li>";
 										}
 									}
 								});
