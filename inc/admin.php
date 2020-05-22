@@ -176,6 +176,9 @@ class Optml_Admin {
 									continue;
 								}
 								let words = pageImages[i].src.split(\'://\');
+								if ( words.length <= 1 ) {
+									continue;
+								}
 								let domain = words[words.length-1].split(\'/\')[0];
 								if ( !words[1].includes("%s") ) {
 									if ( imagesAdd.hasOwnProperty(domain) ) {
@@ -209,9 +212,7 @@ class Optml_Admin {
 								// body data type must match "Content-Type" header
 							}).then(response => {
 								response.json().then(function (data) {
-									console.log(data);
 									let optmlAdmin = document.querySelector("li#wp-admin-bar-optml_report_script ul#wp-admin-bar-optml_report_script-default");
-									console.log(optmlAdmin);
 									switch ( data.status ) {
 										case  "deactivated" : {
 											optmlAdmin.innerHTML = "<li><div class=\'ab-item ab-empty-item\'>Your account is permanently disabled<div><li>";
