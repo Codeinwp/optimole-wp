@@ -675,7 +675,6 @@ class Optml_Rest {
 				}
 			}
 		}
-
 		return new WP_REST_Response(
 			array(
 				'status' => $status,

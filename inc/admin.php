@@ -44,10 +44,12 @@ class Optml_Admin {
 		add_action( 'optml_after_setup', array( $this, 'register_public_actions' ), 999999 );
 
 	}
+	/**
+	 * Adds Optimole tag to admin bar
+	 */
 	public function add_report_menu() {
 		 global $wp_admin_bar;
 
-		// Add a link called 'My Link'...
 		$wp_admin_bar->add_node(
 			array(
 				'id' => 'optml_report_script',
@@ -218,10 +220,13 @@ class Optml_Admin {
 										case  "log" : {
 											let notice = "";
 												for (let domain of Object.keys(data.log) ) {
-											       if ( data.log[domain] === "whitelist" ) {
-											           notice += "<li><div class=\'ab-item ab-empty-item\'> The domain: " + domain + " is not added to the whitelist <div><li>";
-											       }
-										        }
+													if ( data.log[domain] === "whitelist" ) {
+														notice += "<li><div class=\'ab-item ab-empty-item\'> The domain: " + domain + " is not added to the whitelist <div><li>";
+													}
+													if ( data.log[domain] === "later" ) {
+														notice += "<li><div class=\'ab-item ab-empty-item\'> The images from: " + domain + " are scheduled to be processed soon<div><li>";
+													}
+												}
 												optmlAdmin.innerHTML = notice ;
 											break;
 										}
