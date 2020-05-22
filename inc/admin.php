@@ -33,6 +33,9 @@ class Optml_Admin {
 		add_action( 'admin_notices', array( $this, 'add_notice' ) );
 		add_action( 'admin_notices', array( $this, 'add_notice_upgrade' ) );
 		add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
+		if ( ! is_admin() && $this->settings->is_connected() ) {
+			add_action( 'wp_before_admin_bar_render', array($this, 'add_report_menu') );
+		}
 		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
 		add_action( 'admin_init', array( $this, 'maybe_redirect' ) );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
@@ -40,6 +43,24 @@ class Optml_Admin {
 		}
 		add_action( 'optml_after_setup', array( $this, 'register_public_actions' ), 999999 );
 
+	}
+	public function add_report_menu() {
+		 global $wp_admin_bar;
+
+		// Add a link called 'My Link'...
+		$wp_admin_bar->add_node(
+			array(
+				'id' => 'optml_report_script',
+				'title' => 'Optimole',
+			)
+		);
+		$wp_admin_bar->add_menu(
+			array(
+				'id' => 'optml_status',
+				'title' => 'Analyzing...',
+				'parent' => 'optml_report_script',
+			)
+		);
 	}
 
 	/**
@@ -149,14 +170,17 @@ class Optml_Admin {
 							let pageImages = document.getElementsByTagName( \'img\' );
 							let imagesAdd = {};
 							for( let i=0; i<pageImages.length; i++ ) {
+								if (pageImages[i].src.includes("0.gravatar.com")) {
+									continue;
+								}
 								let words = pageImages[i].src.split(\'://\');
 								let domain = words[words.length-1].split(\'/\')[0];
 								if ( !words[1].includes("%s") ) {
 									if ( imagesAdd.hasOwnProperty(domain) ) {
 										if ( imagesAdd[domain].hasOwnProperty("ignoredUrls") ) {
-									          imagesAdd[domain]["ignoredUrls"] ++;
-									          continue;
-									        }
+											  imagesAdd[domain]["ignoredUrls"] ++;
+											  continue;
+											}
 									}
 									imagesAdd[domain] = Object.assign( { ignoredUrls : 1 }, imagesAdd[domain] );
 									continue;
@@ -169,7 +193,6 @@ class Optml_Admin {
 								}
 								imagesAdd[domain] = Object.assign( { src : Array(pageImages[i].src) }, imagesAdd[domain] );
 							}
-							console.log(imagesAdd);
 							fetch("%s" + \'/check_redirects\', {
 								method: \'POST\', // *GET, POST, PUT, DELETE, etc.
 								mode: \'cors\', // no-cors, *cors, same-origin
@@ -185,6 +208,27 @@ class Optml_Admin {
 							}).then(response => {
 								response.json().then(function (data) {
 									console.log(data);
+									let optmlAdmin = document.querySelector("li#wp-admin-bar-optml_report_script ul#wp-admin-bar-optml_report_script-default");
+									console.log(optmlAdmin);
+									switch ( data.status ) {
+										case  "deactivated" : {
+											optmlAdmin.textContent = "Your account is permanently disabled ";
+											break;
+										}
+										case  "log" : {
+											let notice = "";
+												for (let domain of Object.keys(data.log) ) {
+											       if ( data.log[domain] === "whitelist" ) {
+											           notice += "<li><div class=\'ab-item ab-empty-item\'> The domain: " + domain + " is not added to the whitelist <div><li>";
+											       }
+										        }
+												optmlAdmin.innerHTML = notice ;
+											break;
+										}
+										default : {
+											optmlAdmin.textContent = "Everything is ok";
+										}
+									}
 								});
 							});
 						} );

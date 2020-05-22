@@ -632,6 +632,8 @@ class Optml_Rest {
 		if ( empty( $request ) ) {
 			wp_send_json_error( 'No option key set.' );
 		}
+		// 'ok' if no issues found, 'log' is there are issues we need to notify, 'deactivated' if the user's account is disabled
+		$status = 'ok';
 		$result = [];
 		foreach ( $request->get_param( 'images' ) as $domain => $value ) {
 			$args = array(
@@ -642,24 +644,33 @@ class Optml_Rest {
 			if ( isset( $value['src'] ) ) {
 				$processed_images = count( $value['src'] );
 			}
-			if ( isset( $value['ignoredUrls'] ) && $value['ignoredUrls'] > $processed_images / 2 ) {
-				$result[ $domain ] = 'not whitelisted domain';
+			if ( isset( $value['ignoredUrls'] ) && $value['ignoredUrls'] > $processed_images ) {
+				$result[ $domain ] = 'whitelist';
+				$status = 'log';
 				continue;
 			}
 			if ( $processed_images > 0 ) {
 				$response = wp_remote_get( $value['src'][ rand( 0, $processed_images - 1 ) ], $args );
-
 				if ( is_array( $response ) && ! is_wp_error( $response ) ) {
 					$headers = $response['headers']; // array of http header lines
 					$status_code = $response['response']['code'];
-					if ( $status_code === 302 ) {
-						$result [ $domain ] = 'some redirect';  // to do check headers for more info
+					if ( $status_code === 301 ) {
+						$status = 'deactivated';
+						break;
 					}
-					foreach ( $headers as $headName => $headVal ) {
-						 error_log( $headName, 3, '/var/www/html/optimole.log' );
-						 error_log( '  :   ', 3, '/var/www/html/optimole.log' );
-						 error_log( $headVal, 3, '/var/www/html/optimole.log' );
-						 error_log( "  \n   ", 3, '/var/www/html/optimole.log' );
+					if ( $status_code === 302 ) {
+						if ( isset( $headers['cache-control'] ) ) {
+							$max_age = intval( explode( '=', $headers['cache-control'] )[1] );
+							if ( $max_age === 1800 ) {
+								$status = 'log';
+								$result [ $domain ] = 'whitelist';
+							}
+							if ( $max_age > 1800 ) {
+								$status = 'log';
+								$result [ $domain ] = 'later';
+							}
+							// for small values we should ignore them as they will soon be processed
+						}
 					}
 				}
 			}
@@ -667,7 +678,8 @@ class Optml_Rest {
 
 		return new WP_REST_Response(
 			array(
-				'data'    => $result,
+				'status' => $status,
+				'log'   => $result,
 			),
 			200
 		);
