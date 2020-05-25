@@ -9,11 +9,18 @@
 class Optml_Asset extends Optml_Resource {
 
 	/**
-	 * Quality of the resulting image.
+	 * Quality of the images urls inside the assets.
 	 *
 	 * @var Optml_Quality Quality;
 	 */
 	public $quality = null;
+
+	/**
+	 * Minify of the resulting asset.
+	 *
+	 * @var Optml_Minify Minify;
+	 */
+	public $minify = null;
 
 	/**
 	 * Type of asset
@@ -23,6 +30,20 @@ class Optml_Asset extends Optml_Resource {
 	protected $type = '';
 
 	/**
+	 * CSS minify
+	 *
+	 * @var string
+	 */
+	protected $minify_css = 1;
+
+	/**
+	 * JS minify
+	 *
+	 * @var string
+	 */
+	protected $minify_js = 0;
+
+	/**
 	 * Optml_Asset constructor.
 	 *
 	 * @param string $url Source image url.
@@ -30,8 +51,11 @@ class Optml_Asset extends Optml_Resource {
 	 *
 	 * @throws \InvalidArgumentException In case that the url is not provided.
 	 */
-	public function __construct( $url = '', $args = array(), $cache_buster = '' ) {
+	public function __construct( $url = '', $args = array(), $cache_buster = '', $minify_css = 1, $minify_js = 0 ) {
 		parent::__construct( $url, $cache_buster );
+
+		$this->minify_css = $minify_css;
+		$this->minify_js = $minify_js;
 
 		if ( strpos( $url, '.css' ) ) {
 			$this->type = 'css';
@@ -40,6 +64,8 @@ class Optml_Asset extends Optml_Resource {
 		if ( strpos( $url, '.js' ) ) {
 			$this->type = 'js';
 		}
+
+		$this->minify->set( $this->{'minify_' . $this->type} );
 
 		if ( isset( $args['quality'] ) ) {
 			$this->quality->set( $args['quality'] );
@@ -51,6 +77,7 @@ class Optml_Asset extends Optml_Resource {
 	 */
 	protected function set_defaults() {
 		$this->quality = new Optml_Quality();
+		$this->minify = new Optml_Minify();
 	}
 
 	/**
@@ -67,6 +94,7 @@ class Optml_Asset extends Optml_Resource {
 		}
 
 		$path_parts[] = $this->quality->toString();
+		$path_parts[] = $this->minify->toString();
 
 		$path = '/' . $this->source_url;
 

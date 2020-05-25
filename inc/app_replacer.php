@@ -63,6 +63,18 @@ abstract class Optml_App_Replacer {
 	 */
 	protected $max_height = 3000;
 	/**
+	 * Defines if css minification should be used.
+	 *
+	 * @var int
+	 */
+	protected $is_css_minify_on = 1;
+	/**
+	 * Defines if js minification should be used.
+	 *
+	 * @var int
+	 */
+	protected $is_js_minify_on = 0;
+	/**
 	 * A cached version of `wp_upload_dir`
 	 *
 	 * @var null
@@ -341,6 +353,9 @@ abstract class Optml_App_Replacer {
 
 		$this->max_height = $this->settings->get( 'max_height' );
 		$this->max_width  = $this->settings->get( 'max_width' );
+
+		$this->is_css_minify_on = ( $this->settings->get( 'css_minify' ) === 'enabled' ) ? 1 : 0;
+		$this->is_js_minify_on  = ( $this->settings->get( 'js_minify' ) === 'enabled' ) ? 1 : 0;
 
 		add_filter( 'optml_strip_image_size_from_url', [ $this, 'strip_image_size_from_url' ], 10, 1 );
 		add_filter(
