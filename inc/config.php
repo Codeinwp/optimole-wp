@@ -14,9 +14,9 @@ class Optml_Config {
 	 * @var array
 	 */
 	public static $image_extensions = array(
-		'jpg' => 'image/jpeg',
-		'jpeg' => 'image/jpeg',
-		'jpe' => 'image/jpeg',
+		'jpg'          => 'image/jpeg',
+		'jpeg'         => 'image/jpeg',
+		'jpe'          => 'image/jpeg',
 		'png'          => 'image/png',
 		'webp'         => 'image/webp',
 		'svg'          => 'image/svg+xml',

@@ -42,6 +42,8 @@ class Optml_Settings {
 		'wm_scale'             => 0,
 		'image_replacer'       => 'enabled',
 		'img_to_video'         => 'disabled',
+		'css_minify'           => 'enabled',
+		'js_minify'            => 'disabled',
 
 	);
 	/**
@@ -137,6 +139,8 @@ class Optml_Settings {
 				case 'resize_smart':
 				case 'bg_replacer':
 				case 'img_to_video':
+				case 'css_minify':
+				case 'js_minify':
 					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
 					break;
 				case 'max_width':
@@ -302,6 +306,8 @@ class Optml_Settings {
 			'watermark'            => $this->get_watermark(),
 			'img_to_video'         => $this->get( 'img_to_video' ),
 			'scale'                => $this->get( 'scale' ),
+			'css_minify'           => $this->get( 'css_minify' ),
+			'js_minify'            => $this->get( 'js_minify' ),
 		);
 	}
 
