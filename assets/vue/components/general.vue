@@ -153,7 +153,7 @@
                 get: function () {
                     return !(this.site_settings.scale === 'disabled');
                 }
-            }, 
+
             }
 
         }
