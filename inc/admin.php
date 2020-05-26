@@ -72,7 +72,7 @@ class Optml_Admin {
 		add_action( 'wp_head', array( $this, 'generator' ) );
 		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 		if ( current_user_can( 'manage_options' ) ) {
-			add_action( 'wp_head', array($this, 'diagnosis_script') );
+			add_action( 'wp_enqueue_scripts', array($this, 'add_diagnosis_script') );
 		}
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
@@ -164,88 +164,14 @@ class Optml_Admin {
 	/**
 	 * Adds script for lazyload/js replacement.
 	 */
-	public function diagnosis_script() {
-		$output = sprintf(
-			'<script type="application/javascript">
-					(function(w, d){
-						w.addEventListener( "load", async function() {
-							let pageImages = document.getElementsByTagName( \'img\' );
-							let imagesAdd = {};
-							for( let i=0; i<pageImages.length; i++ ) {
-								if (pageImages[i].src.includes("0.gravatar.com")) {
-									continue;
-								}
-								let words = pageImages[i].src.split(\'://\');
-								if ( words.length <= 1 ) {
-									continue;
-								}
-								let domain = words[words.length-1].split(\'/\')[0];
-								if ( !words[1].includes("%s") ) {
-									if ( imagesAdd.hasOwnProperty(domain) ) {
-										if ( imagesAdd[domain].hasOwnProperty("ignoredUrls") ) {
-											  imagesAdd[domain]["ignoredUrls"] ++;
-											  continue;
-											}
-									}
-									imagesAdd[domain] = Object.assign( { ignoredUrls : 1 }, imagesAdd[domain] );
-									continue;
-								}
-								if ( imagesAdd.hasOwnProperty(domain) ) {
-									if ( imagesAdd[domain].hasOwnProperty("src") ) {
-										imagesAdd[domain]["src"].push(pageImages[i].src);
-										continue;
-									}
-								}
-								imagesAdd[domain] = Object.assign( { src : Array(pageImages[i].src) }, imagesAdd[domain] );
-							}
-							fetch("%s" + \'/check_redirects\', {
-								method: \'POST\', // *GET, POST, PUT, DELETE, etc.
-								mode: \'cors\', // no-cors, *cors, same-origin
-								cache: \'no-cache\', // *default, no-cache, reload, force-cache, only-if-cached
-								credentials: \'same-origin\', // include, *same-origin, omit
-								headers: {
-									\'X-WP-Nonce\': "%s",
-									\'Content-Type\': \'application/json\'
-								},
-								referrerPolicy: \'no-referrer\', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-								body: JSON.stringify({images : imagesAdd})
-								// body data type must match "Content-Type" header
-							}).then(response => {
-								response.json().then(function (data) {
-									let optmlAdmin = document.querySelector("li#wp-admin-bar-optml_report_script ul#wp-admin-bar-optml_report_script-default");
-									switch ( data.status ) {
-										case  "deactivated" : {
-											optmlAdmin.innerHTML = "<li><div class=\'ab-item ab-empty-item\'>Your account is permanently disabled<div><li>";
-											break;
-										}
-										case  "log" : {
-											let notice = "";
-												for (let domain of Object.keys(data.log) ) {
-													if ( data.log[domain] === "whitelist" ) {
-														notice += "<li><div class=\'ab-item ab-empty-item\'> The domain: " + domain + " is not added to the whitelist <div><li>";
-													}
-													if ( data.log[domain] === "later" ) {
-														notice += "<li><div class=\'ab-item ab-empty-item\'> The images from: " + domain + " are scheduled to be processed soon<div><li>";
-													}
-												}
-												optmlAdmin.innerHTML = notice ;
-											break;
-										}
-										default : {
-											optmlAdmin.innerHTML = "<li><div class=\'ab-item ab-empty-item\'>Everything is ok<div><li>";
-										}
-									}
-								});
-							});
-						} );
-					}(window, document));
-					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
-		</script>',
-			$this->settings->get_cdn_url(),
-			untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),
-			wp_create_nonce( 'wp_rest' )
+	public function add_diagnosis_script() {
+		wp_enqueue_script( 'optml-report', OPTML_URL . 'assets/js/report_script.js' );
+		$report_script = array(
+			'optmlCdn' => $this->settings->get_cdn_url(),
+			'restUrl' => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) . '/check_redirects',
+			'nonce' => wp_create_nonce( 'wp_rest' ),
 		);
-		echo $output;
+		wp_localize_script( 'optml-report', 'reportScript', $report_script );
 	}
 
 	/**
