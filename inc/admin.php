@@ -149,6 +149,7 @@ class Optml_Admin {
 	 */
 	public function adds_body_classes( $classes ) {
 		$classes[] = 'optimole-no-script';
+
 		return $classes;
 	}
 
@@ -280,13 +281,14 @@ class Optml_Admin {
 			return false;
 		}
 		$visitors_limit = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
-		$visitors_left = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
+		$visitors_left  = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
 		if ( $visitors_limit === 0 ) {
 			return false;
 		}
 		if ( $visitors_left > 2000 ) {
 			return false;
 		}
+
 		return true;
 	}
 
@@ -669,6 +671,10 @@ The root cause might be either a security plugin which blocks this feature or so
 				'width_field'                       => __( 'Width', 'optimole-wp' ),
 				'toggle_cdn'                        => __( 'Serve CSS & JS through Optimole', 'optimole-wp' ),
 				'cdn_desc'                          => __( 'Useful when you have images into CSS/JS files. Optimole wil optimize the images from them, plus minify and serve the CSS/JS through the CDN.', 'optimole-wp' ),
+				'enable_css_minify_title'           => __( 'Minify CSS files', 'optimole-wp' ),
+				'css_minify_desc'                   => __( 'Once Optimole will serve your CSS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
+				'enable_js_minify_title'            => __( 'Minify JS files', 'optimole-wp' ),
+				'js_minify_desc'                    => __( 'Once Optimole will serve your JS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
 			),
 			'watermarks'                     => array(
 				'image'                    => __( 'Image', 'optimole-wp' ),

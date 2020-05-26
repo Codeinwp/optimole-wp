@@ -38,7 +38,7 @@
                                :height="25"
                                color="#008ec2"></toggle-button>
             </div>
-        </div>
+        </div> 
         <!-- Scale toggle-->
         <div class="field  is-fullwidth columns" :class="{'is-field-disabled':isReplacerOff || isLazyLoadOff }">
             <label class="label column has-text-grey-dark">
@@ -58,27 +58,7 @@
                                :height="25"
                                color="#008ec2"></toggle-button>
             </div>
-        </div>
-        <!--CSS & JS Assets load toggle -->
-        <div class="field  is-fullwidth columns" :class="{'is-field-disabled':isReplacerOff }">
-            <label class="label column has-text-grey-dark">
-                {{strings.toggle_cdn}}
-
-                <p class="is-italic has-text-weight-normal">
-                    {{strings.cdn_desc}}
-                </p>
-            </label>
-
-            <div class="column is-3 ">
-                <toggle-button :class="'has-text-dark'"
-                               v-model="cdnStatus"
-                               :disabled="this.$store.state.loading"
-                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                               :width="80"
-                               :height="25"
-                               color="#008ec2"></toggle-button>
-            </div>
-        </div>
+        </div> 
         <!-- Clear Cache button -->
         <div class="field  is-fullwidth columns ">
             <label class="label column has-text-grey-dark">
@@ -163,7 +143,7 @@
                 },
                 get: function () {
                     return !(this.site_settings.lazyload === 'disabled');
-                }
+                } 
             },
             scaleStatus: {
                 set: function (value) {
@@ -173,15 +153,7 @@
                 get: function () {
                     return !(this.site_settings.scale === 'disabled');
                 }
-            },
-	        cdnStatus: {
-		        set: function (value) {
-			        this.showSave = true;
-			        this.new_data.cdn = value ? 'enabled' : 'disabled';
-		        },
-		        get: function () {
-			        return !(this.site_settings.cdn === 'disabled');
-		        }
+            }, 
             }
 
         }
