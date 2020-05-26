@@ -146,6 +146,7 @@ class Optml_Admin {
 	 */
 	public function adds_body_classes( $classes ) {
 		$classes[] = 'optimole-no-script';
+
 		return $classes;
 	}
 
@@ -192,9 +193,9 @@ class Optml_Admin {
 
 		$current_screen = get_current_screen();
 		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ||
-			 is_network_admin() ||
-			 $this->settings->is_connected() ||
-			 empty( $current_screen )
+		     is_network_admin() ||
+		     $this->settings->is_connected() ||
+		     empty( $current_screen )
 		) {
 			return false;
 		}
@@ -217,9 +218,9 @@ class Optml_Admin {
 		}
 
 		if ( empty( $screen_slug ) ||
-			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ||
-			 ! current_user_can( 'manage_options' ) ||
-			 ( get_option( 'optml_notice_optin', 'no' ) === 'yes' )
+		     ( ! isset( $allowed_base[ $screen_slug ] ) ) ||
+		     ! current_user_can( 'manage_options' ) ||
+		     ( get_option( 'optml_notice_optin', 'no' ) === 'yes' )
 		) {
 			return false;
 		}
@@ -235,16 +236,16 @@ class Optml_Admin {
 			return;
 		}
 		?>
-		<div class="notice notice-warning optml-notice-optin">
-			<p> <?php printf( __( 'It seems your are close to the %1$s5.0000%2$s visits limit with %3$sOptiMole%4$s for this month. You might want to check the upgrade plans for a larger quota. %5$s %6$s What happens if i exceed the quota ?%7$s We will need to deliver back your original %8$sun-optimized%9$s images which might decrease your site speed perfomance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
-			<p>
-				<a href="https://optimole.com/pricing" target="_blank" class="button button-primary"><span
-							class="dashicons dashicons-external"></span><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
-				</a>
-				<a class="button"
-				   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_upg' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I\'ve done this', 'optimole-wp' ); ?></a>
-			</p>
-		</div>
+        <div class="notice notice-warning optml-notice-optin">
+            <p> <?php printf( __( 'It seems your are close to the %1$s5.0000%2$s visits limit with %3$sOptiMole%4$s for this month. You might want to check the upgrade plans for a larger quota. %5$s %6$s What happens if i exceed the quota ?%7$s We will need to deliver back your original %8$sun-optimized%9$s images which might decrease your site speed perfomance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
+            <p>
+                <a href="https://optimole.com/pricing" target="_blank" class="button button-primary"><span
+                            class="dashicons dashicons-external"></span><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
+                </a>
+                <a class="button"
+                   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_upg' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I\'ve done this', 'optimole-wp' ); ?></a>
+            </p>
+        </div>
 		<?php
 	}
 
@@ -256,10 +257,10 @@ class Optml_Admin {
 	public function should_show_upgrade() {
 		$current_screen = get_current_screen();
 		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ||
-			 is_network_admin() ||
-			 ! current_user_can( 'manage_options' ) ||
-			 ! $this->settings->is_connected() ||
-			 empty( $current_screen )
+		     is_network_admin() ||
+		     ! current_user_can( 'manage_options' ) ||
+		     ! $this->settings->is_connected() ||
+		     empty( $current_screen )
 		) {
 			return false;
 		}
@@ -277,13 +278,14 @@ class Optml_Admin {
 			return false;
 		}
 		$visitors_limit = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
-		$visitors_left = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
+		$visitors_left  = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
 		if ( $visitors_limit === 0 ) {
 			return false;
 		}
 		if ( $visitors_left > 2000 ) {
 			return false;
 		}
+
 		return true;
 	}
 
@@ -295,15 +297,15 @@ class Optml_Admin {
 			return;
 		}
 		?>
-		<div class="notice notice-success optml-notice-optin">
-			<p> <?php printf( __( 'Welcome to %1$sOptiMole%2$s, the easiest way to optimize your website images. Your users will enjoy a %3$sfaster%4$s website after you connect it with our service.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>' ); ?></p>
-			<p>
-				<a href="<?php echo esc_url( admin_url( 'upload.php?page=optimole' ) ); ?>"
-				   class="button button-primary"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?></a>
-				<a class="button"
-				   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_optin' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?></a>
-			</p>
-		</div>
+        <div class="notice notice-success optml-notice-optin">
+            <p> <?php printf( __( 'Welcome to %1$sOptiMole%2$s, the easiest way to optimize your website images. Your users will enjoy a %3$sfaster%4$s website after you connect it with our service.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>' ); ?></p>
+            <p>
+                <a href="<?php echo esc_url( admin_url( 'upload.php?page=optimole' ) ); ?>"
+                   class="button button-primary"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?></a>
+                <a class="button"
+                   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_optin' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?></a>
+            </p>
+        </div>
 		<?php
 	}
 
@@ -408,14 +410,14 @@ class Optml_Admin {
 	/**
 	 * Adds cdn url for prefetch.
 	 *
-	 * @param array  $hints Hints array.
+	 * @param array $hints Hints array.
 	 * @param string $relation_type Type of relation.
 	 *
 	 * @return array Altered hints array.
 	 */
 	public function add_dns_prefetch( $hints, $relation_type ) {
 		if ( 'dns-prefetch' !== $relation_type &&
-			 'preconnect' !== $relation_type
+		     'preconnect' !== $relation_type
 		) {
 			return $hints;
 		}
@@ -453,9 +455,9 @@ class Optml_Admin {
 		}
 		?>
 
-		<div id="optimole-app">
-			<app></app>
-		</div>
+        <div id="optimole-app">
+            <app></app>
+        </div>
 		<?php
 	}
 
@@ -664,6 +666,10 @@ The root cause might be either a security plugin which blocks this feature or so
 				'width_field'                       => __( 'Width', 'optimole-wp' ),
 				'toggle_cdn'                        => __( 'Serve CSS & JS through Optimole', 'optimole-wp' ),
 				'cdn_desc'                          => __( 'Useful when you have images into CSS/JS files. Optimole wil optimize the images from them, plus minify and serve the CSS/JS through the CDN.', 'optimole-wp' ),
+				'enable_css_minify_title'           => __( 'Minify CSS files', 'optimole-wp' ),
+				'css_minify_desc'                   => __( 'Once Optimole will serve your CSS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
+				'enable_js_minify_title'            => __( 'Minify JS files', 'optimole-wp' ),
+				'js_minify_desc'                    => __( 'Once Optimole will serve your JS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
 			),
 			'watermarks'                     => array(
 				'image'                    => __( 'Image', 'optimole-wp' ),
