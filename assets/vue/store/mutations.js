@@ -33,10 +33,9 @@ const restApiNotWorking = ( state, data ) => {
 	state.apiError = data;
 };
 const updateSettings = ( state, data ) => {
-
 	for ( var setting in data ) {
-		state.site_settings[setting] = data[setting]; }
-
+		state.site_settings[setting] = data[setting];
+	}
 };
 
 const updateWatermark = ( state, data ) => {
@@ -51,18 +50,18 @@ const updateConflicts = ( state, data ) => {
 };
 
 export default {
-	toggleLoading,
-	toggleConnecting,
-	toggleKeyValidity,
-	toggleConnectedToOptml,
-	toggleIsServiceLoaded,
-	updateUserData,
-	updateApiKey,
-	updateSampleRate,
 	restApiNotWorking,
-	updateSettings,
-	updateServiceError,
-	updateWatermark,
+	toggleConnectedToOptml,
+	toggleConnecting,
+	toggleIsServiceLoaded,
+	toggleKeyValidity,
+	toggleLoading,
+	updateApiKey,
 	updateConflicts,
-	updateOptimizedImages
+	updateOptimizedImages,
+	updateSampleRate,
+	updateServiceError,
+	updateSettings,
+	updateUserData,
+	updateWatermark
 };

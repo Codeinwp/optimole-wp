@@ -19,6 +19,8 @@ class Optml_Settings {
 	private $default_schema = array(
 		'api_key'              => '',
 		'service_data'         => '',
+		'cache_buster'         => '',
+		'cdn'                  => 'disabled',
 		'max_height'           => 1500,
 		'max_width'            => 2000,
 		'admin_bar_item'       => 'enabled',
@@ -126,6 +128,7 @@ class Optml_Settings {
 				case 'admin_bar_item':
 				case 'lazyload':
 				case 'image_replacer':
+				case 'cdn':
 				case 'network_optimization':
 				case 'lazyload_placeholder':
 				case 'retina_images':
@@ -143,6 +146,9 @@ class Optml_Settings {
 					break;
 				case 'wm_id':
 					$sanitized_value = intval( $value );
+					break;
+				case 'cache_buster':
+					$sanitized_value = is_string( $value ) ? $value : '';
 					break;
 				case 'filters':
 					$current_filters = $this->get_filters();
@@ -286,6 +292,7 @@ class Optml_Settings {
 			'bg_replacer'          => $this->get( 'bg_replacer' ),
 			'resize_smart'         => $this->get( 'resize_smart' ),
 			'image_replacer'       => $this->get( 'image_replacer' ),
+			'cdn'                  => $this->get( 'cdn' ),
 			'max_width'            => $this->get( 'max_width' ),
 			'max_height'           => $this->get( 'max_height' ),
 			'filters'              => $this->get_filters(),
@@ -371,6 +378,17 @@ class Optml_Settings {
 	 */
 	public function use_lazyload() {
 		$status = $this->get( 'lazyload' );
+
+		return $this->to_boolean( $status );
+	}
+
+	/**
+	 * Check if replacer is enabled.
+	 *
+	 * @return bool Replacer enabled
+	 */
+	public function use_cdn() {
+		$status = $this->get( 'cdn' );
 
 		return $this->to_boolean( $status );
 	}

@@ -69,7 +69,7 @@ final class Optml_Manager {
 		'divi_builder',
 		'thrive',
 		'master_slider',
-		'sassy_social_share',
+		'pinterest',
 	);
 
 	/**
@@ -231,6 +231,7 @@ final class Optml_Manager {
 			),
 			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
 		);
+		add_action( 'template_redirect', array( $this, 'register_after_setup' ) );
 		add_action( 'rest_api_init', array( $this, 'process_template_redirect_content' ), PHP_INT_MIN );
 
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
@@ -238,6 +239,13 @@ final class Optml_Manager {
 		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
 			$registered_compatibility->register();
 		}
+	}
+
+	/**
+	 * Run after Optimole is fully setup.
+	 */
+	public function register_after_setup() {
+		do_action( 'optml_after_setup' );
 	}
 
 	/**
@@ -353,7 +361,7 @@ final class Optml_Manager {
 			$header_start = $matches[0][1];
 			$header_end   = $header_start + strlen( $matches[0][0] );
 		}
-		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ism';
+		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ismu';
 
 		if ( preg_match_all( $regex, $content, $images, PREG_OFFSET_CAPTURE ) ) {
 
@@ -401,22 +409,25 @@ final class Optml_Manager {
 	 * @return string Processed string.
 	 */
 	public function process_urls_from_content( $html ) {
-		$extracted_urls = $this->extract_image_urls_from_content( $html );
+		$extracted_urls = $this->extract_urls_from_content( $html );
 
 		return $this->do_url_replacement( $html, $extracted_urls );
 
 	}
 
 	/**
-	 * Method to extract images from content.
+	 * Method to extract assets from content.
 	 *
 	 * @param string $content The HTML content.
 	 *
 	 * @return array
 	 */
-	public function extract_image_urls_from_content( $content ) {
-
-		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', array_keys( Optml_Config::$extensions ) ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/U';
+	public function extract_urls_from_content( $content ) {
+		$extensions = array_keys( Optml_Config::$image_extensions );
+		if ( $this->settings->use_cdn() ) {
+			$extensions = array_merge( $extensions, array_keys( Optml_Config::$assets_extensions ) );
+		}
+		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';
 		preg_match_all(
 			$regex,
 			$content,
@@ -485,9 +496,8 @@ final class Optml_Manager {
 				if ( $is_relative ) {
 					$url = $upload_resource['content_host'] . $url;
 				}
-				$new_url = apply_filters( 'optml_content_url', $url );
 
-				return $new_url;
+				return apply_filters( 'optml_content_url', $url );
 			},
 			$urls
 		);

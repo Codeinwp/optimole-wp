@@ -52,7 +52,7 @@ class Optml_Divi extends Optml_abstract_conflict {
 		if ( ! function_exists( 'et_get_option' ) ) {
 			return false;
 		}
-		if ( 'off' === et_get_option( 'et_pb_static_css_file', 'on' ) ) {
+		if ( 'off' === et_get_option( 'et_pb_static_css_file', 'off' ) ) {
 			return false;
 		}
 

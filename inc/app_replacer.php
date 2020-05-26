@@ -104,6 +104,13 @@ abstract class Optml_App_Replacer {
 	protected $is_allowed_site = array();
 
 	/**
+	 * Holds the most recent value for the cache buster.
+	 *
+	 * @var string Cache Buster value.
+	 */
+	protected $active_cache_buster = '';
+
+	/**
 	 * Returns possible src attributes.
 	 *
 	 * @return array
@@ -325,6 +332,7 @@ abstract class Optml_App_Replacer {
 		);
 
 		$this->allowed_sources              = $this->extract_domain_from_urls( $service_data['whitelist'] );
+		$this->active_cache_buster          = $this->settings->get( 'cache_buster' );
 		// Allways allow Photon urls.
 		$this->allowed_sources['i0.wp.com'] = true;
 		$this->allowed_sources['i1.wp.com'] = true;
@@ -442,7 +450,7 @@ abstract class Optml_App_Replacer {
 	 **/
 	public function strip_image_size_from_url( $url ) {
 
-		if ( preg_match( '#(-\d+x\d+(?:_c)?|(@2x))\.(' . implode( '|', array_keys( Optml_Config::$extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
+		if ( preg_match( '#(-\d+x\d+(?:_c)?|(@2x))\.(' . implode( '|', array_keys( Optml_Config::$image_extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
 			$stripped_url = str_replace( $src_parts[1], '', $url );
 			// Extracts the file path to the image minus the base url
 			$file_path = substr( $stripped_url, strpos( $stripped_url, $this->upload_resource['url'] ) + $this->upload_resource['url_length'] );
@@ -463,7 +471,7 @@ abstract class Optml_App_Replacer {
 	 */
 	protected function parse_dimensions_from_filename( $src ) {
 		$width_height_string = array();
-		$extensions          = array_keys( Optml_Config::$extensions );
+		$extensions          = array_keys( Optml_Config::$image_extensions );
 		if ( preg_match( '#-(\d+)x(\d+)(:?_c)?\.(?:' . implode( '|', $extensions ) . '){1}$#i', $src, $width_height_string ) ) {
 			$width  = (int) $width_height_string[1];
 			$height = (int) $width_height_string[2];
