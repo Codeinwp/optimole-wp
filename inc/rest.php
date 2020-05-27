@@ -72,6 +72,15 @@ class Optml_Rest {
 						return current_user_can( 'manage_options' );
 					},
 					'callback'            => array( $this, 'check_redirects' ),
+					'args'                => array(
+						'images' => array(
+							'type' => 'Array',
+							'validate_callback' => function( $images ) {
+								return count( $images ) > 0;
+							},
+							'required' => true,
+						),
+					),
 				),
 			)
 		);
@@ -675,13 +684,6 @@ class Optml_Rest {
 				}
 			}
 		}
-		return new WP_REST_Response(
-			array(
-				'status' => $status,
-				'log'   => $result,
-			),
-			200
-		);
+		return $this->response( $result, $status );
 	}
-
 }

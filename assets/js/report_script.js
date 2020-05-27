@@ -45,18 +45,18 @@
 			}).then(response => {
 				response.json().then(function (data) {
 					let optmlAdmin = document.querySelector("li#wp-admin-bar-optml_report_script ul#wp-admin-bar-optml_report_script-default");
-					switch (data.status) {
+					switch (data.code) {
 						case  "deactivated" : {
 							optmlAdmin.innerHTML = "<li><div class='ab-item ab-empty-item'>Your account is permanently disabled<div><li>";
 							break;
 						}
 						case  "log" : {
 							let notice = "";
-							for (let domain of Object.keys(data.log)) {
-								if (data.log[domain] === "whitelist") {
+							for (let domain of Object.keys(data.data)) {
+								if (data.data[domain] === "whitelist") {
 									notice += "<li><div class='ab-item ab-empty-item'> The domain: " + domain + " is not added to the whitelist <div><li>";
 								}
-								if (data.log[domain] === "later") {
+								if (data.data[domain] === "later") {
 									notice += "<li><div class='ab-item ab-empty-item'> The images from: " + domain + " are scheduled to be processed soon<div><li>";
 								}
 							}

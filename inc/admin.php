@@ -33,7 +33,7 @@ class Optml_Admin {
 		add_action( 'admin_notices', array( $this, 'add_notice' ) );
 		add_action( 'admin_notices', array( $this, 'add_notice_upgrade' ) );
 		add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
-		if ( ! is_admin() && $this->settings->is_connected() ) {
+		if ( ! is_admin() && $this->settings->is_enabled() ) {
 			add_action( 'wp_before_admin_bar_render', array($this, 'add_report_menu') );
 		}
 		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );

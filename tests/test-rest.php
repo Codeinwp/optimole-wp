@@ -97,14 +97,14 @@ class Test_Rest extends WP_UnitTestCase
 
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertArrayHasKey( 'log', $data );
-		$this->assertArrayHasKey( 'status', $data );
-		$this->assertEquals( 'log', $data[ 'status' ] );
-		$this->assertEquals( 2, count($data[ 'log' ]) );
-		$this->assertArrayHasKey( 'media.gettyimages.com' , $data ['log'] );
-		$this->assertArrayHasKey( 'image.shutterstock.com', $data ['log'] );
-		$this->assertEquals( 'whitelist', $data ['log']['media.gettyimages.com']);
-		$this->assertEquals( 'whitelist', $data ['log']['image.shutterstock.com'] );
+		$this->assertArrayHasKey( 'data', $data );
+		$this->assertArrayHasKey( 'code', $data );
+		$this->assertEquals( 'log', $data[ 'code' ] );
+		$this->assertEquals( 2, count($data[ 'data' ]) );
+		$this->assertArrayHasKey( 'media.gettyimages.com' , $data ['data'] );
+		$this->assertArrayHasKey( 'image.shutterstock.com', $data ['data'] );
+		$this->assertEquals( 'whitelist', $data ['data']['media.gettyimages.com']);
+		$this->assertEquals( 'whitelist', $data ['data']['image.shutterstock.com'] );
 	}
 	public function test_response_is_ok () {
 		$request_body = array (
@@ -147,9 +147,9 @@ class Test_Rest extends WP_UnitTestCase
 
 		$this->assertEquals( 200, $response->get_status() );
 		$data = $response->get_data();
-		$this->assertArrayHasKey( 'log', $data );
-		$this->assertArrayHasKey( 'status', $data );
-		$this->assertEquals( 'ok', $data[ 'status' ] );
-		$this->assertEquals( 0, count($data[ 'log' ]) );
+		$this->assertArrayHasKey( 'data', $data );
+		$this->assertArrayHasKey( 'code', $data );
+		$this->assertEquals( 'ok', $data[ 'code' ] );
+		$this->assertEquals( 0, count($data[ 'data' ]) );
 	}
 }
