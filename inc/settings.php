@@ -375,8 +375,14 @@ class Optml_Settings {
 	 * @return bool Replacer enabled
 	 */
 	public function is_enabled() {
-		$status = $this->get( 'image_replacer' );
-
+		$status       = $this->get( 'image_replacer' );
+		$service_data = $this->get( 'service_data' );
+		if ( empty( $service_data ) ) {
+			return false;
+		}
+		if ( isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ) {
+			return false;
+		}
 		return $this->to_boolean( $status );
 	}
 

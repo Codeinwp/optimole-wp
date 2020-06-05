@@ -498,6 +498,7 @@ class Optml_Admin {
 			'strings'              => $this->get_dashboard_strings(),
 			'assets_url'           => OPTML_URL . 'assets/',
 			'connection_status'    => empty( $service_data ) ? 'no' : 'yes',
+			'user_status'          => isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ? 'inactive' : 'active',
 			'api_key'              => $api_key,
 			'root'                 => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),
 			'nonce'                => wp_create_nonce( 'wp_rest' ),
@@ -579,6 +580,7 @@ class Optml_Admin {
 The root cause might be either a security plugin which blocks this feature or some faulty server configuration which constrain this WordPress feature.You can try to disable any of the security plugins that you use in order to see if the issue persists or ask the hosting company to further investigate.',
 				'optimole-wp'
 			),
+			'notice_disabled_account' => sprintf( __( 'Your account has been disabled due to exceeding quota. All images are being redirected to the original unoptimized URL. Please %1$supgrade%2$s to re-activate the account.', 'optimole-wp' ), '<a href="https://optimole.com/pricing">', '</a>' ),
 			'dashboard_menu_item'            => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'             => __( 'Settings', 'optimole-wp' ),
 			'settings_exclusions_menu_item'  => __( 'Exclusions', 'optimole-wp' ),
