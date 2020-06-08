@@ -13,14 +13,38 @@ class Optml_Config {
 	 *
 	 * @var array
 	 */
-	public static $extensions = array(
-		'jpg|jpeg|jpe' => 'image/jpeg',
+	public static $image_extensions = array(
+		'jpg'          => 'image/jpeg',
+		'jpeg'         => 'image/jpeg',
+		'jpe'          => 'image/jpeg',
 		'png'          => 'image/png',
 		'webp'         => 'image/webp',
 		'svg'          => 'image/svg+xml',
 		'gif'          => 'image/gif',
 	);
-
+	/**
+	 * CSS/Js mimetypes.
+	 *
+	 * @var string[]
+	 */
+	public static $assets_extensions = array(
+		'css' => 'text/css',
+		'js'  => 'text/javascript',
+	);
+	/**
+	 * All extensions that Optimole process.
+	 *
+	 * @var string[]
+	 */
+	public static $all_extensions = array(
+		'jpg|jpeg|jpe' => 'image/jpeg',
+		'png'          => 'image/png',
+		'webp'         => 'image/webp',
+		'svg'          => 'image/svg+xml',
+		'gif'          => 'image/gif',
+		'css'          => 'text/css',
+		'js'           => 'text/javascript',
+	);
 	/**
 	 * A string of allowed chars.
 	 *

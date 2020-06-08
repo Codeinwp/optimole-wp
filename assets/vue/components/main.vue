@@ -57,8 +57,10 @@
 
                                 <div class="is-tab" v-if="tab === 'dashboard' "
                                      :class="remove_images ? 'no-images' : '' ">
-                                    <div class="notification is-success" v-if="strings.notice_just_activated.length > 0"
+                                    <div class="notification is-success" v-if="strings.notice_just_activated.length > 0 && user_status === 'active' "
                                          v-html="strings.notice_just_activated"></div>
+                                    <div class="notification is-danger" v-if="user_status === 'inactive' "
+                                         v-html="strings.notice_disabled_account"></div>
                                     <api-key-form></api-key-form>
                                     <cdn-details v-if="this.$store.state.userData"></cdn-details>
                                     <hr/>
@@ -131,6 +133,7 @@
 			return {
 				strings: optimoleDashboardApp.strings,
 				home: optimoleDashboardApp.home_url,
+				user_status: optimoleDashboardApp.user_status,
 				remove_images: optimoleDashboardApp.remove_latest_images === 'yes',
 				fetchStatus: false,
 				step_no: 0,

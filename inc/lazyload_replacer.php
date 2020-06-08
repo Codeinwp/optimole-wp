@@ -262,7 +262,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		$type = wp_check_filetype(
 			basename( $url ),
-			Optml_Config::$extensions
+			Optml_Config::$image_extensions
 		);
 
 		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {

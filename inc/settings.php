@@ -20,10 +20,12 @@ class Optml_Settings {
 		'api_key'              => '',
 		'service_data'         => '',
 		'cache_buster'         => '',
+		'cdn'                  => 'disabled',
 		'max_height'           => 1500,
 		'max_width'            => 2000,
 		'admin_bar_item'       => 'enabled',
 		'lazyload'             => 'disabled',
+		'scale'                => 'disabled',
 		'network_optimization' => 'disabled',
 		'lazyload_placeholder' => 'disabled',
 		'bg_replacer'          => 'enabled',
@@ -40,6 +42,8 @@ class Optml_Settings {
 		'wm_scale'             => 0,
 		'image_replacer'       => 'enabled',
 		'img_to_video'         => 'disabled',
+		'css_minify'           => 'enabled',
+		'js_minify'            => 'disabled',
 
 	);
 	/**
@@ -126,13 +130,17 @@ class Optml_Settings {
 			switch ( $key ) {
 				case 'admin_bar_item':
 				case 'lazyload':
+				case 'scale':
 				case 'image_replacer':
+				case 'cdn':
 				case 'network_optimization':
 				case 'lazyload_placeholder':
 				case 'retina_images':
 				case 'resize_smart':
 				case 'bg_replacer':
 				case 'img_to_video':
+				case 'css_minify':
+				case 'js_minify':
 					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
 					break;
 				case 'max_width':
@@ -290,12 +298,16 @@ class Optml_Settings {
 			'bg_replacer'          => $this->get( 'bg_replacer' ),
 			'resize_smart'         => $this->get( 'resize_smart' ),
 			'image_replacer'       => $this->get( 'image_replacer' ),
+			'cdn'                  => $this->get( 'cdn' ),
 			'max_width'            => $this->get( 'max_width' ),
 			'max_height'           => $this->get( 'max_height' ),
 			'filters'              => $this->get_filters(),
 			'watchers'             => $this->get_watchers(),
 			'watermark'            => $this->get_watermark(),
 			'img_to_video'         => $this->get( 'img_to_video' ),
+			'scale'                => $this->get( 'scale' ),
+			'css_minify'           => $this->get( 'css_minify' ),
+			'js_minify'            => $this->get( 'js_minify' ),
 		);
 	}
 
@@ -363,8 +375,14 @@ class Optml_Settings {
 	 * @return bool Replacer enabled
 	 */
 	public function is_enabled() {
-		$status = $this->get( 'image_replacer' );
-
+		$status       = $this->get( 'image_replacer' );
+		$service_data = $this->get( 'service_data' );
+		if ( empty( $service_data ) ) {
+			return false;
+		}
+		if ( isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ) {
+			return false;
+		}
 		return $this->to_boolean( $status );
 	}
 
@@ -375,6 +393,17 @@ class Optml_Settings {
 	 */
 	public function use_lazyload() {
 		$status = $this->get( 'lazyload' );
+
+		return $this->to_boolean( $status );
+	}
+
+	/**
+	 * Check if replacer is enabled.
+	 *
+	 * @return bool Replacer enabled
+	 */
+	public function use_cdn() {
+		$status = $this->get( 'cdn' );
 
 		return $this->to_boolean( $status );
 	}
