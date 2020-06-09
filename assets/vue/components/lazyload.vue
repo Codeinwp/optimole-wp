@@ -17,6 +17,25 @@
                                color="#008ec2"></toggle-button>
             </div>
         </div>
+        <div class="field  is-fullwidth columns">
+            <label class="label column has-text-grey-dark">
+                {{strings.toggle_scale}}
+
+                <p class="is-italic has-text-weight-normal">
+                    {{strings.scale_desc}}
+                </p>
+            </label>
+
+            <div class="column is-3 ">
+                <toggle-button :class="'has-text-dark'"
+                               v-model="scaleStatus"
+                               :disabled="this.$store.state.loading"
+                               :labels="{checked: strings.on_toggle, unchecked: strings.off_toggle}"
+                               :width="80"
+                               :height="25"
+                               color="#008ec2"></toggle-button>
+            </div>
+        </div>
         <div class="field columns">
             <label class="label column has-text-grey-dark">
                 {{strings.enable_bg_lazyload_title}}
@@ -118,7 +137,17 @@
 	            get: function () {
 		            return this.site_settings.watchers;
 	            }
-            }
+            },
+			scaleStatus: {
+				set: function (value) {
+					this.showSave = true;
+					this.new_data.scale = value ? 'disabled' : 'enabled';
+				},
+				get: function () {
+					return (this.site_settings.scale === 'disabled');
+				}
+
+			},
 		}
 	}
 </script>
