@@ -1,7 +1,7 @@
 {
   "name": "optimole-wp",
   "version": "2.4.0",
-  "description": "Image optimization & CDN by Optimole",
+  "description": "Cloud-based image optimization service -  WordPress Integration",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Codeinwp/optimole-wp.git"
