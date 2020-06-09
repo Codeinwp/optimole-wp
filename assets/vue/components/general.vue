@@ -19,6 +19,8 @@
             </div>
 
         </div>
+
+        <hr/>
         <!--Lazy load toggle -->
         <div class="field  is-fullwidth columns" :class="{'is-field-disabled':isReplacerOff }">
             <label class="label column has-text-grey-dark">
@@ -38,29 +40,12 @@
                                :height="25"
                                color="#008ec2"></toggle-button>
             </div>
-        </div> 
-        <!-- Scale toggle-->
-        <div class="field  is-fullwidth columns" :class="{'is-field-disabled':isReplacerOff || isLazyLoadOff }">
-            <label class="label column has-text-grey-dark">
-                {{strings.toggle_scale}}
+        </div>
 
-                <p class="is-italic has-text-weight-normal">
-                    {{strings.scale_desc}}
-                </p>
-            </label>
+        <hr/>
 
-            <div class="column is-3 ">
-                <toggle-button :class="'has-text-dark'"
-                               v-model="scaleStatus"
-                               :disabled="this.$store.state.loading"
-                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                               :width="80"
-                               :height="25"
-                               color="#008ec2"></toggle-button>
-            </div>
-        </div> 
         <!-- Clear Cache button -->
-        <div class="field  is-fullwidth columns ">
+        <div class="field  is-fullwidth columns " :class="{'is-field-disabled':isReplacerOff }">
             <label class="label column has-text-grey-dark">
                 {{strings.cache_title}}
 
@@ -144,18 +129,7 @@
                 get: function () {
                     return !(this.site_settings.lazyload === 'disabled');
                 } 
-            },
-            scaleStatus: {
-                set: function (value) {
-                    this.showSave = true;
-                    this.new_data.scale = value ? 'enabled' : 'disabled';
-                },
-                get: function () {
-                    return !(this.site_settings.scale === 'disabled');
-                }
-
             }
-
         }
     }
 </script>

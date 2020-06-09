@@ -1,26 +1,7 @@
 <template>
     <div :class="{ 'saving--option' : this.$store.state.loading }">
 
-        <!--CSS & JS Assets load toggle -->
-        <div class="field  is-fullwidth columns">
-            <label class="label column has-text-grey-dark">
-                {{strings.toggle_cdn}}
 
-                <p class="is-italic has-text-weight-normal">
-                    {{strings.cdn_desc}}
-                </p>
-            </label>
-
-            <div class="column is-3 ">
-                <toggle-button :class="'has-text-dark'"
-                               v-model="cdnStatus"
-                               :disabled="this.$store.state.loading"
-                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                               :width="80"
-                               :height="25"
-                               color="#008ec2"></toggle-button>
-            </div>
-        </div>
         <!-- CSS minify toggle button -->
         <div class="field  columns" :class="{'is-field-disabled':isReplacerOff }">
             <label class="label column has-text-grey-dark">
@@ -113,16 +94,7 @@
 			        return !(this.site_settings.css_minify === 'disabled');
 		        }
 	        },
-			cdnStatus: {
-				set: function (value) {
-					this.showSave = true;
-					this.isReplacerOff = !value;
-					this.new_data.cdn = value ? 'enabled' : 'disabled';
-				},
-				get: function () {
-					return !(this.site_settings.cdn === 'disabled');
-				}
-			},
+
 	        jsMinifyStatus: {
 		        set: function (value) {
 			        this.showSave = true;
