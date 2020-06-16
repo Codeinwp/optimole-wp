@@ -70,6 +70,7 @@ final class Optml_Manager {
 		'thrive',
 		'master_slider',
 		'pinterest',
+		'w3_total_cache',
 	);
 
 	/**
