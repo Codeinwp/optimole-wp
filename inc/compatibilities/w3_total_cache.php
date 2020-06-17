@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Class Optml_cache_enabler.
+ * Class Optml_w3_total_cache.
  *
- * @reason Cache_enabler stores the content of the page before Optimole starts replacing url's
+ * @reason Cache_w3_total_cache stores the content of the page before Optimole starts replacing url's
  */
 class Optml_w3_total_cache extends Optml_compatibility {
 
@@ -23,14 +23,7 @@ class Optml_w3_total_cache extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'w3tc_minify_processed', [$this, 'optml_filter_w3tc_minify_processed'], 10, 1 );
-	}
-	/**
-	 * Process buffer before caching.
-	 */
-	public function optml_filter_w3tc_minify_processed( $buffer ) {
-		$buffer = Optml_Manager::instance()->replace_content( $buffer );
-		return $buffer;
+		add_filter( 'w3tc_minify_processed', [ Optml_Main::instance()->manager, 'replace_content' ], 10, 1 );
 	}
 }
 
