@@ -15,8 +15,7 @@ class Optml_w3_total_cache extends Optml_compatibility {
 	 */
 	function should_load() {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-		$settings = new Optml_Settings();
-		return $settings->get( 'cdn' ) === 'enabled' && is_plugin_active( 'w3-total-cache/w3-total-cache.php' );
+		return Optml_Main::instance()->admin->settings->get( 'cdn' ) === 'enabled' && is_plugin_active( 'w3-total-cache/w3-total-cache.php' );
 	}
 
 	/**
