@@ -15,22 +15,14 @@ class Optml_swift_performance extends Optml_compatibility {
 	 */
 	function should_load() {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-		$settings = new Optml_Settings();
-		return $settings->get( 'cdn' ) === 'enabled' && is_plugin_active( 'swift-performance-lite/performance.php' );
+		return Optml_Main::instance()->admin->settings->get( 'cdn' ) === 'enabled' && is_plugin_active( 'swift-performance-lite/performance.php' );
 	}
 
 	/**
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'swift_performance_buffer', [$this, 'optml_process_content'], 10, 1 );
-	}
-	/**
-	 * Process content buffer.
-	 */
-	public function optml_process_content( $buffer ) {
-		$buffer = Optml_Manager::instance()->replace_content( $buffer );
-		return $buffer;
+		add_filter( 'swift_performance_buffer', [ Optml_Main::instance()->manager, 'replace_content' ], 10, 1 );
 	}
 }
 
