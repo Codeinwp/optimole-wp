@@ -33,7 +33,7 @@ class Optml_Admin {
 		add_action( 'admin_notices', array( $this, 'add_notice' ) );
 		add_action( 'admin_notices', array( $this, 'add_notice_upgrade' ) );
 		add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
-		if ( ! is_admin() && $this->settings->is_enabled() ) {
+		if ( ! is_admin() && $this->settings->get( 'report_script' ) === 'enabled' ) {
 			add_action( 'wp_before_admin_bar_render', array($this, 'add_report_menu') );
 		}
 		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
@@ -650,6 +650,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_bg_lazyload_desc'           => __( 'Lazyload images used as CSS backgrounds.', 'optimole-wp' ),
 				'enable_bg_lazyload_title'          => __( 'Enable lazyload for background images', 'optimole-wp' ),
 				'enable_gif_replace_title'          => __( 'Enable Gif to Video conversion', 'optimole-wp' ),
+				'enable_report_title'               => __( 'Enable analysis of processed images for admin users' ),
+				'enable_report_desc'                => __( 'We will analyze all processed images from page and report any issues' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
 				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),

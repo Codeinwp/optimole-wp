@@ -638,9 +638,6 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function check_redirects( WP_REST_Request $request ) {
-		if ( empty( $request ) ) {
-			wp_send_json_error( 'No option key set.' );
-		}
 		// 'ok' if no issues found, 'log' is there are issues we need to notify, 'deactivated' if the user's account is disabled
 		$status = 'ok';
 		$result = [];
