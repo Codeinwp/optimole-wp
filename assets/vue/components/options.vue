@@ -20,6 +20,10 @@
                                :class="tab === 'resize' ? 'is-active' : ''"
                                :title="all_strings.settings_resize_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_resize_menu_item}}</a>
                         </li>
+<!--                        <li><a @click="changeTab('cssjs')" href="#"-->
+<!--                               :class="tab === 'cssjs' ? 'cssjs' : ''"-->
+<!--                               title="CSS/JS">CSS/JS</a>-->
+<!--                        </li>-->
                         <li v-if="this.$store.state.site_settings.lazyload==='enabled'"><a @click="changeTab('lazyload')" href="#"
                                :class="tab === 'lazyload' ? 'is-active' : ''"
                                :title="all_strings.lazyload_settings_menu_item+' '+all_strings.lazyload_settings_menu_item">{{all_strings.lazyload_settings_menu_item}}</a>
@@ -45,6 +49,7 @@
                 <General v-if="tab === 'general' " @update-status="updateGlobalState"></General>
                 <Compression v-if="tab === 'compression' "></Compression>
                 <Watermarks v-if="tab ==='watermark'"></Watermarks>
+<!--                <Cssjs v-if="tab ==='cssjs'"></Cssjs>-->
                 <Resize v-if="tab ==='resize'"></Resize>
                 <Lazyload v-if="tab ==='lazyload'"></Lazyload>
                 <Exclusions v-if="tab ==='exclusions'"></Exclusions>
@@ -60,10 +65,11 @@
 	import Resize from "./resize.vue";
 	import Exclusions from "./exclusions.vue";
 	import Lazyload from "./lazyload.vue";
+	import Cssjs from "./cssjs.vue";
 
 	export default {
         name: "options",
-        components: {Lazyload, Exclusions, Resize, Watermarks, Compression, General},
+        components: {Cssjs, Lazyload, Exclusions, Resize, Watermarks, Compression, General},
         data() {
             return {
                 strings: optimoleDashboardApp.strings.options_strings,

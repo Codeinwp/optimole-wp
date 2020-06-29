@@ -105,6 +105,7 @@ class Optml_Admin {
 		$watcher_classes       = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
 		$default_network       = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
 		$retina_ready          = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
+		$scale_is_disabled     = ( $this->settings->get( 'scale' ) === 'enabled' );
 		$output                = sprintf(
 			'
 		<style type="text/css">
@@ -139,6 +140,7 @@ class Optml_Admin {
 						w.optimoleData = {
 							lazyloadOnly: "optimole-lazy-only",
 							backgroundReplaceClasses: [%s],
+							scalingDisabled: %s,
 							watchClasses: [%s],
 							backgroundLazySelectors: "%s",
 							network_optimizations: %s,
@@ -153,6 +155,7 @@ class Optml_Admin {
 			esc_url( $domain ),
 			$min,
 			$bgclasses,
+			$scale_is_disabled ? 'true' : 'false',
 			$watcher_classes,
 			addcslashes( $lazyload_bg_selectors, '"' ),
 			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? ( OPTML_NETWORK_ON ? 'true' : 'false' ) : ( $default_network ? 'true' : 'false' ),
@@ -183,6 +186,7 @@ class Optml_Admin {
 	 */
 	public function adds_body_classes( $classes ) {
 		$classes[] = 'optimole-no-script';
+
 		return $classes;
 	}
 
@@ -314,13 +318,14 @@ class Optml_Admin {
 			return false;
 		}
 		$visitors_limit = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
-		$visitors_left = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
+		$visitors_left  = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
 		if ( $visitors_limit === 0 ) {
 			return false;
 		}
 		if ( $visitors_left > 2000 ) {
 			return false;
 		}
+
 		return true;
 	}
 
@@ -530,6 +535,7 @@ class Optml_Admin {
 			'strings'              => $this->get_dashboard_strings(),
 			'assets_url'           => OPTML_URL . 'assets/',
 			'connection_status'    => empty( $service_data ) ? 'no' : 'yes',
+			'user_status'          => isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ? 'inactive' : 'active',
 			'api_key'              => $api_key,
 			'root'                 => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),
 			'nonce'                => wp_create_nonce( 'wp_rest' ),
@@ -611,6 +617,7 @@ class Optml_Admin {
 The root cause might be either a security plugin which blocks this feature or some faulty server configuration which constrain this WordPress feature.You can try to disable any of the security plugins that you use in order to see if the issue persists or ask the hosting company to further investigate.',
 				'optimole-wp'
 			),
+			'notice_disabled_account'        => sprintf( __( 'Your account has been disabled due to exceeding quota. All images are being redirected to the original unoptimized URL. Please %1$supgrade%2$s to re-activate the account.', 'optimole-wp' ), '<a href="https://optimole.com/pricing">', '</a>' ),
 			'dashboard_menu_item'            => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'             => __( 'Settings', 'optimole-wp' ),
 			'settings_exclusions_menu_item'  => __( 'Exclusions', 'optimole-wp' ),
@@ -639,9 +646,9 @@ The root cause might be either a security plugin which blocks this feature or so
 				'add_filter'                        => __( 'Add filter', 'optimole-wp' ),
 				'admin_bar_desc'                    => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),
 				'auto_q_title'                      => __( 'Auto', 'optimole-wp' ),
-				'cache_desc'                        => __( 'Clear all cached images by Optimole from this site. Useful if you updated your images and Optimole shows the old version.', 'optimole-wp' ),
-				'cache_title'                       => __( 'Clear cached images', 'optimole-wp' ),
-				'clear_cache'                       => __( 'Clear cached images', 'optimole-wp' ),
+				'cache_desc'                        => __( 'Clear all cached resources(images,js,css) by Optimole from this site. Useful if you updated them and Optimole shows the old version.', 'optimole-wp' ),
+				'cache_title'                       => __( 'Clear cached resources', 'optimole-wp' ),
+				'clear_cache'                       => __( 'Clear cached resources', 'optimole-wp' ),
 				'connect_step_0'                    => __( 'Connecting your site to the Optimole service.', 'optimole-wp' ),
 				'connect_step_1'                    => __( 'Checking for possible conflicts.', 'optimole-wp' ),
 				'connect_step_2'                    => __( 'Inspecting the images from your site.', 'optimole-wp' ),
@@ -680,7 +687,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'high_q_title'                      => __( 'High', 'optimole-wp' ),
 				'image_1_label'                     => __( 'Original', 'optimole-wp' ),
 				'image_2_label'                     => __( 'Optimized', 'optimole-wp' ),
-				'lazyload_desc'                     => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload.', 'optimole-wp' ),
+				'lazyload_desc'                     => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload .', 'optimole-wp' ),
+				'scale_desc'                        => __( 'When this option is off, we disable the automatic scaling of images on lazyload.', 'optimole-wp' ),
 				'low_q_title'                       => __( 'Low', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),
 				'no_images_found'                   => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
@@ -697,12 +705,19 @@ The root cause might be either a security plugin which blocks this feature or so
 				'size_title'                        => __( 'Resize large images.', 'optimole-wp' ),
 				'toggle_ab_item'                    => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'                   => __( 'Scale images & Lazy load', 'optimole-wp' ),
+				'toggle_scale'                      => __( 'Scale Images', 'optimole-wp' ),
+				'on_toggle'                         => __( 'On', 'optimole-wp' ),
+				'off_toggle'                        => __( 'Off', 'optimole-wp' ),
 				'view_sample_image'                 => __( 'View sample image', 'optimole-wp' ),
 				'watch_desc_lazyload'               => __( 'You can add each CSS selector on a new line or separated by comma(,).', 'optimole-wp' ),
 				'watch_title_lazyload'              => __( 'Lazyload background images for selectors:', 'optimole-wp' ),
 				'width_field'                       => __( 'Width', 'optimole-wp' ),
 				'toggle_cdn'                        => __( 'Serve CSS & JS through Optimole', 'optimole-wp' ),
-				'cdn_desc'                          => __( 'Useful when you have images into CSS/JS files. Optimole wil optimize the images from them, plus minify and serve the CSS/JS through the CDN.', 'optimole-wp' ),
+				'cdn_desc'                          => __( 'Useful when you have images into CSS/JS files. Optimole wil optimize the images from them and serve the CSS/JS through the CDN.', 'optimole-wp' ),
+				'enable_css_minify_title'           => __( 'Minify CSS files', 'optimole-wp' ),
+				'css_minify_desc'                   => __( 'Once Optimole will serve your CSS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
+				'enable_js_minify_title'            => __( 'Minify JS files', 'optimole-wp' ),
+				'js_minify_desc'                    => __( 'Once Optimole will serve your JS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
 			),
 			'watermarks'                     => array(
 				'image'                    => __( 'Image', 'optimole-wp' ),

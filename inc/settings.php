@@ -25,6 +25,7 @@ class Optml_Settings {
 		'max_width'            => 2000,
 		'admin_bar_item'       => 'enabled',
 		'lazyload'             => 'disabled',
+		'scale'                => 'disabled',
 		'network_optimization' => 'disabled',
 		'lazyload_placeholder' => 'disabled',
 		'bg_replacer'          => 'enabled',
@@ -41,6 +42,8 @@ class Optml_Settings {
 		'wm_scale'             => 0,
 		'image_replacer'       => 'enabled',
 		'img_to_video'         => 'disabled',
+		'css_minify'           => 'enabled',
+		'js_minify'            => 'disabled',
 		'report_script'        => 'disabled',
 
 	);
@@ -128,6 +131,7 @@ class Optml_Settings {
 			switch ( $key ) {
 				case 'admin_bar_item':
 				case 'lazyload':
+				case 'scale':
 				case 'image_replacer':
 				case 'cdn':
 				case 'network_optimization':
@@ -137,6 +141,8 @@ class Optml_Settings {
 				case 'bg_replacer':
 				case 'report_script':
 				case 'img_to_video':
+				case 'css_minify':
+				case 'js_minify':
 					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
 					break;
 				case 'max_width':
@@ -301,6 +307,9 @@ class Optml_Settings {
 			'watchers'             => $this->get_watchers(),
 			'watermark'            => $this->get_watermark(),
 			'img_to_video'         => $this->get( 'img_to_video' ),
+			'scale'                => $this->get( 'scale' ),
+			'css_minify'           => $this->get( 'css_minify' ),
+			'js_minify'            => $this->get( 'js_minify' ),
 			'report_script'        => $this->get( 'report_script' ),
 		);
 	}
@@ -369,8 +378,14 @@ class Optml_Settings {
 	 * @return bool Replacer enabled
 	 */
 	public function is_enabled() {
-		$status = $this->get( 'image_replacer' );
-
+		$status       = $this->get( 'image_replacer' );
+		$service_data = $this->get( 'service_data' );
+		if ( empty( $service_data ) ) {
+			return false;
+		}
+		if ( isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ) {
+			return false;
+		}
 		return $this->to_boolean( $status );
 	}
 

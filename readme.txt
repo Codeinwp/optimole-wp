@@ -14,7 +14,7 @@ Automatically compress, optimize and serve scaled images along with next-gen Web
 > **What makes Optimole so special?**
 >
 > * Smaller images. Same quality
-> * Fully automated; set and forget
+> * Fully automated; [set and forget](https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps)
 > * Supports all image types
 > * Supports both Retina and WebP images
 > * Serves images from a global CDN for free
@@ -26,7 +26,7 @@ Automatically compress, optimize and serve scaled images along with next-gen Web
 
 Optimole is the all-in-one solution to all of your image optimization needs. With full automation and a range of evolutionary features, Optimole makes it easy to clean up your heavy images and bloaty pages.
 
-Optimole optimizes your images in real-time with a cloud-based system to speed up your website and deliver high-quality images perfectly sized for every device. With a one-click setup and minimal footprint, you can start improving your site in minutes.
+Optimole [optimizes](https://www.codeinwp.com/blog/how-to-optimize-images/) your images in real-time with a cloud-based system to [speed up your website](https://optimole.com/website-speed-optimization-and-how-to-speed-up-wordpress/) and deliver high-quality images perfectly sized for every device. With a one-click setup and minimal footprint, you can start improving your site in minutes.
 
 You'll be free to concentrate on other aspects of your site with Optimole's set and forget image optimization.
 
@@ -88,6 +88,20 @@ Premium users will be able to optimize images for more than 25k monthly active u
 4. Plugin settings
 
 == Changelog ==
+
+#### [Version 2.4.0](https://github.com/Codeinwp/optimole-wp/compare/v2.3.1...v2.4.0) (2020-06-08)
+
+#### Features: 
+- Adds the option to serve CSS/JS via Optimole.
+- Adds the option to serve minified CSS/JS files. 
+- Adds the option to disable scaling but keep lazyload. 
+
+#### Fixes: 
+- Optimize images that are hardcoded in the CSS/JS files.
+- Improve notice feedback when the quota is exceeded.
+
+
+
 
 ##### [Version 2.3.1](https://github.com/Codeinwp/optimole-wp/compare/v2.3.0...v2.3.1) (2020-04-21)
 

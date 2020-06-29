@@ -424,7 +424,7 @@ final class Optml_Manager {
 	 */
 	public function extract_urls_from_content( $content ) {
 		$extensions = array_keys( Optml_Config::$image_extensions );
-		if ( $this->settings->use_cdn() ) {
+		if ( $this->settings->use_cdn() && ! self::should_ignore_image_tags() ) {
 			$extensions = array_merge( $extensions, array_keys( Optml_Config::$assets_extensions ) );
 		}
 		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';

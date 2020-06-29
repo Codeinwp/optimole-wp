@@ -1,3 +1,14 @@
+#### [Version 2.4.0](https://github.com/Codeinwp/optimole-wp/compare/v2.3.1...v2.4.0) (2020-06-08)
+
+#### Features: 
+- Adds the option to serve CSS/JS via Optimole.
+- Adds the option to serve minified CSS/JS files. 
+- Adds the option to disable scaling but keep lazyload. 
+
+#### Fixes: 
+- Optimize images that are hardcoded in the CSS/JS files.
+- Improve notice feedback when the quota is exceeded.
+
 ##### [Version 2.3.1](https://github.com/Codeinwp/optimole-wp/compare/v2.3.0...v2.3.1) (2020-04-21)
 
 ### Bug Fixes
