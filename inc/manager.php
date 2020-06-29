@@ -70,7 +70,14 @@ final class Optml_Manager {
 		'thrive',
 		'master_slider',
 		'pinterest',
+		'sg_optimizer',
 	);
+	/**
+	 * The current state of the buffer.
+	 *
+	 * @var boolean Buffer state.
+	 */
+	private static $ob_started = false;
 
 	/**
 	 * Class instance method.
@@ -513,12 +520,16 @@ final class Optml_Manager {
 	 * Init html replacer handler.
 	 */
 	public function process_template_redirect_content() {
-		// We no longer need this if the handler was started.
-		remove_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
+		// Early exit if function was already called, we don't want duplicate ob_start
+		if ( self::$ob_started === false ) {
+			self::$ob_started = true;
+			// We no longer need this if the handler was started.
+			remove_filter( 'the_content', array($this, 'process_images_from_content'), PHP_INT_MAX );
 
-		ob_start(
-			array( &$this, 'replace_content' )
-		);
+			ob_start(
+				array(&$this, 'replace_content')
+			);
+		}
 	}
 
 	/**
