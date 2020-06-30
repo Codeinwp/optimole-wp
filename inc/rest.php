@@ -651,7 +651,7 @@ class Optml_Rest {
 				$processed_images = count( $value['src'] );
 			}
 			if ( isset( $value['ignoredUrls'] ) && $value['ignoredUrls'] > $processed_images ) {
-				$result .= __( 'The domain:' ) . $domain . __( 'is not added to the whitelist' ) . '\n';
+				$result .= sprintf( __( 'The domain: %s is not added to the whitelist', 'optimole-wp' ), $domain ) . '<br />';
 				$status = 'log';
 				continue;
 			}
@@ -662,7 +662,7 @@ class Optml_Rest {
 					$status_code = $response['response']['code'];
 					if ( $status_code === 301 ) {
 						$status = 'deactivated';
-						$result = __( 'Your accound is permanently disabled' );
+						$result = __( 'Your accound is permanently disabled', 'optimole-wp' );
 						break;
 					}
 					if ( $status_code === 302 ) {
@@ -670,11 +670,11 @@ class Optml_Rest {
 							$max_age = intval( explode( '=', $headers['cache-control'] )[1] );
 							if ( $max_age === 1800 ) {
 								$status = 'log';
-								$result .= __( 'The domain: ' ) . $domain . __( ' is not added to the whitelist' ) . '\n';
+								$result .= sprintf( __( 'The domain: %s is not added to the whitelist', 'optimole-wp' ), $domain ) . '<br />';
 							}
 							if ( $max_age > 1800 ) {
 								$status = 'log';
-								$result .= __( 'The images from: ' ) . $domain . __( ' are scheduled to be processed soon' ) . '\n';
+								$result .= sprintf( __( 'The images from: %s are scheduled to be processed soon', 'optimole-wp' ), $domain ) . '<br />';
 							}
 							// for small values we should ignore them as they will soon be processed
 						}
@@ -682,6 +682,10 @@ class Optml_Rest {
 				}
 			}
 		}
+		if ( $result === '' ) {
+			$result = __( 'Everything is ok', 'optimole-wp' );
+		}
+
 		return $this->response( $result, $status );
 	}
 }

@@ -56,10 +56,62 @@ class Optml_Admin {
 		$wp_admin_bar->add_menu(
 			array(
 				'id' => 'optml_status',
-				'title' => 'Analyzing...',
+				'title' => 'Check my site',
 				'parent' => 'optml_report_script',
 			)
 		);
+	}
+	/**
+	 * Adds Optimole css to admin bar
+	 */
+	public function print_report_css() {
+		?>
+		<style type="text/css">
+			li#wp-admin-bar-optml_report_script>div :hover {
+				cursor:pointer;
+				color: #00b9eb !important;
+				text-decoration:underline;
+			}
+			/* The Modal (background) */
+			.optml-modal {
+				display: none; /* Hidden by default */
+				position: fixed; /* Stay in place */
+				z-index:  2147483641; /* Sit on top */
+				padding-top: 100px; /* Location of the box */
+				left: 0;
+				top: 0;
+				width: 100%; /* Full width */
+				height: 100%; /* Full height */
+				overflow: auto; /* Enable scroll if needed */
+				background-color: rgb(0,0,0); /* Fallback color */
+				background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+			}
+
+			/* Modal Content */
+			.optml-modal-content {
+				background-color: #fefefe;
+				margin: auto;
+				padding: 20px;
+				border: 1px solid #888;
+				width: 80%;
+			}
+
+			/* The Close Button */
+			.optml-close {
+				color: #aaaaaa;
+				float: right;
+				font-size: 28px;
+				font-weight: bold;
+			}
+
+			.optml-close:hover,
+			.optml-close:focus {
+				color: #000;
+				text-decoration: none;
+				cursor: pointer;
+			}
+		</style>
+		<?php
 	}
 
 	/**
@@ -69,6 +121,7 @@ class Optml_Admin {
 		add_action( 'wp_head', array( $this, 'generator' ) );
 		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 		if ( ! is_admin() && $this->settings->get( 'report_script' ) === 'enabled' && current_user_can( 'manage_options' ) ) {
+			add_action( 'wp_head', array($this, 'print_report_css' ) );
 			add_action( 'wp_before_admin_bar_render', array($this, 'add_report_menu') );
 			add_action( 'wp_enqueue_scripts', array($this, 'add_diagnosis_script') );
 		}
@@ -166,6 +219,7 @@ class Optml_Admin {
 	 * Adds script for lazyload/js replacement.
 	 */
 	public function add_diagnosis_script() {
+
 		wp_enqueue_script( 'optml-report', OPTML_URL . 'assets/js/report_script.js' );
 		$ignoredDomains = ['0.gravatar.com'];
 		$report_script = array(
