@@ -4,14 +4,14 @@
 			let pageImages = document.getElementsByTagName('img');
 			let imagesAdd = {};
 			for (let i = 0; i < pageImages.length; i++) {
-				if (pageImages[i].src.includes("0.gravatar.com")) {
-					continue;
-				}
 				let words = pageImages[i].src.split('://');
 				if (words.length <= 1) {
 					continue;
 				}
 				let domain = words[words.length - 1].split('/')[0];
+				if (reportScript.ignoredDomains.includes(domain)) {
+					continue;
+				}
 				if (!words[1].includes(reportScript.optmlCdn)) {
 					if (imagesAdd.hasOwnProperty(domain)) {
 						if (imagesAdd[domain].hasOwnProperty("ignoredUrls")) {
