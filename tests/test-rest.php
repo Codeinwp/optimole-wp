@@ -148,6 +148,6 @@ class Test_Rest extends WP_UnitTestCase
 		$this->assertArrayHasKey( 'data', $data );
 		$this->assertArrayHasKey( 'code', $data );
 		$this->assertEquals( 'ok', $data[ 'code' ] );
-		$this->assertEquals( '', $data[ 'data' ] );
+		$this->assertEquals( 'Everything is ok', $data[ 'data' ] );
 	}
 }
