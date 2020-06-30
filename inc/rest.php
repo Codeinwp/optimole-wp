@@ -75,9 +75,6 @@ class Optml_Rest {
 					'args'                => array(
 						'images' => array(
 							'type' => 'Array',
-							'validate_callback' => function( $images ) {
-								return count( $images ) > 0;
-							},
 							'required' => true,
 						),
 					),
@@ -638,9 +635,12 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function check_redirects( WP_REST_Request $request ) {
+		if ( empty( $request->get_param( 'images' ) ) ) {
+			return $this->response( __( 'No images found' ), 'noImagesFound' );
+		}
 		// 'ok' if no issues found, 'log' is there are issues we need to notify, 'deactivated' if the user's account is disabled
 		$status = 'ok';
-		$result = [];
+		$result = '';
 		foreach ( $request->get_param( 'images' ) as $domain => $value ) {
 			$args = array(
 				'method' => 'GET',
@@ -651,7 +651,7 @@ class Optml_Rest {
 				$processed_images = count( $value['src'] );
 			}
 			if ( isset( $value['ignoredUrls'] ) && $value['ignoredUrls'] > $processed_images ) {
-				$result[ $domain ] = 'whitelist';
+				$result .= __( 'The domain:' ) . $domain . __( 'is not added to the whitelist' ) . '\n';
 				$status = 'log';
 				continue;
 			}
@@ -662,6 +662,7 @@ class Optml_Rest {
 					$status_code = $response['response']['code'];
 					if ( $status_code === 301 ) {
 						$status = 'deactivated';
+						$result = __( 'Your accound is permanently disabled' );
 						break;
 					}
 					if ( $status_code === 302 ) {
@@ -669,11 +670,11 @@ class Optml_Rest {
 							$max_age = intval( explode( '=', $headers['cache-control'] )[1] );
 							if ( $max_age === 1800 ) {
 								$status = 'log';
-								$result [ $domain ] = 'whitelist';
+								$result .= __( 'The domain: ' ) . $domain . __( ' is not added to the whitelist' ) . '\n';
 							}
 							if ( $max_age > 1800 ) {
 								$status = 'log';
-								$result [ $domain ] = 'later';
+								$result .= __( 'The images from: ' ) . $domain . __( ' are scheduled to be processed soon' ) . '\n';
 							}
 							// for small values we should ignore them as they will soon be processed
 						}
