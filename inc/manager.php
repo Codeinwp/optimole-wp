@@ -73,6 +73,7 @@ final class Optml_Manager {
 		'sg_optimizer',
 		'wp_fastest_cache',
 		'swift_performance',
+		'w3_total_cache',
 	);
 	/**
 	 * The current state of the buffer.
