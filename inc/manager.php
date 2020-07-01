@@ -71,6 +71,7 @@ final class Optml_Manager {
 		'master_slider',
 		'pinterest',
 		'wp_fastest_cache',
+		'swift_performance',
 	);
 
 	/**
