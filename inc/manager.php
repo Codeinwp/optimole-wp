@@ -70,6 +70,7 @@ final class Optml_Manager {
 		'thrive',
 		'master_slider',
 		'pinterest',
+		'wp_fastest_cache',
 		'swift_performance',
 	);
 
