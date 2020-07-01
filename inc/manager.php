@@ -71,6 +71,8 @@ final class Optml_Manager {
 		'master_slider',
 		'pinterest',
 		'sg_optimizer',
+		'wp_fastest_cache',
+		'swift_performance',
 	);
 	/**
 	 * The current state of the buffer.
