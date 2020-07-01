@@ -674,7 +674,7 @@ class Optml_Rest {
 							}
 							if ( $max_age > 1800 ) {
 								$status = 'log';
-								$result .= sprintf( __( 'The images from: %s are scheduled to be processed soon', 'optimole-wp' ), $domain ) . '<br />';
+								$result .= sprintf( __( 'The images from: %s could not be downloaded to be optimized and are scheduled to be processed soon', 'optimole-wp' ), $domain ) . '<br />';
 							}
 							// for small values we should ignore them as they will soon be processed
 						}

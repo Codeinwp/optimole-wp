@@ -3,6 +3,36 @@
 		let optmlAdmin = document.querySelector("li#wp-admin-bar-optml_report_script ul#wp-admin-bar-optml_report_script-default");
 		optmlAdmin.addEventListener("click", function () {
 			if (typeof reportScript !== 'undefined') {
+				let body = document.getElementsByTagName('body')[0];
+
+				let modal = document.createElement('div');
+				modal.setAttribute('class', 'optml-modal');
+				let modalContent = document.createElement('div');
+				modalContent.setAttribute('class', 'optml-modal-content');
+				let modalClose = document.createElement('span');
+				modalClose.setAttribute('class', 'optml-close');
+				modalClose.innerHTML = "&times";
+				modalClose.addEventListener("click" , function() {
+					modal.style.display = "none";
+				});
+				let modalText = document.createElement('p');
+				let modalTitle = document.createElement('p');
+				modalTitle.innerHTML = reportScript.description;
+				modalTitle.style.textAlign = "center";
+				modalText.innerHTML = reportScript.wait;
+				modalContent.appendChild(modalClose);
+				modalContent.appendChild(modalTitle);
+				modalContent.appendChild(modalText);
+				modal.appendChild(modalContent);
+				let report = '';
+				let optmlAdmin = document.querySelector("li#wp-admin-bar-optml_report_script ul#wp-admin-bar-optml_report_script-default");
+				modal.style.display = "block";
+				w.addEventListener( "click", function(event) {
+					if (event.target == modal) {
+						modal.style.display = "none";
+					}
+				});
+				body.appendChild(modal);
 				let pageImages = document.getElementsByTagName('img');
 				let imagesAdd = {};
 				for (let i = 0; i < pageImages.length; i++) {
@@ -46,32 +76,7 @@
 					// body data type must match "Content-Type" header
 				}).then(response => {
 					response.json().then(function (data) {
-						let body = document.getElementsByTagName('body')[0];
-
-						let modal = document.createElement('div');
-						modal.setAttribute('class', 'optml-modal');
-						let modalContent = document.createElement('div');
-						modalContent.setAttribute('class', 'optml-modal-content');
-						let modalClose = document.createElement('span');
-						modalClose.setAttribute('class', 'optml-close');
-						modalClose.innerHTML = "&times";
-						modalClose.addEventListener("click" , function() {
-							modal.style.display = "none";
-						});
-						let modalText = document.createElement('p');
 						modalText.innerHTML =`${data.data}`;
-						modalContent.appendChild(modalClose);
-						modalContent.appendChild(modalText);
-						modal.appendChild(modalContent);
-						let report = '';
-						let optmlAdmin = document.querySelector("li#wp-admin-bar-optml_report_script ul#wp-admin-bar-optml_report_script-default");
-						modal.style.display = "block";
-						w.addEventListener( "click", function(event) {
-							if (event.target == modal) {
-								modal.style.display = "none";
-							}
-						});
-						body.appendChild(modal);
 					});
 				});
 			}
