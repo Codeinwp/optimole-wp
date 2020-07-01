@@ -50,13 +50,13 @@ class Optml_Admin {
 		$wp_admin_bar->add_node(
 			array(
 				'id' => 'optml_report_script',
-				'title' => 'Optimole',
+				'title' => '<span class="ab-icon"></span>Optimole',
 			)
 		);
 		$wp_admin_bar->add_menu(
 			array(
 				'id' => 'optml_status',
-				'title' => 'Check my site',
+				'title' => 'Check for issues',
 				'parent' => 'optml_report_script',
 			)
 		);
@@ -68,10 +68,15 @@ class Optml_Admin {
 		?>
 		<style type="text/css">
 			li#wp-admin-bar-optml_report_script>div :hover {
-				cursor:pointer;
+				cursor: pointer;
 				color: #00b9eb !important;
-				text-decoration:underline;
+				text-decoration: underline;
 			}
+			#wpadminbar #wp-admin-bar-optml_report_script .ab-icon:before {
+				content: "\f227";
+				top: 3px;
+			}
+			
 			/* The Modal (background) */
 			.optml-modal {
 				display: none; /* Hidden by default */
