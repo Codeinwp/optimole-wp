@@ -232,8 +232,8 @@ class Optml_Admin {
 			'restUrl' => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) . '/check_redirects',
 			'nonce' => wp_create_nonce( 'wp_rest' ),
 			'ignoredDomains' => $ignoredDomains,
-			'wait' => __( "We are checking you're page for issues hold on tight ..." ),
-			'description' => __( 'Optimole page analyzer' ),
+			'wait' => __( "We are checking you're page for issues hold on tight ...", 'optimole-wp' ),
+			'description' => __( 'Optimole page analyzer', 'optimole-wp' ),
 		);
 		wp_localize_script( 'optml-report', 'reportScript', $report_script );
 	}
