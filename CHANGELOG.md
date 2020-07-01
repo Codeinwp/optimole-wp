@@ -1,3 +1,8 @@
+##### [Version 2.4.1](https://github.com/Codeinwp/optimole-wp/compare/v2.4.0...v2.4.1) (2020-06-09)
+
+* Improves settings UI for CSS/JS toggle
+* Improves settings description for autoscaling toggle.
+
 #### [Version 2.4.0](https://github.com/Codeinwp/optimole-wp/compare/v2.3.1...v2.4.0) (2020-06-08)
 
 #### Features: 
