@@ -74,6 +74,7 @@ final class Optml_Manager {
 		'wp_fastest_cache',
 		'swift_performance',
 		'w3_total_cache',
+		'translate_press',
 	);
 	/**
 	 * The current state of the buffer.
@@ -161,6 +162,9 @@ final class Optml_Manager {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) {
+			return false; // @codeCoverageIgnore
+		}
+		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] == 'true' || $_GET['trp-edit-translation'] == 'preview' ) ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
