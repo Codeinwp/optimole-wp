@@ -524,15 +524,16 @@ final class Optml_Manager {
 	 */
 	public function process_template_redirect_content() {
 		// Early exit if function was already called, we don't want duplicate ob_start
-		if ( self::$ob_started === false ) {
-			self::$ob_started = true;
-			// We no longer need this if the handler was started.
-			remove_filter( 'the_content', array($this, 'process_images_from_content'), PHP_INT_MAX );
-
-			ob_start(
-				array(&$this, 'replace_content')
-			);
+		if ( self::$ob_started === true ) {
+			return;
 		}
+		self::$ob_started = true;
+		// We no longer need this if the handler was started.
+		remove_filter( 'the_content', array($this, 'process_images_from_content'), PHP_INT_MAX );
+
+		ob_start(
+			array(&$this, 'replace_content')
+		);
 	}
 
 	/**
