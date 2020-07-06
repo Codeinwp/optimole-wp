@@ -3,7 +3,7 @@
 /**
  * Class Optml_translate_press.
  *
- * @reason Optml_translate_page we don't process translated images, need to hook translated content
+ * @reason Optml_translate_page conflict on buffer start need to hook earlier
  */
 class Optml_translate_press extends Optml_compatibility {
 
@@ -22,11 +22,13 @@ class Optml_translate_press extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter(
-			'trp_translated_html',
-			[ Optml_Main::instance()->manager, 'replace_content' ],
-			10,
-			4
+		add_action(
+			'init',
+			array(
+				Optml_Main::instance()->manager,
+				'process_template_redirect_content',
+			),
+			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
 		);
 	}
 }
