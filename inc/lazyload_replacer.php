@@ -254,17 +254,14 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( preg_match( "/ data-opt-video-src=['\"]/is", $full_tag ) ) {
 			return $full_tag;
 		}
+		$no_script = $full_tag;
 		// replace the src and add the data-opt-video-src attribute
 		$full_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 data-lazy-type="iframe" data-opt-video-src=', $full_tag );
 
-		if ( preg_match( '/class=["\']/i', $full_tag ) ) {
-			$full_tag = preg_replace( '/class=(["\'])(.*?)["\']/is', 'class=$1optml_lazy_video $2$1', $full_tag );
-		} else {
-			$full_tag = preg_replace( '/<iframe/is', '<iframe class="optml_lazy_video"', $full_tag );
-		}
+		$full_tag = preg_match( '/class=["\']/i', $full_tag ) ? preg_replace( '/class=(["\'])(.*?)["\']/is', 'class=$1optml_lazy_video $2$1', $full_tag ) : preg_replace( '/<iframe/is', '<iframe class="optml_lazy_video"', $full_tag );
 
 		if ( $this->should_add_noscript( $full_tag ) ) {
-			$full_tag .= '<noscript>' . $full_tag . '</noscript>';
+			$full_tag .= '<noscript>' . $no_script . '</noscript>';
 		}
 		return $full_tag;
 	}
