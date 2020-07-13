@@ -294,6 +294,8 @@ final class Optml_Manager {
 
 		$html = $this->process_images_from_content( $html );
 
+		$html = $this->process_videos_from_content( $html );
+
 		$html = $this->process_urls_from_content( $html );
 
 		return $html;
@@ -316,6 +318,34 @@ final class Optml_Manager {
 		}
 
 		return apply_filters( 'optml_content_images_tags', $content, $images );
+	}
+	/**
+	 * Process video embeds, lazyload them for now.
+	 *
+	 * @param string $content The HTML content.
+	 *
+	 * @return mixed
+	 */
+	public function process_videos_from_content( $content ) {
+		$video_tags = array();
+		preg_match_all( '#<iframe(.*?)></iframe>#is', $content, $video_tags );
+
+		$search = array();
+		$replace = array();
+		foreach ( $video_tags[0] as $video_tag ) {
+			array_push( $search, $video_tag );
+			if ( strpos( $video_tag, 'gform_ajax_frame' ) ) {
+				continue;
+			}
+			$video_tag = apply_filters( 'optml_video_replace', $video_tag );
+			array_push( $replace, $video_tag );
+
+		}
+		$search = array_unique( $search );
+		$replace = array_unique( $replace );
+		$content = str_replace( $search, $replace, $content );
+
+		return $content;
 	}
 
 	/**

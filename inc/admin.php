@@ -81,6 +81,7 @@ class Optml_Admin {
 		$default_network       = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
 		$retina_ready          = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
 		$scale_is_disabled     = ( $this->settings->get( 'scale' ) === 'enabled' );
+		$video_lazy_placeholder = OPTML_URL . 'assets/img/optml_loading.gif';
 		$output                = sprintf(
 			'
 		<style type="text/css">
@@ -101,6 +102,13 @@ class Optml_Admin {
 				  animation: 0.1s ease-in;
 				  -webkit-transform: translate3d(0, 0, 0);
 			}
+			.optml_lazy_video {
+				background-color: #ffffff;
+				background-image: url("%s");
+				background-repeat: no-repeat;
+				background-position: 50%% 50%%;
+			}
+			
 		
 		</style>
 		<script type="application/javascript">
@@ -127,6 +135,7 @@ class Optml_Admin {
 					
 					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
 		</script>',
+			$video_lazy_placeholder,
 			esc_url( $domain ),
 			$min,
 			$bgclasses,

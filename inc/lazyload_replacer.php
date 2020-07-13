@@ -157,7 +157,10 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			}
 		);
 		self::$is_lazyload_placeholder = self::$instance->settings->get( 'lazyload_placeholder' ) === 'enabled';
+
 		add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 6 );
+
+		add_filter( 'optml_video_replace', array($this, 'lazyload_video_replace'), 2, 1 );
 
 	}
 
@@ -239,6 +242,31 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return $new_tag . '<noscript>' . $no_script_tag . '</noscript>';
+	}
+	/**
+	 * Replaces video embeds with lazyload embeds.
+	 *
+	 * @param string $full_tag Full tag.
+	 *
+	 * @return string
+	 */
+	public function lazyload_video_replace( $full_tag ) {
+		if ( preg_match( "/ data-opt-video-src=['\"]/is", $full_tag ) ) {
+			return $full_tag;
+		}
+		// replace the src and add the data-opt-video-src attribute
+		$full_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 data-lazy-type="iframe" data-opt-video-src=', $full_tag );
+
+		if ( preg_match( '/class=["\']/i', $full_tag ) ) {
+			$full_tag = preg_replace( '/class=(["\'])(.*?)["\']/is', 'class=$1optml_lazy_video $2$1', $full_tag );
+		} else {
+			$full_tag = preg_replace( '/<iframe/is', '<iframe class="optml_lazy_video"', $full_tag );
+		}
+
+		if ( $this->should_add_noscript( $full_tag ) ) {
+			$full_tag .= '<noscript>' . $full_tag . '</noscript>';
+		}
+		return $full_tag;
 	}
 
 	/**
