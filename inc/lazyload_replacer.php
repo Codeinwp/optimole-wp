@@ -262,7 +262,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				continue;
 			}
 			if ( preg_match( "/ data-opt-video-src=['\"]/is", $video_tag ) ) {
-				return $video_tag;
+				continue;
 			}
 			$no_script = $video_tag;
 			// replace the src and add the data-opt-video-src attribute
