@@ -294,7 +294,9 @@ final class Optml_Manager {
 
 		$html = $this->process_images_from_content( $html );
 
-		$html = $this->process_videos_from_content( $html );
+		if ( $this->settings->get( 'video_lazyload' ) === 'enabled' ) {
+			$html = $this->process_videos_from_content( $html );
+		}
 
 		$html = $this->process_urls_from_content( $html );
 
@@ -320,7 +322,7 @@ final class Optml_Manager {
 		return apply_filters( 'optml_content_images_tags', $content, $images );
 	}
 	/**
-	 * Process video embeds, lazyload them for now.
+	 * Process video embeds, lazyload them.
 	 *
 	 * @param string $content The HTML content.
 	 *

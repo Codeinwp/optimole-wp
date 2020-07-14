@@ -628,6 +628,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'disabled'                          => __( 'Disabled', 'optimole-wp' ),
 				'enable_bg_lazyload_desc'           => __( 'Lazyload images used as CSS backgrounds.', 'optimole-wp' ),
 				'enable_bg_lazyload_title'          => __( 'Enable lazyload for background images', 'optimole-wp' ),
+				'enable_video_lazyload_desc'        => __( 'Lazyload embedded videos.', 'optimole-wp' ),
+				'enable_video_lazyload_title'       => __( 'Enable lazyload for embedded videos.', 'optimole-wp' ),
 				'enable_gif_replace_title'          => __( 'Enable Gif to Video conversion', 'optimole-wp' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
 				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ),
