@@ -246,24 +246,40 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	/**
 	 * Replaces video embeds with lazyload embeds.
 	 *
-	 * @param string $full_tag Full tag.
+	 * @param string $content Html page content.
 	 *
 	 * @return string
 	 */
-	public function lazyload_video_replace( $full_tag ) {
-		if ( preg_match( "/ data-opt-video-src=['\"]/is", $full_tag ) ) {
-			return $full_tag;
-		}
-		$no_script = $full_tag;
-		// replace the src and add the data-opt-video-src attribute
-		$full_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 data-lazy-type="iframe" data-opt-video-src=', $full_tag );
+	public function lazyload_video_replace( $content ) {
+		$video_tags = array();
+		preg_match_all( '#<iframe(.*?)></iframe>#is', $content, $video_tags );
 
-		$full_tag = preg_match( '/class=["\']/i', $full_tag ) ? preg_replace( '/class=(["\'])(.*?)["\']/is', 'class=$1optml_lazy_video $2$1', $full_tag ) : preg_replace( '/<iframe/is', '<iframe class="optml_lazy_video"', $full_tag );
+		$search = array();
+		$replace = array();
+		foreach ( $video_tags[0] as $video_tag ) {
+			array_push( $search, $video_tag );
+			if ( strpos( $video_tag, 'gform_ajax_frame' ) ) {
+				continue;
+			}
+			if ( preg_match( "/ data-opt-video-src=['\"]/is", $video_tag ) ) {
+				return $video_tag;
+			}
+			$no_script = $video_tag;
+			// replace the src and add the data-opt-video-src attribute
+			$video_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 data-lazy-type="iframe" data-opt-video-src=', $video_tag );
 
-		if ( $this->should_add_noscript( $full_tag ) ) {
-			$full_tag .= '<noscript>' . $no_script . '</noscript>';
+			$video_tag = preg_match( '/class=["\']/i', $video_tag ) ? preg_replace( '/class=(["\'])(.*?)["\']/is', 'class=$1optml_lazy_video $2$1', $video_tag ) : preg_replace( '/<iframe/is', '<iframe class="optml_lazy_video"', $video_tag );
+
+			if ( $this->should_add_noscript( $video_tag ) ) {
+				$video_tag .= '<noscript>' . $no_script . '</noscript>';
+			}
+			array_push( $replace, $video_tag );
+
 		}
-		return $full_tag;
+		$search = array_unique( $search );
+		$replace = array_unique( $replace );
+		$content = str_replace( $search, $replace, $content );
+		return $content;
 	}
 
 	/**
