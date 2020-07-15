@@ -83,7 +83,7 @@ class Optml_Admin {
 		$scale_is_disabled     = ( $this->settings->get( 'scale' ) === 'enabled' );
 		$output                = sprintf(
 			'
-		<style type="text/css">
+		<style id="optml_lazyload_image_blur_style" type="text/css">
 			img[data-opt-src]:not([data-opt-lazy-loaded]) {
 				transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 				-webkit-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
@@ -105,27 +105,40 @@ class Optml_Admin {
 		</style>
 		<script type="application/javascript">
 					document.documentElement.className += " optimole_has_js";
-					(function(w, d){ 
-						var b = d.getElementsByTagName("head")[0];
-						var s = d.createElement("script");
-						var v = ("IntersectionObserver" in w && "isIntersecting" in w.IntersectionObserverEntry.prototype) ? "_no_poly" : "";
-						s.async = true;  
-						s.src = "%s/v2/latest/optimole_lib" + v  + "%s.js"; 
-						b.appendChild(s);
-						w.optimoleData = {
-							lazyloadOnly: "optimole-lazy-only",
-							backgroundReplaceClasses: [%s],
-							scalingDisabled: %s,
-							watchClasses: [%s],
-							backgroundLazySelectors: "%s",
-							network_optimizations: %s,
-							ignoreDpr: %s,
-							quality: %d
-						}
-						
-					}(window, document));
+					if ( !("loading" in HTMLImageElement.prototype) ) {
+						(function(w, d){
+							var b = d.getElementsByTagName("head")[0];
+							var s = d.createElement("script");
+							var v = ("IntersectionObserver" in w && "isIntersecting" in w.IntersectionObserverEntry.prototype) ? "_no_poly" : "";
+							s.async = true;
+							s.src = "%s/v2/latest/optimole_lib" + v  + "%s.js";
+							b.appendChild(s);
+							w.optimoleData = {
+								lazyloadOnly: "optimole-lazy-only",
+								backgroundReplaceClasses: [%s],
+								scalingDisabled: %s,
+								watchClasses: [%s],
+								backgroundLazySelectors: "%s",
+								network_optimizations: %s,
+								ignoreDpr: %s,
+								quality: %d
+							}
+							
+						}(window, document));
+					}
 					
-					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
+					document.addEventListener( "DOMContentLoaded", function() {
+																		document.body.className = document.body.className.replace("optimole-no-script","");
+																		if ( !Object.prototype.hasOwnProperty.call( window,"optimoleData" ) ) {
+																			const images = document.querySelectorAll(\'img[loading="lazy"]\');
+																					images.forEach(img => {
+																						console.log(img.clientHeight);
+																						img.src = img.dataset.optSrc;
+																					 });
+																			let optmlBlurStyle = document.getElementById(\'optml_lazyload_image_blur_style\');
+																			optmlBlurStyle.parentNode.removeChild(optmlBlurStyle);
+																		}
+																	} );
 		</script>',
 			esc_url( $domain ),
 			$min,

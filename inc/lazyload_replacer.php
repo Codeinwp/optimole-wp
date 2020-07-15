@@ -231,9 +231,10 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			$new_tag,
 			1
 		);
-
 		$new_tag = str_replace( 'srcset=', 'old-srcset=', $new_tag );
-
+		if ( strpos( $new_tag, 'loading=' ) === false ) {
+			$new_tag = preg_replace( '/img(.*?)\/>/is', 'img$1 loading="lazy"/>', $new_tag );
+		}
 		if ( ! $this->should_add_noscript( $new_tag ) ) {
 			return $new_tag;
 		}
