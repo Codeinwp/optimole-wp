@@ -132,7 +132,6 @@ class Optml_Admin {
 																		if ( !Object.prototype.hasOwnProperty.call( window,"optimoleData" ) ) {
 																			const images = document.querySelectorAll(\'img[loading="lazy"]\');
 																					images.forEach(img => {
-																						console.log(img.clientHeight);
 																						img.src = img.dataset.optSrc;
 																					 });
 																			let optmlBlurStyle = document.getElementById(\'optml_lazyload_image_blur_style\');
