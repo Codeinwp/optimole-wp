@@ -15,7 +15,7 @@
 				modalClose.addEventListener("click" , function() {
 					modal.style.display = "none";
 				});
-				let modalText = document.createElement('p');
+				let modalText = document.createElement('div');
 				let modalTitle = document.createElement('p');
 				modalTitle.innerHTML = reportScript.description;
 				modalTitle.style.textAlign = "center";
@@ -63,17 +63,16 @@
 					imagesAdd[domain] = Object.assign({src: Array(pageImages[i].src)}, imagesAdd[domain]);
 				}
 				fetch(reportScript.restUrl, {
-					method: 'POST', // *GET, POST, PUT, DELETE, etc.
-					mode: 'cors', // no-cors, *cors, same-origin
-					cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-					credentials: 'same-origin', // include, *same-origin, omit
+					method: 'POST',
+					mode: 'cors',
+					cache: 'no-cache',
+					credentials: 'same-origin',
 					headers: {
 						'X-WP-Nonce': reportScript.nonce,
 						'Content-Type': 'application/json'
 					},
-					referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+					referrerPolicy: 'no-referrer',
 					body: JSON.stringify({images: imagesAdd})
-					// body data type must match "Content-Type" header
 				}).then(response => {
 					response.json().then(function (data) {
 						modalText.innerHTML =`${data.data}`;

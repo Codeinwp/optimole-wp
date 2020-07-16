@@ -41,55 +41,59 @@ class Optml_Admin {
 		add_action( 'optml_after_setup', array( $this, 'register_public_actions' ), 999999 );
 
 	}
+
 	/**
 	 * Adds Optimole tag to admin bar
 	 */
 	public function add_report_menu() {
-		 global $wp_admin_bar;
+		global $wp_admin_bar;
 
 		$wp_admin_bar->add_node(
 			array(
-				'id' => 'optml_report_script',
+				'id'    => 'optml_report_script',
+				'href' => '#',
 				'title' => '<span class="ab-icon"></span>Optimole',
 			)
 		);
 		$wp_admin_bar->add_menu(
 			array(
-				'id' => 'optml_status',
-				'title' => 'Check for issues',
+				'id'     => 'optml_status',
+				'title'  => __( 'Troubleshoot', 'optimole-wp' ),
 				'parent' => 'optml_report_script',
 			)
 		);
 	}
+
 	/**
 	 * Adds Optimole css to admin bar
 	 */
 	public function print_report_css() {
 		?>
 		<style type="text/css">
-			li#wp-admin-bar-optml_report_script>div :hover {
+			li#wp-admin-bar-optml_report_script > div :hover {
 				cursor: pointer;
 				color: #00b9eb !important;
 				text-decoration: underline;
 			}
+
 			#wpadminbar #wp-admin-bar-optml_report_script .ab-icon:before {
 				content: "\f227";
 				top: 3px;
 			}
-			
+
 			/* The Modal (background) */
 			.optml-modal {
 				display: none; /* Hidden by default */
 				position: fixed; /* Stay in place */
-				z-index:  2147483641; /* Sit on top */
+				z-index: 2147483641; /* Sit on top */
 				padding-top: 100px; /* Location of the box */
 				left: 0;
 				top: 0;
 				width: 100%; /* Full width */
 				height: 100%; /* Full height */
 				overflow: auto; /* Enable scroll if needed */
-				background-color: rgb(0,0,0); /* Fallback color */
-				background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+				background-color: rgb(0, 0, 0); /* Fallback color */
+				background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
 			}
 
 			/* Modal Content */
@@ -108,7 +112,11 @@ class Optml_Admin {
 				font-size: 28px;
 				font-weight: bold;
 			}
-
+			.optml-modal-content ul{
+				list-style: none;
+				font-size: 80%;
+				margin-top: 50px;
+			}
 			.optml-close:hover,
 			.optml-close:focus {
 				color: #000;
@@ -131,9 +139,9 @@ class Optml_Admin {
 		}
 		if ( ! is_admin() && $this->settings->get( 'report_script' ) === 'enabled' && current_user_can( 'manage_options' ) ) {
 
-			add_action( 'wp_head', array($this, 'print_report_css' ) );
-			add_action( 'wp_before_admin_bar_render', array($this, 'add_report_menu') );
-			add_action( 'wp_enqueue_scripts', array($this, 'add_diagnosis_script') );
+			add_action( 'wp_head', array( $this, 'print_report_css' ) );
+			add_action( 'wp_before_admin_bar_render', array( $this, 'add_report_menu' ) );
+			add_action( 'wp_enqueue_scripts', array( $this, 'add_diagnosis_script' ) );
 		}
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
@@ -222,20 +230,21 @@ class Optml_Admin {
 		);
 		echo $output;
 	}
+
 	/**
 	 * Adds script for lazyload/js replacement.
 	 */
 	public function add_diagnosis_script() {
 
 		wp_enqueue_script( 'optml-report', OPTML_URL . 'assets/js/report_script.js' );
-		$ignoredDomains = ['0.gravatar.com'];
-		$report_script = array(
-			'optmlCdn' => $this->settings->get_cdn_url(),
-			'restUrl' => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) . '/check_redirects',
-			'nonce' => wp_create_nonce( 'wp_rest' ),
+		$ignoredDomains = [ '0.gravatar.com' ];
+		$report_script  = array(
+			'optmlCdn'       => $this->settings->get_cdn_url(),
+			'restUrl'        => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) . '/check_redirects',
+			'nonce'          => wp_create_nonce( 'wp_rest' ),
 			'ignoredDomains' => $ignoredDomains,
-			'wait' => __( "We are checking you're page for issues hold on tight ...", 'optimole-wp' ),
-			'description' => __( 'Optimole page analyzer', 'optimole-wp' ),
+			'wait'           => __( 'We are checking the current page for any issues with optimized images ...', 'optimole-wp' ),
+			'description'    => __( 'Optimole page analyzer', 'optimole-wp' ),
 		);
 		wp_localize_script( 'optml-report', 'reportScript', $report_script );
 	}

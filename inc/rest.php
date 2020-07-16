@@ -74,7 +74,7 @@ class Optml_Rest {
 					'callback'            => array( $this, 'check_redirects' ),
 					'args'                => array(
 						'images' => array(
-							'type' => 'Array',
+							'type'     => 'Array',
 							'required' => true,
 						),
 					),
@@ -627,6 +627,7 @@ class Optml_Rest {
 
 		return $this->response( $sanitized );
 	}
+
 	/**
 	 * Update options method.
 	 *
@@ -636,14 +637,14 @@ class Optml_Rest {
 	 */
 	public function check_redirects( WP_REST_Request $request ) {
 		if ( empty( $request->get_param( 'images' ) ) ) {
-			return $this->response( __( 'No images found' ), 'noImagesFound' );
+			return $this->response( __( 'No images available on the current page.' ), 'noImagesFound' );
 		}
 		// 'ok' if no issues found, 'log' is there are issues we need to notify, 'deactivated' if the user's account is disabled
 		$status = 'ok';
 		$result = '';
 		foreach ( $request->get_param( 'images' ) as $domain => $value ) {
-			$args = array(
-				'method' => 'GET',
+			$args             = array(
+				'method'      => 'GET',
 				'redirection' => 0,
 			);
 			$processed_images = 0;
@@ -651,41 +652,41 @@ class Optml_Rest {
 				$processed_images = count( $value['src'] );
 			}
 			if ( isset( $value['ignoredUrls'] ) && $value['ignoredUrls'] > $processed_images ) {
-				$result .= sprintf( __( 'The domain: %s is not added to the whitelist', 'optimole-wp' ), $domain ) . '<br />';
+				$result .= '<li>❌ ' . sprintf( __( 'The images from: %1$s are not optimized by Optimole. If you would like to do so, you can follow this %2$sdoc%3$s.', 'optimole-wp' ), $domain, '<a target="_blank" href="https://docs.optimole.com/article/1290-how-to-optimize-images-using-optimole-from-my-domain', '</a>' ) . '</li>';
 				$status = 'log';
 				continue;
 			}
+
 			if ( $processed_images > 0 ) {
 				$response = wp_remote_get( $value['src'][ rand( 0, $processed_images - 1 ) ], $args );
 				if ( is_array( $response ) && ! is_wp_error( $response ) ) {
-					$headers = $response['headers']; // array of http header lines
+					$headers     = $response['headers']; // array of http header lines
 					$status_code = $response['response']['code'];
 					if ( $status_code === 301 ) {
 						$status = 'deactivated';
-						$result = __( 'Your accound is permanently disabled', 'optimole-wp' );
+						$result = '<li>❌ ' . sprintf( __( 'Your account is currently disabled due to exceeding quota and Optimole is no longer able to optimize the images. In order to fix this you will need to %1$supgrade%2$s.', 'optimole-wp' ), '<a target="_blank" href="https://optimole.com/pricing">', '</a>' ) . '</li>';
 						break;
 					}
 					if ( $status_code === 302 ) {
-						if ( isset( $headers['cache-control'] ) ) {
-							$max_age = intval( explode( '=', $headers['cache-control'] )[1] );
-							if ( $max_age === 1800 ) {
+						if ( isset( $headers['x-redirect-o'] ) ) {
+							$optimole_code = (int) $headers['x-redirect-o'];
+							if ( $optimole_code === 1 ) {
 								$status = 'log';
-								$result .= sprintf( __( 'The domain: %s is not added to the whitelist', 'optimole-wp' ), $domain ) . '<br />';
+								$result .= '<li>❌ ' . sprintf( __( 'The domain: %1$s is not allowed to optimize images using your Optimole account. You can add this to the allowed list %2$shere%3$s.', 'optimole-wp' ), '<b>' . $domain . '</b>', '<a target="_blank" href="https://dashboard.optimole.com/whitelist">', '</a>' ) . '</li>';
 							}
-							if ( $max_age > 1800 ) {
+							if ( $optimole_code === 4 ) {
 								$status = 'log';
-								$result .= sprintf( __( 'The images from: %s could not be downloaded to be optimized and are scheduled to be processed soon', 'optimole-wp' ), $domain ) . '<br />';
+								$result .= '<li>❌ ' . sprintf( __( 'We are not able to download the images from %1$s. Please check %2$sthis%3$s doc for a more advanced guide on how to solve this. ', 'optimole-wp' ), '<b>' . $domain . '</b>', '<a target="_blank" href="https://docs.optimole.com/article/1291-why-optimole-is-not-able-to-download-the-images-from-my-site">', '</a>' ) . '<br />' . '</li>';
 							}
-							// for small values we should ignore them as they will soon be processed
 						}
 					}
 				}
 			}
 		}
 		if ( $result === '' ) {
-			$result = __( 'Everything is ok', 'optimole-wp' );
+			$result = __( 'No issues detected, everything is running smoothly.', 'optimole-wp' );
 		}
 
-		return $this->response( $result, $status );
+		return $this->response( '<ul>' . $result . '</ul>', $status );
 	}
 }
