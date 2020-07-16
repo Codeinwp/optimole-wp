@@ -126,18 +126,18 @@ class Optml_Admin {
 		add_action( 'wp_head', array( $this, 'generator' ) );
 		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
 
-		if ( ! $this->settings->use_lazyload() ) {
-			return;
-		}
 		if ( Optml_Manager::should_ignore_image_tags() ) {
 			return;
 		}
 		if ( ! is_admin() && $this->settings->get( 'report_script' ) === 'enabled' && current_user_can( 'manage_options' ) ) {
+
 			add_action( 'wp_head', array($this, 'print_report_css' ) );
 			add_action( 'wp_before_admin_bar_render', array($this, 'add_report_menu') );
 			add_action( 'wp_enqueue_scripts', array($this, 'add_diagnosis_script') );
 		}
-
+		if ( ! $this->settings->use_lazyload() ) {
+			return;
+		}
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
 		add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
 		add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
