@@ -102,7 +102,6 @@ class Test_Rest extends WP_UnitTestCase
 		$this->assertEquals( 'log', $data[ 'code' ] );
 		$this->assertRegexp( '/media.gettyimages.com/' , $data ['data'] );
 		$this->assertRegexp( '/image.shutterstock.com/', $data ['data'] );
-		$this->assertRegexp ('/whitelist/', $data ['data'] );
 	}
 	public function test_response_is_ok () {
 		$request_body = array (
@@ -148,6 +147,5 @@ class Test_Rest extends WP_UnitTestCase
 		$this->assertArrayHasKey( 'data', $data );
 		$this->assertArrayHasKey( 'code', $data );
 		$this->assertEquals( 'ok', $data[ 'code' ] );
-		$this->assertEquals( 'Everything is ok', $data[ 'data' ] );
 	}
 }
