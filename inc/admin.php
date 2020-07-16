@@ -102,7 +102,7 @@ class Optml_Admin {
 				  animation: 0.1s ease-in;
 				  -webkit-transform: translate3d(0, 0, 0);
 			}
-			.optml_lazy_video {
+			iframe[data-opt-src]:not([data-opt-lazy-loaded]) {
 				background-color: #ffffff;
 				background-image: url("%s");
 				background-repeat: no-repeat;

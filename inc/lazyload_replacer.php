@@ -265,10 +265,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				continue;
 			}
 			$no_script = $video_tag;
-			// replace the src and add the data-opt-video-src attribute
-			$video_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 data-opt-video-src=', $video_tag );
-
-			$video_tag = preg_match( '/class=["\']/i', $video_tag ) ? preg_replace( '/class=(["\'])(.*?)["\']/is', 'class=$1optml_lazy_video $2$1', $video_tag ) : preg_replace( '/<iframe/is', '<iframe class="optml_lazy_video"', $video_tag );
+			// replace the src and add the data-opt-src attribute
+			$video_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 src="about:blank" data-opt-src=', $video_tag );
 
 			if ( $this->should_add_noscript( $video_tag ) ) {
 				$video_tag .= '<noscript>' . $no_script . '</noscript>';
