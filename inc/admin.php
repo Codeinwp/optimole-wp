@@ -730,7 +730,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_bg_lazyload_title'          => __( 'Enable lazyload for background images', 'optimole-wp' ),
 				'enable_gif_replace_title'          => __( 'Enable Gif to Video conversion', 'optimole-wp' ),
 				'enable_report_title'               => __( 'Enable error diagnosis tool' ),
-				'enable_report_desc'                => __( 'Provides a troubleshooting script which should help you identify any possible issues with your Optimole instalation' ),
+				'enable_report_desc'                => __( 'Provides a troubleshooting mechanism which should help you identify any possible issues with your site using Optimole.' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
 				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
