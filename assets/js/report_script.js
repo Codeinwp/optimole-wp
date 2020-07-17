@@ -41,7 +41,15 @@
 						continue;
 					}
 					let domain = words[words.length - 1].split('/')[0];
-					if (reportScript.ignoredDomains.includes(domain)) {
+					let isIgnored = false;
+					for(idomain in reportScript.ignoredDomains){
+
+						if (domain.includes(reportScript.ignoredDomains[idomain])) {
+							isIgnored = true;
+							break;
+						}
+					}
+					if (isIgnored) {
 						continue;
 					}
 					if (!words[1].includes(reportScript.optmlCdn)) {

@@ -51,14 +51,14 @@ class Optml_Admin {
 		$wp_admin_bar->add_node(
 			array(
 				'id'    => 'optml_report_script',
-				'href' => '#',
-				'title' => '<span class="ab-icon"></span>Optimole',
+				'href'  => '#',
+				'title' => '<span class="ab-icon"></span>Optimole ' . __( 'debugger', 'optimole-wp' ),
 			)
 		);
 		$wp_admin_bar->add_menu(
 			array(
 				'id'     => 'optml_status',
-				'title'  => __( 'Troubleshoot', 'optimole-wp' ),
+				'title'  => __( 'Troubleshoot this page', 'optimole-wp' ),
 				'parent' => 'optml_report_script',
 			)
 		);
@@ -112,11 +112,13 @@ class Optml_Admin {
 				font-size: 28px;
 				font-weight: bold;
 			}
-			.optml-modal-content ul{
+
+			.optml-modal-content ul {
 				list-style: none;
 				font-size: 80%;
 				margin-top: 50px;
 			}
+
 			.optml-close:hover,
 			.optml-close:focus {
 				color: #000;
