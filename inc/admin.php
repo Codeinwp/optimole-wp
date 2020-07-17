@@ -239,7 +239,7 @@ class Optml_Admin {
 	public function add_diagnosis_script() {
 
 		wp_enqueue_script( 'optml-report', OPTML_URL . 'assets/js/report_script.js' );
-		$ignoredDomains = [ 'gravatar.com' ];
+		$ignoredDomains = [ 'gravatar.com','instagram.com','fbcdn' ];
 		$report_script  = array(
 			'optmlCdn'       => $this->settings->get_cdn_url(),
 			'restUrl'        => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) . '/check_redirects',
