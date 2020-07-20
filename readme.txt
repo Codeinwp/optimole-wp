@@ -92,14 +92,14 @@ Premium users will be able to optimize images for more than 25k monthly active u
 ##### [Version 2.4.2](https://github.com/Codeinwp/optimole-wp/compare/v2.4.1...v2.4.2) (2020-07-20)
 
 * **Features**
-- adds debugger mechanism for troubleshooting various issues with the plugin integration
+   * adds debugger mechanism for troubleshooting various issues with the plugin integration
 
 * **Bug Fixes**
-- Improve compatibility with SiteGround Optimizer
-- Improve compatibility with Swift Performance
-- Improve compatibility with TranslatePress 
-- Improve compatibility with W3 Total Cache
-- Improve compatibility with WP Fastest Cache
+   * Improve compatibility with SiteGround Optimizer
+   * Improve compatibility with Swift Performance
+   * Improve compatibility with TranslatePress
+   * Improve compatibility with W3 Total Cache
+   * Improve compatibility with WP Fastest Cache
 
 
 
