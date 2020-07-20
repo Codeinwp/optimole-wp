@@ -44,7 +44,7 @@ class Optml_Settings {
 		'img_to_video'         => 'disabled',
 		'css_minify'           => 'enabled',
 		'js_minify'            => 'disabled',
-		'report_script'        => 'enabled',
+		'report_script'        => 'disabled',
 
 	);
 	/**
