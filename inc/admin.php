@@ -81,6 +81,7 @@ class Optml_Admin {
 		$default_network       = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
 		$retina_ready          = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
 		$scale_is_disabled     = ( $this->settings->get( 'scale' ) === 'enabled' );
+		$native_lazy_enabled   = ( $this->settings->get( 'native_lazyload' ) === 'enabled' );
 		$output                = sprintf(
 			'
 		<style id="optml_lazyload_image_blur_style" type="text/css">
@@ -105,7 +106,7 @@ class Optml_Admin {
 		</style>
 		<script type="application/javascript">
 					document.documentElement.className += " optimole_has_js";
-					if ( !("loading" in HTMLImageElement.prototype) ) {
+					if ( !("loading" in HTMLImageElement.prototype) || %s === false ) {
 						(function(w, d){
 							var b = d.getElementsByTagName("head")[0];
 							var s = d.createElement("script");
@@ -139,6 +140,7 @@ class Optml_Admin {
 																		}
 																	} );
 		</script>',
+			$native_lazy_enabled ? 'true' : 'false',
 			esc_url( $domain ),
 			$min,
 			$bgclasses,
@@ -665,6 +667,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'low_q_title'                       => __( 'Low', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),
 				'no_images_found'                   => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
+				'native_desc'                       => __( 'Native lazyload will disable auto scale based on visitors screen', 'optimole-wp' ),
 				'option_saved'                      => __( 'Option saved.', 'optimole-wp' ),
 				'quality_desc'                      => __( 'Lower image quality might not always be perceived by users and would result in a boost of your loading speed by lowering the page size. Try experimenting with the setting, then click the View sample image link to see what option works best for you.', 'optimole-wp' ),
 				'quality_selected_value'            => __( 'Selected value', 'optimole-wp' ),
@@ -679,6 +682,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'toggle_ab_item'                    => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'                   => __( 'Scale images & Lazy load', 'optimole-wp' ),
 				'toggle_scale'                      => __( 'Scale Images', 'optimole-wp' ),
+				'toggle_native'                     => __( 'Use native lazyload if supported, fallback to classic lazyload otherwise', 'optimole-wp' ),
 				'on_toggle'                         => __( 'On', 'optimole-wp' ),
 				'off_toggle'                        => __( 'Off', 'optimole-wp' ),
 				'view_sample_image'                 => __( 'View sample image', 'optimole-wp' ),
