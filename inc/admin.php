@@ -81,7 +81,7 @@ class Optml_Admin {
 		$default_network       = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
 		$retina_ready          = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
 		$scale_is_disabled     = ( $this->settings->get( 'scale' ) === 'enabled' );
-		$native_lazy_enabled   = ( $this->settings->get( 'native_lazyload' ) === 'enabled' );
+		$native_lazy_disabled  = ! ( $this->settings->get( 'native_lazyload' ) === 'enabled' );
 		$output                = sprintf(
 			'
 		<style id="optml_lazyload_image_blur_style" type="text/css">
@@ -106,7 +106,7 @@ class Optml_Admin {
 		</style>
 		<script type="application/javascript">
 					document.documentElement.className += " optimole_has_js";
-					if ( !("loading" in HTMLImageElement.prototype) || %s === false ) {
+					if ( !("loading" in HTMLImageElement.prototype) %s) {
 						(function(w, d){
 							var b = d.getElementsByTagName("head")[0];
 							var s = d.createElement("script");
@@ -140,7 +140,7 @@ class Optml_Admin {
 																		}
 																	} );
 		</script>',
-			$native_lazy_enabled ? 'true' : 'false',
+			$native_lazy_disabled ? '|| true ' : '',
 			esc_url( $domain ),
 			$min,
 			$bgclasses,
