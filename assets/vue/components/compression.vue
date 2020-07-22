@@ -59,6 +59,7 @@
                                color="#008ec2"></toggle-button>
             </div>
         </div>
+
         <div class="field  columns">
             <label class="label column has-text-grey-dark">
                 {{strings.quality_title}}

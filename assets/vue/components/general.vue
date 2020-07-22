@@ -44,6 +44,29 @@
 
         <hr/>
 
+        <!-- Show report toggle-->
+        <div class="field  columns">
+            <label class="label column has-text-grey-dark">
+                {{strings.enable_report_title}}
+
+                <p class="is-italic has-text-weight-normal">
+                    {{strings.enable_report_desc}}
+                </p>
+            </label>
+
+            <div class="column is-3 ">
+                <toggle-button :class="'has-text-dark'"
+                               v-model="reportScriptStatus"
+                               :disabled="this.$store.state.loading"
+                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
+                               :width="80"
+                               :height="25"
+                               color="#008ec2"></toggle-button>
+            </div>
+        </div>
+
+        <hr/>
+
         <!-- Clear Cache button -->
         <div class="field  is-fullwidth columns " :class="{'is-field-disabled':isReplacerOff }">
             <label class="label column has-text-grey-dark">
@@ -95,8 +118,8 @@
             this.$emit('update-status', !this.isReplacerOff);
         },
         methods: {
-	        clearCache: function () {
-		        this.$store.dispatch('clearCache', {});
+            clearCache: function () {
+                this.$store.dispatch('clearCache', {});
             },
             saveChanges: function () {
                 this.$store.dispatch('saveSettings', {
@@ -129,6 +152,16 @@
                 get: function () {
                     return !(this.site_settings.lazyload === 'disabled');
                 } 
+            },
+            reportScriptStatus: {
+                set: function (value) {
+                    this.showSave = true;
+                    this.new_data.report_script = value ? 'enabled' : 'disabled';
+                },
+                get: function () {
+                    return !(this.site_settings.report_script === 'disabled');
+
+                }
             }
         }
     }
