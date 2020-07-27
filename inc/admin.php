@@ -198,7 +198,6 @@ class Optml_Admin {
 		</style>
 		<script type="application/javascript">
 					document.documentElement.className += " optimole_has_js";
-					if ( !("loading" in HTMLImageElement.prototype) ) {
 						(function(w, d){
 							var b = d.getElementsByTagName("head")[0];
 							var s = d.createElement("script");
@@ -208,6 +207,7 @@ class Optml_Admin {
 							b.appendChild(s);
 							w.optimoleData = {
 								lazyloadOnly: "optimole-lazy-only",
+								nativeLazyload : ("loading" in HTMLImageElement.prototype),
 								backgroundReplaceClasses: [%s],
 								scalingDisabled: %s,
 								watchClasses: [%s],
@@ -216,13 +216,10 @@ class Optml_Admin {
 								ignoreDpr: %s,
 								quality: %d
 							}
-							
 						}(window, document));
-					}
-					
 					document.addEventListener( "DOMContentLoaded", function() {
 																		document.body.className = document.body.className.replace("optimole-no-script","");
-																		if ( !Object.prototype.hasOwnProperty.call( window,"optimoleData" ) ) {
+																		if ( Object.prototype.hasOwnProperty.call( window,"optimoleData" ) && window.optimoleData.nativeLazyload === true ) {
 																			const images = document.querySelectorAll("img");
 																					images.forEach(img => {
 																						if ( !img.dataset.optSrc) {
