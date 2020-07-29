@@ -358,7 +358,6 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$replaced_content = Optml_Manager::instance()->replace_content( json_encode( $html ) );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertEquals( ( 6 + ( 3 * 48 ) ), substr_count( $replaced_content, 'i.optimole.com' ) );
-		error_log(print_r($replaced_content,true),3,'/var/www/html/wp-content/plugins/optimole-wp/optimole.log');
 		$this->assertTrue( is_array( json_decode( $replaced_content, true ) ) );
 		$this->assertNotContains( "\"https:\/\/www.example.org\/wp-content", $replaced_content );
 		$this->assertNotContains( "\"\/\/www.example.org\/wp-content", $replaced_content );
