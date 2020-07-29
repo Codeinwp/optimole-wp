@@ -174,6 +174,7 @@ class Optml_Admin {
 		$default_network       = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
 		$retina_ready          = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
 		$scale_is_disabled     = ( $this->settings->get( 'scale' ) === 'enabled' );
+		$native_lazy_enabled   = ( $this->settings->get( 'native_lazyload' ) === 'enabled' );
 		$output                = sprintf(
 			'
 		<style id="optml_lazyload_image_blur_style" type="text/css">
@@ -207,8 +208,8 @@ class Optml_Admin {
 							b.appendChild(s);
 							w.optimoleData = {
 								lazyloadOnly: "optimole-lazy-only",
-								nativeLazyload : ("loading" in HTMLImageElement.prototype),
 								backgroundReplaceClasses: [%s],
+								nativeLazyload : %s,
 								scalingDisabled: %s,
 								watchClasses: [%s],
 								backgroundLazySelectors: "%s",
@@ -219,7 +220,7 @@ class Optml_Admin {
 						}(window, document));
 					document.addEventListener( "DOMContentLoaded", function() {
 																		document.body.className = document.body.className.replace("optimole-no-script","");
-																		if ( Object.prototype.hasOwnProperty.call( window,"optimoleData" ) && window.optimoleData.nativeLazyload === true ) {
+																		if ( Object.prototype.hasOwnProperty.call( window,"optimoleData" ) && window.optimoleData.nativeLazyload === true && ("loading" in HTMLImageElement.prototype) ) {
 																			const images = document.querySelectorAll("img");
 																					images.forEach(img => {
 																						if ( !img.dataset.optSrc) {
@@ -236,6 +237,7 @@ class Optml_Admin {
 			esc_url( $domain ),
 			$min,
 			$bgclasses,
+			$native_lazy_enabled ? 'true' : 'false',
 			$scale_is_disabled ? 'true' : 'false',
 			$watcher_classes,
 			addcslashes( $lazyload_bg_selectors, '"' ),
