@@ -220,7 +220,7 @@ class Optml_Admin {
 						}(window, document));
 					document.addEventListener( "DOMContentLoaded", function() {
 																		document.body.className = document.body.className.replace("optimole-no-script","");
-																		if ( Object.prototype.hasOwnProperty.call( window,"optimoleData" ) && ("loading" in HTMLImageElement.prototype) ) {
+																		if ( "loading" in HTMLImageElement.prototype ) {
 																			const images = document.querySelectorAll(\'img[loading="lazy"]\');
 																					images.forEach(img => {
 																						if ( !img.dataset.optSrc) {
