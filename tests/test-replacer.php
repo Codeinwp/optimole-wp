@@ -112,7 +112,14 @@ class Test_Replacer extends WP_UnitTestCase {
 		] );
 		$settings->update( 'lazyload', 'disabled' );
 		$settings->update( 'cdn', 'enabled' );
-
+		$settings->update('filters', array(
+			Optml_Settings::FILTER_TYPE_OPTIMIZE => array (
+				Optml_Settings::FILTER_CLASS => array (
+					'test' => true,
+					'something' => true,
+					'testing' => true,
+				)
+			)));
 		Optml_Url_Replacer::instance()->init();
 		Optml_Tag_Replacer::instance()->init();
 		Optml_Manager::instance()->init();
@@ -540,7 +547,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		$content          = '<div class="codeinwp-container">
 					<img src="https://www.example.org/wp-content/uploads/2018/05/ס@וככי-תבל-לוגו.jpg"> 
 					<img src="https://www.example.org/wp-content/uploads/2018/05/סוtextדךי-תב700ל-לוגו.jpg"> 
-					<img src="https://www.example.org/wp-content/uploads/2018/כwhateverכי-ת.png"> 
+					<img src="https://www.example.org/wp-content/uploads/2018/כwhateverכי-ת.png">
 				</div>
 			';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
@@ -564,6 +571,18 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
 
+	}
+	public function test_class_exclusions()
+	{
+		$content = '<div>
+						<img class="something another whatever" src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;
+						<img class="test" src="http://example.org/wp-content/uploads/2019/09/img.jpg" alt=""/>;
+						<img class="testing class" src="http://example.org/img.png" alt=""/>;
+						<img class="none" src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;
+					</div>';
+		$replaced_content = Optml_Manager::instance()->process_images_from_content($content);
+		$this->assertEquals( 0, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertNotContains('data-opt-src', $replaced_content);
 	}
 
 }

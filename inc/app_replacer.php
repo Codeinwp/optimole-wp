@@ -123,6 +123,13 @@ abstract class Optml_App_Replacer {
 	protected $active_cache_buster = '';
 
 	/**
+	 * Holds possible ignored by class urls.
+	 *
+	 * @var array
+	 */
+	protected static $ignored_url_map = array();
+
+	/**
 	 * Returns possible src attributes.
 	 *
 	 * @return array
@@ -453,6 +460,25 @@ abstract class Optml_App_Replacer {
 			return false;
 		}
 
+		if ( ! empty( self::$ignored_url_map ) && isset( self::$ignored_url_map[ crc32( $url ) ] ) ) {
+			return false;
+		}
+
+		return true;
+	}
+	/**
+	 * Check if we can process the img tag.
+	 *
+	 * @param string $tag Tag to process.
+	 * @param string $url Url to be mapped if excluded.
+	 *
+	 * @return bool Either process this tag or not.
+	 */
+	public function can_process_tag( $tag, $url ) {
+		if ( false === Optml_Filters::should_do_image( $tag, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_CLASS ] ) ) {
+			self::$ignored_url_map[ crc32( $url ) ] = true;
+			return false;
+		}
 		return true;
 	}
 
