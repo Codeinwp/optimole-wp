@@ -572,7 +572,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 	}
-	public function test_class_exclusions()
+	public function a_test_class_exclusion()
 	{
 		$content = '<div>
 						<img class="skip-optimization" src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;
