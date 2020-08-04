@@ -575,9 +575,9 @@ class Test_Replacer extends WP_UnitTestCase {
 	public function test_class_exclusions()
 	{
 		$content = '<div>
-						<img class="something another whatever" src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;
-						<img class="test" src="http://example.org/wp-content/uploads/2019/09/img.jpg" alt=""/>;
-						<img class="testing class" src="http://example.org/img.png" alt=""/>;
+						<img class="skip-optimization" src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;
+						<img class="test whatever" src="http://example.org/wp-content/uploads/2019/09/img.jpg" alt=""/>;
+						<img class="testing something class" src="http://example.org/img.png" alt=""/>;
 						<img class="none" src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;
 					</div>';
 		$replaced_content = Optml_Manager::instance()->process_images_from_content($content);

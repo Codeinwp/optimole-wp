@@ -33,6 +33,12 @@ abstract class Optml_App_Replacer {
 	 */
 	protected static $possible_src_attributes = null;
 	/**
+	 * Holds possible tag replace flags where we should ignore our optimization.
+	 *
+	 * @var array
+	 */
+	protected static $ignore_tag_strings = null;
+	/**
 	 * Holds possible lazyload flags where we should ignore our lazyload.
 	 *
 	 * @var array
@@ -160,7 +166,21 @@ abstract class Optml_App_Replacer {
 
 		return array_merge( self::$possible_src_attributes, [ '<noscript' ] );
 	}
+	/**
+	 * Returns possible tag replacement flags.
+	 *
+	 * @return array
+	 */
+	public static function possible_tag_flags() {
 
+		if ( null != self::$ignore_tag_strings && is_array( self::$ignore_tag_strings ) ) {
+			return self::$ignore_tag_strings;
+		}
+
+		self::$ignore_tag_strings = apply_filters( 'optml_skip_optimizations_css_classes', [ 'skip-optimization' ] );
+
+		return  self::$ignore_tag_strings;
+	}
 	/**
 	 * Returns possible data-opt-src ignore flags attributes.
 	 *
@@ -302,6 +322,17 @@ abstract class Optml_App_Replacer {
 					$strings[] = $rule_flag;
 				}
 
+				return $strings;
+			},
+			10,
+			2
+		);
+		add_filter(
+			'optml_skip_optimizations_css_classes',
+			function ( $strings = array() ) {
+				foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_CLASS ] as $rule_flag => $status ) {
+					$strings[] = $rule_flag;
+				}
 				return $strings;
 			},
 			10,
@@ -466,22 +497,6 @@ abstract class Optml_App_Replacer {
 
 		return true;
 	}
-	/**
-	 * Check if we can process the img tag.
-	 *
-	 * @param string $tag Tag to process.
-	 * @param string $url Url to be mapped if excluded.
-	 *
-	 * @return bool Either process this tag or not.
-	 */
-	public function can_process_tag( $tag, $url ) {
-		if ( false === Optml_Filters::should_do_image( $tag, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_CLASS ] ) ) {
-			self::$ignored_url_map[ crc32( $url ) ] = true;
-			return false;
-		}
-		return true;
-	}
-
 	/**
 	 * Checks if the file is a image size and return the full url.
 	 *
