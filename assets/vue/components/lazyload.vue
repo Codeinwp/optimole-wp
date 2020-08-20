@@ -53,6 +53,24 @@
                                color="#008ec2"></toggle-button>
             </div>
         </div>
+        <!--Video lazyload toggle-->
+        <div class="field columns">
+            <label class="label column has-text-grey-dark">
+                {{strings.enable_video_lazyload_title}}
+                <p class="is-italic has-text-weight-normal">
+                    {{strings.enable_video_lazyload_desc}}
+                </p>
+            </label>
+            <div class="column is-3">
+                <toggle-button :class="'has-text-dark'"
+                               v-model="lazyloadVideo"
+                               :disabled="this.$store.state.loading"
+                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
+                               :width="80"
+                               :height="25"
+                               color="#008ec2"></toggle-button>
+            </div>
+        </div>
         <div class="field columns" v-if="showBgSelectors">
             <div class="column">
                 <label class="label has-text-grey-dark">
@@ -127,6 +145,15 @@
 				},
 				get: function () {
 					return !(this.site_settings.bg_replacer === 'disabled');
+				}
+			},
+			lazyloadVideo: {
+				set: function (value) {
+					this.showSave = true;
+					this.new_data.video_lazyload = value ? 'enabled' : 'disabled';
+				},
+				get: function () {
+					return !(this.site_settings.video_lazyload === 'disabled');
 				}
 			},
             lazyloadSelectors: {
