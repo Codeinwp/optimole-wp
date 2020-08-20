@@ -63,7 +63,7 @@
                                 <option :value="FILTER_TYPES.FILENAME">{{strings.filter_filename}}</option>
                                 <option :value="FILTER_TYPES.EXT">{{strings.filter_ext}}</option>
                                 <option :value="FILTER_TYPES.URL">{{strings.filter_url}}</option>
-                                <option v-if="type === 'lazyload'" :value="FILTER_TYPES.CLASS">{{strings.filter_class}}</option>
+                                <option :value="FILTER_TYPES.CLASS">{{strings.filter_class}}</option>
                               </select>
                             </span>
                 </p>
