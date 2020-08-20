@@ -27,6 +27,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 		] );
 		$settings->update( 'lazyload', 'enabled' );
 		$settings->update( 'native_lazyload', 'enabled' );
+		$settings->update( 'video_lazyload', 'enabled' );
 		Optml_Url_Replacer::instance()->init();
 		Optml_Tag_Replacer::instance()->init();
 		Optml_Lazyload_Replacer::instance()->init();
@@ -388,6 +389,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertContains( 'data-opt-src', $replaced_content );
 		$this->assertContains( 'example.org', $replaced_content );
 	}
+
 	public function test_should_add_loading () {
 		$content          = '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
@@ -395,6 +397,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertContains( 'data-opt-src', $replaced_content );
 		$this->assertContains( 'loading="lazy"', $replaced_content );
 	}
+
 	public function test_should_not_add_loading () {
 		$content          = '<img loading="eager" src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>
                              <img loading="lazy" src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>';
@@ -404,6 +407,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertEquals( 2, substr_count( $replaced_content, 'loading="lazy"' ) );
 		$this->assertContains( 'loading="eager"', $replaced_content );
 	}
+
 	public function test_json_should_add_loading () {
 		$content          = [ '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>',
 			'<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>',
@@ -415,5 +419,20 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertContains( 'data-opt-src', $replaced_content );
 		$this->assertContains( 'loading=\"eager\"', $replaced_content );
 		$this->assertEquals(4, substr_count( $replaced_content, 'loading=\"lazy\"' ));
+	}
+
+	public function test_lazyload_iframe() {
+		
+		$content = '<figure class="wp-block-embed-youtube wp-block-embed is-type-video is-provider-youtube wp-embed-aspect-16-9 wp-has-aspect-ratio">
+					<div class="wp-block-embed__wrapper">
+					<iframe title="test" width="640" height="360" src="https://www.youtube.com/embed/-HwJNxE7hd8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+					</div></figure>
+					<iframe width="930" height="523" src="http://5c128bbdd3b4.ngrok.io/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>';
+		
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertEquals( 2, substr_count( $replaced_content, 'src="about:blank"' ) );
+		$this->assertEquals( 2, substr_count( $replaced_content, 'data-opt-src' ) );
+		$this->assertEquals( 2, substr_count( $replaced_content, '<noscript>' ) );
+
 	}
 }

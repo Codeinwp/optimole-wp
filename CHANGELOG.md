@@ -1,3 +1,15 @@
+##### [Version 2.4.2](https://github.com/Codeinwp/optimole-wp/compare/v2.4.1...v2.4.2) (2020-07-20)
+
+#### Features
+- adds debugger mechanism for troubleshooting various issues with the plugin integration
+
+#### Fixes
+- Improve compatibility with SiteGround Optimizer
+- Improve compatibility with Swift Performance
+- Improve compatibility with TranslatePress 
+- Improve compatibility with W3 Total Cache
+- Improve compatibility with WP Fastest Cache
+
 ##### [Version 2.4.1](https://github.com/Codeinwp/optimole-wp/compare/v2.4.0...v2.4.1) (2020-06-09)
 
 * Improves settings UI for CSS/JS toggle

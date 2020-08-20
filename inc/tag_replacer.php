@@ -153,10 +153,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				);
 				$images['img_url'][ $index ] = $new_src;
 			}
-
 			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
 				 false !== strpos( $src, Optml_Config::$service_url ) ||
-				 ! $this->can_replace_url( $src )
+				 ! $this->can_replace_url( $src ) ||
+				 ! $this->can_replace_tag( $images['img_url'][ $index ], $tag )
 			) {
 
 				continue; // @codeCoverageIgnore
@@ -220,6 +220,23 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$content = str_replace( $images['img_tag'][ $index ], $image_tag, $content );
 		}
 		return $content;
+	}
+	/**
+	 * Check replacement is allowed for this tag.
+	 *
+	 * @param string $url Url.
+	 * @param string $tag Html tag.
+	 *
+	 * @return bool We can replace?
+	 */
+	public function can_replace_tag( $url, $tag = '' ) {
+		foreach ( self::possible_tag_flags() as $banned_string ) {
+			if ( strpos( $tag, $banned_string ) !== false ) {
+				self::$ignored_url_map[ crc32( $url ) ] = true;
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
