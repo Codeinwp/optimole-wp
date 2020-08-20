@@ -308,6 +308,10 @@ final class Optml_Manager {
 
 		$html = $this->process_images_from_content( $html );
 
+		if ( $this->settings->get( 'video_lazyload' ) === 'enabled' ) {
+			$html = apply_filters( 'optml_video_replace', $html );
+		}
+
 		$html = $this->process_urls_from_content( $html );
 
 		return $html;

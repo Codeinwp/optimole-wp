@@ -157,7 +157,10 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			}
 		);
 		self::$is_lazyload_placeholder = self::$instance->settings->get( 'lazyload_placeholder' ) === 'enabled';
+
 		add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 6 );
+
+		add_filter( 'optml_video_replace', array($this, 'lazyload_video_replace'), 2, 1 );
 
 	}
 
@@ -239,6 +242,42 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return $new_tag . '<noscript>' . $no_script_tag . '</noscript>';
+	}
+	/**
+	 * Replaces video embeds with lazyload embeds.
+	 *
+	 * @param string $content Html page content.
+	 *
+	 * @return string
+	 */
+	public function lazyload_video_replace( $content ) {
+		$video_tags = array();
+		preg_match_all( '#<iframe(.*?)></iframe>#is', $content, $video_tags );
+
+		$search = array();
+		$replace = array();
+		foreach ( $video_tags[0] as $video_tag ) {
+			array_push( $search, $video_tag );
+			if ( strpos( $video_tag, 'gform_ajax_frame' ) ) {
+				continue;
+			}
+			if ( preg_match( "/ data-opt-video-src=['\"]/is", $video_tag ) ) {
+				continue;
+			}
+			$no_script = $video_tag;
+			// replace the src and add the data-opt-src attribute
+			$video_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 src="about:blank" data-opt-src=', $video_tag );
+
+			if ( $this->should_add_noscript( $video_tag ) ) {
+				$video_tag .= '<noscript>' . $no_script . '</noscript>';
+			}
+			array_push( $replace, $video_tag );
+
+		}
+		$search = array_unique( $search );
+		$replace = array_unique( $replace );
+		$content = str_replace( $search, $replace, $content );
+		return $content;
 	}
 
 	/**
