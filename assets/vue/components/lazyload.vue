@@ -17,6 +17,26 @@
                                color="#008ec2"></toggle-button>
             </div>
         </div>
+        <!--Native lazy toggle-->
+        <div class="field  is-fullwidth columns">
+            <label class="label column has-text-grey-dark">
+                {{strings.toggle_native}}
+
+                <p class="is-italic has-text-weight-normal">
+                    {{strings.native_desc}}
+                </p>
+            </label>
+
+            <div class="column is-3 ">
+                <toggle-button :class="'has-text-dark'"
+                               v-model="nativeLazyStatus"
+                               :disabled="this.$store.state.loading"
+                               :labels="{checked: strings.on_toggle, unchecked: strings.off_toggle}"
+                               :width="80"
+                               :height="25"
+                               color="#008ec2"></toggle-button>
+            </div>
+        </div>
         <div class="field  is-fullwidth columns">
             <label class="label column has-text-grey-dark">
                 {{strings.toggle_scale}}
@@ -174,6 +194,15 @@
 					return (this.site_settings.scale === 'disabled');
 				}
 
+			},
+			nativeLazyStatus: {
+				set: function (value) {
+					this.showSave = true;
+					this.new_data.native_lazyload = value ? 'enabled' : 'disabled';
+				},
+				get: function () {
+					return !(this.site_settings.native_lazyload === 'disabled');
+				}
 			},
 		}
 	}

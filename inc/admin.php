@@ -174,9 +174,10 @@ class Optml_Admin {
 		$default_network       = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
 		$retina_ready          = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
 		$scale_is_disabled     = ( $this->settings->get( 'scale' ) === 'enabled' );
+		$native_lazy_enabled   = ( $this->settings->get( 'native_lazyload' ) === 'enabled' );
 		$output                = sprintf(
 			'
-		<style type="text/css">
+		<style id="optml_lazyload_image_blur_style" type="text/css">
 			img[data-opt-src]:not([data-opt-lazy-loaded]) {
 				transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 				-webkit-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
@@ -205,31 +206,45 @@ class Optml_Admin {
 		</style>
 		<script type="application/javascript">
 					document.documentElement.className += " optimole_has_js";
-					(function(w, d){ 
-						var b = d.getElementsByTagName("head")[0];
-						var s = d.createElement("script");
-						var v = ("IntersectionObserver" in w && "isIntersecting" in w.IntersectionObserverEntry.prototype) ? "_no_poly" : "";
-						s.async = true;  
-						s.src = "%s/v2/latest/optimole_lib" + v  + "%s.js"; 
-						b.appendChild(s);
-						w.optimoleData = {
-							lazyloadOnly: "optimole-lazy-only",
-							backgroundReplaceClasses: [%s],
-							scalingDisabled: %s,
-							watchClasses: [%s],
-							backgroundLazySelectors: "%s",
-							network_optimizations: %s,
-							ignoreDpr: %s,
-							quality: %d
-						}
-						
-					}(window, document));
-					
-					document.addEventListener( "DOMContentLoaded", function() { document.body.className = document.body.className.replace("optimole-no-script",""); } );
+						(function(w, d){
+							var b = d.getElementsByTagName("head")[0];
+							var s = d.createElement("script");
+							var v = ("IntersectionObserver" in w && "isIntersecting" in w.IntersectionObserverEntry.prototype) ? "_no_poly" : "";
+							s.async = true;
+							s.src = "%s/v2/latest/optimole_lib" + v  + "%s.js";
+							b.appendChild(s);
+							w.optimoleData = {
+								lazyloadOnly: "optimole-lazy-only",
+								backgroundReplaceClasses: [%s],
+								nativeLazyload : %s,
+								scalingDisabled: %s,
+								watchClasses: [%s],
+								backgroundLazySelectors: "%s",
+								network_optimizations: %s,
+								ignoreDpr: %s,
+								quality: %d
+							}
+						}(window, document));
+					document.addEventListener( "DOMContentLoaded", function() {
+																		document.body.className = document.body.className.replace("optimole-no-script","");
+																		if ( "loading" in HTMLImageElement.prototype ) {
+																			const images = document.querySelectorAll(\'img[loading="lazy"]\');
+																					images.forEach(img => {
+																						if ( !img.dataset.optSrc) {
+																							return;
+																						}
+																						img.src = img.dataset.optSrc;
+																						delete img.dataset.optSrc;
+																					 });
+																			let optmlBlurStyle = document.getElementById("optml_lazyload_image_blur_style");
+																			optmlBlurStyle.parentNode.removeChild(optmlBlurStyle);
+																		}
+																	} );
 		</script>',
 			esc_url( $domain ),
 			$min,
 			$bgclasses,
+			$native_lazy_enabled ? 'true' : 'false',
 			$scale_is_disabled ? 'true' : 'false',
 			$watcher_classes,
 			addcslashes( $lazyload_bg_selectors, '"' ),
@@ -775,6 +790,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'low_q_title'                       => __( 'Low', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),
 				'no_images_found'                   => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
+				'native_desc'                       => __( 'When using native lazyload the auto scale feature is disabled', 'optimole-wp' ),
 				'option_saved'                      => __( 'Option saved.', 'optimole-wp' ),
 				'quality_desc'                      => __( 'Lower image quality might not always be perceived by users and would result in a boost of your loading speed by lowering the page size. Try experimenting with the setting, then click the View sample image link to see what option works best for you.', 'optimole-wp' ),
 				'quality_selected_value'            => __( 'Selected value', 'optimole-wp' ),
@@ -789,6 +805,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'toggle_ab_item'                    => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'                   => __( 'Scale images & Lazy load', 'optimole-wp' ),
 				'toggle_scale'                      => __( 'Scale Images', 'optimole-wp' ),
+				'toggle_native'                     => __( 'Use native lazyload if supported, fallback to classic lazyload otherwise', 'optimole-wp' ),
 				'on_toggle'                         => __( 'On', 'optimole-wp' ),
 				'off_toggle'                        => __( 'Off', 'optimole-wp' ),
 				'view_sample_image'                 => __( 'View sample image', 'optimole-wp' ),

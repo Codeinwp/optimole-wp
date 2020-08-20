@@ -46,6 +46,7 @@ class Optml_Settings {
 		'css_minify'           => 'enabled',
 		'js_minify'            => 'disabled',
 		'report_script'        => 'disabled',
+		'native_lazyload'      => 'disabled',
 
 	);
 	/**
@@ -145,6 +146,7 @@ class Optml_Settings {
 				case 'img_to_video':
 				case 'css_minify':
 				case 'js_minify':
+				case 'native_lazyload':
 					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
 					break;
 				case 'max_width':
@@ -313,6 +315,7 @@ class Optml_Settings {
 			'scale'                => $this->get( 'scale' ),
 			'css_minify'           => $this->get( 'css_minify' ),
 			'js_minify'            => $this->get( 'js_minify' ),
+			'native_lazyload'      => $this->get( 'native_lazyload' ),
 			'report_script'        => $this->get( 'report_script' ),
 		);
 	}
