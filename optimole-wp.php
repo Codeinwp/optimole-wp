@@ -73,7 +73,9 @@ function optml() {
 		return null;
 	}
 	define( 'OPTML_URL', plugin_dir_url( __FILE__ ) );
-	define( 'OPTML_JS_CDN', 'd5jmkjjpb7yfg.cloudfront.net' );
+	if ( ! defined( 'OPTML_JS_CDN' ) ) {
+		define( 'OPTML_JS_CDN', 'd5jmkjjpb7yfg.cloudfront.net' );
+	}
 	define( 'OPTML_PATH', plugin_dir_path( __FILE__ ) );
 	define( 'OPTML_VERSION', '2.4.2' );
 	define( 'OPTML_NAMESPACE', 'optml' );
