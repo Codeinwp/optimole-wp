@@ -70,7 +70,18 @@ final class Optml_Manager {
 		'thrive',
 		'master_slider',
 		'pinterest',
+		'sg_optimizer',
+		'wp_fastest_cache',
+		'swift_performance',
+		'w3_total_cache',
+		'translate_press',
 	);
+	/**
+	 * The current state of the buffer.
+	 *
+	 * @var boolean Buffer state.
+	 */
+	private static $ob_started = false;
 
 	/**
 	 * Class instance method.
@@ -151,6 +162,9 @@ final class Optml_Manager {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) {
+			return false; // @codeCoverageIgnore
+		}
+		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] == 'true' || $_GET['trp-edit-translation'] == 'preview' ) ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
@@ -517,11 +531,16 @@ final class Optml_Manager {
 	 * Init html replacer handler.
 	 */
 	public function process_template_redirect_content() {
+		// Early exit if function was already called, we don't want duplicate ob_start
+		if ( self::$ob_started === true ) {
+			return;
+		}
+		self::$ob_started = true;
 		// We no longer need this if the handler was started.
-		remove_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
+		remove_filter( 'the_content', array($this, 'process_images_from_content'), PHP_INT_MAX );
 
 		ob_start(
-			array( &$this, 'replace_content' )
+			array(&$this, 'replace_content')
 		);
 	}
 

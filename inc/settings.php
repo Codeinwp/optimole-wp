@@ -45,6 +45,7 @@ class Optml_Settings {
 		'img_to_video'         => 'disabled',
 		'css_minify'           => 'enabled',
 		'js_minify'            => 'disabled',
+		'report_script'        => 'disabled',
 
 	);
 	/**
@@ -140,6 +141,7 @@ class Optml_Settings {
 				case 'resize_smart':
 				case 'bg_replacer':
 				case 'video_lazyload':
+				case 'report_script':
 				case 'img_to_video':
 				case 'css_minify':
 				case 'js_minify':
@@ -311,6 +313,7 @@ class Optml_Settings {
 			'scale'                => $this->get( 'scale' ),
 			'css_minify'           => $this->get( 'css_minify' ),
 			'js_minify'            => $this->get( 'js_minify' ),
+			'report_script'        => $this->get( 'report_script' ),
 		);
 	}
 
