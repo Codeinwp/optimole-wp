@@ -652,7 +652,7 @@ class Optml_Rest {
 				$processed_images = count( $value['src'] );
 			}
 			if ( isset( $value['ignoredUrls'] ) && $value['ignoredUrls'] > $processed_images ) {
-				$result .= '<li>❌ ' . sprintf( __( 'The images from: %1$s are not optimized by Optimole. If you would like to do so, you can follow this %2$sdoc%3$s.', 'optimole-wp' ), $domain, '<a target="_blank" href="https://docs.optimole.com/article/1290-how-to-optimize-images-using-optimole-from-my-domain">', '</a>' ) . '</li>';
+				$result .= '<li>❌ ' . sprintf( __( 'The images from: %1$s are not optimized by Optimole. If you would like to do so, you can follow this: %2$sWhy Optimole does not optimize all the images from my site?%3$s.', 'optimole-wp' ), $domain, '<a target="_blank" href="https://docs.optimole.com/article/1290-how-to-optimize-images-using-optimole-from-my-domain">', '</a>' ) . '</li>';
 				$status = 'log';
 				continue;
 			}
@@ -676,7 +676,7 @@ class Optml_Rest {
 							}
 							if ( $optimole_code === 4 ) {
 								$status = 'log';
-								$result .= '<li>❌ ' . sprintf( __( 'We are not able to download the images from %1$s. Please check %2$sthis%3$s doc for a more advanced guide on how to solve this. ', 'optimole-wp' ), '<b>' . $domain . '</b>', '<a target="_blank" href="https://docs.optimole.com/article/1291-why-optimole-is-not-able-to-download-the-images-from-my-site">', '</a>' ) . '<br />' . '</li>';
+								$result .= '<li>❌ ' . sprintf( __( 'We are not able to download the images from %1$s. Please check %2$sthis%3$s document for a more advanced guide on how to solve this. ', 'optimole-wp' ), '<b>' . $domain . '</b>', '<a target="_blank" href="https://docs.optimole.com/article/1291-why-optimole-is-not-able-to-download-the-images-from-my-site">', '</a>' ) . '<br />' . '</li>';
 							}
 						}
 					}
