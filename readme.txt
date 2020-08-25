@@ -97,7 +97,7 @@ Premium users will be able to optimize images for more than 25k monthly active u
 - Adds support for CSS classes in the optimizations exclusion filters
 - Allow local JS serving for the lazyload library using configurable constant
 
-### Fixes
+#### Fixes
 - improve settings description texts
 - improve texts for the diagnosis popup report
 - adds compatibility with WordPress 5.5
