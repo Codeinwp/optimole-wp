@@ -29,6 +29,7 @@ class Optml_Settings {
 		'network_optimization' => 'disabled',
 		'lazyload_placeholder' => 'disabled',
 		'bg_replacer'          => 'enabled',
+		'video_lazyload'       => 'disabled',
 		'retina_images'        => 'disabled',
 		'resize_smart'         => 'disabled',
 		'filters'              => [],
@@ -45,6 +46,7 @@ class Optml_Settings {
 		'css_minify'           => 'enabled',
 		'js_minify'            => 'disabled',
 		'report_script'        => 'disabled',
+		'native_lazyload'      => 'disabled',
 
 	);
 	/**
@@ -139,10 +141,12 @@ class Optml_Settings {
 				case 'retina_images':
 				case 'resize_smart':
 				case 'bg_replacer':
+				case 'video_lazyload':
 				case 'report_script':
 				case 'img_to_video':
 				case 'css_minify':
 				case 'js_minify':
+				case 'native_lazyload':
 					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
 					break;
 				case 'max_width':
@@ -298,6 +302,7 @@ class Optml_Settings {
 			'retina_images'        => $this->get( 'retina_images' ),
 			'lazyload_placeholder' => $this->get( 'lazyload_placeholder' ),
 			'bg_replacer'          => $this->get( 'bg_replacer' ),
+			'video_lazyload'       => $this->get( 'video_lazyload' ),
 			'resize_smart'         => $this->get( 'resize_smart' ),
 			'image_replacer'       => $this->get( 'image_replacer' ),
 			'cdn'                  => $this->get( 'cdn' ),
@@ -310,6 +315,7 @@ class Optml_Settings {
 			'scale'                => $this->get( 'scale' ),
 			'css_minify'           => $this->get( 'css_minify' ),
 			'js_minify'            => $this->get( 'js_minify' ),
+			'native_lazyload'      => $this->get( 'native_lazyload' ),
 			'report_script'        => $this->get( 'report_script' ),
 		);
 	}
