@@ -89,6 +89,22 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 == Changelog ==
 
+#### [Version 2.5.0](https://github.com/Codeinwp/optimole-wp/compare/v2.4.2...v2.5.0) (2020-08-25)
+
+#### Features
+- Adds option to lazyload videos and iframes
+- Adds support for browser native lazyload
+- Adds support for CSS classes in the optimizations exclusion filters
+- Allow local JS serving for the lazyload library using configurable constant
+
+### Fixes
+- improve settings description texts
+- improve texts for the diagnosis popup report
+- adds compatibility with WordPress 5.5
+
+
+
+
 ##### [Version 2.4.2](https://github.com/Codeinwp/optimole-wp/compare/v2.4.1...v2.4.2) (2020-07-20)
 
 * **Features**
