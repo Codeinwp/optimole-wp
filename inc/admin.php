@@ -177,7 +177,7 @@ class Optml_Admin {
 		$native_lazy_enabled   = ( $this->settings->get( 'native_lazyload' ) === 'enabled' );
 		$output                = sprintf(
 			'
-		<style id="optml_lazyload_image_blur_style" type="text/css">
+		<style type="text/css">
 			img[data-opt-src]:not([data-opt-lazy-loaded]) {
 				transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 				-webkit-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
@@ -236,8 +236,6 @@ class Optml_Admin {
 																						img.src = img.dataset.optSrc;
 																						delete img.dataset.optSrc;
 																					 });
-																			let optmlBlurStyle = document.getElementById("optml_lazyload_image_blur_style");
-																			optmlBlurStyle.parentNode.removeChild(optmlBlurStyle);
 																		}
 																	} );
 		</script>',
