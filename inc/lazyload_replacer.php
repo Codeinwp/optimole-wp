@@ -258,13 +258,13 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$search = array();
 		$replace = array();
 		foreach ( $video_tags[0] as $video_tag ) {
-			array_push( $search, $video_tag );
 			if ( strpos( $video_tag, 'gform_ajax_frame' ) ) {
 				continue;
 			}
 			if ( preg_match( "/ data-opt-video-src=['\"]/is", $video_tag ) ) {
 				continue;
 			}
+			array_push( $search, $video_tag );
 			$no_script = $video_tag;
 			// replace the src and add the data-opt-src attribute
 			$video_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 src="about:blank" data-opt-src=', $video_tag );
