@@ -2,10 +2,14 @@ describe( 'Check gutenberg page', function () {
 	it( 'successfully loads', function () {
 		cy.visit( '/gutenberg' )
 	} );
+	let nativeLazy =  "loading" in HTMLImageElement.prototype;
 	it( 'Gutenberg images should have replaced srcs', function () {
 		cy.get( '.wp-block-image > img' ).should( 'have.attr', 'src' ).and( 'include', 'i.optimole.com' );
 	} );
 	it( 'Gutenberg images should data-opt-src attribute', function () {
+		if ( nativeLazy ) {
+			this.skip();
+		}
 		cy.get( '.wp-block-image > img' ).should( 'have.attr', 'data-opt-src' ).and( 'include', 'i.optimole.com' );
 	} );
 	it( 'Gutenberg images should have no script tag', function () {
