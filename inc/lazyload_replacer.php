@@ -259,7 +259,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	public function lazyload_video_replace( $content ) {
 		$video_tags = array();
-		preg_match_all( '#(?:<noscript\s*>(\s*|.*))?<iframe(.*?)></iframe>#is', $content, $video_tags );
+		preg_match_all( '#(?:<noscript\s*>(\s*|.*?))?<iframe(.*?)></iframe>#is', $content, $video_tags );
 
 		$search = array();
 		$replace = array();
