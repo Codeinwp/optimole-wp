@@ -20,8 +20,17 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_PATH: ${{ secrets.SSH_PATH }}
         run: ./bin/run-e2e-tests.sh
-      - name: E2E tests
+      - name: E2E tests chrome
         uses: cypress-io/github-action@v1
+        with:
+          env: host=testing.optimole.com
+          browser: chrome
+          record: true
+      - name: E2E tests firefox
+        container:
+          image: cypress/browsers:node12.16.1-chrome80-ff73
+          options: --user 1001
+        uses: cypress-io/github-action@v2
         with:
           env: host=testing.optimole.com
           browser: chrome
