@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: cypress/browsers:node12.16.1-chrome80-ff73
-      options: --user 1001
+      options: --user 1001 --shm-size=2g
     steps:
       - uses: actions/checkout@v1
       - uses: cypress-io/github-action@v2
