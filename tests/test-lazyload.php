@@ -453,8 +453,6 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 		$this->assertNotContains( 'src="about:blank"', $replaced_content );
 		$this->assertNotContains( 'data-opt-src', $replaced_content );
-		$this->assertNotContains( '<noscript>', $replaced_content );
-
 	}
 	public function test_lazyload_iframe_exclusion() {
 
