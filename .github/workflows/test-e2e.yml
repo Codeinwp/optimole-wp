@@ -27,6 +27,7 @@ jobs:
           browser: chrome
           record: true
   e2eFirefox:
+    needs: e2e
     runs-on: ubuntu-latest
     container:
       image: cypress/browsers:node12.16.1-chrome80-ff73
