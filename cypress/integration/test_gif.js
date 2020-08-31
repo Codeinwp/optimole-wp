@@ -10,6 +10,7 @@ describe( 'Check gif page', function () {
 	it( 'successfully loads', function () {
 		cy.visit( '/no-builder/testing-gif-with-video/' )
 	} );
+	let nativeLazy =  "loading" in HTMLImageElement.prototype;
 	it( 'Gallery images all attributes replaced properly', function () {
 		cy.get( 'video' ).should( 'have.attr', 'autoplay' ).and( 'contain', '' );
 		cy.get( 'video' ).should( 'have.attr', 'muted' ).and( 'contain', '' );
@@ -26,6 +27,9 @@ describe( 'Check gif page', function () {
 		cy.visit( '/gif-test/' );
 	} );
 	it( 'Images with gifs has proper tags', function () {
+		if ( nativeLazy ) {
+			this.skip();
+		}
 		cy.get( '.wp-block-image img' ).should( 'have.attr', 'src' ).and( 'include', 'data:image/svg+xml' );
 		cy.get( '.wp-block-image img' ).should( 'have.attr', 'data-opt-src' ).and( 'include', 'i.optimole.com' );
 	} );

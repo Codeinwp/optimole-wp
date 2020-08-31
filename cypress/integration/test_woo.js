@@ -1,3 +1,8 @@
+Cypress.on( 'uncaught:exception', ( err, runnable ) => {
+	if ( err.message.includes( "event.target.matches is not a function" ) ) {
+		return false;
+	}
+} );
 describe( 'Check product page', function () {
 	it( 'successfully loads', function () {
 		cy.visit( '/product/test-product/' )
