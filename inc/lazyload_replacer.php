@@ -264,9 +264,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$search = array();
 		$replace = array();
 		foreach ( $video_tags[0] as $video_tag ) {
-			if ( strpos( $video_tag, '<noscript' ) !== false ) {
-				continue;
-			}
 			if ( ! $this->should_lazyload_iframe( $video_tag ) ) {
 				continue;
 			}
@@ -445,7 +442,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return self::$iframe_lazyload_flags;
 		}
 
-		self::$iframe_lazyload_flags = apply_filters( 'optml_iframe_lazyload_flags', [ 'gform_ajax_frame' ] );
+		self::$iframe_lazyload_flags = apply_filters( 'optml_iframe_lazyload_flags', [ 'gform_ajax_frame', '<noscript' ] );
 
 		return self::$iframe_lazyload_flags;
 	}
