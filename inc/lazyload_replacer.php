@@ -36,6 +36,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	private static $ignore_no_script_flags = null;
 	/**
+	 * Holds possible iframe lazyload flags where we should ignore our lazyload.
+	 *
+	 * @var array
+	 */
+	protected static $iframe_lazyload_flags = null;
+	/**
 	 * Holds classes responsabile for watching lazyload behaviour.
 	 *
 	 * @var array Lazyload classes.
@@ -253,18 +259,18 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	public function lazyload_video_replace( $content ) {
 		$video_tags = array();
-		preg_match_all( '#<iframe(.*?)></iframe>#is', $content, $video_tags );
+		preg_match_all( '#(?:<noscript\s*>(\s*|.*?))?<iframe(.*?)></iframe>#is', $content, $video_tags );
 
 		$search = array();
 		$replace = array();
 		foreach ( $video_tags[0] as $video_tag ) {
-			array_push( $search, $video_tag );
-			if ( strpos( $video_tag, 'gform_ajax_frame' ) ) {
+			if ( ! $this->should_lazyload_iframe( $video_tag ) ) {
 				continue;
 			}
 			if ( preg_match( "/ data-opt-video-src=['\"]/is", $video_tag ) ) {
 				continue;
 			}
+			array_push( $search, $video_tag );
 			$no_script = $video_tag;
 			// replace the src and add the data-opt-src attribute
 			$video_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 src="about:blank" data-opt-src=', $video_tag );
@@ -393,6 +399,22 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		return true;
 	}
+	/**
+	 * Check if we should lazyload iframe.
+	 *
+	 * @param string $tag Html tag.
+	 *
+	 * @return bool Should add?
+	 */
+	public function should_lazyload_iframe( $tag ) {
+		foreach ( self::get_iframe_lazyload_flags() as $banned_string ) {
+			if ( strpos( $tag, $banned_string ) !== false ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 
 	/**
 	 * Returns flags for ignoring noscript tag additional watch.
@@ -409,7 +431,21 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		return self::$ignore_no_script_flags;
 	}
+	/**
+	 * Returns possible lazyload flags for iframes.
+	 *
+	 * @return array
+	 */
+	public static function get_iframe_lazyload_flags() {
 
+		if ( null != self::$iframe_lazyload_flags && is_array( self::$iframe_lazyload_flags ) ) {
+			return self::$iframe_lazyload_flags;
+		}
+
+		self::$iframe_lazyload_flags = apply_filters( 'optml_iframe_lazyload_flags', [ 'gform_ajax_frame', '<noscript' ] );
+
+		return self::$iframe_lazyload_flags;
+	}
 	/**
 	 * Throw error on object clone
 	 *

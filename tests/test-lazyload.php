@@ -428,11 +428,44 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 					<iframe title="test" width="640" height="360" src="https://www.youtube.com/embed/-HwJNxE7hd8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 					</div></figure>
 					<iframe width="930" height="523" src="http://5c128bbdd3b4.ngrok.io/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>';
-		
+
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 		$this->assertEquals( 2, substr_count( $replaced_content, 'src="about:blank"' ) );
 		$this->assertEquals( 2, substr_count( $replaced_content, 'data-opt-src' ) );
 		$this->assertEquals( 2, substr_count( $replaced_content, '<noscript>' ) );
 
+	}
+	public function test_lazyload_iframe_noscript_ignore() {
+		
+		$content = '<noscript><iframe width="930" height="523" src="http://5c128bbdd3b4.ngrok.io/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+					</noscript>
+					<noscript><iframe width="930" height="523" src="http://5c128bbdd3b4.ngrok.io/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+					</noscript>
+
+					<noscript>
+					<div style="width: 302px; height: 422px; position: relative;">
+					<div style="width: 302px; height: 422px; position: absolute;">
+					<iframe src="https://www.google.com/recaptcha/api/fallback?k=" frameborder="0" scrolling="no" style="width: 302px; height:422px; border-style: none;"></iframe>
+					</div>
+					</div>
+					</noscript>;';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertNotContains( 'src="about:blank"', $replaced_content );
+		$this->assertNotContains( 'data-opt-src', $replaced_content );
+	}
+	public function test_lazyload_iframe_exclusion() {
+
+		$content = '<figure class="wp-block-embed-youtube wp-block-embed is-type-video is-provider-youtube wp-embed-aspect-16-9 wp-has-aspect-ratio">
+					<div class="wp-block-embed__wrapper">
+					<iframe id="gform_ajax_frame" title="test" width="640" height="360" src="https://www.youtube.com/embed/-HwJNxE7hd8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+					</div></figure>
+					<iframe id="gform_ajax_frame_7" width="930" height="523" src="http://5c128bbdd3b4.ngrok.io/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>';
+		
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		$this->assertNotContains( 'src="about:blank"', $replaced_content );
+		$this->assertNotContains( 'data-opt-src', $replaced_content );
+		$this->assertNotContains( '<noscript>', $replaced_content );
+		
 	}
 }
