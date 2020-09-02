@@ -98,9 +98,6 @@ final class Optml_Manager {
 			self::$instance->url_replacer      = Optml_Url_Replacer::instance();
 			self::$instance->tag_replacer      = Optml_Tag_Replacer::instance();
 			self::$instance->lazyload_replacer = Optml_Lazyload_Replacer::instance();
-			// in needs to be setup early or it is not working
-//			add_filter( 'image_downsize', array( __CLASS__, 'remove_downsize_image' ), 5, 3 );
-			add_filter( 'intermediate_image_sizes_advanced', array( __CLASS__, 'remove_additional_sizes' ) ); //this works
 			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
 		}
 
@@ -127,7 +124,9 @@ final class Optml_Manager {
 				self::$loaded_compatibilities[ $compatibility_class ] = $compatibility;
 			}
 		}
-
+		if ( $this->settings->get( 'disable_image_sizes' ) === 'enabled' ) {
+			add_filter( 'intermediate_image_sizes_advanced', array(__CLASS__, 'remove_additional_sizes') );
+		}
 		if ( ! $this->should_replace() ) {
 			return;
 		}
@@ -267,11 +266,6 @@ final class Optml_Manager {
 	/**
 	 * Disable the generation of multiple sizes for the same image.
 	 */
-	public function remove_downsize_image( $image, $attachment_id, $size ) {
-		error_log( 'here', 3, '/var/www/html/optimole.log' );
-		// error_log( $image, 3, '/var/www/html/optimole.log' );
-		return true;
-	}
 	public function remove_additional_sizes( $sizes ) {
 		return array();
 	}

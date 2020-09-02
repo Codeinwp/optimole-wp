@@ -66,7 +66,28 @@
         </div>
 
         <hr/>
+      <!-- Show disable image sizes toggle-->
+      <div class="field  columns">
+        <label class="label column has-text-grey-dark">
+          {{strings.disable_image_sizes_title}}
 
+          <p class="is-italic has-text-weight-normal">
+            {{strings.disable_image_sizes_desc}}
+          </p>
+        </label>
+
+        <div class="column is-3 ">
+          <toggle-button :class="'has-text-dark'"
+                         v-model="disableImageSizesStatus"
+                         :disabled="this.$store.state.loading"
+                         :labels="{checked: strings.enabled, unchecked: strings.disabled}"
+                         :width="80"
+                         :height="25"
+                         color="#008ec2"></toggle-button>
+        </div>
+      </div>
+
+      <hr/>
         <!-- Clear Cache button -->
         <div class="field  is-fullwidth columns " :class="{'is-field-disabled':isReplacerOff }">
             <label class="label column has-text-grey-dark">
@@ -162,6 +183,16 @@
                     return !(this.site_settings.report_script === 'disabled');
 
                 }
+            },
+            disableImageSizesStatus: {
+              set: function (value) {
+                this.showSave = true;
+                this.new_data.disable_image_sizes = value ? 'enabled' : 'disabled';
+              },
+              get: function () {
+                return !(this.site_settings.disable_image_sizes === 'disabled');
+
+              }
             }
         }
     }
