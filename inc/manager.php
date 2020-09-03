@@ -125,7 +125,7 @@ final class Optml_Manager {
 			}
 		}
 		if ( $this->settings->get( 'disable_image_sizes' ) === 'enabled' ) {
-			add_filter( 'intermediate_image_sizes_advanced', array(__CLASS__, 'remove_additional_sizes') );
+			add_filter( 'intermediate_image_sizes_advanced', array($this, 'remove_additional_sizes') );
 		}
 		if ( ! $this->should_replace() ) {
 			return;
