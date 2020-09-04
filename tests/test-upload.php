@@ -33,7 +33,11 @@ class Test_Disable_Image_Sizes_Generation extends WP_UnitTestCase
 	}
 	public function test_disable_image_sizes_generate_upload() {
 
-		foreach ( get_intermediate_image_sizes() as $image_size ) {
+		$image_sizes = get_intermediate_image_sizes();
+		$this->assertEquals( 'thumbnail', $image_sizes[0] );
+		$this->assertEquals( 'medium', $image_sizes[1] );
+		$this->assertEquals( 'large', $image_sizes[3] );
+		foreach ( $image_sizes as $image_size ) {
 			$image = wp_get_attachment_image_src( self::$image_upload,  $image_size );
 			$this->assertEquals( 'http://example.org/wp-content/uploads/2020/09/3.jpg', $image[0] );
 			$this->assertEquals( false, $image[3] );
