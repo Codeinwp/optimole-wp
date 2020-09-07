@@ -89,6 +89,13 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 == Changelog ==
 
+##### [Version 2.5.3](https://github.com/Codeinwp/optimole-wp/compare/v2.5.2...v2.5.3) (2020-09-07)
+
+* Improve compatibility with native lazyload from WP 5.5
+
+
+
+
 ##### [Version 2.5.2](https://github.com/Codeinwp/optimole-wp/compare/v2.5.1...v2.5.2) (2020-09-02)
 
 * Improve compatibility with various plugins for the video lazyload functionality
