@@ -231,6 +231,9 @@ final class Optml_Manager {
 	public function register_hooks() {
 
 		do_action( 'optml_replacer_setup' );
+		if ( $this->settings->get( 'native_lazyload' ) === 'disabled' ) {
+			add_filter( 'wp_lazy_loading_enabled', '__return_false' );
+		}
 		add_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
 		/**
 		 * When we have to process cdn images, i.e MIRROR is defined,
