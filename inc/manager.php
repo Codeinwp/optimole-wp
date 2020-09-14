@@ -75,6 +75,7 @@ final class Optml_Manager {
 		'swift_performance',
 		'w3_total_cache',
 		'translate_press',
+		'give_wp',
 	);
 	/**
 	 * The current state of the buffer.
