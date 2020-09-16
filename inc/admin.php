@@ -229,7 +229,7 @@ class Optml_Admin {
 																		document.body.className = document.body.className.replace("optimole-no-script","");
 																		if ( "loading" in HTMLImageElement.prototype && Object.prototype.hasOwnProperty.call( optimoleData, "nativeLazyload" ) && optimoleData.nativeLazyload === true ) {
 																			const images = document.querySelectorAll(\'img[loading="lazy"]\');
-																					images.forEach(img => {
+																					images.forEach( function (img) {
 																						if ( !img.dataset.optSrc) {
 																							return;
 																						}
