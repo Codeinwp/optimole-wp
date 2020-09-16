@@ -361,10 +361,7 @@ final class Optml_Manager {
 			return true;
 		}
 
-		if ( apply_filters( 'optml_should_ignore_image_tags', false ) === true ) {
-			return true;
-		}
-		return false;
+		return apply_filters( 'optml_should_ignore_image_tags', false ) === true;
 	}
 
 	/**
