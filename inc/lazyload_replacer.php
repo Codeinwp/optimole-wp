@@ -144,21 +144,26 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	}
 
 	/**
+	 * Returns lazyload page flags.
+	 *
+	 * @param array $strings The current flags.
+	 * @return array
+	 */
+	public function add_lazyload_page_filters( $strings = array() ) {
+		foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_URL ] as $rule_flag => $status ) {
+			$strings[ $rule_flag ] = $status;
+		}
+		return $strings;
+	}
+
+	/**
 	 * The initialize method.
 	 */
 	public function init() {
 		parent::init();
-		add_filter(
-			'optml_page_lazyload_flags',
-			function ( $strings = array() ) {
-				foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_URL ] as $rule_flag => $status ) {
-					$strings[ $rule_flag ] = $status;
-				}
-				return $strings;
-			},
-			10,
-			1
-		);
+
+		add_filter( 'optml_page_lazyload_flags', array( $this, 'add_lazyload_page_filters' ), 10, 1 );
+
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}

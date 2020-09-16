@@ -129,11 +129,6 @@ final class Optml_Manager {
 		if ( ! $this->should_replace() ) {
 			return;
 		}
-
-		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
-			$registered_compatibility->register();
-		}
-
 		$this->register_hooks();
 	}
 
@@ -258,6 +253,10 @@ final class Optml_Manager {
 		add_action( 'rest_api_init', array( $this, 'process_template_redirect_content' ), PHP_INT_MIN );
 
 		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+
+		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
+			$registered_compatibility->register();
+		}
 	}
 
 	/**
@@ -362,6 +361,9 @@ final class Optml_Manager {
 			return true;
 		}
 
+		if ( ! Optml_Filters::should_do_page( apply_filters( 'optml_page_lazyload_flags', [] ) ) ) {
+			return true;
+		}
 		return false;
 	}
 
