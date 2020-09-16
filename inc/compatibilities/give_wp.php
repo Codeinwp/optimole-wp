@@ -32,9 +32,9 @@ class Optml_give_wp extends Optml_compatibility {
 	/**
 	 * Add ignore page lazyload flag.
 	 *
-	 * @param bool $old_value Previous returned value
+	 * @param bool $old_value Previous returned value.
 	 *
-	 * @return bool If we should lazyload the page
+	 * @return bool If we should lazyload the page.
 	 */
 	public function check_givewp_page( $old_value ) {
 		if ( array_key_exists( 'giveDonationFormInIframe', $_GET ) && $_GET['giveDonationFormInIframe'] == '1' ) {
