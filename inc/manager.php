@@ -361,7 +361,7 @@ final class Optml_Manager {
 			return true;
 		}
 
-		if ( ! Optml_Filters::should_do_page( apply_filters( 'optml_page_lazyload_flags', [] ) ) ) {
+		if ( apply_filters( 'optml_should_ignore_image_tags', false ) === true ) {
 			return true;
 		}
 		return false;

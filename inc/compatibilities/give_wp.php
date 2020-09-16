@@ -23,7 +23,7 @@ class Optml_give_wp extends Optml_compatibility {
 	 */
 	public function register() {
 
-		add_filter( 'optml_page_lazyload_flags', [$this, 'add_page_lazyload_flag'], 10, 1 );
+		add_filter( 'optml_should_ignore_image_tags', [$this, 'check_givewp_page'], 10, 1 );
 
 		if ( Optml_Main::instance()->admin->settings->get( 'video_lazyload' ) === 'enabled' ) {
 			add_filter( 'optml_iframe_lazyload_flags', [$this, 'add_ignore_lazyload_iframe'] );
@@ -32,13 +32,15 @@ class Optml_give_wp extends Optml_compatibility {
 	/**
 	 * Add ignore page lazyload flag.
 	 *
-	 * @param array $flags Old flags.
+	 * @param bool $old_value Previous returned value
 	 *
-	 * @return array New flags.
+	 * @return bool If we should lazyload the page
 	 */
-	public function add_page_lazyload_flag( $flags = array() ) {
-		$flags['?giveDonationFormInIframe=1'] = true;
-		return $flags;
+	public function check_givewp_page( $old_value ) {
+		if ( array_key_exists( 'giveDonationFormInIframe', $_GET ) && $_GET['giveDonationFormInIframe'] == '1' ) {
+			return true;
+		}
+		return $old_value;
 	}
 
 	/**
