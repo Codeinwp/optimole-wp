@@ -27,6 +27,7 @@ class Optml_Admin {
 	 */
 	public function __construct() {
 		$this->settings = new Optml_Settings();
+		add_action( 'init', array($this, 'admin_init') );
 		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), array( $this, 'add_action_links' ) );
 		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), PHP_INT_MIN );
@@ -40,6 +41,83 @@ class Optml_Admin {
 		}
 		add_action( 'optml_after_setup', array( $this, 'register_public_actions' ), 999999 );
 
+	}
+	public function admin_init() {
+		// the update or upgrade page will not upload images.
+		$current_page = basename( $_SERVER['SCRIPT_FILENAME'] );
+		switch ( $current_page ) {
+			// wp-admin/update.php?action=upload-plugin
+			// wp-admin/update.php?action=upload-theme
+			case 'update.php':
+				// update-core.php?action=do-core-reinstall
+			case 'update-core.php':
+				// nothing
+				break;
+			default:
+				add_filter( 'wp_handle_upload', array($this, 'upload_to_s3') );
+				// add_filter('media_send_to_editor', array(__CLASS__, 'replace_attachurl'), -999);
+				// add_filter('attachment_link', array(__CLASS__, 'replace_baseurl'), -999);
+				// add_filter('wp_calculate_image_srcset', array(__CLASS__, 'replace_attachurl_srcset'), -999, 5);
+				// add_filter('wp_update_attachment_metadata', array(__CLASS__, 'upload_images'), 999);
+				// add_action('wp_delete_file', array(__CLASS__, 'delete_remote_file'));
+				break;
+		}
+	}
+
+	private function get_ext( $path ) {
+		return pathinfo( $path, PATHINFO_EXTENSION );
+	}
+
+	public function upload_to_s3( $file ) {
+		$local_file = $file['file'];
+		$extension = $this->get_ext( $local_file );
+
+		if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) || ! defined( 'OPTML_SIGNED_URLS' ) ) {
+			return $file;
+		}
+
+		$content_type = Optml_Config::$image_extensions [ $extension ];
+		$temp = explode( '/', $local_file );
+		$file_name = end( $temp );
+		// Optml_Config::$service_url config not init already
+		$body = [
+			'apiKeyMD5' => $this->settings->get( 'api_key' ),
+			'userKey' => 'test',
+			'cacheBuster' => $this->settings->get( 'cache_buster' ),
+			'filename' => $file_name,
+		];
+		$body = wp_json_encode( $body );
+
+		$options = [
+			'body'        => $body,
+			'headers'     => [
+				'Content-Type' => 'application/json',
+			],
+			'timeout'     => 60,
+			'blocking'    => true,
+			'httpversion' => '1.0',
+			'sslverify'   => false,
+			'data_format' => 'body',
+		];
+		$generate_url_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
+
+		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
+			return $file;
+		}
+		 $upload_signed_url = json_decode( $generate_url_response['body'], true )['uploadUrl'];
+
+		$upload_args = array(
+			'method'    => 'PUT',
+			'headers'    => array(
+				'content-type'  => $content_type,
+			),
+			'body' => file_get_contents( $local_file ),
+		);
+		$result = wp_remote_request( $upload_signed_url, $upload_args );
+
+		// delete local file if upload is successful
+		// file_exists( $file['file'] ) && unlink( $file['file'] );
+		return $file;
 	}
 
 	/**
