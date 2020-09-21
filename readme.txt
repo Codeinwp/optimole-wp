@@ -89,6 +89,14 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 == Changelog ==
 
+##### [Version 2.5.4](https://github.com/Codeinwp/optimole-wp/compare/v2.5.3...v2.5.4) (2020-09-21)
+
+* Fix compatibility with GiveWP
+* Fix compatibility with IE browser
+
+
+
+
 ##### [Version 2.5.3](https://github.com/Codeinwp/optimole-wp/compare/v2.5.2...v2.5.3) (2020-09-07)
 
 * Improve compatibility with native lazyload from WP 5.5
