@@ -75,6 +75,7 @@ final class Optml_Manager {
 		'swift_performance',
 		'w3_total_cache',
 		'translate_press',
+		'give_wp',
 	);
 	/**
 	 * The current state of the buffer.
@@ -360,7 +361,7 @@ final class Optml_Manager {
 			return true;
 		}
 
-		return false;
+		return apply_filters( 'optml_should_ignore_image_tags', false ) === true;
 	}
 
 	/**
