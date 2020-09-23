@@ -111,7 +111,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
-
+		error_log("here",3,'/var/www/html/optimole.log');
 		$original_url = $url;
 
 		$is_slashed = strpos( $url, '\/' ) !== false;

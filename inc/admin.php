@@ -28,6 +28,8 @@ class Optml_Admin {
 	public function __construct() {
 		$this->settings = new Optml_Settings();
 		add_action( 'init', array($this, 'admin_init') );
+		add_filter( 'wp_get_attachment_url', array($this, 'replace_url'), -999 );
+		// add_filter( 'get_attached_file', array($this, 'filter_function_name'), 10, 2 );
 		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), array( $this, 'add_action_links' ) );
 		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), PHP_INT_MIN );
@@ -42,6 +44,13 @@ class Optml_Admin {
 		add_action( 'optml_after_setup', array( $this, 'register_public_actions' ), 999999 );
 
 	}
+	// public function filter_function_name( $file, $attachment_id ) {
+	// error_log( print_r( $file, true ), 3, '/var/www/html/optimole.log' );
+	// return $file;
+	// }
+	public function replace_url( $url ) {
+			return 'https://image.shutterstock.com/image-photo/mountains-during-sunset-beautiful-natural-260nw-407021107.jpg';
+	}
 	public function admin_init() {
 		// the update or upgrade page will not upload images.
 		$current_page = basename( $_SERVER['SCRIPT_FILENAME'] );
@@ -55,10 +64,9 @@ class Optml_Admin {
 				break;
 			default:
 				add_filter( 'wp_handle_upload', array($this, 'upload_to_s3') );
-				// add_filter('media_send_to_editor', array(__CLASS__, 'replace_attachurl'), -999);
-				// add_filter('attachment_link', array(__CLASS__, 'replace_baseurl'), -999);
+				// add_filter( 'media_send_to_editor', array($this, 'replace_attach_url'), -999 );
+				// add_filter( 'attachment_link', array($this, 'replace_attach_url'), -999 );
 				// add_filter('wp_calculate_image_srcset', array(__CLASS__, 'replace_attachurl_srcset'), -999, 5);
-				// add_filter('wp_update_attachment_metadata', array(__CLASS__, 'upload_images'), 999);
 				// add_action('wp_delete_file', array(__CLASS__, 'delete_remote_file'));
 				break;
 		}
@@ -79,10 +87,20 @@ class Optml_Admin {
 		$content_type = Optml_Config::$image_extensions [ $extension ];
 		$temp = explode( '/', $local_file );
 		$file_name = end( $temp );
-		// Optml_Config::$service_url config not init already
+		$service_settings = $this->settings->get( 'service_data' );
+		$key = '';
+		if ( defined( 'OPTML_KEY' ) && constant( 'OPTML_KEY' ) ) {
+			$key = constant( 'OPTML_KEY' );
+		}
+		if ( ! empty( $service_settings['cdn_key'] ) ) {
+			$key = trim( strtolower( $service_settings['cdn_key'] ) );
+		}
+		if ( $key === '' ) {
+			return $file;
+		}
 		$body = [
 			'apiKeyMD5' => $this->settings->get( 'api_key' ),
-			'userKey' => 'test',
+			'userKey' => $key,
 			'cacheBuster' => $this->settings->get( 'cache_buster' ),
 			'filename' => $file_name,
 		];
@@ -114,12 +132,21 @@ class Optml_Admin {
 			'body' => file_get_contents( $local_file ),
 		);
 		$result = wp_remote_request( $upload_signed_url, $upload_args );
-
-		// delete local file if upload is successful
-		// file_exists( $file['file'] ) && unlink( $file['file'] );
+	  
+	  $file ['file'] = $file['url'] = 'https://image.shutterstock.com/image-photo/mountains-during-sunset-beautiful-natural-260nw-407021107.jpg';
+	
+		 file_exists( $file['file'] ) && unlink( $file['file'] );
 		return $file;
 	}
 
+	/**
+	 * the hook is in function get_attachment_link()
+	 *
+	 * @static
+	 * @param $html
+	 * @return mixed
+	 */
+	
 	/**
 	 * Adds Optimole tag to admin bar
 	 */
