@@ -52,6 +52,15 @@ class Test_Replacer extends WP_UnitTestCase {
 	/wp-content/themes/test/assets/header.css
 	/wp-content/themes/test/assets/header.js
 	';
+	const IMG_URLS_CAPITAL_EXTENSION = '
+	<img src="http://example.org/wp-content/themes/test/assets/images/header.PNG">
+	<img src="http://example.org/wp-content/themes/test/assets/images/header2.JPEG">
+	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo1.JPG">
+	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo2.JPE">
+	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo3.WEBP">
+	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo4.SVG">
+	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo5.GIF">
+	 ';
 	const CSS_STYLE = '
 	<style>
 	.body{
@@ -204,6 +213,18 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertEquals( 6, substr_count( $replaced_content, '/m:0/' ) );
 
 
+	}
+	public function test_capital_extensions() {
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_URLS_CAPITAL_EXTENSION );
+
+		$this->assertEquals( 7, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 7, substr_count( $replaced_content, 'w:auto' ) );
+		$this->assertEquals( 7, substr_count( $replaced_content, 'h:auto' ) );
+		$this->assertEquals( 7, substr_count( $replaced_content, 'q:auto' ) );
+		$this->assertNotContains( 'm:0', $replaced_content );
+		$this->assertNotContains( 'm:1', $replaced_content );
+		$this->assertNotContains( 'f:css', $replaced_content );
+		$this->assertNotContains( 'f:js', $replaced_content );
 	}
 
 	public function test_style_replacement() {
