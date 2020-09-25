@@ -27,9 +27,14 @@ class Optml_Admin {
 	 */
 	public function __construct() {
 		$this->settings = new Optml_Settings();
+		$service_data = $this->settings->get( 'service_data' );
+		Optml_Config::init(
+			array(
+				'key'    => $service_data['cdn_key'],
+				'secret' => $service_data['cdn_secret'],
+			)
+		);
 		add_action( 'init', array($this, 'admin_init') );
-		add_filter( 'wp_get_attachment_url', array($this, 'replace_url'), -999 );
-		// add_filter( 'get_attached_file', array($this, 'filter_function_name'), 10, 2 );
 		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), array( $this, 'add_action_links' ) );
 		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), PHP_INT_MIN );
@@ -44,13 +49,6 @@ class Optml_Admin {
 		add_action( 'optml_after_setup', array( $this, 'register_public_actions' ), 999999 );
 
 	}
-	// public function filter_function_name( $file, $attachment_id ) {
-	// error_log( print_r( $file, true ), 3, '/var/www/html/optimole.log' );
-	// return $file;
-	// }
-	public function replace_url( $url ) {
-			return 'https://image.shutterstock.com/image-photo/mountains-during-sunset-beautiful-natural-260nw-407021107.jpg';
-	}
 	public function admin_init() {
 		// the update or upgrade page will not upload images.
 		$current_page = basename( $_SERVER['SCRIPT_FILENAME'] );
@@ -64,6 +62,7 @@ class Optml_Admin {
 				break;
 			default:
 				add_filter( 'wp_handle_upload', array($this, 'upload_to_s3') );
+				add_filter( 'wp_generate_attachment_metadata', array($this, 'generate_image_meta'), 10, 2 );
 				// add_filter( 'media_send_to_editor', array($this, 'replace_attach_url'), -999 );
 				// add_filter( 'attachment_link', array($this, 'replace_attach_url'), -999 );
 				// add_filter('wp_calculate_image_srcset', array(__CLASS__, 'replace_attachurl_srcset'), -999, 5);
@@ -71,11 +70,9 @@ class Optml_Admin {
 				break;
 		}
 	}
-
 	private function get_ext( $path ) {
 		return pathinfo( $path, PATHINFO_EXTENSION );
 	}
-
 	public function upload_to_s3( $file ) {
 		$local_file = $file['file'];
 		$extension = $this->get_ext( $local_file );
@@ -87,22 +84,12 @@ class Optml_Admin {
 		$content_type = Optml_Config::$image_extensions [ $extension ];
 		$temp = explode( '/', $local_file );
 		$file_name = end( $temp );
-		$service_settings = $this->settings->get( 'service_data' );
-		$key = '';
-		if ( defined( 'OPTML_KEY' ) && constant( 'OPTML_KEY' ) ) {
-			$key = constant( 'OPTML_KEY' );
-		}
-		if ( ! empty( $service_settings['cdn_key'] ) ) {
-			$key = trim( strtolower( $service_settings['cdn_key'] ) );
-		}
-		if ( $key === '' ) {
-			return $file;
-		}
 		$body = [
 			'apiKeyMD5' => $this->settings->get( 'api_key' ),
-			'userKey' => $key,
+			'userKey' => Optml_Config::$key,
 			'cacheBuster' => $this->settings->get( 'cache_buster' ),
 			'filename' => $file_name,
+			'serviceUrl' => Optml_Config::$service_url,
 		];
 		$body = wp_json_encode( $body );
 
@@ -122,7 +109,8 @@ class Optml_Admin {
 		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
 			return $file;
 		}
-		 $upload_signed_url = json_decode( $generate_url_response['body'], true )['uploadUrl'];
+		$cdn_url = json_decode( $generate_url_response['body'], true )['cdnUrl'];
+		$upload_signed_url = json_decode( $generate_url_response['body'], true )['uploadUrl'];
 
 		$upload_args = array(
 			'method'    => 'PUT',
@@ -132,21 +120,40 @@ class Optml_Admin {
 			'body' => file_get_contents( $local_file ),
 		);
 		$result = wp_remote_request( $upload_signed_url, $upload_args );
-	  
-	  $file ['file'] = $file['url'] = 'https://image.shutterstock.com/image-photo/mountains-during-sunset-beautiful-natural-260nw-407021107.jpg';
-	
-		 file_exists( $file['file'] ) && unlink( $file['file'] );
+		$original_url = $file['url'];
+		$file['url'] = $cdn_url;
+		add_filter(
+			'wp_get_attachment_url',
+			function ( $url ) use ( $original_url, $cdn_url ) {
+				if ( strcmp( $url, $original_url ) === 0 ) {
+					return $cdn_url;
+				}
+				return $url;
+			},
+			-999
+		);
 		return $file;
 	}
+	public function generate_image_meta( $meta, $id ) {
+		$local_file = get_attached_file( $id );
 
-	/**
-	 * the hook is in function get_attachment_link()
-	 *
-	 * @static
-	 * @param $html
-	 * @return mixed
-	 */
-	
+		$cdn_url = wp_get_attachment_url( $id );
+		$key = '/uploaded:true/' . pathinfo( $local_file, PATHINFO_FILENAME );
+		if ( false === strpos( $cdn_url, Optml_Config::$service_url ) || false === strpos( $cdn_url, $key ) ) {
+			return $meta;
+		}
+		file_exists( $local_file ) && unlink( $local_file );
+		$meta['file'] = $cdn_url;
+		if ( isset( $meta['sizes'] ) ) {
+			foreach ( $meta['sizes'] as $key => $value ) {
+				$to_replace = array('w:auto', 'h:auto');
+				$scaled_dimensions   = array('width:' . $meta['sizes'][ $key ]['width'], 'height:' . $meta['sizes'][ $key ]['height']  );
+				$meta['sizes'][ $key ]['file'] = str_replace( $to_replace, $scaled_dimensions, $cdn_url );
+			}
+		}
+		
+		return $meta;
+	}
 	/**
 	 * Adds Optimole tag to admin bar
 	 */

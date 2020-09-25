@@ -362,13 +362,6 @@ abstract class Optml_App_Replacer {
 
 		$service_data = $this->settings->get( 'service_data' );
 
-		Optml_Config::init(
-			array(
-				'key'    => $service_data['cdn_key'],
-				'secret' => $service_data['cdn_secret'],
-			)
-		);
-
 		if ( defined( 'OPTML_SITE_MIRROR' ) && constant( 'OPTML_SITE_MIRROR' ) ) {
 			$this->site_mappings[ rtrim( get_home_url(), '/' ) ] = rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' );
 		}
