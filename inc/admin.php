@@ -34,9 +34,11 @@ class Optml_Admin {
 				'secret' => $service_data['cdn_secret'],
 			)
 		);
-		 add_filter( 'image_downsize', array( $this, 'generate_filter_downsize_urls' ), 10, 3 );
+
+		add_filter( 'image_downsize', array( $this, 'generate_filter_downsize_urls' ), 10, 3 );
 		add_filter( 'wp_generate_attachment_metadata', array($this, 'generate_image_meta'), 10, 2 );
 		add_filter( 'wp_get_attachment_url', array($this, 'get_image_attachment_url'), -999, 2 );
+		add_action( 'delete_attachment', array( $this, 'delete_image_from_s3' ), 10 );
 		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), array( $this, 'add_action_links' ) );
 		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), PHP_INT_MIN );
@@ -50,6 +52,51 @@ class Optml_Admin {
 		}
 		add_action( 'optml_after_setup', array( $this, 'register_public_actions' ), 999999 );
 
+	}
+	// $this->settings->get_numeric_quality()
+	private function set_api_call_options( $file_name, $quality = 'auto', $delete = 'false' ) {
+		$body = [
+			'apiKeyMD5' => $this->settings->get( 'api_key' ),
+			'userKey' => Optml_Config::$key,
+			'cacheBuster' => $this->settings->get( 'cache_buster' ),
+			'filename' => $file_name,
+			'quality' => $quality,
+			'deleteUrl' => $delete,
+		];
+		$body = wp_json_encode( $body );
+
+		$options = [
+			'body'        => $body,
+			'headers'     => [
+				'Content-Type' => 'application/json',
+			],
+			'timeout'     => 60,
+			'blocking'    => true,
+			'httpversion' => '1.0',
+			'sslverify'   => false,
+			'data_format' => 'body',
+		];
+		return $options;
+	}
+	/**
+	 * Delete an image from s3 after it is removed from media.
+	 *
+	 * @param int $post_id The deleted post id.
+	 */
+	public function delete_image_from_s3( $post_id ) {
+		$file = wp_get_attachment_metadata( $post_id )['file'];
+		if ( strpos( $file, '/optml3_uploaded:true/' ) !== false ) {
+			$temp = explode( '/', $file );
+			$file_name = end( $temp );
+
+			$options = $this->set_api_call_options( $file_name, 'auto', 'true' );
+
+			$delete_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
+			error_log( print_r( $delete_response, true ), 3, '/var/www/html/optimole.log' );
+			if ( is_wp_error( $delete_response ) || wp_remote_retrieve_response_code( $delete_response ) !== 200 ) {
+				// should add some routine to retry delete once if delete fails
+			}
+		}
 	}
 
 	/**
@@ -115,6 +162,7 @@ class Optml_Admin {
 			'userKey' => Optml_Config::$key,
 			'cacheBuster' => $this->settings->get( 'cache_buster' ),
 			'filename' => $file_name,
+			'quality' => $this->settings->get_numeric_quality(),
 		];
 		$body = wp_json_encode( $body );
 
@@ -146,10 +194,15 @@ class Optml_Admin {
 			'body' => file_get_contents( $local_file ),
 		);
 		$result = wp_remote_request( $upload_signed_url, $upload_args );
+		if ( is_wp_error( $result ) || wp_remote_retrieve_response_code( $result ) !== 200 ) {
+			return $meta;
+		}
 		file_exists( $local_file ) && unlink( $local_file );
 		$meta['file'] = $cdn_url;
 		if ( isset( $meta['sizes'] ) ) {
 			foreach ( $meta['sizes'] as $key => $value ) {
+				$generated_image_size_path = str_replace( $file_name, $meta['sizes'][ $key ]['file'], $local_file );
+				file_exists( $generated_image_size_path ) && unlink( $generated_image_size_path );
 				$meta['sizes'][ $key ]['file'] = $file_name;
 			}
 		}
