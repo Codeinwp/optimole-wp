@@ -34,7 +34,9 @@ class Optml_Admin {
 				'secret' => $service_data['cdn_secret'],
 			)
 		);
-		add_action( 'init', array($this, 'admin_init') );
+		 add_filter( 'image_downsize', array( $this, 'generate_filter_downsize_urls' ), 10, 3 );
+		add_filter( 'wp_generate_attachment_metadata', array($this, 'generate_image_meta'), 10, 2 );
+		add_filter( 'wp_get_attachment_url', array($this, 'get_image_attachment_url'), -999, 2 );
 		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), array( $this, 'add_action_links' ) );
 		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), PHP_INT_MIN );
@@ -49,36 +51,60 @@ class Optml_Admin {
 		add_action( 'optml_after_setup', array( $this, 'register_public_actions' ), 999999 );
 
 	}
-	public function admin_init() {
-		// the update or upgrade page will not upload images.
-		$current_page = basename( $_SERVER['SCRIPT_FILENAME'] );
-		switch ( $current_page ) {
-			// wp-admin/update.php?action=upload-plugin
-			// wp-admin/update.php?action=upload-theme
-			case 'update.php':
-				// update-core.php?action=do-core-reinstall
-			case 'update-core.php':
-				// nothing
-				break;
-			default:
-				add_filter( 'wp_handle_upload', array($this, 'upload_to_s3') );
-				add_filter( 'wp_generate_attachment_metadata', array($this, 'generate_image_meta'), 10, 2 );
-				// add_filter( 'media_send_to_editor', array($this, 'replace_attach_url'), -999 );
-				// add_filter( 'attachment_link', array($this, 'replace_attach_url'), -999 );
-				// add_filter('wp_calculate_image_srcset', array(__CLASS__, 'replace_attachurl_srcset'), -999, 5);
-				// add_action('wp_delete_file', array(__CLASS__, 'delete_remote_file'));
-				break;
+
+	/**
+	 * Get optimized URL for an attachment image if it is uploaded to s3.
+	 *
+	 * @param string $url The current url.
+	 * @param int    $id The attachment image id.
+	 * @return string Cloudinary URL.
+	 */
+	public function get_image_attachment_url( $url, $id ) {
+		$file = wp_get_attachment_metadata( $id )['file'];
+		if ( strpos( $file, '/optml3_uploaded:true/' ) !== false ) {
+			return Optml_Config::$service_url . '/' . $this->settings->get( 'cache_buster' ) . '/' . $file;
 		}
+		return $url;
+	}
+	/**
+	 * Filter the requested image url.
+	 *
+	 * @param null         $image         The previous image value (null).
+	 * @param int          $attachment_id The ID of the attachment.
+	 * @param string|array $size          Requested size of image. Image size name, or array of width and height values (in that order).
+	 *
+	 * @return array The image sizes and optimized url.
+	 * @uses filter:image_downsize
+	 */
+	public function generate_filter_downsize_urls( $image, $attachment_id, $size ) {
+		if ( doing_action( 'wp_insert_post_data' ) || wp_attachment_is( 'video', $attachment_id ) ) {
+			return $image;
+		}
+		$data      = image_get_intermediate_size( $attachment_id, $size );
+		if ( ! isset( $data['url'] ) || ! isset( $data['width'] ) || ! isset( $data['height'] ) || strpos( $data['url'], '/optml3_uploaded:true/' ) === false ) {
+			return $data;
+		}
+		$to_replace = array('w:auto', 'h:auto');
+		$scaled_dimensions = array('w:' . $data['width'], 'h:' . $data['height']);
+		$data['url'] = str_replace( $to_replace, $scaled_dimensions, $data['url'] );
+		$image = array(
+			$data['url'],
+			$data['width'],
+			$data['height'],
+			true,
+		);
+		return $image;
 	}
 	private function get_ext( $path ) {
 		return pathinfo( $path, PATHINFO_EXTENSION );
 	}
-	public function upload_to_s3( $file ) {
-		$local_file = $file['file'];
+	public function generate_image_meta( $meta, $id ) {
+
+		$local_file = get_attached_file( $id );
 		$extension = $this->get_ext( $local_file );
 
 		if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) || ! defined( 'OPTML_SIGNED_URLS' ) ) {
-			return $file;
+			return $meta;
 		}
 
 		$content_type = Optml_Config::$image_extensions [ $extension ];
@@ -89,7 +115,6 @@ class Optml_Admin {
 			'userKey' => Optml_Config::$key,
 			'cacheBuster' => $this->settings->get( 'cache_buster' ),
 			'filename' => $file_name,
-			'serviceUrl' => Optml_Config::$service_url,
 		];
 		$body = wp_json_encode( $body );
 
@@ -107,8 +132,9 @@ class Optml_Admin {
 		$generate_url_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
 
 		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
-			return $file;
+			return $meta;
 		}
+
 		$cdn_url = json_decode( $generate_url_response['body'], true )['cdnUrl'];
 		$upload_signed_url = json_decode( $generate_url_response['body'], true )['uploadUrl'];
 
@@ -120,38 +146,13 @@ class Optml_Admin {
 			'body' => file_get_contents( $local_file ),
 		);
 		$result = wp_remote_request( $upload_signed_url, $upload_args );
-		$original_url = $file['url'];
-		$file['url'] = $cdn_url;
-		add_filter(
-			'wp_get_attachment_url',
-			function ( $url ) use ( $original_url, $cdn_url ) {
-				if ( strcmp( $url, $original_url ) === 0 ) {
-					return $cdn_url;
-				}
-				return $url;
-			},
-			-999
-		);
-		return $file;
-	}
-	public function generate_image_meta( $meta, $id ) {
-		$local_file = get_attached_file( $id );
-
-		$cdn_url = wp_get_attachment_url( $id );
-		$key = '/uploaded:true/' . pathinfo( $local_file, PATHINFO_FILENAME );
-		if ( false === strpos( $cdn_url, Optml_Config::$service_url ) || false === strpos( $cdn_url, $key ) ) {
-			return $meta;
-		}
 		file_exists( $local_file ) && unlink( $local_file );
 		$meta['file'] = $cdn_url;
 		if ( isset( $meta['sizes'] ) ) {
 			foreach ( $meta['sizes'] as $key => $value ) {
-				$to_replace = array('w:auto', 'h:auto');
-				$scaled_dimensions   = array('width:' . $meta['sizes'][ $key ]['width'], 'height:' . $meta['sizes'][ $key ]['height']  );
-				$meta['sizes'][ $key ]['file'] = str_replace( $to_replace, $scaled_dimensions, $cdn_url );
+				$meta['sizes'][ $key ]['file'] = $file_name;
 			}
 		}
-		
 		return $meta;
 	}
 	/**
