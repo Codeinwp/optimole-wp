@@ -53,7 +53,14 @@ class Optml_Admin {
 		add_action( 'optml_after_setup', array( $this, 'register_public_actions' ), 999999 );
 
 	}
-	// $this->settings->get_numeric_quality()
+	/**
+	 * Get options for the signed urls api call.
+	 *
+	 * @param string $file_name Image name.
+	 * @param string $quality Quality to optimize at.
+	 * @param string $delete Whether to delete a bucket object or not(ie. generate signed upload url).
+	 * @return array
+	 */
 	private function set_api_call_options( $file_name, $quality = 'auto', $delete = 'false' ) {
 		$body = [
 			'apiKeyMD5' => $this->settings->get( 'api_key' ),
@@ -92,7 +99,7 @@ class Optml_Admin {
 			$options = $this->set_api_call_options( $file_name, 'auto', 'true' );
 
 			$delete_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
-			error_log( print_r( $delete_response, true ), 3, '/var/www/html/optimole.log' );
+
 			if ( is_wp_error( $delete_response ) || wp_remote_retrieve_response_code( $delete_response ) !== 200 ) {
 				// should add some routine to retry delete once if delete fails
 			}
@@ -103,11 +110,12 @@ class Optml_Admin {
 	 * Get optimized URL for an attachment image if it is uploaded to s3.
 	 *
 	 * @param string $url The current url.
-	 * @param int    $id The attachment image id.
-	 * @return string Cloudinary URL.
+	 * @param int    $attachment_id The attachment image id.
+	 * @return string Optimole cdn URL.
+	 * @uses filter:wp_get_attachment_url
 	 */
-	public function get_image_attachment_url( $url, $id ) {
-		$file = wp_get_attachment_metadata( $id )['file'];
+	public function get_image_attachment_url( $url, $attachment_id ) {
+		$file = wp_get_attachment_metadata( $attachment_id )['file'];
 		if ( strpos( $file, '/optml3_uploaded:true/' ) !== false ) {
 			return Optml_Config::$service_url . '/' . $this->settings->get( 'cache_buster' ) . '/' . $file;
 		}
@@ -142,12 +150,27 @@ class Optml_Admin {
 		);
 		return $image;
 	}
+	/**
+	 * Get image extension.
+	 *
+	 * @param string $path  Image path.
+	 *
+	 * @return string
+	 */
 	private function get_ext( $path ) {
 		return pathinfo( $path, PATHINFO_EXTENSION );
 	}
-	public function generate_image_meta( $meta, $id ) {
+	/**
+	 * Update image meta with optimized cdn path.
+	 *
+	 * @param array $meta    Meta information of the image.
+	 * @param int   $attachment_id The image attachment ID.
+	 *
+	 * @return array
+	 */
+	public function generate_image_meta( $meta, $attachment_id ) {
 
-		$local_file = get_attached_file( $id );
+		$local_file = get_attached_file( $attachment_id );
 		$extension = $this->get_ext( $local_file );
 
 		if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) || ! defined( 'OPTML_SIGNED_URLS' ) ) {
@@ -157,26 +180,9 @@ class Optml_Admin {
 		$content_type = Optml_Config::$image_extensions [ $extension ];
 		$temp = explode( '/', $local_file );
 		$file_name = end( $temp );
-		$body = [
-			'apiKeyMD5' => $this->settings->get( 'api_key' ),
-			'userKey' => Optml_Config::$key,
-			'cacheBuster' => $this->settings->get( 'cache_buster' ),
-			'filename' => $file_name,
-			'quality' => $this->settings->get_numeric_quality(),
-		];
-		$body = wp_json_encode( $body );
 
-		$options = [
-			'body'        => $body,
-			'headers'     => [
-				'Content-Type' => 'application/json',
-			],
-			'timeout'     => 60,
-			'blocking'    => true,
-			'httpversion' => '1.0',
-			'sslverify'   => false,
-			'data_format' => 'body',
-		];
+		$options = $this->set_api_call_options( $file_name, $this->settings->get_numeric_quality(), 'false' );
+
 		$generate_url_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
 
 		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
