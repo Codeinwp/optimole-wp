@@ -58,14 +58,15 @@ class Optml_Admin {
 	 *
 	 * @param string $file_name Image name.
 	 * @param string $quality Quality to optimize at.
+	 * @param string $domain Image domain.
 	 * @param string $delete Whether to delete a bucket object or not(ie. generate signed upload url).
 	 * @return array
 	 */
-	private function set_api_call_options( $file_name, $quality = 'auto', $delete = 'false' ) {
+	private function set_api_call_options( $file_name, $quality = 'auto', $domain = '', $delete = 'false' ) {
 		$body = [
 			'apiKeyMD5' => $this->settings->get( 'api_key' ),
 			'userKey' => Optml_Config::$key,
-			'cacheBuster' => $this->settings->get( 'cache_buster' ),
+			'domain' => $domain,
 			'filename' => $file_name,
 			'quality' => $quality,
 			'deleteUrl' => $delete,
@@ -93,10 +94,16 @@ class Optml_Admin {
 	public function delete_image_from_s3( $post_id ) {
 		$file = wp_get_attachment_metadata( $post_id )['file'];
 		if ( strpos( $file, '/optml3_uploaded:true/' ) !== false ) {
+			$domain = array();
+			preg_match( '/\/domain:(.*)\//', $file, $domain );
+			if ( ! isset( $domain[1] ) ) {
+				return;
+			}
+
 			$temp = explode( '/', $file );
 			$file_name = end( $temp );
 
-			$options = $this->set_api_call_options( $file_name, 'auto', 'true' );
+			$options = $this->set_api_call_options( $file_name, 'auto', $domain[1], 'true' );
 
 			$delete_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
 
@@ -117,7 +124,8 @@ class Optml_Admin {
 	public function get_image_attachment_url( $url, $attachment_id ) {
 		$file = wp_get_attachment_metadata( $attachment_id )['file'];
 		if ( strpos( $file, '/optml3_uploaded:true/' ) !== false ) {
-			return Optml_Config::$service_url . '/' . $this->settings->get( 'cache_buster' ) . '/' . $file;
+			$resources = new Optml_Image( $url, array(), $this->settings->get( 'cache_buster' ) );
+			return Optml_Config::$service_url . '/' . $resources->get_domain_token() . $resources->get_cache_buster() . '/' . $file;
 		}
 		return $url;
 	}
@@ -170,6 +178,13 @@ class Optml_Admin {
 	 */
 	public function generate_image_meta( $meta, $attachment_id ) {
 
+		$parts  = parse_url( wp_get_attachment_url( $attachment_id ) );
+		$domain = isset( $parts['host'] ) ? str_replace( 'www.', '', $parts['host'] ) : '';
+
+		if ( $domain === '' ) {
+			return $meta;
+		}
+
 		$local_file = get_attached_file( $attachment_id );
 		$extension = $this->get_ext( $local_file );
 
@@ -181,7 +196,7 @@ class Optml_Admin {
 		$temp = explode( '/', $local_file );
 		$file_name = end( $temp );
 
-		$options = $this->set_api_call_options( $file_name, $this->settings->get_numeric_quality(), 'false' );
+		$options = $this->set_api_call_options( $file_name, $this->settings->get_numeric_quality(), $domain, 'false' );
 
 		$generate_url_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
 
