@@ -176,6 +176,24 @@ class Optml_Rest {
 			)
 		);
 	}
+	/**
+	 * Method to register s3 media specific routes.
+	 */
+	public function register_s3_media_routes() {
+		register_rest_route(
+			$this->namespace,
+			'/push_existing_images',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'push_images_to_s3' ),
+				),
+			)
+		);
+	}
 
 	/**
 	 * Method to register watermark specific routes.
@@ -688,5 +706,46 @@ class Optml_Rest {
 		}
 
 		return $this->response( '<ul>' . $result . '</ul>', $status );
+	}
+	
+	/**
+	 * Push existing image to s3.
+	 *
+	 * @param WP_REST_Request $request rest request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function push_images_to_s3( WP_REST_Request $request )
+	{
+		// use this to query batches of images, create a progress bar page that ajax call this pass some offload parameter with number of images between them, update meta after each image is processed
+		if (empty($request->get_param('offset'))) {
+			return $this->response(__('No images available on the current page.'), 'noImagesFound');
+		}
+		// error_log( "here", 3, '/var/www/html/optimole.log' );
+		// $args = array(
+		// 'post_type'           => 'attachment',
+		// 'post_mime_type'      => array( 'image', 'video' ),
+		// 'post_status'         => 'inherit',
+		// 'posts_per_page'      => 1000, // phpcs:ignore
+		// 'fields'              => 'ids',
+		// 'meta_query'          => array( // phpcs:ignore
+		// 'relation' => 'AND',
+		// array(
+		// 'key'     => 'optimole_s3',
+		// 'value' => 'true',
+		// 'compare' => '=',
+		// ),
+		// array(
+		// 'key'     => 'optimole_s3_error',
+		// 'compare' => 'NOT EXISTS',
+		// ),
+		// ),
+		// 'ignore_sticky_posts' => false,
+		// 'no_found_rows'       => true,
+		// );
+		//
+		// $attachments = new \WP_Query( $args );
+		// $ids         = $attachments->get_posts();
+		// error_log(print_r($ids,true),3,'/var/www/html/optimole.log');
 	}
 }

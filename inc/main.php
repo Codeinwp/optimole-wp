@@ -79,6 +79,7 @@ final class Optml_Main {
 			self::$_instance->manager = Optml_Manager::instance();
 			self::$_instance->rest    = new Optml_Rest();
 			self::$_instance->admin   = new Optml_Admin();
+			self::$_instance->s3_media = new Optml_S3_Media();
 			if ( class_exists( 'WP_CLI' ) ) {
 				self::$_instance->cli = new Optml_Cli();
 			}
