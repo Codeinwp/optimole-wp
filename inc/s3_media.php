@@ -35,18 +35,6 @@ class Optml_S3_Media extends Optml_App_Replacer {
 		add_filter( 'media_row_actions', array( $this, 'add_inline_media_action' ), 10, 2 );
 	}
 
-//	/**
-//	 * Get the image size from tag.
-//	 *
-//	 * @param string $image Image tag.
-//	 *
-//	 * @param string $url Image url.
-//	 *
-//	 * @return string|array|bool The image size string.
-//	 */
-//	public function get_size_from_image( $image, $url ) {
-//		return preg_match( '#class=["|\']?[^"\']*size-([^"\'\s]+)[^"\']*["|\']?#i', $image, $found ) ? $found[1] : $this->parse_dimensions_from_filename( $url );
-//	}
 	/**
 	 * Get the attachment ID from the image tag.
 	 *
@@ -73,18 +61,21 @@ class Optml_S3_Media extends Optml_App_Replacer {
 
 		$content = trim( wp_unslash( $data['post_content'] ) );
 		$images  = Optml_Manager::parse_images_from_html( $content );
+		if ( ! isset( $images[0] ) ) {
+			return $data;
+		}
 		foreach ( $images[0] as $index => $tag ) {
 			$url           = $images['img_url'][ $index ];
 			$attachment_id = $this->get_id_from_tag( $tag );
 			if ( false === $attachment_id || ! wp_attachment_is_image( $attachment_id ) ) {
 				continue;
 			}
-			error_log( $tag, 3, '/var/www/html/optimole.log' );
-			$size      = $this->parse_dimensions_from_filename( $url );
-			error_log( print_r( $size, true ), 3, '/var/www/html/optimole.log' );
-			//to do check whats wrong with image size src get either pass new array(w,h) to get or check concurency with file sizes generate filter
-			$local_url = wp_get_attachment_image_url( $attachment_id, $size );
-			$content = str_replace( $url, $local_url, $content );
+			$size = $this->parse_dimensions_from_filename( $url );
+			$optimized_url = wp_get_attachment_image_src( $attachment_id, $size );
+			if ( ! isset( $optimized_url[0] ) ) {
+				continue;
+			}
+			$content = str_replace( $url, $optimized_url[0], $content );
 		}
 		$data['post_content'] = wp_slash( $content );
 		return $data;
@@ -100,7 +91,6 @@ class Optml_S3_Media extends Optml_App_Replacer {
 			$content_posts = array_unique( $content->get_posts() );
 			foreach ( $content_posts as $content_id ) {
 				wp_update_post( array( 'ID' => $content_id ) );  // existing filters should take care of providing optimized urls
-				error_log( 'here', 3, '/var/www/html/optimole.log' );
 			}
 		}
 	}
@@ -304,7 +294,7 @@ class Optml_S3_Media extends Optml_App_Replacer {
 	 * @uses filter:image_downsize
 	 */
 	public function generate_filter_downsize_urls( $image, $attachment_id, $size ) {
-		if ( doing_action( 'wp_insert_post_data' ) || wp_attachment_is( 'video', $attachment_id ) ) {
+		if ( wp_attachment_is( 'video', $attachment_id ) ) {
 			return $image;
 		}
 		$data      = image_get_intermediate_size( $attachment_id, $size );
