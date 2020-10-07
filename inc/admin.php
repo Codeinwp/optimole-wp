@@ -484,7 +484,6 @@ class Optml_Admin {
 	 * Maybe redirect to dashboard page.
 	 */
 	public function maybe_redirect() {
-	 
 
 		if ( isset( $_GET['optml_nonce'] ) && isset( $_GET['optml_hide_optin'] ) && $_GET['optml_hide_optin'] === 'yes' && wp_verify_nonce( $_GET['optml_nonce'], 'hide_nonce' ) ) {
 			update_option( 'optml_notice_optin', 'yes' );
@@ -727,6 +726,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			'advanced_settings_menu_item'    => __( 'Advanced', 'optimole-wp' ),
 			'general_settings_menu_item'     => __( 'General', 'optimole-wp' ),
 			'lazyload_settings_menu_item'    => __( 'Lazyload', 'optimole-wp' ),
+			's3_media_settings_menu_item'    => __( 'Offload Media', 'optimole-wp' ),
 			'watermarks_menu_item'           => __( 'Watermark', 'optimole-wp' ),
 			'conflicts_menu_item'            => __( 'Possible issues', 'optimole-wp' ),
 			'conflicts'                      => array(
@@ -762,6 +762,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_gif_replace_title'          => __( 'Enable Gif to Video conversion', 'optimole-wp' ),
 				'enable_report_title'               => __( 'Enable error diagnosis tool' ),
 				'enable_report_desc'                => __( 'Provides a troubleshooting mechanism which should help you identify any possible issues with your site using Optimole.' ),
+				'enable_s3_media_title'             => __( 'Enable media offload' ),
+				'enable_s3_media_desc'              => __( 'All new images will automatically be stored on our servers' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
 				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
@@ -823,6 +825,11 @@ The root cause might be either a security plugin which blocks this feature or so
 				'css_minify_desc'                   => __( 'Once Optimole will serve your CSS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
 				'enable_js_minify_title'            => __( 'Minify JS files', 'optimole-wp' ),
 				'js_minify_desc'                    => __( 'Once Optimole will serve your JS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
+				'sync_title'                        => __( 'Sync existing images', 'optimole-wp' ),
+				'sync_desc'                         => __( 'Move all existing images from your server to optimole servers', 'optimole-wp' ),
+				'sync_media'                        => __( 'Sync images' ),
+				'sync_media_progress'               => __( 'We are currently moving your images to our servers, please wait' ),
+
 			),
 			'watermarks'                     => array(
 				'image'                    => __( 'Image', 'optimole-wp' ),

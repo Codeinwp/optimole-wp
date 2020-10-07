@@ -27,6 +27,7 @@ const store = new Vuex.Store(
 			optimizedImages: [],
 			watermarks: [],
 			conflicts: [],
+			pushedImagesProgress : 0,
 		},
 		mutations,
 		actions

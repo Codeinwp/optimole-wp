@@ -85,7 +85,7 @@ class Optml_S3_Media extends Optml_App_Replacer {
 	 *
 	 * @param int $attachment_id The attachment id of the image to init an update.
 	 */
-	public function update_content( $attachment_id ) {
+	public static function update_content( $attachment_id ) {
 		$content = new \WP_Query( array( 's' => 'wp-image-' . $attachment_id, 'fields' => 'ids', 'posts_per_page' => 500 ) );
 		if ( ! empty( $content->found_posts ) ) {
 			$content_posts = array_unique( $content->get_posts() );
@@ -125,6 +125,25 @@ class Optml_S3_Media extends Optml_App_Replacer {
 		);
 		return $actions;
 	}
+	public static function upload_and_update_existing_images( $image_ids ) {
+		$success_up = 0;
+		foreach ( $image_ids as $id ) {
+			error_log( 'updating', 3, '/var/www/html/optimole.log' );
+			error_log( print_r( $image_ids, true ), 3, '/var/www/html/optimole.log' );
+			if ( strpos( wp_get_attachment_metadata( $id )['file'], '/optml3_uploaded:true/' ) !== false ) {
+				$success_up ++;
+				continue;
+			}
+			$meta = wp_generate_attachment_metadata( $id, get_attached_file( $id ) );
+			if ( isset( $meta['file'] ) && strpos( $meta['file'], '/optml3_uploaded:true/' ) !== false ) {
+				$success_up ++;
+				wp_update_attachment_metadata( $id, $meta );
+				self::update_content( $id );
+			}
+		}
+		error_log( 'worked', 3, '/var/www/html/optimole.log' );
+		return $success_up;
+	}
 	public function bulk_action_handler( $redirect, $doaction, $image_ids ) {
 		if ( empty( $image_ids ) ) {
 			return $redirect;
@@ -132,19 +151,7 @@ class Optml_S3_Media extends Optml_App_Replacer {
 		$redirect = remove_query_arg( array( 'optimole_up_s3_success', 'optimole_up_s3_failed', 'optimole_back_to_media' ), $redirect );
 
 		if ( $doaction === 'optimole_up_s3' ) {
-			$success_up = 0;
-			foreach ( $image_ids as $id ) {
-				if ( strpos( wp_get_attachment_metadata( $id )['file'], '/optml3_uploaded:true/' ) !== false ) {
-					$success_up ++;
-					continue;
-				}
-				$meta = wp_generate_attachment_metadata( $id, get_attached_file( $id ) );
-				if ( isset( $meta['file'] ) && strpos( $meta['file'], '/optml3_uploaded:true/' ) !== false ) {
-					$success_up ++;
-					wp_update_attachment_metadata( $id, $meta );
-					$this->update_content( $id );
-				}
-			}
+			$success_up = self::upload_and_update_existing_images( $image_ids );
 			$redirect = add_query_arg( 'optimole_up_s3_success', $success_up, $redirect );
 			$failed_up = count( $image_ids ) - $success_up;
 			if ( $failed_up > 0 ) {

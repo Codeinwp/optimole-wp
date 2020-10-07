@@ -306,6 +306,35 @@ const dismissConflict = function ( {commit, state}, data ) {
 		}
 	} );
 };
+const pushBatch = function ( commit,batch ) {
+	Vue.http(
+		{
+			url: optimoleDashboardApp.root + '/push_images_to_s3',
+			method: 'POST',
+			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+			emulateJSON: true,
+			responseType: 'json',
+			body: {
+				'batch': batch,
+			},
+		}
+	).then(
+		function ( response ) {
+			if ( response.body.code === 'success' && response.body.data > 0 ) {
+				commit( 'updatePushedImagesProgress', 10 );
+				pushBatch( commit, batch );
+			} else {
+				commit( 'toggleLoading', false );
+			}
+
+
+		}
+	)
+};
+const syncMedia = function ( {commit, state}, data ) {
+	commit( 'toggleLoading', true );
+	pushBatch( commit, 100 );
+};
 
 export default {
 	clearCache,
@@ -319,5 +348,6 @@ export default {
 	retrieveOptimizedImages,
 	retrieveWatermarks,
 	sampleRate,
-	saveSettings
+	saveSettings,
+	syncMedia
 };

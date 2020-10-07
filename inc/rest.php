@@ -86,6 +86,7 @@ class Optml_Rest {
 		$this->register_watermark_routes();
 		$this->register_conflict_routes();
 		$this->register_cache_routes();
+		$this->register_s3_media_routes();
 	}
 
 	/**
@@ -182,7 +183,7 @@ class Optml_Rest {
 	public function register_s3_media_routes() {
 		register_rest_route(
 			$this->namespace,
-			'/push_existing_images',
+			'/push_images_to_s3',
 			array(
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
@@ -707,7 +708,7 @@ class Optml_Rest {
 
 		return $this->response( '<ul>' . $result . '</ul>', $status );
 	}
-	
+
 	/**
 	 * Push existing image to s3.
 	 *
@@ -715,37 +716,38 @@ class Optml_Rest {
 	 *
 	 * @return WP_REST_Response
 	 */
-	public function push_images_to_s3( WP_REST_Request $request )
-	{
-		// use this to query batches of images, create a progress bar page that ajax call this pass some offload parameter with number of images between them, update meta after each image is processed
-		if (empty($request->get_param('offset'))) {
-			return $this->response(__('No images available on the current page.'), 'noImagesFound');
+	public function push_images_to_s3( WP_REST_Request $request ) {
+		$batch = 300;
+		if ( ! empty( $request->get_param( 'batch' ) ) ) {
+			$batch = $request->get_param( 'batch' );
 		}
-		// error_log( "here", 3, '/var/www/html/optimole.log' );
-		// $args = array(
-		// 'post_type'           => 'attachment',
-		// 'post_mime_type'      => array( 'image', 'video' ),
-		// 'post_status'         => 'inherit',
-		// 'posts_per_page'      => 1000, // phpcs:ignore
-		// 'fields'              => 'ids',
-		// 'meta_query'          => array( // phpcs:ignore
-		// 'relation' => 'AND',
-		// array(
+		$args = array(
+			'post_type'           => 'attachment',
+			'post_mime_type'      => array( 'image', 'video' ),
+			'post_status'         => 'inherit',
+			'posts_per_page'      => $batch,
+			'fields'              => 'ids',
+			'meta_query'          => array(
+				'relation' => 'AND',
+				array(
+					'key'     => 'optimole_s3',
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'     => 'optimole_s3_error',
+					'compare' => 'NOT EXISTS',
+				),
+			),
+			'ignore_sticky_posts' => false,
+			'no_found_rows'       => true,
+		);
 		// 'key'     => 'optimole_s3',
 		// 'value' => 'true',
 		// 'compare' => '=',
-		// ),
-		// array(
-		// 'key'     => 'optimole_s3_error',
-		// 'compare' => 'NOT EXISTS',
-		// ),
-		// ),
-		// 'ignore_sticky_posts' => false,
-		// 'no_found_rows'       => true,
-		// );
-		//
-		// $attachments = new \WP_Query( $args );
-		// $ids         = $attachments->get_posts();
-		// error_log(print_r($ids,true),3,'/var/www/html/optimole.log');
+		$attachments = new \WP_Query( $args );
+		$ids         = $attachments->get_posts();
+		error_log( print_r( $ids, true ), 3, '/var/www/html/optimole.log' );
+		$success_up = Optml_S3_Media::upload_and_update_existing_images( $ids );
+		return $this->response( $success_up );
 	}
 }

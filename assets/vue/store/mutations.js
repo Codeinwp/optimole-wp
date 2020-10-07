@@ -48,7 +48,11 @@ const updateWatermark = ( state, data ) => {
 const updateConflicts = ( state, data ) => {
 	state.conflicts = data.body.data;
 };
-
+const updatePushedImagesProgress = ( state, data ) => {
+	if ( state.pushedImagesProgress < 90 ) {
+		state.pushedImagesProgress += data;
+	}
+};
 export default {
 	restApiNotWorking,
 	toggleConnectedToOptml,
@@ -63,5 +67,6 @@ export default {
 	updateServiceError,
 	updateSettings,
 	updateUserData,
-	updateWatermark
+	updateWatermark,
+	updatePushedImagesProgress
 };

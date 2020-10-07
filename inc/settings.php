@@ -47,6 +47,7 @@ class Optml_Settings {
 		'js_minify'            => 'disabled',
 		'report_script'        => 'disabled',
 		'native_lazyload'      => 'disabled',
+		's3_media'             => 'disabled',
 
 	);
 	/**
@@ -143,6 +144,7 @@ class Optml_Settings {
 				case 'bg_replacer':
 				case 'video_lazyload':
 				case 'report_script':
+				case 's3_media':
 				case 'img_to_video':
 				case 'css_minify':
 				case 'js_minify':
@@ -317,6 +319,7 @@ class Optml_Settings {
 			'js_minify'            => $this->get( 'js_minify' ),
 			'native_lazyload'      => $this->get( 'native_lazyload' ),
 			'report_script'        => $this->get( 'report_script' ),
+			's3_media'             => $this->get( 's3_media' ),
 		);
 	}
 
