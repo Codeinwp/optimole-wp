@@ -53,7 +53,6 @@ const totalNumberOfImages = ( state, data ) => {
 };
 const updatePushedImagesProgress = ( state, data ) => {
 	if ( data === 'finish' ) {
-		console.log("here");
 		state.pushedImagesProgress = 100;
 	}
 	if ( state.pushedImagesProgress < 90 ) {

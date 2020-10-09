@@ -1,6 +1,6 @@
 <?php
 /**
- * S3_Media class.
+ * Optml_Media_Offload class.
  *
  * @package    \Optimole\Inc
  * @author     Optimole <friends@optimole.com>
@@ -9,7 +9,7 @@
 /**
  * Class Optml_Admin
  */
-class Optml_S3_Media extends Optml_App_Replacer {
+class Optml_Media_Offload extends Optml_App_Replacer {
 
 	/**
 	 * Hold the settings object.
@@ -18,22 +18,30 @@ class Optml_S3_Media extends Optml_App_Replacer {
 	 */
 	public $settings;
 
+	const KEYS = array(
+		'uploaded'        => '/optml3_uploaded:true/',
+	);
 	/**
-	 * Optml_S3_Media constructor.
+	 * Optml_Media_Offload constructor.
 	 */
 	public function __construct() {
 		$this->settings = new Optml_Settings();
-		add_filter( 'image_downsize', array( $this, 'generate_filter_downsize_urls' ), 10, 3 );
-		add_filter( 'wp_generate_attachment_metadata', array($this, 'generate_image_meta'), 10, 2 );
-		add_filter( 'wp_get_attachment_url', array($this, 'get_image_attachment_url'), -999, 2 );
-		add_action( 'wp_insert_post_data', array( $this, 'filter_s3_images' ) );
-		add_action( 'delete_attachment', array( $this, 'delete_image_from_s3' ), 10 );
-		add_filter( 'handle_bulk_actions-upload', array($this, 'bulk_action_handler'), 10, 3 );
-		add_filter( 'bulk_actions-upload', array($this, 'register_bulk_media_actions') );
-		add_action( 'admin_notices', array($this, 'bulk_action_notices') );
-		add_filter( 'media_row_actions', array( $this, 'add_inline_media_action' ), 10, 2 );
+		if ( $this->settings->get( 'offload_media' ) === 'enabled' ) {
+			add_filter( 'image_downsize', array($this, 'generate_filter_downsize_urls'), 10, 3 );
+			add_filter( 'wp_generate_attachment_metadata', array($this, 'generate_image_meta'), 10, 2 );
+			add_filter( 'wp_get_attachment_url', array($this, 'get_image_attachment_url'), -999, 2 );
+			add_action( 'wp_insert_post_data', array($this, 'filter_uploaded_images') );
+			add_action( 'delete_attachment', array($this, 'delete_image_from_server'), 10 );
+			add_filter( 'handle_bulk_actions-upload', array($this, 'bulk_action_handler'), 10, 3 );
+			add_filter( 'bulk_actions-upload', array($this, 'register_bulk_media_actions') );
+			add_action( 'admin_notices', array($this, 'bulk_action_notices') );
+			add_filter( 'media_row_actions', array($this, 'add_inline_media_action'), 10, 2 );
+		}
 	}
 
+	public function is_uploaded_image( $src ) {
+		return strpos( $src, self::KEYS['uploaded'] ) !== false;
+	}
 	/**
 	 * Get the attachment ID from the image tag.
 	 *
@@ -50,13 +58,13 @@ class Optml_S3_Media extends Optml_App_Replacer {
 		return $attachment_id;
 	}
 	/**
-	 * Filter out the urls that are saved to s3 when saving to the DB.
+	 * Filter out the urls that are saved to our servers when saving to the DB.
 	 *
 	 * @param array $data The post data array to save.
 	 *
 	 * @return array
 	 */
-	public function filter_s3_images( $data ) {
+	public function filter_uploaded_images( $data ) {
 
 		$content = trim( wp_unslash( $data['post_content'] ) );
 		$images  = Optml_Manager::parse_images_from_html( $content );
@@ -94,7 +102,7 @@ class Optml_S3_Media extends Optml_App_Replacer {
 		}
 	}
 	/**
-	 * Add inline action to push to s3.
+	 * Add inline action to push to our servers.
 	 *
 	 * @param array    $actions All actions.
 	 * @param \WP_Post $post    The current post image object.
@@ -104,35 +112,35 @@ class Optml_S3_Media extends Optml_App_Replacer {
 	public function add_inline_media_action( $actions, $post ) {
 		$file = wp_get_attachment_metadata( $post->ID )['file'];
 		if ( wp_check_filetype( $file, Optml_Config::$all_extensions )['ext'] === false || ! current_user_can( 'delete_post', $post->ID )
-			|| strpos( $file, '/optml3_uploaded:true/' ) !== false ) {
+			|| $this->is_uploaded_image( $file ) ) {
 			return $actions;
 		}
 		$action_url = add_query_arg(
 			array(
-				'action' => 'optimole_up_s3',
+				'action' => 'optimole_upload_image',
 				'media[]' => $post->ID,
 				'_wpnonce' => wp_create_nonce( 'bulk-media' ),
 			),
 			'upload.php'
 		);
 
-		$actions['optimole_up_s3'] = sprintf(
+		$actions['optimole_upload_image'] = sprintf(
 			'<a href="%s" aria-label="%s">%s</a>',
 			$action_url,
-			esc_attr__( 'Push to s3', 'optimole-wp' ),
-			esc_html__( 'Push to s3', 'optimole-wp' )
+			esc_attr__( 'Push to Optimole', 'optimole-wp' ),
+			esc_html__( 'Push to Optimole', 'optimole-wp' )
 		);
 		return $actions;
 	}
 	public function upload_and_update_existing_images( $image_ids ) {
 		$success_up = 0;
 		foreach ( $image_ids as $id ) {
-			if ( strpos( wp_get_attachment_metadata( $id )['file'], '/optml3_uploaded:true/' ) !== false ) {
+			if ( $this->is_uploaded_image( wp_get_attachment_metadata( $id )['file'] ) ) {
 				$success_up ++;
 				continue;
 			}
 			$meta = $this->generate_image_meta( wp_get_attachment_metadata( $id ), $id );
-			if ( isset( $meta['file'] ) && strpos( $meta['file'], '/optml3_uploaded:true/' ) !== false ) {
+			if ( isset( $meta['file'] ) && $this->is_uploaded_image( $meta['file'] ) ) {
 				$success_up ++;
 				wp_update_attachment_metadata( $id, $meta );
 				$this->update_content( $id );
@@ -144,14 +152,14 @@ class Optml_S3_Media extends Optml_App_Replacer {
 		if ( empty( $image_ids ) ) {
 			return $redirect;
 		}
-		$redirect = remove_query_arg( array( 'optimole_up_s3_success', 'optimole_up_s3_failed', 'optimole_back_to_media' ), $redirect );
+		$redirect = remove_query_arg( array( 'optimole_offload_images_succes', 'optimole_offload_images_failed', 'optimole_back_to_media' ), $redirect );
 
-		if ( $doaction === 'optimole_up_s3' ) {
+		if ( $doaction === 'optimole_upload_image' ) {
 			$success_up = self::upload_and_update_existing_images( $image_ids );
-			$redirect = add_query_arg( 'optimole_up_s3_success', $success_up, $redirect );
+			$redirect = add_query_arg( 'optimole_offload_images_succes', $success_up, $redirect );
 			$failed_up = count( $image_ids ) - $success_up;
 			if ( $failed_up > 0 ) {
-				$redirect = add_query_arg( 'optimole_up_s3_failed', $failed_up, $redirect );
+				$redirect = add_query_arg( 'optimole_offload_images_failed', $failed_up, $redirect );
 			}
 		}
 
@@ -163,36 +171,36 @@ class Optml_S3_Media extends Optml_App_Replacer {
 	}
 	public function register_bulk_media_actions( $bulk_array ) {
 
-		$bulk_array['optimole_up_s3'] = __( 'Push Image to S3', 'optimole-wp' );
+		$bulk_array['optimole_upload_image'] = __( 'Push Image to Optimole', 'optimole-wp' );
 		$bulk_array['optimole_back_to_media'] = __( 'Bring image back to media library', 'optimole-wp' );
 		return $bulk_array;
 
 	}
 	public function bulk_action_notices() {
-		if ( ! empty( $_REQUEST['optimole_up_s3_success'] ) ) {
+		if ( ! empty( $_REQUEST['optimole_offload_images_succes'] ) ) {
 
 			printf(
 				'<div id="message" class="updated notice is-dismissible"><p>' .
 				_n(
-					'%s image was stored on s3.',
-					'%s images were stored on s3.',
-					intval( $_REQUEST['optimole_up_s3_success'] ),
+					'%s image was stored on our server.',
+					'%s images were stored on our servers.',
+					intval( $_REQUEST['optimole_offload_images_succes'] ),
 					'optimole-wp'
 				) . '</p></div>',
-				intval( $_REQUEST['optimole_up_s3_success'] )
+				intval( $_REQUEST['optimole_offload_images_succes'] )
 			);
 
 		}
-		if ( ! empty( $_REQUEST['optimole_up_s3_failed'] ) ) {
+		if ( ! empty( $_REQUEST['optimole_offload_images_failed'] ) ) {
 			printf(
 				'<div id="message" class="updated notice is-dismissible"><p>' .
 				_n(
-					'%s image failed while moving to s3, please try again later.',
-					'%s images failed while moving to s3, please try again later',
-					intval( $_REQUEST['optimole_up_s3_failed'] ) .
+					'%s image failed while uploading to our servers, please try again later.',
+					'%s images failed while uploading to our servers, please try again later',
+					intval( $_REQUEST['optimole_offload_images_failed'] ) .
 					'optimole-wp'
 				) . '</p></div>',
-				intval( $_REQUEST['optimole_up_s3_failed'] )
+				intval( $_REQUEST['optimole_offload_images_failed'] )
 			);
 
 		}
@@ -244,13 +252,13 @@ class Optml_S3_Media extends Optml_App_Replacer {
 		return $options;
 	}
 	/**
-	 * Delete an image from s3 after it is removed from media.
+	 * Delete an image from our servers after it is removed from media.
 	 *
 	 * @param int $post_id The deleted post id.
 	 */
-	public function delete_image_from_s3( $post_id ) {
+	public function delete_image_from_server( $post_id ) {
 		$file = wp_get_attachment_metadata( $post_id )['file'];
-		if ( strpos( $file, '/optml3_uploaded:true/' ) !== false ) {
+		if ( $this->is_uploaded_image( $file ) ) {
 			$domain = array();
 			preg_match( '/\/domain:(.*)\//', $file, $domain );
 			if ( ! isset( $domain[1] ) ) {
@@ -271,7 +279,7 @@ class Optml_S3_Media extends Optml_App_Replacer {
 	}
 
 	/**
-	 * Get optimized URL for an attachment image if it is uploaded to s3.
+	 * Get optimized URL for an attachment image if it is uploaded to our servers.
 	 *
 	 * @param string $url The current url.
 	 * @param int    $attachment_id The attachment image id.
@@ -280,7 +288,7 @@ class Optml_S3_Media extends Optml_App_Replacer {
 	 */
 	public function get_image_attachment_url( $url, $attachment_id ) {
 		$file = wp_get_attachment_metadata( $attachment_id )['file'];
-		if ( strpos( $file, '/optml3_uploaded:true/' ) !== false ) {
+		if ( $this->is_uploaded_image( $file ) ) {
 			$resources = new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto'], $this->settings->get( 'cache_buster' ) );
 			return Optml_Config::$service_url . '/' . $resources->get_domain_token() . $resources->get_cache_buster() . '/' . $file;
 		}
@@ -301,7 +309,7 @@ class Optml_S3_Media extends Optml_App_Replacer {
 			return $image;
 		}
 		$data      = image_get_intermediate_size( $attachment_id, $size );
-		if ( ! isset( $data['url'] ) || ! isset( $data['width'] ) || ! isset( $data['height'] ) || strpos( $data['url'], '/optml3_uploaded:true/' ) === false ) {
+		if ( ! isset( $data['url'] ) || ! isset( $data['width'] ) || ! isset( $data['height'] ) || ! $this->is_uploaded_image( $data['url'] ) ) {
 			return $image;
 		}
 		$to_replace = array('w:auto', 'h:auto');
@@ -337,11 +345,11 @@ class Optml_S3_Media extends Optml_App_Replacer {
 	public function generate_image_meta( $meta, $attachment_id ) {
 
 		if ( is_array( $meta ) ) {
-			if ( isset( $meta_data['optimole_s3'] ) ) {
+			if ( isset( $meta_data['optimole_offload'] ) ) {
 				return $meta;
 			}
 		}
-		$meta_data['optimole_s3'] = 'true';
+		$meta_data['optimole_offload'] = 'true';
 		$parts  = parse_url( wp_get_attachment_url( $attachment_id ) );
 		$domain = isset( $parts['host'] ) ? str_replace( 'www.', '', $parts['host'] ) : '';
 
@@ -384,7 +392,7 @@ class Optml_S3_Media extends Optml_App_Replacer {
 			return $meta;
 		}
 		file_exists( $local_file ) && unlink( $local_file );
-		update_post_meta( $attachment_id, 'optimole_s3', 'true' );
+		update_post_meta( $attachment_id, 'optimole_offload', 'true' );
 		$meta['file'] = $cdn_url;
 		if ( isset( $meta['sizes'] ) ) {
 			foreach ( $meta['sizes'] as $key => $value ) {

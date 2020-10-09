@@ -86,7 +86,7 @@ class Optml_Rest {
 		$this->register_watermark_routes();
 		$this->register_conflict_routes();
 		$this->register_cache_routes();
-		$this->register_s3_media_routes();
+		$this->register_media_offload_routes();
 	}
 
 	/**
@@ -178,19 +178,19 @@ class Optml_Rest {
 		);
 	}
 	/**
-	 * Method to register s3 media specific routes.
+	 * Method to register media offload specific routes.
 	 */
-	public function register_s3_media_routes() {
+	public function register_media_offload_routes() {
 		register_rest_route(
 			$this->namespace,
-			'/push_images_to_s3',
+			'/offload_images',
 			array(
 				array(
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'push_images_to_s3' ),
+					'callback'            => array( $this, 'offload_images' ),
 				),
 			)
 		);
@@ -723,13 +723,13 @@ class Optml_Rest {
 	}
 
 	/**
-	 * Push existing image to s3.
+	 * Push existing image our servers.
 	 *
 	 * @param WP_REST_Request $request rest request object.
 	 *
 	 * @return WP_REST_Response
 	 */
-	public function push_images_to_s3( WP_REST_Request $request ) {
+	public function offload_images( WP_REST_Request $request ) {
 		$batch = 300;
 		if ( ! empty( $request->get_param( 'batch' ) ) ) {
 			$batch = $request->get_param( 'batch' );
@@ -743,29 +743,21 @@ class Optml_Rest {
 			'meta_query'          => array(
 				'relation' => 'AND',
 				array(
-					'key'     => 'optimole_s3',
+					'key'     => 'optimole_offload',
 					'compare' => 'NOT EXISTS',
 				),
 				array(
-					'key'     => 'optimole_s3_error',
+					'key'     => 'optimole_offload_error',
 					'compare' => 'NOT EXISTS',
 				),
 			),
 			'ignore_sticky_posts' => false,
 			'no_found_rows'       => true,
 		);
-		// 'key'     => 'optimole_s3',
-		// 'value' => 'true',
-		// 'compare' => '=',
 		$attachments = new \WP_Query( $args );
 		$ids         = $attachments->get_posts();
-		$s3_media = new Optml_S3_Media();
-		$total_images_by_mime = wp_count_attachments( 'image' );
-		$img_number = 0;
-		foreach ( $total_images_by_mime as $value ) {
-			$img_number += $value;
-		}
-		$success_up = $s3_media->upload_and_update_existing_images( $ids );
+		$media_offload = new Optml_Media_Offload();
+		$success_up = $media_offload->upload_and_update_existing_images( $ids );
 		return $this->response( $success_up );
 	}
 	/**

@@ -11,7 +11,7 @@
       </label>
       <div class="column is-3 is-right">
         <button @click="syncMedia()" class="button is-primary is-small "
-                :class="this.$store.state.loading ? 'is-loading'  : '' ">
+                :class="this.$store.state.loading && mediaSyncFinished ? 'is-loading'  : '' ">
           {{strings.sync_media}}
         </button>
       </div>
@@ -56,7 +56,6 @@ export default {
       return this.$store.state.site_settings;
     },
     mediaSyncFinished : function () {
-      console.log(this.$store.state.pushedImagesProgress);
       return this.$store.state.pushedImagesProgress < this.maxTime;
     }
   }

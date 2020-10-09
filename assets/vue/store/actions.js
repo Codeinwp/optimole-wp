@@ -309,7 +309,7 @@ const dismissConflict = function ( {commit, state}, data ) {
 const pushBatch = function ( commit,batch ) {
 	Vue.http(
 		{
-			url: optimoleDashboardApp.root + '/push_images_to_s3',
+			url: optimoleDashboardApp.root + '/offload_images',
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
