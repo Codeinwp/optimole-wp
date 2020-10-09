@@ -28,10 +28,10 @@
                                :class="tab === 'lazyload' ? 'is-active' : ''"
                                :title="all_strings.lazyload_settings_menu_item+' '+all_strings.lazyload_settings_menu_item">{{all_strings.lazyload_settings_menu_item}}</a>
                         </li>
-<!--                    S3 media menu-->
-                        <li v-if="this.$store.state.site_settings.s3_media==='enabled'"><a @click="changeTab('s3_media')" href="#"
-                                                                                         :class="tab === 's3_media' ? 'is-active' : ''"
-                                                                                         :title="all_strings.s3_media_settings_menu_item+' '+all_strings.s3_media_settings_menu_item">{{all_strings.s3_media_settings_menu_item}}</a>
+<!--                    Offload media menu-->
+                        <li v-if="this.$store.state.site_settings.offload_media==='enabled'"><a @click="changeTab('offload_media')" href="#"
+                                                                                         :class="tab === 'offload_media' ? 'is-active' : ''"
+                                                                                         :title="all_strings.offload_media_settings_menu_item+' '+all_strings.offload_media_settings_menu_item">{{all_strings.offload_media_settings_menu_item}}</a>
                         </li>
                         <li><a href="#"
                                @click="changeTab('exclusions')" href="#"
@@ -57,7 +57,7 @@
 <!--                <Cssjs v-if="tab ==='cssjs'"></Cssjs>-->
                 <Resize v-if="tab ==='resize'"></Resize>
                 <Lazyload v-if="tab ==='lazyload'"></Lazyload>
-                <Media v-if="tab ==='s3_media'"></Media>
+                <Media v-if="tab ==='offload_media'"></Media>
                 <Exclusions v-if="tab ==='exclusions'"></Exclusions>
             </div>
         </div>
@@ -71,7 +71,7 @@
 	import Resize from "./resize.vue";
 	import Exclusions from "./exclusions.vue";
 	import Lazyload from "./lazyload.vue";
-  import Media from "./s3_media.vue";
+  import Media from "./offload_media.vue";
 	import Cssjs from "./cssjs.vue";
 
 	export default {

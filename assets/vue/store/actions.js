@@ -321,9 +321,10 @@ const pushBatch = function ( commit,batch ) {
 	).then(
 		function ( response ) {
 			if ( response.body.code === 'success' && response.body.data > 0 ) {
-				commit( 'updatePushedImagesProgress', 10 );
+				commit( 'updatePushedImagesProgress', batch );
 				pushBatch( commit, batch );
 			} else {
+				commit( 'updatePushedImagesProgress', 'finish' );
 				commit( 'toggleLoading', false );
 			}
 
@@ -333,7 +334,18 @@ const pushBatch = function ( commit,batch ) {
 };
 const syncMedia = function ( {commit, state}, data ) {
 	commit( 'toggleLoading', true );
-	pushBatch( commit, 100 );
+	Vue.http( {
+		url: optimoleDashboardApp.root + '/number_of_library_images',
+		method: 'GET',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		responseType: 'json',
+	} ).then( function ( response ) {
+		if( response.status === 200 && response.body.data > 0 ) {
+			commit( 'totalNumberOfImages', response.body.data );
+			pushBatch( commit, 100 );
+		}
+	} );
+
 };
 
 export default {

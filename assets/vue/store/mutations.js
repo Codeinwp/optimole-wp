@@ -48,9 +48,16 @@ const updateWatermark = ( state, data ) => {
 const updateConflicts = ( state, data ) => {
 	state.conflicts = data.body.data;
 };
+const totalNumberOfImages = ( state, data ) => {
+	state.totalNumberOfImages = data;
+};
 const updatePushedImagesProgress = ( state, data ) => {
+	if ( data === 'finish' ) {
+		console.log("here");
+		state.pushedImagesProgress = 100;
+	}
 	if ( state.pushedImagesProgress < 90 ) {
-		state.pushedImagesProgress += data;
+		state.pushedImagesProgress += data/state.totalNumberOfImages*100;
 	}
 };
 export default {
@@ -68,5 +75,6 @@ export default {
 	updateSettings,
 	updateUserData,
 	updateWatermark,
-	updatePushedImagesProgress
+	updatePushedImagesProgress,
+	totalNumberOfImages
 };

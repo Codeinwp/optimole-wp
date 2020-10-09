@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <div class="field columns" v-if="showProgress">
+    <div class="field columns" v-if="showProgress && mediaSyncFinished">
       <div class="column">
         <label class="label has-text-grey-dark">
           <span>{{strings.sync_media_progress}}</span>
@@ -50,11 +50,14 @@ export default {
       this.showProgress = true;
       this.$store.dispatch('syncMedia', {});
     }
-
   },
   computed: {
     site_settings() {
       return this.$store.state.site_settings;
+    },
+    mediaSyncFinished : function () {
+      console.log(this.$store.state.pushedImagesProgress);
+      return this.$store.state.pushedImagesProgress < this.maxTime;
     }
   }
 }

@@ -194,6 +194,19 @@ class Optml_Rest {
 				),
 			)
 		);
+		register_rest_route(
+			$this->namespace,
+			'/number_of_library_images',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::READABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'number_of_library_images' ),
+				),
+			)
+		);
 	}
 
 	/**
@@ -746,8 +759,29 @@ class Optml_Rest {
 		// 'compare' => '=',
 		$attachments = new \WP_Query( $args );
 		$ids         = $attachments->get_posts();
-		error_log( print_r( $ids, true ), 3, '/var/www/html/optimole.log' );
-		$success_up = Optml_S3_Media::upload_and_update_existing_images( $ids );
+		$s3_media = new Optml_S3_Media();
+		$total_images_by_mime = wp_count_attachments( 'image' );
+		$img_number = 0;
+		foreach ( $total_images_by_mime as $value ) {
+			$img_number += $value;
+		}
+		$success_up = $s3_media->upload_and_update_existing_images( $ids );
 		return $this->response( $success_up );
+	}
+	/**
+	 * Get total number of images.
+	 *
+	 * @param WP_REST_Request $request rest request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function number_of_library_images( WP_REST_Request $request ) {
+
+		$total_images_by_mime = wp_count_attachments( 'image' );
+		$img_number = 0;
+		foreach ( $total_images_by_mime as $value ) {
+			$img_number += $value;
+		}
+		return $this->response( $img_number );
 	}
 }

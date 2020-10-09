@@ -23,7 +23,6 @@ class Optml_S3_Media extends Optml_App_Replacer {
 	 */
 	public function __construct() {
 		$this->settings = new Optml_Settings();
-
 		add_filter( 'image_downsize', array( $this, 'generate_filter_downsize_urls' ), 10, 3 );
 		add_filter( 'wp_generate_attachment_metadata', array($this, 'generate_image_meta'), 10, 2 );
 		add_filter( 'wp_get_attachment_url', array($this, 'get_image_attachment_url'), -999, 2 );
@@ -85,7 +84,7 @@ class Optml_S3_Media extends Optml_App_Replacer {
 	 *
 	 * @param int $attachment_id The attachment id of the image to init an update.
 	 */
-	public static function update_content( $attachment_id ) {
+	public function update_content( $attachment_id ) {
 		$content = new \WP_Query( array( 's' => 'wp-image-' . $attachment_id, 'fields' => 'ids', 'posts_per_page' => 500 ) );
 		if ( ! empty( $content->found_posts ) ) {
 			$content_posts = array_unique( $content->get_posts() );
@@ -125,23 +124,20 @@ class Optml_S3_Media extends Optml_App_Replacer {
 		);
 		return $actions;
 	}
-	public static function upload_and_update_existing_images( $image_ids ) {
+	public function upload_and_update_existing_images( $image_ids ) {
 		$success_up = 0;
 		foreach ( $image_ids as $id ) {
-			error_log( 'updating', 3, '/var/www/html/optimole.log' );
-			error_log( print_r( $image_ids, true ), 3, '/var/www/html/optimole.log' );
 			if ( strpos( wp_get_attachment_metadata( $id )['file'], '/optml3_uploaded:true/' ) !== false ) {
 				$success_up ++;
 				continue;
 			}
-			$meta = wp_generate_attachment_metadata( $id, get_attached_file( $id ) );
+			$meta = $this->generate_image_meta( wp_get_attachment_metadata( $id ), $id );
 			if ( isset( $meta['file'] ) && strpos( $meta['file'], '/optml3_uploaded:true/' ) !== false ) {
 				$success_up ++;
 				wp_update_attachment_metadata( $id, $meta );
-				self::update_content( $id );
+				$this->update_content( $id );
 			}
 		}
-		error_log( 'worked', 3, '/var/www/html/optimole.log' );
 		return $success_up;
 	}
 	public function bulk_action_handler( $redirect, $doaction, $image_ids ) {
