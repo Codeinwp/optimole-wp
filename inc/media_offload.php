@@ -403,4 +403,39 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		return $meta;
 	}
+	public static function upload_images( $batch ) {
+		$args = array(
+			'post_type'           => 'attachment',
+			'post_mime_type'      => array( 'image', 'video' ),
+			'post_status'         => 'inherit',
+			'posts_per_page'      => $batch,
+			'fields'              => 'ids',
+			'meta_query'          => array(
+				'relation' => 'AND',
+				array(
+					'key'     => 'optimole_offload',
+					'compare' => 'NOT EXISTS',
+				),
+				array(
+					'key'     => 'optimole_offload_error',
+					'compare' => 'NOT EXISTS',
+				),
+			),
+			'ignore_sticky_posts' => false,
+			'no_found_rows'       => true,
+		);
+		$attachments = new \WP_Query( $args );
+		$ids         = $attachments->get_posts();
+		$media_offload = new Optml_Media_Offload();
+		return $media_offload->upload_and_update_existing_images( $ids );
+	}
+
+	public static function number_of_library_images() {
+		$total_images_by_mime = wp_count_attachments( 'image' );
+		$img_number = 0;
+		foreach ( $total_images_by_mime as $value ) {
+			$img_number += $value;
+		}
+		return  $img_number;
+	}
 }

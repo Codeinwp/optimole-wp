@@ -734,31 +734,7 @@ class Optml_Rest {
 		if ( ! empty( $request->get_param( 'batch' ) ) ) {
 			$batch = $request->get_param( 'batch' );
 		}
-		$args = array(
-			'post_type'           => 'attachment',
-			'post_mime_type'      => array( 'image', 'video' ),
-			'post_status'         => 'inherit',
-			'posts_per_page'      => $batch,
-			'fields'              => 'ids',
-			'meta_query'          => array(
-				'relation' => 'AND',
-				array(
-					'key'     => 'optimole_offload',
-					'compare' => 'NOT EXISTS',
-				),
-				array(
-					'key'     => 'optimole_offload_error',
-					'compare' => 'NOT EXISTS',
-				),
-			),
-			'ignore_sticky_posts' => false,
-			'no_found_rows'       => true,
-		);
-		$attachments = new \WP_Query( $args );
-		$ids         = $attachments->get_posts();
-		$media_offload = new Optml_Media_Offload();
-		$success_up = $media_offload->upload_and_update_existing_images( $ids );
-		return $this->response( $success_up );
+		return $this->response( Optml_Media_Offload::upload_images( $batch ) );
 	}
 	/**
 	 * Get total number of images.
@@ -768,12 +744,6 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function number_of_library_images( WP_REST_Request $request ) {
-
-		$total_images_by_mime = wp_count_attachments( 'image' );
-		$img_number = 0;
-		foreach ( $total_images_by_mime as $value ) {
-			$img_number += $value;
-		}
-		return $this->response( $img_number );
+		return $this->response( Optml_Media_Offload::number_of_library_images() );
 	}
 }

@@ -342,7 +342,11 @@ const syncMedia = function ( {commit, state}, data ) {
 	} ).then( function ( response ) {
 		if( response.status === 200 && response.body.data > 0 ) {
 			commit( 'totalNumberOfImages', response.body.data );
-			pushBatch( commit, 100 );
+			let batch = 100;
+			if ( Math.ceil( response.body.data/10 ) <= 100 ) {
+				batch = Math.ceil( response.body.data/10 );
+			}
+			pushBatch( commit, batch );
 		}
 	} );
 
