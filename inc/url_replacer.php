@@ -149,7 +149,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( substr( $url, 0, 2 ) === '//' ) {
 			$url = sprintf( '%s:%s', is_ssl() ? 'https' : 'http', $url );
 		}
-		if ( isset( Optml_Config::$image_extensions[ $ext ] ) ) {
+		if ( isset( Optml_Config::$image_extensions[ strtolower( $ext ) ] ) ) {
 			$new_url = $this->normalize_image( $url, $original_url, $args );
 		} else {
 			$new_url = ( new Optml_Asset( $url, $args, $this->active_cache_buster, $this->is_css_minify_on, $this->is_js_minify_on ) )->get_url();
