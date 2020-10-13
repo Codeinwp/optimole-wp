@@ -206,6 +206,7 @@ class Optml_Admin {
 		</style>
 		<script type="application/javascript">
 					document.documentElement.className += " optimole_has_js";
+					document.body.className = document.body.className.replace("optimole-no-script","");
 						(function(w, d){
 							var b = d.getElementsByTagName("head")[0];
 							var s = d.createElement("script");
@@ -226,7 +227,7 @@ class Optml_Admin {
 							}
 						}(window, document));
 					document.addEventListener( "DOMContentLoaded", function() {
-																		document.body.className = document.body.className.replace("optimole-no-script","");
+																		
 																		if ( "loading" in HTMLImageElement.prototype && Object.prototype.hasOwnProperty.call( optimoleData, "nativeLazyload" ) && optimoleData.nativeLazyload === true ) {
 																			const images = document.querySelectorAll(\'img[loading="lazy"]\');
 																					images.forEach( function (img) {
