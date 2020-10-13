@@ -19,7 +19,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public $settings;
 
 	const KEYS = array(
-		'uploaded'        => '/optml3_uploaded:true/',
+		'uploaded_flag'        => '/id:',
 	);
 	/**
 	 * Optml_Media_Offload constructor.
@@ -40,7 +40,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	public function is_uploaded_image( $src ) {
-		return strpos( $src, self::KEYS['uploaded'] ) !== false;
+		return strpos( $src, self::KEYS['uploaded_flag'] ) !== false;
 	}
 	/**
 	 * Get the attachment ID from the image tag.
@@ -218,6 +218,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		}
 	}
+
 	/**
 	 * Get options for the signed urls api call.
 	 *
@@ -225,16 +226,18 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param string $quality Quality to optimize at.
 	 * @param string $domain Image domain.
 	 * @param string $delete Whether to delete a bucket object or not(ie. generate signed upload url).
+	 * @param string $update_table False or success.
 	 * @return array
 	 */
-	private function set_api_call_options( $file_name, $quality = 'auto', $domain = '', $delete = 'false' ) {
+	private function set_api_call_options( $file_name, $quality = 'auto', $domain = '', $delete = 'false', $update_table = 'false' ) {
 		$body = [
-			'apiKeyMD5' => $this->settings->get( 'api_key' ),
+			'secret' => Optml_Config::$secret,
 			'userKey' => Optml_Config::$key,
 			'domain' => $domain,
 			'filename' => $file_name,
 			'quality' => $quality,
 			'deleteUrl' => $delete,
+			'updateDynamo' => $update_table,
 		];
 		$body = wp_json_encode( $body );
 
@@ -389,6 +392,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		);
 		$result = wp_remote_request( $upload_signed_url, $upload_args );
 		if ( is_wp_error( $result ) || wp_remote_retrieve_response_code( $result ) !== 200 ) {
+			return $meta;
+		}
+		$result_update = wp_remote_post(
+			constant( 'OPTML_SIGNED_URLS' ),
+			$this->set_api_call_options( $file_name, $this->settings->get_numeric_quality(), $domain, 'false', 'success' )
+		);
+		if ( is_wp_error( $result_update ) || wp_remote_retrieve_response_code( $result_update ) !== 200 ) {
 			return $meta;
 		}
 		file_exists( $local_file ) && unlink( $local_file );
