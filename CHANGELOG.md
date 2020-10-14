@@ -1,3 +1,16 @@
+##### [Version 2.5.4](https://github.com/Codeinwp/optimole-wp/compare/v2.5.3...v2.5.4) (2020-09-21)
+
+* Fix compatibility with GiveWP
+* Fix compatibility with IE browser
+
+##### [Version 2.5.3](https://github.com/Codeinwp/optimole-wp/compare/v2.5.2...v2.5.3) (2020-09-07)
+
+* Improve compatibility with native lazyload from WP 5.5
+
+##### [Version 2.5.2](https://github.com/Codeinwp/optimole-wp/compare/v2.5.1...v2.5.2) (2020-09-02)
+
+* Improve compatibility with various plugins for the video lazyload functionality
+
 ##### [Version 2.5.1](https://github.com/Codeinwp/optimole-wp/compare/v2.5.0...v2.5.1) (2020-08-26)
 
 * Fix small bug between native lazyload compatibility and caching plugins
