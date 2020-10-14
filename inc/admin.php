@@ -149,7 +149,6 @@ class Optml_Admin {
 			return;
 		}
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
-		// add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
 		add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 
 	}
@@ -206,7 +205,6 @@ class Optml_Admin {
 		</style>
 		<script type="application/javascript">
 					document.documentElement.className += " optimole_has_js";
-					// document.body.className = document.body.className.replace("optimole-no-script","");
 						(function(w, d){
 							var b = d.getElementsByTagName("head")[0];
 							var s = d.createElement("script");
@@ -270,19 +268,6 @@ class Optml_Admin {
 			'description'    => __( 'Optimole page analyzer', 'optimole-wp' ),
 		);
 		wp_localize_script( 'optml-report', 'reportScript', $report_script );
-	}
-
-	/**
-	 * Adds body class  for no-js.
-	 *
-	 * @param array $classes No js class.
-	 *
-	 * @return array
-	 */
-	public function adds_body_classes( $classes ) {
-		$classes[] = 'optimole-no-script';
-
-		return $classes;
 	}
 
 	/**
