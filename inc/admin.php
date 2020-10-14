@@ -149,7 +149,7 @@ class Optml_Admin {
 			return;
 		}
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
-		add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
+		// add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
 		add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 
 	}
@@ -206,7 +206,7 @@ class Optml_Admin {
 		</style>
 		<script type="application/javascript">
 					document.documentElement.className += " optimole_has_js";
-					document.body.className = document.body.className.replace("optimole-no-script","");
+					// document.body.className = document.body.className.replace("optimole-no-script","");
 						(function(w, d){
 							var b = d.getElementsByTagName("head")[0];
 							var s = d.createElement("script");
@@ -472,7 +472,7 @@ class Optml_Admin {
 
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
-		wp_add_inline_style( 'optm_lazyload_noscript_style', ".optimole-no-script img[data-opt-src] { display: none !important; } \n " . $bg_css );
+		wp_add_inline_style( 'optm_lazyload_noscript_style', ":not(.optimole_has_js) img[data-opt-src] { display: none !important; } \n " . $bg_css );
 	}
 
 	/**
