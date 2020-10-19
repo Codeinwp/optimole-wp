@@ -4,7 +4,7 @@ describe( 'Check amp page', function () {
 	} );
 
 	it( 'AMP body has Optimole no script class', function () {
-		cy.get( 'body' ).not( '.optimole-no-script' );
+		cy.get( 'html' ).not( '.optimole_has_js' );
 	} );
 
 	it( 'AMP images should have replaced srcs', function () {

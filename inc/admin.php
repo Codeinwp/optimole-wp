@@ -149,7 +149,6 @@ class Optml_Admin {
 			return;
 		}
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
-		add_filter( 'body_class', array( $this, 'adds_body_classes' ) );
 		add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 
 	}
@@ -226,7 +225,7 @@ class Optml_Admin {
 							}
 						}(window, document));
 					document.addEventListener( "DOMContentLoaded", function() {
-																		document.body.className = document.body.className.replace("optimole-no-script","");
+																		
 																		if ( "loading" in HTMLImageElement.prototype && Object.prototype.hasOwnProperty.call( optimoleData, "nativeLazyload" ) && optimoleData.nativeLazyload === true ) {
 																			const images = document.querySelectorAll(\'img[loading="lazy"]\');
 																					images.forEach( function (img) {
@@ -269,19 +268,6 @@ class Optml_Admin {
 			'description'    => __( 'Optimole page analyzer', 'optimole-wp' ),
 		);
 		wp_localize_script( 'optml-report', 'reportScript', $report_script );
-	}
-
-	/**
-	 * Adds body class  for no-js.
-	 *
-	 * @param array $classes No js class.
-	 *
-	 * @return array
-	 */
-	public function adds_body_classes( $classes ) {
-		$classes[] = 'optimole-no-script';
-
-		return $classes;
 	}
 
 	/**
@@ -471,7 +457,7 @@ class Optml_Admin {
 
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
-		wp_add_inline_style( 'optm_lazyload_noscript_style', ".optimole-no-script img[data-opt-src] { display: none !important; } \n " . $bg_css );
+		wp_add_inline_style( 'optm_lazyload_noscript_style', ":not(.optimole_has_js) img[data-opt-src] { display: none !important; } \n " . $bg_css );
 	}
 
 	/**
@@ -798,8 +784,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'sample_image_loading'              => __( 'Loading a sample image. ', 'optimole-wp' ),
 				'save_changes'                      => __( 'Save changes', 'optimole-wp' ),
 				'show'                              => __( 'Show', 'optimole-wp' ),
-				'size_desc'                         => __( 'We will resize all images with sizes greater than these values.', 'optimole-wp' ),
-				'size_title'                        => __( 'Resize large images.', 'optimole-wp' ),
+				'size_desc'                         => __( 'We resize all images with sizes greater than the values defined here. Changing this option is not recommended unless large images are not being processed correctly. This does NOT affect the scaling of images on the frontend.', 'optimole-wp' ),
+				'size_title'                        => __( 'Resize large images original source.', 'optimole-wp' ),
 				'toggle_ab_item'                    => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'                   => __( 'Scale images & Lazy load', 'optimole-wp' ),
 				'toggle_scale'                      => __( 'Scale Images', 'optimole-wp' ),
