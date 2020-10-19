@@ -457,7 +457,7 @@ class Optml_Admin {
 
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
-		wp_add_inline_style( 'optm_lazyload_noscript_style', ":not(.optimole_has_js) img[data-opt-src] { display: none !important; } \n " . $bg_css );
+		wp_add_inline_style( 'optm_lazyload_noscript_style', "html:not(.optimole_has_js) img[data-opt-src] { display: none !important; } \n " . $bg_css );
 	}
 
 	/**
