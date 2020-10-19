@@ -1,3 +1,8 @@
+##### [Version 2.5.5](https://github.com/Codeinwp/optimole-wp/compare/v2.5.4...v2.5.5) (2020-10-19)
+
+* Fix compatibility with image urls which had uppercase image extensions
+* Improve CLS web vital for the lazyloading mechanism.
+
 ##### [Version 2.5.4](https://github.com/Codeinwp/optimole-wp/compare/v2.5.3...v2.5.4) (2020-09-21)
 
 * Fix compatibility with GiveWP
