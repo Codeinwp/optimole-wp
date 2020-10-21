@@ -191,15 +191,15 @@ class Optml_Admin {
 				-o-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 			}
 			img[data-opt-src]:not([data-opt-lazy-loaded]) {
-				  opacity: .75;	 
-				  -webkit-filter: blur(8px);
-				  -moz-filter: blur(8px);
-				  -o-filter: blur(8px);
-				  -ms-filter: blur(8px);
-				  filter: blur(8px);
-				  transform: scale(1.04);
-				  animation: 0.1s ease-in;
-				  -webkit-transform: translate3d(0, 0, 0);
+					opacity: .75;
+					-webkit-filter: blur(8px);
+					-moz-filter: blur(8px);
+					-o-filter: blur(8px);
+					-ms-filter: blur(8px);
+					filter: blur(8px);
+					transform: scale(1.04);
+					animation: 0.1s ease-in;
+					-webkit-transform: translate3d(0, 0, 0);
 			}
 			iframe[data-opt-src]:not([data-opt-lazy-loaded]) {
 				background-color: #ffffff;
@@ -383,7 +383,7 @@ class Optml_Admin {
 							class="dashicons dashicons-external"></span><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 				</a>
 				<a class="button"
-				   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_upg' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I\'ve done this', 'optimole-wp' ); ?></a>
+					 href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_upg' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I\'ve done this', 'optimole-wp' ); ?></a>
 			</p>
 		</div>
 		<?php
@@ -441,9 +441,9 @@ class Optml_Admin {
 			<p> <?php printf( __( 'Welcome to %1$sOptiMole%2$s, the easiest way to optimize your website images. Your users will enjoy a %3$sfaster%4$s website after you connect it with our service.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>' ); ?></p>
 			<p>
 				<a href="<?php echo esc_url( admin_url( 'upload.php?page=optimole' ) ); ?>"
-				   class="button button-primary"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?></a>
+					 class="button button-primary"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?></a>
 				<a class="button"
-				   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_optin' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?></a>
+					 href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_optin' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?></a>
 			</p>
 		</div>
 		<?php
@@ -826,9 +826,13 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_js_minify_title'            => __( 'Minify JS files', 'optimole-wp' ),
 				'js_minify_desc'                    => __( 'Once Optimole will serve your JS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
 				'sync_title'                        => __( 'Sync existing images', 'optimole-wp' ),
+				'rollback_title'                    => __( 'Bring all images back to media library', 'optimole-wp' ),
 				'sync_desc'                         => __( 'Move all existing images from your server to optimole servers', 'optimole-wp' ),
+				'rollback_desc'                     => __( 'Move stored images from Optimole servers to your media library', 'optimole-wp' ),
 				'sync_media'                        => __( 'Sync images' ),
+				'rollback_media'                    => __( 'Rollback images' ),
 				'sync_media_progress'               => __( 'We are currently moving your images to our servers, please wait' ),
+				'rollback_media_progress'           => __( 'We are currently moving images to your media library, please wait' ),
 
 			),
 			'watermarks'                     => array(

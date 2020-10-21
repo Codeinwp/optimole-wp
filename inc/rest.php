@@ -196,6 +196,19 @@ class Optml_Rest {
 		);
 		register_rest_route(
 			$this->namespace,
+			'/rollback_images',
+			array(
+				array(
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => array( $this, 'rollback_images' ),
+				),
+			)
+		);
+		register_rest_route(
+			$this->namespace,
 			'/number_of_library_images',
 			array(
 				array(
@@ -735,6 +748,20 @@ class Optml_Rest {
 			$batch = $request->get_param( 'batch' );
 		}
 		return $this->response( Optml_Media_Offload::upload_images( $batch ) );
+	}
+	/**
+	 * Rollback images to media library.
+	 *
+	 * @param WP_REST_Request $request rest request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function rollback_images( WP_REST_Request $request ) {
+		$batch = 300;
+		if ( ! empty( $request->get_param( 'batch' ) ) ) {
+			$batch = $request->get_param( 'batch' );
+		}
+		return $this->response( Optml_Media_Offload::rollback_images( $batch ) );
 	}
 	/**
 	 * Get total number of images.

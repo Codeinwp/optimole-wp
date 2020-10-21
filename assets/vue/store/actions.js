@@ -306,10 +306,10 @@ const dismissConflict = function ( {commit, state}, data ) {
 		}
 	} );
 };
-const pushBatch = function ( commit,batch ) {
+const pushBatch = function ( commit,batch,action ) {
 	Vue.http(
 		{
-			url: optimoleDashboardApp.root + '/offload_images',
+			url: optimoleDashboardApp.root + '/' + action,
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
@@ -322,18 +322,28 @@ const pushBatch = function ( commit,batch ) {
 		function ( response ) {
 			if ( response.body.code === 'success' && response.body.data > 0 ) {
 				commit( 'updatePushedImagesProgress', batch );
-				pushBatch( commit, batch );
+				pushBatch( commit, batch, action );
 			} else {
 				commit( 'updatePushedImagesProgress', 'finish' );
-				commit( 'toggleLoading', false );
+				action === "offload_images" ? commit( 'toggleLoading', false ) : commit( 'toggleLoadingRollback', false );
 			}
 
 
 		}
-	)
+	).catch( function ( err ) {
+		console.log( err );
+		commit( 'toggleLoading', false );
+		commit( 'toggleLoadingRollback', false );
+	} );
 };
-const syncMedia = function ( {commit, state}, data ) {
-	commit( 'toggleLoading', true );
+const callSync = function ( {commit, state}, data ) {
+	commit( 'updatePushedImagesProgress', 'init' );
+	if ( data.action === "offload_images" ) {
+		commit( 'toggleLoading', true );
+	}
+	if ( data.action === "rollback_images" ) {
+		commit( 'toggleLoadingRollback', true );
+	}
 	Vue.http( {
 		url: optimoleDashboardApp.root + '/number_of_library_images',
 		method: 'GET',
@@ -346,7 +356,7 @@ const syncMedia = function ( {commit, state}, data ) {
 			if ( Math.ceil( response.body.data/10 ) <= 100 ) {
 				batch = Math.ceil( response.body.data/10 );
 			}
-			pushBatch( commit, batch );
+			pushBatch( commit, batch, data.action );
 		}
 	} );
 
@@ -365,5 +375,5 @@ export default {
 	retrieveWatermarks,
 	sampleRate,
 	saveSettings,
-	syncMedia
+	callSync
 };

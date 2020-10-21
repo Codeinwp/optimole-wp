@@ -204,6 +204,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				continue;
 			}
 			$get_url = json_decode( $get_response['body'], true )['getUrl'];
+
+			if ( ! function_exists( 'download_url' ) ) {
+				require_once ABSPATH . 'wp-admin/includes/file.php';
+			}
+
 			$temp_file = download_url( $get_url, $timeout_seconds );
 
 			if ( ! is_wp_error( $temp_file ) ) {
@@ -226,12 +231,22 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					// A properly uploaded file will pass this test. There should be no reason to override this one.
 					'test_upload' => true,
 				);
+
+				if ( ! function_exists( 'wp_handle_sideload' ) ) {
+					require_once ABSPATH . '/wp-admin/includes/file.php';
+				}
+
 				// Move the temporary file into the uploads directory.
 				$results = wp_handle_sideload( $file, $overrides );
 				if ( ! empty( $results['error'] ) ) {
 					continue;
 				}
 				$this->delete_image_from_server( $id );
+
+				if ( ! function_exists( 'wp_create_image_subsizes' ) ) {
+					require_once ABSPATH . '/wp-admin/includes/image.php';
+				}
+
 				wp_create_image_subsizes( $results['file'], $id ); // this also restores meta to the original state
 				$success_back++;
 				$this->update_content( $id );
@@ -384,6 +399,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$options = $this->set_api_call_options( $file_name, 'auto', $domain[1], 'true' );
 
 			$delete_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
+			delete_post_meta( $post_id, 'optimole_offload' );
 			if ( is_wp_error( $delete_response ) || wp_remote_retrieve_response_code( $delete_response ) !== 200 ) {
 				// should add some routine to retry delete once if delete fails
 			}
@@ -456,12 +472,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function generate_image_meta( $meta, $attachment_id ) {
 
-		if ( is_array( $meta ) ) {
-			if ( isset( $meta_data['optimole_offload'] ) ) {
-				return $meta;
-			}
+		if ( ! isset( $meta['file'] ) || $this->is_uploaded_image( $meta['file'] ) ) {
+			return $meta;
 		}
-		$meta_data['optimole_offload'] = 'true';
 		$parts  = parse_url( wp_get_attachment_url( $attachment_id ) );
 		$domain = isset( $parts['host'] ) ? str_replace( 'www.', '', $parts['host'] ) : '';
 
@@ -525,7 +538,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public static function upload_images( $batch ) {
 		$args = array(
 			'post_type'           => 'attachment',
-			'post_mime_type'      => array( 'image', 'video' ),
+			'post_mime_type'      => array( 'image' ),
 			'post_status'         => 'inherit',
 			'posts_per_page'      => $batch,
 			'fields'              => 'ids',
@@ -547,6 +560,33 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$ids         = $attachments->get_posts();
 		$media_offload = new Optml_Media_Offload();
 		return $media_offload->upload_and_update_existing_images( $ids );
+	}
+	public static function rollback_images( $batch ) {
+		$args = array(
+			'post_type'           => 'attachment',
+			'post_mime_type'      => array( 'image' ),
+			'post_status'         => 'inherit',
+			'posts_per_page'      => $batch,
+			'fields'              => 'ids',
+			'meta_query'          => array(
+				'relation' => 'AND',
+				array(
+					'key'     => 'optimole_offload',
+					'value'   => 'true',
+					'compare' => '=',
+				),
+				array(
+					'key'     => 'optimole_offload_error',
+					'compare' => 'NOT EXISTS',
+				),
+			),
+			'ignore_sticky_posts' => false,
+			'no_found_rows'       => true,
+		);
+		$attachments = new \WP_Query( $args );
+		$ids         = $attachments->get_posts();
+		$media_offload = new Optml_Media_Offload();
+		return $media_offload->rollback_and_update_images( $ids );
 	}
 
 	public static function number_of_library_images() {

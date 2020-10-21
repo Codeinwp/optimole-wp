@@ -2,6 +2,9 @@
 const toggleLoading = ( state, data ) => {
 	state.loading = data;
 };
+const toggleLoadingRollback = ( state, data ) => {
+	state.loadingRollback = data;
+};
 const toggleConnecting = ( state, data ) => {
 	state.isConnecting = data;
 };
@@ -55,6 +58,10 @@ const updatePushedImagesProgress = ( state, data ) => {
 	if ( data === 'finish' ) {
 		state.pushedImagesProgress = 100;
 	}
+	if ( data === 'init' ) {
+		state.pushedImagesProgress = 0;
+		return;
+	}
 	if ( state.pushedImagesProgress < 90 ) {
 		state.pushedImagesProgress += data/state.totalNumberOfImages*100;
 	}
@@ -75,5 +82,6 @@ export default {
 	updateUserData,
 	updateWatermark,
 	updatePushedImagesProgress,
-	totalNumberOfImages
+	totalNumberOfImages,
+	toggleLoadingRollback
 };
