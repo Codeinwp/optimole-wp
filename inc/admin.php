@@ -27,13 +27,6 @@ class Optml_Admin {
 	 */
 	public function __construct() {
 		$this->settings = new Optml_Settings();
-		$service_data = $this->settings->get( 'service_data' );
-		Optml_Config::init(
-			array(
-				'key'    => $service_data['cdn_key'],
-				'secret' => $service_data['cdn_secret'],
-			)
-		);
 		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), array( $this, 'add_action_links' ) );
 		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), PHP_INT_MIN );

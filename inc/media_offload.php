@@ -27,6 +27,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public function __construct() {
 		$this->settings = new Optml_Settings();
 		if ( $this->settings->get( 'offload_media' ) === 'enabled' ) {
+			$this->set_properties();
 			add_filter( 'image_downsize', array($this, 'generate_filter_downsize_urls'), 10, 3 );
 			add_filter( 'wp_generate_attachment_metadata', array($this, 'generate_image_meta'), 10, 2 );
 			add_filter( 'wp_get_attachment_url', array($this, 'get_image_attachment_url'), -999, 2 );
