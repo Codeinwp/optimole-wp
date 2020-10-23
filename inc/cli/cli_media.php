@@ -23,6 +23,13 @@ class Optml_Cli_Media extends WP_CLI_Command {
 	public function rollback_images() {
 		$this->update_images_template( 'rollback' );
 	}
+
+	/**
+	 *   Template for bulk image processing to avoid duplicate code.
+	 *
+	 * @param string $action The action to perform rollback/offload.
+	 * @return WP_CLI::error If it fails.
+	 */
 	private function update_images_template( $action ) {
 		$strings = [
 			'offload' => [

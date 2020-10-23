@@ -39,6 +39,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			add_filter( 'media_row_actions', array($this, 'add_inline_media_action'), 10, 2 );
 		}
 	}
+	/**
+	 *  Get the dimension from optimized url.
+	 *
+	 * @param string $url The image url.
+	 * @return array Contains the width and height values in this order.
+	 */
 	public function parse_dimension_from_optimized_url( $url ) {
 		$catch = array();
 		$height = false;
@@ -167,6 +173,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		return $actions;
 	}
+	/**
+	 * Upload images to our servers and update inside pages.
+	 *
+	 * @param array $image_ids The id of the attachments for the selected images.
+	 * @return int The number of successfully processed images.
+	 */
 	public function upload_and_update_existing_images( $image_ids ) {
 		$success_up = 0;
 		foreach ( $image_ids as $id ) {
@@ -183,6 +195,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		return $success_up;
 	}
+
+	/**
+	 * Bring images back to media library and update inside pages.
+	 *
+	 * @param array $image_ids The id of the attachments for the selected images.
+	 * @return int The number of successfully processed images.
+	 */
 	public function rollback_and_update_images( $image_ids ) {
 		$success_back = 0;
 		foreach ( $image_ids as $id ) {
@@ -255,6 +274,15 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		return $success_back;
 	}
+
+	/**
+	 * Handle the bulk actions.
+	 *
+	 * @param string $redirect  The current url from the media library.
+	 * @param string $doaction  The current action selected.
+	 * @param array  $image_ids The id of the attachments for the selected images.
+	 * @return string The url with the correspondent query args for the executed actions.
+	 */
 	public function bulk_action_handler( $redirect, $doaction, $image_ids ) {
 		if ( empty( $image_ids ) ) {
 			return $redirect;
@@ -281,6 +309,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		return $redirect;
 
 	}
+	/**
+	 *  Register the bulk media actions.
+	 *
+	 *  @param array $bulk_array The existing actions array.
+	 *  @return array The array with the appended actions.
+	 */
 	public function register_bulk_media_actions( $bulk_array ) {
 
 		$bulk_array['optimole_upload_image'] = __( 'Push Image to Optimole', 'optimole-wp' );
@@ -288,6 +322,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		return $bulk_array;
 
 	}
+	/**
+	 *  Register the possible notices for the media bulk actions.
+	 */
 	public function bulk_action_notices() {
 		if ( ! empty( $_REQUEST['optimole_offload_images_succes'] ) ) {
 
@@ -536,6 +573,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		return $meta;
 	}
+	/**
+	 *  Query the database and upload images to our servers.
+	 *
+	 * @param int $batch Number of images to process in a batch.
+	 * @return int Number of successfully processed images.
+	 */
 	public static function upload_images( $batch ) {
 		$args = array(
 			'post_type'           => 'attachment',
@@ -562,6 +605,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$media_offload = new Optml_Media_Offload();
 		return $media_offload->upload_and_update_existing_images( $ids );
 	}
+
+	/**
+	 *  Query the database and bring back image to media library.
+	 *
+	 * @param int $batch Number of images to process in a batch.
+	 * @return int Number of successfully processed images.
+	 */
 	public static function rollback_images( $batch ) {
 		$args = array(
 			'post_type'           => 'attachment',
@@ -589,7 +639,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$media_offload = new Optml_Media_Offload();
 		return $media_offload->rollback_and_update_images( $ids );
 	}
-
+	/**
+	 *  Calculate the number of images in media library.
+	 *
+	 *  @return int Number of images.
+	 */
 	public static function number_of_library_images() {
 		$total_images_by_mime = wp_count_attachments( 'image' );
 		$img_number = 0;

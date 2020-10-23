@@ -12,13 +12,98 @@
  * Class Test_Generic.
  */
 class Test_Media extends WP_UnitTestCase {
-	const IMG_TAGS = '<!-- wp:image {"id":7,"sizeSlug":"medium"} -->
-<figure class="wp-block-image size-large"><img src="https://mlynllm40tdp.i.optimole.com/BOxmgcE-_HsxvBf4/w:300/h:200/q:90/id:b19fed3de30366eb76682becf7645c7b/domain:example.org/1-5.jpg" alt="" class="wp-image-1339"/></figure>
+	const IMG_TAGS = '<!-- wp:image {"id":5,"sizeSlug":"medium"} -->
+<figure class="wp-block-image size-large"><img src="https://example.i.optimole.com/BOxmgcE-_HsxvBf4/w:300/h:200/q:90/id:b19fed3de30366eb76682becf7645c7b/domain:example.org/1.jpg" alt="" class="wp-image-1339"/></figure>
 <!-- /wp:image --> ';
 
 
 	public static $sample_post;
 	public static $sample_attachement;
+	/**
+	 * Mock the api calls and remote images requests
+	 */
+	public function filter_pre_http_request( $false, $r, $url ) {
+
+		if ($url === "https://generateurls-dev.mh.optml.cloud/upload" ) {
+
+			$body = '{"uploadUrl":"https://optml-library-dev-3155c4c.s3.amazonaws.com/example/ZXhhbXBsZS5vcmc/storage/1.jpg?AWSAccessKeyId=ASIA35DTHULL4Q6FICJT&Content-Type=image%2Fjpeg&Expires=1603453429&Signature=QTfPvxUiIzWCeOQIJQl1xewZdLA%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEFwaCXVzLWVhc3QtMSJHMEUCIQCzYyu%2BzP9cVkVulZRsIAEIOn2g6Slmzzc%2FeGS6obRHoAIgQ%2FP3pn30fGdPUY1QfunZVpwLoc0nnYf78wfDsW%2B6pqgq7QEIpf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw4MTg0MzI5NDI4MDciDLZo4ejbRTqySqNDwirBAdgC%2FMqs%2FWA4%2BC1cY2%2B%2FFDwzwkdImBITLlDgExCis%2BZES80ZHewE97dimzzn%2FjA3HyPnjrO2T8J96gDu4OSzl3J6Kab5%2BVvGyO2K0T0qyz0eTxpnNAfe81ixsKTwtU1ns44tmRc4wqZ4XpXxB1RIj6jaaHeFJAZPgo2GO3gOzWNTOzUzjFZrw6Ue0Pn1nCz1RLYofUUXannMdwYQI%2BDfr2mXeVXSsjKfuyXPsQ8g0HHHAcK7N543IotQddOs0CJD56AwqIHL%2FAU64AFaaZQ3V61RoVVjb4Iuf63teva0VA6xdOThoGa8syTwtqb4teR4TDqPXf1nI8yaxz2px2B356CUqDxXhaUC5PWpwdSGXCAnFWFDgHUiVTUIsRF%2BURH7V1cEZKIkWONDhgP0I1Q0nOe75mAv3uvabTyX%2Blr87scLgTU7heDxmi7%2B3vHqI4%2BiydDN58YZkALXV5a3MUjWUCF%2Fc79umBtKH0y4ThGONmPJMRktJGX78%2BvmDQPSptLCoqRg30hJDVzO62Jwb3%2BJR9GBn7cDiCbRF%2BgnndrS4gDnRxhVu7r2Ln7eZg%3D%3D","cdnUrl":"w:auto/h:auto/q:90/id:579c7f7707ce87caa65fdf50c238a117/domain:example.com/1.jpg"}';
+
+			if ( strpos($r['body'], '"getUrl":"true"') !== false ) {
+				$body = '{"getUrl": "getUrl"}';
+			}
+			
+			return array
+			(
+				'headers' => new Requests_Utility_CaseInsensitiveDictionary (
+					array(
+						'content-type' => 'application/json',
+						'content-length' => 1182,
+						'date' => 'Fri, 23 Oct 2020 11:42:49 GMT',
+					)),
+				'body' => $body,
+				'response' => array
+				(
+					'code' => 200,
+					'message' => 'OK'
+				),
+				
+				'cookies' => array
+				(),
+				
+				'filename' => '',
+			);
+		}
+		if ($url === "https://optml-library-dev-3155c4c.s3.amazonaws.com/example/ZXhhbXBsZS5vcmc/storage/1.jpg?AWSAccessKeyId=ASIA35DTHULL4Q6FICJT&Content-Type=image%2Fjpeg&Expires=1603453429&Signature=QTfPvxUiIzWCeOQIJQl1xewZdLA%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEFwaCXVzLWVhc3QtMSJHMEUCIQCzYyu%2BzP9cVkVulZRsIAEIOn2g6Slmzzc%2FeGS6obRHoAIgQ%2FP3pn30fGdPUY1QfunZVpwLoc0nnYf78wfDsW%2B6pqgq7QEIpf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw4MTg0MzI5NDI4MDciDLZo4ejbRTqySqNDwirBAdgC%2FMqs%2FWA4%2BC1cY2%2B%2FFDwzwkdImBITLlDgExCis%2BZES80ZHewE97dimzzn%2FjA3HyPnjrO2T8J96gDu4OSzl3J6Kab5%2BVvGyO2K0T0qyz0eTxpnNAfe81ixsKTwtU1ns44tmRc4wqZ4XpXxB1RIj6jaaHeFJAZPgo2GO3gOzWNTOzUzjFZrw6Ue0Pn1nCz1RLYofUUXannMdwYQI%2BDfr2mXeVXSsjKfuyXPsQ8g0HHHAcK7N543IotQddOs0CJD56AwqIHL%2FAU64AFaaZQ3V61RoVVjb4Iuf63teva0VA6xdOThoGa8syTwtqb4teR4TDqPXf1nI8yaxz2px2B356CUqDxXhaUC5PWpwdSGXCAnFWFDgHUiVTUIsRF%2BURH7V1cEZKIkWONDhgP0I1Q0nOe75mAv3uvabTyX%2Blr87scLgTU7heDxmi7%2B3vHqI4%2BiydDN58YZkALXV5a3MUjWUCF%2Fc79umBtKH0y4ThGONmPJMRktJGX78%2BvmDQPSptLCoqRg30hJDVzO62Jwb3%2BJR9GBn7cDiCbRF%2BgnndrS4gDnRxhVu7r2Ln7eZg%3D%3D" ) {
+			return array
+			(
+				'headers' => new Requests_Utility_CaseInsensitiveDictionary (
+					array(
+						'content-type' => 'application/json',
+						'content-length' => 1182,
+						'date' => 'Fri, 23 Oct 2020 11:42:49 GMT',
+					)),
+				'body' => '',
+				'response' => array
+				(
+					'code' => 200,
+					'message' => 'OK'
+				),
+				
+				'cookies' => array
+				(),
+				
+				'filename' => '',
+			);
+		}
+		
+		if ($url === "getUrl" ) {
+			//the get url is used by download_url to create a temporary image for wp_handle_sideload
+			//since we can not mock the external image stream response we move it manually over the temporary empty file
+			copy(OPTML_PATH . 'assets/img/1.jpg', $r['filename']);
+			return array
+			(
+				'headers' => new Requests_Utility_CaseInsensitiveDictionary (
+					array(
+						'content-type' => 'application/json',
+						'content-length' => 1182,
+						'date' => 'Fri, 23 Oct 2020 11:42:49 GMT',
+					)),
+				'body' => '',
+				'response' => array
+				(
+					'code' => 200,
+					'message' => 'OK'
+				),
+				
+				'cookies' => array
+				(),
+				
+				'filename' => '',
+			);
+		}
+
+		return $false;
+	}
 
 	public function setUp() {
 
@@ -26,9 +111,8 @@ class Test_Media extends WP_UnitTestCase {
 		parent::setUp();
 		$settings = new Optml_Settings();
 		$settings->update( 'service_data', [
-			'cdn_key'    => 'mlynllm40tdp',
-			//to do pass it to env variable
-			'cdn_secret' => '',
+			'cdn_key'    => 'example',
+			'cdn_secret' => 'test',
 			'whitelist'  => [ 'example.com', 'example.org' ],
 
 		] );
@@ -41,6 +125,7 @@ class Test_Media extends WP_UnitTestCase {
 		Optml_Manager::instance()->init();
 		new Optml_Media_Offload();
 
+		add_filter( 'pre_http_request', array($this,'filter_pre_http_request'), 10, 3 );
 		self::$sample_post        = self::factory()->post->create( [
 				'post_title'   => 'Test post',
 				'post_content' => self::IMG_TAGS,
@@ -54,25 +139,25 @@ class Test_Media extends WP_UnitTestCase {
 
 		$image_medium_size = wp_get_attachment_image_src(self::$sample_attachement, 'medium');
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
-		
-		$this->assertContains( 'mlynllm40tdp.i.optimole.com', $image_thumbnail_size );
+
+		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size );
 		$this->assertContains( 'w:150/h:150/q:90/id:', $image_thumbnail_size );
-		
-		$this->assertContains( 'mlynllm40tdp.i.optimole.com', $image_medium_size );
+
+		$this->assertContains( 'example.i.optimole.com', $image_medium_size );
 		$this->assertContains( 'w:300/h:200/q:90/id:', $image_medium_size );
 		$this->assertFalse( file_exists( get_attached_file(self::$sample_attachement) ) );
 
 		$image_meta  = wp_get_attachment_metadata( self::$sample_attachement);
-		
+
 		$this->assertContains( 'w:auto/h:auto/q:90/id:', $image_meta['file'] );
-		
+
 		$image_medium_size = wp_get_attachment_image_src(self::$sample_attachement, 'medium');
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
 
-		$this->assertContains( 'mlynllm40tdp.i.optimole.com', $image_thumbnail_size );
+		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size );
 		$this->assertContains( 'w:150/h:150/q:90/id:', $image_thumbnail_size );
 
-		$this->assertContains( 'mlynllm40tdp.i.optimole.com', $image_medium_size );
+		$this->assertContains( 'example.i.optimole.com', $image_medium_size );
 		$this->assertContains( 'w:300/h:200/q:90/id:', $image_medium_size );
 	}
 	
@@ -88,22 +173,22 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertContains( '-150x150', $image_meta['sizes']['thumbnail']['file'] );
 	}
 	public function test_image_sync() {
-		
+
 		Optml_Media_Offload::upload_images( array(self::$sample_attachement) );
 
 		$this->assertFalse( file_exists( get_attached_file(self::$sample_attachement) ) );
-		
+
 		$image_meta  = wp_get_attachment_metadata( self::$sample_attachement);
-		
+
 		$this->assertContains( 'w:auto/h:auto/q:90/id:', $image_meta['file'] );
-		
+
 		$image_medium_size = wp_get_attachment_image_src(self::$sample_attachement, 'medium');
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
-		
-		$this->assertContains( 'mlynllm40tdp.i.optimole.com', $image_thumbnail_size );
+
+		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size );
 		$this->assertContains( 'w:150/h:150/q:90/id:', $image_thumbnail_size );
-		
-		$this->assertContains( 'mlynllm40tdp.i.optimole.com', $image_medium_size );
+
+		$this->assertContains( 'example.i.optimole.com', $image_medium_size );
 		$this->assertContains( 'w:300/h:200/q:90/id:', $image_medium_size );
 	}
 }
