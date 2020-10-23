@@ -57,6 +57,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		return array($width, $height);
 	}
 
+	/**
+	 * Check if the image is stored on our servers or not.
+	 *
+	 * @param string $src Image src or url.
+	 * @return bool Whether image is upload or not.
+	 */
 	public function is_uploaded_image( $src ) {
 		return strpos( $src, self::KEYS['uploaded_flag'] ) !== false;
 	}
@@ -453,7 +459,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @uses filter:wp_get_attachment_url
 	 */
 	public function get_image_attachment_url( $url, $attachment_id ) {
-		$file = wp_get_attachment_metadata( $attachment_id )['file'];
+		$meta = wp_get_attachment_metadata( $attachment_id );
+		if ( ! isset( $meta['file'] ) ) {
+			return $url;
+		}
+		$file = $meta['file'];
 		if ( $this->is_uploaded_image( $file ) ) {
 			$resources = new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto'], $this->settings->get( 'cache_buster' ) );
 			return Optml_Config::$service_url . '/' . $resources->get_domain_token() . $resources->get_cache_buster() . '/' . $file;
