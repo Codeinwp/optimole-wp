@@ -620,6 +620,9 @@ class Optml_Admin {
 	 * @return array
 	 */
 	private function localize_dashboard_app() {
+ 
+		global $wp_version;
+
 		$api_key      = $this->settings->get( 'api_key' );
 		$service_data = $this->settings->get( 'service_data' );
 		$user         = get_userdata( get_current_user_id() );
@@ -639,6 +642,7 @@ class Optml_Admin {
 			),
 			'site_settings'        => $this->settings->get_site_settings(),
 			'home_url'             => home_url(),
+			'wp_version'           => $wp_version,
 		);
 	}
 

@@ -270,10 +270,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$this->delete_image_from_server( $id );
 
 				if ( ! function_exists( 'wp_create_image_subsizes' ) ) {
-					require_once ABSPATH . '/wp-admin/includes/image.php';
+					include_once ABSPATH . '/wp-admin/includes/image.php';
 				}
-
-				wp_create_image_subsizes( $results['file'], $id ); // this also restores meta to the original state
+				if ( ! function_exists( 'wp_create_image_subsizes' ) ) {
+					continue;
+				}
+				wp_create_image_subsizes( $results['file'], $id );
 				$success_back++;
 				$this->update_content( $id );
 			}
@@ -551,7 +553,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		$cdn_url = json_decode( $generate_url_response['body'], true )['cdnUrl'];
 		$upload_signed_url = json_decode( $generate_url_response['body'], true )['uploadUrl'];
-
+		if ( ! file_exists( $local_file ) ) {
+			return $meta;
+		}
 		$upload_args = array(
 			'method'    => 'PUT',
 			'headers'    => array(

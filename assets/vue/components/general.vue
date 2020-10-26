@@ -68,7 +68,7 @@
         <hr/>
 
       <!-- Show offload media toggle-->
-      <div class="field  columns">
+      <div class="field  columns" v-if="wp_version>=5.3">
         <label class="label column has-text-grey-dark">
           {{strings.enable_offload_media_title}}
 
@@ -127,6 +127,7 @@
             return {
                 strings: optimoleDashboardApp.strings.options_strings,
                 all_strings: optimoleDashboardApp.strings,
+                wp_version : parseFloat(optimoleDashboardApp.wp_version),
                 showNotification: false,
                 showSave: false,
                 isReplacerOff: false,
