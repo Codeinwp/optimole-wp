@@ -169,67 +169,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		add_filter( 'optml_video_replace', array($this, 'lazyload_video_replace'), 2, 1 );
 
 	}
-//	public function process_uploaded_image_tag( $image_tag, $image_url, &$content ) {
-//
-//		if ( ! self::$is_lazyload_placeholder  ) {
-//
-//			$low_url               = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
-//		} else {
-//			$low_url = $this->get_svg_for(
-//				isset( $optml_args['width'] ) ? $optml_args['width'] : '100%',
-//				isset( $optml_args['height'] ) ? $optml_args['height'] : '100%',
-//				( $should_ignore_rescale ? null : $original_url )
-//			);
-//		}
-//
-//		$opt_format = '';
-//
-//		if ( $this->should_add_data_tag( $full_tag ) ) {
-//			$opt_format = ' data-opt-src="%s" ';
-//			if ( $should_ignore_rescale ) {
-//				if ( strpos( $new_tag, 'class=' ) === false ) {
-//					$opt_format .= ' class="optimole-lazy-only" ';
-//				} else {
-//					$new_tag = str_replace(
-//						( $is_slashed ? 'class=\"' : 'class="' ),
-//						( $is_slashed ? 'class=\"optimole-lazy-only ' : 'class="optimole-lazy-only ' ),
-//						$new_tag
-//					);
-//				}
-//			}
-//			$opt_format = $is_slashed ? addslashes( $opt_format ) : $opt_format;
-//		}
-//		$new_url = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
-//
-//		$opt_src = sprintf( $opt_format, $new_url );
-//
-//		$no_script_tag = str_replace(
-//			$original_url,
-//			$new_url,
-//			$new_tag
-//		);
-//		$new_tag       = preg_replace(
-//			[
-/*				'/((?:\s|\'|"){1,}src(?>=|"|\'|\s|\\\\)*)' . preg_quote( $original_url, '/' ) . '/m',*/
-//				'/<img/im',
-//			],
-//			[
-//				"$1$low_url",
-//				'<img' . $opt_src,
-//			],
-//			$new_tag,
-//			1
-//		);
-//		$new_tag = str_replace( 'srcset=', 'old-srcset=', $new_tag );
-//		if ( strpos( $new_tag, 'loading=' ) === false && self::instance()->settings->get( 'native_lazyload' ) === 'enabled' ) {
-//			$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img loading=\"lazy\"' : '<img loading="lazy"', $new_tag );
-//		}
-//		if ( ! $this->should_add_noscript( $new_tag ) ) {
-//			return $new_tag;
-//		}
-//
-//		return $new_tag . '<noscript>' . $no_script_tag . '</noscript>';
-//	}
 	/**
 	 * Replaces the tags with lazyload tags.
 	 *
