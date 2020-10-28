@@ -119,6 +119,15 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		// We do a little hack here, for json unicode chars we first replace them with html special chars,
 		// we then strip slashes to normalize the URL and last we convert html special chars back to get a clean URL
 		$url = $is_slashed ? html_entity_decode( stripslashes( preg_replace( '/\\\u([\da-fA-F]{4})/', '&#x\1;', $url ) ) ) : ( $url );
+
+		if ( Optml_Media_Offload::is_uploaded_image( $url ) ) {
+			if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) && $args['quality'] === 'eco' ) {
+				$pattern = $is_slashed ? '/\/q:(.*?)\\\//is' : '/\/q:(.*?)\//is';
+				$replace = $is_slashed ? '/q:eco\/' : '/q:eco/';
+				$new_url = preg_replace( $pattern, $replace, $url );
+				return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
+			}
+		}
 		if ( strpos( $url, Optml_Config::$service_url ) !== false ) {
 			return $original_url;
 		}

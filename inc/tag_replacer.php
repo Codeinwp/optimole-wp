@@ -153,12 +153,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				);
 				$images['img_url'][ $index ] = $new_src;
 			}
-			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
+			if ( ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
 				 false !== strpos( $src, Optml_Config::$service_url ) ||
 				 ! $this->can_replace_url( $src ) ||
-				 ! $this->can_replace_tag( $images['img_url'][ $index ], $tag )
+				 ! $this->can_replace_tag( $images['img_url'][ $index ], $tag ) ) && ! Optml_Media_Offload::is_uploaded_image( $src )
 			) {
-
 				continue; // @codeCoverageIgnore
 			}
 
@@ -190,7 +189,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$tmp        = $this->strip_image_size_from_url( $tmp );
 			$new_url    = apply_filters( 'optml_content_url', $tmp, $optml_args );
 
-			if ( $new_url === $tmp ) {
+			if ( $new_url === $tmp && ! Optml_Media_Offload::is_uploaded_image( $src ) ) {
 				continue; // @codeCoverageIgnore
 			}
 
