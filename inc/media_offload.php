@@ -239,19 +239,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			$parts = array_reverse( explode( '/', $current_meta['file'] ) );
 			$filename = '';
+			$table_id = '';
 			if ( isset( $parts[0] ) && isset( $parts[1] ) ) {
 				$filename = $parts[0];
+				$table_id = str_replace( 'id:', '', $parts[1] );
 			}
-			$original_url  = $this->get_original_url( $id );
 
-			if ( $original_url === false ) {
-				continue;
-			}
-			$options = $this->set_api_call_options( 'auto', $original_url, 'false', 'false', 'true' );
+			$options = $this->set_api_call_options( '', 'false', $table_id, 'false', 'true' );
+
 			$get_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
+
 			if ( is_wp_error( $get_response ) || wp_remote_retrieve_response_code( $get_response ) !== 200 ) {
 				continue;
 			}
+
 			$get_url = json_decode( $get_response['body'], true )['getUrl'];
 
 			if ( ! function_exists( 'download_url' ) ) {
@@ -298,6 +299,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				if ( ! function_exists( 'wp_create_image_subsizes' ) ) {
 					continue;
 				}
+				error_log( print_r( $results , true ), 3, '/var/www/html/optimole.log' );
 				wp_create_image_subsizes( $results['file'], $id );
 				$success_back++;
 				$this->update_content( $id );
@@ -417,19 +419,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param string $quality Quality to optimize at.
 	 * @param string $original_url Image original url.
 	 * @param string $delete Whether to delete a bucket object or not(ie. generate signed upload url).
+	 * @param string $table_id
 	 * @param string $update_table False or success.
 	 * @param string $get_url Whether to return a get url or not.
 	 * @param string $width
 	 * @param string $height
 	 * @return array
 	 */
-	private function set_api_call_options( $quality = 'auto', $original_url = '', $delete = 'false', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto' ) {
+	private function set_api_call_options( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto' ) {
 		$body = [
 			'secret' => Optml_Config::$secret,
 			'userKey' => Optml_Config::$key,
 			'originalUrl' => $original_url,
-			'quality' => $quality,
 			'deleteUrl' => $delete,
+			'id' => $table_id,
 			'updateDynamo' => $update_table,
 			'getUrl' => $get_url,
 			'width' => $width,
@@ -463,9 +466,15 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( $original_url === false ) {
 				return;
 			}
-            //to do the delete flow misses images on domain changes
-			//send id instead of original url and use it to delete
-			$options = $this->set_api_call_options( 'auto', $original_url, 'true' );
+			$table_id = array();
+
+			preg_match( '/\/id:(.*)\//', $file, $table_id );
+
+			if ( ! isset( $table_id[1] ) ) {
+					return;
+			}
+
+			$options = $this->set_api_call_options( $original_url, 'true', $table_id[1] );
 
 			$delete_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
 			delete_post_meta( $post_id, 'optimole_offload' );
@@ -493,8 +502,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		$file = $meta['file'];
 		if ( self::is_uploaded_image( $file ) ) {
+			// to do use the image class to generate the url appending the id:.... at the end as for originalUrl
+			// the sizes are generated inside different filter after this url is created, add support for sizes with crop there
 			$resources = new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto'], $this->settings->get( 'cache_buster' ) );
-			return Optml_Config::$service_url . '/' . $resources->get_domain_token() . $resources->get_cache_buster() . '/' . $file;
+			return Optml_Config::$service_url . '/' . $resources->get_domain_token() . $resources->get_cache_buster() . $file;
 		}
 		return $url;
 	}
@@ -558,6 +569,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		$local_file = get_attached_file( $attachment_id );
+		if ( ! file_exists( $local_file ) ) {
+			return $meta;
+		}
 		$extension = $this->get_ext( $local_file );
 
 		if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) || ! defined( 'OPTML_SIGNED_URLS' ) ) {
@@ -568,41 +582,47 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$temp = explode( '/', $local_file );
 		$file_name = end( $temp );
 
-		$options = $this->set_api_call_options( $this->settings->get_numeric_quality(), $original_url, 'false' );
+		$options = $this->set_api_call_options( $original_url, 'false' );
 
 		$generate_url_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
-//		error_log( print_r( $generate_url_response, true ), 3, '/var/www/html/optimole.log' );
+
 		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
 			return $meta;
 		}
+		$decoded_response = json_decode( $generate_url_response['body'], true );
 
-		$cdn_url = json_decode( $generate_url_response['body'], true )['cdnUrl'];
-		$upload_signed_url = json_decode( $generate_url_response['body'], true )['uploadUrl'];
-		if ( ! file_exists( $local_file ) ) {
+		if ( ! isset( $decoded_response['tableId'] ) || ! isset( $decoded_response['uploadUrl'] ) ) {
 			return $meta;
 		}
-		$upload_args = array(
-			'method'    => 'PUT',
-			'headers'    => array(
-				'content-type'  => $content_type,
-			),
-			'timeout'     => 30,
-			'body' => file_get_contents( $local_file ),
-		);
-		$result = wp_remote_request( $upload_signed_url, $upload_args );
-		if ( is_wp_error( $result ) || wp_remote_retrieve_response_code( $result ) !== 200 ) {
-			return $meta;
-		}
-		$result_update = wp_remote_post(
-			constant( 'OPTML_SIGNED_URLS' ),
-			$this->set_api_call_options( $this->settings->get_numeric_quality(), $original_url, 'false', 'success', 'false', $meta['width'], $meta['height'] )
-		);
-		if ( is_wp_error( $result_update ) || wp_remote_retrieve_response_code( $result_update ) !== 200 ) {
-			return $meta;
+		$table_id = $decoded_response['tableId'];
+		$upload_signed_url = $decoded_response['uploadUrl'];
+		if ( $upload_signed_url !== 'found_resource' ) {
+
+			$upload_args = array(
+				'method' => 'PUT',
+				'headers' => array(
+					'content-type' => $content_type,
+				),
+				'timeout' => 30,
+				'body' => file_get_contents( $local_file ),
+			);
+
+			$result = wp_remote_request( $upload_signed_url, $upload_args );
+			if ( is_wp_error( $result ) || wp_remote_retrieve_response_code( $result ) !== 200 ) {
+				return $meta;
+			}
+
+			$result_update = wp_remote_post(
+				constant( 'OPTML_SIGNED_URLS' ),
+				$this->set_api_call_options( $original_url, 'false', $table_id, 'success', 'false', $meta['width'], $meta['height'] )
+			);
+			if ( is_wp_error( $result_update ) || wp_remote_retrieve_response_code( $result_update ) !== 200 ) {
+				return $meta;
+			}
 		}
 		file_exists( $local_file ) && unlink( $local_file );
 		update_post_meta( $attachment_id, 'optimole_offload', 'true' );
-		$meta['file'] = $cdn_url;
+		$meta['file'] = '/id:' . $table_id . '/' . $file_name;
 		if ( isset( $meta['sizes'] ) ) {
 			foreach ( $meta['sizes'] as $key => $value ) {
 				$generated_image_size_path = str_replace( $file_name, $meta['sizes'][ $key ]['file'], $local_file );
