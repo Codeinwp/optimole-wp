@@ -26,7 +26,7 @@ class Test_Media extends WP_UnitTestCase {
 
 		if ($url === "https://generateurls-dev.mh.optml.cloud/upload" ) {
 
-			$body = '{"uploadUrl":"https://optml-library-dev-3155c4c.s3.amazonaws.com/example/ZXhhbXBsZS5vcmc/storage/1.jpg?AWSAccessKeyId=ASIA35DTHULL4Q6FICJT&Content-Type=image%2Fjpeg&Expires=1603453429&Signature=QTfPvxUiIzWCeOQIJQl1xewZdLA%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEFwaCXVzLWVhc3QtMSJHMEUCIQCzYyu%2BzP9cVkVulZRsIAEIOn2g6Slmzzc%2FeGS6obRHoAIgQ%2FP3pn30fGdPUY1QfunZVpwLoc0nnYf78wfDsW%2B6pqgq7QEIpf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw4MTg0MzI5NDI4MDciDLZo4ejbRTqySqNDwirBAdgC%2FMqs%2FWA4%2BC1cY2%2B%2FFDwzwkdImBITLlDgExCis%2BZES80ZHewE97dimzzn%2FjA3HyPnjrO2T8J96gDu4OSzl3J6Kab5%2BVvGyO2K0T0qyz0eTxpnNAfe81ixsKTwtU1ns44tmRc4wqZ4XpXxB1RIj6jaaHeFJAZPgo2GO3gOzWNTOzUzjFZrw6Ue0Pn1nCz1RLYofUUXannMdwYQI%2BDfr2mXeVXSsjKfuyXPsQ8g0HHHAcK7N543IotQddOs0CJD56AwqIHL%2FAU64AFaaZQ3V61RoVVjb4Iuf63teva0VA6xdOThoGa8syTwtqb4teR4TDqPXf1nI8yaxz2px2B356CUqDxXhaUC5PWpwdSGXCAnFWFDgHUiVTUIsRF%2BURH7V1cEZKIkWONDhgP0I1Q0nOe75mAv3uvabTyX%2Blr87scLgTU7heDxmi7%2B3vHqI4%2BiydDN58YZkALXV5a3MUjWUCF%2Fc79umBtKH0y4ThGONmPJMRktJGX78%2BvmDQPSptLCoqRg30hJDVzO62Jwb3%2BJR9GBn7cDiCbRF%2BgnndrS4gDnRxhVu7r2Ln7eZg%3D%3D","tableId":"579c7f7707ce87caa65fdf50c238a117" }';
+			$body = '{"uploadUrl":"https://uploadUrl","tableId":"579c7f7707ce87caa65fdf50c238a117" }';
 
 			if ( strpos($r['body'], '"getUrl":"true"') !== false ) {
 				$body = '{"getUrl": "getUrl"}';
@@ -53,7 +53,7 @@ class Test_Media extends WP_UnitTestCase {
 				'filename' => '',
 			);
 		}
-		if ($url === "https://optml-library-dev-3155c4c.s3.amazonaws.com/example/ZXhhbXBsZS5vcmc/storage/1.jpg?AWSAccessKeyId=ASIA35DTHULL4Q6FICJT&Content-Type=image%2Fjpeg&Expires=1603453429&Signature=QTfPvxUiIzWCeOQIJQl1xewZdLA%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEFwaCXVzLWVhc3QtMSJHMEUCIQCzYyu%2BzP9cVkVulZRsIAEIOn2g6Slmzzc%2FeGS6obRHoAIgQ%2FP3pn30fGdPUY1QfunZVpwLoc0nnYf78wfDsW%2B6pqgq7QEIpf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw4MTg0MzI5NDI4MDciDLZo4ejbRTqySqNDwirBAdgC%2FMqs%2FWA4%2BC1cY2%2B%2FFDwzwkdImBITLlDgExCis%2BZES80ZHewE97dimzzn%2FjA3HyPnjrO2T8J96gDu4OSzl3J6Kab5%2BVvGyO2K0T0qyz0eTxpnNAfe81ixsKTwtU1ns44tmRc4wqZ4XpXxB1RIj6jaaHeFJAZPgo2GO3gOzWNTOzUzjFZrw6Ue0Pn1nCz1RLYofUUXannMdwYQI%2BDfr2mXeVXSsjKfuyXPsQ8g0HHHAcK7N543IotQddOs0CJD56AwqIHL%2FAU64AFaaZQ3V61RoVVjb4Iuf63teva0VA6xdOThoGa8syTwtqb4teR4TDqPXf1nI8yaxz2px2B356CUqDxXhaUC5PWpwdSGXCAnFWFDgHUiVTUIsRF%2BURH7V1cEZKIkWONDhgP0I1Q0nOe75mAv3uvabTyX%2Blr87scLgTU7heDxmi7%2B3vHqI4%2BiydDN58YZkALXV5a3MUjWUCF%2Fc79umBtKH0y4ThGONmPJMRktJGX78%2BvmDQPSptLCoqRg30hJDVzO62Jwb3%2BJR9GBn7cDiCbRF%2BgnndrS4gDnRxhVu7r2Ln7eZg%3D%3D" ) {
+		if ($url === "https://uploadUrl" ) {
 			return array
 			(
 				'headers' => new Requests_Utility_CaseInsensitiveDictionary (
