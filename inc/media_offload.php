@@ -10,7 +10,7 @@
  * Class Optml_Admin
  */
 class Optml_Media_Offload extends Optml_App_Replacer {
-
+	use Optml_Normalizer;
 	/**
 	 * Hold the settings object.
 	 *
@@ -299,7 +299,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				if ( ! function_exists( 'wp_create_image_subsizes' ) ) {
 					continue;
 				}
-				error_log( print_r( $results , true ), 3, '/var/www/html/optimole.log' );
 				wp_create_image_subsizes( $results['file'], $id );
 				$success_back++;
 				$this->update_content( $id );
@@ -502,10 +501,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		$file = $meta['file'];
 		if ( self::is_uploaded_image( $file ) ) {
-			// to do use the image class to generate the url appending the id:.... at the end as for originalUrl
-			// the sizes are generated inside different filter after this url is created, add support for sizes with crop there
-			$resources = new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto'], $this->settings->get( 'cache_buster' ) );
-			return Optml_Config::$service_url . '/' . $resources->get_domain_token() . $resources->get_cache_buster() . $file;
+			$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
+			return str_replace( '/' . $url, $file, $optimized_url );
 		}
 		return $url;
 	}
@@ -520,6 +517,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @uses filter:image_downsize
 	 */
 	public function generate_filter_downsize_urls( $image, $attachment_id, $size ) {
+		$sizes2crop  = self::size_to_crop();
 		if ( wp_attachment_is( 'video', $attachment_id ) && doing_action( 'wp_insert_post_data' ) ) {
 			return $image;
 		}
@@ -527,11 +525,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! isset( $data['url'] ) || ! isset( $data['width'] ) || ! isset( $data['height'] ) || ! self::is_uploaded_image( $data['url'] ) ) {
 			return $image;
 		}
-		$to_replace = array('w:auto', 'h:auto');
-		$scaled_dimensions = array('w:' . $data['width'], 'h:' . $data['height']);
-		$data['url'] = str_replace( $to_replace, $scaled_dimensions, $data['url'] );
+		$resize = apply_filters( 'optml_default_crop', array() );
+		if ( isset( $sizes2crop[ $data['width'] . $data['height'] ] ) ) {
+			$resize = $this->to_optml_crop( $sizes2crop[ $data['width'] . $data['height'] ] );
+		}
+		$id_filename = array();
+		preg_match( '/\/(id:.*)/', $data['url'], $id_filename );
+		if ( ! isset( $id_filename[1] ) ) {
+			return $image;
+		}
+		$url = $this->get_original_url( $attachment_id );
+		$optimized_url = ( new Optml_Image( $url, ['width' => $data['width'], 'height' => $data['height'], 'resize' => $resize, 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
+		$optimized_url = str_replace( $url, $id_filename[1], $optimized_url );
 		$image = array(
-			$data['url'],
+			$optimized_url,
 			$data['width'],
 			$data['height'],
 			true,
@@ -585,12 +592,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$options = $this->set_api_call_options( $original_url, 'false' );
 
 		$generate_url_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
-
 		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
 			return $meta;
 		}
 		$decoded_response = json_decode( $generate_url_response['body'], true );
-
+		
 		if ( ! isset( $decoded_response['tableId'] ) || ! isset( $decoded_response['uploadUrl'] ) ) {
 			return $meta;
 		}

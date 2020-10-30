@@ -26,7 +26,7 @@ class Test_Media extends WP_UnitTestCase {
 
 		if ($url === "https://generateurls-dev.mh.optml.cloud/upload" ) {
 
-			$body = '{"uploadUrl":"https://optml-library-dev-3155c4c.s3.amazonaws.com/example/ZXhhbXBsZS5vcmc/storage/1.jpg?AWSAccessKeyId=ASIA35DTHULL4Q6FICJT&Content-Type=image%2Fjpeg&Expires=1603453429&Signature=QTfPvxUiIzWCeOQIJQl1xewZdLA%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEFwaCXVzLWVhc3QtMSJHMEUCIQCzYyu%2BzP9cVkVulZRsIAEIOn2g6Slmzzc%2FeGS6obRHoAIgQ%2FP3pn30fGdPUY1QfunZVpwLoc0nnYf78wfDsW%2B6pqgq7QEIpf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw4MTg0MzI5NDI4MDciDLZo4ejbRTqySqNDwirBAdgC%2FMqs%2FWA4%2BC1cY2%2B%2FFDwzwkdImBITLlDgExCis%2BZES80ZHewE97dimzzn%2FjA3HyPnjrO2T8J96gDu4OSzl3J6Kab5%2BVvGyO2K0T0qyz0eTxpnNAfe81ixsKTwtU1ns44tmRc4wqZ4XpXxB1RIj6jaaHeFJAZPgo2GO3gOzWNTOzUzjFZrw6Ue0Pn1nCz1RLYofUUXannMdwYQI%2BDfr2mXeVXSsjKfuyXPsQ8g0HHHAcK7N543IotQddOs0CJD56AwqIHL%2FAU64AFaaZQ3V61RoVVjb4Iuf63teva0VA6xdOThoGa8syTwtqb4teR4TDqPXf1nI8yaxz2px2B356CUqDxXhaUC5PWpwdSGXCAnFWFDgHUiVTUIsRF%2BURH7V1cEZKIkWONDhgP0I1Q0nOe75mAv3uvabTyX%2Blr87scLgTU7heDxmi7%2B3vHqI4%2BiydDN58YZkALXV5a3MUjWUCF%2Fc79umBtKH0y4ThGONmPJMRktJGX78%2BvmDQPSptLCoqRg30hJDVzO62Jwb3%2BJR9GBn7cDiCbRF%2BgnndrS4gDnRxhVu7r2Ln7eZg%3D%3D","cdnUrl":"w:auto/h:auto/q:90/id:579c7f7707ce87caa65fdf50c238a117/domain:example.com/1.jpg"}';
+			$body = '{"uploadUrl":"https://optml-library-dev-3155c4c.s3.amazonaws.com/example/ZXhhbXBsZS5vcmc/storage/1.jpg?AWSAccessKeyId=ASIA35DTHULL4Q6FICJT&Content-Type=image%2Fjpeg&Expires=1603453429&Signature=QTfPvxUiIzWCeOQIJQl1xewZdLA%3D&x-amz-security-token=IQoJb3JpZ2luX2VjEFwaCXVzLWVhc3QtMSJHMEUCIQCzYyu%2BzP9cVkVulZRsIAEIOn2g6Slmzzc%2FeGS6obRHoAIgQ%2FP3pn30fGdPUY1QfunZVpwLoc0nnYf78wfDsW%2B6pqgq7QEIpf%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FARABGgw4MTg0MzI5NDI4MDciDLZo4ejbRTqySqNDwirBAdgC%2FMqs%2FWA4%2BC1cY2%2B%2FFDwzwkdImBITLlDgExCis%2BZES80ZHewE97dimzzn%2FjA3HyPnjrO2T8J96gDu4OSzl3J6Kab5%2BVvGyO2K0T0qyz0eTxpnNAfe81ixsKTwtU1ns44tmRc4wqZ4XpXxB1RIj6jaaHeFJAZPgo2GO3gOzWNTOzUzjFZrw6Ue0Pn1nCz1RLYofUUXannMdwYQI%2BDfr2mXeVXSsjKfuyXPsQ8g0HHHAcK7N543IotQddOs0CJD56AwqIHL%2FAU64AFaaZQ3V61RoVVjb4Iuf63teva0VA6xdOThoGa8syTwtqb4teR4TDqPXf1nI8yaxz2px2B356CUqDxXhaUC5PWpwdSGXCAnFWFDgHUiVTUIsRF%2BURH7V1cEZKIkWONDhgP0I1Q0nOe75mAv3uvabTyX%2Blr87scLgTU7heDxmi7%2B3vHqI4%2BiydDN58YZkALXV5a3MUjWUCF%2Fc79umBtKH0y4ThGONmPJMRktJGX78%2BvmDQPSptLCoqRg30hJDVzO62Jwb3%2BJR9GBn7cDiCbRF%2BgnndrS4gDnRxhVu7r2Ln7eZg%3D%3D","tableId":"579c7f7707ce87caa65fdf50c238a117" }';
 
 			if ( strpos($r['body'], '"getUrl":"true"') !== false ) {
 				$body = '{"getUrl": "getUrl"}';
@@ -136,29 +136,32 @@ class Test_Media extends WP_UnitTestCase {
 
 
 	public function test_image_processed() {
-
+		
 		$image_medium_size = wp_get_attachment_image_src(self::$sample_attachement, 'medium');
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
+		$my_size_image = wp_get_attachment_image_src(self::$sample_attachement, 'my_size_crop' );
 
+		$this->assertContains("https://example.i.optimole.com/LKnqvqk-0ZhIHZ7o/w:200/h:200/q:90/rt:fill/g:nowe/id:579c7f7707ce87caa65fdf50c238a117/1.jpg", $my_size_image);
+		
 		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size );
-		$this->assertContains( 'w:150/h:150/q:90/id:', $image_thumbnail_size );
+		$this->assertContains( 'w:150/h:150/q:90/rt:fill/g:ce/id:579c7f7707ce87caa65fdf50c238a117/1.jpg', $image_thumbnail_size );
 
 		$this->assertContains( 'example.i.optimole.com', $image_medium_size );
-		$this->assertContains( 'w:300/h:200/q:90/id:', $image_medium_size );
+		$this->assertContains( 'w:300/h:200/q:90/id:579c7f7707ce87caa65fdf50c238a117/1.jpg"', $image_medium_size );
 		$this->assertFalse( file_exists( get_attached_file(self::$sample_attachement) ) );
 
 		$image_meta  = wp_get_attachment_metadata( self::$sample_attachement);
 
-		$this->assertContains( 'w:auto/h:auto/q:90/id:', $image_meta['file'] );
+		$this->assertContains( '/id:579c7f7707ce87caa65fdf50c238a117', $image_meta['file'] );
 
 		$image_medium_size = wp_get_attachment_image_src(self::$sample_attachement, 'medium');
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
 
 		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size );
-		$this->assertContains( 'w:150/h:150/q:90/id:', $image_thumbnail_size );
+		$this->assertContains( 'w:150/h:150/q:90/rt:fill/g:ce/id:579c7f7707ce87caa65fdf50c238a117/1.jpg', $image_thumbnail_size );
 
 		$this->assertContains( 'example.i.optimole.com', $image_medium_size );
-		$this->assertContains( 'w:300/h:200/q:90/id:', $image_medium_size );
+		$this->assertContains( 'w:300/h:200/q:90/id::579c7f7707ce87caa65fdf50c238a117', $image_medium_size );
 	}
 	
 	public function test_image_rollback() {
@@ -180,15 +183,15 @@ class Test_Media extends WP_UnitTestCase {
 
 		$image_meta  = wp_get_attachment_metadata( self::$sample_attachement);
 
-		$this->assertContains( 'w:auto/h:auto/q:90/id:', $image_meta['file'] );
+		$this->assertContains( '/id:579c7f7707ce87caa65fdf50c238a117', $image_meta['file'] );
 
 		$image_medium_size = wp_get_attachment_image_src(self::$sample_attachement, 'medium');
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
 
 		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size );
-		$this->assertContains( 'w:150/h:150/q:90/id:', $image_thumbnail_size );
+		$this->assertContains( 'w:150/h:150/q:90/rt:fill/g:ce/id:579c7f7707ce87caa65fdf50c238a117/1.jpg"', $image_thumbnail_size );
 
 		$this->assertContains( 'example.i.optimole.com', $image_medium_size );
-		$this->assertContains( 'w:300/h:200/q:90/id:', $image_medium_size );
+		$this->assertContains( 'w:300/h:200/q:90/id::579c7f7707ce87caa65fdf50c238a117', $image_medium_size );
 	}
 }
