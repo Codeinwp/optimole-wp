@@ -19,14 +19,15 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public $settings;
 
 	const KEYS = array(
-		'uploaded_flag'        => '/id:',
+		'uploaded_flag'        => 'id:',
+		'not_processed_flag'        => 'optml_process:',
 	);
 	/**
 	 * Flag used inside wp_get_attachment url filter.
 	 *
 	 * @var bool Whether or not to return the original url of the image.
 	 */
-	private $return_original_url = false;
+	private static $return_original_url = false;
 	/**
 	 * Optml_Media_Offload constructor.
 	 */
@@ -51,7 +52,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param string $url The image url.
 	 * @return array Contains the width and height values in this order.
 	 */
-	public function parse_dimension_from_optimized_url( $url ) {
+	public static function parse_dimension_from_optimized_url( $url ) {
 		$catch = array();
 		$height = false;
 		$width = false;
@@ -69,8 +70,17 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param string $src Image src or url.
 	 * @return bool Whether image is upload or not.
 	 */
+	public static function is_not_processed_image( $src ) {
+		return strpos( $src, self::KEYS['not_processed_flag'] ) !== false;
+	}
+	/**
+	 * Check if the image is stored on our servers or not.
+	 *
+	 * @param string $src Image src or url.
+	 * @return bool Whether image is upload or not.
+	 */
 	public static function is_uploaded_image( $src ) {
-		return strpos( $src, self::KEYS['uploaded_flag'] ) !== false;
+		return strpos( $src, '/' . self::KEYS['uploaded_flag'] ) !== false;
 	}
 	/**
 	 * Get the attachment ID from the image tag.
@@ -216,11 +226,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param integer $post_id Image attachment id.
 	 * @return string The original url of the image.
 	 */
-	private function get_original_url( $post_id ) {
-
-		$this->return_original_url = true;
+	public static function get_original_url( $post_id ) {
+		self::$return_original_url = true;
 		$original_url = wp_get_attachment_url( $post_id );
-		$this->return_original_url = false;
+		self::$return_original_url = false;
 		return $original_url;
 	}
 	/**
@@ -242,7 +251,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$table_id = '';
 			if ( isset( $parts[0] ) && isset( $parts[1] ) ) {
 				$filename = $parts[0];
-				$table_id = str_replace( 'id:', '', $parts[1] );
+				$table_id = str_replace( self::KEYS['uploaded_flag'], '', $parts[1] );
 			}
 
 			$options = $this->set_api_call_options( '', 'false', $table_id, 'false', 'true' );
@@ -300,6 +309,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					continue;
 				}
 				wp_create_image_subsizes( $results['file'], $id );
+				if ( ! function_exists( 'wp_create_image_subsizes' ) ) {
+					require_once ABSPATH . '/wp-admin/includes/post.php';
+				}
+				update_attached_file( $id, $results['file'] );
 				$success_back++;
 				$this->update_content( $id );
 			}
@@ -415,7 +428,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Get options for the signed urls api call.
 	 *
-	 * @param string $quality Quality to optimize at.
 	 * @param string $original_url Image original url.
 	 * @param string $delete Whether to delete a bucket object or not(ie. generate signed upload url).
 	 * @param string $table_id
@@ -423,9 +435,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param string $get_url Whether to return a get url or not.
 	 * @param string $width
 	 * @param string $height
+	 * @param int    $file_size
 	 * @return array
 	 */
-	private function set_api_call_options( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto' ) {
+	private function set_api_call_options( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto', $file_size = 0 ) {
 		$body = [
 			'secret' => Optml_Config::$secret,
 			'userKey' => Optml_Config::$key,
@@ -436,6 +449,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			'getUrl' => $get_url,
 			'width' => $width,
 			'height' => $height,
+			'originalFileSize' => $file_size,
 		];
 		$body = wp_json_encode( $body );
 
@@ -461,13 +475,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$file = wp_get_attachment_metadata( $post_id )['file'];
 		if ( self::is_uploaded_image( $file ) ) {
 
-			$original_url  = $this->get_original_url( $post_id );
+			$original_url  = self::get_original_url( $post_id );
 			if ( $original_url === false ) {
 				return;
 			}
 			$table_id = array();
 
-			preg_match( '/\/id:(.*)\//', $file, $table_id );
+			preg_match( '/\/' . self::KEYS['uploaded_flag'] . '(.*)\//', $file, $table_id );
 
 			if ( ! isset( $table_id[1] ) ) {
 					return;
@@ -492,7 +506,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @uses filter:wp_get_attachment_url
 	 */
 	public function get_image_attachment_url( $url, $attachment_id ) {
-		if ( $this->return_original_url === true ) {
+		if ( self::$return_original_url === true ) {
 			return $url;
 		}
 		$meta = wp_get_attachment_metadata( $attachment_id );
@@ -502,7 +516,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$file = $meta['file'];
 		if ( self::is_uploaded_image( $file ) ) {
 			$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
-			return str_replace( '/' . $url, $file, $optimized_url );
+			return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $attachment_id . $file, $optimized_url );
 		}
 		return $url;
 	}
@@ -517,6 +531,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @uses filter:image_downsize
 	 */
 	public function generate_filter_downsize_urls( $image, $attachment_id, $size ) {
+		if ( self::$return_original_url === true ) {
+			return $image;
+		}
 		$sizes2crop  = self::size_to_crop();
 		if ( wp_attachment_is( 'video', $attachment_id ) && doing_action( 'wp_insert_post_data' ) ) {
 			return $image;
@@ -530,11 +547,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$resize = $this->to_optml_crop( $sizes2crop[ $data['width'] . $data['height'] ] );
 		}
 		$id_filename = array();
-		preg_match( '/\/(id:.*)/', $data['url'], $id_filename );
+		preg_match( '/\/(' . self::KEYS['not_processed_flag'] . '.*)/', $data['url'], $id_filename );
 		if ( ! isset( $id_filename[1] ) ) {
 			return $image;
 		}
-		$url = $this->get_original_url( $attachment_id );
+		$url = self::get_original_url( $attachment_id );
 		$optimized_url = ( new Optml_Image( $url, ['width' => $data['width'], 'height' => $data['height'], 'resize' => $resize, 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
 		$optimized_url = str_replace( $url, $id_filename[1], $optimized_url );
 		$image = array(
@@ -569,7 +586,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! isset( $meta['file'] ) || ! isset( $meta['width'] ) || ! isset( $meta['height'] ) || self::is_uploaded_image( $meta['file'] ) ) {
 			return $meta;
 		}
-		$original_url  = $this->get_original_url( $attachment_id );
+		$original_url  = self::get_original_url( $attachment_id );
 
 		if ( $original_url === false ) {
 			return $meta;
@@ -596,12 +613,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $meta;
 		}
 		$decoded_response = json_decode( $generate_url_response['body'], true );
-		
+
 		if ( ! isset( $decoded_response['tableId'] ) || ! isset( $decoded_response['uploadUrl'] ) ) {
 			return $meta;
 		}
 		$table_id = $decoded_response['tableId'];
 		$upload_signed_url = $decoded_response['uploadUrl'];
+		$image = file_get_contents( $local_file );
+		if ( $image === false ) {
+			return $meta;
+		}
 		if ( $upload_signed_url !== 'found_resource' ) {
 
 			$upload_args = array(
@@ -610,17 +631,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					'content-type' => $content_type,
 				),
 				'timeout' => 30,
-				'body' => file_get_contents( $local_file ),
+				'body' => $image,
 			);
 
 			$result = wp_remote_request( $upload_signed_url, $upload_args );
 			if ( is_wp_error( $result ) || wp_remote_retrieve_response_code( $result ) !== 200 ) {
 				return $meta;
 			}
-
+			$fileSize = filesize( $local_file );
+			if ( $fileSize === false ) {
+				$fileSize = 0;
+			}
 			$result_update = wp_remote_post(
 				constant( 'OPTML_SIGNED_URLS' ),
-				$this->set_api_call_options( $original_url, 'false', $table_id, 'success', 'false', $meta['width'], $meta['height'] )
+				$this->set_api_call_options( $original_url, 'false', $table_id, 'success', 'false', $meta['width'], $meta['height'], $fileSize )
 			);
 			if ( is_wp_error( $result_update ) || wp_remote_retrieve_response_code( $result_update ) !== 200 ) {
 				return $meta;
@@ -628,7 +652,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		file_exists( $local_file ) && unlink( $local_file );
 		update_post_meta( $attachment_id, 'optimole_offload', 'true' );
-		$meta['file'] = '/id:' . $table_id . '/' . $file_name;
+		$meta['file'] = '/' . self::KEYS['uploaded_flag'] . $table_id . '/' . $file_name;
 		if ( isset( $meta['sizes'] ) ) {
 			foreach ( $meta['sizes'] as $key => $value ) {
 				$generated_image_size_path = str_replace( $file_name, $meta['sizes'][ $key ]['file'], $local_file );
@@ -655,10 +679,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				'relation' => 'AND',
 				array(
 					'key'     => 'optimole_offload',
-					'compare' => 'NOT EXISTS',
-				),
-				array(
-					'key'     => 'optimole_offload_error',
 					'compare' => 'NOT EXISTS',
 				),
 			),
@@ -690,10 +710,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					'key'     => 'optimole_offload',
 					'value'   => 'true',
 					'compare' => '=',
-				),
-				array(
-					'key'     => 'optimole_offload_error',
-					'compare' => 'NOT EXISTS',
 				),
 			),
 			'ignore_sticky_posts' => false,

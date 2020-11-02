@@ -119,13 +119,28 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		// We do a little hack here, for json unicode chars we first replace them with html special chars,
 		// we then strip slashes to normalize the URL and last we convert html special chars back to get a clean URL
 		$url = $is_slashed ? html_entity_decode( stripslashes( preg_replace( '/\\\u([\da-fA-F]{4})/', '&#x\1;', $url ) ) ) : ( $url );
-
-		if ( Optml_Media_Offload::is_uploaded_image( $url ) ) {
-			if ( isset( $args['quality'] ) && ! empty( $args['quality'] ) && $args['quality'] === 'eco' ) {
-				$pattern = $is_slashed ? '/\/q:(.*?)\\\//is' : '/\/q:(.*?)\//is';
-				$replace = $is_slashed ? '/q:eco\/' : '/q:eco/';
-				$new_url = preg_replace( $pattern, $replace, $url );
-				return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
+		$is_uploaded = Optml_Media_Offload::is_not_processed_image( $url );
+		if ( $is_uploaded === true ) {
+			$attachment_id = array();
+			preg_match( '/\/' . Optml_Media_Offload::KEYS['not_processed_flag'] . '([^\/]*)\//', $url, $attachment_id );
+			if ( ! isset( $attachment_id[1] ) ) {
+				return $url;
+			}
+			$id_and_filename = array();
+			preg_match( '/\/(' . Optml_Media_Offload::KEYS['uploaded_flag'] . '.*)/', $url, $id_and_filename );
+			if ( isset( $id_and_filename[0] ) ) {
+				$id_and_filename = $id_and_filename[0];
+			}
+			$sizes = Optml_Media_Offload::parse_dimension_from_optimized_url( $url );
+			if ( isset( $sizes[0] ) && $sizes[0] !== false ) {
+				$args['width'] = $sizes[0];
+			}
+			if ( isset( $sizes[1] ) && $sizes[1] !== false ) {
+				$args['height'] = $sizes[1];
+			}
+			$unoptimized_url = Optml_Media_Offload::get_original_url( $attachment_id[1] );
+			if ( $unoptimized_url !== false ) {
+				$url = $unoptimized_url;
 			}
 		}
 		if ( strpos( $url, Optml_Config::$service_url ) !== false ) {
@@ -159,7 +174,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$url = sprintf( '%s:%s', is_ssl() ? 'https' : 'http', $url );
 		}
 		if ( isset( Optml_Config::$image_extensions[ $ext ] ) ) {
-			$new_url = $this->normalize_image( $url, $original_url, $args );
+			$new_url = $this->normalize_image( $url, $original_url, $args, true );
+			if ( $is_uploaded ) {
+				$new_url = str_replace( '/' . $url, $id_and_filename, $new_url );
+			}
 		} else {
 			$new_url = ( new Optml_Asset( $url, $args, $this->active_cache_buster, $this->is_css_minify_on, $this->is_js_minify_on ) )->get_url();
 		}
@@ -175,13 +193,16 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 *
 	 * @return string
 	 */
-	private function normalize_image( $url, $original_url, $args ) {
+	private function normalize_image( $url, $original_url, $args, $is_uploaded = false ) {
 
 		$new_url = $this->strip_image_size_from_url( $url );
 
-		if ( $new_url !== $url ) {
+		if ( $new_url !== $url || $is_uploaded === true ) {
 			if ( ! isset( $args['quality'] ) || $args['quality'] !== 'eco' ) {
-				list( $args['width'], $args['height'], $crop ) = $this->parse_dimensions_from_filename( $url );
+				$crop = false;
+				if ( $is_uploaded !== true ) {
+					list($args['width'], $args['height'], $crop) = $this->parse_dimensions_from_filename( $url );
+				}
 				if ( ! $crop ) {
 					$sizes2crop = self::size_to_crop();
 					$crop       = isset( $sizes2crop[ $args['width'] . $args['height'] ] ) ? $sizes2crop[ $args['width'] . $args['height'] ] : false;
