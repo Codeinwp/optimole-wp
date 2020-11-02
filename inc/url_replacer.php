@@ -173,7 +173,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( substr( $url, 0, 2 ) === '//' ) {
 			$url = sprintf( '%s:%s', is_ssl() ? 'https' : 'http', $url );
 		}
-		if ( isset( Optml_Config::$image_extensions[ $ext ] ) ) {
+		if ( isset( Optml_Config::$image_extensions[ strtolower( $ext ) ] ) ) {
 			$new_url = $this->normalize_image( $url, $original_url, $args, true );
 			if ( $is_uploaded ) {
 				$new_url = str_replace( '/' . $url, $id_and_filename, $new_url );
