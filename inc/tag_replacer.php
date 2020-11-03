@@ -314,6 +314,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		foreach ( $sources as $i => $source ) {
 			$url = $source['url'];
+			if ( Optml_Media_Offload::is_uploaded_image( $url ) ) {
+				continue;
+			}
 			list( $width, $height, $file_crop ) = $this->parse_dimensions_from_filename( $url );
 
 			if ( empty( $width ) ) {
@@ -392,7 +395,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	public function filter_image_downsize( $image, $attachment_id, $size ) {
 
 		$image_url = wp_get_attachment_url( $attachment_id );
-
+		if ( Optml_Media_Offload::is_uploaded_image( $image_url ) ) {
+			return $image;
+		}
 		if ( $image_url === false ) {
 			return $image;
 		}

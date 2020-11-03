@@ -140,14 +140,14 @@ class Test_Media extends WP_UnitTestCase {
 		$image_medium_size = wp_get_attachment_image_src(self::$sample_attachement, 'medium');
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
 		$my_size_image = wp_get_attachment_image_src(self::$sample_attachement, 'my_size_crop' );
-
-		$this->assertContains("https://example.i.optimole.com/LKnqvqk-0ZhIHZ7o/w:200/h:200/q:90/rt:fill/g:nowe/id:579c7f7707ce87caa65fdf50c238a117/1.jpg", $my_size_image);
+		
+		$this->assertContains("https://example.i.optimole.com/LKnqvqk-0ZhIHZ7o/w:200/h:200/q:90/rt:fill/g:nowe/optml_process:5/id:579c7f7707ce87caa65fdf50c238a117/1.jpg", $my_size_image);
 		
 		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size );
-		$this->assertContains( 'w:150/h:150/q:90/rt:fill/g:ce/id:579c7f7707ce87caa65fdf50c238a117/1.jpg', $image_thumbnail_size );
+		$this->assertContains( 'w:150/h:150/q:90/rt:fill/g:ce/optml_process:5/id:579c7f7707ce87caa65fdf50c238a117/1.jpg', $image_thumbnail_size );
 
 		$this->assertContains( 'example.i.optimole.com', $image_medium_size );
-		$this->assertContains( 'w:300/h:200/q:90/id:579c7f7707ce87caa65fdf50c238a117/1.jpg"', $image_medium_size );
+		$this->assertContains( 'w:300/h:200/q:90/optml_process:5/id:579c7f7707ce87caa65fdf50c238a117/1.jpg"', $image_medium_size );
 		$this->assertFalse( file_exists( get_attached_file(self::$sample_attachement) ) );
 
 		$image_meta  = wp_get_attachment_metadata( self::$sample_attachement);
@@ -158,15 +158,15 @@ class Test_Media extends WP_UnitTestCase {
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
 
 		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size );
-		$this->assertContains( 'w:150/h:150/q:90/rt:fill/g:ce/id:579c7f7707ce87caa65fdf50c238a117/1.jpg', $image_thumbnail_size );
+		$this->assertContains( 'w:150/h:150/q:90/rt:fill/g:ce/optml_process:5/id:579c7f7707ce87caa65fdf50c238a117/1.jpg', $image_thumbnail_size );
 
 		$this->assertContains( 'example.i.optimole.com', $image_medium_size );
-		$this->assertContains( 'w:300/h:200/q:90/id::579c7f7707ce87caa65fdf50c238a117', $image_medium_size );
+		$this->assertContains( 'w:300/h:200/q:90/optml_process:5/id::579c7f7707ce87caa65fdf50c238a117', $image_medium_size );
 	}
 	
 	public function test_image_rollback() {
 
-		Optml_Media_Offload::rollback_images(array(self::$sample_attachement));
+		Optml_Media_Offload::rollback_images( 100 );
 		$this->assertTrue( file_exists( get_attached_file(self::$sample_attachement) ) );
 
 		$image_meta  = wp_get_attachment_metadata( self::$sample_attachement);
@@ -189,9 +189,9 @@ class Test_Media extends WP_UnitTestCase {
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
 
 		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size );
-		$this->assertContains( 'w:150/h:150/q:90/rt:fill/g:ce/id:579c7f7707ce87caa65fdf50c238a117/1.jpg"', $image_thumbnail_size );
+		$this->assertContains( 'w:150/h:150/q:90/rt:fill/g:ce/optml_process:5/id:579c7f7707ce87caa65fdf50c238a117/1.jpg"', $image_thumbnail_size );
 
 		$this->assertContains( 'example.i.optimole.com', $image_medium_size );
-		$this->assertContains( 'w:300/h:200/q:90/id::579c7f7707ce87caa65fdf50c238a117', $image_medium_size );
+		$this->assertContains( 'w:300/h:200/q:90/optml_process:5/id::579c7f7707ce87caa65fdf50c238a117', $image_medium_size );
 	}
 }
