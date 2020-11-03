@@ -20,7 +20,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 	const KEYS = array(
 		'uploaded_flag'        => 'id:',
-		'not_processed_flag'        => 'optml_process:',
+		'not_processed_flag'        => 'process:',
 	);
 	/**
 	 * Flag used inside wp_get_attachment url filter.
@@ -44,7 +44,59 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			add_filter( 'bulk_actions-upload', array($this, 'register_bulk_media_actions') );
 			add_action( 'admin_notices', array($this, 'bulk_action_notices') );
 			add_filter( 'media_row_actions', array($this, 'add_inline_media_action'), 10, 2 );
+			add_filter( 'wp_calculate_image_srcset', array( $this, 'calculate_image_srcset' ), 1, 5 );
 		}
+	}
+	/**
+	 * Get image size name from width and meta.
+	 *
+	 * @param array  $sizes Image sizes .
+	 * @param string $width Size width.
+	 * @param string $filename Image filename.
+	 *
+	 * @return null|string
+	 */
+	public static function get_image_name_from_width( $sizes, $width, $filename ) {
+		foreach ( $sizes as $name => $size ) {
+			if ( $width === absint( $size['width'] ) && $size['file'] === $filename ) {
+				return $name;
+			}
+		}
+
+		return null;
+	}
+	/**
+	 * Replace image URLs in the srcset attributes.
+	 *
+	 * @param array  $sources Array of image sources.
+	 * @param array  $size_array Array of width and height values in pixels (in that order).
+	 * @param string $image_src The 'src' of the image.
+	 * @param array  $image_meta The image meta data as returned by 'wp_get_attachment_metadata()'.
+	 * @param int    $attachment_id Image attachment ID.
+	 *
+	 * @return array
+	 */
+	public function calculate_image_srcset( $sources, $size_array, $image_src, $image_meta, $attachment_id ) {
+
+		if ( ! is_array( $sources ) ) {
+			return $sources;
+		}
+
+		if ( ! Optml_Media_Offload::is_uploaded_image( $image_src ) || ! isset( $image_meta['file'] ) || ! Optml_Media_Offload::is_uploaded_image( $image_meta['file'] ) ) {
+			return $sources;
+		}
+		foreach ( $sources as $width => $source ) {
+			$filename      = wp_basename( $image_meta['file'] );
+			$size          = $this->get_image_name_from_width( $image_meta['sizes'], $width, $filename );
+			$optimized_url = wp_get_attachment_image_src( $attachment_id, $size );
+
+			if ( false === $optimized_url || ! isset( $optimized_url[0] ) ) {
+				continue;
+			}
+
+			$sources[ $width ]['url'] = $optimized_url[0];
+		}
+		return $sources;
 	}
 	/**
 	 *  Get the dimension from optimized url.

@@ -304,7 +304,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-
+		if ( Optml_Media_Offload::is_uploaded_image( $image_src ) ) {
+			return $sources;
+		}
 		$original_url = null;
 		$cropping     = null;
 		if ( count( $size_array ) === 2 ) {
