@@ -9,7 +9,7 @@
 final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	use Optml_Normalizer;
 	use Optml_Validator;
-	// To do optimizing the svg made it smaller but is not on center anymore, find other compress for image
+
 	const IFRAME_PLACEHOLDER = '
 		<style type="text/css">
 			iframe[data-opt-src]:not([data-opt-lazy-loaded]) {
@@ -184,6 +184,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		add_filter( 'optml_video_replace', array($this, 'lazyload_video_replace'), 2, 1 );
 
 	}
+	/**
+	 * Check if there are lazyloaded iframes.
+	 *
+	 * @return bool Whether an iframe was lazyloaded on the page or not.
+	 */
 	public static function found_iframe() {
 		return self::$found_iframe;
 	}
