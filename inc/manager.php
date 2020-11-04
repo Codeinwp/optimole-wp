@@ -314,6 +314,9 @@ final class Optml_Manager {
 
 		if ( $this->settings->get( 'video_lazyload' ) === 'enabled' ) {
 			$html = apply_filters( 'optml_video_replace', $html );
+			if ( Optml_Lazyload_Replacer::found_iframe() === true ) {
+				$html = preg_replace('/<head>(.*)<\/head>/is', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER . '</head>', $html);
+			}
 		}
 
 		$html = $this->process_urls_from_content( $html );
