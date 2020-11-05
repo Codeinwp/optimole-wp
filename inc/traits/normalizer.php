@@ -16,11 +16,11 @@ trait Optml_Normalizer {
 	 * @return bool
 	 */
 	public function to_boolean( $value ) {
-		if ( in_array( $value, array( 'yes', 'enabled', 'true', '1' ) ) ) {
+		if ( in_array( $value, array( 'yes', 'enabled', 'true', '1' ), true ) ) {
 			return true;
 		}
 
-		if ( in_array( $value, array( 'no', 'disabled', 'false', '0' ) ) ) {
+		if ( in_array( $value, array( 'no', 'disabled', 'false', '0' ), true ) ) {
 			return false;
 		}
 
@@ -81,7 +81,7 @@ trait Optml_Normalizer {
 	 * @return mixed
 	 */
 	public function to_map_values( $value, $map, $default ) {
-		if ( in_array( $value, $map ) ) {
+		if ( in_array( $value, $map, true ) ) {
 			return $value;
 		}
 
@@ -153,7 +153,7 @@ trait Optml_Normalizer {
 				'gravity' => Optml_Resize::GRAVITY_CENTER,
 			);
 		}
-		if ( $crop_args === false || ! is_array( $crop_args ) || count( $crop_args ) != 2 ) {
+		if ( $crop_args === false || ! is_array( $crop_args ) || count( $crop_args ) !== 2 ) {
 			return array();
 		}
 

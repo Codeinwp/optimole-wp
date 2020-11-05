@@ -91,7 +91,8 @@ class Optml_Cli_Setting extends WP_CLI_Command {
 			array(
 				'on',
 				'off',
-			)
+			),
+			true
 		) ) ) {
 			return \WP_CLI::error( 'No argument passed. Required one argument ( on/off )' );
 		}

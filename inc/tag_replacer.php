@@ -257,11 +257,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( preg_match( '#class=["|\']?[^"\']*size-([^"\'\s]+)[^"\']*["|\']?#i', $tag, $size ) ) {
 			$size = array_pop( $size );
 
-			if ( false === $args['width'] && false === $args['height'] && 'full' != $size && array_key_exists( $size, $image_sizes ) ) {
+			if ( false === $args['width'] && false === $args['height'] && 'full' !== $size && array_key_exists( $size, $image_sizes ) ) {
 				$args['width']  = (int) $image_sizes[ $size ]['width'];
 				$args['height'] = (int) $image_sizes[ $size ]['height'];
 			}
-			if ( 'full' != $size && array_key_exists( $size, $image_sizes ) ) {
+			if ( 'full' !== $size && array_key_exists( $size, $image_sizes ) ) {
 				$args['resize'] = $this->to_optml_crop( $image_sizes[ $size ]['crop'] );
 			}
 		} else {
@@ -338,7 +338,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 			$args = array();
 			if ( 'w' === $source['descriptor'] ) {
-				if ( $height && ( $source['value'] == $width ) ) {
+				if ( $height && ( $source['value'] === $width ) ) {
 					$args['width']  = $width;
 					$args['height'] = $height;
 				} else {

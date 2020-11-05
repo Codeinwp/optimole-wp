@@ -150,7 +150,7 @@ final class Optml_Manager {
 			return false; // @codeCoverageIgnore
 		}
 
-		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
+		if ( array_key_exists( 'optml_off', $_GET ) && 'true' === $_GET['optml_off'] ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
@@ -162,13 +162,13 @@ final class Optml_Manager {
 		if ( array_key_exists( 'et_fb', $_GET ) && ! empty( $_GET['et_fb'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) {
+		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] === 'true' ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] == 'true' || $_GET['trp-edit-translation'] == 'preview' ) ) {
+		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] === 'true' || $_GET['trp-edit-translation'] === 'preview' ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
+		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] === 'edit' ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'fb-edit', $_GET ) && ! empty( $_GET['fb-edit'] ) ) {
@@ -280,7 +280,7 @@ final class Optml_Manager {
 
 		$meta_needed = '_elementor_data';
 
-		if ( isset( $meta_key ) && $meta_needed == $meta_key ) {
+		if ( isset( $meta_key ) && $meta_needed === $meta_key ) {
 			remove_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX );
 
 			$current_meta = get_post_meta( $object_id, $meta_needed, $single );
