@@ -12,7 +12,7 @@ final class Optml_Manager {
 	 *
 	 * @var Optml_compatibility[] Compatibilities objects.
 	 */
-	public static $loaded_compatibilities = [];
+	public static $loaded_compatibilities = array();
 	/**
 	 * Cached object instance.
 	 *
@@ -315,10 +315,10 @@ final class Optml_Manager {
 		if ( $this->settings->get( 'video_lazyload' ) === 'enabled' ) {
 			$html = apply_filters( 'optml_video_replace', $html );
 			if ( Optml_Lazyload_Replacer::found_iframe() === true ) {
-				if ( strpos($html, Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT )!== false ) {
-					$html = str_replace(Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT,Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $html);
+				if ( strpos( $html, Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT ) !== false ) {
+					$html = str_replace( Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $html );
 				} else {
-					$html = preg_replace('/<head>(.*)<\/head>/ism', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $html);
+					$html = preg_replace( '/<head>(.*)<\/head>/ism', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $html );
 				}
 			}
 		}
@@ -390,7 +390,7 @@ final class Optml_Manager {
 			$header_start = $matches[0][1];
 			$header_end   = $header_start + strlen( $matches[0][0] );
 		}
-		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ismu';
+		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( array( 'src' ), Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ismu';
 
 		if ( preg_match_all( $regex, $content, $images, PREG_OFFSET_CAPTURE ) ) {
 

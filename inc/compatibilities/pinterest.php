@@ -22,16 +22,16 @@ class Optml_pinterest extends Optml_compatibility {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
 		$load = false;
-		$selectorsArray = array();
+		$selectors_array = array();
 		if ( $this->isShareaholic() ) {
-			$selectorsArray[] = 'li.shareaholic-share-button[data-service=\"pinterest\"]';
+			$selectors_array[] = 'li.shareaholic-share-button[data-service=\"pinterest\"]';
 			$load = true;
 		}
 		if ( $this->isSassySocialShare() ) {
-			$selectorsArray[] = '.heateorSssSharing.heateorSssPinterestBackground';
+			$selectors_array[] = '.heateorSssSharing.heateorSssPinterestBackground';
 			$load = true;
 		}
-		$this->selectors = implode( ', ', array_filter( $selectorsArray ) );
+		$this->selectors = implode( ', ', array_filter( $selectors_array ) );
 		return $load;
 	}
 
@@ -104,7 +104,7 @@ class Optml_pinterest extends Optml_compatibility {
 			return false;
 		}
 		$ss_options = get_option( 'heateor_sss' );
-		$ss_bars = ['vertical_re_providers', 'horizontal_re_providers'];
+		$ss_bars = array('vertical_re_providers', 'horizontal_re_providers');
 		if ( ! is_array( $ss_options ) ) {
 			return false;
 		}
