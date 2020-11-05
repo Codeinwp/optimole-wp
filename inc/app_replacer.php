@@ -142,7 +142,7 @@ abstract class Optml_App_Replacer {
 	 */
 	public static function possible_src_attributes() {
 
-		if ( null != self::$possible_src_attributes && is_array( self::$possible_src_attributes ) ) {
+		if ( null !== self::$possible_src_attributes && is_array( self::$possible_src_attributes ) ) {
 			return self::$possible_src_attributes;
 		}
 
@@ -158,7 +158,7 @@ abstract class Optml_App_Replacer {
 	 */
 	public static function possible_lazyload_flags() {
 
-		if ( null != self::$ignore_lazyload_strings && is_array( self::$ignore_lazyload_strings ) ) {
+		if ( null !== self::$ignore_lazyload_strings && is_array( self::$ignore_lazyload_strings ) ) {
 			return self::$ignore_lazyload_strings;
 		}
 
@@ -173,7 +173,7 @@ abstract class Optml_App_Replacer {
 	 */
 	public static function possible_tag_flags() {
 
-		if ( null != self::$ignore_tag_strings && is_array( self::$ignore_tag_strings ) ) {
+		if ( null !== self::$ignore_tag_strings && is_array( self::$ignore_tag_strings ) ) {
 			return self::$ignore_tag_strings;
 		}
 
@@ -188,7 +188,7 @@ abstract class Optml_App_Replacer {
 	 */
 	public static function possible_data_ignore_flags() {
 
-		if ( null != self::$ignore_data_opt_attribute && is_array( self::$ignore_data_opt_attribute ) ) {
+		if ( null !== self::$ignore_data_opt_attribute && is_array( self::$ignore_data_opt_attribute ) ) {
 			return self::$ignore_data_opt_attribute;
 		}
 
@@ -203,7 +203,7 @@ abstract class Optml_App_Replacer {
 	 * @return array Size mapping.
 	 */
 	protected static function size_to_crop() {
-		if ( null != self::$size_to_crop && is_array( self::$size_to_crop ) ) {
+		if ( null !== self::$size_to_crop && is_array( self::$size_to_crop ) ) {
 			return self::$size_to_crop;
 		}
 
@@ -250,7 +250,7 @@ abstract class Optml_App_Replacer {
 	 */
 	protected static function image_sizes() {
 
-		if ( null != self::$image_sizes && is_array( self::$image_sizes ) ) {
+		if ( null !== self::$image_sizes && is_array( self::$image_sizes ) ) {
 			return self::$image_sizes;
 		}
 

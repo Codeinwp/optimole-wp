@@ -586,7 +586,7 @@ class Optml_Admin {
 		if ( ! isset( $current_screen->id ) ) {
 			return;
 		}
-		if ( $current_screen->id != 'media_page_optimole' ) {
+		if ( $current_screen->id !== 'media_page_optimole' ) {
 			return;
 		}
 		wp_register_script( OPTML_NAMESPACE . '-admin', OPTML_URL . 'assets/js/bundle' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), OPTML_VERSION );
