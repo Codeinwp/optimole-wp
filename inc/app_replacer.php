@@ -203,7 +203,7 @@ abstract class Optml_App_Replacer {
 	 * @return array Size mapping.
 	 */
 	protected static function size_to_crop() {
-		if ( null !== self::$size_to_crop && is_array( self::$size_to_crop ) ) {
+		if ( ! empty( self::$size_to_crop ) && is_array( self::$size_to_crop ) ) {
 			return self::$size_to_crop;
 		}
 
@@ -250,7 +250,7 @@ abstract class Optml_App_Replacer {
 	 */
 	protected static function image_sizes() {
 
-		if ( null !== self::$image_sizes && is_array( self::$image_sizes ) ) {
+		if ( ! empty( self::$image_sizes ) && is_array( self::$image_sizes ) ) {
 			return self::$image_sizes;
 		}
 
