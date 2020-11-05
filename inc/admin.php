@@ -151,7 +151,18 @@ class Optml_Admin {
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
 		add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 
+	  add_filter( 'optml_additional_html_classes', array( $this, 'add_no_js_class_to_html_tag' ), 10, 1 );
 	}
+
+	/**
+   * Use filter to add additional class to html tag.
+	 * @param $classes
+	 *
+	 * @return array
+	 */
+	public function add_no_js_class_to_html_tag( $classes ) {
+	  return array_merge( $classes, [ 'optml_no_js' ] );
+  }
 
 	/**
 	 * Adds script for lazyload/js replacement.
@@ -204,7 +215,7 @@ class Optml_Admin {
 		
 		</style>
 		<script type="application/javascript">
-					document.documentElement.className += " optimole_has_js";
+					document.documentElement.className = document.documentElement.className.replace(/\boptml_no_js\b/g, "");
 						(function(w, d){
 							var b = d.getElementsByTagName("head")[0];
 							var s = d.createElement("script");
@@ -438,7 +449,7 @@ class Optml_Admin {
 
 		$css = [];
 		foreach ( $watchers as $selector ) {
-			$css[] = 'html.optimole_has_js ' . $selector . ':not(.optml-bg-lazyloaded)';
+			$css[] = 'html ' . $selector . ':not(.optml-bg-lazyloaded)';
 		}
 		if ( empty( $css ) ) {
 			return '';
@@ -457,7 +468,7 @@ class Optml_Admin {
 
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
-		wp_add_inline_style( 'optm_lazyload_noscript_style', "html:not(.optimole_has_js) img[data-opt-src] { display: none !important; } \n " . $bg_css );
+		wp_add_inline_style( 'optm_lazyload_noscript_style', "html.optml_no_js img[data-opt-src] { display: none !important; } \n " . $bg_css );
 	}
 
 	/**

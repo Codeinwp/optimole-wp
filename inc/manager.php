@@ -310,6 +310,8 @@ final class Optml_Manager {
 			return $html;
 		}
 
+		$html = $this->add_html_class( $html );
+
 		$html = $this->process_images_from_content( $html );
 
 		if ( $this->settings->get( 'video_lazyload' ) === 'enabled' ) {
@@ -319,6 +321,52 @@ final class Optml_Manager {
 		$html = $this->process_urls_from_content( $html );
 
 		return $html;
+	}
+
+	/**
+	 * Adds a filter that allows adding classes to the HTML tag.
+	 *
+	 * @param string $content The HTML content.
+	 *
+	 * @return mixed
+	 */
+	public function add_html_class( $content ) {
+		if ( empty( $content ) ) {
+			return $content;
+		}
+
+		$additional_html_classes = apply_filters( 'optml_additional_html_classes', array() );
+
+		if ( ! $additional_html_classes ) {
+			return $content;
+		}
+
+		$dom = new \DOMDocument();
+		$libxml_previous_state = libxml_use_internal_errors(true); // we use this to suppress errors for HTML5 tags.
+		$dom->loadHTML( $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+		libxml_clear_errors(); // we clear the errors during load.
+		libxml_use_internal_errors( $libxml_previous_state ); // restore to previous error reporting state
+
+		$xpath = new \DOMXpath( $dom );
+		$html = $xpath->query( '/descendant::html[1]' "" ); // Get the first html element.
+		$defined_classes = explode( ' ', $dom->documentElement->getAttribute( 'class' ) );
+
+		foreach ( $html as $html_tag ) {
+			$spacer = ' ';
+			if ( isset( $defined_classes[0] ) && false == $defined_classes[0] ) {
+				$spacer = '';
+			}
+			foreach ( $additional_html_classes as $additional_html_class ) {
+				if ( ! in_array( $additional_html_class , $defined_classes ) ) {
+					$html_tag->setAttribute(
+						'class', $html_tag->getAttribute( 'class' ) . $spacer . $additional_html_class
+					);
+				}
+				$spacer = ' ';
+			}
+		}
+
+		return $dom->saveHTML();
 	}
 
 	/**
