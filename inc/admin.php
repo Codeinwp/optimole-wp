@@ -257,12 +257,12 @@ class Optml_Admin {
 	public function add_diagnosis_script() {
 
 		wp_enqueue_script( 'optml-report', OPTML_URL . 'assets/js/report_script.js' );
-		$ignoredDomains = array( 'gravatar.com', 'instagram.com', 'fbcdn' );
+		$ignored_domains = array( 'gravatar.com', 'instagram.com', 'fbcdn' );
 		$report_script  = array(
 			'optmlCdn'       => $this->settings->get_cdn_url(),
 			'restUrl'        => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) . '/check_redirects',
 			'nonce'          => wp_create_nonce( 'wp_rest' ),
-			'ignoredDomains' => $ignoredDomains,
+			'ignoredDomains' => $ignored_domains,
 			'wait'           => __( 'We are checking the current page for any issues with optimized images ...', 'optimole-wp' ),
 			'description'    => __( 'Optimole page analyzer', 'optimole-wp' ),
 		);

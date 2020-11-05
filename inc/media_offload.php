@@ -482,12 +482,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @param string $original_url Image original url.
 	 * @param string $delete Whether to delete a bucket object or not(ie. generate signed upload url).
-	 * @param string $table_id
+	 * @param string $table_id Remote id used on our servers.
 	 * @param string $update_table False or success.
 	 * @param string $get_url Whether to return a get url or not.
-	 * @param string $width
-	 * @param string $height
-	 * @param int    $file_size
+	 * @param string $width Original image width.
+	 * @param string $height Original image height.
+	 * @param int    $file_size Original file size.
 	 * @return array
 	 */
 	private function set_api_call_options( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto', $file_size = 0 ) {
@@ -696,13 +696,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( is_wp_error( $result ) || wp_remote_retrieve_response_code( $result ) !== 200 ) {
 				return $meta;
 			}
-			$fileSize = filesize( $local_file );
-			if ( $fileSize === false ) {
-				$fileSize = 0;
+			$file_size = filesize( $local_file );
+			if ( $file_size === false ) {
+				$file_size = 0;
 			}
 			$result_update = wp_remote_post(
 				constant( 'OPTML_SIGNED_URLS' ),
-				$this->set_api_call_options( $original_url, 'false', $table_id, 'success', 'false', $meta['width'], $meta['height'], $fileSize )
+				$this->set_api_call_options( $original_url, 'false', $table_id, 'success', 'false', $meta['width'], $meta['height'], $file_size )
 			);
 			if ( is_wp_error( $result_update ) || wp_remote_retrieve_response_code( $result_update ) !== 200 ) {
 				return $meta;
