@@ -341,32 +341,23 @@ final class Optml_Manager {
 			return $content;
 		}
 
-		$dom = new \DOMDocument();
-		$libxml_previous_state = libxml_use_internal_errors(true); // we use this to suppress errors for HTML5 tags.
-		$dom->loadHTML( $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
-		libxml_clear_errors(); // we clear the errors during load.
-		libxml_use_internal_errors( $libxml_previous_state ); // restore to previous error reporting state
+		if ( preg_match( '/<html.*>/ismU', $content, $matches, PREG_OFFSET_CAPTURE ) === 1 ) {
 
-		$xpath = new \DOMXpath( $dom );
-		$html = $xpath->query( '/descendant::html[1]' "" ); // Get the first html element.
-		$defined_classes = explode( ' ', $dom->documentElement->getAttribute( 'class' ) );
-
-		foreach ( $html as $html_tag ) {
-			$spacer = ' ';
-			if ( isset( $defined_classes[0] ) && false == $defined_classes[0] ) {
-				$spacer = '';
-			}
-			foreach ( $additional_html_classes as $additional_html_class ) {
-				if ( ! in_array( $additional_html_class , $defined_classes ) ) {
-					$html_tag->setAttribute(
-						'class', $html_tag->getAttribute( 'class' ) . $spacer . $additional_html_class
-					);
+			$add_classes = implode( ' ', $additional_html_classes );
+			foreach ( $matches as $match ) {
+				error_log(  $match[0] );
+				if ( strpos( $match[0], 'class' ) !== false ) {
+					$new_tag = str_replace( [ 'class="', "class='" ], [ 'class="' . $add_classes, "class='" . $add_classes  ], $match[0] );
+				} else {
+					$new_tag = str_replace( 'html ', 'html class="' . $add_classes . '" ', $match[0] );
 				}
-				$spacer = ' ';
+
+				$content = str_replace( $match[0], $new_tag, $content );
+				error_log( $new_tag );
 			}
 		}
 
-		return $dom->saveHTML();
+		return $content;
 	}
 
 	/**
