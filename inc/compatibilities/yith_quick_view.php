@@ -11,7 +11,7 @@ class Optml_yith_quick_view extends Optml_compatibility {
 	 * Optml_yith_quick_view constructor.
 	 */
 	public function __construct() {
-		add_filter( 'optml_force_replacement_on', [ $this, 'force_replacement' ] );
+		add_filter( 'optml_force_replacement_on', array( $this, 'force_replacement' ) );
 	}
 
 	/**
@@ -46,10 +46,10 @@ class Optml_yith_quick_view extends Optml_compatibility {
 	public function register() {
 		add_action(
 			'wp_ajax_yith_load_product_quick_view',
-			[
+			array(
 				Optml_Main::instance()->manager,
 				'process_template_redirect_content',
-			],
+			),
 			PHP_INT_MIN
 		);
 	}

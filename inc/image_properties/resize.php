@@ -140,20 +140,20 @@ class Optml_Resize extends Optml_Property_Type {
 	 */
 	public function get() {
 		if ( empty( $this->resize_type ) ) {
-			return [];
+			return array();
 		}
 		if ( empty( $this->gravity ) ) {
-			return [ 'type' => $this->resize_type ];
+			return array( 'type' => $this->resize_type );
 		}
 		if ( $this->gravity === self::GRAVITY_FOCUS_POINT ) {
-			return [ 'type' => $this->gravity, 'gravity' => [ $this->focus_point_x, $this->focus_point_y ] ];
+			return array( 'type' => $this->gravity, 'gravity' => array( $this->focus_point_x, $this->focus_point_y ) );
 		}
 
-		return [
+		return array(
 			'type'    => $this->resize_type,
 			'gravity' => $this->gravity,
 			'enlarge' => $this->enlarge,
-		];
+		);
 	}
 
 	/**
