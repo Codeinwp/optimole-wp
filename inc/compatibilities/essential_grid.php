@@ -23,7 +23,7 @@ class Optml_essential_grid extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'optml_lazyload_bg_classes', [ $this, 'add_bg_class' ], PHP_INT_MAX, 1 );
+		add_filter( 'optml_lazyload_bg_classes', array( $this, 'add_bg_class' ), PHP_INT_MAX, 1 );
 	}
 
 	/**

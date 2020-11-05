@@ -151,18 +151,19 @@ class Optml_Admin {
 		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
 		add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
 
-	  add_filter( 'optml_additional_html_classes', array( $this, 'add_no_js_class_to_html_tag' ), 10, 1 );
+		add_filter( 'optml_additional_html_classes', array( $this, 'add_no_js_class_to_html_tag' ), 10, 1 );
 	}
 
 	/**
-   * Use filter to add additional class to html tag.
-	 * @param $classes
+	 * Use filter to add additional class to html tag.
+	 *
+	 * @param array $classes The classes to be added.
 	 *
 	 * @return array
 	 */
 	public function add_no_js_class_to_html_tag( $classes ) {
-	  return array_merge( $classes, [ 'optml_no_js' ] );
-  }
+		return array_merge( $classes, array( 'optml_no_js' ) );
+	}
 
 	/**
 	 * Adds script for lazyload/js replacement.
@@ -269,12 +270,12 @@ class Optml_Admin {
 	public function add_diagnosis_script() {
 
 		wp_enqueue_script( 'optml-report', OPTML_URL . 'assets/js/report_script.js' );
-		$ignoredDomains = [ 'gravatar.com', 'instagram.com', 'fbcdn' ];
+		$ignored_domains = array( 'gravatar.com', 'instagram.com', 'fbcdn' );
 		$report_script  = array(
 			'optmlCdn'       => $this->settings->get_cdn_url(),
 			'restUrl'        => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) . '/check_redirects',
 			'nonce'          => wp_create_nonce( 'wp_rest' ),
-			'ignoredDomains' => $ignoredDomains,
+			'ignoredDomains' => $ignored_domains,
 			'wait'           => __( 'We are checking the current page for any issues with optimized images ...', 'optimole-wp' ),
 			'description'    => __( 'Optimole page analyzer', 'optimole-wp' ),
 		);
@@ -447,7 +448,7 @@ class Optml_Admin {
 
 		$watchers = Optml_Lazyload_Replacer::get_background_lazyload_selectors();
 
-		$css = [];
+		$css = array();
 		foreach ( $watchers as $selector ) {
 			$css[] = 'html ' . $selector . ':not(.optml-bg-lazyloaded)';
 		}
@@ -603,7 +604,7 @@ class Optml_Admin {
 		if ( ! isset( $current_screen->id ) ) {
 			return;
 		}
-		if ( $current_screen->id != 'media_page_optimole' ) {
+		if ( $current_screen->id !== 'media_page_optimole' ) {
 			return;
 		}
 		wp_register_script( OPTML_NAMESPACE . '-admin', OPTML_URL . 'assets/js/bundle' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), OPTML_VERSION );
