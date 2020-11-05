@@ -16,11 +16,11 @@ trait Optml_Normalizer {
 	 * @return bool
 	 */
 	public function to_boolean( $value ) {
-		if ( in_array( $value, array( 'yes', 'enabled', 'true', '1' ), true ) ) {
+		if ( in_array( $value, array( 'yes', 'enabled', 'true', '1' ) ) ) {
 			return true;
 		}
 
-		if ( in_array( $value, array( 'no', 'disabled', 'false', '0' ), true ) ) {
+		if ( in_array( $value, array( 'no', 'disabled', 'false', '0' ) ) ) {
 			return false;
 		}
 
@@ -81,7 +81,7 @@ trait Optml_Normalizer {
 	 * @return mixed
 	 */
 	public function to_map_values( $value, $map, $default ) {
-		if ( in_array( $value, $map, true ) ) {
+		if ( in_array( $value, $map ) ) {
 			return $value;
 		}
 
@@ -153,20 +153,20 @@ trait Optml_Normalizer {
 				'gravity' => Optml_Resize::GRAVITY_CENTER,
 			);
 		}
-		if ( $crop_args === false || ! is_array( $crop_args ) || count( $crop_args ) !== 2 ) {
+		if ( $crop_args === false || ! is_array( $crop_args ) || count( $crop_args ) != 2 ) {
 			return array();
 		}
 
-		$allowed_x         = array(
+		$allowed_x         = [
 			'left'   => true,
 			'center' => true,
 			'right'  => true,
-		);
-		$allowed_y         = array(
+		];
+		$allowed_y         = [
 			'top'    => true,
 			'center' => true,
 			'bottom' => true,
-		);
+		];
 		$allowed_gravities = array(
 			'left'         => Optml_Resize::GRAVITY_WEST,
 			'right'        => Optml_Resize::GRAVITY_EAST,

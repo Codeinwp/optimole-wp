@@ -23,10 +23,10 @@ class Optml_give_wp extends Optml_compatibility {
 	 */
 	public function register() {
 
-		add_filter( 'optml_should_ignore_image_tags', array($this, 'check_givewp_page'), 10, 1 );
+		add_filter( 'optml_should_ignore_image_tags', [$this, 'check_givewp_page'], 10, 1 );
 
 		if ( Optml_Main::instance()->admin->settings->get( 'video_lazyload' ) === 'enabled' ) {
-			add_filter( 'optml_iframe_lazyload_flags', array($this, 'add_ignore_lazyload_iframe') );
+			add_filter( 'optml_iframe_lazyload_flags', [$this, 'add_ignore_lazyload_iframe'] );
 		}
 	}
 	/**
@@ -37,7 +37,7 @@ class Optml_give_wp extends Optml_compatibility {
 	 * @return bool If we should lazyload the page.
 	 */
 	public function check_givewp_page( $old_value ) {
-		if ( array_key_exists( 'giveDonationFormInIframe', $_GET ) && $_GET['giveDonationFormInIframe'] === '1' ) {
+		if ( array_key_exists( 'giveDonationFormInIframe', $_GET ) && $_GET['giveDonationFormInIframe'] == '1' ) {
 			return true;
 		}
 		return $old_value;

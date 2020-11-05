@@ -12,7 +12,7 @@ final class Optml_Manager {
 	 *
 	 * @var Optml_compatibility[] Compatibilities objects.
 	 */
-	public static $loaded_compatibilities = array();
+	public static $loaded_compatibilities = [];
 	/**
 	 * Cached object instance.
 	 *
@@ -150,7 +150,7 @@ final class Optml_Manager {
 			return false; // @codeCoverageIgnore
 		}
 
-		if ( array_key_exists( 'optml_off', $_GET ) && 'true' === $_GET['optml_off'] ) {
+		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
@@ -162,13 +162,13 @@ final class Optml_Manager {
 		if ( array_key_exists( 'et_fb', $_GET ) && ! empty( $_GET['et_fb'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] === 'true' ) {
+		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] === 'true' || $_GET['trp-edit-translation'] === 'preview' ) ) {
+		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] == 'true' || $_GET['trp-edit-translation'] == 'preview' ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] === 'edit' ) {
+		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'fb-edit', $_GET ) && ! empty( $_GET['fb-edit'] ) ) {
@@ -280,7 +280,7 @@ final class Optml_Manager {
 
 		$meta_needed = '_elementor_data';
 
-		if ( isset( $meta_key ) && $meta_needed === $meta_key ) {
+		if ( isset( $meta_key ) && $meta_needed == $meta_key ) {
 			remove_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX );
 
 			$current_meta = get_post_meta( $object_id, $meta_needed, $single );
@@ -345,9 +345,9 @@ final class Optml_Manager {
 
 			$add_classes = implode( ' ', $additional_html_classes );
 			foreach ( $matches as $match ) {
-				error_log( $match[0] );
+				error_log(  $match[0] );
 				if ( strpos( $match[0], 'class' ) !== false ) {
-					$new_tag = str_replace( array( 'class="', "class='" ), array( 'class="' . $add_classes, "class='" . $add_classes  ), $match[0] );
+					$new_tag = str_replace( [ 'class="', "class='" ], [ 'class="' . $add_classes, "class='" . $add_classes  ], $match[0] );
 				} else {
 					$new_tag = str_replace( 'html ', 'html class="' . $add_classes . '" ', $match[0] );
 				}
@@ -422,7 +422,7 @@ final class Optml_Manager {
 			$header_start = $matches[0][1];
 			$header_end   = $header_start + strlen( $matches[0][0] );
 		}
-		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( array( 'src' ), Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ismu';
+		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ismu';
 
 		if ( preg_match_all( $regex, $content, $images, PREG_OFFSET_CAPTURE ) ) {
 

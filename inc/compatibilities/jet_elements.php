@@ -23,7 +23,7 @@ class Optml_jet_elements extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'optml_possible_lazyload_flags', array( $this, 'add_ignore_lazyload' ), PHP_INT_MAX, 1 );
+		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_ignore_lazyload' ], PHP_INT_MAX, 1 );
 	}
 
 

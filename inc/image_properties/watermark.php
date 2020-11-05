@@ -17,7 +17,7 @@ class Optml_Watermark extends Optml_Property_Type {
 	 *
 	 * @param array $value Watermark details.
 	 */
-	public function __construct( $value = array() ) {
+	public function __construct( $value = [] ) {
 		$this->set( $value );
 	}
 
