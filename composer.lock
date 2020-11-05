@@ -1,10 +1,10 @@
 {
     "_readme": [
         "This file locks the dependencies of your project to a known state",
-        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ca7a402c1ccd3915961143cb7d7a27b8",
+    "content-hash": "5a4dce37d85ab6f35c58f05a043d4c2f",
     "packages": [
         {
             "name": "codeinwp/themeisle-sdk",
@@ -42,6 +42,10 @@
             "keywords": [
                 "wordpress"
             ],
+            "support": {
+                "issues": "https://github.com/Codeinwp/themeisle-sdk/issues",
+                "source": "https://github.com/Codeinwp/themeisle-sdk/tree/master"
+            },
             "time": "2020-07-23T15:02:10+00:00"
         }
     ],
@@ -88,26 +92,45 @@
                 "Xdebug",
                 "performance"
             ],
+            "support": {
+                "irc": "irc://irc.freenode.org/composer",
+                "issues": "https://github.com/composer/xdebug-handler/issues",
+                "source": "https://github.com/composer/xdebug-handler/tree/1.4.4"
+            },
+            "funding": [
+                {
+                    "url": "https://packagist.com",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/composer",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/composer/composer",
+                    "type": "tidelift"
+                }
+            ],
             "time": "2020-10-24T12:39:10+00:00"
         },
         {
             "name": "dealerdirect/phpcodesniffer-composer-installer",
-            "version": "v0.5.0",
+            "version": "v0.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Dealerdirect/phpcodesniffer-composer-installer.git",
-                "reference": "e749410375ff6fb7a040a68878c656c2e610b132"
+                "reference": "e8d808670b8f882188368faaf1144448c169c0b7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Dealerdirect/phpcodesniffer-composer-installer/zipball/e749410375ff6fb7a040a68878c656c2e610b132",
-                "reference": "e749410375ff6fb7a040a68878c656c2e610b132",
+                "url": "https://api.github.com/repos/Dealerdirect/phpcodesniffer-composer-installer/zipball/e8d808670b8f882188368faaf1144448c169c0b7",
+                "reference": "e8d808670b8f882188368faaf1144448c169c0b7",
                 "shasum": ""
             },
             "require": {
-                "composer-plugin-api": "^1.0",
-                "php": "^5.3|^7",
-                "squizlabs/php_codesniffer": "^2|^3"
+                "composer-plugin-api": "^1.0 || ^2.0",
+                "php": ">=5.3",
+                "squizlabs/php_codesniffer": "^2 || ^3 || 4.0.x-dev"
             },
             "require-dev": {
                 "composer/composer": "*",
@@ -154,7 +177,11 @@
                 "stylecheck",
                 "tests"
             ],
-            "time": "2018-10-26T13:21:45+00:00"
+            "support": {
+                "issues": "https://github.com/dealerdirect/phpcodesniffer-composer-installer/issues",
+                "source": "https://github.com/dealerdirect/phpcodesniffer-composer-installer"
+            },
+            "time": "2020-06-25T14:57:39+00:00"
         },
         {
             "name": "pdepend/pdepend",
@@ -201,6 +228,16 @@
                 "BSD-3-Clause"
             ],
             "description": "Official version of pdepend to be handled with Composer",
+            "support": {
+                "issues": "https://github.com/pdepend/pdepend/issues",
+                "source": "https://github.com/pdepend/pdepend/tree/master"
+            },
+            "funding": [
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/pdepend/pdepend",
+                    "type": "tidelift"
+                }
+            ],
             "time": "2020-06-20T10:53:13+00:00"
         },
         {
@@ -273,6 +310,17 @@
                 "phpmd",
                 "pmd"
             ],
+            "support": {
+                "irc": "irc://irc.freenode.org/phpmd",
+                "issues": "https://github.com/phpmd/phpmd/issues",
+                "source": "https://github.com/phpmd/phpmd/tree/2.9.1"
+            },
+            "funding": [
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/phpmd/phpmd",
+                    "type": "tidelift"
+                }
+            ],
             "time": "2020-09-23T22:06:32+00:00"
         },
         {
@@ -322,6 +370,10 @@
                 "container-interop",
                 "psr"
             ],
+            "support": {
+                "issues": "https://github.com/php-fig/container/issues",
+                "source": "https://github.com/php-fig/container/tree/master"
+            },
             "time": "2017-02-14T16:28:37+00:00"
         },
         {
@@ -369,6 +421,9 @@
                 "psr",
                 "psr-3"
             ],
+            "support": {
+                "source": "https://github.com/php-fig/log/tree/1.1.3"
+            },
             "time": "2020-03-23T09:12:05+00:00"
         },
         {
@@ -420,6 +475,11 @@
                 "phpcs",
                 "standards"
             ],
+            "support": {
+                "issues": "https://github.com/squizlabs/PHP_CodeSniffer/issues",
+                "source": "https://github.com/squizlabs/PHP_CodeSniffer",
+                "wiki": "https://github.com/squizlabs/PHP_CodeSniffer/wiki"
+            },
             "time": "2020-10-23T02:01:07+00:00"
         },
         {
@@ -481,6 +541,23 @@
             ],
             "description": "Symfony Config Component",
             "homepage": "https://symfony.com",
+            "support": {
+                "source": "https://github.com/symfony/config/tree/v5.1.8"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
             "time": "2020-10-24T12:01:57+00:00"
         },
         {
@@ -551,6 +628,23 @@
             ],
             "description": "Symfony DependencyInjection Component",
             "homepage": "https://symfony.com",
+            "support": {
+                "source": "https://github.com/symfony/dependency-injection/tree/v5.1.8"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
             "time": "2020-10-27T10:11:13+00:00"
         },
         {
@@ -601,6 +695,23 @@
             ],
             "description": "A generic function and convention to trigger deprecation notices",
             "homepage": "https://symfony.com",
+            "support": {
+                "source": "https://github.com/symfony/deprecation-contracts/tree/master"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
             "time": "2020-09-07T11:33:47+00:00"
         },
         {
@@ -646,6 +757,23 @@
             ],
             "description": "Symfony Filesystem Component",
             "homepage": "https://symfony.com",
+            "support": {
+                "source": "https://github.com/symfony/filesystem/tree/v5.1.8"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
             "time": "2020-10-24T12:01:57+00:00"
         },
         {
@@ -707,6 +835,23 @@
                 "ctype",
                 "polyfill",
                 "portable"
+            ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-ctype/tree/v1.20.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
             ],
             "time": "2020-10-23T14:02:19+00:00"
         },
@@ -774,6 +919,23 @@
                 "portable",
                 "shim"
             ],
+            "support": {
+                "source": "https://github.com/symfony/polyfill-php80/tree/v1.20.0"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
             "time": "2020-10-23T14:02:19+00:00"
         },
         {
@@ -836,31 +998,51 @@
                 "interoperability",
                 "standards"
             ],
+            "support": {
+                "source": "https://github.com/symfony/service-contracts/tree/master"
+            },
+            "funding": [
+                {
+                    "url": "https://symfony.com/sponsor",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/fabpot",
+                    "type": "github"
+                },
+                {
+                    "url": "https://tidelift.com/funding/github/packagist/symfony/symfony",
+                    "type": "tidelift"
+                }
+            ],
             "time": "2020-09-07T11:33:47+00:00"
         },
         {
             "name": "wp-coding-standards/wpcs",
-            "version": "1.2.1",
+            "version": "2.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WordPress/WordPress-Coding-Standards.git",
-                "reference": "f328bcafd97377e8e5e5d7b244d5ddbf301a3a5c"
+                "reference": "7da1894633f168fe244afc6de00d141f27517b62"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/f328bcafd97377e8e5e5d7b244d5ddbf301a3a5c",
-                "reference": "f328bcafd97377e8e5e5d7b244d5ddbf301a3a5c",
+                "url": "https://api.github.com/repos/WordPress/WordPress-Coding-Standards/zipball/7da1894633f168fe244afc6de00d141f27517b62",
+                "reference": "7da1894633f168fe244afc6de00d141f27517b62",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.3",
-                "squizlabs/php_codesniffer": "^2.9.0 || ^3.0.2"
+                "php": ">=5.4",
+                "squizlabs/php_codesniffer": "^3.3.1"
             },
             "require-dev": {
-                "phpcompatibility/php-compatibility": "^9.0"
+                "dealerdirect/phpcodesniffer-composer-installer": "^0.5 || ^0.6",
+                "phpcompatibility/php-compatibility": "^9.0",
+                "phpcsstandards/phpcsdevtools": "^1.0",
+                "phpunit/phpunit": "^4.0 || ^5.0 || ^6.0 || ^7.0"
             },
             "suggest": {
-                "dealerdirect/phpcodesniffer-composer-installer": "^0.4.3 || This Composer plugin will sort out the PHPCS 'installed_paths' automatically."
+                "dealerdirect/phpcodesniffer-composer-installer": "^0.6 || This Composer plugin will sort out the PHPCS 'installed_paths' automatically."
             },
             "type": "phpcodesniffer-standard",
             "notification-url": "https://packagist.org/downloads/",
@@ -870,7 +1052,7 @@
             "authors": [
                 {
                     "name": "Contributors",
-                    "homepage": "https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/graphs/contributors"
+                    "homepage": "https://github.com/WordPress/WordPress-Coding-Standards/graphs/contributors"
                 }
             ],
             "description": "PHP_CodeSniffer rules (sniffs) to enforce WordPress coding conventions",
@@ -879,7 +1061,12 @@
                 "standards",
                 "wordpress"
             ],
-            "time": "2018-12-18T09:43:51+00:00"
+            "support": {
+                "issues": "https://github.com/WordPress/WordPress-Coding-Standards/issues",
+                "source": "https://github.com/WordPress/WordPress-Coding-Standards",
+                "wiki": "https://github.com/WordPress/WordPress-Coding-Standards/wiki"
+            },
+            "time": "2020-05-13T23:57:56+00:00"
         }
     ],
     "aliases": [],
@@ -888,5 +1075,6 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": [],
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.0.0"
 }
