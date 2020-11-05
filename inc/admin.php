@@ -257,7 +257,7 @@ class Optml_Admin {
 	public function add_diagnosis_script() {
 
 		wp_enqueue_script( 'optml-report', OPTML_URL . 'assets/js/report_script.js' );
-		$ignoredDomains = [ 'gravatar.com', 'instagram.com', 'fbcdn' ];
+		$ignoredDomains = array( 'gravatar.com', 'instagram.com', 'fbcdn' );
 		$report_script  = array(
 			'optmlCdn'       => $this->settings->get_cdn_url(),
 			'restUrl'        => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) . '/check_redirects',
@@ -435,7 +435,7 @@ class Optml_Admin {
 
 		$watchers = Optml_Lazyload_Replacer::get_background_lazyload_selectors();
 
-		$css = [];
+		$css = array();
 		foreach ( $watchers as $selector ) {
 			$css[] = 'html.optimole_has_js ' . $selector . ':not(.optml-bg-lazyloaded)';
 		}
@@ -606,7 +606,7 @@ class Optml_Admin {
 	 * @return array
 	 */
 	private function localize_dashboard_app() {
- 
+
 		global $wp_version;
 
 		$api_key      = $this->settings->get( 'api_key' );

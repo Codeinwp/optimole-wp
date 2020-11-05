@@ -23,7 +23,7 @@ class Optml_cache_enabler extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'cache_enabler_before_store', [ Optml_Main::instance()->manager, 'replace_content' ], PHP_INT_MAX, 1 );
+		add_filter( 'cache_enabler_before_store', array( Optml_Main::instance()->manager, 'replace_content' ), PHP_INT_MAX, 1 );
 	}
 
 }

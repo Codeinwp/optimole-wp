@@ -104,7 +104,7 @@ class Optml_pinterest extends Optml_compatibility {
 			return false;
 		}
 		$ss_options = get_option( 'heateor_sss' );
-		$ss_bars = ['vertical_re_providers', 'horizontal_re_providers'];
+		$ss_bars = array('vertical_re_providers', 'horizontal_re_providers');
 		if ( ! is_array( $ss_options ) ) {
 			return false;
 		}

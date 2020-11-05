@@ -31,16 +31,16 @@ class Optml_Cli_Media extends WP_CLI_Command {
 	 * @return WP_CLI::error If it fails.
 	 */
 	private function update_images_template( $action ) {
-		$strings = [
-			'offload' => [
+		$strings = array(
+			'offload' => array(
 				'info' => __( 'Moving all images to our servers', 'optimole-wp' ),
 				'success' => __( 'All images have been uploaded to our servers', 'optimole-wp' ),
-			],
-			'rollback' => [
+			),
+			'rollback' => array(
 				'info' => __( 'Moving all images back to your media library', 'optimole-wp' ),
 				'success' => __( 'All images have been uploaded to your media library', 'optimole-wp' ),
-			],
-		];
+			),
+		);
 		$settings = new Optml_Settings();
 		if ( $settings->get( 'offload_media' ) === 'disabled' ) {
 			return \WP_CLI::error( __( 'You need to have the offload_media option enabled in order to use this command', 'optimole-wp' ) );

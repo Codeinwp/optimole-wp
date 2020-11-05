@@ -87,7 +87,7 @@ class Optml_Asset extends Optml_Resource {
 	 *
 	 * @return string Transformed asset url.
 	 */
-	public function get_url( $params = [] ) {
+	public function get_url( $params = array() ) {
 		$path_parts = array();
 		if ( ! empty( $this->type ) ) {
 			$path_parts[] = 'f:' . $this->type;
