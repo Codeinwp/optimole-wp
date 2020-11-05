@@ -315,7 +315,11 @@ final class Optml_Manager {
 		if ( $this->settings->get( 'video_lazyload' ) === 'enabled' ) {
 			$html = apply_filters( 'optml_video_replace', $html );
 			if ( Optml_Lazyload_Replacer::found_iframe() === true ) {
-				$html = preg_replace('/<head>(.*)<\/head>/is', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER . '</head>', $html);
+				if ( strpos($html, Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT )!== false ) {
+					$html = str_replace(Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT,Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $html);
+				} else {
+					$html = preg_replace('/<head>(.*)<\/head>/ism', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $html);
+				}
 			}
 		}
 

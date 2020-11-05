@@ -194,6 +194,7 @@ class Optml_Admin {
 				  animation: 0.1s ease-in;
 				  -webkit-transform: translate3d(0, 0, 0);
 			}
+			%s
 		</style>
 		<script type="application/javascript">
 					document.documentElement.className += " optimole_has_js";
@@ -230,6 +231,7 @@ class Optml_Admin {
 																		}
 																	} );
 		</script>',
+			Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT,
 			esc_url( $domain ),
 			$min,
 			$bgclasses,
