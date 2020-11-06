@@ -197,9 +197,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		}
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
 
-		$arguments = array(
+		$arguments = [
 			'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
-		);
+		];
 
 		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) {
 			$arguments['format'] = $args['format'];

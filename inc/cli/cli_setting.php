@@ -16,12 +16,12 @@ class Optml_Cli_Setting extends WP_CLI_Command {
 	 *
 	 * @var array Whitelisted settings.
 	 */
-	public static $whitelisted_settings = array(
+	public static $whitelisted_settings = [
 		'image_replacer'       => 'bool',
 		'quality'              => 'int',
 		'lazyload'             => 'bool',
 		'lazyload_placeholder' => 'bool',
-	);
+	];
 
 	/**
 	 * Connect to service

@@ -81,7 +81,7 @@ class Optml_Image extends Optml_Resource {
 	 *
 	 * @return string Transformed image url.
 	 */
-	public function get_url( $params = array() ) {
+	public function get_url( $params = [] ) {
 		$path_parts = array();
 
 		$path_parts[] = $this->width->toString();

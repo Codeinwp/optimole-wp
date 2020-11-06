@@ -157,16 +157,16 @@ trait Optml_Normalizer {
 			return array();
 		}
 
-		$allowed_x         = array(
+		$allowed_x         = [
 			'left'   => true,
 			'center' => true,
 			'right'  => true,
-		);
-		$allowed_y         = array(
+		];
+		$allowed_y         = [
 			'top'    => true,
 			'center' => true,
 			'bottom' => true,
-		);
+		];
 		$allowed_gravities = array(
 			'left'         => Optml_Resize::GRAVITY_WEST,
 			'right'        => Optml_Resize::GRAVITY_EAST,

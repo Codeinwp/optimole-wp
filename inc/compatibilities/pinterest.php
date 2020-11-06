@@ -24,11 +24,11 @@ class Optml_pinterest extends Optml_compatibility {
 		$load = false;
 		$selectors_array = array();
 		if ( $this->isShareaholic() ) {
-			$selectors_array[] = 'li.shareaholic-share-button[data-service=\"pinterest\"]';
+			$selectors_array = 'li.shareaholic-share-button[data-service=\"pinterest\"]';
 			$load = true;
 		}
 		if ( $this->isSassySocialShare() ) {
-			$selectors_array[] = '.heateorSssSharing.heateorSssPinterestBackground';
+			$selectors_array = '.heateorSssSharing.heateorSssPinterestBackground';
 			$load = true;
 		}
 		$this->selectors = implode( ', ', array_filter( $selectors_array ) );
@@ -104,7 +104,7 @@ class Optml_pinterest extends Optml_compatibility {
 			return false;
 		}
 		$ss_options = get_option( 'heateor_sss' );
-		$ss_bars = array('vertical_re_providers', 'horizontal_re_providers');
+		$ss_bars = ['vertical_re_providers', 'horizontal_re_providers'];
 		if ( ! is_array( $ss_options ) ) {
 			return false;
 		}

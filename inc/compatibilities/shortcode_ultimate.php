@@ -14,11 +14,11 @@ class Optml_shortcode_ultimate extends Optml_compatibility {
 	 *
 	 * @var array Allowed tags.
 	 */
-	private $allowed_tags = array(
+	private $allowed_tags = [
 		'su_slider'         => true,
 		'su_carousel'       => true,
 		'su_custom_gallery' => true,
-	);
+	];
 
 	/**
 	 * Should we load the integration logic.
@@ -35,7 +35,7 @@ class Optml_shortcode_ultimate extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'do_shortcode_tag', array( $this, 'alter_shortcode_output' ), 10, 3 );
+		add_filter( 'do_shortcode_tag', [ $this, 'alter_shortcode_output' ], 10, 3 );
 	}
 
 	/**
@@ -53,13 +53,13 @@ class Optml_shortcode_ultimate extends Optml_compatibility {
 			return $output;
 		}
 
-		add_filter( 'optml_default_crop', array( $this, 'change_default_crop' ) );
-		add_filter( 'optml_parse_resize_from_tag', array( $this, 'change_default_crop' ) );
+		add_filter( 'optml_default_crop', [ $this, 'change_default_crop' ] );
+		add_filter( 'optml_parse_resize_from_tag', [ $this, 'change_default_crop' ] );
 
 		$output = Optml_Main::instance()->manager->process_images_from_content( $output );
 
-		remove_filter( 'optml_default_crop', array( $this, 'change_default_crop' ) );
-		remove_filter( 'optml_parse_resize_from_tag', array( $this, 'change_default_crop' ) );
+		remove_filter( 'optml_default_crop', [ $this, 'change_default_crop' ] );
+		remove_filter( 'optml_parse_resize_from_tag', [ $this, 'change_default_crop' ] );
 
 		return $output;
 	}
