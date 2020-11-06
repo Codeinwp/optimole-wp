@@ -24,11 +24,11 @@ class Optml_pinterest extends Optml_compatibility {
 		$load = false;
 		$selectors_array = array();
 		if ( $this->isShareaholic() ) {
-			$selectors_array = 'li.shareaholic-share-button[data-service=\"pinterest\"]';
+			$selectors_array[] = 'li.shareaholic-share-button[data-service=\"pinterest\"]';
 			$load = true;
 		}
 		if ( $this->isSassySocialShare() ) {
-			$selectors_array = '.heateorSssSharing.heateorSssPinterestBackground';
+			$selectors_array[] = '.heateorSssSharing.heateorSssPinterestBackground';
 			$load = true;
 		}
 		$this->selectors = implode( ', ', array_filter( $selectors_array ) );
