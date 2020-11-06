@@ -62,7 +62,7 @@ abstract class Optml_Resource {
 	 *
 	 * @return string Transformed image url.
 	 */
-	abstract public function get_url( $params = array() );
+	abstract public function get_url( $params = [] );
 
 	/**
 	 * Method to generate tokens and cache them for further requests.

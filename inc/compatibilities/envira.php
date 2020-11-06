@@ -23,9 +23,9 @@ class Optml_envira extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'optml_possible_lazyload_flags', array( $this, 'add_lazyflag' ), 10, 2 );
-		add_filter( 'optml_parse_resize_from_tag', array( $this, 'check_resize_tag' ), 10, 2 );
-		add_filter( 'envira_gallery_image_src', array( $this, 'revert_src' ), 10, 1 );
+		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_lazyflag' ], 10, 2 );
+		add_filter( 'optml_parse_resize_from_tag', [ $this, 'check_resize_tag' ], 10, 2 );
+		add_filter( 'envira_gallery_image_src', [ $this, 'revert_src' ], 10, 1 );
 	}
 
 	/**
@@ -55,13 +55,13 @@ class Optml_envira extends Optml_compatibility {
 	 */
 	function check_resize_tag( $old_resize, $tag ) {
 		if ( preg_match( '/(_c)\.(?:' . implode( '|', array_keys( Optml_Config::$image_extensions ) ) . ')/i', $tag, $match ) ) {
-			return array(
+			return [
 				'type'    => Optml_Resize::RESIZE_FILL,
 				'gravity' => Optml_Resize::GRAVITY_CENTER,
-			);
+			];
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -71,7 +71,7 @@ class Optml_envira extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	function add_lazyflag( $strings = array() ) {
+	function add_lazyflag( $strings = [] ) {
 
 		$strings[] = 'envira-gallery-image';
 

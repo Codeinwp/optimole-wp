@@ -23,8 +23,8 @@ class Optml_foogallery extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'optml_possible_src_attributes', array( $this, 'add_lazysrc' ), 10, 3 );
-		add_filter( 'optml_possible_lazyload_flags', array( $this, 'add_lazysrc' ), 10, 3 );
+		add_filter( 'optml_possible_src_attributes', [ $this, 'add_lazysrc' ], 10, 3 );
+		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_lazysrc' ], 10, 3 );
 	}
 
 	/**
@@ -34,7 +34,7 @@ class Optml_foogallery extends Optml_compatibility {
 	 *
 	 * @return array New src attributes.
 	 */
-	function add_lazysrc( $attributes = array() ) {
+	function add_lazysrc( $attributes = [] ) {
 
 		$attributes[] = 'data-src-fg';
 

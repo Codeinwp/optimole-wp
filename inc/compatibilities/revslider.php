@@ -23,9 +23,9 @@ class Optml_revslider extends Optml_compatibility {
 	 */
 	public function register() {
 
-		add_filter( 'optml_possible_lazyload_flags', array( $this, 'add_lazyflag' ), 10, 2 );
-		add_filter( 'optml_ignore_data_opt_flag', array($this, 'add_data_ignore'), 10, 3 );
-		add_filter( 'optml_lazyload_bg_classes', array($this, 'add_bg_class'), 10, 1 );
+		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_lazyflag' ], 10, 2 );
+		add_filter( 'optml_ignore_data_opt_flag', [$this, 'add_data_ignore'], 10, 3 );
+		add_filter( 'optml_lazyload_bg_classes', [$this, 'add_bg_class'], 10, 1 );
 	}
 
 	/**
@@ -35,7 +35,7 @@ class Optml_revslider extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	function add_lazyflag( $strings = array() ) {
+	function add_lazyflag( $strings = [] ) {
 
 		$strings[] = 'rev-slidebg';
 
@@ -49,7 +49,7 @@ class Optml_revslider extends Optml_compatibility {
 	 *
 	 * @return array New classes.
 	 */
-	public function add_bg_class( $classes = array() ) {
+	public function add_bg_class( $classes = [] ) {
 		$classes[] = 'tp-bgimg';
 
 		return $classes;
@@ -62,7 +62,7 @@ class Optml_revslider extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	public function add_data_ignore( $flags = array() ) {
+	public function add_data_ignore( $flags = [] ) {
 		$flags[] = 'rev-slidebg';
 
 		return $flags;

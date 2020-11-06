@@ -44,8 +44,11 @@
         <exclude name="WordPress.PHP.YodaConditions.NotYoda"/>
         <exclude name="WordPress.WhiteSpace.PrecisionAlignment.Found"/>
         <exclude name="Generic.Files.LineEndings"/>
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found"/>
         <exclude name="PEAR.NamingConventions.ValidClassName.Invalid"/>
     </rule>
+    <!-- Disallow long array syntax -->
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
     <rule ref="WordPress-Docs">
 
     </rule>

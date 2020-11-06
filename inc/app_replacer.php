@@ -19,13 +19,13 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @var array
 	 */
-	protected static $image_sizes = array();
+	protected static $image_sizes = [];
 	/**
 	 * Holds width/height to crop array based on possible image sizes.
 	 *
 	 * @var array
 	 */
-	protected static $size_to_crop = array();
+	protected static $size_to_crop = [];
 	/**
 	 * Holds possible src attributes.
 	 *
@@ -92,19 +92,19 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @var array Domains.
 	 */
-	protected $possible_sources = array();
+	protected $possible_sources = [];
 	/**
 	 * Possible custom sizes definitions.
 	 *
 	 * @var array Custom sizes definitions.
 	 */
-	private static $custom_size_buffer = array();
+	private static $custom_size_buffer = [];
 	/**
 	 * Whitelisted domains sources to optimize from, according to optimole service.
 	 *
 	 * @var array Domains.
 	 */
-	protected $allowed_sources = array();
+	protected $allowed_sources = [];
 
 	/**
 	 * Holds site mapping array,
@@ -113,13 +113,13 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @var array Site mappings.
 	 */
-	protected $site_mappings = array();
+	protected $site_mappings = [];
 	/**
 	 * Whether the site is whitelisted or not. Used when signing the urls.
 	 *
 	 * @var bool Domains.
 	 */
-	protected $is_allowed_site = array();
+	protected $is_allowed_site = [];
 
 	/**
 	 * Holds the most recent value for the cache buster.
@@ -133,7 +133,7 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @var array
 	 */
-	protected static $ignored_url_map = array();
+	protected static $ignored_url_map = [];
 
 	/**
 	 * Returns possible src attributes.
@@ -146,7 +146,7 @@ abstract class Optml_App_Replacer {
 			return self::$possible_src_attributes;
 		}
 
-		self::$possible_src_attributes = apply_filters( 'optml_possible_src_attributes', array() );
+		self::$possible_src_attributes = apply_filters( 'optml_possible_src_attributes', [] );
 
 		return self::$possible_src_attributes;
 	}
@@ -162,9 +162,9 @@ abstract class Optml_App_Replacer {
 			return self::$ignore_lazyload_strings;
 		}
 
-		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', array( 'skip-lazy', 'data-skip-lazy' ) );
+		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', [ 'skip-lazy', 'data-skip-lazy' ] );
 
-		return array_merge( self::$possible_src_attributes, array( '<noscript' ) );
+		return array_merge( self::$possible_src_attributes, [ '<noscript' ] );
 	}
 	/**
 	 * Returns possible tag replacement flags.
@@ -177,7 +177,7 @@ abstract class Optml_App_Replacer {
 			return self::$ignore_tag_strings;
 		}
 
-		self::$ignore_tag_strings = apply_filters( 'optml_skip_optimizations_css_classes', array( 'skip-optimization' ) );
+		self::$ignore_tag_strings = apply_filters( 'optml_skip_optimizations_css_classes', [ 'skip-optimization' ] );
 
 		return  self::$ignore_tag_strings;
 	}
@@ -192,7 +192,7 @@ abstract class Optml_App_Replacer {
 			return self::$ignore_data_opt_attribute;
 		}
 
-		self::$ignore_data_opt_attribute = apply_filters( 'optml_ignore_data_opt_flag', array() );
+		self::$ignore_data_opt_attribute = apply_filters( 'optml_ignore_data_opt_flag', [] );
 
 		return self::$ignore_data_opt_attribute;
 	}
@@ -212,10 +212,10 @@ abstract class Optml_App_Replacer {
 				continue;
 			}
 			self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] =
-				isset( $size_data['enlarge'] ) ? array(
+				isset( $size_data['enlarge'] ) ? [
 					'crop'    => $size_data['crop'],
 					'enlarge' => true,
-				) : $size_data['crop'];
+				] : $size_data['crop'];
 		}
 
 		return self::$size_to_crop;
@@ -232,12 +232,12 @@ abstract class Optml_App_Replacer {
 		if ( empty( $width ) || empty( $height ) ) {
 			return;
 		}
-		self::$custom_size_buffer[ 'cmole' . $width . $height ] = array(
+		self::$custom_size_buffer[ 'cmole' . $width . $height ] = [
 			'width'   => (int) $width,
 			'height'  => (int) $height,
 			'enlarge' => true,
 			'crop'    => $crop,
-		);
+		];
 
 	}
 
@@ -257,28 +257,28 @@ abstract class Optml_App_Replacer {
 		global $_wp_additional_image_sizes;
 
 		// Populate an array matching the data structure of $_wp_additional_image_sizes so we have a consistent structure for image sizes
-		$images = array(
-			'thumb'  => array(
+		$images = [
+			'thumb'  => [
 				'width'  => intval( get_option( 'thumbnail_size_w' ) ),
 				'height' => intval( get_option( 'thumbnail_size_h' ) ),
 				'crop'   => (bool) get_option( 'thumbnail_crop', false ),
-			),
-			'medium' => array(
+			],
+			'medium' => [
 				'width'  => intval( get_option( 'medium_size_w' ) ),
 				'height' => intval( get_option( 'medium_size_h' ) ),
 				'crop'   => false,
-			),
-			'large'  => array(
+			],
+			'large'  => [
 				'width'  => intval( get_option( 'large_size_w' ) ),
 				'height' => intval( get_option( 'large_size_h' ) ),
 				'crop'   => false,
-			),
-			'full'   => array(
+			],
+			'full'   => [
 				'width'  => null,
 				'height' => null,
 				'crop'   => false,
-			),
-		);
+			],
+		];
 
 		// Compatibility mapping as found in wp-includes/media.php
 		$images['thumbnail'] = $images['thumb'];
@@ -304,7 +304,7 @@ abstract class Optml_App_Replacer {
 			self::$image_sizes
 		);
 
-		return is_array( self::$image_sizes ) ? self::$image_sizes : array();
+		return is_array( self::$image_sizes ) ? self::$image_sizes : [];
 	}
 
 	/**
@@ -317,7 +317,7 @@ abstract class Optml_App_Replacer {
 		self::$filters = $this->settings->get_filters();
 		add_filter(
 			'optml_possible_lazyload_flags',
-			function ( $strings = array() ) {
+			function ( $strings = [] ) {
 				foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] as $rule_flag => $status ) {
 					$strings[] = $rule_flag;
 				}
@@ -329,7 +329,7 @@ abstract class Optml_App_Replacer {
 		);
 		add_filter(
 			'optml_skip_optimizations_css_classes',
-			function ( $strings = array() ) {
+			function ( $strings = [] ) {
 				foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_CLASS ] as $rule_flag => $status ) {
 					$strings[] = $rule_flag;
 				}
@@ -347,10 +347,10 @@ abstract class Optml_App_Replacer {
 	public function set_properties() {
 
 		$upload_data                         = wp_upload_dir();
-		$this->upload_resource               = array(
-			'url'       => str_replace( array( 'https://', 'http://' ), '', $upload_data['baseurl'] ),
+		$this->upload_resource               = [
+			'url'       => str_replace( [ 'https://', 'http://' ], '', $upload_data['baseurl'] ),
 			'directory' => $upload_data['basedir'],
-		);
+		];
 		$this->upload_resource['url_length'] = strlen( $this->upload_resource['url'] );
 
 		$content_parts = parse_url( content_url() );
@@ -363,10 +363,10 @@ abstract class Optml_App_Replacer {
 		$service_data = $this->settings->get( 'service_data' );
 
 		Optml_Config::init(
-			array(
+			[
 				'key'    => $service_data['cdn_key'],
 				'secret' => $service_data['cdn_secret'],
-			)
+			]
 		);
 
 		if ( defined( 'OPTML_SITE_MIRROR' ) && constant( 'OPTML_SITE_MIRROR' ) ) {
@@ -375,7 +375,7 @@ abstract class Optml_App_Replacer {
 
 		$this->possible_sources = $this->extract_domain_from_urls(
 			array_merge(
-				array( get_home_url() ),
+				[ get_home_url() ],
 				array_values( $this->site_mappings ),
 				array_keys( $this->site_mappings )
 			)
@@ -395,10 +395,10 @@ abstract class Optml_App_Replacer {
 		$this->is_css_minify_on = ( $this->settings->get( 'css_minify' ) === 'enabled' ) ? 1 : 0;
 		$this->is_js_minify_on  = ( $this->settings->get( 'js_minify' ) === 'enabled' ) ? 1 : 0;
 
-		add_filter( 'optml_strip_image_size_from_url', array( $this, 'strip_image_size_from_url' ), 10, 1 );
+		add_filter( 'optml_strip_image_size_from_url', [ $this, 'strip_image_size_from_url' ], 10, 1 );
 		add_filter(
 			'image_resize_dimensions',
-			array( __CLASS__, 'listen_to_sizes' ),
+			[ __CLASS__, 'listen_to_sizes' ],
 			999999,
 			6
 		);
@@ -438,9 +438,9 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @return array Array of domains as keys.
 	 */
-	protected function extract_domain_from_urls( $urls = array() ) {
+	protected function extract_domain_from_urls( $urls = [] ) {
 		if ( ! is_array( $urls ) ) {
-			return array();
+			return [];
 		}
 
 		$urls = array_map(
@@ -526,17 +526,17 @@ abstract class Optml_App_Replacer {
 	 * @return array An array consisting of width and height.
 	 */
 	protected function parse_dimensions_from_filename( $src ) {
-		$width_height_string = array();
+		$width_height_string = [];
 		$extensions          = array_keys( Optml_Config::$image_extensions );
 		if ( preg_match( '#-(\d+)x(\d+)(:?_c)?\.(?:' . implode( '|', $extensions ) . '){1}$#i', $src, $width_height_string ) ) {
 			$width  = (int) $width_height_string[1];
 			$height = (int) $width_height_string[2];
 			$crop   = ( isset( $width_height_string[3] ) && $width_height_string[3] === '_c' );
 			if ( $width && $height ) {
-				return array( $width, $height, $crop );
+				return [ $width, $height, $crop ];
 			}
 		}
 
-		return array( false, false, false );
+		return [ false, false, false ];
 	}
 }

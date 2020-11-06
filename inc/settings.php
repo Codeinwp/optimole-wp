@@ -16,7 +16,7 @@ class Optml_Settings {
 	 *
 	 * @var array Settings schema.
 	 */
-	private $default_schema = array(
+	private $default_schema = [
 		'api_key'              => '',
 		'service_data'         => '',
 		'cache_buster'         => '',
@@ -32,7 +32,7 @@ class Optml_Settings {
 		'video_lazyload'       => 'disabled',
 		'retina_images'        => 'disabled',
 		'resize_smart'         => 'disabled',
-		'filters'              => array(),
+		'filters'              => [],
 		'watchers'             => '',
 		'quality'              => 'auto',
 		'wm_id'                => - 1,
@@ -48,7 +48,7 @@ class Optml_Settings {
 		'report_script'        => 'disabled',
 		'native_lazyload'      => 'disabled',
 
-	);
+	];
 	/**
 	 * Option key.
 	 *
@@ -97,23 +97,23 @@ class Optml_Settings {
 
 		$filters = $this->get( 'filters' );
 		if ( ! isset( $filters[ self::FILTER_TYPE_LAZYLOAD ] ) ) {
-			$filters[ self::FILTER_TYPE_LAZYLOAD ] = array();
+			$filters[ self::FILTER_TYPE_LAZYLOAD ] = [];
 		}
 		if ( ! isset( $filters[ self::FILTER_TYPE_OPTIMIZE ] ) ) {
-			$filters[ self::FILTER_TYPE_OPTIMIZE ] = array();
+			$filters[ self::FILTER_TYPE_OPTIMIZE ] = [];
 		}
 		foreach ( $filters as $filter_key => $filter_rules ) {
 			if ( ! isset( $filter_rules[ self::FILTER_EXT ] ) ) {
-				$filters[ $filter_key ][ self::FILTER_EXT ] = array();
+				$filters[ $filter_key ][ self::FILTER_EXT ] = [];
 			}
 			if ( ! isset( $filter_rules[ self::FILTER_FILENAME ] ) ) {
-				$filters[ $filter_key ][ self::FILTER_FILENAME ] = array();
+				$filters[ $filter_key ][ self::FILTER_FILENAME ] = [];
 			}
 			if ( ! isset( $filter_rules[ self::FILTER_URL ] ) ) {
-				$filters[ $filter_key ][ self::FILTER_URL ] = array();
+				$filters[ $filter_key ][ self::FILTER_URL ] = [];
 			}
 			if ( ! isset( $filter_rules[ self::FILTER_CLASS ] ) ) {
-				$filters[ $filter_key ][ self::FILTER_CLASS ] = array();
+				$filters[ $filter_key ][ self::FILTER_CLASS ] = [];
 			}
 		}
 
@@ -128,7 +128,7 @@ class Optml_Settings {
 	 * @return array
 	 */
 	public function parse_settings( $new_settings ) {
-		$sanitized = array();
+		$sanitized = [];
 		foreach ( $new_settings as $key => $value ) {
 			switch ( $key ) {
 				case 'admin_bar_item':
@@ -147,7 +147,7 @@ class Optml_Settings {
 				case 'css_minify':
 				case 'js_minify':
 				case 'native_lazyload':
-					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
+					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
 				case 'max_width':
 				case 'max_height':
@@ -189,7 +189,7 @@ class Optml_Settings {
 				case 'wm_position':
 					$sanitized_value = $this->to_map_values(
 						$value,
-						array(
+						[
 							Optml_Resize::GRAVITY_NORTH,
 							Optml_Resize::GRAVITY_NORTH_EAST,
 							Optml_Resize::GRAVITY_NORTH_WEST,
@@ -199,7 +199,7 @@ class Optml_Settings {
 							Optml_Resize::GRAVITY_SOUTH_EAST,
 							Optml_Resize::GRAVITY_SOUTH,
 							Optml_Resize::GRAVITY_SOUTH_WEST,
-						),
+						],
 						Optml_Resize::GRAVITY_SOUTH_EAST
 					);
 					break;
@@ -294,7 +294,7 @@ class Optml_Settings {
 	 */
 	public function get_site_settings() {
 
-		return array(
+		return [
 			'quality'              => $this->get_quality(),
 			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
 			'lazyload'             => $this->get( 'lazyload' ),
@@ -317,7 +317,7 @@ class Optml_Settings {
 			'js_minify'            => $this->get( 'js_minify' ),
 			'native_lazyload'      => $this->get( 'native_lazyload' ),
 			'report_script'        => $this->get( 'report_script' ),
-		);
+		];
 	}
 
 	/**
@@ -348,14 +348,14 @@ class Optml_Settings {
 	 * @return array
 	 */
 	public function get_watermark() {
-		return array(
+		return [
 			'id'       => $this->get( 'wm_id' ),
 			'opacity'  => $this->get( 'wm_opacity' ),
 			'position' => $this->get( 'wm_position' ),
 			'x_offset' => $this->get( 'wm_x' ),
 			'y_offset' => $this->get( 'wm_y' ),
 			'scale'    => $this->get( 'wm_scale' ),
-		);
+		];
 	}
 
 	/**

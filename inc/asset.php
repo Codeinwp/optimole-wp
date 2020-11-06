@@ -51,7 +51,7 @@ class Optml_Asset extends Optml_Resource {
 	 *
 	 * @throws \InvalidArgumentException In case that the url is not provided.
 	 */
-	public function __construct( $url = '', $args = array(), $cache_buster = '', $minify_css = 1, $minify_js = 0 ) {
+	public function __construct( $url = '', $args = [], $cache_buster = '', $minify_css = 1, $minify_js = 0 ) {
 		parent::__construct( $url, $cache_buster );
 
 		$this->minify_css = $minify_css;
@@ -87,8 +87,8 @@ class Optml_Asset extends Optml_Resource {
 	 *
 	 * @return string Transformed asset url.
 	 */
-	public function get_url( $params = array() ) {
-		$path_parts = array();
+	public function get_url( $params = [] ) {
+		$path_parts = [];
 		if ( ! empty( $this->type ) ) {
 			$path_parts[] = 'f:' . $this->type;
 		}

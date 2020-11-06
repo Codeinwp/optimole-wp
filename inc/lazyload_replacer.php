@@ -66,7 +66,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	public static function instance() {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
-			add_action( 'optml_replacer_setup', array( self::$instance, 'init' ) );
+			add_action( 'optml_replacer_setup', [ self::$instance, 'init' ] );
 		}
 
 		return self::$instance;
@@ -83,19 +83,19 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return self::$background_lazyload_selectors;
 		}
 		if ( self::instance()->settings->get( 'bg_replacer' ) === 'disabled' ) {
-			self::$background_lazyload_selectors = array();
+			self::$background_lazyload_selectors = [];
 
 			return self::$background_lazyload_selectors;
 		}
-		$default_watchers = array(
+		$default_watchers = [
 			'.elementor-section[data-settings*="background_background"]',
 			'.elementor-section > .elementor-background-overlay',
 			'.wp-block-cover[style*="background-image"]',
-		);
+		];
 
 		$saved_watchers = self::instance()->settings->get_watchers();
 
-		$saved_watchers = str_replace( array( "\n", "\r" ), ',', $saved_watchers );
+		$saved_watchers = str_replace( [ "\n", "\r" ], ',', $saved_watchers );
 		$saved_watchers = explode( ',', $saved_watchers );
 		$all_watchers   = array_merge( $default_watchers, $saved_watchers );
 		$all_watchers   = apply_filters( 'optml_lazyload_bg_selectors', $all_watchers );
@@ -122,7 +122,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return self::$lazyload_background_classes;
 		}
 
-		self::$lazyload_background_classes = apply_filters( 'optml_lazyload_bg_classes', array() );
+		self::$lazyload_background_classes = apply_filters( 'optml_lazyload_bg_classes', [] );
 
 		return self::$lazyload_background_classes;
 	}
@@ -138,7 +138,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return self::$lazyload_watcher_classes;
 		}
 
-		self::$lazyload_watcher_classes = apply_filters( 'optml_watcher_lz_classes', array() );
+		self::$lazyload_watcher_classes = apply_filters( 'optml_watcher_lz_classes', [] );
 
 		return self::$lazyload_watcher_classes;
 	}
@@ -164,9 +164,9 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		);
 		self::$is_lazyload_placeholder = self::$instance->settings->get( 'lazyload_placeholder' ) === 'enabled';
 
-		add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 6 );
+		add_filter( 'optml_tag_replace', [ $this, 'lazyload_tag_replace' ], 2, 6 );
 
-		add_filter( 'optml_video_replace', array($this, 'lazyload_video_replace'), 2, 1 );
+		add_filter( 'optml_video_replace', [$this, 'lazyload_video_replace'], 2, 1 );
 
 	}
 
@@ -187,11 +187,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
-		$should_ignore_rescale = ! $this->is_valid_mimetype_from_url( $original_url, array( 'gif' => true, 'svg' => true ) );
+		$should_ignore_rescale = ! $this->is_valid_mimetype_from_url( $original_url, [ 'gif' => true, 'svg' => true ] );
 
 		if ( ! self::$is_lazyload_placeholder && ! $should_ignore_rescale ) {
 			$optml_args['quality'] = 'eco';
-			$optml_args['resize']  = array();
+			$optml_args['resize']  = [];
 			$low_url               = apply_filters( 'optml_content_url', $original_url, $optml_args );
 			$low_url               = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 		} else {
@@ -229,14 +229,14 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			$new_tag
 		);
 		$new_tag       = preg_replace(
-			array(
+			[
 				'/((?:\s|\'|"){1,}src(?>=|"|\'|\s|\\\\)*)' . preg_quote( $original_url, '/' ) . '/m',
 				'/<img/im',
-			),
-			array(
+			],
+			[
 				"$1$low_url",
 				'<img' . $opt_src,
-			),
+			],
 			$new_tag,
 			1
 		);
@@ -258,11 +258,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return string
 	 */
 	public function lazyload_video_replace( $content ) {
-		$video_tags = array();
+		$video_tags = [];
 		preg_match_all( '#(?:<noscript\s*>(\s*|.*?))?<iframe(.*?)></iframe>#is', $content, $video_tags );
 
-		$search = array();
-		$replace = array();
+		$search = [];
+		$replace = [];
 		foreach ( $video_tags[0] as $video_tag ) {
 			if ( ! $this->should_lazyload_iframe( $video_tag ) ) {
 				continue;
@@ -363,7 +363,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				$filepath = WP_CONTENT_DIR . $filepath;
 				if ( is_file( $filepath ) ) {
 					$sizes = getimagesize( $filepath );
-					wp_cache_add( $key, array( $sizes[0], $sizes[1] ), 'optml_sources', DAY_IN_SECONDS );
+					wp_cache_add( $key, [ $sizes[0], $sizes[1] ], 'optml_sources', DAY_IN_SECONDS );
 				}
 			}
 			list( $width, $height ) = $sizes;
@@ -374,11 +374,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		return
 			str_replace(
-				array( '#width#', '#height#' ),
-				array(
+				[ '#width#', '#height#' ],
+				[
 					$width,
 					$height,
-				),
+				],
 				self::SVG_PLACEHOLDER
 			);
 	}
@@ -427,7 +427,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return self::$ignore_no_script_flags;
 		}
 
-		self::$ignore_no_script_flags = apply_filters( 'optml_ignore_noscript_on', array() );
+		self::$ignore_no_script_flags = apply_filters( 'optml_ignore_noscript_on', [] );
 
 		return self::$ignore_no_script_flags;
 	}
@@ -442,7 +442,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return self::$iframe_lazyload_flags;
 		}
 
-		self::$iframe_lazyload_flags = apply_filters( 'optml_iframe_lazyload_flags', array( 'gform_ajax_frame', '<noscript' ) );
+		self::$iframe_lazyload_flags = apply_filters( 'optml_iframe_lazyload_flags', [ 'gform_ajax_frame', '<noscript' ] );
 
 		return self::$iframe_lazyload_flags;
 	}

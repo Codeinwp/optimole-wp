@@ -30,7 +30,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	public static function instance() {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
-			add_action( 'optml_replacer_setup', array( self::$instance, 'init' ) );
+			add_action( 'optml_replacer_setup', [ self::$instance, 'init' ] );
 		}
 
 		return self::$instance;
@@ -84,13 +84,13 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 */
 	public function init() {
 
-		add_filter( 'optml_replace_image', array( $this, 'build_url' ), 10, 2 );
+		add_filter( 'optml_replace_image', [ $this, 'build_url' ], 10, 2 );
 		parent::init();
 
 		Optml_Quality::$default_quality = $this->to_accepted_quality( $this->settings->get_quality() );
 		Optml_Image::$watermark         = new Optml_Watermark( $this->settings->get_site_settings()['watermark'] );
 		Optml_Resize::$default_enlarge  = apply_filters( 'optml_always_enlarge', false );
-		add_filter( 'optml_content_url', array( $this, 'build_url' ), 1, 2 );
+		add_filter( 'optml_content_url', [ $this, 'build_url' ], 1, 2 );
 
 	}
 
@@ -103,10 +103,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 * @return string
 	 */
 	public function build_url(
-		$url, $args = array(
+		$url, $args = [
 			'width'  => 'auto',
 			'height' => 'auto',
-		)
+		]
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
@@ -197,9 +197,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		}
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
 
-		$arguments = array(
+		$arguments = [
 			'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
-		);
+		];
 
 		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) {
 			$arguments['format'] = $args['format'];

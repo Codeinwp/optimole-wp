@@ -12,7 +12,7 @@ final class Optml_Manager {
 	 *
 	 * @var Optml_compatibility[] Compatibilities objects.
 	 */
-	public static $loaded_compatibilities = array();
+	public static $loaded_compatibilities = [];
 	/**
 	 * Cached object instance.
 	 *
@@ -54,7 +54,7 @@ final class Optml_Manager {
 	 *
 	 * @var array Integrations classes.
 	 */
-	private $possible_compatibilities = array(
+	private $possible_compatibilities = [
 		'shortcode_ultimate',
 		'foogallery',
 		'envira',
@@ -76,7 +76,7 @@ final class Optml_Manager {
 		'w3_total_cache',
 		'translate_press',
 		'give_wp',
-	);
+	];
 	/**
 	 * The current state of the buffer.
 	 *
@@ -99,7 +99,7 @@ final class Optml_Manager {
 			self::$instance->url_replacer      = Optml_Url_Replacer::instance();
 			self::$instance->tag_replacer      = Optml_Tag_Replacer::instance();
 			self::$instance->lazyload_replacer = Optml_Lazyload_Replacer::instance();
-			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
+			add_action( 'after_setup_theme', [ self::$instance, 'init' ] );
 		}
 
 		return self::$instance;
@@ -235,7 +235,7 @@ final class Optml_Manager {
 		if ( $this->settings->get( 'native_lazyload' ) === 'disabled' ) {
 			add_filter( 'wp_lazy_loading_enabled', '__return_false' );
 		}
-		add_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
+		add_filter( 'the_content', [ $this, 'process_images_from_content' ], PHP_INT_MAX );
 		/**
 		 * When we have to process cdn images, i.e MIRROR is defined,
 		 * we need this as late as possible for other replacers to occur.
@@ -243,16 +243,16 @@ final class Optml_Manager {
 		 */
 		add_action(
 			self::is_ajax_request() ? 'init' : 'template_redirect',
-			array(
+			[
 				$this,
 				'process_template_redirect_content',
-			),
+			],
 			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
 		);
-		add_action( 'template_redirect', array( $this, 'register_after_setup' ) );
-		add_action( 'rest_api_init', array( $this, 'process_template_redirect_content' ), PHP_INT_MIN );
+		add_action( 'template_redirect', [ $this, 'register_after_setup' ] );
+		add_action( 'rest_api_init', [ $this, 'process_template_redirect_content' ], PHP_INT_MIN );
 
-		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+		add_action( 'get_post_metadata', [ $this, 'replace_meta' ], PHP_INT_MAX, 4 );
 
 		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
 			$registered_compatibility->register();
@@ -281,10 +281,10 @@ final class Optml_Manager {
 		$meta_needed = '_elementor_data';
 
 		if ( isset( $meta_key ) && $meta_needed === $meta_key ) {
-			remove_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX );
+			remove_filter( 'get_post_metadata', [ $this, 'replace_meta' ], PHP_INT_MAX );
 
 			$current_meta = get_post_meta( $object_id, $meta_needed, $single );
-			add_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+			add_filter( 'get_post_metadata', [ $this, 'replace_meta' ], PHP_INT_MAX, 4 );
 
 			if ( ! is_string( $current_meta ) ) {
 				return $metadata;
@@ -335,7 +335,7 @@ final class Optml_Manager {
 			return $content;
 		}
 
-		$additional_html_classes = apply_filters( 'optml_additional_html_classes', array() );
+		$additional_html_classes = apply_filters( 'optml_additional_html_classes', [] );
 
 		if ( ! $additional_html_classes ) {
 			return $content;
@@ -347,7 +347,7 @@ final class Optml_Manager {
 			foreach ( $matches as $match ) {
 				error_log( $match[0] );
 				if ( strpos( $match[0], 'class' ) !== false ) {
-					$new_tag = str_replace( array( 'class="', "class='" ), array( 'class="' . $add_classes, "class='" . $add_classes  ), $match[0] );
+					$new_tag = str_replace( [ 'class="', "class='" ], [ 'class="' . $add_classes, "class='" . $add_classes  ], $match[0] );
 				} else {
 					$new_tag = str_replace( 'html ', 'html class="' . $add_classes . '" ', $match[0] );
 				}
@@ -413,7 +413,7 @@ final class Optml_Manager {
 	 *         and img_url keys are arrays of those matches.
 	 */
 	public static function parse_images_from_html( $content ) {
-		$images = array();
+		$images = [];
 
 		$header_start = null;
 		$header_end   = null;
@@ -422,7 +422,7 @@ final class Optml_Manager {
 			$header_start = $matches[0][1];
 			$header_end   = $header_start + strlen( $matches[0][0] );
 		}
-		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( array( 'src' ), Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ismu';
+		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ismu';
 
 		if ( preg_match_all( $regex, $content, $images, PREG_OFFSET_CAPTURE ) ) {
 
@@ -459,7 +459,7 @@ final class Optml_Manager {
 			return $images;
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -580,10 +580,10 @@ final class Optml_Manager {
 		}
 		self::$ob_started = true;
 		// We no longer need this if the handler was started.
-		remove_filter( 'the_content', array($this, 'process_images_from_content'), PHP_INT_MAX );
+		remove_filter( 'the_content', [$this, 'process_images_from_content'], PHP_INT_MAX );
 
 		ob_start(
-			array(&$this, 'replace_content')
+			[&$this, 'replace_content']
 		);
 	}
 
