@@ -96,7 +96,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	public static function get_background_lazyload_selectors() {
 
-		if ( null !== self::$background_lazyload_selectors && is_array( self::$background_lazyload_selectors ) ) {
+		if ( ! empty( self::$background_lazyload_selectors ) && is_array( self::$background_lazyload_selectors ) ) {
 			return self::$background_lazyload_selectors;
 		}
 		if ( self::instance()->settings->get( 'bg_replacer' ) === 'disabled' ) {
@@ -135,7 +135,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	public static function get_lazyload_bg_classes() {
 
-		if ( null !== self::$lazyload_background_classes && is_array( self::$lazyload_background_classes ) ) {
+		if ( ! empty( self::$lazyload_background_classes ) && is_array( self::$lazyload_background_classes ) ) {
 			return self::$lazyload_background_classes;
 		}
 
@@ -151,7 +151,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	public static function get_watcher_lz_classes() {
 
-		if ( null !== self::$lazyload_watcher_classes && is_array( self::$lazyload_watcher_classes ) ) {
+		if ( ! empty( self::$lazyload_watcher_classes ) && is_array( self::$lazyload_watcher_classes ) ) {
 			return self::$lazyload_watcher_classes;
 		}
 
@@ -448,7 +448,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	public static function get_ignore_noscript_flags() {
 
-		if ( null !== self::$ignore_no_script_flags && is_array( self::$ignore_no_script_flags ) ) {
+		if ( ! empty( self::$ignore_no_script_flags ) && is_array( self::$ignore_no_script_flags ) ) {
 			return self::$ignore_no_script_flags;
 		}
 
@@ -463,7 +463,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	public static function get_iframe_lazyload_flags() {
 
-		if ( null !== self::$iframe_lazyload_flags && is_array( self::$iframe_lazyload_flags ) ) {
+		if ( ! empty( self::$iframe_lazyload_flags ) && is_array( self::$iframe_lazyload_flags ) ) {
 			return self::$iframe_lazyload_flags;
 		}
 
