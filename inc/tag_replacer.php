@@ -99,16 +99,16 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		$video_tag = $image_tag;
 
 		$video_tag = str_replace(
-			array(
+			[
 				'src=',
 				'<img',
 				'/>',
-			),
-			array(
+			],
+			[
 				'original-src=',
 				'<video autoplay muted loop playsinline poster="' . $link_png . '"',
 				'><source src="' . $link_mp4 . '" type="video/mp4"></video>',
-			),
+			],
 			$video_tag
 		);
 		$content = str_replace( $image_tag, $video_tag, $content );
@@ -185,7 +185,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$resize = $this->to_optml_crop( $crop );
 			}
 
-			$optml_args = array( 'width' => $width, 'height' => $height, 'resize' => $resize );
+			$optml_args = [ 'width' => $width, 'height' => $height, 'resize' => $resize ];
 			$tmp        = $this->strip_image_size_from_url( $tmp );
 			$new_url    = apply_filters( 'optml_content_url', $tmp, $optml_args );
 
@@ -194,18 +194,18 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 
 			$image_tag = str_replace(
-				array(
+				[
 					'width="' . $width . '"',
 					'width=\"' . $width . '\"',
 					'height="' . $height . '"',
 					'height=\"' . $height . '\"',
-				),
-				array(
+				],
+				[
 					'width="' . $optml_args['width'] . '"',
 					'width=\"' . $optml_args['width'] . '\"',
 					'height="' . $optml_args['height'] . '"',
 					'height=\"' . $optml_args['height'] . '\"',
-				),
+				],
 				$image_tag
 			);
 
@@ -265,7 +265,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$args['resize'] = $this->to_optml_crop( $image_sizes[ $size ]['crop'] );
 			}
 		} else {
-			$args['resize'] = apply_filters( 'optml_parse_resize_from_tag', array(), $tag );
+			$args['resize'] = apply_filters( 'optml_parse_resize_from_tag', [], $tag );
 		}
 
 		return array( $args['width'], $args['height'], $args['resize'] );

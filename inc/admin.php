@@ -435,7 +435,7 @@ class Optml_Admin {
 
 		$watchers = Optml_Lazyload_Replacer::get_background_lazyload_selectors();
 
-		$css = array();
+		$css = [];
 		foreach ( $watchers as $selector ) {
 			$css[] = 'html.optimole_has_js ' . $selector . ':not(.optml-bg-lazyloaded)';
 		}

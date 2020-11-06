@@ -32,7 +32,7 @@ class Optml_Settings {
 		'video_lazyload'       => 'disabled',
 		'retina_images'        => 'disabled',
 		'resize_smart'         => 'disabled',
-		'filters'              => array(),
+		'filters'              => [],
 		'watchers'             => '',
 		'quality'              => 'auto',
 		'wm_id'                => - 1,
@@ -98,23 +98,23 @@ class Optml_Settings {
 
 		$filters = $this->get( 'filters' );
 		if ( ! isset( $filters[ self::FILTER_TYPE_LAZYLOAD ] ) ) {
-			$filters[ self::FILTER_TYPE_LAZYLOAD ] = array();
+			$filters[ self::FILTER_TYPE_LAZYLOAD ] = [];
 		}
 		if ( ! isset( $filters[ self::FILTER_TYPE_OPTIMIZE ] ) ) {
-			$filters[ self::FILTER_TYPE_OPTIMIZE ] = array();
+			$filters[ self::FILTER_TYPE_OPTIMIZE ] = [];
 		}
 		foreach ( $filters as $filter_key => $filter_rules ) {
 			if ( ! isset( $filter_rules[ self::FILTER_EXT ] ) ) {
-				$filters[ $filter_key ][ self::FILTER_EXT ] = array();
+				$filters[ $filter_key ][ self::FILTER_EXT ] = [];
 			}
 			if ( ! isset( $filter_rules[ self::FILTER_FILENAME ] ) ) {
-				$filters[ $filter_key ][ self::FILTER_FILENAME ] = array();
+				$filters[ $filter_key ][ self::FILTER_FILENAME ] = [];
 			}
 			if ( ! isset( $filter_rules[ self::FILTER_URL ] ) ) {
-				$filters[ $filter_key ][ self::FILTER_URL ] = array();
+				$filters[ $filter_key ][ self::FILTER_URL ] = [];
 			}
 			if ( ! isset( $filter_rules[ self::FILTER_CLASS ] ) ) {
-				$filters[ $filter_key ][ self::FILTER_CLASS ] = array();
+				$filters[ $filter_key ][ self::FILTER_CLASS ] = [];
 			}
 		}
 

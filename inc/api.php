@@ -68,7 +68,7 @@ final class Optml_Api {
 	 *
 	 * @return array|boolean Api data.
 	 */
-	private function request( $path, $method = 'GET', $params = array(), $extra_headers = array() ) {
+	private function request( $path, $method = 'GET', $params = array(), $extra_headers = [] ) {
 
 		// Grab the url to which we'll be making the request.
 		$url     = $this->api_root;
@@ -217,9 +217,9 @@ final class Optml_Api {
 	 */
 	public function add_watermark( $file ) {
 
-		$headers = array(
+		$headers = [
 			'Content-Disposition' => 'attachment; filename=' . $file['file']['name'],
-		);
+		];
 
 		$response = $this->request( 'wp/v2/media', 'POST', file_get_contents( $file['file']['tmp_name'] ), $headers );
 

@@ -146,7 +146,7 @@ abstract class Optml_App_Replacer {
 			return self::$possible_src_attributes;
 		}
 
-		self::$possible_src_attributes = apply_filters( 'optml_possible_src_attributes', array() );
+		self::$possible_src_attributes = apply_filters( 'optml_possible_src_attributes', [] );
 
 		return self::$possible_src_attributes;
 	}
@@ -162,9 +162,9 @@ abstract class Optml_App_Replacer {
 			return self::$ignore_lazyload_strings;
 		}
 
-		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', array( 'skip-lazy', 'data-skip-lazy' ) );
+		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', [ 'skip-lazy', 'data-skip-lazy' ] );
 
-		return array_merge( self::$possible_src_attributes, array( '<noscript' ) );
+		return array_merge( self::$possible_src_attributes, [ '<noscript' ] );
 	}
 	/**
 	 * Returns possible tag replacement flags.
@@ -177,7 +177,7 @@ abstract class Optml_App_Replacer {
 			return self::$ignore_tag_strings;
 		}
 
-		self::$ignore_tag_strings = apply_filters( 'optml_skip_optimizations_css_classes', array( 'skip-optimization' ) );
+		self::$ignore_tag_strings = apply_filters( 'optml_skip_optimizations_css_classes', [ 'skip-optimization' ] );
 
 		return  self::$ignore_tag_strings;
 	}
@@ -192,7 +192,7 @@ abstract class Optml_App_Replacer {
 			return self::$ignore_data_opt_attribute;
 		}
 
-		self::$ignore_data_opt_attribute = apply_filters( 'optml_ignore_data_opt_flag', array() );
+		self::$ignore_data_opt_attribute = apply_filters( 'optml_ignore_data_opt_flag', [] );
 
 		return self::$ignore_data_opt_attribute;
 	}
@@ -212,10 +212,10 @@ abstract class Optml_App_Replacer {
 				continue;
 			}
 			self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] =
-				isset( $size_data['enlarge'] ) ? array(
+				isset( $size_data['enlarge'] ) ? [
 					'crop'    => $size_data['crop'],
 					'enlarge' => true,
-				) : $size_data['crop'];
+				] : $size_data['crop'];
 		}
 
 		return self::$size_to_crop;
@@ -232,12 +232,12 @@ abstract class Optml_App_Replacer {
 		if ( empty( $width ) || empty( $height ) ) {
 			return;
 		}
-		self::$custom_size_buffer[ 'cmole' . $width . $height ] = array(
+		self::$custom_size_buffer[ 'cmole' . $width . $height ] = [
 			'width'   => (int) $width,
 			'height'  => (int) $height,
 			'enlarge' => true,
 			'crop'    => $crop,
-		);
+		];
 
 	}
 
@@ -395,10 +395,10 @@ abstract class Optml_App_Replacer {
 		$this->is_css_minify_on = ( $this->settings->get( 'css_minify' ) === 'enabled' ) ? 1 : 0;
 		$this->is_js_minify_on  = ( $this->settings->get( 'js_minify' ) === 'enabled' ) ? 1 : 0;
 
-		add_filter( 'optml_strip_image_size_from_url', array( $this, 'strip_image_size_from_url' ), 10, 1 );
+		add_filter( 'optml_strip_image_size_from_url', [ $this, 'strip_image_size_from_url' ], 10, 1 );
 		add_filter(
 			'image_resize_dimensions',
-			array( __CLASS__, 'listen_to_sizes' ),
+			[ __CLASS__, 'listen_to_sizes' ],
 			999999,
 			6
 		);
@@ -440,7 +440,7 @@ abstract class Optml_App_Replacer {
 	 */
 	protected function extract_domain_from_urls( $urls = array() ) {
 		if ( ! is_array( $urls ) ) {
-			return array();
+			return [];
 		}
 
 		$urls = array_map(

@@ -22,7 +22,7 @@ class Optml_w3_total_cache extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'w3tc_minify_processed', array( Optml_Main::instance()->manager, 'replace_content' ), 10, 1 );
+		add_filter( 'w3tc_minify_processed', [ Optml_Main::instance()->manager, 'replace_content' ], 10, 1 );
 	}
 }
 

@@ -23,10 +23,10 @@ class Optml_metaslider extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'optml_ignore_noscript_on', array( $this, 'add_noscript_flags' ), PHP_INT_MAX, 1 );
-		add_filter( 'optml_possible_lazyload_flags', array( $this, 'add_ignore_lazyload' ), PHP_INT_MAX, 1 );
-		add_filter( 'optml_watcher_lz_classes', array( $this, 'add_watcher_class' ), 10, 1 );
-		add_filter( 'metaslider_coin_slider_image_attributes', array( $this, 'setup_listner' ), PHP_INT_MAX, 1 );
+		add_filter( 'optml_ignore_noscript_on', [ $this, 'add_noscript_flags' ], PHP_INT_MAX, 1 );
+		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_ignore_lazyload' ], PHP_INT_MAX, 1 );
+		add_filter( 'optml_watcher_lz_classes', [ $this, 'add_watcher_class' ], 10, 1 );
+		add_filter( 'metaslider_coin_slider_image_attributes', [ $this, 'setup_listner' ], PHP_INT_MAX, 1 );
 		add_filter(
 			'optml_lazyload_bg_selectors',
 			function ( $all_watchers ) {

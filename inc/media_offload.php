@@ -491,7 +491,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return array
 	 */
 	private function set_api_call_options( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto', $file_size = 0 ) {
-		$body = array(
+		$body = [
 			'secret' => Optml_Config::$secret,
 			'userKey' => Optml_Config::$key,
 			'originalUrl' => $original_url,
@@ -502,20 +502,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			'width' => $width,
 			'height' => $height,
 			'originalFileSize' => $file_size,
-		);
+		];
 		$body = wp_json_encode( $body );
 
-		$options = array(
+		$options = [
 			'body'        => $body,
-			'headers'     => array(
+			'headers'     => [
 				'Content-Type' => 'application/json',
-			),
+			],
 			'timeout'     => 60,
 			'blocking'    => true,
 			'httpversion' => '1.0',
 			'sslverify'   => false,
 			'data_format' => 'body',
-		);
+		];
 		return $options;
 	}
 	/**
@@ -567,7 +567,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		$file = $meta['file'];
 		if ( self::is_uploaded_image( $file ) ) {
-			$optimized_url = ( new Optml_Image( $url, array('width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()), $this->settings->get( 'cache_buster' ) ) )->get_url();
+			$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
 			return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $attachment_id . $file, $optimized_url );
 		}
 		return $url;
@@ -604,7 +604,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $image;
 		}
 		$url = self::get_original_url( $attachment_id );
-		$optimized_url = ( new Optml_Image( $url, array('width' => $data['width'], 'height' => $data['height'], 'resize' => $resize, 'quality' => $this->settings->get_numeric_quality()), $this->settings->get( 'cache_buster' ) ) )->get_url();
+		$optimized_url = ( new Optml_Image( $url, ['width' => $data['width'], 'height' => $data['height'], 'resize' => $resize, 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
 		$optimized_url = str_replace( $url, $id_filename[1], $optimized_url );
 		$image = array(
 			$optimized_url,
