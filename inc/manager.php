@@ -76,6 +76,7 @@ final class Optml_Manager {
 		'w3_total_cache',
 		'translate_press',
 		'give_wp',
+		'smart_search_woocommerce',
 	);
 	/**
 	 * The current state of the buffer.
@@ -122,6 +123,10 @@ final class Optml_Manager {
 			 * @var Optml_compatibility $compatibility Class to register.
 			 */
 			if ( $compatibility->should_load() ) {
+				if ( $compatibility->should_load_early() ) {
+					$compatibility->register();
+					continue;
+				}
 				self::$loaded_compatibilities[ $compatibility_class ] = $compatibility;
 			}
 		}
