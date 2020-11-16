@@ -28,6 +28,8 @@ class Optml_Settings {
 		'native_lazyload'      => 'bool',
 		'video_lazyload'       => 'bool',
 		'bg_replacer'          => 'bool',
+		'scale'                => 'bool',
+		'cdn'                  => 'bool',
 	];
 	/**
 	 * Default settings schema.
