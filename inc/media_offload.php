@@ -29,9 +29,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	private static $return_original_url = false;
 	/**
+	 * Enqueue script for generating cloud media tab.
+	 */
+	public function add_optimole_cloud_script() {
+		wp_enqueue_script( 'optimole_media', OPTML_URL . 'assets/js/optimole_media.js' );
+	}
+	/**
 	 * Optml_Media_Offload constructor.
 	 */
 	public function __construct() {
+		add_action( 'admin_enqueue_scripts', array( $this, 'add_optimole_cloud_script' ) );
 		$this->settings = new Optml_Settings();
 		if ( $this->settings->get( 'offload_media' ) === 'enabled' ) {
 			parent::init();
