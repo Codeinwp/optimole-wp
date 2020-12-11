@@ -33,11 +33,49 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function add_optimole_cloud_script() {
 		wp_enqueue_script( 'optimole_media', OPTML_URL . 'assets/js/optimole_media.js' );
+		$optimole_cloud = array(
+			'ajaxurl' => admin_url( 'admin-ajax.php' ),
+			'nonce'          => wp_create_nonce( 'wp_rest' ),
+			'l10n'    => array(
+				'insert_image'     => esc_html__( 'Insert image', 'optimole-wp' ),
+			),
+		);
+		wp_localize_script( 'optimole_media', 'optimole_cloud', $optimole_cloud );
+	}
+	public function image_api() {
+		echo '{ "urls" : [ "http://55a5c505e3db.ngrok.io/wp-content/uploads/2020/12/Screenshot-from-2020-03-12-17-55-26-300x169.png",
+		 "https://placekitten.com/600/600", "https://placekitten.com/500/500", "https://placekitten.com/700/700", "https://placekitten.com/400/400"] }';
+		wp_die();
+	}
+	public function render_cloud_images() {
+		?>
+		<script type="text/html" id="tmpl-my-template">
+    <ul tabIndex="-1" class="attachments ui-sortable ui-sortable-disabled">
+	  <# if ( data.urls.length ) {
+		  for (let url of data.urls) {#>
+    <li tabIndex="0" role="checkbox" aria-label="" aria-checked="false" class="attachment save-ready optml_image">
+    <div class="attachment-preview js--select-attachment type-image subtype-jpeg landscape">
+		  <div class="thumbnail">
+			<div class="centered">
+			  <img src=<# print(url) #> draggable="false">
+			</div>
+		  </div>
+		</div>
+    <button type="button" class="check" tabIndex="-1"><span class="media-modal-icon"></span><span class="screen-reader-text">Deselect</span></button>
+	  </li>
+	  <# } #>
+	  <# } #>
+		</ul>
+		</script>
+  
+		<?php
 	}
 	/**
 	 * Optml_Media_Offload constructor.
 	 */
 	public function __construct() {
+		add_action( 'admin_footer', array($this, 'render_cloud_images') );
+		add_action( 'wp_ajax_get_optimole_cloud_content', array($this, 'image_api') );
 		add_action( 'admin_enqueue_scripts', array( $this, 'add_optimole_cloud_script' ) );
 		$this->settings = new Optml_Settings();
 		if ( $this->settings->get( 'offload_media' ) === 'enabled' ) {
