@@ -12,6 +12,26 @@ class Optml_Settings {
 	const FILTER_TYPE_LAZYLOAD = 'lazyload';
 	const FILTER_TYPE_OPTIMIZE = 'optimize';
 	/**
+	 * Holds an array of possible settings to alter via wp cli or wp-config constants.
+	 *
+	 * @var array Whitelisted settings.
+	 */
+	public static $whitelisted_settings = [
+		'image_replacer'       => 'bool',
+		'quality'              => 'int',
+		'lazyload'             => 'bool',
+		'lazyload_placeholder' => 'bool',
+		'network_optimization' => 'bool',
+		'img_to_video'         => 'bool',
+		'resize_smart'         => 'bool',
+		'retina_images'        => 'bool',
+		'native_lazyload'      => 'bool',
+		'video_lazyload'       => 'bool',
+		'bg_replacer'          => 'bool',
+		'scale'                => 'bool',
+		'cdn'                  => 'bool',
+	];
+	/**
 	 * Default settings schema.
 	 *
 	 * @var array Settings schema.
@@ -74,6 +94,31 @@ class Optml_Settings {
 			switch_to_blog( constant( 'OPTIML_MU_SITE_ID' ) );
 			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 			restore_current_blog();
+		}
+
+		if ( defined( 'OPTIML_USE_ENV' ) && constant( 'OPTIML_USE_ENV' ) && $this->to_boolean( constant( 'OPTIML_USE_ENV' ) ) ) {
+			foreach ( self::$whitelisted_settings as $key => $type ) {
+				$env_key = 'OPTIML_' . strtoupper( $key );
+				if ( defined( $env_key ) && constant( $env_key ) ) {
+					$value = constant( $env_key );
+					if ( $type === 'bool' && ( $value === '' || ! in_array(
+						$value,
+						array(
+							'on',
+							'off',
+						),
+						true
+					) ) ) {
+						continue;
+					}
+
+					if ( $type === 'int' && ( $value === '' || (int) $value > 100 || (int) $value < 0 ) ) {
+						continue;
+					}
+					$sanitized_value = ( $type === 'bool' ) ? ( $value === 'on' ? 'enabled' : 'disabled' ) : (int) $value;
+					$this->options[ $key ] = $sanitized_value;
+				}
+			}
 		}
 	}
 
