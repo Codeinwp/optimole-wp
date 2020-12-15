@@ -76,6 +76,7 @@ final class Optml_Manager {
 		'w3_total_cache',
 		'translate_press',
 		'give_wp',
+		'smart_search_woocommerce',
 	];
 	/**
 	 * The current state of the buffer.
@@ -122,6 +123,10 @@ final class Optml_Manager {
 			 * @var Optml_compatibility $compatibility Class to register.
 			 */
 			if ( $compatibility->should_load() ) {
+				if ( $compatibility->should_load_early() ) {
+					$compatibility->register();
+					continue;
+				}
 				self::$loaded_compatibilities[ $compatibility_class ] = $compatibility;
 			}
 		}
@@ -316,6 +321,13 @@ final class Optml_Manager {
 
 		if ( $this->settings->get( 'video_lazyload' ) === 'enabled' ) {
 			$html = apply_filters( 'optml_video_replace', $html );
+			if ( Optml_Lazyload_Replacer::found_iframe() === true ) {
+				if ( strpos( $html, Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT ) !== false ) {
+					$html = str_replace( Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $html );
+				} else {
+					$html = preg_replace( '/<head>(.*)<\/head>/ism', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $html );
+				}
+			}
 		}
 
 		$html = $this->process_urls_from_content( $html );
@@ -488,7 +500,7 @@ final class Optml_Manager {
 		if ( $this->settings->use_cdn() && ! self::should_ignore_image_tags() ) {
 			$extensions = array_merge( $extensions, array_keys( Optml_Config::$assets_extensions ) );
 		}
-		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';
+		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:http|>|%3F|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';
 		preg_match_all(
 			$regex,
 			$content,
