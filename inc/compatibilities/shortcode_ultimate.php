@@ -70,9 +70,9 @@ class Optml_shortcode_ultimate extends Optml_compatibility {
 	 * @return array New default cropping.
 	 */
 	public function change_default_crop() {
-		return array(
+		return [
 			'type'    => Optml_Resize::RESIZE_FILL,
 			'gravity' => Optml_Resize::GRAVITY_CENTER,
-		);
+		];
 	}
 }

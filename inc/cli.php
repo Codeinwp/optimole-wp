@@ -27,9 +27,9 @@ class Optml_Cli {
 	 *
 	 * @var array List of CLI controllers.
 	 */
-	private $commands = array(
+	private $commands = [
 		'setting',
-	);
+	];
 
 	/**
 	 * Optml_Cli constructor.

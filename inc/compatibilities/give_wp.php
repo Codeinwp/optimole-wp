@@ -50,7 +50,7 @@ class Optml_give_wp extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	public function add_ignore_lazyload_iframe( $flags = array() ) {
+	public function add_ignore_lazyload_iframe( $flags = [] ) {
 		$flags[] = 'give-embed-form';
 		return $flags;
 	}

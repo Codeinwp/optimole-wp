@@ -34,7 +34,7 @@ class Optml_jet_elements extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	public function add_ignore_lazyload( $flags = array() ) {
+	public function add_ignore_lazyload( $flags = [] ) {
 		$flags[] = 'sp-image';
 
 		return $flags;

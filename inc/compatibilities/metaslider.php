@@ -57,7 +57,7 @@ class Optml_metaslider extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	public function add_ignore_lazyload( $flags = array() ) {
+	public function add_ignore_lazyload( $flags = [] ) {
 		$flags[] = 'no-optml-lazyload';
 
 		return $flags;
@@ -84,7 +84,7 @@ class Optml_metaslider extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	public function add_noscript_flags( $flags = array() ) {
+	public function add_noscript_flags( $flags = [] ) {
 		$flags[] = 'slide-';
 
 		return $flags;

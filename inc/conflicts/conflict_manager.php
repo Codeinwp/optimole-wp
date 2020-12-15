@@ -19,7 +19,7 @@ class Optml_Conflict_Manager {
 	 * @access  protected
 	 * @var array $watched_conflicts
 	 */
-	protected $watched_conflicts = array();
+	protected $watched_conflicts = [];
 	/**
 	 * List of conflicts dismissed by user.
 	 *
@@ -27,7 +27,7 @@ class Optml_Conflict_Manager {
 	 * @access  protected
 	 * @var array $dismissed_conflicts
 	 */
-	protected $dismissed_conflicts = array();
+	protected $dismissed_conflicts = [];
 
 
 
@@ -38,8 +38,8 @@ class Optml_Conflict_Manager {
 	 * @access  public
 	 * @param array $register_conflicts A list of conflicts to be registered.
 	 */
-	public function __construct( $register_conflicts = array() ) {
-		$this->dismissed_conflicts = get_option( 'optml_dismissed_conflicts', array() );
+	public function __construct( $register_conflicts = [] ) {
+		$this->dismissed_conflicts = get_option( 'optml_dismissed_conflicts', [] );
 		if ( ! empty( $register_conflicts ) ) {
 			foreach ( $register_conflicts as $conflict_to_watch ) {
 				$this->watch( $conflict_to_watch );
@@ -82,7 +82,7 @@ class Optml_Conflict_Manager {
 	 * @return array
 	 */
 	public function get_conflict_list() {
-		$conflict_list = array();
+		$conflict_list = [];
 		if ( empty( $this->watched_conflicts ) ) {
 			return $conflict_list;
 		}
@@ -108,11 +108,11 @@ class Optml_Conflict_Manager {
 				if ( ! isset( $item2['severity'] ) ) {
 					return -1;
 				}
-				$severity_map = array(
+				$severity_map = [
 					'high' => 0,
 					'medium' => 1,
 					'low' => 1,
-				);
+				];
 
 				if ( $severity_map[ $item1['severity'] ] === $severity_map[ $item2['severity'] ] ) {
 					if ( ! isset( $item1['priority'] ) ) {

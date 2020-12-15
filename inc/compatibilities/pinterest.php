@@ -22,7 +22,7 @@ class Optml_pinterest extends Optml_compatibility {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
 		$load = false;
-		$selectors_array = array();
+		$selectors_array = [];
 		if ( $this->isShareaholic() ) {
 			$selectors_array[] = 'li.shareaholic-share-button[data-service=\"pinterest\"]';
 			$load = true;
