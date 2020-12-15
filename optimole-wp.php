@@ -35,7 +35,15 @@ function optml_autoload( $class ) {
 		}
 	}
 }
-
+/**
+ * Deletes optimole fields from database
+ */
+function cleanup_database() {
+	$option_name = array('optml-version', 'optml_dismissed_conflicts', 'optml_settings', 'optml_notice_optin');
+	foreach ( $option_name as $index => $option ) {
+		delete_option( $option );
+	}
+}
 /**
  * Deactivates optimole plugin.
  *
@@ -45,6 +53,7 @@ function optml_autoload( $class ) {
  */
 function optml_deactivate() {
 	if ( is_plugin_active( 'optimole-wp/optimole-wp.php' ) ) {
+		cleanup_database();
 		deactivate_plugins( 'optimole-wp/optimole-wp.php' );
 	}
 }
@@ -59,7 +68,16 @@ function optml_php_notice() {
 	</div>
 	<?php
 }
-
+/**
+ * Cleanup database on deactivation.
+ *
+ * @param boolean $should_cleanup Value from sdk.
+ */
+function deactivate_cleanup( $should_cleanup ) {
+	if ( $should_cleanup === true ) {
+		optml_deactivate();
+	}
+}
 /**
  * Initiate the Optimole plugin.
  *
@@ -72,6 +90,7 @@ function optml() {
 
 		return null;
 	}
+	add_action( 'optimole_wp_deactivate_cleanup', 'deactivate_cleanup' );
 	define( 'OPTML_URL', plugin_dir_url( __FILE__ ) );
 	if ( ! defined( 'OPTML_JS_CDN' ) ) {
 		define( 'OPTML_JS_CDN', 'd5jmkjjpb7yfg.cloudfront.net' );
