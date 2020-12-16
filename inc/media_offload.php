@@ -33,11 +33,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function add_optimole_cloud_script() {
 		wp_enqueue_script( 'optimole_media', OPTML_URL . 'assets/js/optimole_media.js' );
+	  global $post;
 		$optimole_cloud = array(
 			'ajaxurl' => admin_url( 'admin-ajax.php' ),
 			'nonce'          => wp_create_nonce( 'wp_rest' ),
+			'post_id'  => $post->ID,
 			'l10n'    => array(
-				'insert_image'     => esc_html__( 'Insert image', 'optimole-wp' ),
+				'add_image'     => esc_html__( 'Uploading image', 'optimole-wp' ),
 			),
 		);
 		wp_localize_script( 'optimole_media', 'optimole_cloud', $optimole_cloud );
@@ -47,21 +49,29 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		 "https://placekitten.com/600/600", "https://placekitten.com/500/500", "https://placekitten.com/700/700", "https://placekitten.com/400/400"] }';
 		wp_die();
 	}
+	public function add_image_to_page() {
+	  error_log($_POST['url'],3,'/var/www/html/optimole.log');
+	  error_log($_POST['post_id'],3,'/var/www/html/optimole.log');
+	  //using this data I try to add the image instead of the block
+   
+		echo 'success';
+	  wp_die();
+	}
 	public function render_cloud_images() {
 		?>
 		<script type="text/html" id="tmpl-my-template">
-    <ul tabIndex="-1" class="attachments ui-sortable ui-sortable-disabled">
+	<ul tabIndex="-1" class="attachments ui-sortable ui-sortable-disabled">
 	  <# if ( data.urls.length ) {
 		  for (let url of data.urls) {#>
-    <li tabIndex="0" role="checkbox" aria-label="" aria-checked="false" class="attachment save-ready optml_image">
-    <div class="attachment-preview js--select-attachment type-image subtype-jpeg landscape">
+	<li tabIndex="0" role="checkbox" aria-label="" aria-checked="false" class="attachment save-ready optml_image" data-url=<# print(url) #> >
+	<div class="attachment-preview js--select-attachment type-image subtype-jpeg landscape">
 		  <div class="thumbnail">
 			<div class="centered">
 			  <img src=<# print(url) #> draggable="false">
 			</div>
 		  </div>
 		</div>
-    <button type="button" class="check" tabIndex="-1"><span class="media-modal-icon"></span><span class="screen-reader-text">Deselect</span></button>
+	<button type="button" class="check" tabIndex="-1"><span class="media-modal-icon"></span><span class="screen-reader-text">Deselect</span></button>
 	  </li>
 	  <# } #>
 	  <# } #>
@@ -76,6 +86,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public function __construct() {
 		add_action( 'admin_footer', array($this, 'render_cloud_images') );
 		add_action( 'wp_ajax_get_optimole_cloud_content', array($this, 'image_api') );
+		add_action( 'wp_ajax_add_image_to_page', array($this, 'add_image_to_page') );
 		add_action( 'admin_enqueue_scripts', array( $this, 'add_optimole_cloud_script' ) );
 		$this->settings = new Optml_Settings();
 		if ( $this->settings->get( 'offload_media' ) === 'enabled' ) {
