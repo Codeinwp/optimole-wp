@@ -155,7 +155,7 @@ final class Optml_Manager {
 			return false; // @codeCoverageIgnore
 		}
 
-		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
+		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
@@ -167,13 +167,13 @@ final class Optml_Manager {
 		if ( array_key_exists( 'et_fb', $_GET ) && ! empty( $_GET['et_fb'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) {
+		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] == 'true' || $_GET['trp-edit-translation'] == 'preview' ) ) {
+		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] == 'true' || $_GET['trp-edit-translation'] == 'preview' ) ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
+		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'fb-edit', $_GET ) && ! empty( $_GET['fb-edit'] ) ) {
@@ -184,7 +184,7 @@ final class Optml_Manager {
 		 */
 		if (
 			isset( $_SERVER['REQUEST_METHOD'] ) &&
-			$_SERVER['REQUEST_METHOD'] == 'POST' &&
+			$_SERVER['REQUEST_METHOD'] == 'POST' && // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			is_user_logged_in()
 			&& ( ! isset( $_GET['quality'] ) || ! current_user_can( 'manage_options' ) )
 		) {
