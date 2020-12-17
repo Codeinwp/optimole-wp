@@ -23,6 +23,7 @@
         <exclude name="Generic.NamingConventions.UpperCaseConstantName"/>
         <exclude name="Generic.Formatting.MultipleStatementAlignment.IncorrectWarning"/>
         <exclude name="Generic.Formatting.MultipleStatementAlignment.NotSameWarning"/>
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found"/>
         <exclude name="Squiz.Commenting.FunctionComment.MissingParamTag"/>
         <exclude name="Squiz.Commenting.InlineComment.InvalidEndChar"/>
         <exclude name="Squiz.Commenting.InlineComment.NotCapital"/>
@@ -44,8 +45,11 @@
         <exclude name="WordPress.PHP.YodaConditions.NotYoda"/>
         <exclude name="WordPress.WhiteSpace.PrecisionAlignment.Found"/>
         <exclude name="Generic.Files.LineEndings"/>
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax.Found"/>
         <exclude name="PEAR.NamingConventions.ValidClassName.Invalid"/>
     </rule>
+    <!-- Disallow long array syntax -->
+    <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
     <rule ref="WordPress-Docs">
 
     </rule>

@@ -205,6 +205,18 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertEquals( 3, substr_count( $replaced_content, '/f:js/' ) );
 		$this->assertEquals( 3, substr_count( $replaced_content, '/m:0/' ) );
 		$this->assertEquals( 3, substr_count( $replaced_content, '/m:1/' ) );
+		$edge_case_urls = '
+						https://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js
+						http://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js
+						http://example.org/wp-includes/js/hoverintent-js.min.png-random.css
+						http://example.org/wp-includes/js/assets/whatever.jpg.png.css.js
+						';
+		$replaced_content = Optml_Manager::instance()->replace_content( $edge_case_urls );
+
+		$this->assertContains( 'https://test123.i.optimole.com/F7bDy7k-qJfPUR5J/f:js/q:auto/m:0/https://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
+		$this->assertContains( 'https://test123.i.optimole.com/F7bDy7k-fXTTyV95/f:js/q:auto/m:0/http://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
+		$this->assertContains( 'https://test123.i.optimole.com/F7bDy7k-DQ9xsda6/f:css/q:auto/m:1/http://example.org/wp-includes/js/hoverintent-js.min.png-random.css', $replaced_content );
+		$this->assertContains( 'https://test123.i.optimole.com/F7bDy7k-gtTzWlC5/f:js/q:auto/m:0/http://example.org/wp-includes/js/assets/whatever.jpg.png.css.js', $replaced_content );
 
 		$settings = new Optml_Settings();
 		$settings->update( 'css_minify', 'disabled' );

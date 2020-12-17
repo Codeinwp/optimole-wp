@@ -12,11 +12,31 @@ class Optml_Settings {
 	const FILTER_TYPE_LAZYLOAD = 'lazyload';
 	const FILTER_TYPE_OPTIMIZE = 'optimize';
 	/**
+	 * Holds an array of possible settings to alter via wp cli or wp-config constants.
+	 *
+	 * @var array Whitelisted settings.
+	 */
+	public static $whitelisted_settings = [
+		'image_replacer'       => 'bool',
+		'quality'              => 'int',
+		'lazyload'             => 'bool',
+		'lazyload_placeholder' => 'bool',
+		'network_optimization' => 'bool',
+		'img_to_video'         => 'bool',
+		'resize_smart'         => 'bool',
+		'retina_images'        => 'bool',
+		'native_lazyload'      => 'bool',
+		'video_lazyload'       => 'bool',
+		'bg_replacer'          => 'bool',
+		'scale'                => 'bool',
+		'cdn'                  => 'bool',
+	];
+	/**
 	 * Default settings schema.
 	 *
 	 * @var array Settings schema.
 	 */
-	private $default_schema = array(
+	private $default_schema = [
 		'api_key'              => '',
 		'service_data'         => '',
 		'cache_buster'         => '',
@@ -48,7 +68,7 @@ class Optml_Settings {
 		'report_script'        => 'disabled',
 		'native_lazyload'      => 'disabled',
 
-	);
+	];
 	/**
 	 * Option key.
 	 *
@@ -74,6 +94,31 @@ class Optml_Settings {
 			switch_to_blog( constant( 'OPTIML_MU_SITE_ID' ) );
 			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 			restore_current_blog();
+		}
+
+		if ( defined( 'OPTIML_USE_ENV' ) && constant( 'OPTIML_USE_ENV' ) && $this->to_boolean( constant( 'OPTIML_USE_ENV' ) ) ) {
+			foreach ( self::$whitelisted_settings as $key => $type ) {
+				$env_key = 'OPTIML_' . strtoupper( $key );
+				if ( defined( $env_key ) && constant( $env_key ) ) {
+					$value = constant( $env_key );
+					if ( $type === 'bool' && ( $value === '' || ! in_array(
+						$value,
+						[
+							'on',
+							'off',
+						],
+						true
+					) ) ) {
+						continue;
+					}
+
+					if ( $type === 'int' && ( $value === '' || (int) $value > 100 || (int) $value < 0 ) ) {
+						continue;
+					}
+					$sanitized_value = ( $type === 'bool' ) ? ( $value === 'on' ? 'enabled' : 'disabled' ) : (int) $value;
+					$this->options[ $key ] = $sanitized_value;
+				}
+			}
 		}
 	}
 
@@ -128,7 +173,7 @@ class Optml_Settings {
 	 * @return array
 	 */
 	public function parse_settings( $new_settings ) {
-		$sanitized = array();
+		$sanitized = [];
 		foreach ( $new_settings as $key => $value ) {
 			switch ( $key ) {
 				case 'admin_bar_item':
@@ -147,7 +192,7 @@ class Optml_Settings {
 				case 'css_minify':
 				case 'js_minify':
 				case 'native_lazyload':
-					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
+					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
 				case 'max_width':
 				case 'max_height':
@@ -189,7 +234,7 @@ class Optml_Settings {
 				case 'wm_position':
 					$sanitized_value = $this->to_map_values(
 						$value,
-						array(
+						[
 							Optml_Resize::GRAVITY_NORTH,
 							Optml_Resize::GRAVITY_NORTH_EAST,
 							Optml_Resize::GRAVITY_NORTH_WEST,
@@ -199,7 +244,7 @@ class Optml_Settings {
 							Optml_Resize::GRAVITY_SOUTH_EAST,
 							Optml_Resize::GRAVITY_SOUTH,
 							Optml_Resize::GRAVITY_SOUTH_WEST,
-						),
+						],
 						Optml_Resize::GRAVITY_SOUTH_EAST
 					);
 					break;
@@ -294,7 +339,7 @@ class Optml_Settings {
 	 */
 	public function get_site_settings() {
 
-		return array(
+		return [
 			'quality'              => $this->get_quality(),
 			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
 			'lazyload'             => $this->get( 'lazyload' ),
@@ -317,7 +362,7 @@ class Optml_Settings {
 			'js_minify'            => $this->get( 'js_minify' ),
 			'native_lazyload'      => $this->get( 'native_lazyload' ),
 			'report_script'        => $this->get( 'report_script' ),
-		);
+		];
 	}
 
 	/**
@@ -348,14 +393,14 @@ class Optml_Settings {
 	 * @return array
 	 */
 	public function get_watermark() {
-		return array(
+		return [
 			'id'       => $this->get( 'wm_id' ),
 			'opacity'  => $this->get( 'wm_opacity' ),
 			'position' => $this->get( 'wm_position' ),
 			'x_offset' => $this->get( 'wm_x' ),
 			'y_offset' => $this->get( 'wm_y' ),
 			'scale'    => $this->get( 'wm_scale' ),
-		);
+		];
 	}
 
 	/**

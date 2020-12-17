@@ -34,7 +34,7 @@ class Optml_foogallery extends Optml_compatibility {
 	 *
 	 * @return array New src attributes.
 	 */
-	function add_lazysrc( $attributes = array() ) {
+	function add_lazysrc( $attributes = [] ) {
 
 		$attributes[] = 'data-src-fg';
 

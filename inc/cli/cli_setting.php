@@ -12,18 +12,6 @@ if ( ! class_exists( 'WP_CLI' ) ) {
  */
 class Optml_Cli_Setting extends WP_CLI_Command {
 	/**
-	 * Holds an array of possible settings to alter.
-	 *
-	 * @var array Whitelisted settings.
-	 */
-	public static $whitelisted_settings = [
-		'image_replacer'       => 'bool',
-		'quality'              => 'int',
-		'lazyload'             => 'bool',
-		'lazyload_placeholder' => 'bool',
-	];
-
-	/**
 	 * Connect to service
 	 * <apikey>
 	 * : The api key to use.
@@ -80,29 +68,30 @@ class Optml_Cli_Setting extends WP_CLI_Command {
 	 * : The setting value to update.
 	 */
 	public function update( $args ) {
-		if ( empty( $args ) || ! isset( self::$whitelisted_settings[ $args[0] ] ) ) {
-			\WP_CLI::error( sprintf( 'Setting must be one of: %s', implode( ',', array_keys( self::$whitelisted_settings ) ) ) );
+		if ( empty( $args ) || ! isset( Optml_Settings::$whitelisted_settings[ $args[0] ] ) ) {
+			\WP_CLI::error( sprintf( 'Setting must be one of: %s', implode( ',', array_keys( Optml_Settings::$whitelisted_settings ) ) ) );
 
 			return false;
 		}
 
-		if ( self::$whitelisted_settings[ $args[0] ] === 'bool' && ( empty( $args ) || ! isset( $args[1] ) || $args[1] === '' || ! in_array(
+		if ( Optml_Settings::$whitelisted_settings[ $args[0] ] === 'bool' && ( empty( $args ) || ! isset( $args[1] ) || $args[1] === '' || ! in_array(
 			$args[1],
-			array(
+			[
 				'on',
 				'off',
-			)
+			],
+			true
 		) ) ) {
 			return \WP_CLI::error( 'No argument passed. Required one argument ( on/off )' );
 		}
 
-		if ( self::$whitelisted_settings[ $args[0] ] === 'int' && ( empty( $args ) || ! isset( $args[1] ) || $args[1] === '' || (int) $args[1] > 100 || (int) $args[1] < 0 ) ) {
+		if ( Optml_Settings::$whitelisted_settings[ $args[0] ] === 'int' && ( empty( $args ) || ! isset( $args[1] ) || $args[1] === '' || (int) $args[1] > 100 || (int) $args[1] < 0 ) ) {
 			return \WP_CLI::error( 'Invalid argument, must be between 0 and 100.' );
 		}
 
-		$value = ( self::$whitelisted_settings[ $args[0] ] === 'bool' ) ? ( $args[1] === 'on' ? 'enabled' : 'disabled' ) : (int) $args[1];
+		$value = ( Optml_Settings::$whitelisted_settings[ $args[0] ] === 'bool' ) ? ( $args[1] === 'on' ? 'enabled' : 'disabled' ) : (int) $args[1];
 
-		$new_value = $this->update_setting( array( $args[0] => $value ) );
+		$new_value = $this->update_setting( [ $args[0] => $value ] );
 		\WP_CLI::success( sprintf( 'Setting %s updated to: %s', $args[0], $new_value[ $args[0] ] ) );
 	}
 
@@ -113,8 +102,8 @@ class Optml_Cli_Setting extends WP_CLI_Command {
 	 * : The setting name to check.
 	 */
 	public function get( $args ) {
-		if ( empty( $args ) || ! isset( self::$whitelisted_settings[ $args[0] ] ) ) {
-			\WP_CLI::error( sprintf( 'Setting must be one of: %s', implode( ',', array_keys( self::$whitelisted_settings ) ) ) );
+		if ( empty( $args ) || ! isset( Optml_Settings::$whitelisted_settings[ $args[0] ] ) ) {
+			\WP_CLI::error( sprintf( 'Setting must be one of: %s', implode( ',', array_keys( Optml_Settings::$whitelisted_settings ) ) ) );
 
 			return false;
 		}

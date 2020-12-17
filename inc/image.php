@@ -49,7 +49,7 @@ class Optml_Image extends Optml_Resource {
 	 *
 	 * @throws \InvalidArgumentException In case that the url is not provided.
 	 */
-	public function __construct( $url = '', $args = array(), $cache_buster = '' ) {
+	public function __construct( $url = '', $args = [], $cache_buster = '' ) {
 		parent::__construct( $url, $cache_buster );
 
 		$this->width->set( $args['width'] );
@@ -82,7 +82,7 @@ class Optml_Image extends Optml_Resource {
 	 * @return string Transformed image url.
 	 */
 	public function get_url( $params = [] ) {
-		$path_parts = array();
+		$path_parts = [];
 
 		$path_parts[] = $this->width->toString();
 		$path_parts[] = $this->height->toString();

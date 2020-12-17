@@ -55,7 +55,7 @@ final class Optml_Main {
 	 */
 	public function __construct() {
 
-		register_activation_hook( OPTML_BASEFILE, array( $this, 'activate' ) );
+		register_activation_hook( OPTML_BASEFILE, [ $this, 'activate' ] );
 	}
 
 	/**
@@ -68,13 +68,13 @@ final class Optml_Main {
 	 */
 	public static function instance() {
 		if ( null === self::$_instance ) {
-			add_filter( 'themeisle_sdk_products', array( __CLASS__, 'register_sdk' ) );
-			add_filter( 'optimole-wp_uninstall_feedback_icon', array( __CLASS__, 'change_icon' ) );
-			add_filter( 'optimole_wp_uninstall_feedback_after_css', array( __CLASS__, 'adds_uf_css' ) );
-			add_filter( 'optimole_wp_feedback_review_message', array( __CLASS__, 'change_review_message' ) );
-			add_filter( 'optimole_wp_logger_heading', array( __CLASS__, 'change_review_message' ) );
-			add_filter( 'optml_default_settings', array( __CLASS__, 'change_lazyload_default' ) );
-			add_filter( 'optml_register_conflicts', array( __CLASS__, 'register_conflicts' ) );
+			add_filter( 'themeisle_sdk_products', [ __CLASS__, 'register_sdk' ] );
+			add_filter( 'optimole-wp_uninstall_feedback_icon', [ __CLASS__, 'change_icon' ] );
+			add_filter( 'optimole_wp_uninstall_feedback_after_css', [ __CLASS__, 'adds_uf_css' ] );
+			add_filter( 'optimole_wp_feedback_review_message', [ __CLASS__, 'change_review_message' ] );
+			add_filter( 'optimole_wp_logger_heading', [ __CLASS__, 'change_review_message' ] );
+			add_filter( 'optml_default_settings', [ __CLASS__, 'change_lazyload_default' ] );
+			add_filter( 'optml_register_conflicts', [ __CLASS__, 'register_conflicts' ] );
 			self::$_instance          = new self();
 			self::$_instance->manager = Optml_Manager::instance();
 			self::$_instance->rest    = new Optml_Rest();
@@ -100,10 +100,10 @@ final class Optml_Main {
 	 * @since   2.0.6
 	 * @access  public
 	 */
-	public static function register_conflicts( $conflicts_to_register = array() ) {
+	public static function register_conflicts( $conflicts_to_register = [] ) {
 		$conflicts_to_register = array_merge(
 			$conflicts_to_register,
-			array(
+			[
 				'Optml_Elementor',
 				'Optml_Beaver',
 				'Optml_Jetpack_Photon',
@@ -111,7 +111,7 @@ final class Optml_Main {
 				'Optml_Wprocket',
 				'Optml_Divi',
 				'Optml_w3_total_cache_cdn',
-			)
+			]
 		);
 
 		return $conflicts_to_register;

@@ -25,7 +25,7 @@ class Optml_Rest {
 	 */
 	public function __construct() {
 		$this->namespace = OPTML_NAMESPACE . '/v1';
-		add_action( 'rest_api_init', array( $this, 'register' ) );
+		add_action( 'rest_api_init', [ $this, 'register' ] );
 	}
 
 	/**
@@ -38,48 +38,48 @@ class Optml_Rest {
 		register_rest_route(
 			$this->namespace,
 			'/update_option',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'update_option' ),
-				),
-			)
+					'callback'            => [ $this, 'update_option' ],
+				],
+			]
 		);
 
 		register_rest_route(
 			$this->namespace,
 			'/request_update',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'request_update' ),
-				),
-			)
+					'callback'            => [ $this, 'request_update' ],
+				],
+			]
 		);
 		register_rest_route(
 			$this->namespace,
 			'/check_redirects',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::EDITABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'check_redirects' ),
-					'args'                => array(
-						'images' => array(
+					'callback'            => [ $this, 'check_redirects' ],
+					'args'                => [
+						'images' => [
 							'type'     => 'Array',
 							'required' => true,
-						),
-					),
-				),
-			)
+						],
+					],
+				],
+			]
 		);
 
 		$this->register_image_routes();
@@ -95,53 +95,53 @@ class Optml_Rest {
 		register_rest_route(
 			$this->namespace,
 			'/connect',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'connect' ),
-					'args'                => array(
-						'api_key' => array(
+					'callback'            => [ $this, 'connect' ],
+					'args'                => [
+						'api_key' => [
 							'type'     => 'string',
 							'required' => true,
-						),
-					),
-				),
-			)
+						],
+					],
+				],
+			]
 		);
 		register_rest_route(
 			$this->namespace,
 			'/register',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'register_service' ),
-					'args'                => array(
-						'email' => array(
+					'callback'            => [ $this, 'register_service' ],
+					'args'                => [
+						'email' => [
 							'type'     => 'string',
 							'required' => true,
-						),
-					),
-				),
-			)
+						],
+					],
+				],
+			]
 		);
 		register_rest_route(
 			$this->namespace,
 			'/disconnect',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'disconnect' ),
-				),
-			)
+					'callback'            => [ $this, 'disconnect' ],
+				],
+			]
 		);
 	}
 
@@ -152,28 +152,28 @@ class Optml_Rest {
 		register_rest_route(
 			$this->namespace,
 			'/poll_optimized_images',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'poll_optimized_images' ),
-				),
-			)
+					'callback'            => [ $this, 'poll_optimized_images' ],
+				],
+			]
 		);
 		register_rest_route(
 			$this->namespace,
 			'/images-sample-rate',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'get_sample_rate' ),
-				),
-			)
+					'callback'            => [ $this, 'get_sample_rate' ],
+				],
+			]
 		);
 	}
 
@@ -184,41 +184,41 @@ class Optml_Rest {
 		register_rest_route(
 			$this->namespace,
 			'/poll_watermarks',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'poll_watermarks' ),
-				),
-			)
+					'callback'            => [ $this, 'poll_watermarks' ],
+				],
+			]
 		);
 		register_rest_route(
 			$this->namespace,
 			'/add_watermark',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'add_watermark' ),
-				),
-			)
+					'callback'            => [ $this, 'add_watermark' ],
+				],
+			]
 		);
 		register_rest_route(
 			$this->namespace,
 			'/remove_watermark',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'remove_watermark' ),
-				),
-			)
+					'callback'            => [ $this, 'remove_watermark' ],
+				],
+			]
 		);
 	}
 
@@ -229,28 +229,28 @@ class Optml_Rest {
 		register_rest_route(
 			$this->namespace,
 			'/poll_conflicts',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::READABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'poll_conflicts' ),
-				),
-			)
+					'callback'            => [ $this, 'poll_conflicts' ],
+				],
+			]
 		);
 		register_rest_route(
 			$this->namespace,
 			'/dismiss_conflict',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'dismiss_conflict' ),
-				),
-			)
+					'callback'            => [ $this, 'dismiss_conflict' ],
+				],
+			]
 		);
 	}
 
@@ -261,15 +261,15 @@ class Optml_Rest {
 		register_rest_route(
 			$this->namespace,
 			'/clear_cache',
-			array(
-				array(
+			[
+				[
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => array( $this, 'clear_cache_request' ),
-				),
-			)
+					'callback'            => [ $this, 'clear_cache_request' ],
+				],
+			]
 		);
 	}
 
@@ -342,7 +342,7 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	private function response( $data, $code = 'success' ) {
-		return new WP_REST_Response( array( 'data' => $data, 'code' => $code ), 200 );
+		return new WP_REST_Response( [ 'data' => $data, 'code' => $code ], 200 );
 	}
 
 	/**
@@ -358,11 +358,11 @@ class Optml_Rest {
 		$user  = $api->create_account( $email );
 		if ( $user === false ) {
 			return new WP_REST_Response(
-				array(
+				[
 					'data'    => null,
 					'message' => __( 'Error creating account.', 'optimole-wp' ),
 					'code'    => 'error',
-				),
+				],
 				200
 			);
 
@@ -386,7 +386,7 @@ class Optml_Rest {
 			$image_sample = $this->fetch_sample_image();
 			set_transient( 'optimole_sample_image', $image_sample );
 		}
-		$image = array( 'id' => $image_sample['id'] );
+		$image = [ 'id' => $image_sample['id'] ];
 
 		$image['original'] = $image_sample['url'];
 
@@ -395,21 +395,21 @@ class Optml_Rest {
 		$image['optimized'] = apply_filters(
 			'optml_replace_image',
 			$image['original'],
-			array(
+			[
 				'width'   => $image_sample['width'],
 				'height'  => $image_sample['height'],
 				'quality' => $request->get_param( 'quality' ),
-			)
+			]
 		);
 
 		$optimized = wp_remote_get(
 			$image['optimized'],
-			array(
+			[
 				'timeout' => 10,
-				'headers' => array(
+				'headers' => [
 					'Accept' => 'text/html,application/xhtml+xml,image/webp,image/apng ',
-				),
-			)
+				],
+			]
 		);
 
 		$original = wp_remote_get( $image['original'] );
@@ -426,27 +426,27 @@ class Optml_Rest {
 	 * @return array Image data.
 	 */
 	private function fetch_sample_image() {
-		$accepted_mimes = array( 'image/jpeg' );
-		$args           = array(
+		$accepted_mimes = [ 'image/jpeg' ];
+		$args           = [
 			'post_type'           => 'attachment',
 			'post_status'         => 'any',
 			'number'              => '5',
 			'no_found_rows'       => true,
 			'fields'              => 'ids',
 			'post_mime_type'      => $accepted_mimes,
-			'post_parent__not_in' => array( 0 ),
-		);
+			'post_parent__not_in' => [ 0 ],
+		];
 		$image_result   = new WP_Query( $args );
 		if ( empty( $image_result->posts ) ) {
 			$rand_id            = rand( 1, 3 );
 			$original_image_url = OPTML_URL . 'assets/img/' . $rand_id . '.jpg';
 
-			return array(
+			return [
 				'url'    => $original_image_url,
 				'width'  => '700',
 				'height' => '465',
 				'id'     => - 1,
-			);
+			];
 		}
 		$attachment_id = $image_result->posts[ array_rand( $image_result->posts, 1 ) ];
 
@@ -462,12 +462,12 @@ class Optml_Rest {
 			$height = $metadata['sizes'][ $size ]['height'];
 		}
 
-		return array(
+		return [
 			'url'    => $original_image_url,
 			'id'     => $attachment_id,
 			'width'  => $width,
 			'height' => $height,
-		);
+		];
 	}
 
 	/**
@@ -494,7 +494,7 @@ class Optml_Rest {
 		$request = new Optml_Api();
 		$images  = $request->get_optimized_images( $api_key );
 		if ( ! isset( $images['list'] ) || empty( $images['list'] ) ) {
-			return $this->response( array() );
+			return $this->response( [] );
 		}
 
 		$final_images = array_splice( $images['list'], 0, 10 );
@@ -514,7 +514,7 @@ class Optml_Rest {
 		$request    = new Optml_Api();
 		$watermarks = $request->get_watermarks( $api_key );
 		if ( ! isset( $watermarks['watermarks'] ) || empty( $watermarks['watermarks'] ) ) {
-			return $this->response( array() );
+			return $this->response( [] );
 		}
 		$final_images = array_splice( $watermarks['watermarks'], 0, 10 );
 
@@ -562,14 +562,14 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function poll_conflicts( WP_REST_Request $request ) {
-		$conflicts_to_register = apply_filters( 'optml_register_conflicts', array() );
+		$conflicts_to_register = apply_filters( 'optml_register_conflicts', [] );
 		$manager               = new Optml_Conflict_Manager( $conflicts_to_register );
 
 		return $this->response(
-			array(
+			[
 				'count'     => $manager->get_conflict_count(),
 				'conflicts' => $manager->get_conflict_list(),
-			)
+			]
 		);
 	}
 
@@ -582,15 +582,15 @@ class Optml_Rest {
 	 */
 	public function dismiss_conflict( WP_REST_Request $request ) {
 		$conflict_id           = $request->get_param( 'conflictID' );
-		$conflicts_to_register = apply_filters( 'optml_register_conflicts', array() );
+		$conflicts_to_register = apply_filters( 'optml_register_conflicts', [] );
 		$manager               = new Optml_Conflict_Manager( $conflicts_to_register );
 		$manager->dismiss_conflict( $conflict_id );
 
 		return $this->response(
-			array(
+			[
 				'count'     => $manager->get_conflict_count(),
 				'conflicts' => $manager->get_conflict_list(),
-			)
+			]
 		);
 	}
 
@@ -643,10 +643,10 @@ class Optml_Rest {
 		$status = 'ok';
 		$result = '';
 		foreach ( $request->get_param( 'images' ) as $domain => $value ) {
-			$args             = array(
+			$args             = [
 				'method'      => 'GET',
 				'redirection' => 0,
-			);
+			];
 			$processed_images = 0;
 			if ( isset( $value['src'] ) ) {
 				$processed_images = count( $value['src'] );
