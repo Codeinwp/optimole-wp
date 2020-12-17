@@ -155,7 +155,7 @@ final class Optml_Manager {
 			return false; // @codeCoverageIgnore
 		}
 
-		if ( array_key_exists( 'optml_off', $_GET ) && 'true' === $_GET['optml_off'] ) {
+		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
@@ -167,13 +167,13 @@ final class Optml_Manager {
 		if ( array_key_exists( 'et_fb', $_GET ) && ! empty( $_GET['et_fb'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] === 'true' ) {
+		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] === 'true' || $_GET['trp-edit-translation'] === 'preview' ) ) {
+		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] == 'true' || $_GET['trp-edit-translation'] == 'preview' ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] === 'edit' ) {
+		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'fb-edit', $_GET ) && ! empty( $_GET['fb-edit'] ) ) {
@@ -184,7 +184,7 @@ final class Optml_Manager {
 		 */
 		if (
 			isset( $_SERVER['REQUEST_METHOD'] ) &&
-			$_SERVER['REQUEST_METHOD'] === 'POST' &&
+			$_SERVER['REQUEST_METHOD'] == 'POST' &&
 			is_user_logged_in()
 			&& ( ! isset( $_GET['quality'] ) || ! current_user_can( 'manage_options' ) )
 		) {
@@ -357,7 +357,6 @@ final class Optml_Manager {
 
 			$add_classes = implode( ' ', $additional_html_classes );
 			foreach ( $matches as $match ) {
-				error_log( $match[0] );
 				if ( strpos( $match[0], 'class' ) !== false ) {
 					$new_tag = str_replace( [ 'class="', "class='" ], [ 'class="' . $add_classes, "class='" . $add_classes  ], $match[0] );
 				} else {
@@ -365,7 +364,6 @@ final class Optml_Manager {
 				}
 
 				$content = str_replace( $match[0], $new_tag, $content );
-				error_log( $new_tag );
 			}
 		}
 
