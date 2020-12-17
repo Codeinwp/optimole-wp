@@ -103,10 +103,10 @@ class Optml_Settings {
 					$value = constant( $env_key );
 					if ( $type === 'bool' && ( $value === '' || ! in_array(
 						$value,
-						array(
+						[
 							'on',
 							'off',
-						),
+						],
 						true
 					) ) ) {
 						continue;

@@ -21,7 +21,7 @@ class Optml_smart_search_woocommerce extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'se_get_product_image_post', array($this, 'filter_image_url'), 1, 3 );
+		add_filter( 'se_get_product_image_post', [$this, 'filter_image_url'], 1, 3 );
 	}
 
 	/**
