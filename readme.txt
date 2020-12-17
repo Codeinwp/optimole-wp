@@ -89,6 +89,20 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 == Changelog ==
 
+##### [Version 2.5.7](https://github.com/Codeinwp/optimole-wp/compare/v2.5.6...v2.5.7) (2020-12-17)
+
+#### Fixes
+* Adds iframe style for lazyloading only when the iframe is used on the current page
+* Improve lazyload CLS web vital
+* Adds compatibility with Smart Search for Woocommerce
+
+#### Features
+* Adds option to set the plugin settings via [wp-config](https://docs.optimole.com/article/1316-setting-plugin-options-via-wp-config)constants  
+* Adds more option to set plugin settings via [wp cli](https://docs.optimole.com/article/1202-plugin-cli-commands)
+
+
+
+
 ##### [Version 2.5.6](https://github.com/Codeinwp/optimole-wp/compare/v2.5.5...v2.5.6) (2020-10-19)
 
 * Fixed regression on image lazyload after version v2.5.5
