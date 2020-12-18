@@ -33,60 +33,77 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function add_optimole_cloud_script() {
 		wp_enqueue_script( 'optimole_media', OPTML_URL . 'assets/js/optimole_media.js' );
-	  global $post;
-		$optimole_cloud = array(
-			'ajaxurl' => admin_url( 'admin-ajax.php' ),
-			'nonce'          => wp_create_nonce( 'wp_rest' ),
-			'post_id'  => $post->ID,
-			'l10n'    => array(
-				'add_image'     => esc_html__( 'Uploading image', 'optimole-wp' ),
+	}
+
+	private function media_attachment_template( $url, $id ) {
+		return array
+		(
+			'id' => 'optml_' . $id,
+			'title' => '',
+			'url' => $url,
+			'link' => $url,
+			'alt' => '',
+			'author' => 1,
+			'status' => 'inherit',
+			'menuOrder' => 0,
+			'mime' => 'image/jpeg',
+			'type' => 'image',
+			'subtype' => 'jpeg',
+			'icon' => $url,
+			'editLink' => $url,
+			'authorName' => 'Optimole',
+			'height' => '685',
+			'width' => '1023',
+			'orientation' => 'landscape',
+			'sizes' => array // to do get the actual sizes registred and modify the url accordingly
+			(
+				'thumbnail' => array
+				(
+					'height' => '150',
+					'width' => '150',
+					'url' => $url,
+					'orientation' => 'landscape',
+				),
+
+				'medium' => array
+				(
+					'height' => '201',
+					'width' => '300',
+					'url' => $url,
+					'orientation' => 'landscape',
+				),
+
+				'full' => array
+				(
+					'url' => $url,
+					'height' => '685',
+					'width' => '1023',
+					'orientation' => 'landscape',
+				),
 			),
 		);
-		wp_localize_script( 'optimole_media', 'optimole_cloud', $optimole_cloud );
 	}
-	public function image_api() {
-		echo '{ "urls" : [ "http://55a5c505e3db.ngrok.io/wp-content/uploads/2020/12/Screenshot-from-2020-03-12-17-55-26-300x169.png",
-		 "https://placekitten.com/600/600", "https://placekitten.com/500/500", "https://placekitten.com/700/700", "https://placekitten.com/400/400"] }';
-		wp_die();
+	public function pull_images() {
+
+		if ( ! current_user_can( 'upload_files' ) ) {
+			wp_send_json_error();
+		}
+		if ( isset( $_REQUEST['query'] ) && isset( $_REQUEST['query']['post_mime_type'] ) && $_REQUEST['query']['post_mime_type'][0] === 'optml_cloud' ) {
+		  //to do call the api for images
+			$urls = ['https://placekitten.com/500/500', 'https://image.shutterstock.com/image-photo/winter-christmas-landscape-pink-tones-600w-644773606.jpg', 'https://placekitten.com/500/500' ];
+			$images = array();
+			foreach ( $urls as $index => $url ) {
+					$images[ $index ] = $this->media_attachment_template( $url, $index );
+			}
+			wp_send_json_success( $images );
+		}
 	}
-	public function add_image_to_page() {
-	  error_log($_POST['url'],3,'/var/www/html/optimole.log');
-	  error_log($_POST['post_id'],3,'/var/www/html/optimole.log');
-	  //using this data I try to add the image instead of the block
-   
-		echo 'success';
-	  wp_die();
-	}
-	public function render_cloud_images() {
-		?>
-		<script type="text/html" id="tmpl-my-template">
-	<ul tabIndex="-1" class="attachments ui-sortable ui-sortable-disabled">
-	  <# if ( data.urls.length ) {
-		  for (let url of data.urls) {#>
-	<li tabIndex="0" role="checkbox" aria-label="" aria-checked="false" class="attachment save-ready optml_image" data-url=<# print(url) #> >
-	<div class="attachment-preview js--select-attachment type-image subtype-jpeg landscape">
-		  <div class="thumbnail">
-			<div class="centered">
-			  <img src=<# print(url) #> draggable="false">
-			</div>
-		  </div>
-		</div>
-	<button type="button" class="check" tabIndex="-1"><span class="media-modal-icon"></span><span class="screen-reader-text">Deselect</span></button>
-	  </li>
-	  <# } #>
-	  <# } #>
-		</ul>
-		</script>
-  
-		<?php
-	}
+
 	/**
 	 * Optml_Media_Offload constructor.
 	 */
 	public function __construct() {
-		add_action( 'admin_footer', array($this, 'render_cloud_images') );
-		add_action( 'wp_ajax_get_optimole_cloud_content', array($this, 'image_api') );
-		add_action( 'wp_ajax_add_image_to_page', array($this, 'add_image_to_page') );
+		add_action( 'wp_ajax_query-attachments', array($this, 'pull_images'), -2 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'add_optimole_cloud_script' ) );
 		$this->settings = new Optml_Settings();
 		if ( $this->settings->get( 'offload_media' ) === 'enabled' ) {
