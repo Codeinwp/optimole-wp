@@ -4,6 +4,7 @@ jQuery(document).ready( function($){
     // Extending the current media library frame to add a new tab
     wp.media.view.MediaFrame.Select = oldMediaFrame.extend({
         initialize: function() {
+            this.page = 1;
             oldMediaFrame.prototype.initialize.apply( this, arguments );
             this.states.add([
                 new wp.media.controller.State({
@@ -12,12 +13,22 @@ jQuery(document).ready( function($){
                     title: 'Optimole'
                 })
             ]);
-            this.on( 'content:render:optimole', this.renderOptimole, this );
+            this.on( 'content:create:optimole',  this.renderOptimole, this );
             this.on(
                     'content:render:browse content:render:upload', function(){
                         $( document ).find( '.media-button-select' ).attr('disabled', 'disabled').removeAttr( 'enabled', 'enabled');
                     }, this
                 );
+            let scope = this;
+
+            $( document ).on(
+                'click', '.optml-load-more', function (e) {
+                    e.stopPropagation();
+                    scope.page ++;
+                    scope.renderOptimole();
+
+                }
+            );
         },
         browseRouter: function( routerView ) {
             const l10n = wp.media.view.l10n;
@@ -36,7 +47,19 @@ jQuery(document).ready( function($){
                 }
             });
         },
-        renderOptimole: function() {
+        addToolbar : function () {
+            let check = setInterval(function(){
+                let toolbar = $('.attachments-browser>.media-toolbar');
+                if ( toolbar.length ) {
+                    if ( $('.media-toolbar-secondary>span.is-active').length === 0 ) {
+                        toolbar.append("<button type=\"button\" class=\"button media-button button-primary button-large optml-load-more\" style='top: 30%; left: 50%; position: absolute;'>Load More Images</button>");
+                        clearInterval(check);
+                    }
+                };
+            }, 500);
+
+        },
+        renderOptimole: function( ) {
 
             $( document ).find( '.media-button-select' ).attr('disabled', 'disabled').removeAttr( 'enabled', 'enabled');
 
@@ -44,9 +67,8 @@ jQuery(document).ready( function($){
 
             let options = this.options.library;
             options.type = ['optml_cloud'];
-            wp.media.query( options ).each(function(v){
-                console.log( v.toJSON() );
-            });
+            options.page = this.page;
+
             const view = new wp.media.view.AttachmentsBrowser({
                 controller: this,
                 collection: wp.media.query( options ),
@@ -64,6 +86,8 @@ jQuery(document).ready( function($){
                 AttachmentView: state.get( 'AttachmentView' )
             });
             this.content.set( view );
+            this.addToolbar();
+
         }
     });
 });

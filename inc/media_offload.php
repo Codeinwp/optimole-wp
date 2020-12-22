@@ -36,9 +36,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	private function media_attachment_template( $url, $id ) {
+		$last_attach = self::number_of_library_images();
 		return array
 		(
-			'id' => 'optml_' . $id,
+			'id' => $last_attach + $id,
 			'title' => '',
 			'url' => $url,
 			'link' => $url,
