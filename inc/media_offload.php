@@ -29,12 +29,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	private static $return_original_url = false;
 	/**
-	 * Keep the current scroll id to use for the next query
-	 *
-	 * @var string The scroll id.
-	 */
-	private $scroll_id = false;
-	/**
 	 * Enqueue script for generating cloud media tab.
 	 */
 	public function add_optimole_cloud_script() {
@@ -97,14 +91,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		if ( isset( $_REQUEST['query'] ) && isset( $_REQUEST['query']['post_mime_type'] ) && $_REQUEST['query']['post_mime_type'][0] === 'optml_cloud' ) {
 			$options = [
-				'headers'     => [
-					'Authorization' => '4735b26f1e3ec78db3d730ae487c8eb5359661f7c9333c404e3da5360182a8f5',
-				],
 				'timeout'     => 60,
 				'blocking'    => true,
 				'httpversion' => '1.0',
 				'sslverify'   => false,
 			];
+			$options['headers'] = [ 'Authorization' => $this->settings->get( 'api_key' ) ];
 			$url = 'https://staging-dashboard.optimole.com/api/optml/v2/media/browser?key=' . Optml_Config::$key;
 
 			if ( false !== get_transient( 'scroll_id' ) ) {
@@ -127,10 +119,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				foreach ( $cloud_images as $index => $image ) {
 					$images[ $index ] = $this->media_attachment_template( $image->meta->originURL, $index, $page * 20 );
 				}
-
-				set_transient( 'scroll_id', $decoded_response->data->scroll_id, 50 );
-
-				$this->scroll_id = $decoded_response->data->scroll_id;
+				if ( count( $images ) === 20 ) {
+					set_transient( 'scroll_id', $decoded_response->data->scroll_id, 10 );
+				}
 
 				wp_send_json_success( $images );
 			}
