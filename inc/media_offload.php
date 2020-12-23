@@ -29,17 +29,23 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	private static $return_original_url = false;
 	/**
+	 * Keep the current scroll id to use for the next query
+	 *
+	 * @var string The scroll id.
+	 */
+	private $scroll_id = false;
+	/**
 	 * Enqueue script for generating cloud media tab.
 	 */
 	public function add_optimole_cloud_script() {
 		wp_enqueue_script( 'optimole_media', OPTML_URL . 'assets/js/optimole_media.js' );
 	}
 
-	private function media_attachment_template( $url, $id ) {
+	private function media_attachment_template( $url, $id, $page = 0 ) {
 		$last_attach = self::number_of_library_images();
 		return array
 		(
-			'id' => $last_attach + $id,
+			'id' => $last_attach + $id + $page,
 			'title' => '',
 			'url' => $url,
 			'link' => $url,
@@ -90,13 +96,44 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			wp_send_json_error();
 		}
 		if ( isset( $_REQUEST['query'] ) && isset( $_REQUEST['query']['post_mime_type'] ) && $_REQUEST['query']['post_mime_type'][0] === 'optml_cloud' ) {
-		  //to do call the api for images
-			$urls = ['https://placekitten.com/500/500', 'https://image.shutterstock.com/image-photo/winter-christmas-landscape-pink-tones-600w-644773606.jpg', 'https://placekitten.com/500/500' ];
-			$images = array();
-			foreach ( $urls as $index => $url ) {
-					$images[ $index ] = $this->media_attachment_template( $url, $index );
+			$options = [
+				'headers'     => [
+					'Authorization' => '4735b26f1e3ec78db3d730ae487c8eb5359661f7c9333c404e3da5360182a8f5',
+				],
+				'timeout'     => 60,
+				'blocking'    => true,
+				'httpversion' => '1.0',
+				'sslverify'   => false,
+			];
+			$url = 'https://staging-dashboard.optimole.com/api/optml/v2/media/browser?key=' . Optml_Config::$key;
+
+			if ( false !== get_transient( 'scroll_id' ) ) {
+				$url = $url . '&scroll_id=' . get_transient( 'scroll_id' );
+				delete_transient( 'scroll_id' );
 			}
-			wp_send_json_success( $images );
+
+			$response = wp_remote_retrieve_body( wp_remote_get( $url, $options ) );
+			$decoded_response = json_decode( $response );
+
+			if ( isset( $decoded_response->data ) && isset( $decoded_response->data->scroll_id ) && isset( $decoded_response->data->images ) ) {
+				$page = 1;
+				if ( isset( $_REQUEST['query']['paged'] ) ) {
+					$page = $_REQUEST['query']['paged'];
+				}
+
+				$cloud_images = $decoded_response->data->images;
+
+				$images = array();
+				foreach ( $cloud_images as $index => $image ) {
+					$images[ $index ] = $this->media_attachment_template( $image->meta->originURL, $index, $page * 20 );
+				}
+
+				set_transient( 'scroll_id', $decoded_response->data->scroll_id, 50 );
+
+				$this->scroll_id = $decoded_response->data->scroll_id;
+
+				wp_send_json_success( $images );
+			}
 		}
 	}
 
@@ -107,8 +144,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		add_action( 'wp_ajax_query-attachments', array($this, 'pull_images'), -2 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'add_optimole_cloud_script' ) );
 		$this->settings = new Optml_Settings();
+		parent::init();
 		if ( $this->settings->get( 'offload_media' ) === 'enabled' ) {
-			parent::init();
 			add_filter( 'image_downsize', array($this, 'generate_filter_downsize_urls'), 10, 3 );
 			add_filter( 'wp_generate_attachment_metadata', array($this, 'generate_image_meta'), 10, 2 );
 			add_filter( 'wp_get_attachment_url', array($this, 'get_image_attachment_url'), -999, 2 );
