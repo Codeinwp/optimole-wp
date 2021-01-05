@@ -35,14 +35,15 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		wp_enqueue_script( 'optimole_media', OPTML_URL . 'assets/js/optimole_media.js' );
 	}
 
-	private function media_attachment_template( $url, $id, $page = 0 ) {
+	private function media_attachment_template( $url, $index, $resource_id ) {
 		$last_attach = self::number_of_library_images();
+		$optimized_url = $this->get_media_optimized_url( $url, $resource_id );
 		return array
 		(
-			'id' => $last_attach + $id + $page,
+			'id' => $last_attach + $index,
 			'title' => '',
-			'url' => $url,
-			'link' => $url,
+			'url' => $optimized_url,
+			'link' => $optimized_url,
 			'alt' => '',
 			'author' => 1,
 			'status' => 'inherit',
@@ -50,8 +51,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			'mime' => 'image/jpeg',
 			'type' => 'image',
 			'subtype' => 'jpeg',
-			'icon' => $url,
-			'editLink' => $url,
+			'icon' => $optimized_url,
+			'editLink' => $optimized_url,
 			'authorName' => 'Optimole',
 			'height' => '685',
 			'width' => '1023',
@@ -62,7 +63,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				(
 					'height' => '150',
 					'width' => '150',
-					'url' => $url,
+					'url' => $optimized_url,
 					'orientation' => 'landscape',
 				),
 
@@ -70,13 +71,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				(
 					'height' => '201',
 					'width' => '300',
-					'url' => $url,
+					'url' => $optimized_url,
 					'orientation' => 'landscape',
 				),
 
 				'full' => array
 				(
-					'url' => $url,
+					'url' => $optimized_url,
 					'height' => '685',
 					'width' => '1023',
 					'orientation' => 'landscape',
@@ -97,8 +98,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				'sslverify'   => false,
 			];
 			$options['headers'] = [ 'Authorization' => $this->settings->get( 'api_key' ) ];
-			$url = 'https://staging-dashboard.optimole.com/api/optml/v2/media/browser?key=' . Optml_Config::$key;
-
+			$url = Optml_Api::get_api_root() . 'optml/v2/media/browser?key=' . Optml_Config::$key;
 			if ( false !== get_transient( 'scroll_id' ) ) {
 				$url = $url . '&scroll_id=' . get_transient( 'scroll_id' );
 				delete_transient( 'scroll_id' );
@@ -117,7 +117,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 				$images = array();
 				foreach ( $cloud_images as $index => $image ) {
-					$images[ $index ] = $this->media_attachment_template( $image->meta->originURL, $index, $page * 20 );
+					$images[ $index ] = $this->media_attachment_template( $image->meta->originURL, $index + $page * 20, $image->meta->resourceS3 );
 				}
 				if ( count( $images ) === 20 ) {
 					set_transient( 'scroll_id', $decoded_response->data->scroll_id, 10 );
@@ -701,6 +701,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$resize = $this->to_optml_crop( $sizes2crop[ $data['width'] . $data['height'] ] );
 		}
 		$id_filename = array();
+
 		preg_match( '/\/(' . self::KEYS['not_processed_flag'] . '.*)/', $data['url'], $id_filename );
 		if ( ! isset( $id_filename[1] ) ) {
 			return $image;

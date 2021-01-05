@@ -138,7 +138,12 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			if ( isset( $sizes[1] ) && $sizes[1] !== false ) {
 				$args['height'] = $sizes[1];
 			}
-			$unoptimized_url = Optml_Media_Offload::get_original_url( $attachment_id[1] );
+			$unoptimized_url = false;
+			if ( $attachment_id[1] === 'media_cloud' ) {
+				//to do
+			} else {
+				$unoptimized_url = Optml_Media_Offload::get_original_url( $attachment_id[1] );
+			}
 			if ( $unoptimized_url !== false ) {
 				$url = $unoptimized_url;
 			}

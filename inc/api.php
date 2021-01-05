@@ -14,13 +14,17 @@ final class Optml_Api {
 	 *
 	 * @var string Api root.
 	 */
-	private $api_root = 'https://dashboard.optimole.com/api/';
+//	private $api_root = 'http://staging-dashboard.optimole.com/api/';
+	private static $api_root = 'https://serious-seahorse-77.serverless.social/api/';
 	/**
 	 * Hold the user api key.
 	 *
 	 * @var string Api key.
 	 */
 	private $api_key;
+	public static function get_api_root () {
+		return self::$api_root;
+	}
 
 	/**
 	 * Optml_Api constructor.
@@ -71,7 +75,7 @@ final class Optml_Api {
 	private function request( $path, $method = 'GET', $params = array(), $extra_headers = [] ) {
 
 		// Grab the url to which we'll be making the request.
-		$url     = $this->api_root;
+		$url     = self::$api_root;
 		$headers = array(
 			'Optml-Site' => get_home_url(),
 		);
@@ -88,7 +92,7 @@ final class Optml_Api {
 				$url = add_query_arg( array( $key => $val ), $url );
 			}
 		}
-		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
+		$url  = trailingslashit( self::$api_root ) . ltrim( $path, '/' );
 		$args = $this->build_args( $method, $url, $headers, $params );
 
 		$response = wp_remote_request( $url, $args );
