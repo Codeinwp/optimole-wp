@@ -5,6 +5,9 @@ const toggleLoading = ( state, data ) => {
 const toggleLoadingRollback = ( state, data ) => {
 	state.loadingRollback = data;
 };
+const toggleLoadingSync = ( state, data ) => {
+	state.loadingSync = data;
+};
 const toggleConnecting = ( state, data ) => {
 	state.isConnecting = data;
 };
@@ -83,5 +86,6 @@ export default {
 	updateWatermark,
 	updatePushedImagesProgress,
 	totalNumberOfImages,
-	toggleLoadingRollback
+	toggleLoadingRollback,
+	toggleLoadingSync
 };

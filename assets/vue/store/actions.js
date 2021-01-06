@@ -325,21 +325,19 @@ const pushBatch = function ( commit,batch,action ) {
 				pushBatch( commit, batch, action );
 			} else {
 				commit( 'updatePushedImagesProgress', 'finish' );
-				action === "offload_images" ? commit( 'toggleLoading', false ) : commit( 'toggleLoadingRollback', false );
+				action === "offload_images" ? commit( 'toggleLoadingSync', false ) : commit( 'toggleLoadingRollback', false );
 			}
-
-
 		}
 	).catch( function ( err ) {
 		console.log( err );
-		commit( 'toggleLoading', false );
+		commit( 'toggleLoadingSync', false );
 		commit( 'toggleLoadingRollback', false );
 	} );
 };
 const callSync = function ( {commit, state}, data ) {
 	commit( 'updatePushedImagesProgress', 'init' );
 	if ( data.action === "offload_images" ) {
-		commit( 'toggleLoading', true );
+		commit( 'toggleLoadingSync', true );
 	}
 	if ( data.action === "rollback_images" ) {
 		commit( 'toggleLoadingRollback', true );

@@ -33,6 +33,7 @@ class Optml_Settings {
 		'retina_images'        => 'disabled',
 		'resize_smart'         => 'disabled',
 		'filters'              => [],
+		'cloud_sites'          => [],
 		'watchers'             => '',
 		'quality'              => 'auto',
 		'wm_id'                => - 1,
@@ -47,7 +48,8 @@ class Optml_Settings {
 		'js_minify'            => 'disabled',
 		'report_script'        => 'disabled',
 		'native_lazyload'      => 'disabled',
-		'offload_media'             => 'disabled',
+		'offload_media'        => 'disabled',
+		'cloud_images'         => 'disabled',
 
 	);
 	/**
@@ -145,6 +147,7 @@ class Optml_Settings {
 				case 'video_lazyload':
 				case 'report_script':
 				case 'offload_media':
+				case 'cloud_images':
 				case 'img_to_video':
 				case 'css_minify':
 				case 'js_minify':
@@ -163,6 +166,10 @@ class Optml_Settings {
 					break;
 				case 'cache_buster':
 					$sanitized_value = is_string( $value ) ? $value : '';
+					break;
+				case 'cloud_sites':
+					$current_sites = $this->get( 'cloud_sites' );
+					$sanitized_value = array_replace_recursive( $current_sites, $value );
 					break;
 				case 'filters':
 					$current_filters = $this->get_filters();
@@ -295,7 +302,7 @@ class Optml_Settings {
 	 * @return array Site settings.
 	 */
 	public function get_site_settings() {
-
+		$service_data = $this->get( 'service_data' );
 		return array(
 			'quality'              => $this->get_quality(),
 			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
@@ -311,6 +318,7 @@ class Optml_Settings {
 			'max_width'            => $this->get( 'max_width' ),
 			'max_height'           => $this->get( 'max_height' ),
 			'filters'              => $this->get_filters(),
+			'cloud_sites'          => $this->get( 'cloud_sites' ),
 			'watchers'             => $this->get_watchers(),
 			'watermark'            => $this->get_watermark(),
 			'img_to_video'         => $this->get( 'img_to_video' ),
@@ -320,6 +328,8 @@ class Optml_Settings {
 			'native_lazyload'      => $this->get( 'native_lazyload' ),
 			'report_script'        => $this->get( 'report_script' ),
 			'offload_media'        => $this->get( 'offload_media' ),
+			'cloud_images'         => $this->get( 'cloud_images' ),
+			'whitelist_domains'    => $service_data['whitelist'],
 		);
 	}
 
@@ -437,7 +447,7 @@ class Optml_Settings {
 		return sprintf(
 			'%s.%s',
 			strtolower( $service_data['cdn_key'] ),
-			'i.optimole.com'
+			'mh.optml.cloud'
 		);
 	}
 

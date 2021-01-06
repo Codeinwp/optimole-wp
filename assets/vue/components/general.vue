@@ -67,26 +67,6 @@
 
         <hr/>
 
-      <!-- Show offload media toggle-->
-      <div class="field  columns" v-if="wp_version>=5.3">
-        <label class="label column has-text-grey-dark">
-          {{strings.enable_offload_media_title}}
-
-          <p class="is-italic has-text-weight-normal">
-            {{strings.enable_offload_media_desc}}
-          </p>
-        </label>
-
-        <div class="column is-3 ">
-          <toggle-button :class="'has-text-dark'"
-                         v-model="offloadMediaStatus"
-                         :disabled="this.$store.state.loading"
-                         :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                         :width="80"
-                         :height="25"
-                         color="#008ec2"></toggle-button>
-        </div>
-      </div>
 
       <hr/>
 
@@ -127,7 +107,6 @@
             return {
                 strings: optimoleDashboardApp.strings.options_strings,
                 all_strings: optimoleDashboardApp.strings,
-                wp_version : parseFloat(optimoleDashboardApp.wp_version),
                 showNotification: false,
                 showSave: false,
                 isReplacerOff: false,
@@ -186,16 +165,6 @@
                     return !(this.site_settings.report_script === 'disabled');
 
                 }
-            },
-            offloadMediaStatus: {
-              set: function (value) {
-                this.showSave = true;
-                this.new_data.offload_media = value ? 'enabled' : 'disabled';
-              },
-              get: function () {
-                return !(this.site_settings.offload_media === 'disabled');
-
-              }
             }
         }
     }

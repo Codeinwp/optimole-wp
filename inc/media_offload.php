@@ -31,8 +31,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Enqueue script for generating cloud media tab.
 	 */
-	public function add_optimole_cloud_script() {
-		wp_enqueue_script( 'optimole_media', OPTML_URL . 'assets/js/optimole_media.js' );
+	public function add_optimole_cloud_script( $hook ) {
+		if ( $hook === 'post.php' ) {
+			wp_enqueue_script( 'optimole_media', OPTML_URL . 'assets/js/optimole_media.js' );
+		}
 	}
 
 	private function media_attachment_template( $url, $index, $resource_id ) {
@@ -132,10 +134,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Optml_Media_Offload constructor.
 	 */
 	public function __construct() {
-		add_action( 'wp_ajax_query-attachments', array($this, 'pull_images'), -2 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'add_optimole_cloud_script' ) );
 		$this->settings = new Optml_Settings();
 		parent::init();
+		add_action( 'wp_ajax_query-attachments', array($this, 'pull_images'), -2 );
+		add_action( 'admin_enqueue_scripts', array( $this, 'add_optimole_cloud_script' ) );
 		if ( $this->settings->get( 'offload_media' ) === 'enabled' ) {
 			add_filter( 'image_downsize', array($this, 'generate_filter_downsize_urls'), 10, 3 );
 			add_filter( 'wp_generate_attachment_metadata', array($this, 'generate_image_meta'), 10, 2 );

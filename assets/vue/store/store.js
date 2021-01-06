@@ -16,6 +16,7 @@ const store = new Vuex.Store(
 			isConnecting: false,
 			loading: false,
 			loadingRollback: false,
+			loadingSync: false,
 			site_settings: optimoleDashboardApp.site_settings,
 			connected: optimoleDashboardApp.connection_status === 'yes',
 			is_loaded: optimoleDashboardApp.connection_status === 'yes',
