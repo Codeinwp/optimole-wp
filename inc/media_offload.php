@@ -37,6 +37,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 	}
 
+	/**
+	 * Generate exactly the response format expected by wp media modal.
+	 *
+	 * @param string  $url Original url to be optimized.
+	 * @param integer $index Index generated based on the current page and number of image used to avoid duplicates.
+	 * @param string  $resource_id Image id from cloud.
+	 * @param int     $width Image width.
+	 * @param int     $height Image height.
+	 * @return array The format expected for a single image in the media modal.
+	 */
 	private function media_attachment_template( $url, $index, $resource_id, $width, $height ) {
 		$last_attach = self::number_of_library_images();
 		$optimized_url = $this->get_media_optimized_url( $url, $resource_id, $width, $height );
@@ -73,6 +83,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			],
 		];
 	}
+
+	/**
+	 * Call the images endpoint.
+	 *
+	 * @param string|false $scroll_id Scroll id used to advance the search.
+	 * @return mixed The decoded json response from the api.
+	 */
 	private function get_cloud_images( $scroll_id = false ) {
 		$options = [
 			'timeout'     => 60,
@@ -94,6 +111,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$decoded_response = json_decode( $response );
 		return $decoded_response;
 	}
+
+	/**
+	 * Parse images from api endpoint response images and send them to wp media modal.
+	 */
 	public function pull_images() {
 
 		if ( ! current_user_can( 'upload_files' ) ) {

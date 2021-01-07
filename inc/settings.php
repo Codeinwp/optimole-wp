@@ -495,7 +495,7 @@ class Optml_Settings {
 		return sprintf(
 			'%s.%s',
 			strtolower( $service_data['cdn_key'] ),
-			'mh.optml.cloud'
+			'i.optimole.com'
 		);
 	}
 
