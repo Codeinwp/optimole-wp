@@ -76,6 +76,7 @@ final class Optml_Manager {
 		'w3_total_cache',
 		'translate_press',
 		'give_wp',
+		'smart_search_woocommerce',
 	];
 	/**
 	 * The current state of the buffer.
@@ -122,6 +123,10 @@ final class Optml_Manager {
 			 * @var Optml_compatibility $compatibility Class to register.
 			 */
 			if ( $compatibility->should_load() ) {
+				if ( $compatibility->should_load_early() ) {
+					$compatibility->register();
+					continue;
+				}
 				self::$loaded_compatibilities[ $compatibility_class ] = $compatibility;
 			}
 		}
@@ -150,7 +155,7 @@ final class Optml_Manager {
 			return false; // @codeCoverageIgnore
 		}
 
-		if ( array_key_exists( 'optml_off', $_GET ) && 'true' === $_GET['optml_off'] ) {
+		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
@@ -162,13 +167,13 @@ final class Optml_Manager {
 		if ( array_key_exists( 'et_fb', $_GET ) && ! empty( $_GET['et_fb'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] === 'true' ) {
+		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] === 'true' || $_GET['trp-edit-translation'] === 'preview' ) ) {
+		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] == 'true' || $_GET['trp-edit-translation'] == 'preview' ) ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] === 'edit' ) {
+		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'fb-edit', $_GET ) && ! empty( $_GET['fb-edit'] ) ) {
@@ -179,7 +184,7 @@ final class Optml_Manager {
 		 */
 		if (
 			isset( $_SERVER['REQUEST_METHOD'] ) &&
-			$_SERVER['REQUEST_METHOD'] === 'POST' &&
+			$_SERVER['REQUEST_METHOD'] == 'POST' && // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			is_user_logged_in()
 			&& ( ! isset( $_GET['quality'] ) || ! current_user_can( 'manage_options' ) )
 		) {
@@ -310,15 +315,59 @@ final class Optml_Manager {
 			return $html;
 		}
 
+		$html = $this->add_html_class( $html );
+
 		$html = $this->process_images_from_content( $html );
 
 		if ( $this->settings->get( 'video_lazyload' ) === 'enabled' ) {
 			$html = apply_filters( 'optml_video_replace', $html );
+			if ( Optml_Lazyload_Replacer::found_iframe() === true ) {
+				if ( strpos( $html, Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT ) !== false ) {
+					$html = str_replace( Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $html );
+				} else {
+					$html = preg_replace( '/<head>(.*)<\/head>/ism', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $html );
+				}
+			}
 		}
 
 		$html = $this->process_urls_from_content( $html );
 
 		return $html;
+	}
+
+	/**
+	 * Adds a filter that allows adding classes to the HTML tag.
+	 *
+	 * @param string $content The HTML content.
+	 *
+	 * @return mixed
+	 */
+	public function add_html_class( $content ) {
+		if ( empty( $content ) ) {
+			return $content;
+		}
+
+		$additional_html_classes = apply_filters( 'optml_additional_html_classes', [] );
+
+		if ( ! $additional_html_classes ) {
+			return $content;
+		}
+
+		if ( preg_match( '/<html.*>/ismU', $content, $matches, PREG_OFFSET_CAPTURE ) === 1 ) {
+
+			$add_classes = implode( ' ', $additional_html_classes );
+			foreach ( $matches as $match ) {
+				if ( strpos( $match[0], 'class' ) !== false ) {
+					$new_tag = str_replace( [ 'class="', "class='" ], [ 'class="' . $add_classes, "class='" . $add_classes  ], $match[0] );
+				} else {
+					$new_tag = str_replace( 'html ', 'html class="' . $add_classes . '" ', $match[0] );
+				}
+
+				$content = str_replace( $match[0], $new_tag, $content );
+			}
+		}
+
+		return $content;
 	}
 
 	/**
@@ -449,7 +498,7 @@ final class Optml_Manager {
 		if ( $this->settings->use_cdn() && ! self::should_ignore_image_tags() ) {
 			$extensions = array_merge( $extensions, array_keys( Optml_Config::$assets_extensions ) );
 		}
-		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';
+		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:http|>|%3F|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';
 		preg_match_all(
 			$regex,
 			$content,
