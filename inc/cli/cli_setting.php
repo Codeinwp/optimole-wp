@@ -88,10 +88,10 @@ class Optml_Cli_Setting extends WP_CLI_Command {
 
 		if ( self::$whitelisted_settings[ $args[0] ] === 'bool' && ( empty( $args ) || ! isset( $args[1] ) || $args[1] === '' || ! in_array(
 			$args[1],
-			array(
+			[
 				'on',
 				'off',
-			),
+			],
 			true
 		) ) ) {
 			return \WP_CLI::error( 'No argument passed. Required one argument ( on/off )' );
@@ -103,7 +103,7 @@ class Optml_Cli_Setting extends WP_CLI_Command {
 
 		$value = ( self::$whitelisted_settings[ $args[0] ] === 'bool' ) ? ( $args[1] === 'on' ? 'enabled' : 'disabled' ) : (int) $args[1];
 
-		$new_value = $this->update_setting( array( $args[0] => $value ) );
+		$new_value = $this->update_setting( [ $args[0] => $value ] );
 		\WP_CLI::success( sprintf( 'Setting %s updated to: %s', $args[0], $new_value[ $args[0] ] ) );
 	}
 

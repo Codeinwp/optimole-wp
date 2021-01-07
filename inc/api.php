@@ -14,7 +14,7 @@ final class Optml_Api {
 	 *
 	 * @var string Api root.
 	 */
-//	private $api_root = 'http://staging-dashboard.optimole.com/api/';
+	// private $api_root = 'http://staging-dashboard.optimole.com/api/';
 	private static $api_root = 'https://friendly-mole-21.serverless.social/api/';
 	/**
 	 * Hold the user api key.
@@ -22,7 +22,7 @@ final class Optml_Api {
 	 * @var string Api key.
 	 */
 	private $api_key;
-	public static function get_api_root () {
+	public static function get_api_root() {
 		return self::$api_root;
 	}
 
@@ -60,7 +60,7 @@ final class Optml_Api {
 		if ( $lock === 'yes' ) {
 			return new WP_Error( 'cache_throttle', __( 'You can clear cache only once per 5 minutes.', 'optimole-wp' ) );
 		}
-		return $this->request( '/optml/v1/cache/tokens', 'POST', array( 'token' => $token ) );
+		return $this->request( '/optml/v1/cache/tokens', 'POST', [ 'token' => $token ] );
 	}
 
 	/**
@@ -72,13 +72,13 @@ final class Optml_Api {
 	 *
 	 * @return array|boolean Api data.
 	 */
-	private function request( $path, $method = 'GET', $params = array(), $extra_headers = [] ) {
+	private function request( $path, $method = 'GET', $params = [], $extra_headers = [] ) {
 
 		// Grab the url to which we'll be making the request.
 		$url     = self::$api_root;
-		$headers = array(
+		$headers = [
 			'Optml-Site' => get_home_url(),
-		);
+		];
 		if ( ! empty( $this->api_key ) ) {
 			$headers['Authorization'] = 'Bearer ' . $this->api_key;
 		}
@@ -89,7 +89,7 @@ final class Optml_Api {
 		// If there is a extra, add that as a url var.
 		if ( 'GET' === $method && ! empty( $params ) ) {
 			foreach ( $params as $key => $val ) {
-				$url = add_query_arg( array( $key => $val ), $url );
+				$url = add_query_arg( [ $key => $val ], $url );
 			}
 		}
 		$url  = trailingslashit( self::$api_root ) . ltrim( $path, '/' );
@@ -133,13 +133,13 @@ final class Optml_Api {
 	 * @return array
 	 */
 	private function build_args( $method, $url, $headers, $params ) {
-		$args = array(
+		$args = [
 			'method'     => $method,
 			'timeout'    => 45,
 			'user-agent' => 'Optimle WP (v' . OPTML_VERSION . ') ',
 			'sslverify'  => false,
 			'headers'    => $headers,
-		);
+		];
 		if ( $method !== 'GET' ) {
 			$args['body'] = $params;
 		}
@@ -158,11 +158,11 @@ final class Optml_Api {
 		return $this->request(
 			'optml/v1/user/register-remote',
 			'POST',
-			array(
+			[
 				'email'   => $email,
 				'version' => OPTML_VERSION,
 				'site'    => get_home_url(),
-			)
+			]
 		);
 	}
 
@@ -209,7 +209,7 @@ final class Optml_Api {
 			$this->api_key = $api_key;
 		}
 
-		return $this->request( '/optml/v1/settings/watermark', 'DELETE', array( 'watermark' => $post_id ) );
+		return $this->request( '/optml/v1/settings/watermark', 'DELETE', [ 'watermark' => $post_id ] );
 	}
 
 	/**

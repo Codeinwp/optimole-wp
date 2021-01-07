@@ -66,7 +66,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	public static function instance() {
 		if ( null === self::$instance ) {
 			self::$instance = new self();
-			add_action( 'optml_replacer_setup', array( self::$instance, 'init' ) );
+			add_action( 'optml_replacer_setup', [ self::$instance, 'init' ] );
 		}
 
 		return self::$instance;
@@ -164,9 +164,9 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		);
 		self::$is_lazyload_placeholder = self::$instance->settings->get( 'lazyload_placeholder' ) === 'enabled';
 
-		add_filter( 'optml_tag_replace', array( $this, 'lazyload_tag_replace' ), 2, 6 );
+		add_filter( 'optml_tag_replace', [ $this, 'lazyload_tag_replace' ], 2, 6 );
 
-		add_filter( 'optml_video_replace', array($this, 'lazyload_video_replace'), 2, 1 );
+		add_filter( 'optml_video_replace', [$this, 'lazyload_video_replace'], 2, 1 );
 
 	}
 	/**
@@ -257,11 +257,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return string
 	 */
 	public function lazyload_video_replace( $content ) {
-		$video_tags = array();
+		$video_tags = [];
 		preg_match_all( '#(?:<noscript\s*>(\s*|.*?))?<iframe(.*?)></iframe>#is', $content, $video_tags );
 
-		$search = array();
-		$replace = array();
+		$search = [];
+		$replace = [];
 		foreach ( $video_tags[0] as $video_tag ) {
 			if ( ! $this->should_lazyload_iframe( $video_tag ) ) {
 				continue;

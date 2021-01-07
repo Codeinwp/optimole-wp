@@ -16,7 +16,7 @@ class Optml_Settings {
 	 *
 	 * @var array Settings schema.
 	 */
-	private $default_schema = array(
+	private $default_schema = [
 		'api_key'              => '',
 		'service_data'         => '',
 		'cache_buster'         => '',
@@ -51,7 +51,7 @@ class Optml_Settings {
 		'offload_media'        => 'disabled',
 		'cloud_images'         => 'disabled',
 
-	);
+	];
 	/**
 	 * Option key.
 	 *
@@ -131,7 +131,7 @@ class Optml_Settings {
 	 * @return array
 	 */
 	public function parse_settings( $new_settings ) {
-		$sanitized = array();
+		$sanitized = [];
 		foreach ( $new_settings as $key => $value ) {
 			switch ( $key ) {
 				case 'admin_bar_item':
@@ -152,7 +152,7 @@ class Optml_Settings {
 				case 'css_minify':
 				case 'js_minify':
 				case 'native_lazyload':
-					$sanitized_value = $this->to_map_values( $value, array( 'enabled', 'disabled' ), 'enabled' );
+					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
 				case 'max_width':
 				case 'max_height':
@@ -201,7 +201,7 @@ class Optml_Settings {
 				case 'wm_position':
 					$sanitized_value = $this->to_map_values(
 						$value,
-						array(
+						[
 							Optml_Resize::GRAVITY_NORTH,
 							Optml_Resize::GRAVITY_NORTH_EAST,
 							Optml_Resize::GRAVITY_NORTH_WEST,
@@ -211,7 +211,7 @@ class Optml_Settings {
 							Optml_Resize::GRAVITY_SOUTH_EAST,
 							Optml_Resize::GRAVITY_SOUTH,
 							Optml_Resize::GRAVITY_SOUTH_WEST,
-						),
+						],
 						Optml_Resize::GRAVITY_SOUTH_EAST
 					);
 					break;
@@ -306,7 +306,7 @@ class Optml_Settings {
 	 */
 	public function get_site_settings() {
 		$service_data = $this->get( 'service_data' );
-		return array(
+		return [
 			'quality'              => $this->get_quality(),
 			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
 			'lazyload'             => $this->get( 'lazyload' ),
@@ -333,7 +333,7 @@ class Optml_Settings {
 			'offload_media'        => $this->get( 'offload_media' ),
 			'cloud_images'         => $this->get( 'cloud_images' ),
 			'whitelist_domains'    => $service_data['whitelist'],
-		);
+		];
 	}
 
 	/**
@@ -364,14 +364,14 @@ class Optml_Settings {
 	 * @return array
 	 */
 	public function get_watermark() {
-		return array(
+		return [
 			'id'       => $this->get( 'wm_id' ),
 			'opacity'  => $this->get( 'wm_opacity' ),
 			'position' => $this->get( 'wm_position' ),
 			'x_offset' => $this->get( 'wm_x' ),
 			'y_offset' => $this->get( 'wm_y' ),
 			'scale'    => $this->get( 'wm_scale' ),
-		);
+		];
 	}
 
 	/**

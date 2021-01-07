@@ -113,7 +113,7 @@ class Optml_Resize extends Optml_Property_Type {
 	/**
 	 * Optml_Resize constructor.
 	 */
-	public function __construct( $value = array() ) {
+	public function __construct( $value = [] ) {
 		$this->set( $value );
 	}
 

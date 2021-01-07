@@ -71,7 +71,7 @@ class Optml_envira extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	function add_lazyflag( $strings = array() ) {
+	function add_lazyflag( $strings = [] ) {
 
 		$strings[] = 'envira-gallery-image';
 
