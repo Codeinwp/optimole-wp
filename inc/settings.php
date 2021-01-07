@@ -33,7 +33,7 @@ class Optml_Settings {
 		'retina_images'        => 'disabled',
 		'resize_smart'         => 'disabled',
 		'filters'              => [],
-		'cloud_sites'          => [],
+		'cloud_sites'          => [ 'all' => 'true' ],
 		'watchers'             => '',
 		'quality'              => 'auto',
 		'wm_id'                => - 1,
@@ -170,6 +170,9 @@ class Optml_Settings {
 				case 'cloud_sites':
 					$current_sites = $this->get( 'cloud_sites' );
 					$sanitized_value = array_replace_recursive( $current_sites, $value );
+					if ( isset( $value['all'] ) && $value['all'] === 'true' ) {
+						$sanitized_value = [ 'all' => 'true' ];
+					}
 					break;
 				case 'filters':
 					$current_filters = $this->get_filters();

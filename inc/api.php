@@ -15,7 +15,7 @@ final class Optml_Api {
 	 * @var string Api root.
 	 */
 //	private $api_root = 'http://staging-dashboard.optimole.com/api/';
-	private static $api_root = 'https://serious-seahorse-77.serverless.social/api/';
+	private static $api_root = 'https://friendly-mole-21.serverless.social/api/';
 	/**
 	 * Hold the user api key.
 	 *

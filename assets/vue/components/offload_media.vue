@@ -20,10 +20,10 @@
                        color="#008ec2"></toggle-button>
       </div>
     </div>
-    <div  id="filters-list">
+    <div  id="filters-list" v-if="this.site_settings.cloud_images === 'enabled'">
       <div class="columns  ">
         <div>
-          <div class="field    ">
+          <div class="field" v-if="cloud_sites.length > 0">
             <label class="label column has-text-grey-dark">
               <span>{{strings.selected_sites_title}}</span>
             </label>
@@ -35,21 +35,23 @@
                 <div class="list-item exclusion-filter" v-for="site in cloud_sites">
                   <div class="control">
                     <div class="tags is-centered has-addons">
-                      <a class="tag  is-marginless is-link has-text-left"><i>{{strings.selected_sites_desc}}</i>
-                        <strong>{{site}}</strong></a>
+                      <a class="tag  is-marginless is-link has-text-left" v-if="site === 'all'">
+                        <strong>{{strings.selected_all_sites_desc}}</strong>
+                      </a>
+                      <a class="tag  is-marginless is-link has-text-left" v-else>
+                        <i>{{strings.selected_sites_desc}}</i>
+                        <strong>{{site}}</strong>
+                      </a>
                       <a class="tag  is-marginless  is-delete"
                          @click="removeSite( site )"></a>
                     </div>
                   </div>
                 </div>
-
-
-
               </div>
             </div>
-
           </div>
           <div class="field   columns ">
+            <div class="field has-addons column has-addons-centered">
             <label class="label   column has-text-grey-dark no-padding-right ">
               {{strings.cloud_site_title}}
               <p class="is-italic has-text-weight-normal">
@@ -63,7 +65,7 @@
                   <p class="control ">
                             <span class="select  is-small">
                               <select @change="changeSite($event)">
-                                <option  value="All">All</option>
+                                <option  value="all">All</option>
                                 <option  v-for="site in sites" :value="site">{{site}}</option>
                               </select>
                             </span>
@@ -76,6 +78,7 @@
                   </p>
                 </div>
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -205,6 +208,7 @@ export default {
       this.$store.dispatch('callSync', { action: action});
     },
     saveChanges: function () {
+      this.showSave = false;
       this.$store.dispatch('saveSettings', {
         settings: this.new_data
       });
@@ -230,8 +234,11 @@ export default {
       let sites_array = [];
       let sites_object = this.$store.state.site_settings.cloud_sites;
       for(let site of Object.keys(sites_object)) {
-        if (sites_object [site] === 'true') {
+        if (sites_object [site] === 'true' ) {
           sites_array.push(site);
+          if ( site === 'all' ) {
+            return  sites_array;
+          }
         }
       }
       return sites_array;

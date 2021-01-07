@@ -795,6 +795,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'show'                              => __( 'Show', 'optimole-wp' ),
 				'selected_sites_title'              => __( 'Show images from these sites: ', 'optimole-wp' ),
 				'selected_sites_desc'               => __( 'Site: ', 'optimole-wp' ),
+				'selected_all_sites_desc'           => __( 'Currently viewing images from all sites ', 'optimole-wp' ),
+				'select_all_sites_desc'             => __( 'View images from all sites ', 'optimole-wp' ),
 				'size_desc'                         => __( 'We resize all images with sizes greater than the values defined here. Changing this option is not recommended unless large images are not being processed correctly. This does NOT affect the scaling of images on the frontend.', 'optimole-wp' ),
 				'size_title'                        => __( 'Resize large images original source.', 'optimole-wp' ),
 				'cloud_site_title'                  => __( 'Select the sites from which to view existing images.', 'optimole-wp' ),

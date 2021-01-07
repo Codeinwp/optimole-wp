@@ -37,9 +37,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 	}
 
-	private function media_attachment_template( $url, $index, $resource_id ) {
+	private function media_attachment_template( $url, $index, $resource_id, $width, $height ) {
 		$last_attach = self::number_of_library_images();
-		$optimized_url = $this->get_media_optimized_url( $url, $resource_id );
+		$optimized_url = $this->get_media_optimized_url( $url, $resource_id, $width, $height );
 		return array
 		(
 			'id' => $last_attach + $index,
@@ -56,36 +56,43 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			'icon' => $optimized_url,
 			'editLink' => $optimized_url,
 			'authorName' => 'Optimole',
-			'height' => '685',
-			'width' => '1023',
+			'height' => $height,
+			'width' => $width,
 			'orientation' => 'landscape',
-			'sizes' => array // to do get the actual sizes registred and modify the url accordingly
+			// just adding the thumbnail size for for smooth display inside the modal
+			// this sizes are ignored for everything else no point to define them
+			'sizes' => array
 			(
 				'thumbnail' => array
 				(
 					'height' => '150',
 					'width' => '150',
-					'url' => $optimized_url,
-					'orientation' => 'landscape',
-				),
-
-				'medium' => array
-				(
-					'height' => '201',
-					'width' => '300',
-					'url' => $optimized_url,
-					'orientation' => 'landscape',
-				),
-
-				'full' => array
-				(
-					'url' => $optimized_url,
-					'height' => '685',
-					'width' => '1023',
+					'url' => $this->get_media_optimized_url( $url, $resource_id, 150, 150, $this->to_optml_crop( true ) ),
 					'orientation' => 'landscape',
 				),
 			),
 		);
+	}
+	private function get_cloud_images( $scroll_id = false ) {
+		$options = [
+			'timeout'     => 60,
+			'blocking'    => true,
+			'httpversion' => '1.0',
+			'sslverify'   => false,
+		];
+		$options['headers'] = [ 'Authorization' => $this->settings->get( 'api_key' ) ];
+		$url = Optml_Api::get_api_root() . 'optml/v2/media/browser?key=' . Optml_Config::$key;
+		if ( $scroll_id === false ) {
+			$scroll_id = get_transient( 'scroll_id' );
+			delete_transient( 'scroll_id' );
+		}
+		if ( false !== $scroll_id ) {
+			$url = $url . '&scroll_id=' . $scroll_id;
+		}
+
+		$response = wp_remote_retrieve_body( wp_remote_get( $url, $options ) );
+		$decoded_response = json_decode( $response );
+		return $decoded_response;
 	}
 	public function pull_images() {
 
@@ -93,40 +100,54 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			wp_send_json_error();
 		}
 		if ( isset( $_REQUEST['query'] ) && isset( $_REQUEST['query']['post_mime_type'] ) && $_REQUEST['query']['post_mime_type'][0] === 'optml_cloud' ) {
-			$options = [
-				'timeout'     => 60,
-				'blocking'    => true,
-				'httpversion' => '1.0',
-				'sslverify'   => false,
-			];
-			$options['headers'] = [ 'Authorization' => $this->settings->get( 'api_key' ) ];
-			$url = Optml_Api::get_api_root() . 'optml/v2/media/browser?key=' . Optml_Config::$key;
-			if ( false !== get_transient( 'scroll_id' ) ) {
-				$url = $url . '&scroll_id=' . get_transient( 'scroll_id' );
+
+			$page = 1;
+			if ( isset( $_REQUEST['query']['paged'] ) ) {
+				$page = $_REQUEST['query']['paged'];
+			}
+			$images = array();
+			$view_sites = [];
+			$all_sites = false;
+			$filter_sites = $this->settings->get( 'cloud_sites' );
+			if ( isset( $filter_sites['all'] ) && $filter_sites['all'] === 'true' ) {
+				$all_sites = true;
+			}
+			if ( ! $all_sites ) {
+				foreach ( $filter_sites as $site => $value ) {
+					if ( $value === 'true' ) {
+						$view_sites[] = $site;
+					}
+				}
+			}
+			$cloud_images = [];
+			$scroll_id = false;
+			$decoded_response = $this->get_cloud_images();
+			if ( isset( $decoded_response->data ) && isset( $decoded_response->data->scroll_id ) && isset( $decoded_response->data->images ) ) {
+				$cloud_images = $decoded_response->data->images;
+				$scroll_id = $decoded_response->data->scroll_id;
+			}
+			while ( count( $images ) < 20 && count( $cloud_images ) !== 0 ) {
+
+				foreach ( $cloud_images as $index => $image ) {
+					$parts = parse_url( $image->meta->originURL );
+					if ( $all_sites === true || ( isset( $parts['host'] ) && in_array( $parts['host'], $view_sites, true ) ) ) {
+						$images[] = $this->media_attachment_template( $image->meta->originURL, $index + $page * 20, $image->meta->resourceS3, $image->meta->originalWidth, $image->meta->originalHeight );
+					}
+				}
+				$decoded_response = $this->get_cloud_images( $scroll_id );
+				$cloud_images = [];
+				if ( isset( $decoded_response->data ) && isset( $decoded_response->data->scroll_id ) && isset( $decoded_response->data->images ) ) {
+					$cloud_images = $decoded_response->data->images;
+					$scroll_id = $decoded_response->data->scroll_id;
+				}
+			}
+			if ( count( $images ) === 20 ) {
+				set_transient( 'scroll_id', $decoded_response->data->scroll_id, 360 );
+			}
+			if ( count( $images ) < 20 ) {
 				delete_transient( 'scroll_id' );
 			}
-
-			$response = wp_remote_retrieve_body( wp_remote_get( $url, $options ) );
-			$decoded_response = json_decode( $response );
-
-			if ( isset( $decoded_response->data ) && isset( $decoded_response->data->scroll_id ) && isset( $decoded_response->data->images ) ) {
-				$page = 1;
-				if ( isset( $_REQUEST['query']['paged'] ) ) {
-					$page = $_REQUEST['query']['paged'];
-				}
-
-				$cloud_images = $decoded_response->data->images;
-
-				$images = array();
-				foreach ( $cloud_images as $index => $image ) {
-					$images[ $index ] = $this->media_attachment_template( $image->meta->originURL, $index + $page * 20, $image->meta->resourceS3 );
-				}
-				if ( count( $images ) === 20 ) {
-					set_transient( 'scroll_id', $decoded_response->data->scroll_id, 10 );
-				}
-
-				wp_send_json_success( $images );
-			}
+			wp_send_json_success( $images );
 		}
 	}
 
@@ -135,9 +156,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function __construct() {
 		$this->settings = new Optml_Settings();
-		parent::init();
-		add_action( 'wp_ajax_query-attachments', array($this, 'pull_images'), -2 );
-		add_action( 'admin_enqueue_scripts', array( $this, 'add_optimole_cloud_script' ) );
+		if ( $this->settings->is_connected() ) {
+			parent::init();
+		}
+		if ( $this->settings->get( 'cloud_images' ) === 'enabled' ) {
+			add_action( 'wp_ajax_query-attachments', array($this, 'pull_images'), -2 );
+			add_action( 'admin_enqueue_scripts', array($this, 'add_optimole_cloud_script') );
+		}
 		if ( $this->settings->get( 'offload_media' ) === 'enabled' ) {
 			add_filter( 'image_downsize', array($this, 'generate_filter_downsize_urls'), 10, 3 );
 			add_filter( 'wp_generate_attachment_metadata', array($this, 'generate_image_meta'), 10, 2 );
