@@ -85,34 +85,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
-	 * Call the images endpoint.
-	 *
-	 * @param string|false $scroll_id Scroll id used to advance the search.
-	 * @return mixed The decoded json response from the api.
-	 */
-	private function get_cloud_images( $scroll_id = false ) {
-		$options = [
-			'timeout'     => 60,
-			'blocking'    => true,
-			'httpversion' => '1.0',
-			'sslverify'   => false,
-		];
-		$options['headers'] = [ 'Authorization' => $this->settings->get( 'api_key' ) ];
-		$url = Optml_Api::get_api_root() . 'optml/v2/media/browser?key=' . Optml_Config::$key;
-		if ( $scroll_id === false ) {
-			$scroll_id = get_transient( 'scroll_id' );
-			delete_transient( 'scroll_id' );
-		}
-		if ( false !== $scroll_id ) {
-			$url = $url . '&scroll_id=' . $scroll_id;
-		}
-
-		$response = wp_remote_retrieve_body( wp_remote_get( $url, $options ) );
-		$decoded_response = json_decode( $response );
-		return $decoded_response;
-	}
-
-	/**
 	 * Parse images from api endpoint response images and send them to wp media modal.
 	 */
 	public function pull_images() {
@@ -142,7 +114,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			$cloud_images = [];
 			$scroll_id = false;
-			$decoded_response = $this->get_cloud_images();
+			$request = new Optml_Api();
+			$decoded_response = $request->get_cloud_images();
 			if ( isset( $decoded_response->data ) && isset( $decoded_response->data->scroll_id ) && isset( $decoded_response->data->images ) ) {
 				$cloud_images = $decoded_response->data->images;
 				$scroll_id = $decoded_response->data->scroll_id;
@@ -155,7 +128,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 						$images[] = $this->media_attachment_template( $image->meta->originURL, $index + $page * 20, $image->meta->resourceS3, $image->meta->originalWidth, $image->meta->originalHeight );
 					}
 				}
-				$decoded_response = $this->get_cloud_images( $scroll_id );
+				$decoded_response = $request->get_cloud_images( $scroll_id );
 				$cloud_images = [];
 				if ( isset( $decoded_response->data ) && isset( $decoded_response->data->scroll_id ) && isset( $decoded_response->data->images ) ) {
 					$cloud_images = $decoded_response->data->images;

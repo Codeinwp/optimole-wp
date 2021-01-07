@@ -21,10 +21,6 @@ final class Optml_Api {
 	 * @var string Api key.
 	 */
 	private $api_key;
-	public static function get_api_root() {
-		return self::$api_root;
-	}
-
 	/**
 	 * Optml_Api constructor.
 	 */
@@ -74,7 +70,7 @@ final class Optml_Api {
 	private function request( $path, $method = 'GET', $params = [], $extra_headers = [] ) {
 
 		// Grab the url to which we'll be making the request.
-		$url     = self::$api_root;
+		$url     = $this->api_root;
 		$headers = [
 			'Optml-Site' => get_home_url(),
 		];
@@ -91,7 +87,7 @@ final class Optml_Api {
 				$url = add_query_arg( [ $key => $val ], $url );
 			}
 		}
-		$url  = trailingslashit( self::$api_root ) . ltrim( $path, '/' );
+		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
 		$args = $this->build_args( $method, $url, $headers, $params );
 
 		$response = wp_remote_request( $url, $args );
@@ -231,6 +227,33 @@ final class Optml_Api {
 		}
 
 		return $response;
+	}
+	/**
+	 * Call the images endpoint.
+	 *
+	 * @param string|false $scroll_id Scroll id used to advance the search.
+	 * @return mixed The decoded json response from the api.
+	 */
+	public function get_cloud_images( $scroll_id = false ) {
+		$options = [
+			'timeout'     => 60,
+			'blocking'    => true,
+			'httpversion' => '1.0',
+			'sslverify'   => false,
+		];
+		$options['headers'] = [ 'Authorization' => $this->api_key ];
+		$url = $this->api_root . 'optml/v2/media/browser?key=' . Optml_Config::$key;
+		if ( $scroll_id === false ) {
+			$scroll_id = get_transient( 'scroll_id' );
+			delete_transient( 'scroll_id' );
+		}
+		if ( false !== $scroll_id ) {
+			$url = $url . '&scroll_id=' . $scroll_id;
+		}
+
+		$response = wp_remote_retrieve_body( wp_remote_get( $url, $options ) );
+		$decoded_response = json_decode( $response );
+		return $decoded_response;
 	}
 
 	/**

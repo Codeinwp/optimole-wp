@@ -24,7 +24,7 @@ class Test_Media extends WP_UnitTestCase {
 	 */
 	public function filter_pre_http_request( $false, $r, $url ) {
 
-		if ($url === "https://generateurls-dev.mh.optml.cloud/upload" ) {
+		if ($url === "https://generateurls-dev2.mh.optml.cloud/upload" ) {
 
 			$body = '{"uploadUrl":"https://uploadUrl","tableId":"579c7f7707ce87caa65fdf50c238a117" }';
 
