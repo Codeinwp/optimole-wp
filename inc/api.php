@@ -14,7 +14,13 @@ final class Optml_Api {
 	 *
 	 * @var string Api root.
 	 */
-	private $api_root = 'https://calm-pug-41.serverless.social/api/';
+	private $api_root = 'https://dashboard.optimole.com/api/';
+	/**
+	 * Optimole upload api root url.
+	 *
+	 * @var string Api root.
+	 */
+	private $upload_api_root = 'https://generateurls-dev2.mh.optml.cloud/upload';
 	/**
 	 * Hold the user api key.
 	 *
@@ -27,6 +33,12 @@ final class Optml_Api {
 	public function __construct() {
 		$settings      = new Optml_Settings();
 		$this->api_key = $settings->get( 'api_key' );
+		if ( defined( 'OPTIML_API_ROOT' ) && constant( 'OPTIML_API_ROOT' ) ) {
+			$this->api_root = constant( 'OPTIML_API_ROOT' );
+		}
+		if ( defined( 'OPTIML_UPLOAD_API_ROOT' ) && constant( 'OPTIML_UPLOAD_API_ROOT' ) ) {
+			$this->upload_api_root = constant( 'OPTIML_UPLOAD_API_ROOT' );
+		}
 	}
 
 	/**
@@ -138,7 +150,37 @@ final class Optml_Api {
 
 		return $args;
 	}
+	public function upload_image( $upload_url, $content_type, $image ) {
+		$args = $this->build_args( 'PUT', '', ['content-type' => $content_type], $image );
+		return wp_remote_request( $upload_url, $args );
+	}
+	public function call_upload_api( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto', $file_size = 0 ) {
+		$body = [
+			'secret' => Optml_Config::$secret,
+			'userKey' => Optml_Config::$key,
+			'originalUrl' => $original_url,
+			'deleteUrl' => $delete,
+			'id' => $table_id,
+			'updateDynamo' => $update_table,
+			'getUrl' => $get_url,
+			'width' => $width,
+			'height' => $height,
+			'originalFileSize' => $file_size,
+		];
+		$body = wp_json_encode( $body );
 
+		$options = [
+			'body'        => $body,
+			'headers'     => [
+				'Content-Type' => 'application/json',
+			],
+			'timeout'     => 60,
+			'blocking'    => true,
+			'sslverify'   => false,
+			'data_format' => 'body',
+		];
+		return wp_remote_post( $this->upload_api_root, $options );
+	}
 	/**
 	 * Register user remotely on optimole.com.
 	 *

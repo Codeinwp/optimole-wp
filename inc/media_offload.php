@@ -47,8 +47,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param int     $height Image height.
 	 * @return array The format expected for a single image in the media modal.
 	 */
-	private function media_attachment_template( $url, $index, $resource_id, $width, $height ) {
-		$last_attach = self::number_of_library_images();
+	private function media_attachment_template( $url, $index, $resource_id, $width, $height, $last_attach ) {
+
 		$optimized_url = $this->get_media_optimized_url( $url, $resource_id, $width, $height );
 		return
 		[
@@ -89,6 +89,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function pull_images() {
 		$images_on_page = 40;
+		$last_attach = self::number_of_library_images();
 		if ( ! current_user_can( 'upload_files' ) ) {
 			wp_send_json_error();
 		}
@@ -116,6 +117,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$scroll_id = false;
 			$request = new Optml_Api();
 			$decoded_response = $request->get_cloud_images();
+
 			if ( isset( $decoded_response['scroll_id'] ) && isset( $decoded_response['images'] ) ) {
 				$cloud_images = $decoded_response['images'];
 				$scroll_id = $decoded_response['scroll_id'];
@@ -136,7 +138,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 						if ( isset( $image['meta']['originalWidth'] ) ) {
 							$width = $image['meta']['originalWidth'];
 						}
-						$images[] = $this->media_attachment_template( $image['meta']['originURL'], $index + $page * $images_on_page, $image['meta']['resourceS3'], $width, $height );
+						$images[] = $this->media_attachment_template( $image['meta']['originURL'], $index + $page * $images_on_page, $image['meta']['resourceS3'], $width, $height, $last_attach );
 					}
 				}
 				if ( count( $images ) < $images_on_page ) {
@@ -442,9 +444,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$table_id = str_replace( self::KEYS['uploaded_flag'], '', $parts[1] );
 			}
 
-			$options = $this->set_api_call_options( '', 'false', $table_id, 'false', 'true' );
-
-			$get_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
+			$request = new Optml_Api();
+			$get_response = $request->call_upload_api( '', 'false', $table_id, 'false', 'true' );
 
 			if ( is_wp_error( $get_response ) || wp_remote_retrieve_response_code( $get_response ) !== 200 ) {
 				continue;
@@ -614,47 +615,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
-	 * Get options for the signed urls api call.
-	 *
-	 * @param string $original_url Image original url.
-	 * @param string $delete Whether to delete a bucket object or not(ie. generate signed upload url).
-	 * @param string $table_id Remote id used on our servers.
-	 * @param string $update_table False or success.
-	 * @param string $get_url Whether to return a get url or not.
-	 * @param string $width Original image width.
-	 * @param string $height Original image height.
-	 * @param int    $file_size Original file size.
-	 * @return array
-	 */
-	private function set_api_call_options( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto', $file_size = 0 ) {
-		$body = [
-			'secret' => Optml_Config::$secret,
-			'userKey' => Optml_Config::$key,
-			'originalUrl' => $original_url,
-			'deleteUrl' => $delete,
-			'id' => $table_id,
-			'updateDynamo' => $update_table,
-			'getUrl' => $get_url,
-			'width' => $width,
-			'height' => $height,
-			'originalFileSize' => $file_size,
-		];
-		$body = wp_json_encode( $body );
-
-		$options = [
-			'body'        => $body,
-			'headers'     => [
-				'Content-Type' => 'application/json',
-			],
-			'timeout'     => 60,
-			'blocking'    => true,
-			'httpversion' => '1.0',
-			'sslverify'   => false,
-			'data_format' => 'body',
-		];
-		return $options;
-	}
-	/**
 	 * Delete an image from our servers after it is removed from media.
 	 *
 	 * @param int $post_id The deleted post id.
@@ -675,9 +635,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					return;
 			}
 
-			$options = $this->set_api_call_options( $original_url, 'true', $table_id[1] );
+			$request = new Optml_Api();
+			$delete_response = $request->call_upload_api( $original_url, 'true', $table_id[1] );
 
-			$delete_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
 			delete_post_meta( $post_id, 'optimole_offload' );
 			if ( is_wp_error( $delete_response ) || wp_remote_retrieve_response_code( $delete_response ) !== 200 ) {
 				// should add some routine to retry delete once if delete fails
@@ -790,7 +750,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		$extension = $this->get_ext( $local_file );
 
-		if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) || ! defined( 'OPTML_SIGNED_URLS' ) ) {
+		if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) ) {
 			return $meta;
 		}
 		if ( false === Optml_Filters::should_do_extension( self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_EXT ], $extension ) ) {
@@ -801,9 +761,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$temp = explode( '/', $local_file );
 		$file_name = end( $temp );
 
-		$options = $this->set_api_call_options( $original_url, 'false' );
+		$request = new Optml_Api();
+		$generate_url_response = $request->call_upload_api( $original_url );
 
-		$generate_url_response = wp_remote_post( constant( 'OPTML_SIGNED_URLS' ), $options );
 		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
 			return $meta;
 		}
@@ -820,16 +780,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		if ( $upload_signed_url !== 'found_resource' ) {
 
-			$upload_args = [
-				'method' => 'PUT',
-				'headers' => [
-					'content-type' => $content_type,
-				],
-				'timeout' => 30,
-				'body' => $image,
-			];
+			$request = new Optml_Api();
+			$result = $request->upload_image( $upload_signed_url, $content_type, $image );
 
-			$result = wp_remote_request( $upload_signed_url, $upload_args );
 			if ( is_wp_error( $result ) || wp_remote_retrieve_response_code( $result ) !== 200 ) {
 				return $meta;
 			}
@@ -837,9 +790,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( $file_size === false ) {
 				$file_size = 0;
 			}
-			$result_update = wp_remote_post(
-				constant( 'OPTML_SIGNED_URLS' ),
-				$this->set_api_call_options( $original_url, 'false', $table_id, 'success', 'false', $meta['width'], $meta['height'], $file_size )
+			$request = new Optml_Api();
+			$result_update = $request->call_upload_api(
+				$original_url,
+				'false',
+				$table_id,
+				'success',
+				'false',
+				$meta['width'],
+				$meta['height'],
+				$file_size
 			);
 			if ( is_wp_error( $result_update ) || wp_remote_retrieve_response_code( $result_update ) !== 200 ) {
 				return $meta;
@@ -921,11 +881,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *  @return int Number of images.
 	 */
 	public static function number_of_library_images() {
+
 		$total_images_by_mime = wp_count_attachments( 'image' );
-		$img_number = 0;
-		foreach ( $total_images_by_mime as $value ) {
-			$img_number += $value;
-		}
-		return  $img_number;
+		return  array_sum( (array) $total_images_by_mime );
 	}
 }

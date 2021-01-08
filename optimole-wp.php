@@ -88,7 +88,6 @@ function optml() {
 	if ( ! defined( 'OPTML_DEBUG' ) ) {
 		define( 'OPTML_DEBUG', ( defined( 'TEST_GROUND' ) && TEST_GROUND ) ? true : false );
 	}
-	define( 'OPTML_SIGNED_URLS', 'https://generateurls-dev2.mh.optml.cloud/upload' );
 
 	return Optml_Main::instance();
 }
