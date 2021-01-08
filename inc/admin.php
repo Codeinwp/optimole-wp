@@ -615,27 +615,30 @@ class Optml_Admin {
 	private function localize_dashboard_app() {
 
 		global $wp_version;
-
+		$is_offload_media_available = 'no';
+		if ( version_compare( $wp_version, '5.3', '>=' ) ) {
+			$is_offload_media_available = 'yes';
+		}
 		$api_key      = $this->settings->get( 'api_key' );
 		$service_data = $this->settings->get( 'service_data' );
 		$user         = get_userdata( get_current_user_id() );
 
 		return [
-			'strings'              => $this->get_dashboard_strings(),
-			'assets_url'           => OPTML_URL . 'assets/',
-			'connection_status'    => empty( $service_data ) ? 'no' : 'yes',
-			'user_status'          => isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ? 'inactive' : 'active',
-			'api_key'              => $api_key,
-			'root'                 => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),
-			'nonce'                => wp_create_nonce( 'wp_rest' ),
-			'user_data'            => $service_data,
-			'remove_latest_images' => defined( 'OPTML_REMOVE_LATEST_IMAGES' ) && constant( 'OPTML_REMOVE_LATEST_IMAGES' ) ? ( OPTML_REMOVE_LATEST_IMAGES ? 'yes' : 'no' ) : 'no',
-			'current_user'         => [
+			'strings'                    => $this->get_dashboard_strings(),
+			'assets_url'                 => OPTML_URL . 'assets/',
+			'connection_status'          => empty( $service_data ) ? 'no' : 'yes',
+			'user_status'                => isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ? 'inactive' : 'active',
+			'api_key'                    => $api_key,
+			'root'                       => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),
+			'nonce'                      => wp_create_nonce( 'wp_rest' ),
+			'user_data'                  => $service_data,
+			'remove_latest_images'       => defined( 'OPTML_REMOVE_LATEST_IMAGES' ) && constant( 'OPTML_REMOVE_LATEST_IMAGES' ) ? ( OPTML_REMOVE_LATEST_IMAGES ? 'yes' : 'no' ) : 'no',
+			'current_user'               => [
 				'email' => $user->user_email,
 			],
-			'site_settings'        => $this->settings->get_site_settings(),
-			'home_url'             => home_url(),
-			'wp_version'           => $wp_version,
+			'site_settings'              => $this->settings->get_site_settings(),
+			'home_url'                   => home_url(),
+			'is_offload_media_available' => $is_offload_media_available,
 		];
 	}
 

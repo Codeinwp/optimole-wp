@@ -14,7 +14,7 @@ final class Optml_Api {
 	 *
 	 * @var string Api root.
 	 */
-	private $api_root = 'http://dashboard.optimole.com/api/';
+	private $api_root = 'https://calm-pug-41.serverless.social/api/';
 	/**
 	 * Hold the user api key.
 	 *
@@ -69,8 +69,6 @@ final class Optml_Api {
 	 */
 	private function request( $path, $method = 'GET', $params = [], $extra_headers = [] ) {
 
-		// Grab the url to which we'll be making the request.
-		$url     = $this->api_root;
 		$headers = [
 			'Optml-Site' => get_home_url(),
 		];
@@ -80,14 +78,13 @@ final class Optml_Api {
 		if ( ! empty( $headers ) && is_array( $headers ) ) {
 			$headers = array_merge( $headers, $extra_headers );
 		}
-
+		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
 		// If there is a extra, add that as a url var.
 		if ( 'GET' === $method && ! empty( $params ) ) {
 			foreach ( $params as $key => $val ) {
 				$url = add_query_arg( [ $key => $val ], $url );
 			}
 		}
-		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
 		$args = $this->build_args( $method, $url, $headers, $params );
 
 		$response = wp_remote_request( $url, $args );
@@ -235,25 +232,15 @@ final class Optml_Api {
 	 * @return mixed The decoded json response from the api.
 	 */
 	public function get_cloud_images( $scroll_id = false ) {
-		$options = [
-			'timeout'     => 60,
-			'blocking'    => true,
-			'httpversion' => '1.0',
-			'sslverify'   => false,
-		];
-		$options['headers'] = [ 'Authorization' => $this->api_key ];
-		$url = $this->api_root . 'optml/v2/media/browser?key=' . Optml_Config::$key;
+		$params = ['key' => Optml_Config::$key ];
 		if ( $scroll_id === false ) {
 			$scroll_id = get_transient( 'scroll_id' );
 			delete_transient( 'scroll_id' );
 		}
 		if ( false !== $scroll_id ) {
-			$url = $url . '&scroll_id=' . $scroll_id;
+			$params['scroll_id'] = $scroll_id;
 		}
-
-		$response = wp_remote_retrieve_body( wp_remote_get( $url, $options ) );
-		$decoded_response = json_decode( $response );
-		return $decoded_response;
+		return $this->request( 'optml/v2/media/browser', 'GET', $params );
 	}
 
 	/**

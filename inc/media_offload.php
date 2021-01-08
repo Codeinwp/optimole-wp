@@ -31,7 +31,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Enqueue script for generating cloud media tab.
 	 */
-	public function add_optimole_cloud_script( $hook ) {
+	public function add_cloud_script( $hook ) {
 		if ( $hook === 'post.php' ) {
 			wp_enqueue_script( 'optimole_media', OPTML_URL . 'assets/js/optimole_media.js' );
 		}
@@ -88,7 +88,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Parse images from api endpoint response images and send them to wp media modal.
 	 */
 	public function pull_images() {
-
+		$images_on_page = 40;
 		if ( ! current_user_can( 'upload_files' ) ) {
 			wp_send_json_error();
 		}
@@ -116,29 +116,42 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$scroll_id = false;
 			$request = new Optml_Api();
 			$decoded_response = $request->get_cloud_images();
-			if ( isset( $decoded_response->data ) && isset( $decoded_response->data->scroll_id ) && isset( $decoded_response->data->images ) ) {
-				$cloud_images = $decoded_response->data->images;
-				$scroll_id = $decoded_response->data->scroll_id;
+			if ( isset( $decoded_response['scroll_id'] ) && isset( $decoded_response['images'] ) ) {
+				$cloud_images = $decoded_response['images'];
+				$scroll_id = $decoded_response['scroll_id'];
 			}
-			while ( count( $images ) < 20 && count( $cloud_images ) !== 0 ) {
+			while ( count( $images ) < $images_on_page && count( $cloud_images ) !== 0 ) {
 
 				foreach ( $cloud_images as $index => $image ) {
-					$parts = parse_url( $image->meta->originURL );
+					$parts = parse_url( $image['meta']['originURL'] );
 					if ( $all_sites === true || ( isset( $parts['host'] ) && in_array( $parts['host'], $view_sites, true ) ) ) {
-						$images[] = $this->media_attachment_template( $image->meta->originURL, $index + $page * 20, $image->meta->resourceS3, $image->meta->originalWidth, $image->meta->originalHeight );
+						$width = 'auto';
+						$height = 'auto';
+						if ( ! isset( $image['meta']['originURL'] ) || ! isset( $image['meta']['resourceS3'] ) ) {
+							continue;
+						}
+						if ( isset( $image['meta']['originalHeight'] ) ) {
+							$height = $image['meta']['originalHeight'];
+						}
+						if ( isset( $image['meta']['originalWidth'] ) ) {
+							$width = $image['meta']['originalWidth'];
+						}
+						$images[] = $this->media_attachment_template( $image['meta']['originURL'], $index + $page * $images_on_page, $image['meta']['resourceS3'], $width, $height );
 					}
 				}
-				$decoded_response = $request->get_cloud_images( $scroll_id );
-				$cloud_images = [];
-				if ( isset( $decoded_response->data ) && isset( $decoded_response->data->scroll_id ) && isset( $decoded_response->data->images ) ) {
-					$cloud_images = $decoded_response->data->images;
-					$scroll_id = $decoded_response->data->scroll_id;
+				if ( count( $images ) < $images_on_page ) {
+					$decoded_response = $request->get_cloud_images( $scroll_id );
+					$cloud_images = [];
+					if ( isset( $decoded_response['scroll_id'] ) && isset( $decoded_response['images'] ) ) {
+						$cloud_images = $decoded_response['images'];
+						$scroll_id = $decoded_response['scroll_id'];
+					}
 				}
 			}
-			if ( count( $images ) === 20 ) {
-				set_transient( 'scroll_id', $decoded_response->data->scroll_id, 360 );
+			if ( count( $images ) === $images_on_page ) {
+				set_transient( 'scroll_id', $decoded_response['scroll_id'], 360 );
 			}
-			if ( count( $images ) < 20 ) {
+			if ( count( $images ) < $images_on_page ) {
 				delete_transient( 'scroll_id' );
 			}
 			wp_send_json_success( $images );
@@ -155,7 +168,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		if ( $this->settings->get( 'cloud_images' ) === 'enabled' ) {
 			add_action( 'wp_ajax_query-attachments', [$this, 'pull_images'], -2 );
-			add_action( 'admin_enqueue_scripts', [$this, 'add_optimole_cloud_script'] );
+			add_action( 'admin_enqueue_scripts', [$this, 'add_cloud_script'] );
 		}
 		if ( $this->settings->get( 'offload_media' ) === 'enabled' ) {
 			add_filter( 'image_downsize', [$this, 'generate_filter_downsize_urls'], 10, 3 );

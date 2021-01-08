@@ -29,7 +29,7 @@
                                :title="all_strings.lazyload_settings_menu_item+' '+all_strings.lazyload_settings_menu_item">{{all_strings.lazyload_settings_menu_item}}</a>
                         </li>
 <!--                    Offload media menu-->
-                        <li v-if="wp_version>=5.3"><a @click="changeTab('offload_media')" href="#"
+                        <li v-if="is_offload_media_available === 'yes'"><a @click="changeTab('offload_media')" href="#"
                                                                                          :class="tab === 'offload_media' ? 'is-active' : ''"
                                                                                          :title="all_strings.offload_media_settings_menu_item+' '+all_strings.offload_media_settings_menu_item">{{all_strings.offload_media_settings_menu_item}}</a>
                         </li>
@@ -81,7 +81,7 @@
             return {
                 strings: optimoleDashboardApp.strings.options_strings,
                 all_strings: optimoleDashboardApp.strings,
-                wp_version : parseFloat(optimoleDashboardApp.wp_version),
+                is_offload_media_available : optimoleDashboardApp.is_offload_media_available,
                 showNotification: false,
                 tab: 'general',
                 isDisabled: false,

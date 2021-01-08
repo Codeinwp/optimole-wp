@@ -55,7 +55,6 @@ jQuery(document).ready( function($){
 
             let options = this.options.library;
             options.type = ['optml_cloud'];
-            options.posts_per_page = 20;
             const view = new wp.media.view.AttachmentsBrowser({
                 controller: this,
                 collection: wp.media.query( options ),

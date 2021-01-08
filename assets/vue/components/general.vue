@@ -67,9 +67,6 @@
 
         <hr/>
 
-
-      <hr/>
-
         <!-- Clear Cache button -->
         <div class="field  is-fullwidth columns " :class="{'is-field-disabled':isReplacerOff }">
             <label class="label column has-text-grey-dark">
