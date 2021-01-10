@@ -1,11 +1,11 @@
 version: '3.7'
 
 services:
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 7025:8080
+#  adminer:
+#    image: adminer
+#    restart: always
+#    ports:
+#      - 7025:8080
   mysql:
     image: mysql:5.7
     ports:
