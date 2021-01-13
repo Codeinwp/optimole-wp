@@ -95,14 +95,15 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		if ( isset( $_REQUEST['query'] ) && isset( $_REQUEST['query']['post_mime_type'] ) && $_REQUEST['query']['post_mime_type'][0] === 'optml_cloud' ) {
 
-			$page = 1;
+			$page = 0;
 			if ( isset( $_REQUEST['query']['paged'] ) ) {
-				$page = $_REQUEST['query']['paged'];
+				$page = $_REQUEST['query']['paged'] - 1;
 			}
 			$images = [];
 			$view_sites = [];
 			$all_sites = false;
 			$filter_sites = $this->settings->get( 'cloud_sites' );
+			// to do pass domains to api and filter there
 			if ( isset( $filter_sites['all'] ) && $filter_sites['all'] === 'true' ) {
 				$all_sites = true;
 			}
@@ -114,47 +115,26 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				}
 			}
 			$cloud_images = [];
-			$scroll_id = false;
 			$request = new Optml_Api();
-			$decoded_response = $request->get_cloud_images();
+			$decoded_response = $request->get_cloud_images( $page );
 
-			if ( isset( $decoded_response['scroll_id'] ) && isset( $decoded_response['images'] ) ) {
+			if ( isset( $decoded_response['images'] ) ) {
 				$cloud_images = $decoded_response['images'];
-				$scroll_id = $decoded_response['scroll_id'];
 			}
-			while ( count( $images ) < $images_on_page && count( $cloud_images ) !== 0 ) {
 
-				foreach ( $cloud_images as $index => $image ) {
-					$parts = parse_url( $image['meta']['originURL'] );
-					if ( $all_sites === true || ( isset( $parts['host'] ) && in_array( $parts['host'], $view_sites, true ) ) ) {
-						$width = 'auto';
-						$height = 'auto';
-						if ( ! isset( $image['meta']['originURL'] ) || ! isset( $image['meta']['resourceS3'] ) ) {
-							continue;
-						}
-						if ( isset( $image['meta']['originalHeight'] ) ) {
-							$height = $image['meta']['originalHeight'];
-						}
-						if ( isset( $image['meta']['originalWidth'] ) ) {
-							$width = $image['meta']['originalWidth'];
-						}
-						$images[] = $this->media_attachment_template( $image['meta']['originURL'], $index + $page * $images_on_page, $image['meta']['resourceS3'], $width, $height, $last_attach );
-					}
+			foreach ( $cloud_images as $index => $image ) {
+				$width = 'auto';
+				$height = 'auto';
+				if ( ! isset( $image['meta']['originURL'] ) || ! isset( $image['meta']['resourceS3'] ) ) {
+					continue;
 				}
-				if ( count( $images ) < $images_on_page ) {
-					$decoded_response = $request->get_cloud_images( $scroll_id );
-					$cloud_images = [];
-					if ( isset( $decoded_response['scroll_id'] ) && isset( $decoded_response['images'] ) ) {
-						$cloud_images = $decoded_response['images'];
-						$scroll_id = $decoded_response['scroll_id'];
-					}
+				if ( isset( $image['meta']['originalHeight'] ) ) {
+					$height = $image['meta']['originalHeight'];
 				}
-			}
-			if ( count( $images ) === $images_on_page ) {
-				set_transient( 'scroll_id', $decoded_response['scroll_id'], 360 );
-			}
-			if ( count( $images ) < $images_on_page ) {
-				delete_transient( 'scroll_id' );
+				if ( isset( $image['meta']['originalWidth'] ) ) {
+					$width = $image['meta']['originalWidth'];
+				}
+				$images[] = $this->media_attachment_template( $image['meta']['originURL'], $index + ( $page + 1 ) * $images_on_page, $image['meta']['resourceS3'], $width, $height, $last_attach );
 			}
 			wp_send_json_success( $images );
 		}

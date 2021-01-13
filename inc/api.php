@@ -150,10 +150,33 @@ final class Optml_Api {
 
 		return $args;
 	}
+
+	/**
+	 * Upload image to our servers using the generated signed url.
+	 *
+	 * @param string $upload_url The signed to url to upload the image to.
+	 * @param string $content_type Image mime type, it must match the actual mime type of the image.
+	 * @param string $image Image data from file_get_contents.
+	 * @return mixed
+	 */
 	public function upload_image( $upload_url, $content_type, $image ) {
 		$args = $this->build_args( 'PUT', '', ['content-type' => $content_type], $image );
 		return wp_remote_request( $upload_url, $args );
 	}
+
+	/**
+	 * Get options for the signed urls api call.
+	 *
+	 * @param string $original_url Image original url.
+	 * @param string $delete Whether to delete a bucket object or not(ie. generate signed upload url).
+	 * @param string $table_id Remote id used on our servers.
+	 * @param string $update_table False or success.
+	 * @param string $get_url Whether to return a get url or not.
+	 * @param string $width Original image width.
+	 * @param string $height Original image height.
+	 * @param int    $file_size Original file size.
+	 * @return array
+	 */
 	public function call_upload_api( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto', $file_size = 0 ) {
 		$body = [
 			'secret' => Optml_Config::$secret,
@@ -270,18 +293,15 @@ final class Optml_Api {
 	/**
 	 * Call the images endpoint.
 	 *
-	 * @param string|false $scroll_id Scroll id used to advance the search.
+	 * @param integer $page Page used to advance the search.
 	 * @return mixed The decoded json response from the api.
 	 */
-	public function get_cloud_images( $scroll_id = false ) {
+	public function get_cloud_images( $page = 0 ) {
 		$params = ['key' => Optml_Config::$key ];
-		if ( $scroll_id === false ) {
-			$scroll_id = get_transient( 'scroll_id' );
-			delete_transient( 'scroll_id' );
-		}
-		if ( false !== $scroll_id ) {
-			$params['scroll_id'] = $scroll_id;
-		}
+
+		$params['page'] = $page;
+		$params['size'] = 40;
+
 		return $this->request( 'optml/v2/media/browser', 'GET', $params );
 	}
 
