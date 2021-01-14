@@ -72,12 +72,6 @@ class Optml_Rest {
 						return current_user_can( 'manage_options' );
 					},
 					'callback'            => [ $this, 'check_redirects' ],
-					'args'                => [
-						'images' => [
-							'type'     => 'Array',
-							'required' => true,
-						],
-					],
 				],
 			]
 		);

@@ -468,6 +468,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	/**
 	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_custom_domain() {
 		define( 'OPTML_SITE_MIRROR', 'https://mycnd.com' );
@@ -607,6 +608,7 @@ class Test_Replacer extends WP_UnitTestCase {
 	}
 	/**
 	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_class_exclusion()
 	{
