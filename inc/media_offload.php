@@ -103,7 +103,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$view_sites = [];
 			$all_sites = false;
 			$filter_sites = $this->settings->get( 'cloud_sites' );
-			// to do pass domains to api and filter there
+
 			if ( isset( $filter_sites['all'] ) && $filter_sites['all'] === 'true' ) {
 				$all_sites = true;
 			}
@@ -116,7 +116,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			$cloud_images = [];
 			$request = new Optml_Api();
-			$decoded_response = $request->get_cloud_images( $page );
+			$decoded_response = $request->get_cloud_images( $page, $view_sites );
 
 			if ( isset( $decoded_response['images'] ) ) {
 				$cloud_images = $decoded_response['images'];

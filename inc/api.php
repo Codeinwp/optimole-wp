@@ -290,17 +290,23 @@ final class Optml_Api {
 
 		return $response;
 	}
+
 	/**
 	 * Call the images endpoint.
 	 *
 	 * @param integer $page Page used to advance the search.
+	 * @param array   $domains Domains to filter by.
 	 * @return mixed The decoded json response from the api.
 	 */
-	public function get_cloud_images( $page = 0 ) {
-		$params = ['key' => Optml_Config::$key ];
+	public function get_cloud_images( $page = 0, $domains = [] ) {
 
+		$params = ['key' => Optml_Config::$key ];
 		$params['page'] = $page;
 		$params['size'] = 40;
+
+		if ( ! empty( $domains ) ) {
+			$params['domains'] = implode( ',', $domains );
+		}
 
 		return $this->request( 'optml/v2/media/browser', 'GET', $params );
 	}

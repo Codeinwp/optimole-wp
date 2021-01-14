@@ -351,6 +351,10 @@ class Optml_Settings {
 	 */
 	public function get_site_settings() {
 		$service_data = $this->get( 'service_data' );
+		$whitelist = [];
+		if ( isset( $service_data['whitelist'] ) ) {
+			$whitelist = $service_data['whitelist'];
+		}
 		return [
 			'quality'              => $this->get_quality(),
 			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
@@ -377,7 +381,7 @@ class Optml_Settings {
 			'report_script'        => $this->get( 'report_script' ),
 			'offload_media'        => $this->get( 'offload_media' ),
 			'cloud_images'         => $this->get( 'cloud_images' ),
-			'whitelist_domains'    => $service_data['whitelist'],
+			'whitelist_domains'    => $whitelist,
 		];
 	}
 
