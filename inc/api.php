@@ -20,7 +20,7 @@ final class Optml_Api {
 	 *
 	 * @var string Api root.
 	 */
-	private $upload_api_root = 'https://generateurls-dev2.mh.optml.cloud/upload';
+	private $upload_api_root = 'https://generateurls-prod.i.optimole.com/upload';
 	/**
 	 * Hold the user api key.
 	 *

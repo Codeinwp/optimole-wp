@@ -550,7 +550,7 @@ abstract class Optml_App_Replacer {
 	 * @param array  $resize Optml crop array.
 	 * @return string The optimized url.
 	 */
-	protected function get_media_optimized_url( $url, $table_id, $width = 'auto', $height = 'auto', $resize = [] ) {
+	public function get_media_optimized_url( $url, $table_id, $width = 'auto', $height = 'auto', $resize = [] ) {
 		$optimized_url = ( new Optml_Image( $url, ['width' => $width, 'height' => $height, 'resize' => $resize, 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
 		$optimized_url = str_replace( $url, Optml_Media_Offload::KEYS['not_processed_flag'] . 'media_cloud' . '/' . Optml_Media_Offload::KEYS['uploaded_flag'] . $table_id . '/' . $url, $optimized_url );
 		return $optimized_url;

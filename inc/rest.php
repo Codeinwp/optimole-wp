@@ -537,6 +537,12 @@ class Optml_Rest {
 		}
 
 		$final_images = array_splice( $images['list'], 0, 10 );
+		$media = new Optml_Media_Offload();
+
+		foreach ( $final_images as $index => $value ) {
+			$final_images[ $index ]['url'] = $media->get_media_optimized_url( $value['url'], $value['key'] );
+			unset( $final_images[ $index ]['key'] );
+		}
 
 		return $this->response( $final_images );
 	}
