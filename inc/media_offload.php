@@ -32,7 +32,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Enqueue script for generating cloud media tab.
 	 */
 	public function add_cloud_script( $hook ) {
-		if ( $hook === 'post.php' ) {
+		if ( $hook === 'post.php' || $hook === 'post-new.php' ) {
 			wp_enqueue_script( 'optimole_media', OPTML_URL . 'assets/js/optimole_media.js' );
 		}
 	}
