@@ -129,10 +129,10 @@ final class Optml_Api {
 	/**
 	 * Builds Request arguments array.
 	 *
-	 * @param string $method Request method (GET | POST | PUT | UPDATE | DELETE).
-	 * @param string $url Request URL.
-	 * @param array  $headers Headers Array.
-	 * @param array  $params Additional params for the Request.
+	 * @param string       $method Request method (GET | POST | PUT | UPDATE | DELETE).
+	 * @param string       $url Request URL.
+	 * @param array        $headers Headers Array.
+	 * @param array|string $params Additional params for the Request.
 	 *
 	 * @return array
 	 */
@@ -162,6 +162,20 @@ final class Optml_Api {
 	public function upload_image( $upload_url, $content_type, $image ) {
 		$args = $this->build_args( 'PUT', '', ['content-type' => $content_type], $image );
 		return wp_remote_request( $upload_url, $args );
+	}
+
+	/**
+	 * Check if the optimized url is available.
+	 *
+	 * @param string $url The optimized url to check.
+	 * @return bool Whether or not the url is valid.
+	 */
+	public function check_optimized_url( $url ) {
+		$response = wp_remote_get( $url );
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+			return false;
+		}
+		return true;
 	}
 
 	/**

@@ -20,6 +20,7 @@
                        color="#008ec2"></toggle-button>
       </div>
     </div>
+    <!--Sites select-->
     <div  id="filters-list" v-if="this.site_settings.cloud_images === 'enabled'">
       <div class="columns  ">
         <div>
@@ -105,6 +106,32 @@
                        :height="25"
                        color="#008ec2"></toggle-button>
       </div>
+
+    </div>
+
+
+    <!--Rollback on disable notice-->
+    <div class="field  columns" v-if="this.showOffloadDisabled">
+      <label class="label column" style="color: #dc143c !important;">
+        {{strings.offload_disable_warning_title}}
+
+        <p class="is-italic has-text-weight-normal">
+          {{strings.offload_disable_warning_desc}}
+        </p>
+      </label>
+      <hr>
+      <div class="column is-3 ">
+        <p class="control ">
+                            <span class="select  is-small">
+                              <select  @change="selectValue($event)">
+                                <option disabled selected value="" > {{ strings.select }} </option>
+                                <option  value="yes_rollback">{{strings.yes}}</option>
+                                <option  value="no_rollback">{{strings.no}}</option>
+                              </select>
+                            </span>
+        </p>
+      </div>
+
     </div>
     <!-- Sync Media button -->
     <div :class="{ 'saving--option' : this.$store.state.loading }" class="field  is-fullwidth columns " v-if="this.site_settings.offload_media==='enabled'">
@@ -132,7 +159,7 @@
       </div>
     </div>
     <!-- Rollback Media button -->
-    <div class="field  is-fullwidth columns " v-if="this.site_settings.offload_media==='enabled'">
+    <div class="field  is-fullwidth columns " v-if="this.site_settings.offload_media==='enabled' || this.$store.state.loadingRollback">
       <label class="label column has-text-grey-dark">
         {{strings.rollback_title}}
 
@@ -172,6 +199,7 @@
 </template>
 
 <script>
+
 export default {
   name: "media",
   data() {
@@ -180,12 +208,18 @@ export default {
       all_strings: optimoleDashboardApp.strings,
       maxTime: 100,
       showSave: false,
+      showOffloadDisabled : false,
+      offloadDisableOptions : [],
       new_data: {},
     }
   },
   mounted: function () {
   },
   methods: {
+    selectValue: function (event) {
+      this.showSave = true;
+      this.select_rollback = event.target.value;
+    },
     changeSite: function (event) {
       this.selected_site = event.target.value;
     },
@@ -208,7 +242,10 @@ export default {
       this.$store.dispatch('callSync', { action: action});
     },
     saveChanges: function () {
-      this.showSave = false;
+      this.showOffloadDisabled = false;
+      if ( this.select_rollback === 'yes_rollback' ) {
+        this.callSync('rollback_images' );
+      }
       this.$store.dispatch('saveSettings', {
         settings: this.new_data
       });
@@ -245,8 +282,9 @@ export default {
     },
     offloadMediaStatus: {
       set: function (value) {
-        this.showSave = true;
+        this.showSave = !!value;
         this.new_data.offload_media = value ? 'enabled' : 'disabled';
+        this.showOffloadDisabled = ! value;
       },
       get: function () {
         return !(this.site_settings.offload_media === 'disabled');
