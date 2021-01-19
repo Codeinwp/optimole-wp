@@ -23,7 +23,7 @@ class Test_Media extends WP_UnitTestCase {
 	 * Mock the api calls and remote images requests
 	 */
 	public function filter_pre_http_request( $false, $r, $url ) {
-		if ( str_contains($url, 'example.i.optimole.com' ) ) {
+		if ( strpos($url, 'example.i.optimole.com' ) !== false ) {
 			return array
 			(
 				'headers' => new Requests_Utility_CaseInsensitiveDictionary (
