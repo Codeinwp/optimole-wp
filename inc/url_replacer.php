@@ -140,9 +140,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			}
 			$unoptimized_url = false;
 			if ( $attachment_id[1] === 'media_cloud' ) {
-				$url = explode( '/', $id_and_filename, 3 );
-				if ( isset( $url[2] ) ) {
-					$unoptimized_url = $url[2];
+				$tmp_url = explode( '/', $id_and_filename, 3 );
+				if ( isset( $tmp_url[2] ) ) {
+					$unoptimized_url = $tmp_url[2];
 				}
 			} else {
 				$unoptimized_url = Optml_Media_Offload::get_original_url( $attachment_id[1] );

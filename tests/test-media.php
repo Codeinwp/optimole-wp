@@ -23,7 +23,28 @@ class Test_Media extends WP_UnitTestCase {
 	 * Mock the api calls and remote images requests
 	 */
 	public function filter_pre_http_request( $false, $r, $url ) {
-
+		if ( str_contains($url, 'example.i.optimole.com' ) ) {
+			return array
+			(
+				'headers' => new Requests_Utility_CaseInsensitiveDictionary (
+					array(
+						'content-type' => 'application/json',
+						'content-length' => 1182,
+						'date' => 'Fri, 23 Oct 2020 11:42:49 GMT',
+					)),
+				'body' => 'some image data',
+				'response' => array
+				(
+					'code' => 200,
+					'message' => 'OK'
+				),
+				
+				'cookies' => array
+				(),
+				
+				'filename' => '',
+			);
+		}
 		if ($url === "https://generateurls-prod.i.optimole.com/upload" ) {
 
 			$body = '{"uploadUrl":"https://uploadUrl","tableId":"579c7f7707ce87caa65fdf50c238a117" }';

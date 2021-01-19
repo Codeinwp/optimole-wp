@@ -446,8 +446,13 @@ abstract class Optml_App_Replacer {
 		$urls = array_map(
 			function ( $value ) {
 				$parts = parse_url( $value );
-
-				return isset( $parts['host'] ) ? $parts['host'] : '';
+				$domain = '';
+				if ( isset( $parts['host'] ) ) {
+					$domain = $parts['host'];
+				} elseif ( isset( $parts['path'] ) ) {
+					$domain = $parts['path'];
+				}
+				return $domain;
 			},
 			$urls
 		);
