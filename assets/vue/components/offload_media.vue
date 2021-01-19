@@ -210,6 +210,7 @@ export default {
       showSave: false,
       showOffloadDisabled : false,
       offloadDisableOptions : [],
+      select_rollback : 'no_rollback',
       new_data: {},
     }
   },
@@ -245,6 +246,7 @@ export default {
       this.showOffloadDisabled = false;
       if ( this.select_rollback === 'yes_rollback' ) {
         this.callSync('rollback_images' );
+        this.select_rollback = 'no_rollback';
       }
       this.$store.dispatch('saveSettings', {
         settings: this.new_data
@@ -283,6 +285,7 @@ export default {
     offloadMediaStatus: {
       set: function (value) {
         this.showSave = !!value;
+        this.select_rollback = 'no_rollback';
         this.new_data.offload_media = value ? 'enabled' : 'disabled';
         this.showOffloadDisabled = ! value;
       },
