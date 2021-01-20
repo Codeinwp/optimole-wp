@@ -35,7 +35,7 @@ class Optml_revslider extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	function add_lazyflag( $strings = array() ) {
+	function add_lazyflag( $strings = [] ) {
 
 		$strings[] = 'rev-slidebg';
 
@@ -49,7 +49,7 @@ class Optml_revslider extends Optml_compatibility {
 	 *
 	 * @return array New classes.
 	 */
-	public function add_bg_class( $classes = array() ) {
+	public function add_bg_class( $classes = [] ) {
 		$classes[] = 'tp-bgimg';
 
 		return $classes;
@@ -62,7 +62,7 @@ class Optml_revslider extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	public function add_data_ignore( $flags = array() ) {
+	public function add_data_ignore( $flags = [] ) {
 		$flags[] = 'rev-slidebg';
 
 		return $flags;

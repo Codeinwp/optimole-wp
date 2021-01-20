@@ -27,18 +27,18 @@ class Optml_Admin {
 	 */
 	public function __construct() {
 		$this->settings = new Optml_Settings();
-		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), array( $this, 'add_action_links' ) );
-		add_action( 'admin_menu', array( $this, 'add_dashboard_page' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ), PHP_INT_MIN );
-		add_action( 'admin_notices', array( $this, 'add_notice' ) );
-		add_action( 'admin_notices', array( $this, 'add_notice_upgrade' ) );
-		add_filter( 'admin_body_class', array( $this, 'add_body_class' ) );
-		add_action( 'optml_daily_sync', array( $this, 'daily_sync' ) );
-		add_action( 'admin_init', array( $this, 'maybe_redirect' ) );
+		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
+		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ], PHP_INT_MIN );
+		add_action( 'admin_notices', [ $this, 'add_notice' ] );
+		add_action( 'admin_notices', [ $this, 'add_notice_upgrade' ] );
+		add_filter( 'admin_body_class', [ $this, 'add_body_class' ] );
+		add_action( 'optml_daily_sync', [ $this, 'daily_sync' ] );
+		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
-			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', array() );
+			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', [] );
 		}
-		add_action( 'optml_after_setup', array( $this, 'register_public_actions' ), 999999 );
+		add_action( 'optml_after_setup', [ $this, 'register_public_actions' ], 999999 );
 
 	}
 
@@ -49,18 +49,18 @@ class Optml_Admin {
 		global $wp_admin_bar;
 
 		$wp_admin_bar->add_node(
-			array(
+			[
 				'id'    => 'optml_report_script',
 				'href'  => '#',
 				'title' => '<span class="ab-icon"></span>Optimole ' . __( 'debugger', 'optimole-wp' ),
-			)
+			]
 		);
 		$wp_admin_bar->add_menu(
-			array(
+			[
 				'id'     => 'optml_status',
 				'title'  => __( 'Troubleshoot this page', 'optimole-wp' ),
 				'parent' => 'optml_report_script',
-			)
+			]
 		);
 	}
 
@@ -133,24 +133,36 @@ class Optml_Admin {
 	 * Register public actions.
 	 */
 	public function register_public_actions() {
-		add_action( 'wp_head', array( $this, 'generator' ) );
-		add_filter( 'wp_resource_hints', array( $this, 'add_dns_prefetch' ), 10, 2 );
+		add_action( 'wp_head', [ $this, 'generator' ] );
+		add_filter( 'wp_resource_hints', [ $this, 'add_dns_prefetch' ], 10, 2 );
 
 		if ( Optml_Manager::should_ignore_image_tags() ) {
 			return;
 		}
 		if ( ! is_admin() && $this->settings->get( 'report_script' ) === 'enabled' && current_user_can( 'manage_options' ) ) {
 
-			add_action( 'wp_head', array( $this, 'print_report_css' ) );
-			add_action( 'wp_before_admin_bar_render', array( $this, 'add_report_menu' ) );
-			add_action( 'wp_enqueue_scripts', array( $this, 'add_diagnosis_script' ) );
+			add_action( 'wp_head', [ $this, 'print_report_css' ] );
+			add_action( 'wp_before_admin_bar_render', [ $this, 'add_report_menu' ] );
+			add_action( 'wp_enqueue_scripts', [ $this, 'add_diagnosis_script' ] );
 		}
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
-		add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
-		add_action( 'wp_head', array( $this, 'inline_bootstrap_script' ) );
+		add_action( 'wp_enqueue_scripts', [ $this, 'frontend_scripts' ] );
+		add_action( 'wp_head', [ $this, 'inline_bootstrap_script' ] );
 
+		add_filter( 'optml_additional_html_classes', [ $this, 'add_no_js_class_to_html_tag' ], 10, 1 );
+	}
+
+	/**
+	 * Use filter to add additional class to html tag.
+	 *
+	 * @param array $classes The classes to be added.
+	 *
+	 * @return array
+	 */
+	public function add_no_js_class_to_html_tag( $classes ) {
+		return array_merge( $classes, [ 'optml_no_js' ] );
 	}
 
 	/**
@@ -194,17 +206,10 @@ class Optml_Admin {
 				  animation: 0.1s ease-in;
 				  -webkit-transform: translate3d(0, 0, 0);
 			}
-			iframe[data-opt-src]:not([data-opt-lazy-loaded]) {
-				background-color: #ffffff;
-				background-image: url("data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBzdGFuZGFsb25lPSJubyI/Pgo8IURPQ1RZUEUgc3ZnIFBVQkxJQyAiLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4iICJodHRwOi8vd3d3LnczLm9yZy9HcmFwaGljcy9TVkcvMS4xL0RURC9zdmcxMS5kdGQiPgo8c3ZnIHdpZHRoPSI0MHB4IiBoZWlnaHQ9IjQwcHgiIHZpZXdCb3g9IjAgMCA0MCA0MCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWw6c3BhY2U9InByZXNlcnZlIiBzdHlsZT0iZmlsbC1ydWxlOmV2ZW5vZGQ7Y2xpcC1ydWxlOmV2ZW5vZGQ7c3Ryb2tlLWxpbmVqb2luOnJvdW5kO3N0cm9rZS1taXRlcmxpbWl0OjEuNDE0MjE7IiB4PSIwcHgiIHk9IjBweCI+CiAgICA8ZGVmcz4KICAgICAgICA8c3R5bGUgdHlwZT0idGV4dC9jc3MiPjwhW0NEQVRBWwogICAgICAgICAgICBALXdlYmtpdC1rZXlmcmFtZXMgc3BpbiB7CiAgICAgICAgICAgICAgZnJvbSB7CiAgICAgICAgICAgICAgICAtd2Via2l0LXRyYW5zZm9ybTogcm90YXRlKDBkZWcpCiAgICAgICAgICAgICAgfQogICAgICAgICAgICAgIHRvIHsKICAgICAgICAgICAgICAgIC13ZWJraXQtdHJhbnNmb3JtOiByb3RhdGUoLTM1OWRlZykKICAgICAgICAgICAgICB9CiAgICAgICAgICAgIH0KICAgICAgICAgICAgQGtleWZyYW1lcyBzcGluIHsKICAgICAgICAgICAgICBmcm9tIHsKICAgICAgICAgICAgICAgIHRyYW5zZm9ybTogcm90YXRlKDBkZWcpCiAgICAgICAgICAgICAgfQogICAgICAgICAgICAgIHRvIHsKICAgICAgICAgICAgICAgIHRyYW5zZm9ybTogcm90YXRlKC0zNTlkZWcpCiAgICAgICAgICAgICAgfQogICAgICAgICAgICB9CiAgICAgICAgICAgIHN2ZyB7CiAgICAgICAgICAgICAgICAtd2Via2l0LXRyYW5zZm9ybS1vcmlnaW46IDUwJSA1MCU7CiAgICAgICAgICAgICAgICAtd2Via2l0LWFuaW1hdGlvbjogc3BpbiAxLjVzIGxpbmVhciBpbmZpbml0ZTsKICAgICAgICAgICAgICAgIC13ZWJraXQtYmFja2ZhY2UtdmlzaWJpbGl0eTogaGlkZGVuOwogICAgICAgICAgICAgICAgYW5pbWF0aW9uOiBzcGluIDEuNXMgbGluZWFyIGluZmluaXRlOwogICAgICAgICAgICB9CiAgICAgICAgXV0+PC9zdHlsZT4KICAgIDwvZGVmcz4KICAgIDxnIGlkPSJvdXRlciI+CiAgICAgICAgPGc+CiAgICAgICAgICAgIDxwYXRoIGQ9Ik0yMCwwQzIyLjIwNTgsMCAyMy45OTM5LDEuNzg4MTMgMjMuOTkzOSwzLjk5MzlDMjMuOTkzOSw2LjE5OTY4IDIyLjIwNTgsNy45ODc4MSAyMCw3Ljk4NzgxQzE3Ljc5NDIsNy45ODc4MSAxNi4wMDYxLDYuMTk5NjggMTYuMDA2MSwzLjk5MzlDMTYuMDA2MSwxLjc4ODEzIDE3Ljc5NDIsMCAyMCwwWiIgc3R5bGU9ImZpbGw6YmxhY2s7Ii8+CiAgICAgICAgPC9nPgogICAgICAgIDxnPgogICAgICAgICAgICA8cGF0aCBkPSJNNS44NTc4Niw1Ljg1Nzg2QzcuNDE3NTgsNC4yOTgxNSA5Ljk0NjM4LDQuMjk4MTUgMTEuNTA2MSw1Ljg1Nzg2QzEzLjA2NTgsNy40MTc1OCAxMy4wNjU4LDkuOTQ2MzggMTEuNTA2MSwxMS41MDYxQzkuOTQ2MzgsMTMuMDY1OCA3LjQxNzU4LDEzLjA2NTggNS44NTc4NiwxMS41MDYxQzQuMjk4MTUsOS45NDYzOCA0LjI5ODE1LDcuNDE3NTggNS44NTc4Niw1Ljg1Nzg2WiIgc3R5bGU9ImZpbGw6cmdiKDIxMCwyMTAsMjEwKTsiLz4KICAgICAgICA8L2c+CiAgICAgICAgPGc+CiAgICAgICAgICAgIDxwYXRoIGQ9Ik0yMCwzMi4wMTIyQzIyLjIwNTgsMzIuMDEyMiAyMy45OTM5LDMzLjgwMDMgMjMuOTkzOSwzNi4wMDYxQzIzLjk5MzksMzguMjExOSAyMi4yMDU4LDQwIDIwLDQwQzE3Ljc5NDIsNDAgMTYuMDA2MSwzOC4yMTE5IDE2LjAwNjEsMzYuMDA2MUMxNi4wMDYxLDMzLjgwMDMgMTcuNzk0MiwzMi4wMTIyIDIwLDMyLjAxMjJaIiBzdHlsZT0iZmlsbDpyZ2IoMTMwLDEzMCwxMzApOyIvPgogICAgICAgIDwvZz4KICAgICAgICA8Zz4KICAgICAgICAgICAgPHBhdGggZD0iTTI4LjQ5MzksMjguNDkzOUMzMC4wNTM2LDI2LjkzNDIgMzIuNTgyNCwyNi45MzQyIDM0LjE0MjEsMjguNDkzOUMzNS43MDE5LDMwLjA1MzYgMzUuNzAxOSwzMi41ODI0IDM0LjE0MjEsMzQuMTQyMUMzMi41ODI0LDM1LjcwMTkgMzAuMDUzNiwzNS43MDE5IDI4LjQ5MzksMzQuMTQyMUMyNi45MzQyLDMyLjU4MjQgMjYuOTM0MiwzMC4wNTM2IDI4LjQ5MzksMjguNDkzOVoiIHN0eWxlPSJmaWxsOnJnYigxMDEsMTAxLDEwMSk7Ii8+CiAgICAgICAgPC9nPgogICAgICAgIDxnPgogICAgICAgICAgICA8cGF0aCBkPSJNMy45OTM5LDE2LjAwNjFDNi4xOTk2OCwxNi4wMDYxIDcuOTg3ODEsMTcuNzk0MiA3Ljk4NzgxLDIwQzcuOTg3ODEsMjIuMjA1OCA2LjE5OTY4LDIzLjk5MzkgMy45OTM5LDIzLjk5MzlDMS43ODgxMywyMy45OTM5IDAsMjIuMjA1OCAwLDIwQzAsMTcuNzk0MiAxLjc4ODEzLDE2LjAwNjEgMy45OTM5LDE2LjAwNjFaIiBzdHlsZT0iZmlsbDpyZ2IoMTg3LDE4NywxODcpOyIvPgogICAgICAgIDwvZz4KICAgICAgICA8Zz4KICAgICAgICAgICAgPHBhdGggZD0iTTUuODU3ODYsMjguNDkzOUM3LjQxNzU4LDI2LjkzNDIgOS45NDYzOCwyNi45MzQyIDExLjUwNjEsMjguNDkzOUMxMy4wNjU4LDMwLjA1MzYgMTMuMDY1OCwzMi41ODI0IDExLjUwNjEsMzQuMTQyMUM5Ljk0NjM4LDM1LjcwMTkgNy40MTc1OCwzNS43MDE5IDUuODU3ODYsMzQuMTQyMUM0LjI5ODE1LDMyLjU4MjQgNC4yOTgxNSwzMC4wNTM2IDUuODU3ODYsMjguNDkzOVoiIHN0eWxlPSJmaWxsOnJnYigxNjQsMTY0LDE2NCk7Ii8+CiAgICAgICAgPC9nPgogICAgICAgIDxnPgogICAgICAgICAgICA8cGF0aCBkPSJNMzYuMDA2MSwxNi4wMDYxQzM4LjIxMTksMTYuMDA2MSA0MCwxNy43OTQyIDQwLDIwQzQwLDIyLjIwNTggMzguMjExOSwyMy45OTM5IDM2LjAwNjEsMjMuOTkzOUMzMy44MDAzLDIzLjk5MzkgMzIuMDEyMiwyMi4yMDU4IDMyLjAxMjIsMjBDMzIuMDEyMiwxNy43OTQyIDMzLjgwMDMsMTYuMDA2MSAzNi4wMDYxLDE2LjAwNjFaIiBzdHlsZT0iZmlsbDpyZ2IoNzQsNzQsNzQpOyIvPgogICAgICAgIDwvZz4KICAgICAgICA8Zz4KICAgICAgICAgICAgPHBhdGggZD0iTTI4LjQ5MzksNS44NTc4NkMzMC4wNTM2LDQuMjk4MTUgMzIuNTgyNCw0LjI5ODE1IDM0LjE0MjEsNS44NTc4NkMzNS43MDE5LDcuNDE3NTggMzUuNzAxOSw5Ljk0NjM4IDM0LjE0MjEsMTEuNTA2MUMzMi41ODI0LDEzLjA2NTggMzAuMDUzNiwxMy4wNjU4IDI4LjQ5MzksMTEuNTA2MUMyNi45MzQyLDkuOTQ2MzggMjYuOTM0Miw3LjQxNzU4IDI4LjQ5MzksNS44NTc4NloiIHN0eWxlPSJmaWxsOnJnYig1MCw1MCw1MCk7Ii8+CiAgICAgICAgPC9nPgogICAgPC9nPgo8L3N2Zz4K");
-				background-repeat: no-repeat;
-				background-position: 50%% 50%%;
-			}
-			
-		
+			%s
 		</style>
 		<script type="application/javascript">
-					document.documentElement.className += " optimole_has_js";
+					document.documentElement.className = document.documentElement.className.replace(/\boptml_no_js\b/g, "");
 						(function(w, d){
 							var b = d.getElementsByTagName("head")[0];
 							var s = d.createElement("script");
@@ -238,6 +243,7 @@ class Optml_Admin {
 																		}
 																	} );
 		</script>',
+			Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT,
 			esc_url( $domain ),
 			$min,
 			$bgclasses,
@@ -258,15 +264,15 @@ class Optml_Admin {
 	public function add_diagnosis_script() {
 
 		wp_enqueue_script( 'optml-report', OPTML_URL . 'assets/js/report_script.js' );
-		$ignoredDomains = [ 'gravatar.com', 'instagram.com', 'fbcdn' ];
-		$report_script  = array(
+		$ignored_domains = [ 'gravatar.com', 'instagram.com', 'fbcdn' ];
+		$report_script  = [
 			'optmlCdn'       => $this->settings->get_cdn_url(),
 			'restUrl'        => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) . '/check_redirects',
 			'nonce'          => wp_create_nonce( 'wp_rest' ),
-			'ignoredDomains' => $ignoredDomains,
+			'ignoredDomains' => $ignored_domains,
 			'wait'           => __( 'We are checking the current page for any issues with optimized images ...', 'optimole-wp' ),
 			'description'    => __( 'Optimole page analyzer', 'optimole-wp' ),
-		);
+		];
 		wp_localize_script( 'optml-report', 'reportScript', $report_script );
 	}
 
@@ -284,9 +290,9 @@ class Optml_Admin {
 
 		return array_merge(
 			$links,
-			array(
+			[
 				'<a href="' . admin_url( 'upload.php?page=optimole' ) . '">' . __( 'Settings', 'optimole-wp' ) . '</a>',
-			)
+			]
 		);
 	}
 
@@ -320,13 +326,13 @@ class Optml_Admin {
 			return false;
 		}
 
-		static $allowed_base = array(
+		static $allowed_base = [
 			'plugins'                               => true,
 			'upload'                                => true,
 			'media'                                 => true,
 			'themes'                                => true,
 			'appearance_page_tgmpa-install-plugins' => true,
-		);
+		];
 
 		$screen_slug = '';
 		if ( isset( $current_screen->base ) ) {
@@ -363,7 +369,7 @@ class Optml_Admin {
 							class="dashicons dashicons-external"></span><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 				</a>
 				<a class="button"
-				   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_upg' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I\'ve done this', 'optimole-wp' ); ?></a>
+				   href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_upg' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I\'ve done this', 'optimole-wp' ); ?></a>
 			</p>
 		</div>
 		<?php
@@ -423,7 +429,7 @@ class Optml_Admin {
 				<a href="<?php echo esc_url( admin_url( 'upload.php?page=optimole' ) ); ?>"
 				   class="button button-primary"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?></a>
 				<a class="button"
-				   href="<?php echo wp_nonce_url( add_query_arg( array( 'optml_hide_optin' => 'yes' ) ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?></a>
+				   href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_optin' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?></a>
 			</p>
 		</div>
 		<?php
@@ -438,7 +444,7 @@ class Optml_Admin {
 
 		$css = [];
 		foreach ( $watchers as $selector ) {
-			$css[] = 'html.optimole_has_js ' . $selector . ':not(.optml-bg-lazyloaded)';
+			$css[] = 'html ' . $selector . ':not(.optml-bg-lazyloaded)';
 		}
 		if ( empty( $css ) ) {
 			return '';
@@ -457,7 +463,7 @@ class Optml_Admin {
 
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
-		wp_add_inline_style( 'optm_lazyload_noscript_style', "html:not(.optimole_has_js) img[data-opt-src] { display: none !important; } \n " . $bg_css );
+		wp_add_inline_style( 'optm_lazyload_noscript_style', "html.optml_no_js img[data-opt-src] { display: none !important; } \n " . $bg_css );
 	}
 
 	/**
@@ -563,7 +569,7 @@ class Optml_Admin {
 		if ( defined( 'OPTIOMLE_HIDE_ADMIN_AREA' ) && OPTIOMLE_HIDE_ADMIN_AREA ) {
 			return;
 		}
-		add_media_page( 'Optimole', 'Optimole', 'manage_options', 'optimole', array( $this, 'render_dashboard_page' ) );
+		add_media_page( 'Optimole', 'Optimole', 'manage_options', 'optimole', [ $this, 'render_dashboard_page' ] );
 	}
 
 	/**
@@ -592,10 +598,10 @@ class Optml_Admin {
 		if ( ! isset( $current_screen->id ) ) {
 			return;
 		}
-		if ( $current_screen->id != 'media_page_optimole' ) {
+		if ( $current_screen->id !== 'media_page_optimole' ) {
 			return;
 		}
-		wp_register_script( OPTML_NAMESPACE . '-admin', OPTML_URL . 'assets/js/bundle' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', array(), OPTML_VERSION );
+		wp_register_script( OPTML_NAMESPACE . '-admin', OPTML_URL . 'assets/js/bundle' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', [], OPTML_VERSION );
 		wp_localize_script( OPTML_NAMESPACE . '-admin', 'optimoleDashboardApp', $this->localize_dashboard_app() );
 		wp_enqueue_script( OPTML_NAMESPACE . '-admin' );
 	}
@@ -611,7 +617,7 @@ class Optml_Admin {
 		$service_data = $this->settings->get( 'service_data' );
 		$user         = get_userdata( get_current_user_id() );
 
-		return array(
+		return [
 			'strings'              => $this->get_dashboard_strings(),
 			'assets_url'           => OPTML_URL . 'assets/',
 			'connection_status'    => empty( $service_data ) ? 'no' : 'yes',
@@ -621,12 +627,12 @@ class Optml_Admin {
 			'nonce'                => wp_create_nonce( 'wp_rest' ),
 			'user_data'            => $service_data,
 			'remove_latest_images' => defined( 'OPTML_REMOVE_LATEST_IMAGES' ) && constant( 'OPTML_REMOVE_LATEST_IMAGES' ) ? ( OPTML_REMOVE_LATEST_IMAGES ? 'yes' : 'no' ) : 'no',
-			'current_user'         => array(
+			'current_user'         => [
 				'email' => $user->user_email,
-			),
+			],
 			'site_settings'        => $this->settings->get_site_settings(),
 			'home_url'             => home_url(),
-		);
+		];
 	}
 
 	/**
@@ -636,7 +642,7 @@ class Optml_Admin {
 	 * @return array
 	 */
 	private function get_dashboard_strings() {
-		return array(
+		return [
 			'optimole'                       => 'Optimole',
 			'version'                        => OPTML_VERSION,
 			'terms_menu'                     => __( 'Terms', 'optimole-wp' ),
@@ -708,21 +714,21 @@ The root cause might be either a security plugin which blocks this feature or so
 			'lazyload_settings_menu_item'    => __( 'Lazyload', 'optimole-wp' ),
 			'watermarks_menu_item'           => __( 'Watermark', 'optimole-wp' ),
 			'conflicts_menu_item'            => __( 'Possible issues', 'optimole-wp' ),
-			'conflicts'                      => array(
+			'conflicts'                      => [
 				'title'              => __( 'We might have some possible conflicts with the plugins that you use. In order to benefit from Optimole\'s full potential you will need to address this issues.', 'optimole-wp' ),
 				'message'            => __( 'Details', 'optimole-wp' ),
 				'conflict_close'     => __( 'I\'ve done this.', 'optimole-wp' ),
 				'no_conflicts_found' => __( 'No conflicts found. We are all peachy now. 🍑', 'optimole-wp' ),
-			),
-			'upgrade'                        => array(
+			],
+			'upgrade'                        => [
 				'title'    => __( 'Upgrade to Pro', 'optimole-wp' ),
 				'reason_1' => __( 'Priority & Live Chat support', 'optimole-wp' ),
 				'reason_2' => __( 'Extend visits limit', 'optimole-wp' ),
 				'reason_3' => __( 'Custom domain', 'optimole-wp' ),
 				'reason_4' => __( 'Site audit', 'optimole-wp' ),
 				'cta'      => __( 'View plans', 'optimole-wp' ),
-			),
-			'options_strings'                => array(
+			],
+			'options_strings'                => [
 				'add_filter'                        => __( 'Add filter', 'optimole-wp' ),
 				'admin_bar_desc'                    => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),
 				'auto_q_title'                      => __( 'Auto', 'optimole-wp' ),
@@ -802,8 +808,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'css_minify_desc'                   => __( 'Once Optimole will serve your CSS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
 				'enable_js_minify_title'            => __( 'Minify JS files', 'optimole-wp' ),
 				'js_minify_desc'                    => __( 'Once Optimole will serve your JS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
-			),
-			'watermarks'                     => array(
+			],
+			'watermarks'                     => [
 				'image'                    => __( 'Image', 'optimole-wp' ),
 				'loading_remove_watermark' => __( 'Removing watermark resource ...', 'optimole-wp' ),
 				'max_allowed'              => __( 'You are allowed to save maximum 5 images.', 'optimole-wp' ),
@@ -840,8 +846,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'scale_title'              => __( 'Watermark scale', 'optimole-wp' ),
 				'scale_desc'               => __( 'A value between 0 and 300 for the scale of the watermark (100 is the original size and 300 is 3x the size) relative to the resulting image size. If set to 0 it will default to the original size.', 'optimole-wp' ),
 				'save_changes'             => __( 'Save changes', 'optimole-wp' ),
-			),
-			'latest_images'                  => array(
+			],
+			'latest_images'                  => [
 				'image'                 => __( 'Image', 'optimole-wp' ),
 				'no_images_found'       => sprintf( __( 'We are currently optimizing your images. Meanwhile you can visit your %1$shomepage%2$s and check how our plugin performs. ', 'optimole-wp' ), '<a href="' . esc_url( home_url() ) . '" target="_blank" >', '</a>' ),
 				'compression'           => __( 'Optimization', 'optimole-wp' ),
@@ -852,8 +858,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'small_optimization'    => __( '😬 Not that much, just <strong>{ratio}</strong> smaller.', 'optimole-wp' ),
 				'medium_optimization'   => __( '🤓 We are on the right track, <strong>{ratio}</strong> squeezed.', 'optimole-wp' ),
 				'big_optimization'      => __( '❤️❤️❤️ Our moles just nailed it, this one is <strong>{ratio}</strong> smaller.  ', 'optimole-wp' ),
-			),
-		);
+			],
+		];
 	}
 
 }

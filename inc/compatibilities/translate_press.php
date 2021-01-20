@@ -24,10 +24,10 @@ class Optml_translate_press extends Optml_compatibility {
 	public function register() {
 		add_action(
 			'init',
-			array(
+			[
 				Optml_Main::instance()->manager,
 				'process_template_redirect_content',
-			),
+			],
 			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
 		);
 	}

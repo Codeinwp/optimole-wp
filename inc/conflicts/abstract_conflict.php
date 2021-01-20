@@ -90,7 +90,7 @@ abstract class Optml_Abstract_Conflict {
 	 * @since   2.0.6
 	 * @access  public
 	 */
-	public function is_active( $dismissed_conflicts = array() ) {
+	public function is_active( $dismissed_conflicts = [] ) {
 		$conflict_id = $this->get_id();
 		if ( isset( $dismissed_conflicts[ $conflict_id ] ) && $dismissed_conflicts[ $conflict_id ] === 'true' ) {
 			return false;
@@ -131,12 +131,12 @@ abstract class Optml_Abstract_Conflict {
 	 * @access  public
 	 */
 	public function get_conflict() {
-		return array(
+		return [
 			'id'       => $this->get_id(),
 			'type'     => $this->type,
 			'priority' => $this->priority,
 			'severity' => $this->severity,
 			'message'  => $this->message,
-		);
+		];
 	}
 }

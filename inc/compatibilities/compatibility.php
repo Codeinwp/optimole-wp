@@ -14,4 +14,12 @@ abstract class Optml_compatibility {
 	 * @return bool Compatiblity
 	 */
 	abstract function should_load();
+	/**
+	 * Should we early load the compatibility?
+	 *
+	 * @return bool Whether to load the compatibility or not.
+	 */
+	public function should_load_early() {
+		return false;
+	}
 }

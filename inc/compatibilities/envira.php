@@ -37,8 +37,8 @@ class Optml_envira extends Optml_compatibility {
 	 * @return string Original url.
 	 */
 	function revert_src( $image ) {
-
-		if ( ( $pos = strpos( $image, '/http' ) ) !== false ) {
+		$pos = strpos( $image, '/http' );
+		if ( $pos !== false ) {
 			return ltrim( substr( $image, $pos ), '/' );
 		}
 
@@ -71,7 +71,7 @@ class Optml_envira extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	function add_lazyflag( $strings = array() ) {
+	function add_lazyflag( $strings = [] ) {
 
 		$strings[] = 'envira-gallery-image';
 

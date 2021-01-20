@@ -13,7 +13,7 @@ class Optml_Config {
 	 *
 	 * @var array
 	 */
-	public static $image_extensions = array(
+	public static $image_extensions = [
 		'jpg'          => 'image/jpeg',
 		'jpeg'         => 'image/jpeg',
 		'jpe'          => 'image/jpeg',
@@ -21,22 +21,22 @@ class Optml_Config {
 		'webp'         => 'image/webp',
 		'svg'          => 'image/svg+xml',
 		'gif'          => 'image/gif',
-	);
+	];
 	/**
 	 * CSS/Js mimetypes.
 	 *
 	 * @var string[]
 	 */
-	public static $assets_extensions = array(
+	public static $assets_extensions = [
 		'css' => 'text/css',
 		'js'  => 'text/javascript',
-	);
+	];
 	/**
 	 * All extensions that Optimole process.
 	 *
 	 * @var string[]
 	 */
-	public static $all_extensions = array(
+	public static $all_extensions = [
 		'jpg|jpeg|jpe' => 'image/jpeg',
 		'png'          => 'image/png',
 		'webp'         => 'image/webp',
@@ -44,7 +44,7 @@ class Optml_Config {
 		'gif'          => 'image/gif',
 		'css'          => 'text/css',
 		'js'           => 'text/javascript',
-	);
+	];
 	/**
 	 * A string of allowed chars.
 	 *
@@ -78,7 +78,7 @@ class Optml_Config {
 	 *
 	 * @throws \InvalidArgumentException In case that key or secret is not provided.
 	 */
-	public static function init( $service_settings = array() ) {
+	public static function init( $service_settings = [] ) {
 
 		if ( empty( $service_settings['key'] ) && ! defined( 'OPTML_KEY' ) ) {
 			throw new \InvalidArgumentException( 'Optimole SDK requires service api key.' ); // @codeCoverageIgnore

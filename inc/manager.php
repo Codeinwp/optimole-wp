@@ -54,7 +54,7 @@ final class Optml_Manager {
 	 *
 	 * @var array Integrations classes.
 	 */
-	private $possible_compatibilities = array(
+	private $possible_compatibilities = [
 		'shortcode_ultimate',
 		'foogallery',
 		'envira',
@@ -76,7 +76,8 @@ final class Optml_Manager {
 		'w3_total_cache',
 		'translate_press',
 		'give_wp',
-	);
+		'smart_search_woocommerce',
+	];
 	/**
 	 * The current state of the buffer.
 	 *
@@ -99,7 +100,7 @@ final class Optml_Manager {
 			self::$instance->url_replacer      = Optml_Url_Replacer::instance();
 			self::$instance->tag_replacer      = Optml_Tag_Replacer::instance();
 			self::$instance->lazyload_replacer = Optml_Lazyload_Replacer::instance();
-			add_action( 'after_setup_theme', array( self::$instance, 'init' ) );
+			add_action( 'after_setup_theme', [ self::$instance, 'init' ] );
 		}
 
 		return self::$instance;
@@ -122,6 +123,10 @@ final class Optml_Manager {
 			 * @var Optml_compatibility $compatibility Class to register.
 			 */
 			if ( $compatibility->should_load() ) {
+				if ( $compatibility->should_load_early() ) {
+					$compatibility->register();
+					continue;
+				}
 				self::$loaded_compatibilities[ $compatibility_class ] = $compatibility;
 			}
 		}
@@ -150,7 +155,7 @@ final class Optml_Manager {
 			return false; // @codeCoverageIgnore
 		}
 
-		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) {
+		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
@@ -162,13 +167,13 @@ final class Optml_Manager {
 		if ( array_key_exists( 'et_fb', $_GET ) && ! empty( $_GET['et_fb'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) {
+		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] == 'true' || $_GET['trp-edit-translation'] == 'preview' ) ) {
+		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] == 'true' || $_GET['trp-edit-translation'] == 'preview' ) ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {
+		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'fb-edit', $_GET ) && ! empty( $_GET['fb-edit'] ) ) {
@@ -179,7 +184,7 @@ final class Optml_Manager {
 		 */
 		if (
 			isset( $_SERVER['REQUEST_METHOD'] ) &&
-			$_SERVER['REQUEST_METHOD'] === 'POST' &&
+			$_SERVER['REQUEST_METHOD'] == 'POST' && // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			is_user_logged_in()
 			&& ( ! isset( $_GET['quality'] ) || ! current_user_can( 'manage_options' ) )
 		) {
@@ -235,7 +240,7 @@ final class Optml_Manager {
 		if ( $this->settings->get( 'native_lazyload' ) === 'disabled' ) {
 			add_filter( 'wp_lazy_loading_enabled', '__return_false' );
 		}
-		add_filter( 'the_content', array( $this, 'process_images_from_content' ), PHP_INT_MAX );
+		add_filter( 'the_content', [ $this, 'process_images_from_content' ], PHP_INT_MAX );
 		/**
 		 * When we have to process cdn images, i.e MIRROR is defined,
 		 * we need this as late as possible for other replacers to occur.
@@ -243,16 +248,16 @@ final class Optml_Manager {
 		 */
 		add_action(
 			self::is_ajax_request() ? 'init' : 'template_redirect',
-			array(
+			[
 				$this,
 				'process_template_redirect_content',
-			),
+			],
 			defined( 'OPTML_SITE_MIRROR' ) ? PHP_INT_MAX : PHP_INT_MIN
 		);
-		add_action( 'template_redirect', array( $this, 'register_after_setup' ) );
-		add_action( 'rest_api_init', array( $this, 'process_template_redirect_content' ), PHP_INT_MIN );
+		add_action( 'template_redirect', [ $this, 'register_after_setup' ] );
+		add_action( 'rest_api_init', [ $this, 'process_template_redirect_content' ], PHP_INT_MIN );
 
-		add_action( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+		add_action( 'get_post_metadata', [ $this, 'replace_meta' ], PHP_INT_MAX, 4 );
 
 		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
 			$registered_compatibility->register();
@@ -280,11 +285,11 @@ final class Optml_Manager {
 
 		$meta_needed = '_elementor_data';
 
-		if ( isset( $meta_key ) && $meta_needed == $meta_key ) {
-			remove_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX );
+		if ( isset( $meta_key ) && $meta_needed === $meta_key ) {
+			remove_filter( 'get_post_metadata', [ $this, 'replace_meta' ], PHP_INT_MAX );
 
 			$current_meta = get_post_meta( $object_id, $meta_needed, $single );
-			add_filter( 'get_post_metadata', array( $this, 'replace_meta' ), PHP_INT_MAX, 4 );
+			add_filter( 'get_post_metadata', [ $this, 'replace_meta' ], PHP_INT_MAX, 4 );
 
 			if ( ! is_string( $current_meta ) ) {
 				return $metadata;
@@ -310,15 +315,59 @@ final class Optml_Manager {
 			return $html;
 		}
 
+		$html = $this->add_html_class( $html );
+
 		$html = $this->process_images_from_content( $html );
 
 		if ( $this->settings->get( 'video_lazyload' ) === 'enabled' ) {
 			$html = apply_filters( 'optml_video_replace', $html );
+			if ( Optml_Lazyload_Replacer::found_iframe() === true ) {
+				if ( strpos( $html, Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT ) !== false ) {
+					$html = str_replace( Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $html );
+				} else {
+					$html = preg_replace( '/<head>(.*)<\/head>/ism', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $html );
+				}
+			}
 		}
 
 		$html = $this->process_urls_from_content( $html );
 
 		return $html;
+	}
+
+	/**
+	 * Adds a filter that allows adding classes to the HTML tag.
+	 *
+	 * @param string $content The HTML content.
+	 *
+	 * @return mixed
+	 */
+	public function add_html_class( $content ) {
+		if ( empty( $content ) ) {
+			return $content;
+		}
+
+		$additional_html_classes = apply_filters( 'optml_additional_html_classes', [] );
+
+		if ( ! $additional_html_classes ) {
+			return $content;
+		}
+
+		if ( preg_match( '/<html.*>/ismU', $content, $matches, PREG_OFFSET_CAPTURE ) === 1 ) {
+
+			$add_classes = implode( ' ', $additional_html_classes );
+			foreach ( $matches as $match ) {
+				if ( strpos( $match[0], 'class' ) !== false ) {
+					$new_tag = str_replace( [ 'class="', "class='" ], [ 'class="' . $add_classes, "class='" . $add_classes  ], $match[0] );
+				} else {
+					$new_tag = str_replace( 'html ', 'html class="' . $add_classes . '" ', $match[0] );
+				}
+
+				$content = str_replace( $match[0], $new_tag, $content );
+			}
+		}
+
+		return $content;
 	}
 
 	/**
@@ -374,7 +423,7 @@ final class Optml_Manager {
 	 *         and img_url keys are arrays of those matches.
 	 */
 	public static function parse_images_from_html( $content ) {
-		$images = array();
+		$images = [];
 
 		$header_start = null;
 		$header_end   = null;
@@ -420,7 +469,7 @@ final class Optml_Manager {
 			return $images;
 		}
 
-		return array();
+		return [];
 	}
 
 	/**
@@ -449,7 +498,7 @@ final class Optml_Manager {
 		if ( $this->settings->use_cdn() && ! self::should_ignore_image_tags() ) {
 			$extensions = array_merge( $extensions, array_keys( Optml_Config::$assets_extensions ) );
 		}
-		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';
+		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:http|>|%3F|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';
 		preg_match_all(
 			$regex,
 			$content,
@@ -541,10 +590,10 @@ final class Optml_Manager {
 		}
 		self::$ob_started = true;
 		// We no longer need this if the handler was started.
-		remove_filter( 'the_content', array($this, 'process_images_from_content'), PHP_INT_MAX );
+		remove_filter( 'the_content', [$this, 'process_images_from_content'], PHP_INT_MAX );
 
 		ob_start(
-			array(&$this, 'replace_content')
+			[&$this, 'replace_content']
 		);
 	}
 
