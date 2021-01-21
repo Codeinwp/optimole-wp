@@ -196,15 +196,15 @@ class Optml_Admin {
 				-o-transition: .2s filter linear, .2s opacity linear, .2s border-radius linear;
 			}
 			img[data-opt-src]:not([data-opt-lazy-loaded]) {
-				  opacity: .75;	 
-				  -webkit-filter: blur(8px);
-				  -moz-filter: blur(8px);
-				  -o-filter: blur(8px);
-				  -ms-filter: blur(8px);
-				  filter: blur(8px);
-				  transform: scale(1.04);
-				  animation: 0.1s ease-in;
-				  -webkit-transform: translate3d(0, 0, 0);
+					opacity: .75;
+					-webkit-filter: blur(8px);
+					-moz-filter: blur(8px);
+					-o-filter: blur(8px);
+					-ms-filter: blur(8px);
+					filter: blur(8px);
+					transform: scale(1.04);
+					animation: 0.1s ease-in;
+					-webkit-transform: translate3d(0, 0, 0);
 			}
 			%s
 		</style>
@@ -613,25 +613,32 @@ class Optml_Admin {
 	 * @return array
 	 */
 	private function localize_dashboard_app() {
+
+		global $wp_version;
+		$is_offload_media_available = 'no';
+		if ( version_compare( $wp_version, '5.3', '>=' ) ) {
+			$is_offload_media_available = 'yes';
+		}
 		$api_key      = $this->settings->get( 'api_key' );
 		$service_data = $this->settings->get( 'service_data' );
 		$user         = get_userdata( get_current_user_id() );
 
 		return [
-			'strings'              => $this->get_dashboard_strings(),
-			'assets_url'           => OPTML_URL . 'assets/',
-			'connection_status'    => empty( $service_data ) ? 'no' : 'yes',
-			'user_status'          => isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ? 'inactive' : 'active',
-			'api_key'              => $api_key,
-			'root'                 => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),
-			'nonce'                => wp_create_nonce( 'wp_rest' ),
-			'user_data'            => $service_data,
-			'remove_latest_images' => defined( 'OPTML_REMOVE_LATEST_IMAGES' ) && constant( 'OPTML_REMOVE_LATEST_IMAGES' ) ? ( OPTML_REMOVE_LATEST_IMAGES ? 'yes' : 'no' ) : 'no',
-			'current_user'         => [
+			'strings'                    => $this->get_dashboard_strings(),
+			'assets_url'                 => OPTML_URL . 'assets/',
+			'connection_status'          => empty( $service_data ) ? 'no' : 'yes',
+			'user_status'                => isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ? 'inactive' : 'active',
+			'api_key'                    => $api_key,
+			'root'                       => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),
+			'nonce'                      => wp_create_nonce( 'wp_rest' ),
+			'user_data'                  => $service_data,
+			'remove_latest_images'       => defined( 'OPTML_REMOVE_LATEST_IMAGES' ) && constant( 'OPTML_REMOVE_LATEST_IMAGES' ) ? ( OPTML_REMOVE_LATEST_IMAGES ? 'yes' : 'no' ) : 'no',
+			'current_user'               => [
 				'email' => $user->user_email,
 			],
-			'site_settings'        => $this->settings->get_site_settings(),
-			'home_url'             => home_url(),
+			'site_settings'              => $this->settings->get_site_settings(),
+			'home_url'                   => home_url(),
+			'is_offload_media_available' => $is_offload_media_available,
 		];
 	}
 
@@ -712,6 +719,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			'advanced_settings_menu_item'    => __( 'Advanced', 'optimole-wp' ),
 			'general_settings_menu_item'     => __( 'General', 'optimole-wp' ),
 			'lazyload_settings_menu_item'    => __( 'Lazyload', 'optimole-wp' ),
+			'offload_media_settings_menu_item'    => __( 'Offload Media', 'optimole-wp' ),
 			'watermarks_menu_item'           => __( 'Watermark', 'optimole-wp' ),
 			'conflicts_menu_item'            => __( 'Possible issues', 'optimole-wp' ),
 			'conflicts'                      => [
@@ -730,6 +738,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			],
 			'options_strings'                => [
 				'add_filter'                        => __( 'Add filter', 'optimole-wp' ),
+				'add_site'                          => __( 'Add site', 'optimole-wp' ),
 				'admin_bar_desc'                    => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),
 				'auto_q_title'                      => __( 'Auto', 'optimole-wp' ),
 				'cache_desc'                        => __( 'Clear all cached resources(images,js,css) by Optimole from this site. Useful if you updated them and Optimole shows the old version.', 'optimole-wp' ),
@@ -745,8 +754,12 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_video_lazyload_desc'        => __( 'Lazyload iframes/videos', 'optimole-wp' ),
 				'enable_video_lazyload_title'       => __( 'Enable lazyload for embedded videos and iframes.', 'optimole-wp' ),
 				'enable_gif_replace_title'          => __( 'Enable Gif to Video conversion', 'optimole-wp' ),
-				'enable_report_title'               => __( 'Enable error diagnosis tool' ),
-				'enable_report_desc'                => __( 'Provides a troubleshooting mechanism which should help you identify any possible issues with your site using Optimole.' ),
+				'enable_report_title'               => __( 'Enable error diagnosis tool', 'optimole-wp' ),
+				'enable_report_desc'                => __( 'Provides a troubleshooting mechanism which should help you identify any possible issues with your site using Optimole.', 'optimole-wp' ),
+				'enable_offload_media_title'        => __( 'Enable media offload', 'optimole-wp' ),
+				'enable_offload_media_desc'         => __( 'All new images will automatically be stored on our servers', 'optimole-wp' ),
+				'enable_cloud_images_title'         => __( 'Enable cloud images', 'optimole-wp' ),
+				'enable_cloud_images_desc'          => __( 'After activating this you will be able to add images from the cloud in the media modal when editing a page', 'optimole-wp' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
 				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
@@ -790,8 +803,14 @@ The root cause might be either a security plugin which blocks this feature or so
 				'sample_image_loading'              => __( 'Loading a sample image. ', 'optimole-wp' ),
 				'save_changes'                      => __( 'Save changes', 'optimole-wp' ),
 				'show'                              => __( 'Show', 'optimole-wp' ),
+				'selected_sites_title'              => __( 'Show images from these sites: ', 'optimole-wp' ),
+				'selected_sites_desc'               => __( 'Site: ', 'optimole-wp' ),
+				'selected_all_sites_desc'           => __( 'Currently viewing images from all sites ', 'optimole-wp' ),
+				'select_all_sites_desc'             => __( 'View images from all sites ', 'optimole-wp' ),
 				'size_desc'                         => __( 'We resize all images with sizes greater than the values defined here. Changing this option is not recommended unless large images are not being processed correctly. This does NOT affect the scaling of images on the frontend.', 'optimole-wp' ),
 				'size_title'                        => __( 'Resize large images original source.', 'optimole-wp' ),
+				'cloud_site_title'                  => __( 'Select the sites from which to view existing images.', 'optimole-wp' ),
+				'cloud_site_desc'                   => __( 'Only the images from the selected sites will be displayed on the media image modal on page edit.', 'optimole-wp' ),
 				'toggle_ab_item'                    => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'                   => __( 'Scale images & Lazy load', 'optimole-wp' ),
 				'toggle_scale'                      => __( 'Scale Images', 'optimole-wp' ),
@@ -808,6 +827,20 @@ The root cause might be either a security plugin which blocks this feature or so
 				'css_minify_desc'                   => __( 'Once Optimole will serve your CSS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
 				'enable_js_minify_title'            => __( 'Minify JS files', 'optimole-wp' ),
 				'js_minify_desc'                    => __( 'Once Optimole will serve your JS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
+				'sync_title'                        => __( 'Sync existing images', 'optimole-wp' ),
+				'rollback_title'                    => __( 'Bring all images back to media library', 'optimole-wp' ),
+				'sync_desc'                         => __( 'Move all existing images from your server to optimole servers', 'optimole-wp' ),
+				'rollback_desc'                     => __( 'Move stored images from Optimole servers to your media library', 'optimole-wp' ),
+				'sync_media'                        => __( 'Sync images', 'optimole-wp' ),
+				'rollback_media'                    => __( 'Rollback images', 'optimole-wp' ),
+				'sync_media_progress'               => __( 'We are currently moving your images to our servers, please wait', 'optimole-wp' ),
+				'rollback_media_progress'           => __( 'We are currently moving images to your media library, please wait', 'optimole-wp' ),
+				'offload_disable_warning_title'     => __( 'Please read carrefully the following notice', 'optimole-wp' ),
+				'offload_disable_warning_desc'      => __( 'If you disable this option you will not be able to see the images in the media library without restoring the images first, do you want to restore the images to your site upon disabling the option ?', 'optimole-wp' ),
+				'select'                            => __( 'Please select one ...', 'optimole-wp' ),
+				'yes'                               => __( 'Yes', 'optimole-wp' ),
+				'no'                                => __( 'No', 'optimole-wp' ),
+
 			],
 			'watermarks'                     => [
 				'image'                    => __( 'Image', 'optimole-wp' ),

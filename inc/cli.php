@@ -29,6 +29,7 @@ class Optml_Cli {
 	 */
 	private $commands = [
 		'setting',
+		'media',
 	];
 
 	/**
