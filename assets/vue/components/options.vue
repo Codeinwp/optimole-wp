@@ -28,6 +28,11 @@
                                :class="tab === 'lazyload' ? 'is-active' : ''"
                                :title="all_strings.lazyload_settings_menu_item+' '+all_strings.lazyload_settings_menu_item">{{all_strings.lazyload_settings_menu_item}}</a>
                         </li>
+<!--                    Offload media menu-->
+                        <li v-if="is_offload_media_available === 'yes'"><a @click="changeTab('offload_media')" href="#"
+                                                                                         :class="tab === 'offload_media' ? 'is-active' : ''"
+                                                                                         :title="all_strings.offload_media_settings_menu_item+' '+all_strings.offload_media_settings_menu_item">{{all_strings.offload_media_settings_menu_item}}</a>
+                        </li>
                         <li><a href="#"
                                @click="changeTab('exclusions')" href="#"
                                :class="tab === 'exclusions' ? 'is-active' : ''"
@@ -52,6 +57,7 @@
 <!--                <Cssjs v-if="tab ==='cssjs'"></Cssjs>-->
                 <Resize v-if="tab ==='resize'"></Resize>
                 <Lazyload v-if="tab ==='lazyload'"></Lazyload>
+                <Media v-if="tab ==='offload_media'"></Media>
                 <Exclusions v-if="tab ==='exclusions'"></Exclusions>
             </div>
         </div>
@@ -65,15 +71,17 @@
 	import Resize from "./resize.vue";
 	import Exclusions from "./exclusions.vue";
 	import Lazyload from "./lazyload.vue";
+  import Media from "./offload_media.vue";
 	import Cssjs from "./cssjs.vue";
 
 	export default {
         name: "options",
-        components: {Cssjs, Lazyload, Exclusions, Resize, Watermarks, Compression, General},
+        components: {Cssjs, Lazyload, Media, Exclusions, Resize, Watermarks, Compression, General},
         data() {
             return {
                 strings: optimoleDashboardApp.strings.options_strings,
                 all_strings: optimoleDashboardApp.strings,
+                is_offload_media_available : optimoleDashboardApp.is_offload_media_available,
                 showNotification: false,
                 tab: 'general',
                 isDisabled: false,

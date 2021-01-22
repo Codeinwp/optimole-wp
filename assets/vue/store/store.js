@@ -15,6 +15,8 @@ const store = new Vuex.Store(
 		state: {
 			isConnecting: false,
 			loading: false,
+			loadingRollback: false,
+			loadingSync: false,
 			site_settings: optimoleDashboardApp.site_settings,
 			connected: optimoleDashboardApp.connection_status === 'yes',
 			is_loaded: optimoleDashboardApp.connection_status === 'yes',
@@ -27,6 +29,8 @@ const store = new Vuex.Store(
 			optimizedImages: [],
 			watermarks: [],
 			conflicts: [],
+			pushedImagesProgress : 0,
+			totalNumberOfImages : 1
 		},
 		mutations,
 		actions
