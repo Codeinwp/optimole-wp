@@ -6,7 +6,7 @@
         {{strings.enable_cloud_images_title}}
 
         <p class="is-italic has-text-weight-normal">
-          {{strings.enable_cloud_images_desc}}
+          {{strings.enable_cloud_images_desc}}<a href="https://docs.optimole.com/article/1323-cloud-library-browsing">{{strings.here}}</a>
         </p>
       </label>
 
@@ -43,7 +43,7 @@
                         <i>{{strings.selected_sites_desc}}</i>
                         <strong>{{site}}</strong>
                       </a>
-                      <a class="tag  is-marginless  is-delete"
+                      <a class="tag  is-marginless  is-delete" v-if="site !== 'all'"
                          @click="removeSite( site )"></a>
                     </div>
                   </div>
@@ -66,7 +66,7 @@
                   <p class="control ">
                             <span class="select  is-small">
                               <select @change="changeSite($event)">
-                                <option  value="all">All</option>
+                                <option  value="all" disabled selected>{{strings.select_site}}</option>
                                 <option  v-for="site in sites" :value="site">{{site}}</option>
                               </select>
                             </span>
@@ -255,6 +255,11 @@ export default {
     removeSite: function ( site ) {
       let update_sites = {};
       update_sites[site] = false;
+
+      if ( this.cloud_sites.length === 1 ) {
+        update_sites['all'] = true;
+      }
+
       this.$store.dispatch('saveSettings', {
         settings: {
           cloud_sites: update_sites

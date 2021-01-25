@@ -53,7 +53,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		return
 		[
 			'id' => $last_attach + $index,
-			'title' => '',
+			'title' => pathinfo( $url, PATHINFO_FILENAME ),
 			'url' => $optimized_url,
 			'link' => $optimized_url,
 			'alt' => '',
@@ -94,7 +94,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			wp_send_json_error();
 		}
 		if ( isset( $_REQUEST['query'] ) && isset( $_REQUEST['query']['post_mime_type'] ) && $_REQUEST['query']['post_mime_type'][0] === 'optml_cloud' ) {
-
+			$search = '';
+			if ( isset( $_REQUEST['query']['s'] ) ) {
+				$search = $_REQUEST['query']['s'];
+			}
 			$page = 0;
 			if ( isset( $_REQUEST['query']['paged'] ) ) {
 				$page = $_REQUEST['query']['paged'] - 1;
@@ -116,7 +119,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			$cloud_images = [];
 			$request = new Optml_Api();
-			$decoded_response = $request->get_cloud_images( $page, $view_sites );
+			$decoded_response = $request->get_cloud_images( $page, $view_sites, $search );
 
 			if ( isset( $decoded_response['images'] ) ) {
 				$cloud_images = $decoded_response['images'];
@@ -343,8 +346,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$actions['optimole_upload_image'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				$upload_action_url,
-				esc_attr__( 'Push to Optimole', 'optimole-wp' ),
-				esc_html__( 'Push to Optimole', 'optimole-wp' )
+				esc_attr__( 'Offload to Optimole', 'optimole-wp' ),
+				esc_html__( 'Offload to Optimole', 'optimole-wp' )
 			);
 		}
 		if ( self::is_uploaded_image( $file ) ) {

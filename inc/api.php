@@ -310,18 +310,21 @@ final class Optml_Api {
 	 *
 	 * @param integer $page Page used to advance the search.
 	 * @param array   $domains Domains to filter by.
+	 * @param string  $search The string to search inside the originURL.
 	 * @return mixed The decoded json response from the api.
 	 */
-	public function get_cloud_images( $page = 0, $domains = [] ) {
+	public function get_cloud_images( $page = 0, $domains = [], $search = '' ) {
 
 		$params = ['key' => Optml_Config::$key ];
 		$params['page'] = $page;
 		$params['size'] = 40;
+		if ( $search !== '' ) {
+			$params['partial_search'] = '*' . $search . '*';
+		}
 
 		if ( ! empty( $domains ) ) {
 			$params['domains'] = implode( ',', $domains );
 		}
-
 		return $this->request( 'optml/v2/media/browser', 'GET', $params );
 	}
 
