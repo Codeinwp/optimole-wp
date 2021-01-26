@@ -319,7 +319,7 @@ final class Optml_Api {
 		$params['page'] = $page;
 		$params['size'] = 40;
 		if ( $search !== '' ) {
-			$params['partial_search'] = '*' . $search . '*';
+			$params['search'] = $search;
 		}
 
 		if ( ! empty( $domains ) ) {
