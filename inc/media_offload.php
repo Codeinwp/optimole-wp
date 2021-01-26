@@ -830,7 +830,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *  Query the database and upload images to our servers.
 	 *
 	 * @param int $batch Number of images to process in a batch.
-	 * @return int Number of successfully processed images.
+	 * @return array Number of found images and number of successfully processed images.
 	 */
 	public static function upload_images( $batch ) {
 		$args = [
@@ -852,14 +852,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$attachments = new \WP_Query( $args );
 		$ids         = $attachments->get_posts();
 		$media_offload = new Optml_Media_Offload();
-		return $media_offload->upload_and_update_existing_images( $ids );
+		$result = [ 'found_images' => count( $ids ) ];
+		$result['success_rollback'] = $media_offload->upload_and_update_existing_images( $ids );
+		return $result;
 	}
 
 	/**
 	 *  Query the database and bring back image to media library.
 	 *
 	 * @param int $batch Number of images to process in a batch.
-	 * @return int Number of successfully processed images.
+	 * @return array Number of found images and number of successfully processed images.
 	 */
 	public static function rollback_images( $batch ) {
 		$args = [
@@ -882,7 +884,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$attachments = new \WP_Query( $args );
 		$ids         = $attachments->get_posts();
 		$media_offload = new Optml_Media_Offload();
-		return $media_offload->rollback_and_update_images( $ids );
+		$result = [ 'found_images' => count( $ids ) ];
+		$result['success_rollback'] = $media_offload->rollback_and_update_images( $ids );
+		return $result;
 	}
 	/**
 	 *  Calculate the number of images in media library.

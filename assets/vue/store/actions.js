@@ -320,7 +320,7 @@ const pushBatch = function ( commit,batch,action ) {
 		}
 	).then(
 		function ( response ) {
-			if ( response.body.code === 'success' && response.body.data > 0 ) {
+			if ( response.body.code === 'success' && response.body.data.found_images > 0 ) {
 				commit( 'updatePushedImagesProgress', batch );
 				pushBatch( commit, batch, action );
 			} else {

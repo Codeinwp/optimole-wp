@@ -747,7 +747,8 @@ class Optml_Rest {
 		if ( ! empty( $request->get_param( 'batch' ) ) ) {
 			$batch = $request->get_param( 'batch' );
 		}
-		return $this->response( Optml_Media_Offload::upload_images( $batch ) );
+		$res = Optml_Media_Offload::upload_images( $batch );
+		return $this->response($res);
 	}
 	/**
 	 * Rollback images to media library.
