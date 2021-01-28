@@ -206,7 +206,7 @@ class Optml_Rest {
 			'/number_of_library_images',
 			[
 				[
-					'methods'             => \WP_REST_Server::READABLE,
+					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
@@ -771,6 +771,10 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function number_of_library_images( WP_REST_Request $request ) {
-		return $this->response( Optml_Media_Offload::number_of_library_images() );
+		$action = 'offload_images';
+		if ( ! empty( $request->get_param( 'action' ) ) ) {
+			$action = $request->get_param( 'action' );
+		}
+		return $this->response( Optml_Media_Offload::number_of_library_images( $action ) );
 	}
 }

@@ -344,17 +344,28 @@ const callSync = function ( {commit, state}, data ) {
 	}
 	Vue.http( {
 		url: optimoleDashboardApp.root + '/number_of_library_images',
-		method: 'GET',
+		method: 'POST',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		emulateJSON: true,
 		responseType: 'json',
+		body: {
+			'action': data.action,
+		},
 	} ).then( function ( response ) {
 		if( response.status === 200 && response.body.data > 0 ) {
 			commit( 'totalNumberOfImages', response.body.data );
-			let batch = 100;
-			if ( Math.ceil( response.body.data/10 ) <= 100 ) {
+			let batch = 5;
+			if ( Math.ceil( response.body.data/10 ) <= batch ) {
 				batch = Math.ceil( response.body.data/10 );
 			}
 			pushBatch( commit, batch, data.action );
+		} else {
+			if ( data.action === "offload_images" ) {
+				commit( 'toggleLoadingSync', false );
+			}
+			if ( data.action === "rollback_images" ) {
+				commit( 'toggleLoadingRollback', false );
+			}
 		}
 	} );
 
