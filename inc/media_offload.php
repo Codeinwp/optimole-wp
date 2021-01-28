@@ -85,11 +85,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
+	 * Get count of all images from db.
+	 *
+	 * @return int Number of all images.
+	 */
+	public static function number_of_all_images() {
+		$total_images_by_mime = wp_count_attachments( 'image' );
+		return  array_sum( (array) $total_images_by_mime );
+	}
+	/**
 	 * Parse images from api endpoint response images and send them to wp media modal.
 	 */
 	public function pull_images() {
 		$images_on_page = 40;
-		$last_attach = self::number_of_library_images();
+		$last_attach = self::number_of_all_images();
 		if ( ! current_user_can( 'upload_files' ) ) {
 			wp_send_json_error();
 		}
