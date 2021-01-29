@@ -65,7 +65,7 @@ const updatePushedImagesProgress = ( state, data ) => {
 		state.pushedImagesProgress = 0;
 		return;
 	}
-	if ( state.pushedImagesProgress < 90 ) {
+	if ( state.pushedImagesProgress < 100 ) {
 		state.pushedImagesProgress += data/state.totalNumberOfImages*100;
 	}
 };

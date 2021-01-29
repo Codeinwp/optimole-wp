@@ -313,6 +313,7 @@ const pushBatch = function ( commit,batch,action ) {
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
+			timeout: 0,
 			responseType: 'json',
 			body: {
 				'batch': batch,
@@ -329,9 +330,7 @@ const pushBatch = function ( commit,batch,action ) {
 			}
 		}
 	).catch( function ( err ) {
-		console.log( err );
-		commit( 'toggleLoadingSync', false );
-		commit( 'toggleLoadingRollback', false );
+		pushBatch( commit, batch, action );
 	} );
 };
 const callSync = function ( {commit, state}, data ) {

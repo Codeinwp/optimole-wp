@@ -424,6 +424,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		foreach ( $image_ids as $id ) {
 			$current_meta = wp_get_attachment_metadata( $id );
 			if ( ! isset( $current_meta['file'] ) || ! self::is_uploaded_image( $current_meta['file'] ) ) {
+				delete_post_meta( $id, 'optimole_offload' );
 				$success_back++;
 				continue;
 			}
@@ -540,6 +541,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				}
 				$this->delete_attachment_from_server( $original_url, $id, $table_id );
 			}
+			update_post_meta( $id, 'optimole_rollback_error', 'true' );
 		}
 		return $success_back;
 	}
