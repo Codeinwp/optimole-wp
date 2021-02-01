@@ -331,21 +331,15 @@ const pushBatch = function ( commit,batch,action, consecutiveErrors = 0 ) {
 		}
 	).catch( function ( err ) {
 		if ( consecutiveErrors < 10 ) {
-			pushBatch( commit, batch, action, consecutiveErrors + 1 );
+			setTimeout( function () { pushBatch( commit, batch, action, consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 5000 );
 		} else {
+			commit( 'toggleActionError', action );
 			commit( 'toggleLoadingSync', false );
 			commit( 'toggleLoadingRollback', false );
 		}
 	} );
 };
-const callSync = function ( {commit, state}, data ) {
-	commit( 'updatePushedImagesProgress', 'init' );
-	if ( data.action === "offload_images" ) {
-		commit( 'toggleLoadingSync', true );
-	}
-	if ( data.action === "rollback_images" ) {
-		commit( 'toggleLoadingRollback', true );
-	}
+const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
 	Vue.http( {
 		url: optimoleDashboardApp.root + '/number_of_library_images',
 		method: 'POST',
@@ -371,7 +365,25 @@ const callSync = function ( {commit, state}, data ) {
 				commit( 'toggleLoadingRollback', false );
 			}
 		}
+	} ).catch( function ( err ) {
+		if ( consecutiveErrors < 10 ) {
+			setTimeout( function () { getNumberOfImages ( data, commit, consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 1000 );
+		} else {
+			commit( 'toggleActionError', data.action );
+			commit( 'toggleLoadingSync', false );
+			commit( 'toggleLoadingRollback', false );
+		}
 	} );
+};
+const callSync = function ( {commit, state}, data ) {
+	commit( 'updatePushedImagesProgress', 'init' );
+	if ( data.action === "offload_images" ) {
+		commit( 'toggleLoadingSync', true );
+	}
+	if ( data.action === "rollback_images" ) {
+		commit( 'toggleLoadingRollback', true );
+	}
+	getNumberOfImages( data, commit, 0 );
 
 };
 

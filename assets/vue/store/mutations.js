@@ -8,6 +8,9 @@ const toggleLoadingRollback = ( state, data ) => {
 const toggleLoadingSync = ( state, data ) => {
 	state.loadingSync = data;
 };
+const toggleActionError = ( state, data ) => {
+	state.errorMedia = data;
+};
 const toggleConnecting = ( state, data ) => {
 	state.isConnecting = data;
 };
@@ -87,5 +90,6 @@ export default {
 	updatePushedImagesProgress,
 	totalNumberOfImages,
 	toggleLoadingRollback,
-	toggleLoadingSync
+	toggleLoadingSync,
+	toggleActionError
 };
