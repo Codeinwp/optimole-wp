@@ -306,7 +306,7 @@ const dismissConflict = function ( {commit, state}, data ) {
 		}
 	} );
 };
-const pushBatch = function ( commit,batch,action ) {
+const pushBatch = function ( commit,batch,action, consecutiveErrors = 0 ) {
 	Vue.http(
 		{
 			url: optimoleDashboardApp.root + '/' + action,
@@ -323,14 +323,19 @@ const pushBatch = function ( commit,batch,action ) {
 		function ( response ) {
 			if ( response.body.code === 'success' && response.body.data.found_images > 0 ) {
 				commit( 'updatePushedImagesProgress', batch );
-				pushBatch( commit, batch, action );
+				pushBatch( commit, batch, action, 0 );
 			} else {
 				commit( 'updatePushedImagesProgress', 'finish' );
 				action === "offload_images" ? commit( 'toggleLoadingSync', false ) : commit( 'toggleLoadingRollback', false );
 			}
 		}
 	).catch( function ( err ) {
-		pushBatch( commit, batch, action );
+		if ( consecutiveErrors < 10 ) {
+			pushBatch( commit, batch, action, consecutiveErrors + 1 );
+		} else {
+			commit( 'toggleLoadingSync', false );
+			commit( 'toggleLoadingRollback', false );
+		}
 	} );
 };
 const callSync = function ( {commit, state}, data ) {
