@@ -456,92 +456,93 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$timeout_seconds = 60;
 			$temp_file = download_url( $get_url, $timeout_seconds );
 
-			if ( ! is_wp_error( $temp_file ) ) {
+			if ( is_wp_error( $temp_file ) ) {
+				update_post_meta( $id, 'optimole_rollback_error', 'true' );
+				continue;
+			}
 
-				$extension = $this->get_ext( $filename );
+			$extension = $this->get_ext( $filename );
 
-				if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) ) {
-					update_post_meta( $id, 'optimole_rollback_error', 'true' );
-					continue;
-				}
+			if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) ) {
+				update_post_meta( $id, 'optimole_rollback_error', 'true' );
+				continue;
+			}
 
-				$type = Optml_Config::$image_extensions [ $extension ];
-				$file = [
-					'name'     => $filename,
-					'type'     => $type,
-					'tmp_name' => $temp_file,
-					'error'    => 0,
-					'size'     => filesize( $temp_file ),
-				];
+			$type = Optml_Config::$image_extensions [ $extension ];
+			$file = [
+				'name'     => $filename,
+				'type'     => $type,
+				'tmp_name' => $temp_file,
+				'error'    => 0,
+				'size'     => filesize( $temp_file ),
+			];
 
-				$overrides = [
-					// do not expect the default form data from normal uploads
-					'test_form' => false,
+			$overrides = [
+				// do not expect the default form data from normal uploads
+				'test_form' => false,
 
-					// Setting this to false lets WordPress allow empty files, not recommended.
-					'test_size' => true,
+				// Setting this to false lets WordPress allow empty files, not recommended.
+				'test_size' => true,
 
-					// A properly uploaded file will pass this test. There should be no reason to override this one.
-					'test_upload' => true,
-				];
+				// A properly uploaded file will pass this test. There should be no reason to override this one.
+				'test_upload' => true,
+			];
 
-				if ( ! function_exists( 'wp_handle_sideload' ) ) {
-					include_once ABSPATH . '/wp-admin/includes/file.php';
-				}
-				if ( ! function_exists( 'wp_handle_sideload' ) ) {
-					update_post_meta( $id, 'optimole_rollback_error', 'true' );
-					continue;
-				}
+			if ( ! function_exists( 'wp_handle_sideload' ) ) {
+				include_once ABSPATH . '/wp-admin/includes/file.php';
+			}
+			if ( ! function_exists( 'wp_handle_sideload' ) ) {
+				update_post_meta( $id, 'optimole_rollback_error', 'true' );
+				continue;
+			}
 
-				// Move the temporary file into the uploads directory.
-				$results = wp_handle_sideload( $file, $overrides );
-				if ( ! empty( $results['error'] ) ) {
-					update_post_meta( $id, 'optimole_rollback_error', 'true' );
-					continue;
-				}
+			// Move the temporary file into the uploads directory.
+			$results = wp_handle_sideload( $file, $overrides );
+			if ( ! empty( $results['error'] ) ) {
+				update_post_meta( $id, 'optimole_rollback_error', 'true' );
+				continue;
+			}
 
-				if ( ! function_exists( 'wp_create_image_subsizes' ) ) {
-					include_once ABSPATH . '/wp-admin/includes/image.php';
-				}
-				if ( ! function_exists( 'wp_create_image_subsizes' ) ) {
-					update_post_meta( $id, 'optimole_rollback_error', 'true' );
-					continue;
-				}
-				wp_create_image_subsizes( $results['file'], $id );
-				if ( $type === 'image/svg+xml' ) {
-					if ( ! function_exists( 'wp_get_attachment_metadata' ) || ! function_exists( 'wp_update_attachment_metadata' ) ) {
-						include_once ABSPATH . '/wp-admin/includes/post.php';
-					}
-					if ( ! function_exists( 'wp_get_attachment_metadata' ) ) {
-						update_post_meta( $id, 'optimole_rollback_error', 'true' );
-						continue;
-					}
-					$meta = wp_get_attachment_metadata( $id );
-					if ( ! isset( $meta['file'] ) ) {
-						update_post_meta( $id, 'optimole_rollback_error', 'true' );
-						continue;
-					}
-					$meta['file'] = $results['file'];
-					wp_update_attachment_metadata( $id, $meta );
-				}
-
-				if ( ! function_exists( 'update_attached_file' ) ) {
+			if ( ! function_exists( 'wp_create_image_subsizes' ) ) {
+				include_once ABSPATH . '/wp-admin/includes/image.php';
+			}
+			if ( ! function_exists( 'wp_create_image_subsizes' ) ) {
+				update_post_meta( $id, 'optimole_rollback_error', 'true' );
+				continue;
+			}
+			wp_create_image_subsizes( $results['file'], $id );
+			if ( $type === 'image/svg+xml' ) {
+				if ( ! function_exists( 'wp_get_attachment_metadata' ) || ! function_exists( 'wp_update_attachment_metadata' ) ) {
 					include_once ABSPATH . '/wp-admin/includes/post.php';
 				}
-				if ( ! function_exists( 'update_attached_file' ) ) {
+				if ( ! function_exists( 'wp_get_attachment_metadata' ) ) {
 					update_post_meta( $id, 'optimole_rollback_error', 'true' );
 					continue;
 				}
-				update_attached_file( $id, $results['file'] );
-				$success_back++;
-				$this->update_content( $id );
-				$original_url  = self::get_original_url( $id );
-				if ( $original_url === false ) {
+				$meta = wp_get_attachment_metadata( $id );
+				if ( ! isset( $meta['file'] ) ) {
+					update_post_meta( $id, 'optimole_rollback_error', 'true' );
 					continue;
 				}
-				$this->delete_attachment_from_server( $original_url, $id, $table_id );
+				$meta['file'] = $results['file'];
+				wp_update_attachment_metadata( $id, $meta );
 			}
-			update_post_meta( $id, 'optimole_rollback_error', 'true' );
+
+			if ( ! function_exists( 'update_attached_file' ) ) {
+				include_once ABSPATH . '/wp-admin/includes/post.php';
+			}
+			if ( ! function_exists( 'update_attached_file' ) ) {
+				update_post_meta( $id, 'optimole_rollback_error', 'true' );
+				continue;
+			}
+			update_attached_file( $id, $results['file'] );
+			$success_back++;
+			$this->update_content( $id );
+			$original_url  = self::get_original_url( $id );
+			if ( $original_url === false ) {
+				continue;
+			}
+			$this->delete_attachment_from_server( $original_url, $id, $table_id );
 		}
 		return $success_back;
 	}
