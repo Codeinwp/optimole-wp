@@ -698,7 +698,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param int $post_id The deleted post id.
 	 */
 	public function delete_attachment_hook( $post_id ) {
-		$file = wp_get_attachment_metadata( $post_id )['file'];
+		$file = wp_get_attachment_metadata( $post_id );
+		if ( $file === false || ! isset( $file['file'] ) ) {
+			return;
+		}
+		$file = $file['file'];
 		if ( self::is_uploaded_image( $file ) ) {
 
 			$original_url  = self::get_original_url( $post_id );
@@ -887,13 +891,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 				return $meta;
 			}
-			$optimized_url = $this->get_media_optimized_url( $original_url, $table_id );
-			$request = new Optml_Api();
-			if ( $request->check_optimized_url( $optimized_url ) === false ) {
-				$request->call_upload_api( $original_url, 'true', $table_id );
-				update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
-				return $meta;
-			}
+		}
+		$optimized_url = $this->get_media_optimized_url( $original_url, $table_id );
+		$request = new Optml_Api();
+		if ( $request->check_optimized_url( $optimized_url ) === false ) {
+			$request->call_upload_api( $original_url, 'true', $table_id );
+			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
+			return $meta;
 		}
 		file_exists( $local_file ) && unlink( $local_file );
 		update_post_meta( $attachment_id, 'optimole_offload', 'true' );
