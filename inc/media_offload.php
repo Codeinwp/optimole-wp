@@ -40,20 +40,19 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Generate exactly the response format expected by wp media modal.
 	 *
-	 * @param string  $url Original url to be optimized.
-	 * @param integer $index Index generated based on the current page and number of image used to avoid duplicates.
-	 * @param string  $resource_id Image id from cloud.
-	 * @param int     $width Image width.
-	 * @param int     $height Image height.
+	 * @param string $url Original url to be optimized.
+	 * @param string $resource_id Image id from cloud.
+	 * @param int    $width Image width.
+	 * @param int    $height Image height.
 	 * @return array The format expected for a single image in the media modal.
 	 */
-	private function media_attachment_template( $url, $index, $resource_id, $width, $height, $last_attach ) {
-
+	private function media_attachment_template( $url, $resource_id, $width, $height, $last_attach ) {
+		$filename = pathinfo( $url, PATHINFO_FILENAME );
 		$optimized_url = $this->get_media_optimized_url( $url, $resource_id, $width, $height );
 		return
 		[
-			'id' => $last_attach + $index,
-			'title' => pathinfo( $url, PATHINFO_FILENAME ),
+			'id' => $last_attach + 1 + crc32( $filename ),
+			'title' => $filename,
 			'url' => $optimized_url,
 			'link' => $optimized_url,
 			'alt' => '',
@@ -146,7 +145,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				if ( isset( $image['meta']['originalWidth'] ) ) {
 					$width = $image['meta']['originalWidth'];
 				}
-				$images[] = $this->media_attachment_template( $image['meta']['originURL'], $index + ( $page + 1 ) * $images_on_page, $image['meta']['resourceS3'], $width, $height, $last_attach );
+				$images[] = $this->media_attachment_template( $image['meta']['originURL'], $image['meta']['resourceS3'], $width, $height, $last_attach );
 			}
 			wp_send_json_success( $images );
 		}
