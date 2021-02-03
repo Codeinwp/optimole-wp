@@ -13,14 +13,22 @@ jQuery(document).ready( function($){
                     title: 'Optimole'
                 }),
             ]);
+            this.on( 'content:create:optimole',  this.renderOptimole, this );
             this.on(
                     'content:render:browse content:render:upload', function(){
                         $( document ).find( '.media-button-select' ).attr('disabled', 'disabled').removeAttr( 'enabled', 'enabled');
-                        $('#media-search-input').off();
                     }, this
                 );
-            let currentSearch = '';
-            this.on( 'content:create:optimole',  this.renderOptimole, this );
+            let scope = this;
+
+            $( document ).on(
+                'click', '.optml-load-more', function (e) {
+                    e.stopPropagation();
+                    scope.page ++;
+                    scope.renderOptimole();
+
+                }
+            );
         },
         browseRouter: function( routerView ) {
             const l10n = wp.media.view.l10n;
@@ -39,16 +47,13 @@ jQuery(document).ready( function($){
                 }
             });
         },
-        renderOptimole: function( search = '' ) {
+        renderOptimole: function( ) {
 
             $( document ).find( '.media-button-select' ).attr('disabled', 'disabled').removeAttr( 'enabled', 'enabled');
 
             var state = this.state();
 
             let options = this.options.library;
-            if ( typeof search === "string" ) {
-                options.s=search;
-            }
             options.type = ['optml_cloud'];
             const view = new wp.media.view.AttachmentsBrowser({
                 controller: this,
@@ -67,34 +72,6 @@ jQuery(document).ready( function($){
                 AttachmentView: state.get( 'AttachmentView' )
             });
             this.content.set( view );
-            let scope = this;
-            function setSearch ( timeoutRef ) {
-                if ( timeoutRef ) {
-                    clearTimeout(timeoutRef);
-                }
-                //if nothing is written for 2 seconds query for images with current input
-                let timeout = setTimeout( function () {
-                    searchCurrent = $('#media-search-input').val();
-                    scope.renderOptimole(searchCurrent);
-                }, 2000 );
-                return timeout;
-            }
-            let timeoutRef = false;
-            //this will add the previos search text to the input after it renders
-            let interval = setInterval(function () {
-                    if ( $('#media-search-input').length > 0 ) {
-                        $('#media-search-input').off();
-                        $( '#media-search-input' ).bind(
-                            'input',
-                            function (e) {
-                                timeoutRef = setSearch( timeoutRef );
-                            }
-                        );
-                        $("#media-search-input").val(options.s);
-                        clearInterval(interval);
-                    }
-                }, 500
-            );
         }
     });
 });
