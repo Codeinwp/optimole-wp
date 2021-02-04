@@ -1,4 +1,4 @@
-describe("Check Homepage", function () {
+describe("Elementor Check Homepage", function () {
   it("successfully loads", function () {
     cy.visit("/");
   });

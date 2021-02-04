@@ -43,7 +43,7 @@
     "conventional-changelog-simple-preset": "^1.0.14",
     "cross-env": "^5.2.1",
     "css-loader": "^0.23.0",
-    "cypress": "^4.3.0",
+    "cypress": "^6.4.0",
     "eslint": "^7.18.0",
     "eslint-config-prettier": "^7.2.0",
     "eslint-config-standard": "^16.0.2",
