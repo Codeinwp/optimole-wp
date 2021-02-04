@@ -4,7 +4,7 @@ describe("Elementor Check Homepage", function () {
   });
   const nativeLazy = "loading" in HTMLImageElement.prototype;
   it("Header should not have lazyload applied", function () {
-    cy.get("header img").should("not.have.attr", "data-opt-src");
+    cy.get("header").should("not.have.attr", "data-opt-src");
   });
   it("Elementor images should have replaced srcs", function () {
     cy.get(".elementor-image > img")
