@@ -2,5 +2,6 @@
   "projectId": "767db5",
   "pluginsFile": false,
   "supportFile": false,
-  "baseUrl": "http://testing.optimole.com"
+  "baseUrl": "http://testing.optimole.com",
+  "experimentalStudio": true
 }
