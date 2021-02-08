@@ -61,7 +61,7 @@ jQuery(document).ready( function($){
                 selection: state.get( 'selection' ),
                 model: state,
                 sortable:   false,
-                search:     false,
+                search:     true,
                 filters:    false,
                 date:       false,
                 display:    false,

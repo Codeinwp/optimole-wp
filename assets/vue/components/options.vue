@@ -28,11 +28,6 @@
                                :class="tab === 'lazyload' ? 'is-active' : ''"
                                :title="all_strings.lazyload_settings_menu_item+' '+all_strings.lazyload_settings_menu_item">{{all_strings.lazyload_settings_menu_item}}</a>
                         </li>
-<!--                    Offload media menu-->
-                        <li v-if="is_offload_media_available === 'yes'"><a @click="changeTab('offload_media')" href="#"
-                                                                                         :class="tab === 'offload_media' ? 'is-active' : ''"
-                                                                                         :title="all_strings.offload_media_settings_menu_item+' '+all_strings.offload_media_settings_menu_item">{{all_strings.offload_media_settings_menu_item}}</a>
-                        </li>
                         <li><a href="#"
                                @click="changeTab('exclusions')" href="#"
                                :class="tab === 'exclusions' ? 'is-active' : ''"
@@ -46,6 +41,15 @@
 <!--                                    class=" optml-beta is-normal tag is-warning">Beta</span></a></li>-->
                     </ul>
                 </li>
+              <!--                    Offload media menu-->
+              <li v-if="is_offload_media_available === 'yes'"><a @click="changeTab('offload_media')" href="#" style=""
+                                                                 :class="tab === 'offload_media' ? 'is-active' : ''"
+                                                                 :title="all_strings.offload_media_settings_menu_item+' '+all_strings.offload_media_settings_menu_item">{{all_strings.offload_media_settings_menu_item}}
+
+                <span class="optml-beta is-normal tag is-warning" style="position: absolute; top: 0">Beta </span>
+              </a>
+
+              </li>
             </ul>
         </aside>
         <div :class="[{ 'saving--option' : this.$store.state.loading, 'is-tab-disabled':isDisabled},'is-tab-'+tab] "

@@ -46,10 +46,14 @@ class Optml_Cli_Media extends WP_CLI_Command {
 			return \WP_CLI::error( __( 'You need to have the offload_media option enabled in order to use this command', 'optimole-wp' ) );
 		}
 		WP_CLI::line( $strings[ $action ]['info'] );
-		$number_of_images = Optml_Media_Offload::number_of_library_images();
-		$batch = 100;
+		$number_of_images_for = 'offload_images';
+		if ( $action === 'rollback' ) {
+			$number_of_images_for = 'rollback_images';
+		}
+		$number_of_images = Optml_Media_Offload::number_of_library_images( $number_of_images_for );
+		$batch = 5;
 		$possible_batch = ceil( $number_of_images / 10 );
-		if ( $possible_batch < 100 ) {
+		if ( $possible_batch < $batch ) {
 			$batch  = $possible_batch;
 		}
 		$total_progress = ceil( $number_of_images / $batch );
