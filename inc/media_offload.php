@@ -890,7 +890,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				return $meta;
 			}
 		}
-		$optimized_url = $this->get_media_optimized_url( $original_url, $table_id );
+		$url_to_append = $original_url;
+		$url_parts = parse_url( $original_url );
+		if ( isset( $url_parts['scheme'] ) && isset( $url_parts['host'] ) ) {
+			$url_to_append = $url_parts['scheme'] . '://' . $url_parts['host'] . '/' . $file_name;
+		}
+		$optimized_url = $this->get_media_optimized_url( $url_to_append, $table_id );
 		$request = new Optml_Api();
 		if ( $request->check_optimized_url( $optimized_url ) === false ) {
 			$request->call_upload_api( $original_url, 'true', $table_id );
@@ -899,11 +904,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		file_exists( $local_file ) && unlink( $local_file );
 		update_post_meta( $attachment_id, 'optimole_offload', 'true' );
-		$url_to_append = $original_url;
-		$url_parts = parse_url( $original_url );
-		if ( isset( $url_parts['scheme'] ) && isset( $url_parts['host'] ) ) {
-			$url_to_append = $url_parts['scheme'] . '//:' . $url_parts['host'] . '/' . $file_name;
-		}
 		$meta['file'] = '/' . self::KEYS['uploaded_flag'] . $table_id . '/' . $url_to_append;
 		if ( isset( $meta['sizes'] ) ) {
 			foreach ( $meta['sizes'] as $key => $value ) {
