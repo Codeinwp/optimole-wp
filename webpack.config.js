@@ -1,6 +1,7 @@
 /* jshint ignore:start */
 const webpack = require( 'webpack' );
 const path = require( 'path' );
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 // Naming and path settings
 let appName = '';
@@ -67,12 +68,7 @@ module.exports = {
 					]
 				}
 		},
-			{
-				enforce: 'pre',
-				test: /\.vue$/,
-				loader: 'eslint-loader',
-				exclude: / node_modules /
-		},
+
 			{
 				test: /\.vue$/,
 				loader: 'vue-loader'
@@ -85,5 +81,5 @@ module.exports = {
 			'vue$': 'vue/dist/vue.esm.js'
 		}
 	},
-	plugins
+	plugins: [new ESLintPlugin(options)]
 }
