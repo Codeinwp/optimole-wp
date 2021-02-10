@@ -427,14 +427,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$success_back++;
 				continue;
 			}
-			$parts = array_reverse( explode( '/', $current_meta['file'] ) );
-			$filename = '';
-			$table_id = '';
-			if ( isset( $parts[0] ) && isset( $parts[1] ) ) {
-				$filename = $parts[0];
-				$table_id = str_replace( self::KEYS['uploaded_flag'], '', $parts[1] );
+			$table_id = [];
+			$filename = pathinfo( $current_meta['file'], PATHINFO_BASENAME );
+			preg_match( '/\/' . self::KEYS['uploaded_flag'] . '([^\/]*)\//', $current_meta['file'], $table_id );
+			if ( ! isset( $table_id[1] ) ) {
+				continue;
 			}
-
+			$table_id = $table_id[1];
 			$request = new Optml_Api();
 			$get_response = $request->call_upload_api( '', 'false', $table_id, 'false', 'true' );
 
@@ -710,7 +709,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			$table_id = [];
 
-			preg_match( '/\/' . self::KEYS['uploaded_flag'] . '(.*)\//', $file, $table_id );
+			preg_match( '/\/' . self::KEYS['uploaded_flag'] . '([^\/]*)\//', $file, $table_id );
 
 			if ( ! isset( $table_id[1] ) ) {
 					return;
@@ -891,7 +890,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				return $meta;
 			}
 		}
-		$optimized_url = $this->get_media_optimized_url( $original_url, $table_id );
+		$url_to_append = $original_url;
+		$url_parts = parse_url( $original_url );
+		if ( isset( $url_parts['scheme'] ) && isset( $url_parts['host'] ) ) {
+			$url_to_append = $url_parts['scheme'] . '://' . $url_parts['host'] . '/' . $file_name;
+		}
+		$optimized_url = $this->get_media_optimized_url( $url_to_append, $table_id );
 		$request = new Optml_Api();
 		if ( $request->check_optimized_url( $optimized_url ) === false ) {
 			$request->call_upload_api( $original_url, 'true', $table_id );
@@ -900,7 +904,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		file_exists( $local_file ) && unlink( $local_file );
 		update_post_meta( $attachment_id, 'optimole_offload', 'true' );
-		$meta['file'] = '/' . self::KEYS['uploaded_flag'] . $table_id . '/' . $file_name;
+		$meta['file'] = '/' . self::KEYS['uploaded_flag'] . $table_id . '/' . $url_to_append;
 		if ( isset( $meta['sizes'] ) ) {
 			foreach ( $meta['sizes'] as $key => $value ) {
 				$generated_image_size_path = str_replace( $file_name, $meta['sizes'][ $key ]['file'], $local_file );
