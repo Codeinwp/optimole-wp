@@ -27,6 +27,7 @@ class Optml_elementor_builder extends Optml_compatibility {
 			'optml_lazyload_bg_selectors',
 			function ( $all_watchers ) {
 				$all_watchers[] = '.elementor-widget-container';
+				$all_watchers[] = '.elementor-background-slideshow__slide__image';
 				return $all_watchers;
 			}
 		);
