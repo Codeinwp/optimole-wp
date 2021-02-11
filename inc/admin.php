@@ -824,7 +824,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'watch_title_lazyload'              => __( 'Lazyload background images for selectors:', 'optimole-wp' ),
 				'width_field'                       => __( 'Width', 'optimole-wp' ),
 				'toggle_cdn'                        => __( 'Serve CSS & JS through Optimole', 'optimole-wp' ),
-				'cdn_desc'                          => __( 'Useful when you have images into CSS/JS files. Optimole wil optimize the images from them and serve the CSS/JS through the CDN.', 'optimole-wp' ),
+				'cdn_desc'                          => __( 'Useful when you have images into CSS/JS files. Optimole will optimize the images from them and serve the CSS/JS through the CDN.', 'optimole-wp' ),
 				'enable_css_minify_title'           => __( 'Minify CSS files', 'optimole-wp' ),
 				'css_minify_desc'                   => __( 'Once Optimole will serve your CSS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
 				'enable_js_minify_title'            => __( 'Minify JS files', 'optimole-wp' ),
