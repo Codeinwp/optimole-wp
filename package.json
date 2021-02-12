@@ -23,6 +23,7 @@
     "pre-e2e": "npm run prebuild",
     "cypress:open": "cypress open",
     "cypress:run": "cd cypress && docker-compose up --exit-code-from cypress",
+    "cypress:lint" : "cd cypress && eslint --fix .",
     "dist": "./bin/dist.sh",
     "build": "npm run prebuild"
   },
