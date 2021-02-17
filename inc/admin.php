@@ -836,6 +836,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'connect_step_2'                    => __( 'Inspecting the images from your site.', 'optimole-wp' ),
 				'connect_step_3'                    => __( 'All done, Optimole is currently optimizing your site.', 'optimole-wp' ),
 				'disabled'                          => __( 'Disabled', 'optimole-wp' ),
+				'enable_avif_title'                 => __( 'Enable avif conversion', 'optimole-wp' ),
+				'enable_avif_desc'                  => __( 'Automatically convert images to avif format, if the browser supports avif', 'optimole-wp' ),
 				'enable_bg_lazyload_desc'           => __( 'Lazyload images used as CSS backgrounds.', 'optimole-wp' ),
 				'enable_bg_lazyload_title'          => __( 'Enable lazyload for background images', 'optimole-wp' ),
 				'enable_video_lazyload_desc'        => __( 'Lazyload iframes/videos', 'optimole-wp' ),
