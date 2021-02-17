@@ -35,10 +35,13 @@ class Optml_Quality extends Optml_Property_Type {
 	 *
 	 * @param mixed $value Value to set.
 	 */
-	public function set( $value ) {
+	public function set( $value, $is_avif = false ) {
 
 		if ( $value === 'auto' ) {
 			$this->quality = 'auto';
+			if ( $is_avif === true ) {
+				$this->quality = 50;
+			}
 
 			return;
 		}
@@ -50,11 +53,16 @@ class Optml_Quality extends Optml_Property_Type {
 
 		if ( ! $this->is_valid_numeric( $value ) ) {
 			$this->quality = 'auto';
-
+			if ( $is_avif === true ) {
+				$this->quality = 50;
+			}
 			return;
 		}
 
 		$this->quality = $this->to_bound_integer( $value, 0, 100 );
+		if ( $is_avif === true ) {
+			$this->quality = max( 0, $this->quality - 30 );
+		}
 
 	}
 
