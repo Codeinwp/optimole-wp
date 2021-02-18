@@ -1,0 +1,5 @@
+name: 'Cypress Docker'
+description: 'Runs Cypress with Docker and Firefox version without lazy load'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
