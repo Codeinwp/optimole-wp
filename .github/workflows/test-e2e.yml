@@ -34,7 +34,7 @@ jobs:
       options: --user 1001 --shm-size=2g
     steps:
       - uses: actions/checkout@v1
-      - run: sudo apt-get install libgbm-dev
+      - run: apt-get install libgbm-dev
       - uses: cypress-io/github-action@v2
         with:
           env: host=testing.optimole.com
