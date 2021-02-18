@@ -30,11 +30,10 @@ jobs:
     needs: e2e
     runs-on: ubuntu-latest
     container:
-      image: cypress/browsers:node13.6.0-chrome-80-ff72
+      image: Dockerfile
       options: --user 1001 --shm-size=2g
     steps:
       - uses: actions/checkout@v1
-      - run: .bin/cypress-docker-dependencies.sh
       - uses: cypress-io/github-action@v2
         with:
           env: host=testing.optimole.com
