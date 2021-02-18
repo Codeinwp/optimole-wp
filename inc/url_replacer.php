@@ -250,11 +250,12 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) {
 			$arguments['format'] = $args['format'];
 		}
-		$is_avif = false;
+
 		if ( empty( $arguments['format'] ) && $this->settings->get( 'avif' ) === 'enabled' ) {
-			$is_avif = true;
+			$arguments['format'] = 'avif';
 		}
-		return  ( new Optml_Image( $url, $args, $this->active_cache_buster, $is_avif ) )->get_url( $arguments );
+
+		return  ( new Optml_Image( $url, $args, $this->active_cache_buster ) )->get_url( $arguments );
 
 	}
 

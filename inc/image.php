@@ -55,17 +55,15 @@ class Optml_Image extends Optml_Resource {
 	 *
 	 * @throws \InvalidArgumentException In case that the url is not provided.
 	 */
-	public function __construct( $url = '', $args = [], $cache_buster = '', $is_avif = false ) {
+	public function __construct( $url = '', $args = [], $cache_buster = '' ) {
 		parent::__construct( $url, $cache_buster );
 
 		$this->width->set( $args['width'] );
 		$this->height->set( $args['height'] );
 
 		if ( isset( $args['quality'] ) ) {
-			$this->quality->set( $args['quality'], $is_avif );
+			$this->quality->set( $args['quality'] );
 		}
-
-		$this->$is_avif = $is_avif;
 
 		if ( isset( $args['resize'] ) ) {
 			$this->resize->set( $args['resize'] );
@@ -101,9 +99,6 @@ class Optml_Image extends Optml_Resource {
 		}
 		if ( isset( $params['apply_watermark'] ) && $params['apply_watermark'] && is_array( self::$watermark->get() ) && isset( self::$watermark->get()['id'] ) && self::$watermark->get()['id'] > 0 ) {
 			$path_parts[] = self::$watermark->toString();
-		}
-		if ( empty( $params['format'] ) && $this->is_avif === true ) {
-			$path_parts[] = 'avif:true';
 		}
 		$path = '/' . $this->source_url;
 
