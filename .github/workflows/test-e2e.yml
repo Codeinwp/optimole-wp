@@ -29,9 +29,11 @@ jobs:
   e2eFirefox:
     needs: e2e
     runs-on: ubuntu-latest
+    container:
+      image: vertigostudio/cypress-ff72
+      options: --user 1001 --shm-size=2g
     steps:
       - uses: actions/checkout@v1
-      - uses: ./.github/actions/cypress-docker
       - uses: cypress-io/github-action@v2
         with:
           env: host=testing.optimole.com
