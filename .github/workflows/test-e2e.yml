@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - uses: ./.github/actions/cypress-docker-action.yml
+      - uses: ./.github/actions/cypress-docker
       - uses: cypress-io/github-action@v2
         with:
           env: host=testing.optimole.com
