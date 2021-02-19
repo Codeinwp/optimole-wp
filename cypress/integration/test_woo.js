@@ -47,7 +47,7 @@ describe("Test quick view", function () {
     cy.get(".yith-wcqv-button:first").click();
   });
   it("Quick view have optimole images", function () {
-    cy.get("#yith-quick-view-content .woocommerce-product-gallery__wrapper img")
+    cy.get("#yith-quick-view-content .woocommerce-product-gallery__wrapper img", { timeout: 75000 })
       .should("have.attr", "src")
       .and("include", "i.optimole.com");
   });
