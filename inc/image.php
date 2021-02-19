@@ -38,12 +38,6 @@ class Optml_Image extends Optml_Resource {
 	 * @var Optml_Resize Resize details.
 	 */
 	private $resize = null;
-	/**
-	 * Resize type for the image.
-	 *
-	 * @var Bool Resize details.
-	 */
-	private $is_avif = false;
 
 
 
