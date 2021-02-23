@@ -89,6 +89,17 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 == Changelog ==
 
+#### [Version 3.0.0](https://github.com/Codeinwp/optimole-wp/compare/v2.5.7...v3.0.0) (2021-02-23)
+
+### Features
+- Adds option to offload images to Optimole Cloud, saving space on your server storage. 
+- Adds Optimole Cloud integration directly in the Media library, allowing you to cross-share images from all the connected sites. 
+### Fixes 
+- Improve compatibility with Background images lazyload for Elementor
+
+
+
+
 ##### [Version 2.5.7](https://github.com/Codeinwp/optimole-wp/compare/v2.5.6...v2.5.7) (2020-12-17)
 
 #### Fixes
