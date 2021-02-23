@@ -30,7 +30,7 @@ jobs:
     needs: e2e
     runs-on: ubuntu-latest
     container:
-      image: cypress/browsers:node14.15.0-chrome86-ff82
+      image: vertigostudio/cypress-ff72
       options: --user 1001 --shm-size=2g
     steps:
       - uses: actions/checkout@v1
