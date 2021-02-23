@@ -170,7 +170,7 @@ class Optml_Admin {
 	 */
 	public function inline_bootstrap_script() {
 
-		$domain = 'https://' . OPTML_JS_CDN;
+		$domain = 'https://' . $this->settings->get_cdn_url() . '/js-lib';
 
 		$min                   = ! OPTML_DEBUG ? '.min' : '';
 		$bgclasses             = Optml_Lazyload_Replacer::get_lazyload_bg_classes();
@@ -554,10 +554,6 @@ class Optml_Admin {
 			return $hints;
 		}
 		$hints[] = sprintf( 'https://%s', $this->settings->get_cdn_url() );
-
-		if ( ! $this->settings->use_lazyload() && ! Optml_Manager::should_ignore_image_tags() ) {
-			$hints[] = sprintf( 'https://%s', OPTML_JS_CDN );
-		}
 
 		return $hints;
 	}
