@@ -70,6 +70,12 @@ class Optml_Config {
 	 * @var string Service url.
 	 */
 	public static $service_url = '';
+	/**
+	 *  Base domain.
+	 *
+	 * @var string Base domain.
+	 */
+	public static $base_domain = 'i.optimole.com';
 
 	/**
 	 * Service settings.
@@ -95,6 +101,10 @@ class Optml_Config {
 			self::$secret = constant( 'OPTML_SECRET' );
 		}
 
+		if ( defined( 'OPTML_BASE_DOMAIN' ) && constant( 'OPTML_BASE_DOMAIN' ) ) {
+			self::$base_domain = constant( 'OPTML_BASE_DOMAIN' );
+		}
+
 		if ( ! empty( $service_settings['key'] ) ) {
 			self::$key = trim( strtolower( $service_settings['key'] ) );
 		}
@@ -102,8 +112,7 @@ class Optml_Config {
 		if ( ! empty( $service_settings['secret'] ) ) {
 			self::$secret = trim( $service_settings['secret'] );
 		}
-
-		self::$service_url = sprintf( 'https://%s.i.optimole.com', self::$key );
+		self::$service_url = sprintf( 'https://%s.%s', self::$key, self::$base_domain );
 		if ( isset( $service_settings['domain'] ) && ! empty( $service_settings['domain'] ) ) {
 			self::$service_url = $service_settings['domain'];
 		} elseif ( defined( 'OPTML_CUSTOM_DOMAIN' ) && constant( 'OPTML_CUSTOM_DOMAIN' ) ) {

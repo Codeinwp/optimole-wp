@@ -16,18 +16,29 @@ final class Optml_Api {
 	 */
 	private $api_root = 'https://dashboard.optimole.com/api/';
 	/**
+	 * Optimole upload api root url.
+	 *
+	 * @var string Api root.
+	 */
+	private $upload_api_root = 'https://generateurls-prod.i.optimole.com/upload';
+	/**
 	 * Hold the user api key.
 	 *
 	 * @var string Api key.
 	 */
 	private $api_key;
-
 	/**
 	 * Optml_Api constructor.
 	 */
 	public function __construct() {
 		$settings      = new Optml_Settings();
 		$this->api_key = $settings->get( 'api_key' );
+		if ( defined( 'OPTIML_API_ROOT' ) && constant( 'OPTIML_API_ROOT' ) ) {
+			$this->api_root = constant( 'OPTIML_API_ROOT' );
+		}
+		if ( defined( 'OPTIML_UPLOAD_API_ROOT' ) && constant( 'OPTIML_UPLOAD_API_ROOT' ) ) {
+			$this->upload_api_root = constant( 'OPTIML_UPLOAD_API_ROOT' );
+		}
 	}
 
 	/**
@@ -70,8 +81,6 @@ final class Optml_Api {
 	 */
 	private function request( $path, $method = 'GET', $params = [], $extra_headers = [] ) {
 
-		// Grab the url to which we'll be making the request.
-		$url     = $this->api_root;
 		$headers = [
 			'Optml-Site' => get_home_url(),
 		];
@@ -81,14 +90,13 @@ final class Optml_Api {
 		if ( ! empty( $headers ) && is_array( $headers ) ) {
 			$headers = array_merge( $headers, $extra_headers );
 		}
-
+		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
 		// If there is a extra, add that as a url var.
 		if ( 'GET' === $method && ! empty( $params ) ) {
 			foreach ( $params as $key => $val ) {
 				$url = add_query_arg( [ $key => $val ], $url );
 			}
 		}
-		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
 		$args = $this->build_args( $method, $url, $headers, $params );
 
 		$response = wp_remote_request( $url, $args );
@@ -121,10 +129,10 @@ final class Optml_Api {
 	/**
 	 * Builds Request arguments array.
 	 *
-	 * @param string $method Request method (GET | POST | PUT | UPDATE | DELETE).
-	 * @param string $url Request URL.
-	 * @param array  $headers Headers Array.
-	 * @param array  $params Additional params for the Request.
+	 * @param string       $method Request method (GET | POST | PUT | UPDATE | DELETE).
+	 * @param string       $url Request URL.
+	 * @param array        $headers Headers Array.
+	 * @param array|string $params Additional params for the Request.
 	 *
 	 * @return array
 	 */
@@ -143,6 +151,73 @@ final class Optml_Api {
 		return $args;
 	}
 
+	/**
+	 * Upload image to our servers using the generated signed url.
+	 *
+	 * @param string $upload_url The signed to url to upload the image to.
+	 * @param string $content_type Image mime type, it must match the actual mime type of the image.
+	 * @param string $image Image data from file_get_contents.
+	 * @return mixed
+	 */
+	public function upload_image( $upload_url, $content_type, $image ) {
+		$args = $this->build_args( 'PUT', '', ['content-type' => $content_type], $image );
+		return wp_remote_request( $upload_url, $args );
+	}
+
+	/**
+	 * Check if the optimized url is available.
+	 *
+	 * @param string $url The optimized url to check.
+	 * @return bool Whether or not the url is valid.
+	 */
+	public function check_optimized_url( $url ) {
+		$response = wp_remote_get( $url, ['timeout' => 30] );
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Get options for the signed urls api call.
+	 *
+	 * @param string $original_url Image original url.
+	 * @param string $delete Whether to delete a bucket object or not(ie. generate signed upload url).
+	 * @param string $table_id Remote id used on our servers.
+	 * @param string $update_table False or success.
+	 * @param string $get_url Whether to return a get url or not.
+	 * @param string $width Original image width.
+	 * @param string $height Original image height.
+	 * @param int    $file_size Original file size.
+	 * @return array
+	 */
+	public function call_upload_api( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto', $file_size = 0 ) {
+		$body = [
+			'secret' => Optml_Config::$secret,
+			'userKey' => Optml_Config::$key,
+			'originalUrl' => $original_url,
+			'deleteUrl' => $delete,
+			'id' => $table_id,
+			'updateDynamo' => $update_table,
+			'getUrl' => $get_url,
+			'width' => $width,
+			'height' => $height,
+			'originalFileSize' => $file_size,
+		];
+		$body = wp_json_encode( $body );
+
+		$options = [
+			'body'        => $body,
+			'headers'     => [
+				'Content-Type' => 'application/json',
+			],
+			'timeout'     => 60,
+			'blocking'    => true,
+			'sslverify'   => false,
+			'data_format' => 'body',
+		];
+		return wp_remote_post( $this->upload_api_root, $options );
+	}
 	/**
 	 * Register user remotely on optimole.com.
 	 *
@@ -228,6 +303,29 @@ final class Optml_Api {
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Call the images endpoint.
+	 *
+	 * @param integer $page Page used to advance the search.
+	 * @param array   $domains Domains to filter by.
+	 * @param string  $search The string to search inside the originURL.
+	 * @return mixed The decoded json response from the api.
+	 */
+	public function get_cloud_images( $page = 0, $domains = [], $search = '' ) {
+
+		$params = ['key' => Optml_Config::$key ];
+		$params['page'] = $page;
+		$params['size'] = 40;
+		if ( $search !== '' ) {
+			$params['search'] = $search;
+		}
+
+		if ( ! empty( $domains ) ) {
+			$params['domains'] = implode( ',', $domains );
+		}
+		return $this->request( 'optml/v2/media/browser', 'GET', $params );
 	}
 
 	/**

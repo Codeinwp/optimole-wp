@@ -153,12 +153,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				);
 				$images['img_url'][ $index ] = $new_src;
 			}
-			if ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
+			if ( ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
 				 false !== strpos( $src, Optml_Config::$service_url ) ||
 				 ! $this->can_replace_url( $src ) ||
-				 ! $this->can_replace_tag( $images['img_url'][ $index ], $tag )
+				 ! $this->can_replace_tag( $images['img_url'][ $index ], $tag ) ) && ! Optml_Media_Offload::is_not_processed_image( $src )
 			) {
-
 				continue; // @codeCoverageIgnore
 			}
 
@@ -190,7 +189,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$tmp        = $this->strip_image_size_from_url( $tmp );
 			$new_url    = apply_filters( 'optml_content_url', $tmp, $optml_args );
 
-			if ( $new_url === $tmp ) {
+			if ( $new_url === $tmp && ! Optml_Media_Offload::is_not_processed_image( $src ) ) {
 				continue; // @codeCoverageIgnore
 			}
 
@@ -305,7 +304,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
-
+		if ( Optml_Media_Offload::is_uploaded_image( $image_src ) ) {
+			return $sources;
+		}
 		$original_url = null;
 		$cropping     = null;
 		if ( count( $size_array ) === 2 ) {
@@ -315,6 +316,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		foreach ( $sources as $i => $source ) {
 			$url = $source['url'];
+			if ( Optml_Media_Offload::is_uploaded_image( $url ) ) {
+				continue;
+			}
 			list( $width, $height, $file_crop ) = $this->parse_dimensions_from_filename( $url );
 
 			if ( empty( $width ) ) {
@@ -393,7 +397,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	public function filter_image_downsize( $image, $attachment_id, $size ) {
 
 		$image_url = wp_get_attachment_url( $attachment_id );
-
+		if ( Optml_Media_Offload::is_uploaded_image( $image_url ) ) {
+			return $image;
+		}
 		if ( $image_url === false ) {
 			return $image;
 		}

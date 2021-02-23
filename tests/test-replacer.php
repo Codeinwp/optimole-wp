@@ -53,8 +53,8 @@ class Test_Replacer extends WP_UnitTestCase {
 	/wp-content/themes/test/assets/header.js
 	';
 	const IMG_URLS_CAPITAL_EXTENSION = '
-	<img src="http://example.org/wp-content/themes/test/assets/images/header.PNG">
-	<img src="http://example.org/wp-content/themes/test/assets/images/header2.JPEG">
+	<img src="http://example.org/wp-content/themes/assets/images/header.PNG">
+	<img src="http://example.org/wp-content/themes/assets/images/header2.JPEG">
 	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo1.JPG">
 	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo2.JPE">
 	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo3.WEBP">
@@ -468,6 +468,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	/**
 	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
 	 */
 	public function test_custom_domain() {
 		define( 'OPTML_SITE_MIRROR', 'https://mycnd.com' );
@@ -605,7 +606,11 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 	}
-	public function a_test_class_exclusion()
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_class_exclusion()
 	{
 		$content = '<div>
 						<img class="skip-optimization" src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;

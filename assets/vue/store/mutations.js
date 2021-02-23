@@ -2,6 +2,15 @@
 const toggleLoading = ( state, data ) => {
 	state.loading = data;
 };
+const toggleLoadingRollback = ( state, data ) => {
+	state.loadingRollback = data;
+};
+const toggleLoadingSync = ( state, data ) => {
+	state.loadingSync = data;
+};
+const toggleActionError = ( state, data ) => {
+	state.errorMedia = data;
+};
 const toggleConnecting = ( state, data ) => {
 	state.isConnecting = data;
 };
@@ -48,7 +57,21 @@ const updateWatermark = ( state, data ) => {
 const updateConflicts = ( state, data ) => {
 	state.conflicts = data.body.data;
 };
-
+const totalNumberOfImages = ( state, data ) => {
+	state.totalNumberOfImages = data;
+};
+const updatePushedImagesProgress = ( state, data ) => {
+	if ( data === 'finish' ) {
+		state.pushedImagesProgress = 100;
+	}
+	if ( data === 'init' ) {
+		state.pushedImagesProgress = 0;
+		return;
+	}
+	if ( state.pushedImagesProgress < 100 ) {
+		state.pushedImagesProgress += data/state.totalNumberOfImages*100;
+	}
+};
 export default {
 	restApiNotWorking,
 	toggleConnectedToOptml,
@@ -63,5 +86,10 @@ export default {
 	updateServiceError,
 	updateSettings,
 	updateUserData,
-	updateWatermark
+	updateWatermark,
+	updatePushedImagesProgress,
+	totalNumberOfImages,
+	toggleLoadingRollback,
+	toggleLoadingSync,
+	toggleActionError
 };

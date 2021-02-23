@@ -446,8 +446,13 @@ abstract class Optml_App_Replacer {
 		$urls = array_map(
 			function ( $value ) {
 				$parts = parse_url( $value );
-
-				return isset( $parts['host'] ) ? $parts['host'] : '';
+				$domain = '';
+				if ( isset( $parts['host'] ) ) {
+					$domain = $parts['host'];
+				} elseif ( isset( $parts['path'] ) ) {
+					$domain = $parts['path'];
+				}
+				return $domain;
 			},
 			$urls
 		);
@@ -538,5 +543,21 @@ abstract class Optml_App_Replacer {
 		}
 
 		return [ false, false, false ];
+	}
+
+	/**
+	 * Get the optimized urls for the wp media modal.
+	 *
+	 * @param string $url Original url.
+	 * @param string $table_id The cloud id of the image.
+	 * @param string $width Image width.
+	 * @param string $height Image height.
+	 * @param array  $resize Optml crop array.
+	 * @return string The optimized url.
+	 */
+	public function get_media_optimized_url( $url, $table_id, $width = 'auto', $height = 'auto', $resize = [] ) {
+		$optimized_url = ( new Optml_Image( $url, ['width' => $width, 'height' => $height, 'resize' => $resize, 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
+		$optimized_url = str_replace( $url, Optml_Media_Offload::KEYS['not_processed_flag'] . 'media_cloud' . '/' . Optml_Media_Offload::KEYS['uploaded_flag'] . $table_id . '/' . $url, $optimized_url );
+		return $optimized_url;
 	}
 }

@@ -306,6 +306,86 @@ const dismissConflict = function ( {commit, state}, data ) {
 		}
 	} );
 };
+const pushBatch = function ( commit,batch,action, consecutiveErrors = 0 ) {
+	Vue.http(
+		{
+			url: optimoleDashboardApp.root + '/' + action,
+			method: 'POST',
+			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+			emulateJSON: true,
+			timeout: 0,
+			responseType: 'json',
+			body: {
+				'batch': batch,
+			},
+		}
+	).then(
+		function ( response ) {
+			if ( response.body.code === 'success' && response.body.data.found_images > 0 ) {
+				commit( 'updatePushedImagesProgress', batch );
+				pushBatch( commit, batch, action, 0 );
+			} else {
+				commit( 'updatePushedImagesProgress', 'finish' );
+				action === "offload_images" ? commit( 'toggleLoadingSync', false ) : commit( 'toggleLoadingRollback', false );
+			}
+		}
+	).catch( function ( err ) {
+		if ( consecutiveErrors < 10 ) {
+			setTimeout( function () { pushBatch( commit, batch, action, consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 5000 );
+		} else {
+			commit( 'toggleActionError', action );
+			commit( 'toggleLoadingSync', false );
+			commit( 'toggleLoadingRollback', false );
+		}
+	} );
+};
+const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
+	Vue.http( {
+		url: optimoleDashboardApp.root + '/number_of_library_images',
+		method: 'POST',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		emulateJSON: true,
+		responseType: 'json',
+		body: {
+			'action': data.action,
+		},
+	} ).then( function ( response ) {
+		if( response.status === 200 && response.body.data > 0 ) {
+			commit( 'totalNumberOfImages', response.body.data );
+			let batch = 5;
+			if ( Math.ceil( response.body.data/10 ) <= batch ) {
+				batch = Math.ceil( response.body.data/10 );
+			}
+			pushBatch( commit, batch, data.action );
+		} else {
+			if ( data.action === "offload_images" ) {
+				commit( 'toggleLoadingSync', false );
+			}
+			if ( data.action === "rollback_images" ) {
+				commit( 'toggleLoadingRollback', false );
+			}
+		}
+	} ).catch( function ( err ) {
+		if ( consecutiveErrors < 10 ) {
+			setTimeout( function () { getNumberOfImages ( data, commit, consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 1000 );
+		} else {
+			commit( 'toggleActionError', data.action );
+			commit( 'toggleLoadingSync', false );
+			commit( 'toggleLoadingRollback', false );
+		}
+	} );
+};
+const callSync = function ( {commit, state}, data ) {
+	commit( 'updatePushedImagesProgress', 'init' );
+	if ( data.action === "offload_images" ) {
+		commit( 'toggleLoadingSync', true );
+	}
+	if ( data.action === "rollback_images" ) {
+		commit( 'toggleLoadingRollback', true );
+	}
+	getNumberOfImages( data, commit, 0 );
+
+};
 
 export default {
 	clearCache,
@@ -319,5 +399,6 @@ export default {
 	retrieveOptimizedImages,
 	retrieveWatermarks,
 	sampleRate,
-	saveSettings
+	saveSettings,
+	callSync
 };

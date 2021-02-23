@@ -72,12 +72,6 @@ class Optml_Rest {
 						return current_user_can( 'manage_options' );
 					},
 					'callback'            => [ $this, 'check_redirects' ],
-					'args'                => [
-						'images' => [
-							'type'     => 'Array',
-							'required' => true,
-						],
-					],
 				],
 			]
 		);
@@ -86,6 +80,7 @@ class Optml_Rest {
 		$this->register_watermark_routes();
 		$this->register_conflict_routes();
 		$this->register_cache_routes();
+		$this->register_media_offload_routes();
 	}
 
 	/**
@@ -172,6 +167,50 @@ class Optml_Rest {
 						return current_user_can( 'manage_options' );
 					},
 					'callback'            => [ $this, 'get_sample_rate' ],
+				],
+			]
+		);
+	}
+	/**
+	 * Method to register media offload specific routes.
+	 */
+	public function register_media_offload_routes() {
+		register_rest_route(
+			$this->namespace,
+			'/offload_images',
+			[
+				[
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => [ $this, 'offload_images' ],
+				],
+			]
+		);
+		register_rest_route(
+			$this->namespace,
+			'/rollback_images',
+			[
+				[
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => [ $this, 'rollback_images' ],
+				],
+			]
+		);
+		register_rest_route(
+			$this->namespace,
+			'/number_of_library_images',
+			[
+				[
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => [ $this, 'number_of_library_images' ],
 				],
 			]
 		);
@@ -498,6 +537,12 @@ class Optml_Rest {
 		}
 
 		$final_images = array_splice( $images['list'], 0, 10 );
+		$media = new Optml_Media_Offload();
+
+		foreach ( $final_images as $index => $value ) {
+			$final_images[ $index ]['url'] = $media->get_media_optimized_url( $value['url'], $value['key'] );
+			unset( $final_images[ $index ]['key'] );
+		}
 
 		return $this->response( $final_images );
 	}
@@ -688,5 +733,48 @@ class Optml_Rest {
 		}
 
 		return $this->response( '<ul>' . $result . '</ul>', $status );
+	}
+
+	/**
+	 * Push existing image our servers.
+	 *
+	 * @param WP_REST_Request $request rest request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function offload_images( WP_REST_Request $request ) {
+		$batch = 300;
+		if ( ! empty( $request->get_param( 'batch' ) ) ) {
+			$batch = $request->get_param( 'batch' );
+		}
+		return $this->response( Optml_Media_Offload::upload_images( $batch ) );
+	}
+	/**
+	 * Rollback images to media library.
+	 *
+	 * @param WP_REST_Request $request rest request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function rollback_images( WP_REST_Request $request ) {
+		$batch = 300;
+		if ( ! empty( $request->get_param( 'batch' ) ) ) {
+			$batch = $request->get_param( 'batch' );
+		}
+		return $this->response( Optml_Media_Offload::rollback_images( $batch ) );
+	}
+	/**
+	 * Get total number of images.
+	 *
+	 * @param WP_REST_Request $request rest request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function number_of_library_images( WP_REST_Request $request ) {
+		$action = 'offload_images';
+		if ( ! empty( $request->get_param( 'action' ) ) ) {
+			$action = $request->get_param( 'action' );
+		}
+		return $this->response( Optml_Media_Offload::number_of_library_images( $action ) );
 	}
 }

@@ -41,6 +41,15 @@
 <!--                                    class=" optml-beta is-normal tag is-warning">Beta</span></a></li>-->
                     </ul>
                 </li>
+              <!--                    Offload media menu-->
+              <li v-if="is_offload_media_available === 'yes'"><a @click="changeTab('offload_media')" href="#" style=""
+                                                                 :class="tab === 'offload_media' ? 'is-active' : ''"
+                                                                 :title="all_strings.offload_media_settings_menu_item+' '+all_strings.offload_media_settings_menu_item">{{all_strings.offload_media_settings_menu_item}}
+
+                <span class="optml-beta is-normal tag is-warning" style="position: absolute; top: 0">Beta </span>
+              </a>
+
+              </li>
             </ul>
         </aside>
         <div :class="[{ 'saving--option' : this.$store.state.loading, 'is-tab-disabled':isDisabled},'is-tab-'+tab] "
@@ -52,6 +61,7 @@
 <!--                <Cssjs v-if="tab ==='cssjs'"></Cssjs>-->
                 <Resize v-if="tab ==='resize'"></Resize>
                 <Lazyload v-if="tab ==='lazyload'"></Lazyload>
+                <Media v-if="tab ==='offload_media'"></Media>
                 <Exclusions v-if="tab ==='exclusions'"></Exclusions>
             </div>
         </div>
@@ -65,15 +75,17 @@
 	import Resize from "./resize.vue";
 	import Exclusions from "./exclusions.vue";
 	import Lazyload from "./lazyload.vue";
+  import Media from "./offload_media.vue";
 	import Cssjs from "./cssjs.vue";
 
 	export default {
         name: "options",
-        components: {Cssjs, Lazyload, Exclusions, Resize, Watermarks, Compression, General},
+        components: {Cssjs, Lazyload, Media, Exclusions, Resize, Watermarks, Compression, General},
         data() {
             return {
                 strings: optimoleDashboardApp.strings.options_strings,
                 all_strings: optimoleDashboardApp.strings,
+                is_offload_media_available : optimoleDashboardApp.is_offload_media_available,
                 showNotification: false,
                 tab: 'general',
                 isDisabled: false,

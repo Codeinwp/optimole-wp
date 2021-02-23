@@ -34,6 +34,7 @@ function _manually_load_plugin() {
 		'center',
 		'bottom'
 	);
+	add_image_size( 'my_size_crop', 200, 200, array('right','top') );
 	add_image_size( 'sample_size_crop', 100, 100, true );
 	foreach ( $_test_posssible_values_x_sizes as $x_value ) {
 		foreach ( $_test_posssible_values_y_sizes as $y_value ) {
