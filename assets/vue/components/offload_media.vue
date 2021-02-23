@@ -6,7 +6,7 @@
         {{strings.enable_cloud_images_title}}
 
         <p class="is-italic has-text-weight-normal">
-          {{strings.enable_cloud_images_desc}}
+          {{strings.enable_cloud_images_desc}}<a href="https://docs.optimole.com/article/1323-cloud-library-browsing">{{strings.here}}</a>
         </p>
       </label>
 
@@ -43,7 +43,7 @@
                         <i>{{strings.selected_sites_desc}}</i>
                         <strong>{{site}}</strong>
                       </a>
-                      <a class="tag  is-marginless  is-delete"
+                      <a class="tag  is-marginless  is-delete" v-if="site !== 'all'"
                          @click="removeSite( site )"></a>
                     </div>
                   </div>
@@ -66,7 +66,7 @@
                   <p class="control ">
                             <span class="select  is-small">
                               <select @change="changeSite($event)">
-                                <option  value="all">All</option>
+                                <option  value="all" disabled selected>{{strings.select_site}}</option>
                                 <option  v-for="site in sites" :value="site">{{site}}</option>
                               </select>
                             </span>
@@ -158,6 +158,22 @@
         <progress class="progress is-large" :value="this.$store.state.pushedImagesProgress" :max="maxTime"></progress>
       </div>
     </div>
+
+    <!--Sync error notice-->
+    <div class="field  columns" v-if="this.$store.state.errorMedia === 'offload_images'">
+      <label class="label column" style="color: #dc143c !important;">
+        {{strings.sync_media_error}}
+
+        <p class="is-italic has-text-weight-normal">
+          {{strings.sync_media_error_desc}}
+        </p>
+      </label>
+      <div class="column is-3 is-right">
+        <button @click="removeNotice()" class="button is-primary is-small">
+          {{strings.remove_notice}}
+        </button>
+      </div>
+    </div>
     <!-- Rollback Media button -->
     <div class="field  is-fullwidth columns " v-if="this.site_settings.offload_media==='enabled' || this.$store.state.loadingRollback">
       <label class="label column has-text-grey-dark">
@@ -181,6 +197,21 @@
           <span>{{strings.rollback_media_progress}}</span>
         </label>
         <progress class="progress is-large" :value="this.$store.state.pushedImagesProgress" :max="maxTime"></progress>
+      </div>
+    </div>
+    <!--Rollback error notice-->
+    <div class="field  columns" v-if="this.$store.state.errorMedia === 'rollback_images'">
+      <label class="label column" style="color: #dc143c !important;">
+        {{strings.rollback_media_error}}
+
+        <p class="is-italic has-text-weight-normal">
+          {{strings.rollback_media_error_desc}}
+        </p>
+      </label>
+      <div class="column is-3 is-right">
+        <button @click="removeNotice()" class="button is-primary is-small">
+          {{strings.remove_notice}}
+        </button>
       </div>
     </div>
 
@@ -240,6 +271,7 @@ export default {
       });
     },
     callSync : function ( action ) {
+      this.$store.state.errorMedia = false;
       this.$store.dispatch('callSync', { action: action});
     },
     saveChanges: function () {
@@ -255,11 +287,19 @@ export default {
     removeSite: function ( site ) {
       let update_sites = {};
       update_sites[site] = false;
+
+      if ( this.cloud_sites.length === 1 ) {
+        update_sites['all'] = true;
+      }
+
       this.$store.dispatch('saveSettings', {
         settings: {
           cloud_sites: update_sites
         }
       });
+    },
+    removeNotice: function () {
+      this.$store.state.errorMedia = false;
     },
   },
   computed: {

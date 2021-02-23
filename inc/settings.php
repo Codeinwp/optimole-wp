@@ -499,7 +499,7 @@ class Optml_Settings {
 		return sprintf(
 			'%s.%s',
 			strtolower( $service_data['cdn_key'] ),
-			'i.optimole.com'
+			Optml_Config::$base_domain
 		);
 	}
 
