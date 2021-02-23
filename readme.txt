@@ -46,7 +46,7 @@ Better yet. The free version is fully functional and includes all of the followi
 Our cloud-based transformation process means we can optimize images based on the format as well as serve images in next-gen formats. If your visitor is using a WebP capable browser, then Optimole will convert to WebP the image and send it to their device.
 
 **Cloud Library support*
-Offload your website images directly to Optimole cloud and save storage space on your server. Cross share images between your websites connected to optimole.
+Offload your website images directly to Optimole Cloud and save storage space on your server. Cross share images between your all your websites connected to Optimole.
 
 **Image Optimization**
 Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size.
