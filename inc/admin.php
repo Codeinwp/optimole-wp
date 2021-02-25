@@ -696,7 +696,7 @@ class Optml_Admin {
 				'</a>'
 			),
 			'account_needed_subtitle_2'      => sprintf(
-				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CD from 200 locations.', 'optimole-wp' )
+				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CDN from 200 locations.', 'optimole-wp' )
 			),
 			'notice_just_activated'          => ! $this->settings->is_connected() ?
 				sprintf( __( '%1$sImage optimisation is currently running.%2$s <br/> Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You might see for the very first image request being redirected to the original URL while we do the optimization in the background.<br/> You can relax, we\'ll take it from here.', 'optimole-wp' ), '<strong>', '</strong>' )
