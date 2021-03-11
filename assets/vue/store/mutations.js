@@ -20,11 +20,17 @@ const toggleKeyValidity = ( state, data ) => {
 const toggleConnectedToOptml = ( state, data ) => {
 	state.connected = data;
 };
+const toggleHasOptmlApp = ( state, data ) => {
+	state.hasApplication = data;
+};
 const toggleIsServiceLoaded = ( state, data ) => {
 	state.is_loaded = data;
 };
 const updateUserData = ( state, data ) => {
 	state.userData = data;
+};
+const updateAvailableApps = ( state, data ) => {
+	state.availableApps = data;
 };
 const updateServiceError = ( state, data ) => {
 	state.connectError = data;
@@ -86,6 +92,8 @@ export default {
 	updateServiceError,
 	updateSettings,
 	updateUserData,
+	updateAvailableApps,
+	toggleHasOptmlApp,
 	updateWatermark,
 	updatePushedImagesProgress,
 	totalNumberOfImages,

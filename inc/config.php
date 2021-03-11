@@ -75,7 +75,8 @@ class Optml_Config {
 	 *
 	 * @var string Base domain.
 	 */
-	public static $base_domain = 'i.optimole.com';
+	//public static $base_domain = 'i.optimole.com';
+	public static $base_domain = 'b.optml.cloud';
 
 	/**
 	 * Service settings.
