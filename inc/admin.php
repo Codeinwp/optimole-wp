@@ -162,7 +162,10 @@ class Optml_Admin {
 	 * @return array
 	 */
 	public function add_no_js_class_to_html_tag( $classes ) {
-		return array_merge( $classes, [ 'optml_no_js' ] );
+	    // we need the space padding since some plugins might not target correctly with js there own classes
+        // this causes some issues if they concat directly, this way we can protect against that since no matter what
+        // there will be an extra space padding so that classes can be easily identified
+		return array_merge( $classes, [ ' optml_no_js ' ] );
 	}
 
 	/**
