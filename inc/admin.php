@@ -627,7 +627,7 @@ class Optml_Admin {
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',
 			'connection_status'          => empty( $service_data ) ? 'no' : 'yes',
-			'has_application'            => empty( $service_data ) ? 'no' : 'yes',
+			'has_application'            => isset( $service_data['app_count'] ) && $service_data['app_count'] > 1 ? 'yes' : 'no',
 			'user_status'                => isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ? 'inactive' : 'active',
 			'api_key'                    => $api_key,
 			'root'                       => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),

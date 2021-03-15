@@ -375,8 +375,8 @@ class Optml_Rest {
 	 */
 	public function connect( WP_REST_Request $request ) {
 		$api_key = $request->get_param( 'api_key' );
+		$original_request = $request;
 		$request = new Optml_Api();
-		// $data    = $request->get_user_data( $api_key );
 		$data    = $request->connect( $api_key );
 		if ( $data === false || is_wp_error( $data ) ) {
 			$extra = '';
@@ -391,9 +391,10 @@ class Optml_Rest {
 			wp_send_json_error( __( 'Can not connect to Optimole service', 'optimole-wp' ) . $extra );
 		}
 		$settings = new Optml_Settings();
-		// $settings->update( 'service_data', $data );
 		$settings->update( 'api_key', $api_key );
-
+		if ( $data['app_count'] === 1 ) {
+			return $this->select_application( $original_request );
+		}
 		return $this->response( $data );
 	}
 

@@ -65,8 +65,13 @@ const connectOptimole = function ( {commit, state}, data ) {
 				  commit( 'toggleKeyValidity', true );
 				  commit( 'toggleConnectedToOptml', true );
 				  commit( 'updateApiKey', data.apiKey );
-				  // commit( 'updateUserData', response.body.data );
-				  commit( 'updateAvailableApps', response.body.data );
+				  if ( response.body.data['app_count'] !== undefined ) {
+					commit( 'updateAvailableApps', response.body.data );
+				  } else {
+					commit( 'updateUserData', response.body.data );
+					commit( 'toggleHasOptmlApp', true );
+				  }
+
 				  console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
 
 			} else {
@@ -126,6 +131,8 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 			commit( 'updateUserData', null );
 			commit( 'toggleLoading', false );
 			commit( 'updateApiKey', '' );
+			commit( 'updateAvailableApps', null );
+			commit( 'toggleHasOptmlApp', false );
 			if ( response.ok ) {
 				  commit( 'toggleConnectedToOptml', false );
 				  commit( 'toggleIsServiceLoaded', false );
