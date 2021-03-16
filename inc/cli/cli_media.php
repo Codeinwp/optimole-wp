@@ -33,8 +33,8 @@ class Optml_Cli_Media extends WP_CLI_Command {
 	private function update_images_template( $action ) {
 		$strings = [
 			'offload' => [
-				'info' => __( 'Moving all images to our servers', 'optimole-wp' ),
-				'success' => __( 'All images have been uploaded to our servers', 'optimole-wp' ),
+				'info' => __( 'Moving all images to Optimole Cloud', 'optimole-wp' ),
+				'success' => __( 'All images have been uploaded to Optimole Cloud', 'optimole-wp' ),
 			],
 			'rollback' => [
 				'info' => __( 'Moving all images back to your media library', 'optimole-wp' ),
