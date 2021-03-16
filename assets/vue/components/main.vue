@@ -96,8 +96,8 @@
     </div>
     <div
         class="column is-narrow is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile"
-        v-if="(this.$store.state.connected && (this.$store.state.userData.plan === 'free' || strings.neve.is_active !== 'yes' ))">
-      <div v-if="this.$store.state.userData.plan === 'free' " class="card optml-upgrade">
+        v-if="(this.$store.state.connected && this.$store.state.userData.plan === 'free')">
+      <div class="card optml-upgrade">
         <div class="card-header">
           <h3 class="is-size-5 card-header-title"><span class="dashicons dashicons-chart-line"></span>
             {{ strings.upgrade.title }}</h3>
