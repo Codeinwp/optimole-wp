@@ -735,6 +735,15 @@ The root cause might be either a security plugin which blocks this feature or so
 				'reason_4' => __( 'Site audit', 'optimole-wp' ),
 				'cta'      => __( 'View plans', 'optimole-wp' ),
 			],
+			'neve'                        => [
+				'is_active' => defined( 'NEVE_VERSION' ) ? 'yes' : 'no',
+				'byline'    => __( 'Fast, perfomance built-in WordPress theme.', 'optimole-wp' ),
+				'reason_1'  => __( 'Lightweight, 25kB in page-weight.', 'optimole-wp' ),
+				'reason_2'  => __( '100+ Starter Sites available.', 'optimole-wp' ),
+				'reason_3'  => __( 'AMP/Mobile ready.', 'optimole-wp' ),
+				'reason_4'  => __( 'Lots of customizations options.', 'optimole-wp' ),
+				'reason_5'  => __( 'Fully compatible with Optimole.', 'optimole-wp' )
+			],
 			'options_strings'                => [
 				'add_filter'                        => __( 'Add filter', 'optimole-wp' ),
 				'add_site'                          => __( 'Add site', 'optimole-wp' ),
