@@ -765,7 +765,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_report_title'               => __( 'Enable error diagnosis tool', 'optimole-wp' ),
 				'enable_report_desc'                => __( 'Provides a troubleshooting mechanism which should help you identify any possible issues with your site using Optimole.', 'optimole-wp' ),
 				'enable_offload_media_title'        => __( 'Enable offloading images', 'optimole-wp' ),
-				'enable_offload_media_desc'         => __( 'Offload your current and new images automatically to Optimole Cloud. You will no longer store them on your server and you can restore them back anytime.', 'optimole-wp' ),
+				'enable_offload_media_desc'         => __( 'Offload your new images automatically to Optimole Cloud. You will no longer store them on your server and you can restore them back anytime.', 'optimole-wp' ),
 				'enable_cloud_images_title'         => __( 'Enable cloud library browsing', 'optimole-wp' ),
 				'enable_cloud_images_desc'          => __( 'Allow access from this site to all images from your Optimole account. More details', 'optimole-wp' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
