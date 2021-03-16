@@ -2,7 +2,5 @@
   "projectId": "767db5",
   "pluginsFile": false,
   "supportFile": false,
-  "videoUploadOnPasses": false,
-  "baseUrl": "http://testing.optimole.com",
-  "experimentalStudio": true
+  "baseUrl": "http://testing.optimole.com"
 }
