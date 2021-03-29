@@ -15,7 +15,8 @@ final class Optml_Api {
 	 * @var string Api root.
 	 */
 	//private $api_root = 'https://dashboard.optimole.com/api/';
-	private $api_root = 'https://mighty-bobcat-66.loca.lt/api/';
+	//private $api_root = 'https://tough-firefox-19.loca.lt/api/';
+	private $api_root = 'https://staging-dashboard.optimole.com/api/';
 	/**
 	 * Optimole upload api root url.
 	 *
