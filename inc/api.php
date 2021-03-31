@@ -59,7 +59,7 @@ final class Optml_Api {
 			$this->api_key = $api_key;
 		}
 
-		return $this->request( '/optml/v2/account/details', 'POST',  [ 'application' => $application ] );
+		return $this->request( '/optml/v2/account/details', 'POST', [ 'application' => $application ] );
 	}
 
 	/**
