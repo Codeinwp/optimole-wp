@@ -625,8 +625,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			printf(
 				'<div id="message" class="updated notice is-dismissible"><p>' .
 				_n(
-					'%s image was stored on our server.',
-					'%s images were stored on our servers.',
+					'%s image was moved on Optimole Cloud.',
+					'%s images were moved on Optimole Cloud.',
 					intval( $_REQUEST['optimole_offload_images_succes'] ),
 					'optimole-wp'
 				) . '</p></div>',
@@ -638,8 +638,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			printf(
 				'<div id="message" class="updated notice is-dismissible"><p>' .
 				_n(
-					'%s image failed while uploading to our servers, please try again later.',
-					'%s images failed while uploading to our servers, please try again later',
+					'%s image failed while uploading to Optimole Cloud, please try again later.',
+					'%s images failed while uploading to Optimole Cloud, please try again later',
 					intval( $_REQUEST['optimole_offload_images_failed'] ) .
 					'optimole-wp'
 				) . '</p></div>',

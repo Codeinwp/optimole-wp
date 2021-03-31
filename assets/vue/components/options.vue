@@ -46,7 +46,6 @@
                                                                  :class="tab === 'offload_media' ? 'is-active' : ''"
                                                                  :title="all_strings.offload_media_settings_menu_item+' '+all_strings.offload_media_settings_menu_item">{{all_strings.offload_media_settings_menu_item}}
 
-                <span class="optml-beta is-normal tag is-warning" style="position: absolute; top: 0">Beta </span>
               </a>
 
               </li>

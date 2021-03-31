@@ -322,4 +322,23 @@
 				text-decoration: none;
 				font-size: 18px;
 		}
+    
+    .optml-neve li {
+
+      margin-top: 3px !important;
+      margin-bottom: 3px !important;
+    }
+
+    .optml-neve p.optml-nv-byline {
+      margin-top: 5px !important;
+      margin-bottom: 15px !important;
+    }
+
+    .optml-neve {
+      padding: 0.5rem !important;
+    }
+
+    .optml-neve .card-content {
+      padding: 1rem !important;
+    }
 </style>
