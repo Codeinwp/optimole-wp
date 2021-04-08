@@ -162,7 +162,10 @@ class Optml_Admin {
 	 * @return array
 	 */
 	public function add_no_js_class_to_html_tag( $classes ) {
-		return array_merge( $classes, [ 'optml_no_js' ] );
+		// we need the space padding since some plugins might not target correctly with js there own classes
+		// this causes some issues if they concat directly, this way we can protect against that since no matter what
+		// there will be an extra space padding so that classes can be easily identified
+		return array_merge( $classes, [ ' optml_no_js ' ] );
 	}
 
 	/**
@@ -170,7 +173,7 @@ class Optml_Admin {
 	 */
 	public function inline_bootstrap_script() {
 
-		$domain = 'https://' . OPTML_JS_CDN;
+		$domain = 'https://' . $this->settings->get_cdn_url() . '/js-lib';
 
 		$min                   = ! OPTML_DEBUG ? '.min' : '';
 		$bgclasses             = Optml_Lazyload_Replacer::get_lazyload_bg_classes();
@@ -555,10 +558,6 @@ class Optml_Admin {
 		}
 		$hints[] = sprintf( 'https://%s', $this->settings->get_cdn_url() );
 
-		if ( ! $this->settings->use_lazyload() && ! Optml_Manager::should_ignore_image_tags() ) {
-			$hints[] = sprintf( 'https://%s', OPTML_JS_CDN );
-		}
-
 		return $hints;
 	}
 
@@ -700,7 +699,7 @@ class Optml_Admin {
 				'</a>'
 			),
 			'account_needed_subtitle_2'      => sprintf(
-				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CD from 200 locations.', 'optimole-wp' )
+				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CDN from 200 locations.', 'optimole-wp' )
 			),
 			'notice_just_activated'          => ! $this->settings->is_connected() ?
 				sprintf( __( '%1$sImage optimisation is currently running.%2$s <br/> Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You might see for the very first image request being redirected to the original URL while we do the optimization in the background.<br/> You can relax, we\'ll take it from here.', 'optimole-wp' ), '<strong>', '</strong>' )
@@ -736,6 +735,15 @@ The root cause might be either a security plugin which blocks this feature or so
 				'reason_4' => __( 'Site audit', 'optimole-wp' ),
 				'cta'      => __( 'View plans', 'optimole-wp' ),
 			],
+			'neve'                        => [
+				'is_active' => defined( 'NEVE_VERSION' ) ? 'yes' : 'no',
+				'byline'    => __( 'Fast, perfomance built-in WordPress theme.', 'optimole-wp' ),
+				'reason_1'  => __( 'Lightweight, 25kB in page-weight.', 'optimole-wp' ),
+				'reason_2'  => __( '100+ Starter Sites available.', 'optimole-wp' ),
+				'reason_3'  => __( 'AMP/Mobile ready.', 'optimole-wp' ),
+				'reason_4'  => __( 'Lots of customizations options.', 'optimole-wp' ),
+				'reason_5'  => __( 'Fully compatible with Optimole.', 'optimole-wp' ),
+			],
 			'options_strings'                => [
 				'add_filter'                        => __( 'Add filter', 'optimole-wp' ),
 				'add_site'                          => __( 'Add site', 'optimole-wp' ),
@@ -759,7 +767,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_report_title'               => __( 'Enable error diagnosis tool', 'optimole-wp' ),
 				'enable_report_desc'                => __( 'Provides a troubleshooting mechanism which should help you identify any possible issues with your site using Optimole.', 'optimole-wp' ),
 				'enable_offload_media_title'        => __( 'Enable offloading images', 'optimole-wp' ),
-				'enable_offload_media_desc'         => __( 'Offload your current and new images automatically to Optimole, by removing them from your server.', 'optimole-wp' ),
+				'enable_offload_media_desc'         => __( 'Offload your new images automatically to Optimole Cloud. You will no longer store them on your server and you can restore them back anytime.', 'optimole-wp' ),
 				'enable_cloud_images_title'         => __( 'Enable cloud library browsing', 'optimole-wp' ),
 				'enable_cloud_images_desc'          => __( 'Allow access from this site to all images from your Optimole account. More details', 'optimole-wp' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
@@ -832,9 +840,9 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_js_minify_title'            => __( 'Minify JS files', 'optimole-wp' ),
 				'js_minify_desc'                    => __( 'Once Optimole will serve your JS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
 				'sync_title'                        => __( 'Offload existing images', 'optimole-wp' ),
-				'rollback_title'                    => __( 'Rollback offloaded images', 'optimole-wp' ),
-				'sync_desc'                         => __( 'Offload all existing images from your site to Optimole.', 'optimole-wp' ),
-				'rollback_desc'                     => __( 'Pull the offloaded images to Optimole back to your site.', 'optimole-wp' ),
+				'rollback_title'                    => __( 'Restore offloaded images', 'optimole-wp' ),
+				'sync_desc'                         => __( 'Right now all the new images uploaded to your site are moved automatically to Optimole Cloud. In order to offload the existing ones, please click Sync images and wait for the process to finish. You can rollback anytime.', 'optimole-wp' ),
+				'rollback_desc'                     => __( 'Pull all the offloaded images to Optimole Cloud back to your server.', 'optimole-wp' ),
 				'sync_media'                        => __( 'Sync images', 'optimole-wp' ),
 				'rollback_media'                    => __( 'Rollback images', 'optimole-wp' ),
 				'sync_media_progress'               => __( 'We are currently offloading your images to Optimole, please wait', 'optimole-wp' ),

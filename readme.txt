@@ -2,7 +2,7 @@
 Contributors: optimole
 Tags: image optimization, convert webp, responsive images, lazy load, images, optimization, performance, photos, free cdn
 Requires at least: 4.7
-Tested up to: 5.6
+Tested up to: 5.7
 Requires PHP: 5.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -17,6 +17,7 @@ Automatically compress, optimize and serve scaled images along with next-gen Web
 > * Fully automated; [set and forget](https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps)
 > * Supports all image types
 > * Supports both Retina and WebP images
+> * Cloud image library support
 > * Serves images from a global CDN for free
 > * Optimizes based on the visitor's actual device (no more guesswork and width estimations)
 > * Full support for page builders like Elementor
@@ -43,6 +44,9 @@ Better yet. The free version is fully functional and includes all of the followi
 
 **Format Based Optimization**
 Our cloud-based transformation process means we can optimize images based on the format as well as serve images in next-gen formats. If your visitor is using a WebP capable browser, then Optimole will convert to WebP the image and send it to their device.
+
+**Cloud Library support**
+Offload your website images directly to Optimole Cloud and save storage space on your server. Cross share images between your all your websites connected to Optimole.
 
 **Image Optimization**
 Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size.
@@ -89,6 +93,17 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 == Changelog ==
 
+#### [Version 3.0.0](https://github.com/Codeinwp/optimole-wp/compare/v2.5.7...v3.0.0) (2021-02-23)
+
+### Features
+- Adds option to offload images to Optimole Cloud, saving space on your server storage. 
+- Adds Optimole Cloud integration directly in the Media library, allowing you to cross-share images from all the connected sites. 
+### Fixes 
+- Improve compatibility with Background images lazyload for Elementor
+
+
+
+
 ##### [Version 2.5.7](https://github.com/Codeinwp/optimole-wp/compare/v2.5.6...v2.5.7) (2020-12-17)
 
 #### Fixes
@@ -101,241 +116,7 @@ Premium users will be able to optimize images for more than 25k monthly active u
 * Adds more option to set plugin settings via [wp cli](https://docs.optimole.com/article/1202-plugin-cli-commands)
 
 
-
-
-##### [Version 2.5.6](https://github.com/Codeinwp/optimole-wp/compare/v2.5.5...v2.5.6) (2020-10-19)
-
-* Fixed regression on image lazyload after version v2.5.5
-
-
-
-
-##### [Version 2.5.5](https://github.com/Codeinwp/optimole-wp/compare/v2.5.4...v2.5.5) (2020-10-19)
-
-* Fix compatibility with image urls which had uppercase image extensions
-* Improve CLS web vital for the lazyloading mechanism.
-
-
-
-
-##### [Version 2.5.4](https://github.com/Codeinwp/optimole-wp/compare/v2.5.3...v2.5.4) (2020-09-21)
-
-* Fix compatibility with GiveWP
-* Fix compatibility with IE browser
-
-
-
-
-##### [Version 2.5.3](https://github.com/Codeinwp/optimole-wp/compare/v2.5.2...v2.5.3) (2020-09-07)
-
-* Improve compatibility with native lazyload from WP 5.5
-
-
-
-
-##### [Version 2.5.2](https://github.com/Codeinwp/optimole-wp/compare/v2.5.1...v2.5.2) (2020-09-02)
-
-* Improve compatibility with various plugins for the video lazyload functionality
-
-
-
-
-##### [Version 2.5.1](https://github.com/Codeinwp/optimole-wp/compare/v2.5.0...v2.5.1) (2020-08-26)
-
-* Fix small bug between native lazyload compatibility and caching plugins
-
-
-
-
-#### [Version 2.5.0](https://github.com/Codeinwp/optimole-wp/compare/v2.4.2...v2.5.0) (2020-08-25)
-
-#### Features
-- Adds option to lazyload videos and iframes
-- Adds support for browser native lazyload
-- Adds support for CSS classes in the optimizations exclusion filters
-- Allow local JS serving for the lazyload library using configurable constant
-
-#### Fixes
-- improve settings description texts
-- improve texts for the diagnosis popup report
-- adds compatibility with WordPress 5.5
-
-
-
-
-##### [Version 2.4.2](https://github.com/Codeinwp/optimole-wp/compare/v2.4.1...v2.4.2) (2020-07-20)
-
-* **Features**
-   * adds debugger mechanism for troubleshooting various issues with the plugin integration
-
-* **Bug Fixes**
-   * Improve compatibility with SiteGround Optimizer
-   * Improve compatibility with Swift Performance
-   * Improve compatibility with TranslatePress
-   * Improve compatibility with W3 Total Cache
-   * Improve compatibility with WP Fastest Cache
-
-
-
-
-##### [Version 2.4.1](https://github.com/Codeinwp/optimole-wp/compare/v2.4.0...v2.4.1) (2020-06-09)
-
-* Improves settings UI for CSS/JS toggle
-* Improves settings description for autoscaling toggle.
-
-
-
-
-#### [Version 2.4.0](https://github.com/Codeinwp/optimole-wp/compare/v2.3.1...v2.4.0) (2020-06-08)
-
-#### Features: 
-- Adds the option to serve CSS/JS via Optimole.
-- Adds the option to serve minified CSS/JS files. 
-- Adds the option to disable scaling but keep lazyload. 
-
-#### Fixes: 
-- Optimize images that are hardcoded in the CSS/JS files.
-- Improve notice feedback when the quota is exceeded.
-
-
-
-
-##### [Version 2.3.1](https://github.com/Codeinwp/optimole-wp/compare/v2.3.0...v2.3.1) (2020-04-21)
-
-#### Bug Fixes
-- improve AMP compatibility, solve the issue when we were loading non-AMP resources on AMP context, props [@westonruter](https://github.com/westonruter) 
-- improve lazy-loading on non-Latin image filenames
-
-
-
-
-#### [Version 2.3.0](https://github.com/Codeinwp/optimole-wp/compare/v2.2.9...v2.3.0) (2020-04-06)
-
-#### Features
-- Adds clear image cache feature
-#### Fixes
-- Improve compatibility with Pinterest sharing plugins
-- Improve compatibility with Unicode image names.
-
-
-
-
-#### [Version 2.2.9](https://github.com/Codeinwp/optimole-wp/compare/v2.2.8...v2.2.9) (2020-02-25)
-
-* **Bug Fixes**
-   * compatibility with Fusion builder, remove replacement when in edit mode ([b16683b](https://github.com/Codeinwp/optimole-wp/commit/b16683b))
-   * improve compatibility with Divi builder ([efdabfe](https://github.com/Codeinwp/optimole-wp/commit/efdabfe))
-
-
-
-#### [Version 2.2.8](https://github.com/Codeinwp/optimole-wp/compare/v2.2.7...v2.2.8) (2020-01-14)
-
-* **Bug Fixes**
-   * catch image URLs that contains some symbols ([ce1c162](https://github.com/Codeinwp/optimole-wp/commit/ce1c162))
-   * compatibility with Sassy Social share plugin ([d4224cb](https://github.com/Codeinwp/optimole-wp/commit/d4224cb))
-   * consider image URLs that contains chars like ~ ([670597e](https://github.com/Codeinwp/optimole-wp/commit/670597e))
-   * improve LQIP transition effect, fix [#212](https://github.com/Codeinwp/optimole-wp/issues/212) ([946e16c](https://github.com/Codeinwp/optimole-wp/commit/946e16c))
-   * prevent losing filters settings after disconnecting the api key, fix [#210](https://github.com/Codeinwp/optimole-wp/issues/210) ([db431b9](https://github.com/Codeinwp/optimole-wp/commit/db431b9))
-   * removes custom logo preload causing duplicate content issues ([04cad07](https://github.com/Codeinwp/optimole-wp/commit/04cad07))
-   * strip script tag on amp modes fix [#203](https://github.com/Codeinwp/optimole-wp/issues/203) ([35f59f3](https://github.com/Codeinwp/optimole-wp/commit/35f59f3))
-
-* **Features**
-   * adds data-skip-lazy attr for skipping lazyload ([8726127](https://github.com/Codeinwp/optimole-wp/commit/8726127))
-   * adds wp-cli commands for most common operations ([577406b](https://github.com/Codeinwp/optimole-wp/commit/577406b))
-
-
-
-#### [Version 2.2.7](https://github.com/Codeinwp/optimole-wp/compare/v2.2.6...v2.2.7) (2019-12-17)
-
-* **Bug Fixes**
-   * edge case lazyload replacement when noscript images are present ([c788c3f](https://github.com/Codeinwp/optimole-wp/commit/c788c3f))
-   * improve compatibility with Divi builder ([7d1c469](https://github.com/Codeinwp/optimole-wp/commit/7d1c469))
-   * improve compatibility with W3TC minification system ([bf9f058](https://github.com/Codeinwp/optimole-wp/commit/bf9f058))
-   * improve compatibility with WP Migrate DB ([02df077](https://github.com/Codeinwp/optimole-wp/commit/02df077))
-   * improve lazyload and replacement on json strings ([b7f67fd](https://github.com/Codeinwp/optimole-wp/commit/b7f67fd))
-   * removed blur from lazyload placeholders ([2c7d66d](https://github.com/Codeinwp/optimole-wp/commit/2c7d66d))
-
-* **Features**
-   * adds compatibility for schemaless and relative image URLs ([e3886eb](https://github.com/Codeinwp/optimole-wp/commit/e3886eb))
-   * hide Optimole menu via constant [#196](https://github.com/Codeinwp/optimole-wp/issues/196) ([e0268fa](https://github.com/Codeinwp/optimole-wp/commit/e0268fa))
-   * skip lazyload on images with skip-lazy flag ([4d9219f](https://github.com/Codeinwp/optimole-wp/commit/4d9219f))
-
-
-
-#### [Version 2.2.6](https://github.com/Codeinwp/optimole-wp/compare/v2.2.5...v2.2.6) (2019-12-02)
-
-* **Bug Fixes**
-   * compatibility with Edge 15 of js library, fix [#187](https://github.com/Codeinwp/optimole-wp/issues/187) ([8e73668](https://github.com/Codeinwp/optimole-wp/commit/8e73668))
-   * compatibility with slider revolution ([05c21ce](https://github.com/Codeinwp/optimole-wp/commit/05c21ce))
-   * edge case for optimole failed to lazyload certain images ([0f8de69](https://github.com/Codeinwp/optimole-wp/commit/0f8de69))
-   * edge cases cropping behaviour when two images sizes are using different cropping ([beb8c27](https://github.com/Codeinwp/optimole-wp/commit/beb8c27))
-   * improve compatibility with master slider ([cf57717](https://github.com/Codeinwp/optimole-wp/commit/cf57717))
-   * searching through multiple classes the right way, added tests ([4751edb](https://github.com/Codeinwp/optimole-wp/commit/4751edb))
-
-* **Features**
-   * adds exclude by class filter for lazyload mechanism ([3ce87e2](https://github.com/Codeinwp/optimole-wp/commit/3ce87e2))
-
-
-
-#### [Version 2.2.5](https://github.com/Codeinwp/optimole-wp/compare/v2.2.4...v2.2.5) (2019-11-18)
-
-* **Bug Fixes**
-   * inherit custom sizes desired cropping, adds enlarge compatibility ([84f7056](https://github.com/Codeinwp/optimole-wp/commit/84f7056))
-
-* **Features**
-   * adds compatibility with multiple slider plugins ([d78fd1b](https://github.com/Codeinwp/optimole-wp/commit/d78fd1b))
-   * improve compatibility with various page builders: Divi, Thrive, Elementor, Beaver ([a4391b4](https://github.com/Codeinwp/optimole-wp/commit/a4391b4))
-
-
-
-#### [Version 2.2.4](https://github.com/Codeinwp/optimole-wp/compare/v2.2.3...v2.2.4) (2019-11-05)
-
-* **Bug Fixes**
-   * conditions for close to limit notice ([e3530b8](https://github.com/Codeinwp/optimole-wp/commit/e3530b8))
-
-
-
-#### [Version 2.2.3](https://github.com/Codeinwp/optimole-wp/compare/v2.2.2...v2.2.3) (2019-11-05)
-
-* **Bug Fixes**
-   * change minimum slider range for compression to 50 instead of 0 ([592c3e2](https://github.com/Codeinwp/optimole-wp/commit/592c3e2))
-   * image quality setting description, fix [#162](https://github.com/Codeinwp/optimole-wp/issues/162) ([60cbe5e](https://github.com/Codeinwp/optimole-wp/commit/60cbe5e))
-   * improve description for background image lazyload fix [#163](https://github.com/Codeinwp/optimole-wp/issues/163) ([f0f190b](https://github.com/Codeinwp/optimole-wp/commit/f0f190b))
-   * upgrade notice when user is close to visits limit ([ff716f7](https://github.com/Codeinwp/optimole-wp/commit/ff716f7))
-
-
-
-#### [Version 2.2.2](https://github.com/Codeinwp/optimole-wp/compare/v2.2.1...v2.2.2) (2019-11-04)
-
-* **Bug Fixes**
-   * ignore rescale on GIF and SVG when lazyload is active ([d4e63b6](https://github.com/Codeinwp/optimole-wp/commit/d4e63b6))
-   * improve compatibility with Thrive Architect ([55a5952](https://github.com/Codeinwp/optimole-wp/commit/55a5952))
-   * improve generic placeholder computed width/height when the source size is unknown ([0c3cc3f](https://github.com/Codeinwp/optimole-wp/commit/0c3cc3f))
-   * sign only URLs that don't use an whitelisted domain.  ([7813bf9](https://github.com/Codeinwp/optimole-wp/commit/7813bf9))
-   * strip retina based prefix to use original url ([948c667](https://github.com/Codeinwp/optimole-wp/commit/948c667))
-
-
-
-#### [Version 2.2.1](https://github.com/Codeinwp/optimole-wp/compare/v2.2.0...v2.2.1) (2019-10-21)
-
-* **Bug Fixes**
-   * gif to video setting description ([063d37b](https://github.com/Codeinwp/optimole-wp/commit/063d37b))
-
-
-
-### [Version 2.2.0](https://github.com/Codeinwp/optimole-wp/compare/v2.1.2...v2.2.0) (2019-10-21)
-
-* #### Bug Fixes
-   * modified tests, checking if an url contains gif image ([f76f2c9](https://github.com/Codeinwp/optimole-wp/commit/f76f2c9))
-   * small typo on max sizes settings description ([4d83dbf](https://github.com/Codeinwp/optimole-wp/commit/4d83dbf))
-
-* #### Features
-   * adds GIF compression and conversion to video files ( mp4 and WebM ) ([04d9f7d](https://github.com/Codeinwp/optimole-wp/commit/04d9f7d))
-   * adds gif to the exclusions list ([914cd11](https://github.com/Codeinwp/optimole-wp/commit/914cd11))
-   * adds option to lazyload images used as backgrounds ([c346244](https://github.com/Codeinwp/optimole-wp/commit/c346244))
-   * adds toggle to disable bg image replacement ([3c3997a](https://github.com/Codeinwp/optimole-wp/commit/3c3997a))
-
-
+[See all versions.](https://github.com/Codeinwp/optimole-wp/releases)
 == Installation ==
 The following are the steps to install the OptiMole plugin
 
