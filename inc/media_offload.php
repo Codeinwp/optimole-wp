@@ -535,10 +535,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			update_attached_file( $id, $results['file'] );
 			$success_back++;
 			$this->update_content( $id );
-			$original_url  = self::get_original_url( $id );
-			if ( $original_url === false ) {
-				continue;
-			}
+			delete_post_meta( $id, 'optimole_offload' );
 		}
 		return $success_back;
 	}
