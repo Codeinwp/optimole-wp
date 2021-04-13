@@ -167,7 +167,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			add_filter( 'wp_generate_attachment_metadata', [$this, 'generate_image_meta'], 10, 2 );
 			add_filter( 'wp_get_attachment_url', [$this, 'get_image_attachment_url'], -999, 2 );
 			add_action( 'wp_insert_post_data', [$this, 'filter_uploaded_images'] );
-			add_action( 'delete_attachment', [$this, 'delete_attachment_hook'], 10 );
 			add_filter( 'handle_bulk_actions-upload', [$this, 'bulk_action_handler'], 10, 3 );
 			add_filter( 'bulk_actions-upload', [$this, 'register_bulk_media_actions'] );
 			add_action( 'admin_notices', [$this, 'bulk_action_notices'] );
@@ -540,7 +539,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( $original_url === false ) {
 				continue;
 			}
-			$this->delete_attachment_from_server( $original_url, $id, $table_id );
 		}
 		return $success_back;
 	}
@@ -671,51 +669,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				) . '</p></div>',
 				intval( $_REQUEST['optimole_back_to_media_failed'] )
 			);
-		}
-	}
-
-	/**
-	 * Send delete request to our servers and update the meta.
-	 *
-	 * @param string  $original_url Original url of the image.
-	 * @param integer $post_id Image id inside db.
-	 * @param string  $table_id Our cloud id for the image.
-	 */
-	public function delete_attachment_from_server( $original_url, $post_id, $table_id ) {
-		$request = new Optml_Api();
-		$delete_response = $request->call_upload_api( $original_url, 'true', $table_id );
-
-		delete_post_meta( $post_id, 'optimole_offload' );
-		if ( is_wp_error( $delete_response ) || wp_remote_retrieve_response_code( $delete_response ) !== 200 ) {
-			// should add some routine to retry delete once if delete fails
-		}
-	}
-	/**
-	 * Delete an image from our servers after it is removed from media.
-	 *
-	 * @param int $post_id The deleted post id.
-	 */
-	public function delete_attachment_hook( $post_id ) {
-		$file = wp_get_attachment_metadata( $post_id );
-		if ( $file === false || ! isset( $file['file'] ) ) {
-			return;
-		}
-		$file = $file['file'];
-		if ( self::is_uploaded_image( $file ) ) {
-
-			$original_url  = self::get_original_url( $post_id );
-			if ( $original_url === false ) {
-				return;
-			}
-			$table_id = [];
-
-			preg_match( '/\/' . self::KEYS['uploaded_flag'] . '([^\/]*)\//', $file, $table_id );
-
-			if ( ! isset( $table_id[1] ) ) {
-					return;
-			}
-
-			$this->delete_attachment_from_server( $original_url, $post_id, $table_id[1] );
 		}
 	}
 
