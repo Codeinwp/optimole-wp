@@ -329,8 +329,11 @@ final class Optml_Manager {
 				}
 			}
 		}
+		$html = apply_filters( 'optml_url_pre_process', $html );
 
 		$html = $this->process_urls_from_content( $html );
+
+		$html = apply_filters( 'optml_url_post_process', $html );
 
 		return $html;
 	}
