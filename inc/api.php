@@ -41,6 +41,13 @@ final class Optml_Api {
 		}
 	}
 
+	/**
+	 * Connect to the service.
+	 *
+	 * @param string $api_key Api key.
+	 *
+	 * @return array|bool
+	 */
 	public function connect( $api_key = '' ) {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;

@@ -398,6 +398,13 @@ class Optml_Rest {
 		return $this->response( $data );
 	}
 
+	/**
+	 * Select application.
+	 *
+	 * @param WP_REST_Request $request Rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
 	public function select_application( WP_REST_Request $request ) {
 		$api_key = $request->get_param( 'api_key' );
 		$application = $request->get_param( 'application' );
