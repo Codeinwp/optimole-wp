@@ -93,6 +93,14 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 == Changelog ==
 
+##### [Version 3.0.1](https://github.com/Codeinwp/optimole-wp/compare/v3.0.0...v3.0.1) (2021-03-16)
+
+* improve behavior on browsers that don't support javascript, causing issues with some 3rd party plugins.
+* server lazyload script from the same domain avoiding extra DNS checks and improving loading
+
+
+
+
 #### [Version 3.0.0](https://github.com/Codeinwp/optimole-wp/compare/v2.5.7...v3.0.0) (2021-02-23)
 
 ### Features
