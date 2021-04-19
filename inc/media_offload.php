@@ -443,6 +443,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 
 			$get_url = json_decode( $get_response['body'], true )['getUrl'];
+			$date = null;
+			if ( isset( json_decode( $get_response['body'], true )['date'] ) ) {
+				$date = json_decode( $get_response['body'], true )['date'];
+			}
 
 			if ( ! function_exists( 'download_url' ) ) {
 				include_once ABSPATH . 'wp-admin/includes/file.php';
@@ -495,7 +499,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 
 			// Move the temporary file into the uploads directory.
-			$results = wp_handle_sideload( $file, $overrides );
+			$results = wp_handle_sideload( $file, $overrides, $date );
 			if ( ! empty( $results['error'] ) ) {
 				update_post_meta( $id, 'optimole_rollback_error', 'true' );
 				continue;
