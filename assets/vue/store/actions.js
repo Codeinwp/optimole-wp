@@ -65,7 +65,7 @@ const connectOptimole = function ( {commit, state}, data ) {
 				  commit( 'toggleKeyValidity', true );
 				  commit( 'toggleConnectedToOptml', true );
 				  commit( 'updateApiKey', data.apiKey );
-				  if ( response.body.data['app_count'] !== undefined ) {
+				  if ( response.body.data['app_count'] !== undefined && response.body.data['app_count'] > 1 ) {
 					commit( 'updateAvailableApps', response.body.data );
 				  } else {
 					commit( 'updateUserData', response.body.data );
