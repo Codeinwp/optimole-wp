@@ -100,6 +100,12 @@ final class Optml_Manager {
 			self::$instance->url_replacer      = Optml_Url_Replacer::instance();
 			self::$instance->tag_replacer      = Optml_Tag_Replacer::instance();
 			self::$instance->lazyload_replacer = Optml_Lazyload_Replacer::instance();
+			add_action(
+				'optml_log',
+				function( $message ) {
+					error_log( print_r( $message, true ), 3, OPTML_PATH . 'optimole.log' );
+				}
+			);
 			add_action( 'after_setup_theme', [ self::$instance, 'init' ] );
 		}
 
@@ -330,7 +336,7 @@ final class Optml_Manager {
 			}
 		}
 
-		$html = $this->process_urls_from_content( $html );
+		$html = $this->process_urls_fom_content( $html );
 
 		return $html;
 	}
@@ -480,7 +486,7 @@ final class Optml_Manager {
 	 * @return string Processed string.
 	 */
 	public function process_urls_from_content( $html ) {
-		$extracted_urls = $this->extract_urls_from_content( $html );
+		$extracted_urls = self::extract_urls_from_content( $html );
 
 		return $this->do_url_replacement( $html, $extracted_urls );
 
@@ -498,7 +504,7 @@ final class Optml_Manager {
 		if ( $this->settings->use_cdn() && ! self::should_ignore_image_tags() ) {
 			$extensions = array_merge( $extensions, array_keys( Optml_Config::$assets_extensions ) );
 		}
-		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:http|>|%3F|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';
+		$regex = '/(?:[(|\s\';",=\]])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:http|>|%3F|\?|"|&|,|\s|\'|\)|\||\\\\|}|\[))/Uu';
 		preg_match_all(
 			$regex,
 			$content,
