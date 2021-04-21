@@ -486,7 +486,7 @@ final class Optml_Manager {
 	 * @return string Processed string.
 	 */
 	public function process_urls_from_content( $html ) {
-		$extracted_urls = self::extract_urls_from_content( $html );
+		$extracted_urls = $this->extract_urls_from_content( $html );
 
 		return $this->do_url_replacement( $html, $extracted_urls );
 

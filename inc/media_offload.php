@@ -420,7 +420,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return int The number of successfully processed images.
 	 */
 	public function upload_and_update_existing_images( $image_ids ) {
-		error_log( json_encode( $image_ids ), 3, '/var/www/html/optimole.log' );
 		$success_up = 0;
 		foreach ( $image_ids as $id ) {
 			if ( self::is_uploaded_image( wp_get_attachment_metadata( $id )['file'] ) ) {
