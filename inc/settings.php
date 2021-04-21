@@ -492,6 +492,11 @@ class Optml_Settings {
 		if ( ! isset( $service_data['cdn_key'] ) ) {
 			return '';
 		}
+
+		if ( isset( $service_data['is_cname_assigned'] ) && $service_data['is_cname_assigned'] === 'yes' && ! empty( $service_data['domain'] ) ) {
+			return parse_url( strtolower( $service_data['domain'] ), PHP_URL_HOST );
+		}
+
 		if ( defined( 'OPTML_CUSTOM_DOMAIN' ) && constant( 'OPTML_CUSTOM_DOMAIN' ) ) {
 			return parse_url( strtolower( OPTML_CUSTOM_DOMAIN ), PHP_URL_HOST );
 		}

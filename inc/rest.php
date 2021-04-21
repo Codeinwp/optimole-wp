@@ -108,6 +108,29 @@ class Optml_Rest {
 		);
 		register_rest_route(
 			$this->namespace,
+			'/select',
+			[
+				[
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => [ $this, 'select_application' ],
+					'args'                => [
+						'api_key' => [
+							'type'     => 'string',
+							'required' => true,
+						],
+						'application' => [
+							'type'     => 'string',
+							'required' => true,
+						],
+					],
+				],
+			]
+		);
+		register_rest_route(
+			$this->namespace,
 			'/register',
 			[
 				[
@@ -352,8 +375,41 @@ class Optml_Rest {
 	 */
 	public function connect( WP_REST_Request $request ) {
 		$api_key = $request->get_param( 'api_key' );
+		$original_request = $request;
 		$request = new Optml_Api();
-		$data    = $request->get_user_data( $api_key );
+		$data    = $request->connect( $api_key );
+		if ( $data === false || is_wp_error( $data ) ) {
+			$extra = '';
+			if ( is_wp_error( $data ) ) {
+				/**
+				 * Error from api.
+				 *
+				 * @var WP_Error $data Error object.
+				 */
+				$extra = sprintf( __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
+			}
+			wp_send_json_error( __( 'Can not connect to Optimole service', 'optimole-wp' ) . $extra );
+		}
+		$settings = new Optml_Settings();
+		$settings->update( 'api_key', $api_key );
+		if ( $data['app_count'] === 1 ) {
+			return $this->select_application( $original_request );
+		}
+		return $this->response( $data );
+	}
+
+	/**
+	 * Select application.
+	 *
+	 * @param WP_REST_Request $request Rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function select_application( WP_REST_Request $request ) {
+		$api_key = $request->get_param( 'api_key' );
+		$application = $request->get_param( 'application' );
+		$request = new Optml_Api();
+		$data    = $request->get_user_data( $api_key, $application );
 		if ( $data === false || is_wp_error( $data ) ) {
 			$extra = '';
 			if ( is_wp_error( $data ) ) {
@@ -368,8 +424,6 @@ class Optml_Rest {
 		}
 		$settings = new Optml_Settings();
 		$settings->update( 'service_data', $data );
-		$settings->update( 'api_key', $api_key );
-
 		return $this->response( $data );
 	}
 

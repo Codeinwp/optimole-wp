@@ -27,6 +27,8 @@ const store = new Vuex.Store(
 			sample_rate: {},
 			apiError: false,
 			userData: optimoleDashboardApp.user_data ? optimoleDashboardApp.user_data : null,
+			hasApplication: optimoleDashboardApp.has_application === 'yes',
+			availableApps: optimoleDashboardApp.available_apps ? optimoleDashboardApp.available_apps : null,
 			optimizedImages: [],
 			watermarks: [],
 			conflicts: [],

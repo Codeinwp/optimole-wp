@@ -168,7 +168,6 @@ class Test_Media extends WP_UnitTestCase {
 		Optml_Url_Replacer::instance()->init();
 		Optml_Tag_Replacer::instance()->init();
 		Optml_Manager::instance()->init();
-		//workaround for defining costum domain inside tests
 		Optml_Config::init(
 			array(
 				'key'    => 'whatever',
