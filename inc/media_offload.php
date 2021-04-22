@@ -277,6 +277,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		return $attachment_id;
 	}
+
+	/**
+	 * Get attachment id from url
+	 *
+	 * @param string $url  The optimized url .
+	 * @return false|mixed The attachment id .
+	 */
 	public static function get_attachment_id_from_url( $url ) {
 		preg_match( '/\/' . Optml_Media_Offload::KEYS['not_processed_flag'] . '([^\/]*)\//', $url, $attachment_id );
 		return isset( $attachment_id[1] ) ? $attachment_id[1] : false;
