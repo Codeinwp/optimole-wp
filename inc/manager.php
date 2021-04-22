@@ -336,7 +336,7 @@ final class Optml_Manager {
 			}
 		}
 
-		$html = $this->process_urls_fom_content( $html );
+		$html = $this->process_urls_from_content( $html );
 
 		return $html;
 	}
