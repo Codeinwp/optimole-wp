@@ -100,12 +100,7 @@ final class Optml_Manager {
 			self::$instance->url_replacer      = Optml_Url_Replacer::instance();
 			self::$instance->tag_replacer      = Optml_Tag_Replacer::instance();
 			self::$instance->lazyload_replacer = Optml_Lazyload_Replacer::instance();
-			add_action(
-				'optml_log',
-				function( $message ) {
-					error_log( print_r( $message, true ), 3, OPTML_PATH . 'optimole.log' );
-				}
-			);
+
 			add_action( 'after_setup_theme', [ self::$instance, 'init' ] );
 		}
 

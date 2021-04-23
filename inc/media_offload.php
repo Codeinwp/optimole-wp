@@ -300,7 +300,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		$content = trim( wp_unslash( $data['post_content'] ) );
 		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', "\n content to update \n" );
+			do_action( 'optml_log', 'content to update' );
 			do_action( 'optml_log', $content );
 		}
 		$images  = Optml_Manager::instance()->extract_urls_from_content( $content );
@@ -308,7 +308,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $data;
 		}
 		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', "\n images to update \n" );
+			do_action( 'optml_log', 'images to update' );
 			do_action( 'optml_log', $images );
 		}
 		foreach ( $images as $url ) {
@@ -332,7 +332,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 
 			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', "\n image id and found size\n" );
+				do_action( 'optml_log', 'image id and found size' );
 				do_action( 'optml_log', $attachment_id );
 				do_action( 'optml_log', $size );
 			}
@@ -341,7 +341,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			$optimized_url = wp_get_attachment_image_src( $attachment_id, $size );
 			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', "\n image url to replace with \n" );
+				do_action( 'optml_log', ' image url to replace with ' );
 				do_action( 'optml_log', $optimized_url );
 			}
 
@@ -361,19 +361,22 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function update_content() {
 		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', "\n updating_content \n" );
+			do_action( 'optml_log', ' updating_content ' );
 		}
 		$have_posts = true;
 		$page = 1;
 		while ( $have_posts ) {
 			$have_posts = false;
-			$content = new \WP_Query(
+			$query_args = apply_filters(
+				'optml_replacement_wp_query_args',
 				['post_type' => 'any', 'post_status' => 'any', 'fields' => 'ids',
-					'posts_per_page' => 15, 'paged' => $page,
-					'update_post_meta_cache' => false,
-					'update_post_term_cache' => false,
+				'posts_per_page' => 15,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
 				]
 			);
+			$query_args['paged'] = $page;
+			$content = new \WP_Query( $query_args );
 			if ( OPTML_DEBUG ) {
 				do_action( 'optml_log', $page );
 			}
@@ -450,7 +453,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public function upload_and_update_existing_images( $image_ids ) {
 		$success_up = 0;
 		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', "\n images to upload \n" );
+			do_action( 'optml_log', ' images to upload ' );
 			do_action( 'optml_log', $image_ids );
 		}
 		foreach ( $image_ids as $id ) {
@@ -467,7 +470,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		if ( $success_up > 0 ) {
 			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', "\n call post update, succesful images: \n" );
+				do_action( 'optml_log', ' call post update, succesful images: ' );
 				do_action( 'optml_log', $success_up );
 			}
 			$this->update_content();
@@ -496,7 +499,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public function rollback_and_update_images( $image_ids ) {
 		$success_back = 0;
 		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', "\n images to rollback \n" );
+			do_action( 'optml_log', ' images to rollback ' );
 			do_action( 'optml_log', $image_ids );
 		}
 		foreach ( $image_ids as $id ) {
@@ -514,7 +517,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			$table_id = $table_id[1];
 			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', "\n image cloud id \n" );
+				do_action( 'optml_log', ' image cloud id ' );
 				do_action( 'optml_log', $table_id );
 			}
 			$request = new Optml_Api();
@@ -523,7 +526,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( is_wp_error( $get_response ) || wp_remote_retrieve_response_code( $get_response ) !== 200 ) {
 				update_post_meta( $id, 'optimole_rollback_error', 'true' );
 				if ( OPTML_DEBUG ) {
-					do_action( 'optml_log', "\n error get url\n" );
+					do_action( 'optml_log', ' error get url' );
 				}
 				continue;
 			}
@@ -543,7 +546,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( is_wp_error( $temp_file ) ) {
 				update_post_meta( $id, 'optimole_rollback_error', 'true' );
 				if ( OPTML_DEBUG ) {
-					do_action( 'optml_log', "\n download_url error \n" );
+					do_action( 'optml_log', ' download_url error ' );
 				}
 				continue;
 			}
@@ -552,7 +555,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) ) {
 				if ( OPTML_DEBUG ) {
-					do_action( 'optml_log', "\n image has invalid extension\n" );
+					do_action( 'optml_log', ' image has invalid extension' );
 					do_action( 'optml_log', $extension );
 				}
 				update_post_meta( $id, 'optimole_rollback_error', 'true' );
@@ -591,7 +594,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$results = wp_handle_sideload( $file, $overrides );
 			if ( ! empty( $results['error'] ) ) {
 				if ( OPTML_DEBUG ) {
-					do_action( 'optml_log', "\n wp_handle_sideload error\n" );
+					do_action( 'optml_log', ' wp_handle_sideload error' );
 				}
 				update_post_meta( $id, 'optimole_rollback_error', 'true' );
 				continue;
@@ -639,7 +642,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		if ( $success_back > 0 ) {
 			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', "\n call update post, success rollback\n" );
+				do_action( 'optml_log', ' call update post, success rollback' );
 				do_action( 'optml_log', $success_back );
 			}
 			$this->update_content();
@@ -948,7 +951,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
 			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', "\n call to signed url error\n" );
+				do_action( 'optml_log', ' call to signed url error' );
 			}
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
@@ -957,14 +960,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		if ( ! isset( $decoded_response['tableId'] ) || ! isset( $decoded_response['uploadUrl'] ) ) {
 			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', "\n missing table id or upload url\n" );
+				do_action( 'optml_log', ' missing table id or upload url' );
 			}
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
 		}
 		$table_id = $decoded_response['tableId'];
 		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', "\n table id\n" );
+			do_action( 'optml_log', ' table id' );
 			do_action( 'optml_log', $table_id );
 		}
 		$upload_signed_url = $decoded_response['uploadUrl'];
