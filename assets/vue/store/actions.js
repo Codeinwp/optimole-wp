@@ -156,7 +156,7 @@ const clearCache = function ( {commit, state}, data ) {
 		}
 	).then(
 		function ( response ) {
-			if ( response.body.code === 'success' ) {
+			if ( response.body.code === '200' ) {
 				console.log( '%c New cache token generated.', 'color: #59B278' );
 			} else {
 				console.log( '%c Could not generate cache token.', 'color: #E7602A' );
