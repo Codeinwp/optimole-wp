@@ -51,7 +51,7 @@ class Optml_Config {
 	 * @var string
 	 */
 
-	public static $chars = '\/:,~\\\\.\-\–\d_@%A-Za-z\p{L}\p{M}\p{N}';
+	public static $chars = '\/:,~\\\\.\-\–\d_@%A-Za-z\p{L}\p{M}\p{N}\x{0080}-\x{017F}';
 	/**
 	 * Service api key.
 	 *
