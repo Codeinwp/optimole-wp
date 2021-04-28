@@ -16,6 +16,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				background-image: url("data:image/svg+xml,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20style%3D%22-webkit-transform-origin%3A50%25%2050%25%3B-webkit-animation%3Aspin%201.5s%20linear%20infinite%3B-webkit-backface-visibility%3Ahidden%3Banimation%3Aspin%201.5s%20linear%20infinite%22%20fill-rule%3D%22evenodd%22%20clip-rule%3D%22evenodd%22%20stroke-linejoin%3D%22round%22%20stroke-miterlimit%3D%221.414%22%3E%3Cdefs%3E%3Cstyle%3E%3C%21%5BCDATA%5B%40-webkit-keyframes%20spin%7Bfrom%7B-webkit-transform%3Arotate%280deg%29%7Dto%7B-webkit-transform%3Arotate%28-359deg%29%7D%7D%40keyframes%20spin%7Bfrom%7Btransform%3Arotate%280deg%29%7Dto%7Btransform%3Arotate%28-359deg%29%7D%7D%5D%5D%3E%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22outer%22%3E%3Cpath%20d%3D%22M20%200a3.994%203.994%200%20110%207.988A3.994%203.994%200%200120%200z%22%2F%3E%3Cpath%20d%3D%22M5.858%205.858a3.994%203.994%200%20115.648%205.648%203.994%203.994%200%2001-5.648-5.648z%22%20fill%3D%22%23d2d2d2%22%2F%3E%3Cpath%20d%3D%22M20%2032.012A3.994%203.994%200%201120%2040a3.994%203.994%200%20010-7.988z%22%20fill%3D%22%23828282%22%2F%3E%3Cpath%20d%3D%22M28.494%2028.494a3.994%203.994%200%20115.648%205.648%203.994%203.994%200%2001-5.648-5.648z%22%20fill%3D%22%23656565%22%2F%3E%3Cpath%20d%3D%22M3.994%2016.006a3.994%203.994%200%20110%207.988%203.994%203.994%200%20010-7.988z%22%20fill%3D%22%23bbb%22%2F%3E%3Cpath%20d%3D%22M5.858%2028.494a3.994%203.994%200%20115.648%205.648%203.994%203.994%200%2001-5.648-5.648z%22%20fill%3D%22%23a4a4a4%22%2F%3E%3Cpath%20d%3D%22M36.006%2016.006a3.994%203.994%200%20110%207.988%203.994%203.994%200%20010-7.988z%22%20fill%3D%22%234a4a4a%22%2F%3E%3Cpath%20d%3D%22M28.494%205.858a3.994%203.994%200%20115.648%205.648%203.994%203.994%200%2001-5.648-5.648z%22%20fill%3D%22%23323232%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
 				background-repeat: no-repeat;
 				background-position: 50% 50%;
+			}
+			video[data-opt-src]:not([data-opt-lazy-loaded]) {
+				background-color: #ffffff;
+				background-image: url("data:image/svg+xml,%3Csvg%20width%3D%2240%22%20height%3D%2240%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20style%3D%22-webkit-transform-origin%3A50%25%2050%25%3B-webkit-animation%3Aspin%201.5s%20linear%20infinite%3B-webkit-backface-visibility%3Ahidden%3Banimation%3Aspin%201.5s%20linear%20infinite%22%20fill-rule%3D%22evenodd%22%20clip-rule%3D%22evenodd%22%20stroke-linejoin%3D%22round%22%20stroke-miterlimit%3D%221.414%22%3E%3Cdefs%3E%3Cstyle%3E%3C%21%5BCDATA%5B%40-webkit-keyframes%20spin%7Bfrom%7B-webkit-transform%3Arotate%280deg%29%7Dto%7B-webkit-transform%3Arotate%28-359deg%29%7D%7D%40keyframes%20spin%7Bfrom%7Btransform%3Arotate%280deg%29%7Dto%7Btransform%3Arotate%28-359deg%29%7D%7D%5D%5D%3E%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22outer%22%3E%3Cpath%20d%3D%22M20%200a3.994%203.994%200%20110%207.988A3.994%203.994%200%200120%200z%22%2F%3E%3Cpath%20d%3D%22M5.858%205.858a3.994%203.994%200%20115.648%205.648%203.994%203.994%200%2001-5.648-5.648z%22%20fill%3D%22%23d2d2d2%22%2F%3E%3Cpath%20d%3D%22M20%2032.012A3.994%203.994%200%201120%2040a3.994%203.994%200%20010-7.988z%22%20fill%3D%22%23828282%22%2F%3E%3Cpath%20d%3D%22M28.494%2028.494a3.994%203.994%200%20115.648%205.648%203.994%203.994%200%2001-5.648-5.648z%22%20fill%3D%22%23656565%22%2F%3E%3Cpath%20d%3D%22M3.994%2016.006a3.994%203.994%200%20110%207.988%203.994%203.994%200%20010-7.988z%22%20fill%3D%22%23bbb%22%2F%3E%3Cpath%20d%3D%22M5.858%2028.494a3.994%203.994%200%20115.648%205.648%203.994%203.994%200%2001-5.648-5.648z%22%20fill%3D%22%23a4a4a4%22%2F%3E%3Cpath%20d%3D%22M36.006%2016.006a3.994%203.994%200%20110%207.988%203.994%203.994%200%20010-7.988z%22%20fill%3D%22%234a4a4a%22%2F%3E%3Cpath%20d%3D%22M28.494%205.858a3.994%203.994%200%20115.648%205.648%203.994%203.994%200%2001-5.648-5.648z%22%20fill%3D%22%23323232%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+				background-repeat: no-repeat;
+				background-position: 50% 50%;
 			}';
 	const IFRAME_PLACEHOLDER_STYLE = '<style type="text/css">' . self::IFRAME_PLACEHOLDER_CLASS . '</style>';
 
@@ -284,21 +290,29 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	public function lazyload_video_replace( $content ) {
 		$video_tags = [];
-		preg_match_all( '#(?:<noscript\s*>\s*)?<iframe(.*?)></iframe>(?:\s*</noscript\s*>)?#is', $content, $video_tags );
+		$iframes = [];
+		$videos = [];
+		preg_match_all( '#(?:<noscript\s*>\s*)?<iframe(.*?)></iframe>(?:\s*</noscript\s*>)?#is', $content, $iframes );
+		preg_match_all( '#(?:<noscript\s*>\s*)?<video(.*?)video>(?:\s*</noscript\s*>)?#is', $content, $videos );
+		$video_tags = array_merge( $iframes[0], $videos[0] );
 
 		$search = [];
 		$replace = [];
-		foreach ( $video_tags[0] as $video_tag ) {
+		foreach ( $video_tags as $video_tag ) {
 			if ( ! $this->should_lazyload_iframe( $video_tag ) ) {
 				continue;
 			}
-			if ( preg_match( "/ data-opt-video-src=['\"]/is", $video_tag ) ) {
+			if ( preg_match( "/ data-opt-src=['\"]/is", $video_tag ) ) {
 				continue;
 			}
 			array_push( $search, $video_tag );
 			$no_script = $video_tag;
 			// replace the src and add the data-opt-src attribute
-			$video_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 src="about:blank" data-opt-src=', $video_tag );
+			if ( strpos( $video_tag, 'iframe' ) !== false ) {
+				$video_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 src="about:blank" data-opt-src=', $video_tag );
+			} elseif ( strpos( $video_tag, 'video' ) !== false ) {
+				$video_tag = preg_replace( '/video(.*?)src=/is', 'video$1 data-opt-src=', $video_tag );
+			}
 
 			if ( $this->should_add_noscript( $video_tag ) ) {
 				$video_tag .= '<noscript>' . $no_script . '</noscript>';
@@ -467,7 +481,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return self::$iframe_lazyload_flags;
 		}
 
-		self::$iframe_lazyload_flags = apply_filters( 'optml_iframe_lazyload_flags', [ 'gform_ajax_frame', '<noscript', 'recaptcha' ] );
+		self::$iframe_lazyload_flags = apply_filters( 'optml_iframe_lazyload_flags', [ 'gform_ajax_frame', '<noscript', 'recaptcha', 'original-src' ] );
 
 		return self::$iframe_lazyload_flags;
 	}
