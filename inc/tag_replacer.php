@@ -222,6 +222,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			} else {
 				$image_tag = apply_filters( 'optml_tag_replace', $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
 			}
+			if ( strpos( $image_tag, 'decoding=' ) === false ) {
+				$pattern = '/img(.*?)/is';
+				$replace = $is_slashed ? addcslashes( 'img decoding="async" $1', '/' ) : 'img decoding="async" $1';
+				$image_tag = preg_replace( $pattern, $replace, $image_tag );
+			}
 
 			$content = str_replace( $images['img_tag'][ $index ], $image_tag, $content );
 		}
