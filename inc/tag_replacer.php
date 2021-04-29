@@ -18,6 +18,13 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	protected static $instance = null;
 
 	/**
+	 * The number of images skipped from lazyload.
+	 *
+	 * @var integer
+	 */
+	protected static $lazyload_skipped_images = 0;
+
+	/**
 	 * Class instance method.
 	 *
 	 * @codeCoverageIgnore
@@ -210,7 +217,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			);
 
 			// If the image is in header or has a class excluded from lazyload, we need to do the regular replace.
-			if ( $images['in_header'][ $index ] ) {
+			if ( $images['in_header'][ $index ] || self::$lazyload_skipped_images < $this->settings->get( 'skip_lazyload_images' ) ) {
 				$image_tag = $this->regular_tag_replace( $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
 			} else {
 				$image_tag = apply_filters( 'optml_tag_replace', $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
@@ -286,6 +293,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	public function regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed = false, $full_tag = '' ) {
 		$pattern = '/(?<!\/)' . preg_quote( $original_url, '/' ) . '/i';
 		$replace = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
+		self::$lazyload_skipped_images ++;
 		return preg_replace( $pattern, $replace, $new_tag );
 	}
 
