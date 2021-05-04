@@ -76,6 +76,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @var bool Lazyload placeholder flag.
 	 */
 	private static $is_lazyload_placeholder = false;
+	/**
+	 * Holds flags which remove noscript tag bundle causing issues on render, i.e slider plugins.
+	 *
+	 * @var array Noscript flags.
+	 */
 
 	/**
 	 * Class instance method.
@@ -361,7 +366,9 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) && OPTML_DISABLE_PNG_LAZYLOAD ) {
 			return $type['ext'] !== 'png';
 		}
-
+		if ( Optml_Tag_Replacer::$lazyload_skipped_images < apply_filters( 'optml_lazyload_images_skip', $this->settings->get( 'skip_lazyload_images' ) ) ) {
+			return false;
+		}
 		return true;
 	}
 
