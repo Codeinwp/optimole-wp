@@ -41,6 +41,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	protected static $instance = null;
 	/**
+	 * Holds the number of images to skip from lazyload.
+	 *
+	 * @var integer The number image tags to skip.
+	 */
+	private static $skip_lazyload_images = null;
+	/**
 	 * Holds classes for listening to lazyload on background.
 	 *
 	 * @var array Lazyload background classes.
@@ -154,7 +160,19 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		return self::$lazyload_background_classes;
 	}
+	/**
+	 * Returns the number of images to skip from lazyload.
+	 *
+	 * @return integer
+	 */
+	public static function get_skip_lazyload_limit() {
 
+		if ( self::$skip_lazyload_images !== null ) {
+			return self::$skip_lazyload_images;
+		}
+		self::$skip_lazyload_images = apply_filters( 'optml_lazyload_images_skip', self::instance()->settings->get( 'skip_lazyload_images' ) );
+		return self::$skip_lazyload_images;
+	}
 	/**
 	 * Returns classes for lazyload additional watch.
 	 *
@@ -366,7 +384,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) && OPTML_DISABLE_PNG_LAZYLOAD ) {
 			return $type['ext'] !== 'png';
 		}
-		if ( Optml_Tag_Replacer::$lazyload_skipped_images < apply_filters( 'optml_lazyload_images_skip', $this->settings->get( 'skip_lazyload_images' ) ) ) {
+		if ( Optml_Tag_Replacer::$lazyload_skipped_images < self::get_skip_lazyload_limit() ) {
 			return false;
 		}
 		return true;

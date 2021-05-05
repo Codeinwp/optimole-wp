@@ -45,7 +45,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 	}
 
 	public function test_image_tags_skip_lazy() {
-
+		Optml_Tag_Replacer::$lazyload_skipped_images = 0;
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_FOR_SKIP_LAZY );
 
 		$this->assertContains( 'i.optimole.com', $replaced_content );
