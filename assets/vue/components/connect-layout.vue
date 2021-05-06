@@ -37,7 +37,7 @@
 
           <span class="dashicons dashicons-cloud-saved column is-2 is-size-3 is-paddingless"></span>
           <div class="is-pulled-left column is-10 is-paddingless">
-            <p class="title is-size-5">2. {{strings.step_three_api_title}}</p>
+            <p class="title is-size-5">3. {{strings.step_three_api_title}}</p>
             <p class="subtitle is-size-6">{{strings.step_three_api_desc}}</p>
           </div>
         </div>
