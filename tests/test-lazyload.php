@@ -15,7 +15,15 @@ class Test_Lazyload extends WP_UnitTestCase {
 	const HTML_TAGS_HEADER = 'Test sample <header id="header"><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header2.jpg" width="2000" height="1200" alt="Test" /></div></div> </header><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" /></div></div>';
 	const HTML_TAGS_HEADER_MULTIPLE = 'Test sample <header id="header"><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header2.jpg" width="2000" height="1200" alt="Test" /></div></div> </header><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" /></div></div>Test sample <header id="header"><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header3.jpg" width="2000" height="1200" alt="Test" /></div></div> </header><div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header4.jpg" width="2000" height="1200" alt="Test" /></div></div>';
 	public static $sample_attachement;
-
+	const IMG_TAGS_FOR_SKIP_LAZY = '
+	<img src="http://example.org/wp-content/themes/assets/images/header.png">
+	<img src="http://example.org/wp-content/themes/assets/images/header2.JPEG">
+	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo1.JPG">
+	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo2.JPE">
+	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo3.WEBP">
+	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo4.svg">
+	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo5.gif">
+	 ';
 	public function setUp() {
 		parent::setUp();
 		$settings = new Optml_Settings();
@@ -36,6 +44,15 @@ class Test_Lazyload extends WP_UnitTestCase {
 		self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/logo.png' );
 	}
 
+	public function test_image_tags_skip_lazy() {
+		Optml_Tag_Replacer::$lazyload_skipped_images = 0;
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_FOR_SKIP_LAZY );
+
+		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertEquals( 4, substr_count( $replaced_content, 'data-opt-src' ) );
+		$this->assertEquals( 11, substr_count( $replaced_content, 'decoding=async' ) );
+
+	}
 	public function test_lazy_load() {
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( Test_Replacer::IMG_TAGS );
@@ -189,10 +206,10 @@ class Test_Lazyload extends WP_UnitTestCase {
 						<div id="wp-custom-header" class="wp-custom-header">
 							<img src="/wp-content/themes/twentyseventeen/assets/images/header2.jpg" width="2000" height="1200" alt="Test" />
 						</div>
-				    </header>
-				    <div id="wp-custom-header" class="wp-custom-header">
-				        <img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" />
-				    </div>';
+					</header>
+					<div id="wp-custom-header" class="wp-custom-header">
+						<img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" />
+					</div>';
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( $content );
 		$this->assertContains( 'data-opt-src', $replaced_content );
@@ -400,7 +417,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 
 	public function test_should_not_add_loading () {
 		$content          = '<img loading="eager" src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>
-                             <img loading="lazy" src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>';
+							 <img loading="lazy" src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( 'data-opt-src', $replaced_content );
@@ -434,6 +451,15 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertEquals( 2, substr_count( $replaced_content, 'data-opt-src' ) );
 		$this->assertEquals( 2, substr_count( $replaced_content, '<noscript>' ) );
 
+	}
+	public function test_lazyload_video() {
+
+		$content = '<figure class="wp-block-video"><video controls="" src="https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_480_1_5MG.mp4" data-origwidth="0" data-origheight="0" style="width: 580px;"></video></figure>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+
+		$this->assertContains( 'data-opt-src', $replaced_content );
+		$this->assertContains( '<noscript>', $replaced_content );
 	}
 	public function test_lazyload_iframe_noscript_ignore() {
 		

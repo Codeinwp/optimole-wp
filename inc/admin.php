@@ -788,6 +788,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exclude_title_lazyload'            => __( 'Don\'t lazyload images if', 'optimole-wp' ),
 				'exclude_title_optimize'            => __( 'Don\'t optimize images if', 'optimole-wp' ),
 				'exclude_url_desc'                  => __( 'Page url contains', 'optimole-wp' ),
+				'exclude_first_images_title'        => __( 'Exclude the first <number> of images from lazyload on every page', 'optimole-wp' ),
+				'exclude_first_images_desc'         => __( 'Exclude the first images from lazyload on every page, you can choose how many images you want to exclude', 'optimole-wp' ),
 				'filter_class'                      => __( 'Image class', 'optimole-wp' ),
 				'filter_ext'                        => __( 'Image extension', 'optimole-wp' ),
 				'filter_filename'                   => __( 'Image filename', 'optimole-wp' ),

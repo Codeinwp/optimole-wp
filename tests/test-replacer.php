@@ -180,8 +180,10 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertContains( '/w:2000/', $replaced_content );
 		$this->assertContains( '/h:1200/', $replaced_content );
 		$this->assertContains( 'http://example.org', $replaced_content );
+        $this->assertContains( 'decoding=async', $replaced_content );
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::TEST_STAGING );
+        $this->assertContains( 'decoding=async', $replaced_content );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( '/https://www.example.org', $replaced_content );
 
