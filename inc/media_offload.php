@@ -234,8 +234,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public static function parse_dimension_from_optimized_url( $url ) {
 		$catch = [];
-		$height = false;
-		$width = false;
+		$height = 'auto';
+		$width = 'auto';
 		preg_match( '/\/w:(.*)\/h:(.*)\/q:/', $url, $catch );
 		if ( isset( $catch[1] ) && isset( $catch[2] ) ) {
 			$width = $catch[1];
@@ -277,6 +277,17 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		return $attachment_id;
 	}
+
+	/**
+	 * Get attachment id from url
+	 *
+	 * @param string $url  The optimized url .
+	 * @return false|mixed The attachment id .
+	 */
+	public static function get_attachment_id_from_url( $url ) {
+		preg_match( '/\/' . Optml_Media_Offload::KEYS['not_processed_flag'] . '([^\/]*)\//', $url, $attachment_id );
+		return isset( $attachment_id[1] ) ? $attachment_id[1] : false;
+	}
 	/**
 	 * Filter out the urls that are saved to our servers when saving to the DB.
 	 *
@@ -288,20 +299,52 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public function filter_uploaded_images( $data ) {
 
 		$content = trim( wp_unslash( $data['post_content'] ) );
-		$images  = Optml_Manager::parse_images_from_html( $content );
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', 'content to update' );
+			do_action( 'optml_log', $content );
+		}
+		$images  = Optml_Manager::instance()->extract_urls_from_content( $content );
 		if ( ! isset( $images[0] ) ) {
 			return $data;
 		}
-		foreach ( $images[0] as $index => $tag ) {
-			$url           = $images['img_url'][ $index ];
-			$attachment_id = $this->get_id_from_tag( $tag );
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', 'images to update' );
+			do_action( 'optml_log', $images );
+		}
+		foreach ( $images as $url ) {
+			$is_original_uploaded = self::is_uploaded_image( $url );
+			$size = 'full';
+			$attachment_id = false;
+			if ( $is_original_uploaded ) {
+				$found_size = $this->parse_dimension_from_optimized_url( $url );
+				if ( $found_size[0] !== 'auto' && $found_size[1] !== 'auto' ) {
+					$size = $found_size;
+				}
+				$attachment_id = self::get_attachment_id_from_url( $url );
+			} else {
+				$found_size = $this->parse_dimensions_from_filename( $url );
+				$strip_url = $url;
+				if ( $found_size[0] !== false && $found_size[1] !== false ) {
+					$size = $found_size;
+					$strip_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
+				}
+				$attachment_id = attachment_url_to_postid( $strip_url );
+			}
+
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', 'image id and found size' );
+				do_action( 'optml_log', $attachment_id );
+				do_action( 'optml_log', $size );
+			}
 			if ( false === $attachment_id || ! wp_attachment_is_image( $attachment_id ) ) {
 				continue;
 			}
-			$is_original_uploaded = self::is_uploaded_image( $url );
-			$size = $is_original_uploaded ? $this->parse_dimension_from_optimized_url( $url ) : $this->parse_dimensions_from_filename( $url );
-
 			$optimized_url = wp_get_attachment_image_src( $attachment_id, $size );
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', ' image url to replace with ' );
+				do_action( 'optml_log', $optimized_url );
+			}
+
 			if ( ! isset( $optimized_url[0] ) ) {
 				continue;
 			}
@@ -315,15 +358,41 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 	/**
 	 * Trigger an update on content that contains the same attachment ID as the modified image.
-	 *
-	 * @param int $attachment_id The attachment id of the image to init an update.
 	 */
-	public function update_content( $attachment_id ) {
-		$content = new \WP_Query( [ 's' => 'wp-image-' . $attachment_id, 'fields' => 'ids', 'posts_per_page' => 100 ] );
-		if ( ! empty( $content->found_posts ) ) {
-			$content_posts = array_unique( $content->get_posts() );
-			foreach ( $content_posts as $content_id ) {
-				wp_update_post( [ 'ID' => $content_id ] );  // existing filters should take care of providing optimized urls
+	public function update_content() {
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', ' updating_content ' );
+		}
+		$have_posts = true;
+		$page = 1;
+		while ( $have_posts ) {
+			$have_posts = false;
+			$query_args = apply_filters(
+				'optml_replacement_wp_query_args',
+				['post_type' => 'any', 'post_status' => 'any', 'fields' => 'ids',
+				'posts_per_page' => 15,
+				'update_post_meta_cache' => false,
+				'update_post_term_cache' => false,
+				]
+			);
+			$query_args['paged'] = $page;
+			$content = new \WP_Query( $query_args );
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', $page );
+			}
+			if ( $content->have_posts() ) {
+				$have_posts = true;
+				while ( $content->have_posts() ) {
+					$content->the_post();
+					$content_id = get_the_ID();
+					if ( get_post_type() !== 'attachment' ) {
+						if ( OPTML_DEBUG ) {
+							do_action( 'optml_log', 'post_id ' . $content_id );
+						}
+						wp_update_post( ['ID' => $content_id] );
+					}
+				}
+				$page ++;
 			}
 		}
 	}
@@ -383,6 +452,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function upload_and_update_existing_images( $image_ids ) {
 		$success_up = 0;
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', ' images to upload ' );
+			do_action( 'optml_log', $image_ids );
+		}
 		foreach ( $image_ids as $id ) {
 			if ( self::is_uploaded_image( wp_get_attachment_metadata( $id )['file'] ) ) {
 				$success_up ++;
@@ -391,11 +464,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			$meta = $this->generate_image_meta( wp_get_attachment_metadata( $id ), $id );
 			if ( isset( $meta['file'] ) && self::is_uploaded_image( $meta['file'] ) ) {
-
 				$success_up ++;
 				wp_update_attachment_metadata( $id, $meta );
-				$this->update_content( $id );
 			}
+		}
+		if ( $success_up > 0 ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', ' call post update, succesful images: ' );
+				do_action( 'optml_log', $success_up );
+			}
+			$this->update_content();
 		}
 		return $success_up;
 	}
@@ -420,6 +498,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function rollback_and_update_images( $image_ids ) {
 		$success_back = 0;
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', ' images to rollback ' );
+			do_action( 'optml_log', $image_ids );
+		}
 		foreach ( $image_ids as $id ) {
 			$current_meta = wp_get_attachment_metadata( $id );
 			if ( ! isset( $current_meta['file'] ) || ! self::is_uploaded_image( $current_meta['file'] ) ) {
@@ -434,11 +516,18 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				continue;
 			}
 			$table_id = $table_id[1];
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', ' image cloud id ' );
+				do_action( 'optml_log', $table_id );
+			}
 			$request = new Optml_Api();
 			$get_response = $request->call_upload_api( '', 'false', $table_id, 'false', 'true' );
 
 			if ( is_wp_error( $get_response ) || wp_remote_retrieve_response_code( $get_response ) !== 200 ) {
 				update_post_meta( $id, 'optimole_rollback_error', 'true' );
+				if ( OPTML_DEBUG ) {
+					do_action( 'optml_log', ' error get url' );
+				}
 				continue;
 			}
 
@@ -456,12 +545,19 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			if ( is_wp_error( $temp_file ) ) {
 				update_post_meta( $id, 'optimole_rollback_error', 'true' );
+				if ( OPTML_DEBUG ) {
+					do_action( 'optml_log', ' download_url error ' );
+				}
 				continue;
 			}
 
 			$extension = $this->get_ext( $filename );
 
 			if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) ) {
+				if ( OPTML_DEBUG ) {
+					do_action( 'optml_log', ' image has invalid extension' );
+					do_action( 'optml_log', $extension );
+				}
 				update_post_meta( $id, 'optimole_rollback_error', 'true' );
 				continue;
 			}
@@ -497,6 +593,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			// Move the temporary file into the uploads directory.
 			$results = wp_handle_sideload( $file, $overrides );
 			if ( ! empty( $results['error'] ) ) {
+				if ( OPTML_DEBUG ) {
+					do_action( 'optml_log', ' wp_handle_sideload error' );
+				}
 				update_post_meta( $id, 'optimole_rollback_error', 'true' );
 				continue;
 			}
@@ -535,12 +634,18 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			update_attached_file( $id, $results['file'] );
 			$success_back++;
-			$this->update_content( $id );
 			$original_url  = self::get_original_url( $id );
 			if ( $original_url === false ) {
 				continue;
 			}
 			$this->delete_attachment_from_server( $original_url, $id, $table_id );
+		}
+		if ( $success_back > 0 ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', ' call update post, success rollback' );
+				do_action( 'optml_log', $success_back );
+			}
+			$this->update_content();
 		}
 		return $success_back;
 	}
@@ -845,16 +950,26 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$generate_url_response = $request->call_upload_api( $original_url );
 
 		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', ' call to signed url error' );
+			}
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
 		}
 		$decoded_response = json_decode( $generate_url_response['body'], true );
 
 		if ( ! isset( $decoded_response['tableId'] ) || ! isset( $decoded_response['uploadUrl'] ) ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', ' missing table id or upload url' );
+			}
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
 		}
 		$table_id = $decoded_response['tableId'];
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', ' table id' );
+			do_action( 'optml_log', $table_id );
+		}
 		$upload_signed_url = $decoded_response['uploadUrl'];
 		$image = file_get_contents( $local_file );
 		if ( $image === false ) {

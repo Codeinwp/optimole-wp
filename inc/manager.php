@@ -100,6 +100,7 @@ final class Optml_Manager {
 			self::$instance->url_replacer      = Optml_Url_Replacer::instance();
 			self::$instance->tag_replacer      = Optml_Tag_Replacer::instance();
 			self::$instance->lazyload_replacer = Optml_Lazyload_Replacer::instance();
+
 			add_action( 'after_setup_theme', [ self::$instance, 'init' ] );
 		}
 
@@ -506,7 +507,7 @@ final class Optml_Manager {
 		if ( $this->settings->use_cdn() && ! self::should_ignore_image_tags() ) {
 			$extensions = array_merge( $extensions, array_keys( Optml_Config::$assets_extensions ) );
 		}
-		$regex = '/(?:[(|\s\';",=])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:http|>|%3F|\?|"|&|,|\s|\'|\)|\||\\\\|}))/Uu';
+		$regex = '/(?:[(|\s\';",=\]])((?:http|\/|\\\\){1}(?:[' . Optml_Config::$chars . ']{10,}\.(?:' . implode( '|', $extensions ) . ')))(?=(?:http|>|%3F|\?|"|&|,|\s|\'|\)|\||\\\\|}|\[))/Uu';
 		preg_match_all(
 			$regex,
 			$content,
