@@ -85,6 +85,12 @@ class Optml_Settings {
 	 * @var array All options.
 	 */
 	private $options;
+	/**
+	 * Holds the status of the auto connect hook.
+	 *
+	 * @var boolean Whether or not the auto connect action is hooked.
+	 */
+	private static $auto_connect_hooked = false;
 
 	/**
 	 * Optml_Settings constructor.
@@ -101,6 +107,19 @@ class Optml_Settings {
 		}
 
 		if ( defined( 'OPTIML_USE_ENV' ) && constant( 'OPTIML_USE_ENV' ) && $this->to_boolean( constant( 'OPTIML_USE_ENV' ) ) ) {
+
+			if ( defined( 'OPTIML_API_KEY' )
+				&& constant( 'OPTIML_API_KEY' ) !== ''
+			) {
+				if ( ! $this->is_connected() && ! self::$auto_connect_hooked ) {
+					self::$auto_connect_hooked = true;
+					add_action(
+						'plugins_loaded',
+						[$this, 'auto_connect']
+					);
+				}
+			}
+
 			foreach ( self::$whitelisted_settings as $key => $type ) {
 				$env_key = 'OPTIML_' . strtoupper( $key );
 				if ( defined( $env_key ) && constant( $env_key ) ) {
@@ -125,7 +144,17 @@ class Optml_Settings {
 			}
 		}
 	}
+	/**
+	 * Auto connect action.
+	 */
+	public function auto_connect() {
+		$request = new WP_REST_Request( 'POST' );
+		$request->set_param( 'api_key', constant( 'OPTIML_API_KEY' ) );
+		Optml_Main::instance()->rest->connect( $request );
 
+		remove_action( 'plugins_loaded', [ $this, 'auto_connect' ] );
+		self::$auto_connect_hooked = false;
+	}
 	/**
 	 * Return filter definitions.
 	 *

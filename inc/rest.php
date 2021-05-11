@@ -388,7 +388,7 @@ class Optml_Rest {
 				 */
 				$extra = sprintf( __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
 			}
-			wp_send_json_error( __( 'Can not connect to Optimole service', 'optimole-wp' ) . $extra );
+			return $this->response( __( 'Can not connect to Optimole service', 'optimole-wp' ) . $extra, 400 );
 		}
 		$settings = new Optml_Settings();
 		$settings->update( 'api_key', $api_key );
