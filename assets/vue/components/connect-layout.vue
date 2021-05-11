@@ -33,14 +33,14 @@
 						<p class="subtitle is-size-6">{{strings.step_two_api_desc}}</p>
 					</div>
 				</div>
-        <div class="column   is columns is-vcentered is-marginless">
+				<div class="column   is columns is-vcentered is-marginless">
 
-          <span class="dashicons dashicons-cloud-saved column is-2 is-size-3 is-paddingless"></span>
-          <div class="is-pulled-left column is-10 is-paddingless">
-            <p class="title is-size-5">2. {{strings.step_three_api_title}}</p>
-            <p class="subtitle is-size-6">{{strings.step_three_api_desc}}</p>
-          </div>
-        </div>
+					<span class="dashicons dashicons-cloud-saved column is-2 is-size-3 is-paddingless"></span>
+					<div class="is-pulled-left column is-10 is-paddingless">
+						<p class="title is-size-5">2. {{strings.step_three_api_title}}</p>
+						<p class="subtitle is-size-6">{{strings.step_three_api_desc}}</p>
+					</div>
+				</div>
 			</div>
 		
 		</div>
@@ -57,7 +57,7 @@
 								</div>
 								<div class="column">
 									<p class="subtitle column is-size-6 is-vcentered has-text-left"
-									   v-html="strings.account_needed_subtitle_1"></p>
+										 v-html="strings.account_needed_subtitle_1"></p>
 								</div>
 							</div>
 							<div class="columns  is-vcentered">
@@ -66,7 +66,7 @@
 								</div>
 								<div class="column">
 									<p class="subtitle column is-size-6 is-vcentered has-text-left"
-									   v-html="strings.account_needed_subtitle_2"></p>
+										 v-html="strings.account_needed_subtitle_2"></p>
 								</div>
 							</div>
 							<div class="columns  is-vcentered">
@@ -75,7 +75,7 @@
 								</div>
 								<div class="column">
 									<p class="subtitle column is-size-6 is-vcentered has-text-left"
-									   v-html="strings.account_needed_subtitle_3"></p>
+										 v-html="strings.account_needed_subtitle_3"></p>
 								</div>
 							</div>
 						</div>
@@ -89,19 +89,20 @@
 						:</label>
 					<div class="control   is-12 is-small has-icons-left ">
 						<input name="optml-email" id="optml-email" class="input is-medium is-fullwidth is-danger"
-						       type="email"
-						       v-model="email"/>
+									 type="email"
+									 v-model="email"/>
 						<span class="icon is-small is-left dashicons dashicons-email"></span>
 					
 					</div>
 					
 					<p class="help is-danger" v-if="error" v-html="strings.error_register"></p>
+					<p class="help is-danger" v-else-if="email_registered" v-html="email_registered"></p>
 				</div>
 				<div class="field   ">
 					<div class="control ">
 						<div class="    has-text-centered-mobile">
 							<button @click="registerAccount" class="button is-fullwidth is-medium is-primary  "
-							        :class="isLoading ? 'is-loading' :'' ">
+											:class="isLoading ? 'is-loading' :'' ">
 								<span class="icon dashicons dashicons-admin-users"></span>
 								<span>{{strings.register_btn}}</span>
 							</button>
@@ -134,6 +135,7 @@
 				strings: optimoleDashboardApp.strings,
 				showApiKey: false,
 				error: false,
+				email_registered: false,
 				showRegisterField: false,
 				from_register: false,
 
@@ -162,6 +164,10 @@
 				this.$store.dispatch('registerOptimole', {
 					email: this.email,
 				}).then((response) => {
+					if ( response.code === 'email_registered') {
+						this.email_registered = response.message;
+						return;
+					}
 					if (response.code === 'success') {
 						this.showApiKey = true;
 						this.from_register = true;

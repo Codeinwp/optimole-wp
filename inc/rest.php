@@ -458,6 +458,16 @@ class Optml_Rest {
 				],
 				200
 			);
+		}
+		if ( $user === 'email_registered' ) {
+			return new WP_REST_Response(
+				[
+					'data'    => null,
+					'message' => __( 'Error: This email is already registered. Please choose another one.', 'optimole-wp' ),
+					'code'    => 'email_registered',
+				],
+				200
+			);
 
 		}
 
