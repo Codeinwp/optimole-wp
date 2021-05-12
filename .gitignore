@@ -8,5 +8,6 @@ cypress/fixtures
 vendor
 code_quality
 build
+.DS_Store
 cc-test-reporter
 assets/js/bundle.js
