@@ -43,6 +43,12 @@ class Test_Replacer extends WP_UnitTestCase {
 	/wp-content/plugins/optimole-wp/assets/img/log4.png%3Fwidth%3D500%26cr%3Dsmall
 	/wp-content/uploads/2018/05/umlau1ts_image_äöü.jpg
 	/wp-content/uploads/2018/05/umlau1ts_image_a\u0308o\u0308u\u0308.jpg
+	http://example.org/wp-content/uploads/2021/04/test©-1024x683.jpg
+	//example.org/wp-content/uploads/2021/04/test©-1024x683.jpg
+	/wp-content/uploads/2021/04/test©-1024x683.jpg
+	http://example.org/wp-content/uploads/2021/04/test©.jpg
+	//example.org/wp-content/uploads/2021/04/test©.jpg
+	/wp-content/uploads/2021/04/test©.jpg
 	 ';
 	const ASSETS_URL = '
 	http://example.org/wp-content/themes/test/assets/header.css 
@@ -174,8 +180,10 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertContains( '/w:2000/', $replaced_content );
 		$this->assertContains( '/h:1200/', $replaced_content );
 		$this->assertContains( 'http://example.org', $replaced_content );
+        $this->assertContains( 'decoding=async', $replaced_content );
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::TEST_STAGING );
+        $this->assertContains( 'decoding=async', $replaced_content );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( '/https://www.example.org', $replaced_content );
 
@@ -189,7 +197,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
 
-		$this->assertEquals( 21, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertEquals( 27, substr_count( $replaced_content, 'i.optimole.com' ) );
 	}
 
 	public function test_assets_url() {

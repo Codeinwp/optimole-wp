@@ -70,6 +70,7 @@ class Optml_Settings {
 		'native_lazyload'      => 'disabled',
 		'offload_media'        => 'disabled',
 		'cloud_images'         => 'disabled',
+		'skip_lazyload_images' => 3,
 
 	];
 	/**
@@ -237,6 +238,9 @@ class Optml_Settings {
 				case 'watchers':
 					$sanitized_value = $value;
 					break;
+				case 'skip_lazyload_images':
+					$sanitized_value = $this->to_bound_integer( $value, 0, 100 );
+					break;
 				case 'wm_opacity':
 				case 'wm_scale':
 				case 'wm_x':
@@ -362,6 +366,7 @@ class Optml_Settings {
 			'network_optimization' => $this->get( 'network_optimization' ),
 			'retina_images'        => $this->get( 'retina_images' ),
 			'lazyload_placeholder' => $this->get( 'lazyload_placeholder' ),
+			'skip_lazyload_images' => $this->get( 'skip_lazyload_images' ),
 			'bg_replacer'          => $this->get( 'bg_replacer' ),
 			'video_lazyload'       => $this->get( 'video_lazyload' ),
 			'resize_smart'         => $this->get( 'resize_smart' ),
