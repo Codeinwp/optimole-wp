@@ -12,7 +12,7 @@
 			</div>
 			<div class="level-right">
 				<span class="label level-item">{{strings.private_cdn_url}}:</span>
-				<p class="details level-item tag is-light">{{userData.cdn_key}}.i.optimole.com</p>
+				<p class="details level-item tag is-light">{{connectedDomain}}</p>
 			</div>
 		</div>
 		<hr/>
@@ -87,6 +87,12 @@
 			}
 		},
 		computed:{
+		  connectedDomain() {
+		    if ( this.userData.domain !== undefined && this.userData.domain !== '' ) {
+		      return this.userData.domain;
+        }
+		    return this.userData.cdn_key + '.i.optimole.com';
+      },
 			userData:function(){
 
                 return  this.$store.state.userData;
