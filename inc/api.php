@@ -42,16 +42,31 @@ final class Optml_Api {
 	}
 
 	/**
-	 * Get user data from service.
+	 * Connect to the service.
 	 *
-	 * @return array|bool User data.
+	 * @param string $api_key Api key.
+	 *
+	 * @return array|bool
 	 */
-	public function get_user_data( $api_key = '' ) {
+	public function connect( $api_key = '' ) {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
 
-		return $this->request( '/optml/v1/image/details', 'POST' );
+		return $this->request( '/optml/v2/account/connect', 'POST' );
+	}
+
+	/**
+	 * Get user data from service.
+	 *
+	 * @return array|bool User data.
+	 */
+	public function get_user_data( $api_key = '', $application = '' ) {
+		if ( ! empty( $api_key ) ) {
+			$this->api_key = $api_key;
+		}
+
+		return $this->request( '/optml/v2/account/details', 'POST', [ 'application' => $application ] );
 	}
 
 	/**

@@ -362,10 +362,15 @@ abstract class Optml_App_Replacer {
 
 		$service_data = $this->settings->get( 'service_data' );
 
+		$domain = '';
+		if ( isset( $service_data['is_cname_assigned'] ) && $service_data['is_cname_assigned'] === 'yes' && ! empty( $service_data['domain'] ) ) {
+			$domain = $service_data['domain'];
+		}
 		Optml_Config::init(
 			[
-				'key'    => $service_data['cdn_key'],
-				'secret' => $service_data['cdn_secret'],
+				'key'               => $service_data['cdn_key'],
+				'secret'            => $service_data['cdn_secret'],
+				'domain'            => $domain,
 			]
 		);
 

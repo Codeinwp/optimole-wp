@@ -36,4 +36,5 @@ build
 artifact
 assets/vue
 .wporg
+.nvmrc
 .github

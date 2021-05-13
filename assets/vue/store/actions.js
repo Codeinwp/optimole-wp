@@ -5,6 +5,45 @@ import VueResource from 'vue-resource';
 
 Vue.use( VueResource );
 
+const selectOptimoleDomain = function ( {commit, state}, data ) {
+	commit( 'toggleConnecting', true );
+	commit( 'restApiNotWorking', false );
+	Vue.http(
+		{
+			url: optimoleDashboardApp.root + '/select',
+			method: 'POST',
+			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+			body: {
+				'api_key': data.apiKey,
+				'application': data.application,
+			},
+			responseType: 'json',
+			emulateJSON: true,
+		}
+	).then(
+		function ( response ) {
+			commit( 'toggleConnecting', false );
+			if ( response.body.code === 'success' ) {
+				commit( 'toggleKeyValidity', true );
+				commit( 'toggleHasOptmlApp', true );
+				commit( 'updateApiKey', data.apiKey );
+				commit( 'updateUserData', response.body.data );
+				commit( 'updateAvailableApps', response.body.data );
+				console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
+
+			} else {
+				commit( 'toggleKeyValidity', false );
+				commit( 'updateServiceError', response.body.data );
+				console.log( '%c Invalid API Key.', 'color: #E7602A' );
+			}
+		},
+		function () {
+			commit( 'toggleConnecting', false );
+			commit( 'restApiNotWorking', true );
+		}
+	);
+}
+
 const connectOptimole = function ( {commit, state}, data ) {
 	commit( 'toggleConnecting', true );
 	commit( 'restApiNotWorking', false );
@@ -26,7 +65,13 @@ const connectOptimole = function ( {commit, state}, data ) {
 				  commit( 'toggleKeyValidity', true );
 				  commit( 'toggleConnectedToOptml', true );
 				  commit( 'updateApiKey', data.apiKey );
-				  commit( 'updateUserData', response.body.data );
+				  if ( response.body.data['app_count'] !== undefined && response.body.data['app_count'] > 1 ) {
+					commit( 'updateAvailableApps', response.body.data );
+				  } else {
+					commit( 'updateUserData', response.body.data );
+					commit( 'toggleHasOptmlApp', true );
+				  }
+
 				  console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
 
 			} else {
@@ -86,6 +131,8 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 			commit( 'updateUserData', null );
 			commit( 'toggleLoading', false );
 			commit( 'updateApiKey', '' );
+			commit( 'updateAvailableApps', null );
+			commit( 'toggleHasOptmlApp', false );
 			if ( response.ok ) {
 				  commit( 'toggleConnectedToOptml', false );
 				  commit( 'toggleIsServiceLoaded', false );
@@ -109,7 +156,7 @@ const clearCache = function ( {commit, state}, data ) {
 		}
 	).then(
 		function ( response ) {
-			if ( response.body.code === 'success' ) {
+			if ( response.body.code === '200' ) {
 				console.log( '%c New cache token generated.', 'color: #59B278' );
 			} else {
 				console.log( '%c Could not generate cache token.', 'color: #E7602A' );
@@ -391,6 +438,7 @@ export default {
 	clearCache,
 	connectOptimole,
 	disconnectOptimole,
+	selectOptimoleDomain,
 	dismissConflict,
 	registerOptimole,
 	removeWatermark,
