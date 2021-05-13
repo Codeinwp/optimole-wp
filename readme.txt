@@ -93,6 +93,18 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 == Changelog ==
 
+#### [Version 3.1.0](https://github.com/Codeinwp/optimole-wp/compare/v3.0.1...v3.1.0) (2021-05-13)
+
+* Adds support for multiple custom domains
+* Adds option to skip first X images from lazyloading
+* Adds support for async decoding for image tags
+* Adds support for video lazyload
+* Improve media offloading and rollback mechanism 
+* Adds support for the new watermark feature
+
+
+
+
 ##### [Version 3.0.1](https://github.com/Codeinwp/optimole-wp/compare/v3.0.0...v3.0.1) (2021-03-16)
 
 * improve behavior on browsers that don't support javascript, causing issues with some 3rd party plugins.
