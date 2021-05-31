@@ -45,7 +45,7 @@ abstract class Optml_Resource {
 			throw new \InvalidArgumentException( 'Optimole resource builder requires the source url to optimize.' ); // @codeCoverageIgnore
 		}
 		$this->set_defaults();
-		$this->source_url = $url;
+		$this->source_url = apply_filters( 'optml_processed_url', $url );
 
 		$this->cache_buster = $cache_buster;
 	}
