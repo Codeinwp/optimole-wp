@@ -27,9 +27,9 @@
     "build": "npm run prebuild"
   },
   "devDependencies": {
-    "@semantic-release/changelog": "^3.0.6",
-    "@semantic-release/exec": "^3.3.8",
-    "@semantic-release/git": "^7.0.18",
+    "@semantic-release/changelog": "^5.0.1",
+    "@semantic-release/exec": "^5.0.0",
+    "@semantic-release/git": "^9.0.0",
     "babel-core": "^6.26.0",
     "babel-eslint": "^8.0.1",
     "babel-loader": "^7.1.2",
@@ -62,7 +62,7 @@
     "node-sass": "^4.13.1",
     "replace-in-file": "^5.0.2",
     "sass-loader": "^7.3.1",
-    "semantic-release": "^15.14.0",
+    "semantic-release": "^17.4.3",
     "semantic-release-slack-bot": "^2.1.0",
     "style-loader": "^0.13.0",
     "stylelint": "^8.2.0",

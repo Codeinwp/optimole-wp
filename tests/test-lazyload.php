@@ -461,6 +461,20 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertContains( 'data-opt-src', $replaced_content );
 		$this->assertContains( '<noscript>', $replaced_content );
 	}
+    public function test_lazyload_video_source() {
+
+        $content = '<figure class="wp-block-video"><video controls=""><source type="video/mp4" src="https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_480_1_5MG.mp4"></video>
+                    </figure>';
+        $content_skip = '<figure class="wp-block-video"><video controls="" preload="auto"><source type="video/mp4" src="https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_480_1_5MG.mp4"></video></figure>';
+
+        $replaced_content = Optml_Manager::instance()->replace_content( $content );
+        $replaced_content_skip = Optml_Manager::instance()->replace_content( $content_skip );
+        $this->assertContains( 'preload=none', $replaced_content );
+        $this->assertContains( '<noscript>', $replaced_content );
+        $this->assertNotContains( 'preload=none', $replaced_content_skip );
+        $this->assertNotContains( '<noscript>', $replaced_content_skip );
+        $this->assertNotContains( 'data-opt-src', $replaced_content_skip );
+    }
 	public function test_lazyload_iframe_noscript_ignore() {
 		
 		$content = '<noscript><iframe width="930" height="523" src="http://5c128bbdd3b4.ngrok.io/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
