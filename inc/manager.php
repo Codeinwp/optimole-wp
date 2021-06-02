@@ -148,6 +148,9 @@ final class Optml_Manager {
 		if ( apply_filters( 'optml_should_replace_page', false ) ) {
 			return false;
 		}
+		if ( apply_filters( 'optml_force_replacement', false ) === true ) {
+			return true;
+		}
 
 		if ( ( is_admin() && ! self::is_ajax_request() ) || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
 			return false; // @codeCoverageIgnore
@@ -312,7 +315,7 @@ final class Optml_Manager {
 	 */
 	public function replace_content( $html ) {
 
-		if ( defined( 'REST_REQUEST' ) && REST_REQUEST && is_user_logged_in() ) {
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST && is_user_logged_in() && ( apply_filters( 'optml_force_replacement', false ) !== true ) ) {
 			return $html;
 		}
 
