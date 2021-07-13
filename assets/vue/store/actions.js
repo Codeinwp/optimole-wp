@@ -353,6 +353,41 @@ const dismissConflict = function ( {commit, state}, data ) {
 		}
 	} );
 };
+let updateStatus = 'pending';
+
+const updateContent =  function ( commit,page, consecutiveErrors = 0 ) {
+	console.log( "called update content", page );
+	Vue.http(
+		{
+			url: optimoleDashboardApp.root + '/update_content',
+			method: 'POST',
+			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+			emulateJSON: true,
+			timeout: 0,
+			responseType: 'json',
+			body: {
+				'page': page,
+			},
+		}
+	).then(
+		function ( response ) {
+			if ( response.body.code === 'success' && response.body.data.page > page ) {
+				console.log( "page", page );
+				updateContent( commit, response.body.data.page, 0 );
+			} else {
+				updateStatus = 'done';
+			}
+		}
+	).catch( function ( err ) {
+		if ( consecutiveErrors < 10 ) {
+			setTimeout( function () {
+				updateContent( commit, page, consecutiveErrors + 1 )
+			}, consecutiveErrors * 1000 + 5000 );
+		} else {
+			updateStatus = 'fail';
+		}
+	} );
+};
 const pushBatch = function ( commit,batch,action, consecutiveErrors = 0 ) {
 	Vue.http(
 		{
@@ -369,8 +404,19 @@ const pushBatch = function ( commit,batch,action, consecutiveErrors = 0 ) {
 	).then(
 		function ( response ) {
 			if ( response.body.code === 'success' && response.body.data.found_images > 0 ) {
-				commit( 'updatePushedImagesProgress', batch );
-				pushBatch( commit, batch, action, 0 );
+				console.log( "called ", updateStatus );
+				updateContent ( commit, 1, 0 );
+				let interval = setInterval( function () {
+					if ( updateStatus === 'done' ) {
+						console.log( updateStatus );
+						updateStatus = 'pending';
+						commit( 'updatePushedImagesProgress', batch );
+						pushBatch( commit, batch, action, 0 );
+						clearInterval( interval );
+					}
+				}, 10000 );
+				
+				
 			} else {
 				commit( 'updatePushedImagesProgress', 'finish' );
 				action === "offload_images" ? commit( 'toggleLoadingSync', false ) : commit( 'toggleLoadingRollback', false );

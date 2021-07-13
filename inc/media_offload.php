@@ -359,42 +359,37 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Trigger an update on content that contains the same attachment ID as the modified image.
 	 */
-	public function update_content() {
+	public static function update_content( $page = 1 ) {
 		if ( OPTML_DEBUG ) {
 			do_action( 'optml_log', ' updating_content ' );
 		}
-		$have_posts = true;
-		$page = 1;
-		while ( $have_posts ) {
-			$have_posts = false;
-			$query_args = apply_filters(
-				'optml_replacement_wp_query_args',
-				['post_type' => 'any', 'post_status' => 'any', 'fields' => 'ids',
+		$query_args = apply_filters(
+			'optml_replacement_wp_query_args',
+			['post_type' => 'any', 'post_status' => 'any', 'fields' => 'ids',
 				'posts_per_page' => 15,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
-				]
-			);
-			$query_args['paged'] = $page;
-			$content = new \WP_Query( $query_args );
-			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', $page );
-			}
-			if ( $content->have_posts() ) {
-				$have_posts = true;
-				while ( $content->have_posts() ) {
-					$content->the_post();
-					$content_id = get_the_ID();
-					if ( get_post_type() !== 'attachment' ) {
-						if ( OPTML_DEBUG ) {
-							do_action( 'optml_log', 'post_id ' . $content_id );
-						}
-						wp_update_post( ['ID' => $content_id] );
-					}
-				}
-				$page ++;
-			}
+			]
+		);
+		$query_args['paged'] = $page;
+		$content = new \WP_Query( $query_args );
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', $page );
 		}
+		if ( $content->have_posts() ) {
+			while ( $content->have_posts() ) {
+				$content->the_post();
+				$content_id = get_the_ID();
+				if ( get_post_type() !== 'attachment' ) {
+					if ( OPTML_DEBUG ) {
+						do_action( 'optml_log', 'post_id ' . $content_id );
+					}
+					wp_update_post( ['ID' => $content_id] );
+				}
+			}
+			$page ++;
+		}
+		return ['page' => $page ];
 	}
 	/**
 	 * Add inline action to push to our servers.
@@ -473,7 +468,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', ' call post update, succesful images: ' );
 				do_action( 'optml_log', $success_up );
 			}
-			$this->update_content();
 		}
 		return $success_up;
 	}
