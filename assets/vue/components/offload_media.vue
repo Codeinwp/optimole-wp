@@ -152,6 +152,18 @@
 
     <div class="field columns" v-if="this.$store.state.loadingSync">
       <div class="column">
+        <div v-if="this.$store.state.estimatedTime == 0">
+          <label class="label has-text-grey-dark">
+            <span>{{strings.calculating_estimated_time}}</span>
+          </label>
+          <button class="button is-primary is-small is-loading">Loading</button>
+        </div>
+        <div v-else>
+          <label class="label has-text-grey-dark">
+            <span>{{strings.estimated_time}}</span>
+          </label>
+          <button class="button is-primary is-small is-disabled">{{this.$store.state.estimatedTime}} {{strings.minutes}}</button>
+        </div>
         <label class="label has-text-grey-dark">
           <span>{{strings.sync_media_progress}}</span>
         </label>
@@ -193,6 +205,18 @@
 
     <div class="field columns" v-if="this.$store.state.loadingRollback">
       <div class="column">
+        <div v-if="this.$store.state.estimatedTime == 0">
+          <label class="label has-text-grey-dark">
+            <span>{{strings.calculating_estimated_time}}</span>
+          </label>
+          <button class="button is-primary is-small is-loading">Loading</button>
+        </div>
+        <div v-else>
+          <label class="label has-text-grey-dark">
+            <span>{{strings.estimated_time}}</span>
+          </label>
+          <button class="button is-primary is-small is-disabled">{{this.$store.state.estimatedTime}} {{strings.minutes}}</button>
+        </div>
         <label class="label has-text-grey-dark">
           <span>{{strings.rollback_media_progress}}</span>
         </label>
