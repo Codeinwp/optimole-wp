@@ -363,9 +363,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( OPTML_DEBUG ) {
 			do_action( 'optml_log', ' updating_content ' );
 		}
+		$post_types = array_values(
+			array_filter(
+				get_post_types(),
+				function( $post_type ) {
+					if ( $post_type === 'attachment' || $post_type === 'revision' ) {
+						return false;
+					}
+					return true;
+				}
+			)
+		);
 		$query_args = apply_filters(
 			'optml_replacement_wp_query_args',
-			['post_type' => 'any', 'post_status' => 'any', 'fields' => 'ids',
+			['post_type' => $post_types, 'post_status' => 'any', 'fields' => 'ids',
 				'posts_per_page' => 15,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
@@ -639,7 +650,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', ' call update post, success rollback' );
 				do_action( 'optml_log', $success_back );
 			}
-			$this->update_content();
 		}
 		return $success_back;
 	}

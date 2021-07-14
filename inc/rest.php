@@ -826,6 +826,13 @@ class Optml_Rest {
 		}
 		return $this->response( Optml_Media_Offload::upload_images( $batch ) );
 	}
+	/**
+	 * Update posts content.
+	 *
+	 * @param WP_REST_Request $request rest request object.
+	 *
+	 * @return WP_REST_Response
+	 */
 	public function update_content( WP_REST_Request $request ) {
 		$page = 1;
 		if ( ! empty( $request->get_param( 'page' ) ) ) {

@@ -356,7 +356,6 @@ const dismissConflict = function ( {commit, state}, data ) {
 let updateStatus = 'pending';
 
 const updateContent =  function ( commit,page, consecutiveErrors = 0 ) {
-	console.log( "called update content", page );
 	Vue.http(
 		{
 			url: optimoleDashboardApp.root + '/update_content',
@@ -372,7 +371,6 @@ const updateContent =  function ( commit,page, consecutiveErrors = 0 ) {
 	).then(
 		function ( response ) {
 			if ( response.body.code === 'success' && response.body.data.page > page ) {
-				console.log( "page", page );
 				updateContent( commit, response.body.data.page, 0 );
 			} else {
 				updateStatus = 'done';
@@ -388,7 +386,8 @@ const updateContent =  function ( commit,page, consecutiveErrors = 0 ) {
 		}
 	} );
 };
-const pushBatch = function ( commit,batch,action, consecutiveErrors = 0 ) {
+const pushBatch = function ( commit,batch,action, processedBatch, consecutiveErrors = 0 ) {
+	let time = new Date();
 	Vue.http(
 		{
 			url: optimoleDashboardApp.root + '/' + action,
@@ -404,14 +403,13 @@ const pushBatch = function ( commit,batch,action, consecutiveErrors = 0 ) {
 	).then(
 		function ( response ) {
 			if ( response.body.code === 'success' && response.body.data.found_images > 0 ) {
-				console.log( "called ", updateStatus );
 				updateContent ( commit, 1, 0 );
 				let interval = setInterval( function () {
 					if ( updateStatus === 'done' ) {
-						console.log( updateStatus );
 						updateStatus = 'pending';
 						commit( 'updatePushedImagesProgress', batch );
-						pushBatch( commit, batch, action, 0 );
+						commit( 'estimatedTime', { batchTime: new Date() - time, batchSize: batch, processedBatch: processedBatch + 1 } );
+						pushBatch( commit, batch, action, processedBatch + 1, 0 );
 						clearInterval( interval );
 					}
 				}, 10000 );
@@ -424,7 +422,7 @@ const pushBatch = function ( commit,batch,action, consecutiveErrors = 0 ) {
 		}
 	).catch( function ( err ) {
 		if ( consecutiveErrors < 10 ) {
-			setTimeout( function () { pushBatch( commit, batch, action, consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 5000 );
+			setTimeout( function () { pushBatch( commit, batch, action, processedBatch,consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 5000 );
 		} else {
 			commit( 'toggleActionError', action );
 			commit( 'toggleLoadingSync', false );
@@ -449,7 +447,7 @@ const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
 			if ( Math.ceil( response.body.data/10 ) <= batch ) {
 				batch = Math.ceil( response.body.data/10 );
 			}
-			pushBatch( commit, batch, data.action );
+			pushBatch( commit, batch, data.action, 0 );
 		} else {
 			if ( data.action === "offload_images" ) {
 				commit( 'toggleLoadingSync', false );
