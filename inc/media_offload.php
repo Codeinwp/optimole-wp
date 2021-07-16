@@ -359,7 +359,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Trigger an update on content that contains the same attachment ID as the modified image.
 	 */
-	public static function update_content( $page = 1 ) {
+	public static function update_content( $page = 1, $attachment_id = 0 ) {
 		if ( OPTML_DEBUG ) {
 			do_action( 'optml_log', ' updating_content ' );
 		}
@@ -383,6 +383,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			]
 		);
 		$query_args['paged'] = $page;
+		if ( $attachment_id !== 0 ) {
+			$query_args['s'] = 'wp-image-' . $attachment_id;
+		}
 		$content = new \WP_Query( $query_args );
 		if ( OPTML_DEBUG ) {
 			do_action( 'optml_log', $page );
@@ -1094,6 +1097,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$media_offload = new Optml_Media_Offload();
 		$result = [ 'found_images' => count( $ids ) ];
 		$result['success_offload'] = $media_offload->upload_and_update_existing_images( $ids );
+		if ( $batch === '1' && $result['success_offload'] > 0 ) {
+			$result['success_offload_id'] = $ids[0];
+		}
 		return $result;
 	}
 
@@ -1110,6 +1116,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$media_offload = new Optml_Media_Offload();
 		$result = [ 'found_images' => count( $ids ) ];
 		$result['success_rollback'] = $media_offload->rollback_and_update_images( $ids );
+		if ( $batch === '1' && $result['success_rollback'] > 0 ) {
+			$result['success_offload_id'] = $ids[0];
+		}
 		return $result;
 	}
 	/**
