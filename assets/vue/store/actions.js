@@ -354,8 +354,7 @@ const dismissConflict = function ( {commit, state}, data ) {
 	} );
 };
 let updateStatus = 'pending';
-
-const updateContent =  function ( commit,page, consecutiveErrors = 0 ) {
+const updateContent =  function ( commit,page, imageID, consecutiveErrors = 0 ) {
 	Vue.http(
 		{
 			url: optimoleDashboardApp.root + '/update_content',
@@ -366,12 +365,13 @@ const updateContent =  function ( commit,page, consecutiveErrors = 0 ) {
 			responseType: 'json',
 			body: {
 				'page': page,
+				'imageID' : imageID,
 			},
 		}
 	).then(
 		function ( response ) {
 			if ( response.body.code === 'success' && response.body.data.page > page ) {
-				updateContent( commit, response.body.data.page, 0 );
+				updateContent( commit, response.body.data.page, imageID, 0 );
 			} else {
 				updateStatus = 'done';
 			}
@@ -379,7 +379,7 @@ const updateContent =  function ( commit,page, consecutiveErrors = 0 ) {
 	).catch( function ( err ) {
 		if ( consecutiveErrors < 10 ) {
 			setTimeout( function () {
-				updateContent( commit, page, consecutiveErrors + 1 )
+				updateContent( commit, page, imageID,consecutiveErrors + 1 )
 			}, consecutiveErrors * 1000 + 5000 );
 		} else {
 			updateStatus = 'fail';
@@ -403,7 +403,11 @@ const pushBatch = function ( commit,batch,action, processedBatch, consecutiveErr
 	).then(
 		function ( response ) {
 			if ( response.body.code === 'success' && response.body.data.found_images > 0 ) {
-				updateContent ( commit, 1, 0 );
+				if ( Object.prototype.hasOwnProperty.call( response.body.data,'success_offload_id' ) ) {
+					updateContent( commit, 1, response.body.data.success_offload_id, 0 );
+				} else {
+					updateContent(commit, 1, 0, 0);
+				}
 				let interval = setInterval( function () {
 					if ( updateStatus === 'done' ) {
 						updateStatus = 'pending';
@@ -443,8 +447,8 @@ const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
 	} ).then( function ( response ) {
 		if( response.status === 200 && response.body.data > 0 ) {
 			commit( 'totalNumberOfImages', response.body.data );
-			let batch = 5;
-			if ( Math.ceil( response.body.data/10 ) <= batch ) {
+			let batch = 1;
+			if ( Math.ceil( response.body.data/10 ) < batch ) {
 				batch = Math.ceil( response.body.data/10 );
 			}
 			pushBatch( commit, batch, data.action, 0 );

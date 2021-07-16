@@ -838,7 +838,11 @@ class Optml_Rest {
 		if ( ! empty( $request->get_param( 'page' ) ) ) {
 			$page = $request->get_param( 'page' );
 		}
-		return $this->response( Optml_Media_Offload::update_content( $page ) );
+		$image_id = 0;
+		if ( ! empty( $request->get_param( 'imageID' ) ) ) {
+			$image_id = $request->get_param( 'imageID' );
+		}
+		return $this->response( Optml_Media_Offload::update_content( $page, $image_id ) );
 	}
 	/**
 	 * Rollback images to media library.
