@@ -386,11 +386,11 @@ const updateContent =  function ( commit,page, consecutiveErrors = 0 ) {
 		}
 	} );
 };
-const pushBatch = function ( commit,batch,action, processedBatch, consecutiveErrors = 0 ) {
+const pushBatch = function ( commit,batch, page, action, processedBatch, consecutiveErrors = 0 ) {
 	let time = new Date();
 	Vue.http(
 		{
-			url: optimoleDashboardApp.root + '/' + action,
+			url: optimoleDashboardApp.root + '/update_content',
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
@@ -398,23 +398,24 @@ const pushBatch = function ( commit,batch,action, processedBatch, consecutiveErr
 			responseType: 'json',
 			body: {
 				'batch': batch,
+				'page' : page,
+				'job' : action,
+
 			},
 		}
 	).then(
 		function ( response ) {
-			if ( response.body.code === 'success' && response.body.data.found_images > 0 ) {
-				updateContent ( commit, 1, 0 );
-				let interval = setInterval( function () {
-					if ( updateStatus === 'done' ) {
-						updateStatus = 'pending';
-						commit( 'updatePushedImagesProgress', batch );
-						commit( 'estimatedTime', { batchTime: new Date() - time, batchSize: batch, processedBatch: processedBatch + 1 } );
-						pushBatch( commit, batch, action, processedBatch + 1, 0 );
-						clearInterval( interval );
-					}
-				}, 10000 );
-				
-				
+			if ( response.body.code === 'success' && response.body.data.page > page ) {
+				// updateContent ( commit, 1, 0 );
+				// let interval = setInterval( function () {
+				// 	if ( updateStatus === 'done' ) {
+				// 		updateStatus = 'pending';
+				commit( 'updatePushedImagesProgress', batch );
+				commit( 'estimatedTime', { batchTime: new Date() - time, batchSize: batch, processedBatch: processedBatch + 1 } );
+				pushBatch( commit, batch, response.body.data.page,  action, processedBatch + 1, 0 );
+				// 		clearInterval( interval );
+				// 	}
+				// }, 10000 );
 			} else {
 				commit( 'updatePushedImagesProgress', 'finish' );
 				action === "offload_images" ? commit( 'toggleLoadingSync', false ) : commit( 'toggleLoadingRollback', false );
@@ -422,7 +423,7 @@ const pushBatch = function ( commit,batch,action, processedBatch, consecutiveErr
 		}
 	).catch( function ( err ) {
 		if ( consecutiveErrors < 10 ) {
-			setTimeout( function () { pushBatch( commit, batch, action, processedBatch,consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 5000 );
+			setTimeout( function () { pushBatch( commit, batch, page, action, processedBatch,consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 5000 );
 		} else {
 			commit( 'toggleActionError', action );
 			commit( 'toggleLoadingSync', false );
@@ -447,7 +448,7 @@ const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
 			if ( Math.ceil( response.body.data/10 ) <= batch ) {
 				batch = Math.ceil( response.body.data/10 );
 			}
-			pushBatch( commit, batch, data.action, 0 );
+			pushBatch( commit, batch, 1, data.action, 0 );
 		} else {
 			if ( data.action === "offload_images" ) {
 				commit( 'toggleLoadingSync', false );
