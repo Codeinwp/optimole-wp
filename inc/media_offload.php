@@ -374,9 +374,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 						$size = $found_size;
 					}
 					$attachment_id = self::get_attachment_id_from_url( $url );
-                    if ( false === $attachment_id || ! wp_attachment_is_image( $attachment_id ) ) {
-                        continue;
-                    }
+					if ( false === $attachment_id || ! wp_attachment_is_image( $attachment_id ) ) {
+						continue;
+					}
 					$media_offload = new Optml_Media_Offload();
 					$media_offload->rollback_and_update_images( [$attachment_id] );
 				}
@@ -385,13 +385,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$found_size = self::parse_dimensions_from_filename( $url );
 					$strip_url = $url;
 					if ( $found_size[0] !== false && $found_size[1] !== false ) {
-						$size = $found_size;
 						$strip_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
 					}
 					$attachment_id = attachment_url_to_postid( $strip_url );
-                    if ( false === $attachment_id || ! wp_attachment_is_image( $attachment_id ) ) {
-                        continue;
-                    }
+					if ( false === $attachment_id || ! wp_attachment_is_image( $attachment_id ) ) {
+						continue;
+					}
 					$media_offload = new Optml_Media_Offload();
 					$media_offload->upload_and_update_existing_images( [$attachment_id] );
 				}
@@ -403,7 +402,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Trigger an update on content that contains the same attachment ID as the modified image.
 	 */
-	public static function update_content( $page, $job ) {
+	public static function update_content( $page, $job, $batch = 1 ) {
 		if ( OPTML_DEBUG ) {
 			do_action( 'optml_log', ' updating_content ' );
 		}
@@ -421,7 +420,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$query_args = apply_filters(
 			'optml_replacement_wp_query_args',
 			['post_type' => $post_types, 'post_status' => 'any', 'fields' => 'ids',
-				'posts_per_page' => 1,
+				'posts_per_page' => $batch,
 				'update_post_meta_cache' => false,
 				'update_post_term_cache' => false,
 			]
@@ -1085,7 +1084,48 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param string $action The action for which to get the images.
 	 * @return array|false The query options array or false if not passed a valid action.
 	 */
-	public static function get_images_query_args( $batch, $action ) {
+	public static function get_images_query_args( $batch, $action, $get_images = false ) {
+		$args = [
+			'posts_per_page'      => $batch,
+			'fields'              => 'ids',
+			'ignore_sticky_posts' => false,
+			'no_found_rows'       => true,
+		];
+		if ( $get_images === true ) {
+			$args ['post_type'] = 'attachment';
+			$args ['post_mime_type'] = 'image';
+			$args ['post_status'] = 'inherit';
+			$args ['post_parent'] = 0;
+			if ( $action === 'offload_images' ) {
+				$args['meta_query'] = [
+					'relation' => 'AND',
+					[
+						'key' => 'optimole_offload',
+						'compare' => 'NOT EXISTS',
+					],
+					[
+						'key' => 'optimole_offload_error',
+						'compare' => 'NOT EXISTS',
+					],
+				];
+				return $args;
+			}
+			if ( $action === 'rollback_images' ) {
+				$args['meta_query'] = [
+					'relation' => 'AND',
+					[
+						'key' => 'optimole_offload',
+						'value' => 'true',
+						'compare' => '=',
+					],
+					[
+						'key' => 'optimole_rollback_error',
+						'compare' => 'NOT EXISTS',
+					],
+				];
+				return $args;
+			}
+		}
 		$post_types = array_values(
 			array_filter(
 				get_post_types(),
@@ -1097,13 +1137,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				}
 			)
 		);
-		$args = [
-			'post_type'           => $post_types,
-			'posts_per_page'      => $batch,
-			'fields'              => 'ids',
-			'ignore_sticky_posts' => false,
-			'no_found_rows'       => true,
-		];
+		$args ['post_type'] = $post_types;
 		return $args;
 	}
 	/**
@@ -1113,7 +1147,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return array Number of found images and number of successfully processed images.
 	 */
 	public static function upload_images( $batch ) {
-		$args = self::get_images_query_args( $batch, 'offload_images' );
+		$args = self::get_images_query_args( $batch, 'offload_images', true );
 		$attachments = new \WP_Query( $args );
 		$ids         = $attachments->get_posts();
 		$media_offload = new Optml_Media_Offload();
@@ -1121,7 +1155,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$result['success_offload'] = $media_offload->upload_and_update_existing_images( $ids );
 		return $result;
 	}
-
 	/**
 	 *  Query the database and bring back image to media library.
 	 *
@@ -1129,7 +1162,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return array Number of found images and number of successfully processed images.
 	 */
 	public static function rollback_images( $batch ) {
-		$args = self::get_images_query_args( $batch, 'rollback_images' );
+		$args = self::get_images_query_args( $batch, 'rollback_images', true );
 		$attachments = new \WP_Query( $args );
 		$ids         = $attachments->get_posts();
 		$media_offload = new Optml_Media_Offload();
@@ -1145,7 +1178,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public static function number_of_library_images( $action ) {
 		$args = self::get_images_query_args( -1, $action );
-		$attachments = new \WP_Query( $args );
-		return $attachments->post_count;
+		$pages = new \WP_Query( $args );
+		$pages_count = $pages->post_count;
+		$args = self::get_images_query_args( -1, $action, true );
+		$images = new \WP_Query( $args );
+		return $pages_count + $images->post_count;
+
 	}
 }

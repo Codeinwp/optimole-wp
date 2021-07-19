@@ -34,7 +34,8 @@ const store = new Vuex.Store(
 			conflicts: [],
 			pushedImagesProgress : 0,
 			totalNumberOfImages : 1,
-			estimatedTime: 0
+			estimatedTime : 0,
+			averageTime : 0,
 		},
 		mutations,
 		actions

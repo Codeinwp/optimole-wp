@@ -820,7 +820,7 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function offload_images( WP_REST_Request $request ) {
-		$batch = 300;
+		$batch = 1;
 		if ( ! empty( $request->get_param( 'batch' ) ) ) {
 			$batch = $request->get_param( 'batch' );
 		}
@@ -842,7 +842,11 @@ class Optml_Rest {
 		if ( ! empty( $request->get_param( 'job' ) ) ) {
 			$job = $request->get_param( 'job' );
 		}
-		return $this->response( Optml_Media_Offload::update_content( $page, $job ) );
+		$batch = 1;
+		if ( ! empty( $request->get_param( 'batch' ) ) ) {
+			$batch = $request->get_param( 'batch' );
+		}
+		return $this->response( Optml_Media_Offload::update_content( $page, $job, $batch ) );
 	}
 	/**
 	 * Rollback images to media library.
@@ -852,7 +856,7 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function rollback_images( WP_REST_Request $request ) {
-		$batch = 300;
+		$batch = 1;
 		if ( ! empty( $request->get_param( 'batch' ) ) ) {
 			$batch = $request->get_param( 'batch' );
 		}

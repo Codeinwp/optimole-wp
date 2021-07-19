@@ -353,44 +353,48 @@ const dismissConflict = function ( {commit, state}, data ) {
 		}
 	} );
 };
-let updateStatus = 'pending';
-
-const updateContent =  function ( commit,page, consecutiveErrors = 0 ) {
-	Vue.http(
-		{
-			url: optimoleDashboardApp.root + '/update_content',
-			method: 'POST',
-			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			emulateJSON: true,
-			timeout: 0,
-			responseType: 'json',
-			body: {
-				'page': page,
-			},
-		}
-	).then(
-		function ( response ) {
-			if ( response.body.code === 'success' && response.body.data.page > page ) {
-				updateContent( commit, response.body.data.page, 0 );
-			} else {
-				updateStatus = 'done';
-			}
-		}
-	).catch( function ( err ) {
-		if ( consecutiveErrors < 10 ) {
-			setTimeout( function () {
-				updateContent( commit, page, consecutiveErrors + 1 )
-			}, consecutiveErrors * 1000 + 5000 );
-		} else {
-			updateStatus = 'fail';
-		}
-	} );
-};
-const pushBatch = function ( commit,batch, page, action, processedBatch, consecutiveErrors = 0 ) {
+// this will be the structure to use if we decide to update the images found in pages in a different request
+// let updateStatus = 'pending';
+// const updateContent =  function ( commit,page, consecutiveErrors = 0 ) {
+// 	Vue.http(
+// 		{
+// 			url: optimoleDashboardApp.root + '/update_content',
+// 			method: 'POST',
+// 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+// 			emulateJSON: true,
+// 			timeout: 0,
+// 			responseType: 'json',
+// 			body: {
+// 				'page': page,
+// 			},
+// 		}
+// 	).then(
+// 		function ( response ) {
+// 			if ( response.body.code === 'success' && response.body.data.page > page ) {
+// 				updateContent( commit, response.body.data.page, 0 );
+// 			} else {
+// 				updateStatus = 'done';
+// 			}
+// 		}
+// 	).catch( function ( err ) {
+// 		if ( consecutiveErrors < 10 ) {
+// 			setTimeout( function () {
+// 				updateContent( commit, page, consecutiveErrors + 1 )
+// 			}, consecutiveErrors * 1000 + 5000 );
+// 		} else {
+// 			updateStatus = 'fail';
+// 		}
+// 	} );
+// };
+const pushBatch = function ( commit,batch, page, action, processedBatch, unattached = false, consecutiveErrors = 0 ) {
 	let time = new Date();
+	let route = '/update_content';
+	if ( unattached === true ) {
+		route = '/' + action;
+	}
 	Vue.http(
 		{
-			url: optimoleDashboardApp.root + '/update_content',
+			url: optimoleDashboardApp.root + route,
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
@@ -405,25 +409,29 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, consecu
 		}
 	).then(
 		function ( response ) {
-			if ( response.body.code === 'success' && response.body.data.page > page ) {
+			if ( response.body.code === 'success' && ( response.body.data.page > page || response.body.data.found_images > 0 ) ) {
 				// updateContent ( commit, 1, 0 );
 				// let interval = setInterval( function () {
 				// 	if ( updateStatus === 'done' ) {
 				// 		updateStatus = 'pending';
 				commit( 'updatePushedImagesProgress', batch );
 				commit( 'estimatedTime', { batchTime: new Date() - time, batchSize: batch, processedBatch: processedBatch + 1 } );
-				pushBatch( commit, batch, response.body.data.page,  action, processedBatch + 1, 0 );
+				pushBatch( commit, batch, response.body.data.page,  action, processedBatch + 1, unattached,0 );
 				// 		clearInterval( interval );
 				// 	}
 				// }, 10000 );
 			} else {
-				commit( 'updatePushedImagesProgress', 'finish' );
-				action === "offload_images" ? commit( 'toggleLoadingSync', false ) : commit( 'toggleLoadingRollback', false );
+				if ( unattached === false ) {
+					pushBatch( commit, batch, response.body.data.page,  action, processedBatch + 1, true,0 );
+				} else {
+					commit( 'updatePushedImagesProgress', 'finish' );
+					action === "offload_images" ? commit( 'toggleLoadingSync', false ) : commit( 'toggleLoadingRollback', false );
+				}
 			}
 		}
 	).catch( function ( err ) {
 		if ( consecutiveErrors < 10 ) {
-			setTimeout( function () { pushBatch( commit, batch, page, action, processedBatch,consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 5000 );
+			setTimeout( function () { pushBatch( commit, batch, page, action, processedBatch, unattached, consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 5000 );
 		} else {
 			commit( 'toggleActionError', action );
 			commit( 'toggleLoadingSync', false );
@@ -444,7 +452,7 @@ const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
 	} ).then( function ( response ) {
 		if( response.status === 200 && response.body.data > 0 ) {
 			commit( 'totalNumberOfImages', response.body.data );
-			let batch = 5;
+			let batch = 1;
 			if ( Math.ceil( response.body.data/10 ) <= batch ) {
 				batch = Math.ceil( response.body.data/10 );
 			}
