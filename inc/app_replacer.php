@@ -540,7 +540,7 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @return array An array consisting of width and height.
 	 */
-	protected static function parse_dimensions_from_filename( $src ) {
+	protected function parse_dimensions_from_filename( $src ) {
 		$width_height_string = [];
 		$extensions          = array_keys( Optml_Config::$image_extensions );
 		if ( preg_match( '#-(\d+)x(\d+)(:?_c)?\.(?:' . implode( '|', $extensions ) . '){1}$#i', $src, $width_height_string ) ) {

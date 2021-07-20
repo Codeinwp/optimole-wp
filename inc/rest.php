@@ -239,6 +239,19 @@ class Optml_Rest {
 		);
 		register_rest_route(
 			$this->namespace,
+			'/upload_rollback_images',
+			[
+				[
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => [ $this, 'upload_rollback_images' ],
+				],
+			]
+		);
+		register_rest_route(
+			$this->namespace,
 			'/number_of_library_images',
 			[
 				[
@@ -824,7 +837,7 @@ class Optml_Rest {
 		if ( ! empty( $request->get_param( 'batch' ) ) ) {
 			$batch = $request->get_param( 'batch' );
 		}
-		return $this->response( Optml_Media_Offload::upload_images( $batch ) );
+		return $this->response( Optml_Media_Offload::instance()->upload_images( $batch ) );
 	}
 	/**
 	 * Update posts content.
@@ -846,7 +859,7 @@ class Optml_Rest {
 		if ( ! empty( $request->get_param( 'batch' ) ) ) {
 			$batch = $request->get_param( 'batch' );
 		}
-		return $this->response( Optml_Media_Offload::update_content( $page, $job, $batch ) );
+		return $this->response( Optml_Media_Offload::instance()->update_content( $page, $job, $batch ) );
 	}
 	/**
 	 * Rollback images to media library.
@@ -860,7 +873,26 @@ class Optml_Rest {
 		if ( ! empty( $request->get_param( 'batch' ) ) ) {
 			$batch = $request->get_param( 'batch' );
 		}
-		return $this->response( Optml_Media_Offload::rollback_images( $batch ) );
+		return $this->response( Optml_Media_Offload::instance()->rollback_images( $batch ) );
+	}
+	public function upload_rollback_images( WP_REST_Request $request ) {
+		if ( ! empty( $request->get_param( 'batch' ) ) ) {
+			$batch = $request->get_param( 'batch' );
+		}
+		$job = false;
+		if ( ! empty( $request->get_param( 'job' ) ) ) {
+			$job = $request->get_param( 'job' );
+		}
+		$image_ids = [];
+		if ( ! empty( $request->get_param( 'image_ids' ) ) ) {
+			$image_ids = $request->get_param( 'image_ids' );
+		}
+		if ( $job === 'offload_images' ) {
+			return $this->response( Optml_Media_Offload::instance()->upload_and_update_existing_images( $image_ids ) );
+		}
+		if ( $job === 'rollback_images' ) {
+			return $this->response( Optml_Media_Offload::instance()->rollback_and_update_images( $image_ids ) );
+		}
 	}
 	/**
 	 * Get total number of images.

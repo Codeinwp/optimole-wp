@@ -353,39 +353,45 @@ const dismissConflict = function ( {commit, state}, data ) {
 		}
 	} );
 };
-// this will be the structure to use if we decide to update the images found in pages in a different request
-// let updateStatus = 'pending';
-// const updateContent =  function ( commit,page, consecutiveErrors = 0 ) {
-// 	Vue.http(
-// 		{
-// 			url: optimoleDashboardApp.root + '/update_content',
-// 			method: 'POST',
-// 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-// 			emulateJSON: true,
-// 			timeout: 0,
-// 			responseType: 'json',
-// 			body: {
-// 				'page': page,
-// 			},
-// 		}
-// 	).then(
-// 		function ( response ) {
-// 			if ( response.body.code === 'success' && response.body.data.page > page ) {
-// 				updateContent( commit, response.body.data.page, 0 );
-// 			} else {
-// 				updateStatus = 'done';
-// 			}
-// 		}
-// 	).catch( function ( err ) {
-// 		if ( consecutiveErrors < 10 ) {
-// 			setTimeout( function () {
-// 				updateContent( commit, page, consecutiveErrors + 1 )
-// 			}, consecutiveErrors * 1000 + 5000 );
-// 		} else {
-// 			updateStatus = 'fail';
-// 		}
-// 	} );
-// };
+
+let updateStatus = 'pending';
+const updateContent =  function ( commit,action, imageIds, batch, consecutiveErrors = 0 ) {
+	console.log(imageIds);
+	Vue.http(
+		{
+			url: optimoleDashboardApp.root + '/upload_rollback_images',
+			method: 'POST',
+			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+			emulateJSON: true,
+			timeout: 0,
+			responseType: 'json',
+			body: {
+				'image_ids': imageIds,
+				'job' : action,
+			},
+		}
+	).then(
+		function ( response ) {
+			console.log(response);
+			if ( response.body.code === 'success' && response.body.data > 0 ) {
+				imageIds.splice( 0, batch );
+				if ( imageIds.length > 0 ) {
+					updateContent( commit, action, imageIds, 0 );
+				} else {
+					updateStatus = 'done';
+				}
+			}
+		}
+	).catch( function ( err ) {
+		if ( consecutiveErrors < 10 ) {
+			setTimeout( function () {
+				updateContent( commit, action, imageIds, batch, consecutiveErrors + 1 )
+			}, consecutiveErrors * 1000 + 5000 );
+		} else {
+			updateStatus = 'fail';
+		}
+	} );
+};
 const pushBatch = function ( commit,batch, page, action, processedBatch, unattached = false, consecutiveErrors = 0 ) {
 	let time = new Date();
 	let route = '/update_content';
@@ -410,16 +416,31 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, unattac
 	).then(
 		function ( response ) {
 			if ( response.body.code === 'success' && ( response.body.data.page > page || response.body.data.found_images > 0 ) ) {
-				// updateContent ( commit, 1, 0 );
-				// let interval = setInterval( function () {
-				// 	if ( updateStatus === 'done' ) {
-				// 		updateStatus = 'pending';
-				commit( 'updatePushedImagesProgress', batch );
-				commit( 'estimatedTime', { batchTime: new Date() - time, batchSize: batch, processedBatch: processedBatch + 1 } );
-				pushBatch( commit, batch, response.body.data.page,  action, processedBatch + 1, unattached,0 );
-				// 		clearInterval( interval );
-				// 	}
-				// }, 10000 );
+				if ( unattached === false ) {
+					console.log(response.body.data);
+					updateContent( commit, action, response.body.data.imagesToUpdate[Object.keys( response.body.data.imagesToUpdate )[0]], batch, 0 );
+					let interval = setInterval( function () {
+						if ( updateStatus === 'done' ) {
+							updateStatus = 'pending';
+							commit( 'updatePushedImagesProgress', batch );
+							commit( 'estimatedTime', {
+								batchTime: new Date() - time,
+								batchSize: batch,
+								processedBatch: processedBatch + 1
+							} );
+							pushBatch( commit, batch, response.body.data.page, action, processedBatch + 1, unattached, 0 );
+							clearInterval( interval );
+						}
+					}, 10000 );
+				} else {
+					commit( 'updatePushedImagesProgress', batch );
+					commit( 'estimatedTime', {
+						batchTime: new Date() - time,
+						batchSize: batch,
+						processedBatch: processedBatch + 1
+					} );
+					pushBatch( commit, batch, response.body.data.page, action, processedBatch + 1, unattached, 0 );
+				}
 			} else {
 				if ( unattached === false ) {
 					pushBatch( commit, batch, response.body.data.page,  action, processedBatch + 1, true,0 );
@@ -430,6 +451,7 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, unattac
 			}
 		}
 	).catch( function ( err ) {
+		console.log(err);
 		if ( consecutiveErrors < 10 ) {
 			setTimeout( function () { pushBatch( commit, batch, page, action, processedBatch, unattached, consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 5000 );
 		} else {
