@@ -239,6 +239,19 @@ class Optml_Rest {
 		);
 		register_rest_route(
 			$this->namespace,
+			'/update_page',
+			[
+				[
+					'methods'             => \WP_REST_Server::CREATABLE,
+					'permission_callback' => function () {
+						return current_user_can( 'manage_options' );
+					},
+					'callback'            => [ $this, 'update_page' ],
+				],
+			]
+		);
+		register_rest_route(
+			$this->namespace,
 			'/upload_rollback_images',
 			[
 				[
@@ -874,6 +887,13 @@ class Optml_Rest {
 			$batch = $request->get_param( 'batch' );
 		}
 		return $this->response( Optml_Media_Offload::instance()->rollback_images( $batch ) );
+	}
+	public function update_page( WP_REST_Request $request ) {
+		if ( empty( $request->get_param( 'post_id' ) ) ) {
+			return false;
+		}
+		$post_id = $request->get_param( 'post_id' );
+		return $this->response( Optml_Media_Offload::instance()->update_page( $post_id ) );
 	}
 	public function upload_rollback_images( WP_REST_Request $request ) {
 		if ( ! empty( $request->get_param( 'batch' ) ) ) {

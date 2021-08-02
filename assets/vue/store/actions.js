@@ -355,8 +355,9 @@ const dismissConflict = function ( {commit, state}, data ) {
 };
 
 let updateStatus = 'pending';
-const updateContent =  function ( commit,action, imageIds, batch, consecutiveErrors = 0 ) {
-	console.log(imageIds);
+let updatePageStatus = 'pending';
+const updateContent =  function ( commit,action, imageIds, postID, batch, consecutiveErrors = 0 ) {
+	console.log( imageIds );
 	Vue.http(
 		{
 			url: optimoleDashboardApp.root + '/upload_rollback_images',
@@ -372,20 +373,60 @@ const updateContent =  function ( commit,action, imageIds, batch, consecutiveErr
 		}
 	).then(
 		function ( response ) {
-			console.log(response);
+			console.log( response );
 			if ( response.body.code === 'success' && response.body.data > 0 ) {
 				imageIds.splice( 0, batch );
+				console.log( imageIds );
 				if ( imageIds.length > 0 ) {
-					updateContent( commit, action, imageIds, 0 );
+					updateContent( commit, action, imageIds,postID, batch );
 				} else {
-					updateStatus = 'done';
+					updatePage( postID );
+					let interval = setInterval( function () {
+						if ( updatePageStatus === 'done' ) {
+							updatePageStatus = 'pending';
+							updateStatus = 'done';
+							clearInterval( interval );
+						}
+					}, 10000 );
 				}
 			}
 		}
 	).catch( function ( err ) {
 		if ( consecutiveErrors < 10 ) {
 			setTimeout( function () {
-				updateContent( commit, action, imageIds, batch, consecutiveErrors + 1 )
+				updateContent( commit, action, imageIds, postID, batch, consecutiveErrors + 1 )
+			}, consecutiveErrors * 1000 + 5000 );
+		} else {
+			updatePageStatus = 'fail';
+		}
+	} );
+};
+
+const updatePage =  function ( postID ) {
+	Vue.http(
+		{
+			url: optimoleDashboardApp.root + '/update_page',
+			method: 'POST',
+			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+			emulateJSON: true,
+			timeout: 0,
+			responseType: 'json',
+			body: {
+				'post_id': postID,
+			},
+		}
+	).then(
+		function ( response ) {
+			console.log( response );
+			if ( response.body.code === 'success' && response.body.data === true  ) {
+				updatePageStatus = 'done';
+				
+			}
+		}
+	).catch( function ( err ) {
+		if ( consecutiveErrors < 10 ) {
+			setTimeout( function () {
+				updatePage( postID );
 			}, consecutiveErrors * 1000 + 5000 );
 		} else {
 			updateStatus = 'fail';
@@ -416,9 +457,9 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, unattac
 	).then(
 		function ( response ) {
 			if ( response.body.code === 'success' && ( response.body.data.page > page || response.body.data.found_images > 0 ) ) {
-				if ( unattached === false ) {
-					console.log(response.body.data);
-					updateContent( commit, action, response.body.data.imagesToUpdate[Object.keys( response.body.data.imagesToUpdate )[0]], batch, 0 );
+				console.log( response.body.data );
+				if ( unattached === false && Object.keys( response.body.data.imagesToUpdate ).length !== 0  ) {
+					updateContent( commit, action, response.body.data.imagesToUpdate[Object.keys( response.body.data.imagesToUpdate )[0]],Object.keys( response.body.data.imagesToUpdate )[0], batch, 0 );
 					let interval = setInterval( function () {
 						if ( updateStatus === 'done' ) {
 							updateStatus = 'pending';
@@ -428,10 +469,12 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, unattac
 								batchSize: batch,
 								processedBatch: processedBatch + 1
 							} );
+
 							pushBatch( commit, batch, response.body.data.page, action, processedBatch + 1, unattached, 0 );
 							clearInterval( interval );
 						}
 					}, 10000 );
+
 				} else {
 					commit( 'updatePushedImagesProgress', batch );
 					commit( 'estimatedTime', {
@@ -451,7 +494,7 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, unattac
 			}
 		}
 	).catch( function ( err ) {
-		console.log(err);
+		console.log( err );
 		if ( consecutiveErrors < 10 ) {
 			setTimeout( function () { pushBatch( commit, batch, page, action, processedBatch, unattached, consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 5000 );
 		} else {

@@ -1174,12 +1174,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$result['success_rollback'] = $this->rollback_and_update_images( $ids );
 		return $result;
 	}
+	public function update_page( $post_id ) {
+		$post_update = wp_update_post( ['ID' => $post_id] );
+		if ( is_wp_error( $post_update ) || $post_update === 0 ) {
+			return false;
+		}
+		return true;
+	}
 	/**
 	 *  Calculate the number of images in media library.
 	 *
 	 * @param string $action The actions for which to get the number of images.
 	 * @return int Number of images.
 	 */
+
 	public static function number_of_library_images( $action ) {
 		$args = self::get_images_query_args( -1, $action );
 		$pages = new \WP_Query( $args );
