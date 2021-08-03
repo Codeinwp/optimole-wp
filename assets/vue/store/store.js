@@ -33,8 +33,7 @@ const store = new Vuex.Store(
 			watermarks: [],
 			conflicts: [],
 			pushedImagesProgress : 0,
-			totalNumberOfImages : 1,
-			estimatedTime: 0
+			totalNumberOfImages : 1
 		},
 		mutations,
 		actions

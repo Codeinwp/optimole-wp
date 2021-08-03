@@ -66,9 +66,6 @@ const updateConflicts = ( state, data ) => {
 const totalNumberOfImages = ( state, data ) => {
 	state.totalNumberOfImages = data;
 };
-const estimatedTime = ( state, data ) => {
-	state.estimatedTime = ( data.batchTime*( Math.ceil( state.totalNumberOfImages/data.batchSize ) - data.processedBatch ) / 60000 ).toFixed( 2 );
-};
 const updatePushedImagesProgress = ( state, data ) => {
 	if ( data === 'finish' ) {
 		state.pushedImagesProgress = 100;
@@ -100,7 +97,6 @@ export default {
 	updateWatermark,
 	updatePushedImagesProgress,
 	totalNumberOfImages,
-	estimatedTime,
 	toggleLoadingRollback,
 	toggleLoadingSync,
 	toggleActionError

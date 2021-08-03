@@ -213,19 +213,6 @@ class Optml_Rest {
 		);
 		register_rest_route(
 			$this->namespace,
-			'/update_content',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'update_content' ],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
 			'/rollback_images',
 			[
 				[
@@ -825,20 +812,6 @@ class Optml_Rest {
 			$batch = $request->get_param( 'batch' );
 		}
 		return $this->response( Optml_Media_Offload::upload_images( $batch ) );
-	}
-	/**
-	 * Update posts content.
-	 *
-	 * @param WP_REST_Request $request rest request object.
-	 *
-	 * @return WP_REST_Response
-	 */
-	public function update_content( WP_REST_Request $request ) {
-		$page = 1;
-		if ( ! empty( $request->get_param( 'page' ) ) ) {
-			$page = $request->get_param( 'page' );
-		}
-		return $this->response( Optml_Media_Offload::update_content( $page ) );
 	}
 	/**
 	 * Rollback images to media library.
