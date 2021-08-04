@@ -93,6 +93,14 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 == Changelog ==
 
+##### [Version 3.1.2](https://github.com/Codeinwp/optimole-wp/compare/v3.1.1...v3.1.2) (2021-08-04)
+
+* Adds a filter to force replacements as optml_force_replacement
+* Fix content path being root directory
+
+
+
+
 ##### [Version 3.1.1](https://github.com/Codeinwp/optimole-wp/compare/v3.1.0...v3.1.1) (2021-05-31)
 
 * Adds option to setup API key via wp-config variables fix [#314](https://github.com/Codeinwp/optimole-wp/issues/314) as OPTIML_API_KEY
