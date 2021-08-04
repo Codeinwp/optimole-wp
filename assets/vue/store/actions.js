@@ -376,7 +376,6 @@ const updateContent =  function ( commit,action, imageIds, postID, batch, consec
 			console.log( response );
 			if ( response.body.code === 'success' && response.body.data > 0 ) {
 				imageIds.splice( 0, batch );
-				console.log( imageIds );
 				if ( imageIds.length > 0 ) {
 					updateContent( commit, action, imageIds,postID, batch );
 				} else {
@@ -457,24 +456,23 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, unattac
 	).then(
 		function ( response ) {
 			if ( response.body.code === 'success' && ( response.body.data.page > page || response.body.data.found_images > 0 ) ) {
-				console.log( response.body.data );
 				if ( unattached === false && Object.keys( response.body.data.imagesToUpdate ).length !== 0  ) {
-					updateContent( commit, action, response.body.data.imagesToUpdate[Object.keys( response.body.data.imagesToUpdate )[0]],Object.keys( response.body.data.imagesToUpdate )[0], batch, 0 );
-					let interval = setInterval( function () {
-						if ( updateStatus === 'done' ) {
-							updateStatus = 'pending';
-							commit( 'updatePushedImagesProgress', batch );
-							commit( 'estimatedTime', {
-								batchTime: new Date() - time,
-								batchSize: batch,
-								processedBatch: processedBatch + 1
-							} );
-
-							pushBatch( commit, batch, response.body.data.page, action, processedBatch + 1, unattached, 0 );
-							clearInterval( interval );
-						}
-					}, 10000 );
-
+					for ( let postID of Object.keys( response.body.data.imagesToUpdate ) ) {
+						updateContent( commit, action, response.body.data.imagesToUpdate[postID], postID, batch, 0 );
+						let interval = setInterval( function () {
+							if ( updateStatus === 'done' ) {
+								updateStatus = 'pending';
+								commit( 'updatePushedImagesProgress', batch );
+								commit( 'estimatedTime', {
+									batchTime: new Date() - time,
+									batchSize: batch,
+									processedBatch: processedBatch + 1
+								} );
+								pushBatch( commit, batch, response.body.data.page, action, processedBatch + 1, unattached, 0 );
+								clearInterval( interval );
+							}
+						}, 10000 );
+					}
 				} else {
 					commit( 'updatePushedImagesProgress', batch );
 					commit( 'estimatedTime', {

@@ -522,12 +522,19 @@ class Optml_Admin {
 	function daily_sync() {
 
 		$api_key = $this->settings->get( 'api_key' );
+		$service_data = $this->settings->get( 'service_data' );
+		$application = '';
+
+		if ( isset( $service_data['cdn_key'] ) ) {
+			$application = $service_data['cdn_key'];
+		}
+
 		if ( empty( $api_key ) ) {
 			return;
 		}
 
 		$request = new Optml_Api();
-		$data    = $request->get_user_data( $api_key );
+		$data    = $request->get_user_data( $api_key, $application );
 		if ( $data === false || is_wp_error( $data ) ) {
 			return;
 		}
