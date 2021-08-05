@@ -522,12 +522,19 @@ class Optml_Admin {
 	function daily_sync() {
 
 		$api_key = $this->settings->get( 'api_key' );
+		$service_data = $this->settings->get( 'service_data' );
+		$application = '';
+
+		if ( isset( $service_data['cdn_key'] ) ) {
+			$application = $service_data['cdn_key'];
+		}
+
 		if ( empty( $api_key ) ) {
 			return;
 		}
 
 		$request = new Optml_Api();
-		$data    = $request->get_user_data( $api_key );
+		$data    = $request->get_user_data( $api_key, $application );
 		if ( $data === false || is_wp_error( $data ) ) {
 			return;
 		}
@@ -850,6 +857,9 @@ The root cause might be either a security plugin which blocks this feature or so
 				'sync_media'                        => __( 'Sync images', 'optimole-wp' ),
 				'rollback_media'                    => __( 'Rollback images', 'optimole-wp' ),
 				'sync_media_progress'               => __( 'We are currently offloading your images to Optimole, please wait', 'optimole-wp' ),
+				'estimated_time'                    => __( 'Estimated time for offloading all images', 'optimole-wp' ),
+				'calculating_estimated_time'        => __( 'We are currently calculating the estimated time for this job', 'optimole-wp' ),
+				'minutes'                           => __( 'minutes', 'optimole-wp' ),
 				'rollback_media_progress'           => __( 'We are currently moving images to your media library, please wait', 'optimole-wp' ),
 				'rollback_media_error'              => __( 'An unexpected error occured while pulling the offloaded back to your site', 'optimole-wp' ),
 				'rollback_media_error_desc'         => __( 'You can try again to pull back the rest of the images.', 'optimole-wp' ),
