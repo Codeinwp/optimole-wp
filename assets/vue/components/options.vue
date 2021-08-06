@@ -92,6 +92,9 @@
             }
         },
         mounted: function () {
+          if ( Object.prototype.hasOwnProperty.call(this.$store.state.queryArgs, 'optimole_action') ) {
+            this.changeTab('offload_media');
+          }
         },
         methods: {
             ToggleAdvanced() {

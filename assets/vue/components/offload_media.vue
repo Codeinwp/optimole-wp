@@ -270,6 +270,9 @@ export default {
     }
   },
   mounted: function () {
+    if ( Object.prototype.hasOwnProperty.call(this.$store.state.queryArgs, 'optimole_action') ) {
+      this.callSync( this.$store.state.queryArgs.optimole_action, this.$store.state.queryArgs.images );
+    }
   },
   methods: {
     selectValue: function (event) {
@@ -294,9 +297,9 @@ export default {
         }
       });
     },
-    callSync : function ( action ) {
+    callSync : function ( action, imageIds = [] ) {
       this.$store.state.errorMedia = false;
-      this.$store.dispatch('callSync', { action: action});
+      this.$store.dispatch('callSync', { action: action, images: imageIds });
     },
     saveChanges: function () {
       this.showOffloadDisabled = false;

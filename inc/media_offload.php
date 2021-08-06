@@ -468,14 +468,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! self::is_uploaded_image( $file ) ) {
 			$upload_action_url = add_query_arg(
 				[
-					'action' => 'optimole_upload_image',
+					'action' => 'offload_images',
 					'media[]' => $post->ID,
 					'_wpnonce' => wp_create_nonce( 'bulk-media' ),
 				],
 				'upload.php'
 			);
 
-			$actions['optimole_upload_image'] = sprintf(
+			$actions['offload_images'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				$upload_action_url,
 				esc_attr__( 'Offload to Optimole', 'optimole-wp' ),
@@ -485,13 +485,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( self::is_uploaded_image( $file ) ) {
 			$rollback_action_url = add_query_arg(
 				[
-					'action' => 'optimole_back_to_media',
+					'action' => 'rollback_images',
 					'media[]' => $post->ID,
 					'_wpnonce' => wp_create_nonce( 'bulk-media' ),
 				],
 				'upload.php'
 			);
-			$actions['optimole_back_to_media'] = sprintf(
+			$actions['rollback_images'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
 				$rollback_action_url,
 				esc_attr__( 'Restore image to media library', 'optimole-wp' ),
@@ -713,36 +713,39 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return string The url with the correspondent query args for the executed actions.
 	 */
 	public function bulk_action_handler( $redirect, $doaction, $image_ids ) {
+
 		if ( empty( $image_ids ) ) {
 			return $redirect;
 		}
 		$redirect = remove_query_arg( [ 'optimole_offload_images_succes', 'optimole_offload_images_failed', 'optimole_back_to_media_success', 'optimole_back_to_media_failed', 'optimole_offload_images_extra', 'optimole_rollback_images_extra'  ], $redirect );
+		$image_ids = array_slice( $image_ids, 0, 5, true );
 
-		if ( $doaction === 'optimole_upload_image' ) {
-			if ( count( $image_ids ) > 5 ) {
-				$redirect = add_query_arg( 'optimole_offload_images_extra', 'true', $redirect );
-				$image_ids = array_slice( $image_ids, 0, 5, true );
-			}
-			$success_up = $this->upload_and_update_existing_images( $image_ids );
-			$redirect = add_query_arg( 'optimole_offload_images_succes', $success_up, $redirect );
-			$failed_up = count( $image_ids ) - $success_up;
-			if ( $failed_up > 0 ) {
-				$redirect = add_query_arg( 'optimole_offload_images_failed', $failed_up, $redirect );
-			}
-		}
-
-		if ( $doaction === 'optimole_back_to_media' ) {
-			if ( count( $image_ids ) > 5 ) {
-				$redirect = add_query_arg( 'optimole_rollback_images_extra', 'true', $redirect );
-				$image_ids = array_slice( $image_ids, 0, 5, true );
-			}
-			$success_back = $this->rollback_and_update_images( $image_ids );
-			$failed_down = count( $image_ids ) - $success_back;
-			if ( $failed_down > 0 ) {
-				$redirect = add_query_arg( 'optimole_back_to_media_failed', $failed_down, $redirect );
-			}
-			$redirect = add_query_arg( 'optimole_back_to_media_success', $success_back, $redirect );
-		}
+		$redirect = add_query_arg( 'optimole_action', $doaction, $redirect );
+		$redirect = add_query_arg( 'page', 'optimole', $redirect );
+		$redirect = add_query_arg( $image_ids, $redirect );
+		error_log( $redirect );
+		// if ( $doaction === 'offload_images' ) {
+		// if ( count( $image_ids ) > 5 ) {
+		// $redirect = add_query_arg( 'optimole_offload_images_extra', 'true', $redirect );
+		// $image_ids = array_slice( $image_ids, 0, 5, true );
+		// }
+		// $redirect = add_query_arg( 'optimole_offload_images_succes', $success_up, $redirect );
+		// $failed_up = count( $image_ids ) - $success_up;
+		// if ( $failed_up > 0 ) {
+		// $redirect = add_query_arg( 'optimole_offload_images_failed', $failed_up, $redirect );
+		// }
+		// }
+		// if ( $doaction === 'rollback_images' ) {
+		// if ( count( $image_ids ) > 5 ) {
+		// $redirect = add_query_arg( 'optimole_rollback_images_extra', 'true', $redirect );
+		// $image_ids = array_slice( $image_ids, 0, 5, true );
+		// }
+		// $failed_down = count( $image_ids ) - $success_back;
+		// if ( $failed_down > 0 ) {
+		// $redirect = add_query_arg( 'optimole_back_to_media_failed', $failed_down, $redirect );
+		// }
+		// $redirect = add_query_arg( 'optimole_back_to_media_success', $success_back, $redirect );
+		// }
 		return $redirect;
 
 	}
@@ -754,8 +757,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function register_bulk_media_actions( $bulk_array ) {
 
-		$bulk_array['optimole_upload_image'] = __( 'Push Image to Optimole', 'optimole-wp' );
-		$bulk_array['optimole_back_to_media'] = __( 'Restore image to media library', 'optimole-wp' );
+		$bulk_array['offload_images'] = __( 'Push Image to Optimole', 'optimole-wp' );
+		$bulk_array['rollback_images'] = __( 'Restore image to media library', 'optimole-wp' );
 		return $bulk_array;
 
 	}
@@ -1152,10 +1155,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param int $batch Number of images to process in a batch.
 	 * @return array Number of found images and number of successfully processed images.
 	 */
-	public function upload_images( $batch ) {
-		$args = self::get_images_query_args( $batch, 'offload_images', true );
-		$attachments = new \WP_Query( $args );
-		$ids         = $attachments->get_posts();
+	public function upload_images( $batch, $images = [] ) {
+		if ( empty( $images ) ) {
+			$args = self::get_images_query_args( $batch, 'offload_images', true );
+			$attachments = new \WP_Query( $args );
+			$ids = $attachments->get_posts();
+		} else {
+			$ids = array_slice( $images, 0, $batch );
+		}
 		$result = [ 'found_images' => count( $ids ) ];
 		$result['success_offload'] = $this->upload_and_update_existing_images( $ids );
 		return $result;
@@ -1195,6 +1202,5 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$args = self::get_images_query_args( -1, $action, true );
 		$images = new \WP_Query( $args );
 		return $pages_count + $images->post_count;
-
 	}
 }

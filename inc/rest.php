@@ -850,7 +850,11 @@ class Optml_Rest {
 		if ( ! empty( $request->get_param( 'batch' ) ) ) {
 			$batch = $request->get_param( 'batch' );
 		}
-		return $this->response( Optml_Media_Offload::instance()->upload_images( $batch ) );
+		$images = [];
+        if ( ! empty( $request->get_param( 'images' ) ) ) {
+            $images = $request->get_param( 'images' );
+        }
+		return $this->response( Optml_Media_Offload::instance()->upload_images( $batch, $images ) );
 	}
 	/**
 	 * Update posts content.
