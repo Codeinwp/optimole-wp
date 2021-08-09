@@ -67,8 +67,8 @@ const totalNumberOfImages = ( state, data ) => {
 	state.totalNumberOfImages = data;
 };
 const estimatedTime = ( state, data ) => {
-	state.averageTime = ( state.averageTime + data.batchTime )/data.processedBatch;
-	state.estimatedTime = ( state.averageTime*( Math.ceil( state.totalNumberOfImages/data.batchSize ) - data.processedBatch ) / 60000 ).toFixed( 2 );
+	state.sumTime = ( state.sumTime + data.batchTime );
+	state.estimatedTime = ( ( state.sumTime/data.processedBatch )*( Math.ceil( state.totalNumberOfImages/data.batchSize ) - data.processedBatch ) / 60000 ).toFixed( 2 );
 };
 const updatePushedImagesProgress = ( state, data ) => {
 	if ( data === 'finish' ) {

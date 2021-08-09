@@ -297,7 +297,7 @@ export default {
         }
       });
     },
-    callSync : function ( action, imageIds = [] ) {
+    callSync : function ( action, imageIds = "none" ) {
       this.$store.state.errorMedia = false;
       this.$store.dispatch('callSync', { action: action, images: imageIds });
     },

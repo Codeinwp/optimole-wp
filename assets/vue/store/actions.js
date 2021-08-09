@@ -376,9 +376,9 @@ const updateContent =  function ( commit,action, imageIds, postID, batch, consec
 		).then(
 			function ( response ) {
 				if ( response.body.code === 'success' && response.body.data > 0 ) {
-					imageIds = imageIds.splice( 0, batch );
 					if ( imageIds.length > 0 ) {
 						updateContent( commit, action, imageIds, postID, batch );
+						imageIds.splice( 0, batch );
 					} else {
 						updatePage( postID );
 						let interval = setInterval( function () {
@@ -436,10 +436,10 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, images,
 	let time = new Date();
 	let route = '/update_content';
 	if ( unattached === true ) {
-		images = images.slice( 0, batch );
-		if ( images.length === 0 ) {
+		if ( images !== "none" && images.length === 0 ) {
 			commit( 'updatePushedImagesProgress', 'finish' );
 			action === "offload_images" ? commit( 'toggleLoadingSync', false ) : commit( 'toggleLoadingRollback', false );
+			return;
 		}
 		route = '/' + action;
 	}
@@ -464,14 +464,11 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, images,
 				if ( unattached === false && Object.keys( response.body.data.imagesToUpdate ).length !== 0  ) {
 					for ( let postID of Object.keys( response.body.data.imagesToUpdate ) ) {
 						let foundImages = response.body.data.imagesToUpdate[postID];
-						console.log( "images", images );
-						console.log( "found images", foundImages );
-						if ( images.length !== 0 ) {
+						if ( images !== "none" && images.length !== 0 ) {
 							foundImages = foundImages.filter( imageID => {
 								return images.includes( imageID );
 							} );
 						}
-						console.log( "filtered", foundImages );
 						updateContent( commit, action, foundImages, postID, batch, 0 );
 						let interval = setInterval( function () {
 							if ( updateStatus === 'done' ) {
@@ -499,6 +496,9 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, images,
 			} else {
 				if ( unattached === false ) {
 					pushBatch( commit, batch, response.body.data.page,  action, processedBatch + 1, images,true,0 );
+					if ( images !== "none" ) {
+						images.splice( 0, batch );
+					}
 				} else {
 					commit( 'updatePushedImagesProgress', 'finish' );
 					action === "offload_images" ? commit( 'toggleLoadingSync', false ) : commit( 'toggleLoadingRollback', false );
