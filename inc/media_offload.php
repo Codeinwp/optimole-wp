@@ -365,44 +365,57 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$data['post_content'] = wp_slash( $content );
 		return $data;
 	}
+
+	/**
+	 * Get all images that need to be updated from a post.
+	 *
+	 * @param string $post_content The content of the post.
+	 * @param string $job The job name.
+	 * @return array An array containing the image ids.
+	 */
 	public function get_image_id_from_content( $post_content, $job ) {
 		$content = trim( wp_unslash( $post_content ) );
 		$images  = Optml_Manager::instance()->extract_urls_from_content( $content );
-		if ( ! isset( $images[0] ) ) {
-			return false;
-		}
 		$found_images = [];
-		foreach ( $images as $url ) {
-			$is_original_uploaded = self::is_uploaded_image( $url );
-			$size = 'full';
-			$attachment_id = false;
-			if ( $is_original_uploaded ) {
-				if ( $job === 'rollback_images' ) {
-					$found_size = self::parse_dimension_from_optimized_url( $url );
-					if ( $found_size[0] !== 'auto' && $found_size[1] !== 'auto' ) {
-						$size = $found_size;
+		if ( isset( $images[0] ) ) {
+			foreach ( $images as $url ) {
+				$is_original_uploaded = self::is_uploaded_image( $url );
+				$size = 'full';
+				$attachment_id = false;
+				if ( $is_original_uploaded ) {
+					if ( $job === 'rollback_images' ) {
+						$found_size = self::parse_dimension_from_optimized_url( $url );
+						if ( $found_size[0] !== 'auto' && $found_size[1] !== 'auto' ) {
+							$size = $found_size;
+						}
+						$attachment_id = self::get_attachment_id_from_url( $url );
 					}
-					$attachment_id = self::get_attachment_id_from_url( $url );
-				}
-			} else {
-				if ( $job === 'offload_images' ) {
-					$found_size = $this->parse_dimensions_from_filename( $url );
-					$strip_url = $url;
-					if ( $found_size[0] !== false && $found_size[1] !== false ) {
-						$strip_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
+				} else {
+					if ( $job === 'offload_images' ) {
+						$found_size = $this->parse_dimensions_from_filename( $url );
+						$strip_url = $url;
+						if ( $found_size[0] !== false && $found_size[1] !== false ) {
+							$strip_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
+						}
+						$attachment_id = attachment_url_to_postid( $strip_url );
 					}
-					$attachment_id = attachment_url_to_postid( $strip_url );
 				}
+				if ( false === $attachment_id || ! wp_attachment_is_image( $attachment_id ) ) {
+					continue;
+				}
+				$found_images[] = intval( $attachment_id );
 			}
-			if ( false === $attachment_id || ! wp_attachment_is_image( $attachment_id ) ) {
-				continue;
-			}
-			$found_images[] = intval( $attachment_id );
 		}
 		return $found_images;
 	}
+
 	/**
-	 * Trigger an update on content that contains the same attachment ID as the modified image.
+	 * Get the posts ids and the images from them that need sync/rollback.
+	 *
+	 * @param int    $page The current page from the query.
+	 * @param string $job The job name rollback_images/offload_images.
+	 * @param int    $batch How many posts to query on a page.
+	 * @return array An array containing the page of the query and an array containing the images for every post that need to be updated.
 	 */
 	public function update_content( $page, $job, $batch = 1 ) {
 		if ( OPTML_DEBUG ) {
@@ -441,7 +454,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$ids = $this->get_image_id_from_content( get_post_field( 'post_content', $content_id ), $job );
 					if ( count( $ids ) > 0 ) {
 						$images_to_update[ $content_id ] = $ids;
-						// wp_update_post( ['ID' => $content_id] );
 					}
 				}
 			}
@@ -1088,6 +1100,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$result['success_rollback'] = $this->rollback_and_update_images( $ids );
 		return $result;
 	}
+
+	/**
+	 * Update the post with the given id, the images will be updated by the filters we use.
+	 *
+	 * @param int $post_id The post id to update.
+	 * @return bool Whether the update was succesful or not.
+	 */
 	public function update_page( $post_id ) {
 		$post_update = wp_update_post( ['ID' => $post_id] );
 		if ( is_wp_error( $post_update ) || $post_update === 0 ) {
@@ -1096,13 +1115,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		return true;
 	}
 	/**
-	 *  Calculate the number of images in media library.
+	 *  Calculate the number of images in media library and the number of posts/pages.
 	 *
 	 * @param string $action The actions for which to get the number of images.
 	 * @return int Number of images.
 	 */
-
-	public static function number_of_library_images( $action ) {
+	public static function number_of_images_and_pages( $action ) {
 		$args = self::get_images_query_args( -1, $action );
 		$pages = new \WP_Query( $args );
 		$pages_count = $pages->post_count;

@@ -492,6 +492,9 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, images,
 						processedBatch: processedBatch + 1
 					} );
 					pushBatch( commit, batch, response.body.data.page, action, processedBatch + 1, images, unattached, 0 );
+					if ( unattached === true && images !== "none" ) {
+						images.splice( 0, batch );
+					}
 				}
 			} else {
 				if ( unattached === false ) {
@@ -518,7 +521,7 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, images,
 };
 const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
 	Vue.http( {
-		url: optimoleDashboardApp.root + '/number_of_library_images',
+		url: optimoleDashboardApp.root + '/number_of_images_and_pages',
 		method: 'POST',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 		emulateJSON: true,

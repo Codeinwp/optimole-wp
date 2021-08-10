@@ -265,14 +265,14 @@ class Optml_Rest {
 		);
 		register_rest_route(
 			$this->namespace,
-			'/number_of_library_images',
+			'/number_of_images_and_pages',
 			[
 				[
 					'methods'             => \WP_REST_Server::CREATABLE,
 					'permission_callback' => function () {
 						return current_user_can( 'manage_options' );
 					},
-					'callback'            => [ $this, 'number_of_library_images' ],
+					'callback'            => [ $this, 'number_of_images_and_pages' ],
 				],
 			]
 		);
@@ -640,10 +640,9 @@ class Optml_Rest {
 		}
 
 		$final_images = array_splice( $images['list'], 0, 10 );
-		$media = new Optml_Media_Offload();
 
 		foreach ( $final_images as $index => $value ) {
-			$final_images[ $index ]['url'] = $media->get_media_optimized_url( $value['url'], $value['key'] );
+			$final_images[ $index ]['url'] = Optml_Media_Offload::instance()->get_media_optimized_url( $value['url'], $value['key'] );
 			unset( $final_images[ $index ]['key'] );
 		}
 
@@ -851,9 +850,9 @@ class Optml_Rest {
 			$batch = $request->get_param( 'batch' );
 		}
 		$images = [];
-        if ( ! empty( $request->get_param( 'images' ) ) ) {
-            $images = $request->get_param( 'images' );
-        }
+		if ( ! empty( $request->get_param( 'images' ) ) ) {
+			$images = $request->get_param( 'images' );
+		}
 		return $this->response( Optml_Media_Offload::instance()->upload_images( $batch, $images ) );
 	}
 	/**
@@ -890,8 +889,19 @@ class Optml_Rest {
 		if ( ! empty( $request->get_param( 'batch' ) ) ) {
 			$batch = $request->get_param( 'batch' );
 		}
-		return $this->response( Optml_Media_Offload::instance()->rollback_images( $batch ) );
+		$images = [];
+		if ( ! empty( $request->get_param( 'images' ) ) ) {
+			$images = $request->get_param( 'images' );
+		}
+		return $this->response( Optml_Media_Offload::instance()->rollback_images( $batch, $images ) );
 	}
+	/**
+	 * Update page to replace the image urls.
+	 *
+	 * @param WP_REST_Request $request rest request object.
+	 *
+	 * @return WP_REST_Response
+	 */
 	public function update_page( WP_REST_Request $request ) {
 		if ( empty( $request->get_param( 'post_id' ) ) ) {
 			return false;
@@ -899,10 +909,14 @@ class Optml_Rest {
 		$post_id = $request->get_param( 'post_id' );
 		return $this->response( Optml_Media_Offload::instance()->update_page( $post_id ) );
 	}
+	/**
+	 * Sync or rollback images with the given ids.
+	 *
+	 * @param WP_REST_Request $request rest request object.
+	 *
+	 * @return WP_REST_Response
+	 */
 	public function upload_rollback_images( WP_REST_Request $request ) {
-		if ( ! empty( $request->get_param( 'batch' ) ) ) {
-			$batch = $request->get_param( 'batch' );
-		}
 		$job = false;
 		if ( ! empty( $request->get_param( 'job' ) ) ) {
 			$job = $request->get_param( 'job' );
@@ -925,11 +939,11 @@ class Optml_Rest {
 	 *
 	 * @return WP_REST_Response
 	 */
-	public function number_of_library_images( WP_REST_Request $request ) {
+	public function number_of_images_and_pages( WP_REST_Request $request ) {
 		$action = 'offload_images';
 		if ( ! empty( $request->get_param( 'action' ) ) ) {
 			$action = $request->get_param( 'action' );
 		}
-		return $this->response( Optml_Media_Offload::number_of_library_images( $action ) );
+		return $this->response( Optml_Media_Offload::number_of_images_and_pages( $action ) );
 	}
 }
