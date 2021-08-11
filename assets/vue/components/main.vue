@@ -191,6 +191,8 @@
             }
         }
         params.images = images;
+        params.url = window.location.href.split('?')[0] + ( Object.prototype.hasOwnProperty.call(params, "paged") ? "?paged=" + params['paged'] : "" );
+        console.log(params.url);
         this.$store.state.queryArgs = params;
         this.changeTab('settings');
       }

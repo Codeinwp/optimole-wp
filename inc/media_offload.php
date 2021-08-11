@@ -380,14 +380,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( isset( $images[0] ) ) {
 			foreach ( $images as $url ) {
 				$is_original_uploaded = self::is_uploaded_image( $url );
-				$size = 'full';
 				$attachment_id = false;
 				if ( $is_original_uploaded ) {
 					if ( $job === 'rollback_images' ) {
-						$found_size = self::parse_dimension_from_optimized_url( $url );
-						if ( $found_size[0] !== 'auto' && $found_size[1] !== 'auto' ) {
-							$size = $found_size;
-						}
 						$attachment_id = self::get_attachment_id_from_url( $url );
 					}
 				} else {
@@ -472,7 +467,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public function add_inline_media_action( $actions, $post ) {
-		$file = wp_get_attachment_metadata( $post->ID )['file'];
+		$meta = wp_get_attachment_metadata( $post->ID );
+		if ( ! isset( $meta['file'] ) ) {
+			return $actions;
+		}
+		$file = $meta['file'];
 		if ( wp_check_filetype( $file, Optml_Config::$all_extensions )['ext'] === false || ! current_user_can( 'delete_post', $post->ID ) ) {
 			return $actions;
 		}
@@ -791,7 +790,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( ! isset( $table_id[1] ) ) {
 					return;
 			}
-
 			$this->delete_attachment_from_server( $original_url, $post_id, $table_id[1] );
 		}
 	}

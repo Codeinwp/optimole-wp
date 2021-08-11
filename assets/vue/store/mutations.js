@@ -3,9 +3,15 @@ const toggleLoading = ( state, data ) => {
 	state.loading = data;
 };
 const toggleLoadingRollback = ( state, data ) => {
+	if ( Object.prototype.hasOwnProperty.call( state.queryArgs, 'optimole_action' ) ) {
+		state.rollbackLibraryLink = ! data;
+	}
 	state.loadingRollback = data;
 };
 const toggleLoadingSync = ( state, data ) => {
+	if ( Object.prototype.hasOwnProperty.call( state.queryArgs, 'optimole_action' ) ) {
+		state.offloadLibraryLink = ! data;
+	}
 	state.loadingSync = data;
 };
 const toggleActionError = ( state, data ) => {

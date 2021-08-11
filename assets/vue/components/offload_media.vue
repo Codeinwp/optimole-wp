@@ -171,6 +171,11 @@
       </div>
     </div>
 
+    <div class="field  columns" v-if="this.$store.state.offloadLibraryLink === true">
+      <label class="label column">
+        {{strings.sync_media_link}} <a :href="this.$store.state.queryArgs.url">{{strings.here}}</a>
+      </label>
+    </div>
     <!--Sync error notice-->
     <div class="field  columns" v-if="this.$store.state.errorMedia === 'offload_images'">
       <label class="label column" style="color: #dc143c !important;">
@@ -224,6 +229,11 @@
       </div>
     </div>
     <!--Rollback error notice-->
+    <div class="field  columns" v-if="this.$store.state.rollbackLibraryLink === true">
+      <label class="label column">
+        {{strings.rollback_media_link}} <a :href="this.$store.state.queryArgs.url">{{strings.here}}</a>
+      </label>
+    </div>
     <div class="field  columns" v-if="this.$store.state.errorMedia === 'rollback_images'">
       <label class="label column" style="color: #dc143c !important;">
         {{strings.rollback_media_error}}

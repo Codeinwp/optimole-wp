@@ -36,6 +36,8 @@ const store = new Vuex.Store(
 			totalNumberOfImages : 1,
 			estimatedTime : 0,
 			sumTime : 0,
+			offloadLibraryLink : false,
+			rollbackLibraryLink: false,
 			queryArgs : [],
 		},
 		mutations,
