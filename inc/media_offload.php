@@ -160,7 +160,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Optml_Media_Offload constructor.
 	 */
 	public static function instance() {
-		if ( null === self::$instance ) {
+		if ( null === self::$instance ||
+			( self::$instance->settings !== null && ( ! self::$instance->settings->is_connected()
+				|| self::$instance->settings->get( 'offload_media' ) === 'disabled'
+				|| self::$instance->settings->get( 'cloud_images' ) === 'disabled' ) ) ) {
 			self::$instance = new self();
 			self::$instance->settings = new Optml_Settings();
 			if ( self::$instance->settings->is_connected() ) {
@@ -880,7 +883,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @uses filter:wp_generate_attachment_metadata
 	 */
 	public function generate_image_meta( $meta, $attachment_id ) {
-
 		if ( ! isset( $meta['file'] ) || ! isset( $meta['width'] ) || ! isset( $meta['height'] ) || self::is_uploaded_image( $meta['file'] ) ) {
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
