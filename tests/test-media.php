@@ -152,7 +152,7 @@ class Test_Media extends WP_UnitTestCase {
 				'post_content' => self::IMG_TAGS,
 			]
 		);
-		self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1.jpg', self::$sample_post );
+		self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1.jpg' );
 	}
 	public function test_page_images_process() {
 		
