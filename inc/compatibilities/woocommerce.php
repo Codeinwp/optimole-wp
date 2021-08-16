@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Class Optml_elementor_builder
+ * Class Optml_woocommerce
  *
- * @reason Adding selectors for background lazyload
+ * @reason Adding flags for ignoring the lazyloaded tags.
  */
 class Optml_woocommerce extends Optml_compatibility {
 
@@ -22,19 +22,18 @@ class Optml_woocommerce extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'optml_should_ignore_image_tags', [$this, 'check_product_page'], 10, 1 );
+		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_ignore_lazyload' ], PHP_INT_MAX, 1 );
 	}
 	/**
-	 * Add ignore page lazyload flag.
+	 * Add ignore lazyload flag.
 	 *
-	 * @param bool $old_value Previous returned value.
+	 * @param array $flags Old flags.
 	 *
-	 * @return bool If we should lazyload the page.
+	 * @return array New flags.
 	 */
-	public function check_product_page( $old_value ) {
-		if ( is_product() ) {
-			return true;
-		}
-		return $old_value;
+	public function add_ignore_lazyload( $flags = [] ) {
+		$flags[] = 'data-src';
+
+		return $flags;
 	}
 }
