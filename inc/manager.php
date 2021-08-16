@@ -76,6 +76,7 @@ final class Optml_Manager {
 		'w3_total_cache',
 		'translate_press',
 		'give_wp',
+		'woocommerce',
 		'smart_search_woocommerce',
 	];
 	/**
