@@ -32,7 +32,7 @@ class Optml_woocommerce extends Optml_compatibility {
 	 * @return array New flags.
 	 */
 	public function add_ignore_lazyload( $flags = [] ) {
-		$flags[] = 'data-src';
+		$flags[] = 'data-large_image';
 
 		return $flags;
 	}
