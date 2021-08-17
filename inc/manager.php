@@ -78,6 +78,7 @@ final class Optml_Manager {
 		'give_wp',
 		'woocommerce',
 		'smart_search_woocommerce',
+		'facetwp',
 	];
 	/**
 	 * The current state of the buffer.
@@ -315,7 +316,7 @@ final class Optml_Manager {
 	 * @return mixed Filtered content.
 	 */
 	public function replace_content( $html ) {
-
+	    error_log("called filter");
 		if ( defined( 'REST_REQUEST' ) && REST_REQUEST && is_user_logged_in() && ( apply_filters( 'optml_force_replacement', false ) !== true ) ) {
 			return $html;
 		}
