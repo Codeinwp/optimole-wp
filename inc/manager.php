@@ -316,7 +316,7 @@ final class Optml_Manager {
 	 * @return mixed Filtered content.
 	 */
 	public function replace_content( $html ) {
-	    error_log("called filter");
+		error_log( 'called filter' );
 		if ( defined( 'REST_REQUEST' ) && REST_REQUEST && is_user_logged_in() && ( apply_filters( 'optml_force_replacement', false ) !== true ) ) {
 			return $html;
 		}
