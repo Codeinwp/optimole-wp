@@ -628,6 +628,12 @@ class Optml_Admin {
 		$api_key      = $this->settings->get( 'api_key' );
 		$service_data = $this->settings->get( 'service_data' );
 		$user         = get_userdata( get_current_user_id() );
+		$routes = [];
+		foreach ( Optml_Rest::$rest_routes as $route_type ) {
+			foreach ( $route_type as $route => $details ) {
+				$routes[ $route ] = rest_url( OPTML_NAMESPACE . '/v1/' . $route );
+			}
+		}
 
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
@@ -637,7 +643,7 @@ class Optml_Admin {
 			'user_status'                => isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ? 'inactive' : 'active',
 			'available_apps'             => isset( $service_data['available_apps'] ) ? $service_data['available_apps'] : null,
 			'api_key'                    => $api_key,
-			'root'                       => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),
+			'routes'                     => $routes,
 			'nonce'                      => wp_create_nonce( 'wp_rest' ),
 			'user_data'                  => $service_data,
 			'remove_latest_images'       => defined( 'OPTML_REMOVE_LATEST_IMAGES' ) && constant( 'OPTML_REMOVE_LATEST_IMAGES' ) ? ( OPTML_REMOVE_LATEST_IMAGES ? 'yes' : 'no' ) : 'no',

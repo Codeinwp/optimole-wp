@@ -20,6 +20,62 @@ class Optml_Rest {
 	 */
 	private $namespace;
 
+	public static $rest_routes = [
+		'service_routes' => ['update_option' => 'POST', 'request_update' => 'GET', 'check_redirects' => 'POST_PUT_PATCH',
+			'connect' => [ 'POST', 'args'  => [
+						'api_key' => [
+							'type'     => 'string',
+							'required' => true,
+						],
+					],
+				],
+			'select_application' => [ 'POST', 'args'  => [
+					'api_key' => [
+						'type'     => 'string',
+						'required' => true,
+					],
+					'application' => [
+						'type'     => 'string',
+						'required' => true,
+					],
+			],
+			],
+			'register_service' => [ 'POST', 'args' => [
+					'email' => [
+						'type'     => 'string',
+						'required' => true,
+					],
+				],
+
+			],
+			'disconnect' => 'GET',
+		],
+		'image_routes' => [
+			'poll_optimized_images' => 'GET',
+			'get_sample_rate' => 'POST',
+		],
+		'media_cloud_routes' => [
+			'offload_images' => 'POST',
+			'update_content' => 'POST',
+			'rollback_images' => 'POST',
+			'update_page' => 'POST',
+			'upload_rollback_images' => 'POST',
+			'number_of_images_and_pages' => 'POST',
+		],
+		'watermark_routes' => [
+			'poll_watermarks' => 'GET',
+			'add_watermark'   => 'POST',
+			'remove_watermark' => 'POST',
+		],
+		'conflict_routes' => [
+			'poll_conflicts' => 'GET',
+			'dismiss_conflict' => 'POST',
+		],
+		'cache_routes' => [
+			'clear_cache_request' => 'POST',
+		],
+	];
+
 	/**
 	 * Optml_Rest constructor.
 	 */
@@ -28,53 +84,44 @@ class Optml_Rest {
 		add_action( 'rest_api_init', [ $this, 'register' ] );
 	}
 
+	private function reqister_route( $route, $method = 'GET', $args = [] ) {
+		$wp_method_constant = false;
+		if ( $method === 'GET' ) {
+			$wp_method_constant = \WP_REST_Server::READABLE;
+		}
+		if ( $method === 'POST' ) {
+			$wp_method_constant = \WP_REST_Server::CREATABLE;
+		}
+		if ( $method === 'POST_PUT_PATCH' ) {
+			$wp_method_constant = \WP_REST_Server::EDITABLE;
+		}
+		if ( $wp_method_constant !== false ) {
+			$params = [
+				'methods'             => $wp_method_constant,
+				'permission_callback' => function () {
+					return current_user_can( 'manage_options' );
+				},
+				'callback'            => [ $this, $route ],
+			];
+			if ( ! empty( $args ) ) {
+				$params['args'] = $args;
+			}
+			register_rest_route(
+				$this->namespace,
+				'/' . $route,
+				[
+					$params,
+				]
+			);
+		}
+
+	}
 	/**
 	 * Register rest routes.
 	 */
 	public function register() {
 
 		$this->register_service_routes();
-
-		register_rest_route(
-			$this->namespace,
-			'/update_option',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'update_option' ],
-				],
-			]
-		);
-
-		register_rest_route(
-			$this->namespace,
-			'/request_update',
-			[
-				[
-					'methods'             => \WP_REST_Server::READABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'request_update' ],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/check_redirects',
-			[
-				[
-					'methods'             => \WP_REST_Server::EDITABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'check_redirects' ],
-				],
-			]
-		);
 
 		$this->register_image_routes();
 		$this->register_watermark_routes();
@@ -87,291 +134,58 @@ class Optml_Rest {
 	 * Method to register service specific routes.
 	 */
 	public function register_service_routes() {
-		register_rest_route(
-			$this->namespace,
-			'/connect',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'connect' ],
-					'args'                => [
-						'api_key' => [
-							'type'     => 'string',
-							'required' => true,
-						],
-					],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/select',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'select_application' ],
-					'args'                => [
-						'api_key' => [
-							'type'     => 'string',
-							'required' => true,
-						],
-						'application' => [
-							'type'     => 'string',
-							'required' => true,
-						],
-					],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/register',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'register_service' ],
-					'args'                => [
-						'email' => [
-							'type'     => 'string',
-							'required' => true,
-						],
-					],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/disconnect',
-			[
-				[
-					'methods'             => \WP_REST_Server::READABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'disconnect' ],
-				],
-			]
-		);
+		foreach ( self::$rest_routes['service_routes'] as $route => $details ) {
+			if ( is_array( $details ) ) {
+				$this->reqister_route( $route, $details[0], $details['args'] );
+			} else {
+				$this->reqister_route( $route, $details );
+			}
+		}
 	}
 
 	/**
 	 * Method to register image specific routes.
 	 */
 	public function register_image_routes() {
-		register_rest_route(
-			$this->namespace,
-			'/poll_optimized_images',
-			[
-				[
-					'methods'             => \WP_REST_Server::READABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'poll_optimized_images' ],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/images-sample-rate',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'get_sample_rate' ],
-				],
-			]
-		);
+		foreach ( self::$rest_routes['image_routes'] as $route => $details ) {
+				$this->reqister_route( $route, $details );
+		}
+
 	}
 	/**
 	 * Method to register media offload specific routes.
 	 */
 	public function register_media_offload_routes() {
-		register_rest_route(
-			$this->namespace,
-			'/offload_images',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'offload_images' ],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/update_content',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'update_content' ],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/rollback_images',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'rollback_images' ],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/update_page',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'update_page' ],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/upload_rollback_images',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'upload_rollback_images' ],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/number_of_images_and_pages',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'number_of_images_and_pages' ],
-				],
-			]
-		);
+		foreach ( self::$rest_routes['media_cloud_routes'] as $route => $details ) {
+			$this->reqister_route( $route, $details );
+		}
 	}
 
 	/**
 	 * Method to register watermark specific routes.
 	 */
 	public function register_watermark_routes() {
-		register_rest_route(
-			$this->namespace,
-			'/poll_watermarks',
-			[
-				[
-					'methods'             => \WP_REST_Server::READABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'poll_watermarks' ],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/add_watermark',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'add_watermark' ],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/remove_watermark',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'remove_watermark' ],
-				],
-			]
-		);
+		foreach ( self::$rest_routes['watermark_routes'] as $route => $details ) {
+			$this->reqister_route( $route, $details );
+		}
 	}
 
 	/**
 	 * Method to register conflicts specific routes.
 	 */
 	public function register_conflict_routes() {
-		register_rest_route(
-			$this->namespace,
-			'/poll_conflicts',
-			[
-				[
-					'methods'             => \WP_REST_Server::READABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'poll_conflicts' ],
-				],
-			]
-		);
-		register_rest_route(
-			$this->namespace,
-			'/dismiss_conflict',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'dismiss_conflict' ],
-				],
-			]
-		);
+		foreach ( self::$rest_routes['conflict_routes'] as $route => $details ) {
+			$this->reqister_route( $route, $details );
+		}
 	}
 
 	/**
 	 * Method to register cache specific routes.
 	 */
 	public function register_cache_routes() {
-		register_rest_route(
-			$this->namespace,
-			'/clear_cache',
-			[
-				[
-					'methods'             => \WP_REST_Server::CREATABLE,
-					'permission_callback' => function () {
-						return current_user_can( 'manage_options' );
-					},
-					'callback'            => [ $this, 'clear_cache_request' ],
-				],
-			]
-		);
+		foreach ( self::$rest_routes['cache_routes'] as $route => $details ) {
+			$this->reqister_route( $route, $details );
+		}
 	}
 
 	/**
