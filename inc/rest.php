@@ -13,6 +13,7 @@
  * @codeCoverageIgnore
  */
 class Optml_Rest {
+
 	/**
 	 * Rest api namespace.
 	 *
@@ -20,6 +21,11 @@ class Optml_Rest {
 	 */
 	private $namespace;
 
+	/**
+	 * Rest api routes.
+	 *
+	 * @var array List of routes and details (type, required args).
+	 */
 	public static $rest_routes = [
 		'service_routes' => ['update_option' => 'POST', 'request_update' => 'GET', 'check_redirects' => 'POST_PUT_PATCH',
 			'connect' => [ 'POST', 'args'  => [
@@ -84,6 +90,13 @@ class Optml_Rest {
 		add_action( 'rest_api_init', [ $this, 'register' ] );
 	}
 
+	/**
+	 * Method to register a specific rest route.
+	 *
+	 * @param string $route The route name.
+	 * @param string $method The route access method GET, POST, POST_PUT_PATCH.
+	 * @param array  $args Optional argument to include required args.
+	 */
 	private function reqister_route( $route, $method = 'GET', $args = [] ) {
 		$wp_method_constant = false;
 		if ( $method === 'GET' ) {
@@ -116,6 +129,7 @@ class Optml_Rest {
 		}
 
 	}
+
 	/**
 	 * Register rest routes.
 	 */
