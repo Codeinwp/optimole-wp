@@ -375,20 +375,18 @@ const updateContent =  function ( commit,action, imageIds, postID, batch, consec
 			}
 		).then(
 			function ( response ) {
-				if ( response.body.code === 'success' && response.body.data > 0 ) {
-					if ( imageIds.length > 0 ) {
-						updateContent( commit, action, imageIds, postID, batch );
-						imageIds.splice( 0, batch );
-					} else {
-						updatePage( postID );
-						let interval = setInterval( function () {
-							if ( updatePageStatus === 'done' ) {
-								updatePageStatus = 'pending';
-								updateStatus = 'done';
-								clearInterval( interval );
-							}
-						}, 10000 );
-					}
+				if ( imageIds.length > 0 ) {
+					updateContent( commit, action, imageIds, postID, batch );
+					imageIds.splice( 0, batch );
+				} else {
+					updatePage( postID );
+					let interval = setInterval( function () {
+						if ( updatePageStatus === 'done' ) {
+							updatePageStatus = 'pending';
+							updateStatus = 'done';
+							clearInterval( interval );
+						}
+					}, 10000 );
 				}
 			}
 		).catch( function ( err ) {

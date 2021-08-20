@@ -884,16 +884,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function generate_image_meta( $meta, $attachment_id ) {
 		if ( ! isset( $meta['file'] ) || ! isset( $meta['width'] ) || ! isset( $meta['height'] ) || self::is_uploaded_image( $meta['file'] ) ) {
+			do_action( 'optml_log', 'invalid meta' );
+			do_action( 'optml_log', $meta );
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
 		}
 		if ( false === Optml_Filters::should_do_image( $meta['file'], self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_FILENAME ] ) ) {
+			do_action( 'optml_log', 'optimization filter' );
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
 		}
 		$original_url  = self::get_original_url( $attachment_id );
 
 		if ( $original_url === false ) {
+			do_action( 'optml_log', 'error getting original url' );
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
 		}
@@ -901,15 +905,21 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$local_file = get_attached_file( $attachment_id );
 		if ( ! file_exists( $local_file ) ) {
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
+			do_action( 'optml_log', 'missing file' );
+			do_action( 'optml_log', $local_file );
 			return $meta;
 		}
 		$extension = $this->get_ext( $local_file );
 
 		if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) ) {
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
+			do_action( 'optml_log', 'invalid extension' );
+			do_action( 'optml_log', $extension );
 			return $meta;
 		}
 		if ( false === Optml_Filters::should_do_extension( self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_EXT ], $extension ) ) {
+			do_action( 'optml_log', 'extension filter' );
+			do_action( 'optml_log', $extension );
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
 		}
@@ -917,13 +927,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$content_type = Optml_Config::$image_extensions [ $extension ];
 		$temp = explode( '/', $local_file );
 		$file_name = end( $temp );
-
 		$request = new Optml_Api();
 		$generate_url_response = $request->call_upload_api( $original_url );
 
 		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
 			if ( OPTML_DEBUG ) {
 				do_action( 'optml_log', ' call to signed url error' );
+				do_action( 'optml_log', $generate_url_response );
 			}
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
@@ -933,6 +943,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! isset( $decoded_response['tableId'] ) || ! isset( $decoded_response['uploadUrl'] ) ) {
 			if ( OPTML_DEBUG ) {
 				do_action( 'optml_log', ' missing table id or upload url' );
+				do_action( 'optml_log', $decoded_response );
 			}
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
@@ -945,6 +956,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$upload_signed_url = $decoded_response['uploadUrl'];
 		$image = file_get_contents( $local_file );
 		if ( $image === false ) {
+			do_action( 'optml_log', 'can not find file' );
+			do_action( 'optml_log', $local_file );
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
 		}
@@ -954,6 +967,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$result = $request->upload_image( $upload_signed_url, $content_type, $image );
 
 			if ( is_wp_error( $result ) || wp_remote_retrieve_response_code( $result ) !== 200 ) {
+				do_action( 'optml_log', 'upload error' );
+				do_action( 'optml_log', $result );
 				update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 				return $meta;
 			}
@@ -973,6 +988,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$file_size
 			);
 			if ( is_wp_error( $result_update ) || wp_remote_retrieve_response_code( $result_update ) !== 200 ) {
+				do_action( 'optml_log', 'dynamo update error' );
+				do_action( 'optml_log', $result_update );
 				update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 				return $meta;
 			}
@@ -985,6 +1002,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$optimized_url = $this->get_media_optimized_url( $url_to_append, $table_id );
 		$request = new Optml_Api();
 		if ( $request->check_optimized_url( $optimized_url ) === false ) {
+			do_action( 'optml_log', 'optimization error' );
+			do_action( 'optml_log', $optimized_url );
 			$request->call_upload_api( $original_url, 'true', $table_id );
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			return $meta;
