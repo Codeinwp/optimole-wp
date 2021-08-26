@@ -10,7 +10,7 @@ const selectOptimoleDomain = function ( {commit, state}, data ) {
 	commit( 'restApiNotWorking', false );
 	Vue.http(
 		{
-			url: optimoleDashboardApp.root + '/select',
+			url: optimoleDashboardApp.routes['select_application'],
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			body: {
@@ -49,7 +49,7 @@ const connectOptimole = function ( {commit, state}, data ) {
 	commit( 'restApiNotWorking', false );
 	Vue.http(
 		{
-			url: optimoleDashboardApp.root + '/connect',
+			url: optimoleDashboardApp.routes['connect'],
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			body: {
@@ -93,7 +93,7 @@ const registerOptimole = function ( {commit, state}, data ) {
 	commit( 'toggleLoading', true );
 	return Vue.http(
 		{
-			url: optimoleDashboardApp.root + '/register',
+			url: optimoleDashboardApp.routes['register_service'],
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			body: {
@@ -120,7 +120,7 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 	commit( 'toggleLoading', true, 'loading' );
 	Vue.http(
 		{
-			url: optimoleDashboardApp.root + '/disconnect',
+			url: optimoleDashboardApp.routes['disconnect'],
 			method: 'GET',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
@@ -148,7 +148,7 @@ const clearCache = function ( {commit, state}, data ) {
 	commit( 'toggleLoading', true );
 	return Vue.http(
 		{
-			url: optimoleDashboardApp.root + '/clear_cache',
+			url: optimoleDashboardApp.routes['clear_cache_request'],
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
@@ -171,7 +171,7 @@ const saveSettings = function ( {commit, state}, data ) {
 	commit( 'toggleLoading', true );
 	return Vue.http(
 		{
-			url: optimoleDashboardApp.root + '/update_option',
+			url: optimoleDashboardApp.routes['update_option'],
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
@@ -195,7 +195,7 @@ const sampleRate = function ( {commit, state}, data ) {
 	data.component.loading_images = true;
 	return Vue.http(
 		{
-			url: optimoleDashboardApp.root + '/images-sample-rate',
+			url: optimoleDashboardApp.routes['get_sample_rate'],
 			method: 'POST',
 			emulateJSON: true,
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
@@ -227,7 +227,7 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 			}
 			Vue.http(
 				{
-					url: optimoleDashboardApp.root + '/poll_optimized_images',
+					url: optimoleDashboardApp.routes['poll_optimized_images'],
 					method: 'GET',
 					emulateJSON: true,
 					headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
@@ -262,7 +262,7 @@ const retrieveWatermarks = function ( {commit, state}, data ) {
 
 	commit( 'toggleLoading', true );
 	Vue.http( {
-		url: optimoleDashboardApp.root + '/poll_watermarks',
+		url: optimoleDashboardApp.routes['poll_watermarks'],
 		method: 'GET',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 		responseType: 'json',
@@ -290,7 +290,7 @@ const removeWatermark = function ( {commit, state}, data ) {
 	let self = this;
 	commit( 'toggleLoading', true );
 	Vue.http( {
-		url: optimoleDashboardApp.root + '/remove_watermark',
+		url: optimoleDashboardApp.routes['remove_watermark'],
 		method: 'POST',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 		params: { 'postID': data.postID },
@@ -306,7 +306,7 @@ const removeWatermark = function ( {commit, state}, data ) {
 const requestStatsUpdate = function ( {commit, state}, data ) {
 	commit( 'toggleLoading', true );
 	Vue.http( {
-		url: optimoleDashboardApp.root + '/request_update',
+		url: optimoleDashboardApp.routes['request_update'],
 		method: 'GET',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 		responseType: 'json',
@@ -322,7 +322,7 @@ const retrieveConflicts = function ( {commit, state}, data ) {
 
 	commit( 'toggleLoading', true );
 	Vue.http( {
-		url: optimoleDashboardApp.root + '/poll_conflicts',
+		url: optimoleDashboardApp.routes['poll_conflicts'],
 		method: 'GET',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 		responseType: 'json',
@@ -339,7 +339,7 @@ const dismissConflict = function ( {commit, state}, data ) {
 	let self = this;
 	commit( 'toggleLoading', true );
 	Vue.http( {
-		url: optimoleDashboardApp.root + '/dismiss_conflict',
+		url: optimoleDashboardApp.routes['dismiss_conflict'],
 		method: 'POST',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 		params: { 'conflictID': data.conflictID },
@@ -353,10 +353,97 @@ const dismissConflict = function ( {commit, state}, data ) {
 		}
 	} );
 };
-const pushBatch = function ( commit,batch,action, consecutiveErrors = 0 ) {
+
+let updateStatus = 'pending';
+let updatePageStatus = 'pending';
+const updateContent =  function ( commit,action, imageIds, postID, batch, consecutiveErrors = 0 ) {
+	if ( imageIds.length === 0 ) {
+		updateStatus = 'done';
+	} else {
+		Vue.http(
+			{
+				url: optimoleDashboardApp.routes['upload_rollback_images'],
+				method: 'POST',
+				headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+				emulateJSON: true,
+				timeout: 0,
+				responseType: 'json',
+				body: {
+					'image_ids': imageIds,
+					'job': action,
+				},
+			}
+		).then(
+			function ( response ) {
+				if ( imageIds.length > 0 ) {
+					updateContent( commit, action, imageIds, postID, batch );
+					imageIds.splice( 0, batch );
+				} else {
+					updatePage( postID );
+					let interval = setInterval( function () {
+						if ( updatePageStatus === 'done' ) {
+							updatePageStatus = 'pending';
+							updateStatus = 'done';
+							clearInterval( interval );
+						}
+					}, 10000 );
+				}
+			}
+		).catch( function ( err ) {
+			if ( consecutiveErrors < 10 ) {
+				setTimeout( function () {
+					updateContent( commit, action, imageIds, postID, batch, consecutiveErrors + 1 )
+				}, consecutiveErrors * 1000 + 5000 );
+			} else {
+				updatePageStatus = 'fail';
+			}
+		} );
+	}
+};
+
+const updatePage =  function ( postID ) {
 	Vue.http(
 		{
-			url: optimoleDashboardApp.root + '/' + action,
+			url: optimoleDashboardApp.routes['update_page'],
+			method: 'POST',
+			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+			emulateJSON: true,
+			timeout: 0,
+			responseType: 'json',
+			body: {
+				'post_id': postID,
+			},
+		}
+	).then(
+		function ( response ) {
+			if ( response.body.code === 'success' && response.body.data === true  ) {
+				updatePageStatus = 'done';
+			}
+		}
+	).catch( function ( err ) {
+		if ( consecutiveErrors < 10 ) {
+			setTimeout( function () {
+				updatePage( postID );
+			}, consecutiveErrors * 1000 + 5000 );
+		} else {
+			updateStatus = 'fail';
+		}
+	} );
+};
+const pushBatch = function ( commit,batch, page, action, processedBatch, images, unattached = false, consecutiveErrors = 0 ) {
+	let time = new Date();
+	let route = 'update_content';
+	if ( unattached === true ) {
+		if ( images !== "none" && images.length === 0 ) {
+			commit( 'updatePushedImagesProgress', 'finish' );
+			action === "offload_images" ? commit( 'toggleLoadingSync', false ) : commit( 'toggleLoadingRollback', false );
+			return;
+		}
+		route = action;
+	}
+	Vue.http(
+		{
+			url: optimoleDashboardApp.routes[route],
 			method: 'POST',
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
@@ -364,21 +451,65 @@ const pushBatch = function ( commit,batch,action, consecutiveErrors = 0 ) {
 			responseType: 'json',
 			body: {
 				'batch': batch,
+				'page' : page,
+				'job' : action,
+				'images' : images,
 			},
 		}
 	).then(
 		function ( response ) {
-			if ( response.body.code === 'success' && response.body.data.found_images > 0 ) {
-				commit( 'updatePushedImagesProgress', batch );
-				pushBatch( commit, batch, action, 0 );
+			if ( response.body.code === 'success' && ( response.body.data.page > page || response.body.data.found_images > 0 ) ) {
+				if ( unattached === false && Object.keys( response.body.data.imagesToUpdate ).length !== 0  ) {
+					for ( let postID of Object.keys( response.body.data.imagesToUpdate ) ) {
+						let foundImages = response.body.data.imagesToUpdate[postID];
+						if ( images !== "none" && images.length !== 0 ) {
+							foundImages = foundImages.filter( imageID => {
+								return images.includes( imageID );
+							} );
+						}
+						updateContent( commit, action, foundImages, postID, batch, 0 );
+						let interval = setInterval( function () {
+							if ( updateStatus === 'done' ) {
+								updateStatus = 'pending';
+								commit( 'updatePushedImagesProgress', batch );
+								commit( 'estimatedTime', {
+									batchTime: new Date() - time,
+									batchSize: batch,
+									processedBatch: processedBatch + 1
+								} );
+								pushBatch( commit, batch, response.body.data.page, action, processedBatch + 1, images, unattached, 0 );
+								clearInterval( interval );
+							}
+						}, 10000 );
+					}
+				} else {
+					commit( 'updatePushedImagesProgress', batch );
+					commit( 'estimatedTime', {
+						batchTime: new Date() - time,
+						batchSize: batch,
+						processedBatch: processedBatch + 1
+					} );
+					pushBatch( commit, batch, response.body.data.page, action, processedBatch + 1, images, unattached, 0 );
+					if ( unattached === true && images !== "none" ) {
+						images.splice( 0, batch );
+					}
+				}
 			} else {
-				commit( 'updatePushedImagesProgress', 'finish' );
-				action === "offload_images" ? commit( 'toggleLoadingSync', false ) : commit( 'toggleLoadingRollback', false );
+				if ( unattached === false ) {
+					pushBatch( commit, batch, response.body.data.page,  action, processedBatch + 1, images,true,0 );
+					if ( images !== "none" ) {
+						images.splice( 0, batch );
+					}
+				} else {
+					commit( 'updatePushedImagesProgress', 'finish' );
+					action === "offload_images" ? commit( 'toggleLoadingSync', false ) : commit( 'toggleLoadingRollback', false );
+				}
 			}
 		}
 	).catch( function ( err ) {
+		console.log( err );
 		if ( consecutiveErrors < 10 ) {
-			setTimeout( function () { pushBatch( commit, batch, action, consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 5000 );
+			setTimeout( function () { pushBatch( commit, batch, page, action, processedBatch,images, unattached, consecutiveErrors + 1 ) }, consecutiveErrors*1000 + 5000 );
 		} else {
 			commit( 'toggleActionError', action );
 			commit( 'toggleLoadingSync', false );
@@ -388,7 +519,7 @@ const pushBatch = function ( commit,batch,action, consecutiveErrors = 0 ) {
 };
 const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
 	Vue.http( {
-		url: optimoleDashboardApp.root + '/number_of_library_images',
+		url: optimoleDashboardApp.routes['number_of_images_and_pages'],
 		method: 'POST',
 		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 		emulateJSON: true,
@@ -399,11 +530,11 @@ const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
 	} ).then( function ( response ) {
 		if( response.status === 200 && response.body.data > 0 ) {
 			commit( 'totalNumberOfImages', response.body.data );
-			let batch = 5;
+			let batch = 1;
 			if ( Math.ceil( response.body.data/10 ) <= batch ) {
 				batch = Math.ceil( response.body.data/10 );
 			}
-			pushBatch( commit, batch, data.action );
+			pushBatch( commit, batch, 1, data.action, 0, data.images );
 		} else {
 			if ( data.action === "offload_images" ) {
 				commit( 'toggleLoadingSync', false );
