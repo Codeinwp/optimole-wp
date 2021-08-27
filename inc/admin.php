@@ -538,6 +538,11 @@ class Optml_Admin {
 		if ( $data === false || is_wp_error( $data ) ) {
 			return;
 		}
+		if ( $data === 'disconnect' ) {
+			$settings = new Optml_Settings();
+			$settings->reset();
+			return;
+		}
 
 		$this->settings->update( 'service_data', $data );
 

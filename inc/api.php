@@ -139,6 +139,10 @@ final class Optml_Api {
 				&& $response['error'] === 'ERROR: This email is already registered, please choose another one.' ) {
 				return 'email_registered';
 			}
+			if ( $path === '/optml/v2/account/details'
+				&& isset( $response['code'] ) && $response['code'] === 'not_allowed' ) {
+				return 'disconnect';
+			}
 			return false;
 		}
 

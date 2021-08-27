@@ -315,6 +315,11 @@ const requestStatsUpdate = function ( {commit, state}, data ) {
 		if( response.status === 200 ) {
 			commit( 'updateUserData', response.body.data );
 		}
+		if ( response.body.code === 'disconnected' ) {
+			commit( 'toggleConnectedToOptml', false );
+			commit( 'toggleIsServiceLoaded', false );
+			console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
+		}
 	} );
 };
 
