@@ -60,7 +60,7 @@
 				} );
 			},
 			disconnect: function () {
-				// this.apiKey = '';
+				this.apiKey = '';
 				this.$store.dispatch( 'disconnectOptimole', {
 				} );
 			},
