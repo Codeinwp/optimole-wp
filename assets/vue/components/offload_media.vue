@@ -152,6 +152,18 @@
 
     <div class="field columns" v-if="this.$store.state.loadingSync">
       <div class="column">
+        <div v-if="this.$store.state.estimatedTime == 0">
+          <label class="label has-text-grey-dark">
+            <span>{{strings.calculating_estimated_time}}</span>
+          </label>
+          <button class="button is-primary is-small is-loading">Loading</button>
+        </div>
+        <div v-else>
+          <label class="label has-text-grey-dark">
+            <span>{{strings.estimated_time}}</span>
+          </label>
+          <button class="button is-primary is-small is-disabled">{{this.$store.state.estimatedTime}} {{strings.minutes}}</button>
+        </div>
         <label class="label has-text-grey-dark">
           <span>{{strings.sync_media_progress}}</span>
         </label>
@@ -159,6 +171,11 @@
       </div>
     </div>
 
+    <div class="field  columns" v-if="this.$store.state.offloadLibraryLink === true">
+      <label class="label column">
+        {{strings.sync_media_link}} <a :href="this.$store.state.queryArgs.url">{{strings.here}}</a>
+      </label>
+    </div>
     <!--Sync error notice-->
     <div class="field  columns" v-if="this.$store.state.errorMedia === 'offload_images'">
       <label class="label column" style="color: #dc143c !important;">
@@ -193,6 +210,18 @@
 
     <div class="field columns" v-if="this.$store.state.loadingRollback">
       <div class="column">
+        <div v-if="this.$store.state.estimatedTime == 0">
+          <label class="label has-text-grey-dark">
+            <span>{{strings.calculating_estimated_time}}</span>
+          </label>
+          <button class="button is-primary is-small is-loading">Loading</button>
+        </div>
+        <div v-else>
+          <label class="label has-text-grey-dark">
+            <span>{{strings.estimated_time}}</span>
+          </label>
+          <button class="button is-primary is-small is-disabled">{{this.$store.state.estimatedTime}} {{strings.minutes}}</button>
+        </div>
         <label class="label has-text-grey-dark">
           <span>{{strings.rollback_media_progress}}</span>
         </label>
@@ -200,6 +229,11 @@
       </div>
     </div>
     <!--Rollback error notice-->
+    <div class="field  columns" v-if="this.$store.state.rollbackLibraryLink === true">
+      <label class="label column">
+        {{strings.rollback_media_link}} <a :href="this.$store.state.queryArgs.url">{{strings.here}}</a>
+      </label>
+    </div>
     <div class="field  columns" v-if="this.$store.state.errorMedia === 'rollback_images'">
       <label class="label column" style="color: #dc143c !important;">
         {{strings.rollback_media_error}}
@@ -246,6 +280,9 @@ export default {
     }
   },
   mounted: function () {
+    if ( Object.prototype.hasOwnProperty.call(this.$store.state.queryArgs, 'optimole_action') ) {
+      this.callSync( this.$store.state.queryArgs.optimole_action, this.$store.state.queryArgs.images );
+    }
   },
   methods: {
     selectValue: function (event) {
@@ -270,9 +307,9 @@ export default {
         }
       });
     },
-    callSync : function ( action ) {
+    callSync : function ( action, imageIds = "none" ) {
       this.$store.state.errorMedia = false;
-      this.$store.dispatch('callSync', { action: action});
+      this.$store.dispatch('callSync', { action: action, images: imageIds });
     },
     saveChanges: function () {
       this.showOffloadDisabled = false;

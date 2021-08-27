@@ -642,6 +642,13 @@ class Optml_Admin {
 				}
 			}
 		}
+		$routes = [];
+		foreach ( Optml_Rest::$rest_routes as $route_type ) {
+			foreach ( $route_type as $route => $details ) {
+				$routes[ $route ] = rest_url( OPTML_NAMESPACE . '/v1/' . $route );
+			}
+		}
+
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',
@@ -650,7 +657,7 @@ class Optml_Admin {
 			'user_status'                => $user_status,
 			'available_apps'             => $available_apps,
 			'api_key'                    => $api_key,
-			'root'                       => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),
+			'routes'                     => $routes,
 			'nonce'                      => wp_create_nonce( 'wp_rest' ),
 			'user_data'                  => $service_data,
 			'remove_latest_images'       => defined( 'OPTML_REMOVE_LATEST_IMAGES' ) && constant( 'OPTML_REMOVE_LATEST_IMAGES' ) ? ( OPTML_REMOVE_LATEST_IMAGES ? 'yes' : 'no' ) : 'no',
@@ -878,6 +885,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'rollback_media_error_desc'         => __( 'You can try again to pull back the rest of the images.', 'optimole-wp' ),
 				'remove_notice'                     => __( 'Remove notice', 'optimole-wp' ),
 				'sync_media_error'                  => __( 'An unexpected error occured while offloading all existing images from your site to Optimole ', 'optimole-wp' ),
+				'sync_media_link'                   => __( 'The selected images have been offloaded to our servers, you can check them', 'optimole-wp' ),
+				'rollback_media_link'               => __( 'The selected images have been restored to your server, you can check them', 'optimole-wp' ),
 				'sync_media_error_desc'             => __( 'You can try again to offload the rest of the images to Optimole.', 'optimole-wp' ),
 				'offload_disable_warning_title'     => __( 'Please read carrefully the following notice', 'optimole-wp' ),
 				'offload_disable_warning_desc'      => __( 'If you disable this option you will not be able to see the images in the media library without restoring the images first, do you want to restore the images to your site upon disabling the option ?', 'optimole-wp' ),
