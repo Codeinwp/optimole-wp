@@ -13,7 +13,7 @@ concurrency:
 jobs:
   dev-zip:
     name: Build ZIP and upload to s3
-    if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     outputs:
       branch-name: ${{ steps.retrieve-branch-name.outputs.branch_name }}
