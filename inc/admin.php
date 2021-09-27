@@ -467,6 +467,28 @@ class Optml_Admin {
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
 		wp_add_inline_style( 'optm_lazyload_noscript_style', "html.optml_no_js img[data-opt-src] { display: none !important; } \n " . $bg_css );
+
+		if ( $this->settings->use_lazyload() === true ) {
+			wp_register_script( 'optml-print', false );
+			wp_enqueue_script( 'optml-print' );
+			$script = '
+			(function(w, d){
+					w.addEventListener("beforeprint", function(){
+						let images = d.getElementsByTagName( "img" );
+							for (let img of images) {
+								if ( !img.dataset.optSrc) {
+									continue;
+								}
+								img.src = img.dataset.optSrc;
+								delete img.dataset.optSrc;
+							}
+					});
+			
+			}(window, document));
+								 ';
+			wp_add_inline_script( 'optml-print', $script );
+		}
+
 	}
 
 	/**
