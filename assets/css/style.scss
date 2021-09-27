@@ -197,7 +197,7 @@ th.optml-image-ratio-heading {
   font-size: 150%;
 }
 @media screen and (max-width: 768px) {
-  li:not(.is-active) > a > span:not(.icon) {
+  li:not(.is-active) > a > span:not(.icon):not(.ab-icon) {
     visibility: hidden;
     position:  absolute;
   }

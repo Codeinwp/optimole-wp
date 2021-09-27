@@ -538,6 +538,11 @@ class Optml_Admin {
 		if ( $data === false || is_wp_error( $data ) ) {
 			return;
 		}
+		if ( $data === 'disconnect' ) {
+			$settings = new Optml_Settings();
+			$settings->reset();
+			return;
+		}
 
 		$this->settings->update( 'service_data', $data );
 
@@ -628,6 +633,15 @@ class Optml_Admin {
 		$api_key      = $this->settings->get( 'api_key' );
 		$service_data = $this->settings->get( 'service_data' );
 		$user         = get_userdata( get_current_user_id() );
+		$user_status = 'inactive';
+		$available_apps = isset( $service_data['available_apps'] ) ? $service_data['available_apps'] : null;
+		if ( isset( $service_data['cdn_key'] ) && $available_apps !== null ) {
+			foreach ( $service_data['available_apps'] as $app ) {
+				if ( isset( $app['key'] ) && $app['key'] === $service_data['cdn_key'] && isset( $app['status'] ) && $app['status'] === 'active' ) {
+					$user_status = 'active';
+				}
+			}
+		}
 		$routes = [];
 		foreach ( Optml_Rest::$rest_routes as $route_type ) {
 			foreach ( $route_type as $route => $details ) {
@@ -640,8 +654,8 @@ class Optml_Admin {
 			'assets_url'                 => OPTML_URL . 'assets/',
 			'connection_status'          => empty( $service_data ) ? 'no' : 'yes',
 			'has_application'            => isset( $service_data['app_count'] ) && $service_data['app_count'] >= 1 ? 'yes' : 'no',
-			'user_status'                => isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ? 'inactive' : 'active',
-			'available_apps'             => isset( $service_data['available_apps'] ) ? $service_data['available_apps'] : null,
+			'user_status'                => $user_status,
+			'available_apps'             => $available_apps,
 			'api_key'                    => $api_key,
 			'routes'                     => $routes,
 			'nonce'                      => wp_create_nonce( 'wp_rest' ),
