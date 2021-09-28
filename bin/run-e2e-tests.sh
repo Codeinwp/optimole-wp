@@ -2,7 +2,6 @@
 composer install --no-dev
 npm ci
 
-npm run-script build
 npm run-script dist
 
 eval "$(ssh-agent -s)"
