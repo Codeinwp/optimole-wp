@@ -4,7 +4,7 @@ describe("Check Shortcode ultimate page", function () {
   });
   it("Carousel should have proper resize type", function () {
     cy.get(".su-carousel-slide img")
-      .should("have.attr", "data-opt-src")
+      .should("have.attr", "src")
       .and("include", "i.optimole.com")
       .and("include", "rt:fill");
   });

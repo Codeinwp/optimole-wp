@@ -3,9 +3,15 @@ const toggleLoading = ( state, data ) => {
 	state.loading = data;
 };
 const toggleLoadingRollback = ( state, data ) => {
+	if ( Object.prototype.hasOwnProperty.call( state.queryArgs, 'optimole_action' ) ) {
+		state.rollbackLibraryLink = ! data;
+	}
 	state.loadingRollback = data;
 };
 const toggleLoadingSync = ( state, data ) => {
+	if ( Object.prototype.hasOwnProperty.call( state.queryArgs, 'optimole_action' ) ) {
+		state.offloadLibraryLink = ! data;
+	}
 	state.loadingSync = data;
 };
 const toggleActionError = ( state, data ) => {
@@ -66,6 +72,10 @@ const updateConflicts = ( state, data ) => {
 const totalNumberOfImages = ( state, data ) => {
 	state.totalNumberOfImages = data;
 };
+const estimatedTime = ( state, data ) => {
+	state.sumTime = ( state.sumTime + data.batchTime );
+	state.estimatedTime = ( ( state.sumTime/data.processedBatch )*( Math.ceil( state.totalNumberOfImages/data.batchSize ) - data.processedBatch ) / 60000 ).toFixed( 2 );
+};
 const updatePushedImagesProgress = ( state, data ) => {
 	if ( data === 'finish' ) {
 		state.pushedImagesProgress = 100;
@@ -97,6 +107,7 @@ export default {
 	updateWatermark,
 	updatePushedImagesProgress,
 	totalNumberOfImages,
+	estimatedTime,
 	toggleLoadingRollback,
 	toggleLoadingSync,
 	toggleActionError

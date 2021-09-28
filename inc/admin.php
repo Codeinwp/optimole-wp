@@ -467,6 +467,28 @@ class Optml_Admin {
 		wp_register_style( 'optm_lazyload_noscript_style', false );
 		wp_enqueue_style( 'optm_lazyload_noscript_style' );
 		wp_add_inline_style( 'optm_lazyload_noscript_style', "html.optml_no_js img[data-opt-src] { display: none !important; } \n " . $bg_css );
+
+		if ( $this->settings->use_lazyload() === true ) {
+			wp_register_script( 'optml-print', false );
+			wp_enqueue_script( 'optml-print' );
+			$script = '
+			(function(w, d){
+					w.addEventListener("beforeprint", function(){
+						let images = d.getElementsByTagName( "img" );
+							for (let img of images) {
+								if ( !img.dataset.optSrc) {
+									continue;
+								}
+								img.src = img.dataset.optSrc;
+								delete img.dataset.optSrc;
+							}
+					});
+			
+			}(window, document));
+								 ';
+			wp_add_inline_script( 'optml-print', $script );
+		}
+
 	}
 
 	/**
@@ -536,6 +558,11 @@ class Optml_Admin {
 		$request = new Optml_Api();
 		$data    = $request->get_user_data( $api_key, $application );
 		if ( $data === false || is_wp_error( $data ) ) {
+			return;
+		}
+		if ( $data === 'disconnect' ) {
+			$settings = new Optml_Settings();
+			$settings->reset();
 			return;
 		}
 
@@ -628,16 +655,31 @@ class Optml_Admin {
 		$api_key      = $this->settings->get( 'api_key' );
 		$service_data = $this->settings->get( 'service_data' );
 		$user         = get_userdata( get_current_user_id() );
+		$user_status = 'inactive';
+		$available_apps = isset( $service_data['available_apps'] ) ? $service_data['available_apps'] : null;
+		if ( isset( $service_data['cdn_key'] ) && $available_apps !== null ) {
+			foreach ( $service_data['available_apps'] as $app ) {
+				if ( isset( $app['key'] ) && $app['key'] === $service_data['cdn_key'] && isset( $app['status'] ) && $app['status'] === 'active' ) {
+					$user_status = 'active';
+				}
+			}
+		}
+		$routes = [];
+		foreach ( Optml_Rest::$rest_routes as $route_type ) {
+			foreach ( $route_type as $route => $details ) {
+				$routes[ $route ] = rest_url( OPTML_NAMESPACE . '/v1/' . $route );
+			}
+		}
 
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',
 			'connection_status'          => empty( $service_data ) ? 'no' : 'yes',
 			'has_application'            => isset( $service_data['app_count'] ) && $service_data['app_count'] >= 1 ? 'yes' : 'no',
-			'user_status'                => isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ? 'inactive' : 'active',
-			'available_apps'             => isset( $service_data['available_apps'] ) ? $service_data['available_apps'] : null,
+			'user_status'                => $user_status,
+			'available_apps'             => $available_apps,
 			'api_key'                    => $api_key,
-			'root'                       => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ),
+			'routes'                     => $routes,
 			'nonce'                      => wp_create_nonce( 'wp_rest' ),
 			'user_data'                  => $service_data,
 			'remove_latest_images'       => defined( 'OPTML_REMOVE_LATEST_IMAGES' ) && constant( 'OPTML_REMOVE_LATEST_IMAGES' ) ? ( OPTML_REMOVE_LATEST_IMAGES ? 'yes' : 'no' ) : 'no',
@@ -865,6 +907,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'rollback_media_error_desc'         => __( 'You can try again to pull back the rest of the images.', 'optimole-wp' ),
 				'remove_notice'                     => __( 'Remove notice', 'optimole-wp' ),
 				'sync_media_error'                  => __( 'An unexpected error occured while offloading all existing images from your site to Optimole ', 'optimole-wp' ),
+				'sync_media_link'                   => __( 'The selected images have been offloaded to our servers, you can check them', 'optimole-wp' ),
+				'rollback_media_link'               => __( 'The selected images have been restored to your server, you can check them', 'optimole-wp' ),
 				'sync_media_error_desc'             => __( 'You can try again to offload the rest of the images to Optimole.', 'optimole-wp' ),
 				'offload_disable_warning_title'     => __( 'Please read carrefully the following notice', 'optimole-wp' ),
 				'offload_disable_warning_desc'      => __( 'If you disable this option you will not be able to see the images in the media library without restoring the images first, do you want to restore the images to your site upon disabling the option ?', 'optimole-wp' ),

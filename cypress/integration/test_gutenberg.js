@@ -12,13 +12,13 @@ describe("Check gutenberg page", function () {
     if (nativeLazy) {
       this.skip();
     }
-    cy.get(".wp-block-image > img")
+    cy.get(".wp-block-image:eq(2) > img")
       .should("have.attr", "data-opt-src")
       .and("include", "i.optimole.com");
   });
   it("Gutenberg images should have no script tag", function () {
-    cy.get(".wp-block-image > noscript").should("exist");
-    cy.get(".wp-block-image > noscript")
+    cy.get(".wp-block-media-text__media > noscript").should("exist");
+    cy.get(".wp-block-media-text__media > noscript")
       .should("contain", "img")
       .should("contain", "i.optimole.com");
   });

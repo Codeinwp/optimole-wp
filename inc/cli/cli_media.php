@@ -50,7 +50,7 @@ class Optml_Cli_Media extends WP_CLI_Command {
 		if ( $action === 'rollback' ) {
 			$number_of_images_for = 'rollback_images';
 		}
-		$number_of_images = Optml_Media_Offload::number_of_library_images( $number_of_images_for );
+		$number_of_images = Optml_Media_Offload::number_of_images_and_pages( $number_of_images_for );
 		$batch = 5;
 		$possible_batch = ceil( $number_of_images / 10 );
 		if ( $possible_batch < $batch ) {
@@ -59,8 +59,25 @@ class Optml_Cli_Media extends WP_CLI_Command {
 		$total_progress = ceil( $number_of_images / $batch );
 		$progress = \WP_CLI\Utils\make_progress_bar( __( 'Progress bar', 'optimole-wp' ), $total_progress );
 		$tick = 0;
+		$page = 1;
 		while ( $tick < $total_progress ) {
-			$action === 'rollback' ? Optml_Media_Offload::rollback_images( $batch ) : Optml_Media_Offload::upload_images( $batch );
+			$posts_to_update = Optml_Media_Offload::instance()->update_content( $page, $number_of_images_for, $batch );
+			if ( isset( $posts_to_update['page'] ) && $posts_to_update['page'] > $page ) {
+				$page = $posts_to_update['page'];
+				if ( isset( $posts_to_update['imagesToUpdate'] ) && count( $posts_to_update['imagesToUpdate'] ) ) {
+					foreach ( $posts_to_update['imagesToUpdate'] as $post_id => $images ) {
+						if ( $number_of_images_for === 'offload_images' ) {
+							Optml_Media_Offload::instance()->upload_and_update_existing_images( $images );
+						}
+						if ( $number_of_images_for === 'rollback_images' ) {
+							 Optml_Media_Offload::instance()->rollback_and_update_images( $images );
+						}
+						Optml_Media_Offload::instance()->update_page( $post_id );
+					}
+				}
+			} else {
+				$action === 'rollback' ? Optml_Media_Offload::instance()->rollback_images( $batch ) : Optml_Media_Offload::instance()->upload_images( $batch );
+			}
 			$progress->tick();
 			$tick++;
 		}

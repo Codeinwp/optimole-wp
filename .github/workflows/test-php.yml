@@ -3,6 +3,9 @@ name: Test PHP
 
 on: [pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
+  cancel-in-progress: true
 jobs:
   phplint:
     name: Phplint
