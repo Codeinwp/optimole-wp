@@ -1,3 +1,16 @@
+#### [Version 3.2.0](https://github.com/Codeinwp/optimole-wp/compare/v3.1.3...v3.2.0) (2021-09-28)
+
+#### Features
+- Improve media cloud offloading by making faster image handling for large sites
+
+#### Fixes
+- Adds compatibility with FaceWP
+- Improve compatibility with WP Rest Cache plugin
+- Improve compatibility with Woocommerce variations plugin
+- Improve usage of WP Rest API endpoints
+- Improve handling of files with non-media files which are stored as attachments
+- Fix print of pages which uses Optimole lazyload
+
 ##### [Version 3.1.3](https://github.com/Codeinwp/optimole-wp/compare/v3.1.2...v3.1.3) (2021-08-06)
 
 * Preserve selected custom domain on stats refresh when multiple custom domains are used.
