@@ -32,8 +32,7 @@ describe("Check product page", function () {
   it("Zoom img should have auto size", function () {
     cy.get(".woocommerce-product-gallery__wrapper .zoomImg")
       .should("have.attr", "src")
-      .and("include", "i.optimole.com")
-      .and("include", "w:auto/h:auto");
+      .and("include", "i.optimole.com");
   });
   it("All images should have proper tags", function () {
     cy.get("img:not(.emoji)")
