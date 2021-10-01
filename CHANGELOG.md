@@ -1,3 +1,8 @@
+##### [Version 3.2.1](https://github.com/Codeinwp/optimole-wp/compare/v3.2.0...v3.2.1) (2021-10-01)
+
+* Fix issue when the quota exceeded message shows up on new connections. 
+* Fix local JS loading of lazyload library.
+
 #### [Version 3.2.0](https://github.com/Codeinwp/optimole-wp/compare/v3.1.3...v3.2.0) (2021-09-28)
 
 #### Features
