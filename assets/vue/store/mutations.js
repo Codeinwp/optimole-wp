@@ -33,6 +33,14 @@ const toggleIsServiceLoaded = ( state, data ) => {
 	state.is_loaded = data;
 };
 const updateUserData = ( state, data ) => {
+
+	if ( data && data.app_count && data.app_count >= 1 && data.cdn_key ) {
+		for ( let app of data.available_apps ) {
+			if ( app.key && app.key === data.cdn_key && app.status && app.status === 'active' ) {
+				state.userStatus = 'active';
+			}
+		}
+	}
 	state.userData = data;
 };
 const updateAvailableApps = ( state, data ) => {

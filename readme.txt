@@ -93,6 +93,47 @@ Premium users will be able to optimize images for more than 25k monthly active u
 
 == Changelog ==
 
+#### [Version 3.2.0](https://github.com/Codeinwp/optimole-wp/compare/v3.1.3...v3.2.0) (2021-09-28)
+
+#### Features
+- Improve media cloud offloading by making faster image handling for large sites
+
+#### Fixes
+- Adds compatibility with FaceWP
+- Improve compatibility with WP Rest Cache plugin
+- Improve compatibility with Woocommerce variations plugin
+- Improve usage of WP Rest API endpoints
+- Improve handling of files with non-media files which are stored as attachments
+- Fix print of pages which uses Optimole lazyload
+
+
+
+
+##### [Version 3.1.3](https://github.com/Codeinwp/optimole-wp/compare/v3.1.2...v3.1.3) (2021-08-06)
+
+* Preserve selected custom domain on stats refresh when multiple custom domains are used.
+
+
+
+
+##### [Version 3.1.2](https://github.com/Codeinwp/optimole-wp/compare/v3.1.1...v3.1.2) (2021-08-04)
+
+* Adds a filter to force replacements as optml_force_replacement
+* Fix content path being root directory
+
+
+
+
+##### [Version 3.1.1](https://github.com/Codeinwp/optimole-wp/compare/v3.1.0...v3.1.1) (2021-05-31)
+
+* Adds option to setup API key via wp-config variables fix [#314](https://github.com/Codeinwp/optimole-wp/issues/314) as OPTIML_API_KEY
+* Fix lazyload on video tag working improperly [#368](https://github.com/Codeinwp/optimole-wp/issues/368)
+* Adds filter for Optimole processed URLs  as optml_processed_url 
+* Fix error message when a user is already registered with the same email
+
+
+
+
 #### [Version 3.1.0](https://github.com/Codeinwp/optimole-wp/compare/v3.0.1...v3.1.0) (2021-05-13)
 
 * Adds support for multiple custom domains
