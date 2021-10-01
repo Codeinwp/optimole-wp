@@ -133,7 +133,6 @@
 			return {
 				strings: optimoleDashboardApp.strings,
 				home: optimoleDashboardApp.home_url,
-				user_status: optimoleDashboardApp.user_status,
 				remove_images: optimoleDashboardApp.remove_latest_images === 'yes',
 				fetchStatus: false,
 				step_no: 0,
@@ -152,6 +151,9 @@
       },
 			is_loaded() {
         return this.$store.state.is_loaded;
+      },
+      user_status() {
+        return this.$store.state.userStatus;
       }
 		},
 		components: {

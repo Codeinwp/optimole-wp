@@ -172,8 +172,11 @@ class Optml_Admin {
 	 * Adds script for lazyload/js replacement.
 	 */
 	public function inline_bootstrap_script() {
-
 		$domain = 'https://' . $this->settings->get_cdn_url() . '/js-lib';
+
+		if ( defined( 'OPTML_JS_CDN' ) && constant( 'OPTML_JS_CDN' ) ) {
+			$domain = 'https://' . constant( 'OPTML_JS_CDN' ) . '/js-lib';
+		}
 
 		$min                   = ! OPTML_DEBUG ? '.min' : '';
 		$bgclasses             = Optml_Lazyload_Replacer::get_lazyload_bg_classes();
