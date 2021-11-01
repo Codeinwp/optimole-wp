@@ -67,7 +67,7 @@
 
         <hr/>
 
-        <!-- Clear Cache button -->
+        <!-- Clear Cache images button -->
         <div class="field  is-fullwidth columns " :class="{'is-field-disabled':isReplacerOff }">
             <label class="label column has-text-grey-dark">
                 {{strings.cache_title}}
@@ -79,9 +79,28 @@
             <div class="column is-3 is-right">
                 <button @click="clearCache()" class="button is-primary is-small "
                         :class="this.$store.state.loading ? 'is-loading'  : '' ">
-                    {{strings.clear_cache}}
+                    {{strings.clear_cache_images}}
                 </button>
             </div>
+        </div>
+
+        <hr v-if="isAssetsOn"/>
+
+        <!-- Clear Cache assets button -->
+        <div class="field  is-fullwidth columns " v-if="isAssetsOn">
+          <label class="label column has-text-grey-dark">
+            {{strings.cache_title_assets}}
+
+            <p class="is-italic has-text-weight-normal">
+              {{strings.cache_desc_assets}}
+            </p>
+          </label>
+          <div class="column is-3 is-right">
+            <button @click="clearCache('assets')" class="button is-primary is-small "
+                    :class="this.$store.state.loading ? 'is-loading'  : '' ">
+              {{strings.clear_cache_assets}}
+            </button>
+          </div>
         </div>
         <!-- Save changes button -->
         <div class="field  is-fullwidth columns ">
@@ -106,6 +125,7 @@
                 all_strings: optimoleDashboardApp.strings,
                 showNotification: false,
                 showSave: false,
+                isAssetsOn: false,
                 isReplacerOff: false,
                 isLazyLoadOff : false,
                 new_data: {},
@@ -114,12 +134,14 @@
         },
         mounted: function () {
             this.isReplacerOff = (this.site_settings.image_replacer === 'disabled');
+            this.isAssetsOn = (this.site_settings.cdn === 'enabled');
 
-            this.$emit('update-status', !this.isReplacerOff);
+
+          this.$emit('update-status', !this.isReplacerOff);
         },
         methods: {
-            clearCache: function () {
-                this.$store.dispatch('clearCache', {});
+            clearCache: function ( type = '' ) {
+                this.$store.dispatch('clearCache', { type: type });
             },
             saveChanges: function () {
                 this.$store.dispatch('saveSettings', {

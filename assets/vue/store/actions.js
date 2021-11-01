@@ -150,6 +150,9 @@ const clearCache = function ( {commit, state}, data ) {
 		{
 			url: optimoleDashboardApp.routes['clear_cache_request'],
 			method: 'POST',
+			body: {
+				'type': data.type,
+			},
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
 			responseType: 'json'

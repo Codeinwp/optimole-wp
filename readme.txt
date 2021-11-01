@@ -212,7 +212,7 @@ You don’t need to change your existing optimization plugin, image optimization
 
 Yes, we do. By default, Optimole handle images delivered from your ajax content from admin-ajax.php ( not logged in users ) as well as WordPress REST API routes.
 
-= Can I remove the blurry placeholder from the lazyload effct ? =
+= Can I remove the blurry placeholder from the lazyload effect ? =
 
 Yes, you can. We have bundled this tweak into a plugin you can install while you have Optimole active. The blurry placeholder will be removed and the images will be still lazy-loaded. You can find the plugin tweak here -> http://bit.ly/optml-rm-lqip
 

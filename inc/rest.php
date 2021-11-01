@@ -211,9 +211,13 @@ class Optml_Rest {
 	 */
 	public function clear_cache_request( WP_REST_Request $request ) {
 		$settings = new Optml_Settings();
-		$token    = $settings->get( 'cache_buster' );
+        $type = $request->get_param( 'type' );
+        $token = $settings->get( 'cache_buster' );
+        if ( ! empty( $type ) && $type === 'assets' ) {
+            $token = $settings->get( 'cache_buster_assets' );
+        }
 		$request  = new Optml_Api();
-		$data     = $request->get_cache_token( $token );
+		$data     = $request->get_cache_token( $token, $type );
 		if ( $data === false || is_wp_error( $data ) || empty( $data ) || ! isset( $data['token'] ) ) {
 			$extra = '';
 			if ( is_wp_error( $data ) ) {
@@ -227,8 +231,14 @@ class Optml_Rest {
 			wp_send_json_error( __( 'Can not get new token from Optimole service', 'optimole-wp' ) . $extra );
 		}
 
-		set_transient( 'optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS );
-		$settings->update( 'cache_buster', $data['token'] );
+        if ( ! empty( $type ) && $type === 'assets' ) {
+            set_transient('optml_cache_lock_assets', 'yes', 5 * MINUTE_IN_SECONDS);
+            $settings->update('cache_buster_assets', $data['token']);
+        }
+        else {
+            set_transient('optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS);
+            $settings->update('cache_buster', $data['token']);
+        }
 
 		return $this->response( $data['token'], '200' );
 	}
