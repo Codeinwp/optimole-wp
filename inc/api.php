@@ -78,10 +78,10 @@ final class Optml_Api {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
-        $lock = get_transient( 'optml_cache_lock' );
-        if ( ! empty( $type ) && $type === 'assets' ) {
-            $lock = get_transient( 'optml_cache_lock_assets' );
-        }
+		$lock = get_transient( 'optml_cache_lock' );
+		if ( ! empty( $type ) && $type === 'assets' ) {
+			$lock = get_transient( 'optml_cache_lock_assets' );
+		}
 
 		if ( $lock === 'yes' ) {
 			return new WP_Error( 'cache_throttle', __( 'You can clear cache only once per 5 minutes.', 'optimole-wp' ) );

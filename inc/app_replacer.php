@@ -134,15 +134,12 @@ abstract class Optml_App_Replacer {
 	 * @var array
 	 */
 	protected static $ignored_url_map = [];
-	/**
-	 * @var mixed|string|null
-	 */
+
 	/**
 	 * Holds the most recent value for the cache buster for assets.
 	 *
 	 * @var string Cache Buster value.
 	 */
-
 	protected $active_cache_buster_assets = '';
 
 	/**

@@ -40,7 +40,7 @@ class Optml_Settings {
 		'api_key'              => '',
 		'service_data'         => '',
 		'cache_buster'         => '',
-        'cache_buster_assets'  => '',
+		'cache_buster_assets'  => '',
 		'cdn'                  => 'disabled',
 		'max_height'           => 1500,
 		'max_width'            => 2000,
@@ -240,11 +240,11 @@ class Optml_Settings {
 				case 'wm_id':
 					$sanitized_value = intval( $value );
 					break;
-                case 'cache_buster_assets':
-                case 'cache_buster':
+				case 'cache_buster_assets':
+				case 'cache_buster':
 					$sanitized_value = is_string( $value ) ? $value : '';
 					break;
-                case 'cloud_sites':
+				case 'cloud_sites':
 					$current_sites = $this->get( 'cloud_sites' );
 					$sanitized_value = array_replace_recursive( $current_sites, $value );
 					if ( isset( $value['all'] ) && $value['all'] === 'true' ) {
