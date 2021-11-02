@@ -399,8 +399,15 @@ abstract class Optml_App_Replacer {
 		);
 
 		$this->allowed_sources              = $this->extract_domain_from_urls( $service_data['whitelist'] );
-		$this->active_cache_buster          = $this->settings->get( 'cache_buster' );
+		$this->active_cache_buster          = $this->settings->get( 'cache_buster_images' );
 		$this->active_cache_buster_assets   = $this->settings->get( 'cache_buster_assets' );
+
+		if ( empty( $this->active_cache_buster ) ) {
+			$this->active_cache_buster  = $this->settings->get( 'cache_buster' );
+		}
+		if ( empty( $this->active_cache_buster_assets ) ) {
+			$this->active_cache_buster_assets  = $this->settings->get( 'cache_buster' );
+		}
 
 		// Allways allow Photon urls.
 		$this->allowed_sources['i0.wp.com'] = true;

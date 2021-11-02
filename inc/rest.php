@@ -213,6 +213,11 @@ class Optml_Rest {
 		$settings = new Optml_Settings();
 		$type = $request->get_param( 'type' );
 		$token = $settings->get( 'cache_buster' );
+		$token_images = $settings->get( 'cache_buster_images' );
+
+		if ( ! empty( $token_images ) ) {
+			$token = $token_images;
+		}
 		if ( ! empty( $type ) && $type === 'assets' ) {
 			$token = $settings->get( 'cache_buster_assets' );
 		}
@@ -236,7 +241,7 @@ class Optml_Rest {
 			$settings->update( 'cache_buster_assets', $data['token'] );
 		} else {
 			set_transient( 'optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS );
-			$settings->update( 'cache_buster', $data['token'] );
+			$settings->update( 'cache_buster_images', $data['token'] );
 		}
 
 		return $this->response( $data['token'], '200' );
