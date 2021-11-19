@@ -50,7 +50,7 @@ jobs:
           with:
             php-version: '7.2'
             extensions: simplexml, mysql
-            tools: phpunit:7.5.15, phpunit-polyfills
+            tools: phpunit-polyfills
         - name: Checkout source code
           uses: actions/checkout@v2
         - name: Install WordPress Test Suite
