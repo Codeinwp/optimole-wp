@@ -66,7 +66,7 @@ Who has time for adding watermarks? Optimole will do the hard work for you. Just
 Optimole provides an option to downgrade the image quality when it detects a slower network. Efficiently encode images by making up to 40% smaller with this neat feature to help visitors in a bottleneck.
 
 **Compatibility**
-Optimole loves page builders and has unique tweaks to solve image replacements. It also has full compatibility with the new block editor in WordPress 5.0
+Optimole loves page builders and has unique tweaks to solve image replacements. It also has full compatibility with the new block editor since WordPress 5.0
 
 **CDN**
 Optimole provides free access to a AWS CloudFront CDN with edge locations in more than 200 cities around the globe.
@@ -78,7 +78,7 @@ The stripped EXGIF data is not stored on our service. Optimole likes to work beh
 Optimole can be installed in a few clicks and then left in the back-end to do its job. Not happy with it? Optimole has a clean uninstall and your site will be just as before Optimole was installed.
 
 **Go Pro**
-Premium users will be able to optimize images for more than 25k monthly active users. Images in the Premium plan are served from AWS Cloudfront with over 200 locations all over the world.
+Premium users will be able to optimize images starting with more than 25k monthly active users. Images in the Premium plan are served from AWS Cloudfront with over 200 locations all over the world.
 
 ## Screenshots ##
 
@@ -534,11 +534,11 @@ For both FREE and Paid plans we use AWS CloudFront CDN with more than 200 locati
 
 ### I'm already using a CDN, can I use that instead of yours ? ###
 
-Short answer, YES. We can help you integrate your default CDN but it will require some additional work from our side and is available to Enterprise plans.
+Short answer, YES. You will only need to whitelist the domain of your existing CDN for Optimole to pick images stored there.
 
-### I'm already using an image optimization plugin, why should I switch to OptiMole? ###
+### I'm already using an image optimization plugin, why should I switch to Optimole? ###
 
-You don’t need to change your existing optimization plugin, image optimization is just a small part of what we do, if you are happy with ShortPixel for e.g, feel free to continue to use it, OptiMole would then take care only of serving your image at the RIGHT size, advanced cropping and smart lazy-loading.
+You don’t need to change your existing optimization plugin, image optimization is just a small part of what we do, if you are happy with ShortPixel for e.g, feel free to continue to use it, Optimole would then take care only of serving your image at the RIGHT size, advanced cropping and smart lazy-loading.
 
 ### Does Optimole handle images from Ajax content  ? ###
 
@@ -546,19 +546,19 @@ Yes, we do. By default, Optimole handle images delivered from your ajax content 
 
 ### Can I remove the blurry placeholder from the lazyload effct ? ###
 
-Yes, you can. We have bundled this tweak into a plugin you can install while you have Optimole active. The blurry placeholder will be removed and the images will be still lazy-loaded. You can find the plugin tweak here -> http://bit.ly/optml-rm-lqip
+Yes, you can. You only need to toggle this feature in the plugin as explained per this doc - https://docs.optimole.com/article/1020-can-i-remove-the-blurry-placeholder-from-the-lazyload-effct
 
 ### Will the original images be deleted? ###
 
-Absolutely No. We use your original images as sources when deliver the optimized images.
+We use your original images as sources when deliver the optimized images. Unless you want to remove images from your server to save some space with Cloud Library by offloading images to the cloud as explained here - https://docs.optimole.com/article/1323-cloud-library-browsing
 
 ### What is the difference between the Auto, High, Medium, Low compression levels? ###
 
 A higher compression might result in a small loss of image quality. Selecting the auto level will let Optimole choose the minimum size with no loss in the quality of your picture.
 
-### I used Kraken, Shortpixel, Optimus, EWWW or WP Smush, Imagify  will OptiMole further optimize my images? ###
+### I used Kraken, Shortpixel, Optimus, EWWW or WP Smush, Imagify  will Optimole further optimize my images? ###
 
- Yes, Optimole will also take care of serving your image at the RIGHT size for your visitors and optimize them to the best possible format for their browser.
+Yes, Optimole will also take care of serving your image at the RIGHT size for your visitors and optimize them to the best possible format for their browser.
 
 ### Which formats can be optimized ? ###
 
@@ -572,9 +572,13 @@ Yes. We automatically detect user browser and serve WebP if is supported, otherw
 
 Yes. You need to add `define("OPTML_DISABLE_PNG_LAZYLOAD",true);` to `your wp-config.php` file.
 
+You can also use plugin's UI and exclude images by their type as explained here - https://docs.optimole.com/article/1191-exclude-from-optimizing-or-lazy-loading
+
 ### Can I disable optimization for a certain image ? ###
 
-Yes, you can follow this code snippet and replace the sample image with the one you need:
+Yes, you can exclude certain image by its name as explained here - https://docs.optimole.com/article/1191-exclude-from-optimizing-or-lazy-loading
+
+In case you're tech-savvy and want programatically exclude images by some conditions you can follow this code snippet and replace the sample image with the one you need or have other conditions:
 <code>
 add_filter('optml_dont_replace_url', function( $old, $url ) {
 	if ( $url === 'https://example.com/wp-content/uploads/2018/09/1.jpg' ) {
