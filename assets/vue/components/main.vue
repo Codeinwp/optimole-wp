@@ -30,25 +30,35 @@
 												</transition>
 												<transition name="fade" mode="out-in">
 														<div v-if="this.$store.state.connected && this.$store.state.hasApplication && this.$store.state.is_loaded">
-																<div class="tabs is-left is-boxed is-medium">
-																		<ul class="is-marginless optml-tabs">
+																<div class="tabs is-left is-medium">
+																		<ul class="is-marginless optml-tabs optml-font">
 																				<li :class="tab === 'dashboard' ? 'is-active' : ''">
 																						<a @click="changeTab('dashboard')" class="is-size-6-mobile">
-																								<span class="icon is-size-6-mobile is-size-6-tablet  dashicons dashicons-admin-home"></span>
-																								<span class="is-size-6-mobile is-size-6-touch ">{{strings.dashboard_menu_item}}</span>
-																						</a>
+																								<span class="tab-text is-size-6-mobile is-size-6-touch">
+                                                  {{strings.dashboard_menu_item}}
+                                                </span>
+                                              <svg width="110%" height="4" viewBox="0 0 110 4" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                                                <rect width="110%" height="4" rx="2" fill="#577BF9"/>
+                                              </svg>
+
+                                            </a>
+
+
 																				</li>
 																				<li :class="tab === 'conflicts' ? 'is-active' : ''" v-if="conflictCount > 0">
 																						<a @click="changeTab('conflicts')" class="is-size-6-mobile">
-																								<span class="icon is-size-6-mobile  is-size-6-tablet dashicons dashicons-warning"></span>
-																								<span class="is-size-6-mobile is-size-6-touch">{{strings.conflicts_menu_item}}</span>&nbsp;
-																								<span class="tag is-rounded is-danger">{{conflictCount}}</span>
+																								<span class="tab-text is-size-6-mobile is-size-6-touch">{{strings.conflicts_menu_item}}</span>
+                                              <svg width="110%" height="4" viewBox="0 0 100 4" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                                                <rect width="110%" height="4" rx="2" fill="#577BF9"/>
+                                              </svg>
 																						</a>
 																				</li>
 																				<li :class="tab === 'settings' ? 'is-active' : ''">
 																						<a @click="changeTab('settings')" class="is-size-6-mobile  ">
-																								<span class="icon is-size-6-mobile   is-size-6-tablet dashicons dashicons-admin-settings"></span>
-																								<span class="is-size-6-mobile is-size-6-touch">{{strings.settings_menu_item}}</span>
+																								<span class="tab-text is-size-6-mobile is-size-6-touch">{{strings.settings_menu_item}}</span>
+                                              <svg width="110%" height="4" viewBox="0 0 110 4" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                                                <rect width="110%" height="4" rx="2" fill="#577BF9"/>
+                                              </svg>
 																						</a>
 																				</li>
 
@@ -61,8 +71,8 @@
 																				 v-html="strings.notice_just_activated"></div>
 																		<div class="notification is-danger" v-if="user_status === 'inactive' "
 																				 v-html="strings.notice_disabled_account"></div>
-																		<api-key-form></api-key-form>
-																		<cdn-details v-if="this.$store.state.userData"></cdn-details>
+
+
 																		<hr/>
 																		<last-images :status="fetchStatus" v-if="! remove_images"></last-images>
 																</div>
@@ -92,7 +102,10 @@
 				</div>
 				<div v-if="is_connected && this.$store.state.userData.plan === 'free' "
 						 class="column is-narrow is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile">
+
 						<div class="card optml-upgrade">
+              <cdn-details v-if="this.$store.state.userData"></cdn-details>
+              <api-key-form></api-key-form>
 								<div class="card-header">
 										<h3 class="is-size-5 card-header-title"><span class="dashicons dashicons-chart-line"></span>
 												{{strings.upgrade.title}}</h3>
@@ -254,9 +267,26 @@
 <style lang="sass-loader">
 		@import '../../css/style.scss';
 
-		#optimole-app .tabs a {
-				margin-bottom: -4px;
+		#optimole-app .tabs li a {
+        border: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 150%;
+        font-weight: bold;
+        margin-bottom: -7%;
+        color: #282828 !important;
+        text-decoration: none !important;
 		}
+
+    #optimole-app .tabs li:not(.is-active) svg{
+      visibility: hidden;
+    }
+
+
+     #optimole-app .tab-text {
+      margin-bottom: 7%;
+    }
 
 		#optimole-app .optml-upgrade {
 				min-width: 200px;
@@ -284,6 +314,11 @@
 				min-height: 400px;
 				margin-top: 150px;
 		}
+
+    .optml-font {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #282828;
+    }
 
 		.slide-fade-enter-active {
 				transition: all .3s ease;

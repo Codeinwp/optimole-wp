@@ -1,8 +1,8 @@
 <template>
 	<div class="cdn-details">
 		<hr/>
-		<div class="account level has-text-centered">
-			<div class="level-left">
+		<div class="has-text-centered">
+			<div>
 				<span class="label level-item">{{strings.logged_in_as}}:</span>
 				<p class="details level-item tags has-addons">
 					<span class="tag is-light">{{userData.display_name}}</span>
@@ -10,7 +10,8 @@
 					                                      :alt="userData.display_name"></span>
 				</p>
 			</div>
-			<div class="level-right">
+      <hr/>
+			<div>
 				<span class="label level-item">{{strings.private_cdn_url}}:</span>
 				<p class="details level-item tag is-light">{{connectedDomain}}</p>
 			</div>
