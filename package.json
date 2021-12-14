@@ -59,7 +59,7 @@
     "grunt-wp-readme-to-markdown": "^2.0.1",
     "html-loader": "^0.5.1",
     "load-project-config": "~0.2.0",
-    "node-sass": "latest",
+    "node-sass": "^4.13.1",
     "replace-in-file": "^5.0.2",
     "sass-loader": "^7.3.1",
     "semantic-release": "^17.4.3",
