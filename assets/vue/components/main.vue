@@ -30,11 +30,11 @@
 												</transition>
 												<transition name="fade" mode="out-in">
 														<div v-if="this.$store.state.connected && this.$store.state.hasApplication && this.$store.state.is_loaded">
-																<div class="tabs is-left is-medium">
-																		<ul class="is-marginless optml-tabs optml-font">
+																<div class="tabs is-left is-medium optml-tabs optml-font">
+																		<ul class="is-marginless ">
 																				<li :class="tab === 'dashboard' ? 'is-active' : ''">
-																						<a @click="changeTab('dashboard')" class="is-size-6-mobile">
-																								<span class="tab-text is-size-6-mobile is-size-6-touch">
+																						<a @click="changeTab('dashboard')" class="is-size-5">
+																								<span class="tab-text is-size-5">
                                                   {{strings.dashboard_menu_item}}
                                                 </span>
                                               <svg width="110%" height="4" viewBox="0 0 110 4" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
@@ -46,23 +46,41 @@
 
 																				</li>
 																				<li :class="tab === 'conflicts' ? 'is-active' : ''" v-if="conflictCount > 0">
-																						<a @click="changeTab('conflicts')" class="is-size-6-mobile">
-																								<span class="tab-text is-size-6-mobile is-size-6-touch">{{strings.conflicts_menu_item}}</span>
-                                              <svg width="110%" height="4" viewBox="0 0 100 4" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-                                                <rect width="110%" height="4" rx="2" fill="#577BF9"/>
+																						<a @click="changeTab('conflicts')" class="is-size-5">
+																								<span class="tab-text is-size-5">{{strings.conflicts_menu_item}}</span>
+                                              <svg width="110%" height="6" viewBox="0 0 100 6" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+                                                <rect width="110%" height="6" rx="2" fill="#D54222"/>
                                               </svg>
 																						</a>
 																				</li>
 																				<li :class="tab === 'settings' ? 'is-active' : ''">
-																						<a @click="changeTab('settings')" class="is-size-6-mobile  ">
-																								<span class="tab-text is-size-6-mobile is-size-6-touch">{{strings.settings_menu_item}}</span>
+																						<a @click="changeTab('settings')" class="is-size-5  ">
+																								<span class="tab-text is-size-5">{{strings.settings_menu_item}}</span>
                                               <svg width="110%" height="4" viewBox="0 0 110 4" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
                                                 <rect width="110%" height="4" rx="2" fill="#577BF9"/>
                                               </svg>
 																						</a>
 																				</li>
+                                        <!-- Refresh stats -->
+                                        <li style="position: relative; left: 57%;">
+                                            <div class="level-item">
 
+                                              <span class="is-size-7" style="font-weight: bold; color: #626262;">{{ this.$store.state.loading ?  strings.updating_stats_cta : strings.refresh_stats_cta}}</span>
+
+                                              <a style="padding:0; margin:0;">
+                                              <svg v-bind:class="{ 'optml-spin': this.$store.state.loading }" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="visibility: visible"  v-on:click="requestUpdate">
+                                                <path d="M17.0002 12.2747L15.4255 10.7L17.0002 9.12537" stroke="#6F6F6F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M28.3137 5.6863C34.5621 11.9347 34.5621 22.0653 28.3137 28.3137C22.0653 34.5621 11.9347 34.5621 5.6863 28.3137C-0.562099 22.0653 -0.562099 11.9347 5.6863 5.6863C11.9347 -0.5621 22.0653 -0.5621 28.3137 5.6863Z" fill="#EDF0FF"/>
+                                                <path d="M28.3137 5.6863C34.5621 11.9347 34.5621 22.0653 28.3137 28.3137C22.0653 34.5621 11.9347 34.5621 5.6863 28.3137C-0.562099 22.0653 -0.562099 11.9347 5.6863 5.6863C11.9347 -0.5621 22.0653 -0.5621 28.3137 5.6863" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M18.4014 23.1266C17.9494 23.2306 17.4841 23.296 17.0001 23.296C13.5228 23.296 10.7041 20.4773 10.7041 17C10.7041 15.5826 11.1894 14.2893 11.9788 13.2373" stroke="#577BF9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M22.0213 20.7626C22.8106 19.7106 23.296 18.4173 23.296 17C23.296 13.5226 20.4773 10.704 17 10.704C16.516 10.704 16.0506 10.7693 15.5986 10.8733" stroke="#577BF9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M17 21.7252L18.5747 23.2999L17 24.8746" stroke="#577BF9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                              </svg>
+                                              </a>
+                                          </div>
+                                        </li>
 																		</ul>
+
 																</div>
 
 																<div class="is-tab" v-if="tab === 'dashboard' "
@@ -72,9 +90,29 @@
 																		<div class="notification is-danger" v-if="user_status === 'inactive' "
 																				 v-html="strings.notice_disabled_account"></div>
 
+                                  <div class="optml-light-background optml-side-by-side" style="padding: 2% 1% 2% 1%">
+                                    <div>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="55" height="55" viewBox="0 0 55 55" fill="none">
+                                      <path d="M46.6215 21.757C44.6278 22.9074 43.5209 25.0684 43.5415 27.3692C43.5415 27.4128 43.5415 27.4563 43.5415 27.4999C43.5415 27.5434 43.5415 27.5892 43.5415 27.6328C43.5209 29.9336 44.6278 32.0947 46.6215 33.2451L46.6399 33.2565C47.9943 34.038 49.7565 33.2657 50.043 31.728C50.5678 28.9047 50.5426 26.0378 50.0178 23.2717C49.7268 21.7386 47.9713 20.9778 46.6215 21.757V21.757Z" stroke="#577BF9" stroke-width="1.91406" stroke-linecap="round" stroke-linejoin="round"/>
+                                      <path d="M19.8137 13.4291C19.6052 13.5437 19.3989 13.6629 19.195 13.7866C17.2906 14.9462 14.8958 14.9256 12.9639 13.8096C11.621 13.035 11.385 11.1421 12.5583 10.1291C14.701 8.27747 17.1875 6.8131 19.9145 5.85518C21.3812 5.33955 22.912 6.48997 22.912 8.04372V8.06205C22.912 10.2781 21.7547 12.3635 19.8137 13.4291V13.4291Z" stroke="#577BF9" stroke-width="1.91406" stroke-linecap="round" stroke-linejoin="round"/>
+                                      <path d="M19.8137 13.4291C19.6052 13.5437 19.3989 13.6629 19.195 13.7866C17.2906 14.9462 14.8958 14.9256 12.9639 13.8096C11.621 13.035 11.385 11.1421 12.5583 10.1291C14.701 8.27747 17.1875 6.8131 19.9145 5.85518C21.3812 5.33955 22.912 6.48997 22.912 8.04372V8.06205C22.912 10.2781 21.7547 12.3635 19.8137 13.4291V13.4291Z" stroke="#577BF9" stroke-width="1.91406" stroke-linecap="round" stroke-linejoin="round"/>
+                                      <path d="M35.2025 41.5616C35.4065 41.4493 35.6081 41.3325 35.8075 41.211C37.7119 40.0514 40.1067 40.0721 42.0386 41.1881C43.3815 41.9627 43.6175 43.8556 42.4442 44.8685C40.3015 46.7202 37.815 48.1846 35.0879 49.1448C33.6213 49.6627 32.0881 48.5123 32.0881 46.9562C32.0881 44.731 33.2523 42.6364 35.2025 41.5616V41.5616Z" stroke="#577BF9" stroke-width="1.91406" stroke-linecap="round" stroke-linejoin="round"/>
+                                      <path d="M8.37836 33.243C7.02857 34.0221 5.27315 33.2613 4.98211 31.7305C4.45732 28.9644 4.43211 26.0953 4.9569 23.2719C5.24336 21.7342 7.00336 20.9619 8.35773 21.7434L8.37836 21.7548C10.3721 22.9053 11.479 25.0663 11.4584 27.3671C11.4584 27.4107 11.4584 27.4565 11.4584 27.5001C11.4584 27.5436 11.4584 27.5871 11.4584 27.6307C11.479 29.9315 10.3721 32.0926 8.37836 33.243V33.243Z" stroke="#577BF9" stroke-width="1.91406" stroke-linecap="round" stroke-linejoin="round"/>
+                                      <path d="M8.37836 33.243C7.02857 34.0221 5.27315 33.2613 4.98211 31.7305C4.45732 28.9644 4.43211 26.0953 4.9569 23.2719C5.24336 21.7342 7.00336 20.9619 8.35773 21.7434L8.37836 21.7548C10.3721 22.9053 11.479 25.0663 11.4584 27.3671C11.4584 27.4107 11.4584 27.4565 11.4584 27.5001C11.4584 27.5436 11.4584 27.5871 11.4584 27.6307C11.479 29.9315 10.3721 32.0926 8.37836 33.243V33.243Z" stroke="#577BF9" stroke-width="1.91406" stroke-linecap="round" stroke-linejoin="round"/>
+                                      <path d="M32.0881 8.06439C32.0881 6.50605 33.6258 5.36709 35.0948 5.88043C37.7531 6.80855 40.2511 8.22022 42.435 10.0902C43.6221 11.1077 43.4113 13.0167 42.0569 13.7981L42.0363 13.8096C40.1044 14.9233 37.7119 14.9463 35.8075 13.7867C35.6036 13.6629 35.3973 13.5415 35.1865 13.4269C33.2454 12.3636 32.0881 10.2781 32.0881 8.06439V8.06439Z" stroke="#577BF9" stroke-width="1.91406" stroke-linecap="round" stroke-linejoin="round"/>
+                                      <path d="M32.0881 8.06439C32.0881 6.50605 33.6258 5.36709 35.0948 5.88043C37.7531 6.80855 40.2511 8.22022 42.435 10.0902C43.6221 11.1077 43.4113 13.0167 42.0569 13.7981L42.0363 13.8096C40.1044 14.9233 37.7119 14.9463 35.8075 13.7867C35.6036 13.6629 35.3973 13.5415 35.1865 13.4269C33.2454 12.3636 32.0881 10.2781 32.0881 8.06439V8.06439Z" stroke="#577BF9" stroke-width="1.91406" stroke-linecap="round" stroke-linejoin="round"/>
+                                      <path d="M22.9122 46.9357C22.9122 48.494 21.3745 49.633 19.9055 49.1196C17.2472 48.1915 14.7493 46.7798 12.5653 44.9098C11.3782 43.8923 11.5891 41.9834 12.9434 41.2019C14.8868 40.079 17.2953 40.0607 19.2157 41.2248C19.4128 41.344 19.6122 41.4609 19.8161 41.5709C21.7549 42.6365 22.9122 44.7219 22.9122 46.9357V46.9357Z" stroke="#577BF9" stroke-width="1.91406" stroke-linecap="round" stroke-linejoin="round"/>
+                                      <path d="M27.5 20.6256L34.3755 27.5011L27.5 34.3766L20.6245 27.5011L27.5 20.6256Z" stroke="#577BF9" stroke-width="1.91406" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                    </div>
+                                    <div style="width: 100%; margin: 0.5% 0 0 1%;">
+                                      <div class="optml-font" style="margin-bottom: 1%;"><span class="is-size-5" style="font-weight: bold !important;" > /5k </span><span> {{strings.quota}} </span> </div>
+                                      <progress class="progress is-info optml-quota-progress" :value="7" :max="10"></progress>
+                                    </div>
+                                  </div>
 
-																		<hr/>
-																		<last-images :status="fetchStatus" v-if="! remove_images"></last-images>
+<!--
+	<last-images :status="fetchStatus" v-if="! remove_images"></last-images>-->
 																</div>
 																<div class="is-tab" v-if=" tab === 'settings'">
 																		<options></options>
@@ -103,6 +141,7 @@
 				<div v-if="is_connected && this.$store.state.userData.plan === 'free' "
 						 class="column is-narrow is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile">
 
+<!--          right side-->
 						<div class="card optml-upgrade">
               <cdn-details v-if="this.$store.state.userData"></cdn-details>
               <api-key-form></api-key-form>
@@ -213,6 +252,9 @@
       }
 		},
 		methods: {
+      requestUpdate() {
+        this.$store.dispatch('requestStatsUpdate', {waitTime: 0, component: null});
+      },
 			changeTab: function (value) {
 				this.tab = value;
 			},
@@ -319,7 +361,22 @@
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       color: #282828;
     }
+    @keyframes spin {
+      100% {  transform: rotate(-359deg); }
+      0% { transform: rotate(0deg); }
 
+    }
+    .optml-spin {
+      animation: spin 2s linear infinite;
+    }
+
+    .optml-quota-progress {
+      background-color: white;
+      height: 10px !important;
+      border: 1px solid rgba(87, 123, 249, 0.36) !important;
+      box-sizing: border-box !important;
+      border-radius: 100px !important;
+    }
 		.slide-fade-enter-active {
 				transition: all .3s ease;
 		}

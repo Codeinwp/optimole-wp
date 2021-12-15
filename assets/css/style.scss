@@ -5,10 +5,19 @@
   $primary: #EF686B;
   $success: #6D955A;
   $danger: #D54222;
-  $info: #5180C1;
-
+  $info: #577BF9;
   @import "~bulma/bulma";
 
+  .optml-side-by-side {
+    display : flex;
+    flex-direction : row;
+  }
+  .optml-light-background {
+    background: #EEF2FE;
+    border: 1px solid #D9E7F0;
+    box-sizing: border-box;
+    border-radius: 6px;
+  }
   .select:not(.is-multiple):not(.is-loading)::after{
     display: none;
   }
