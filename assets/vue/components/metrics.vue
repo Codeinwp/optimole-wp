@@ -27,8 +27,8 @@
         </div>
       </div>
     </div>
-    <div class="optml-side-by-side">
-      <div>
+    <div class="optml-side-by-side" style="margin: 2.5% 0 2.5% 0;">
+      <div style="position: absolute;left: 2%;">
         <svg xmlns="http://www.w3.org/2000/svg" width="55" height="55" viewBox="0 0 55 55" fill="none">
           <path d="M42.0235 45.3568L45.0279 46.6928C46.5427 47.3666 48.25 46.2574 48.25 44.5982V10.402C48.25 8.74281 46.5427 7.63364 45.0279 8.30739L42.0235 9.64343C32.8569 13.718 22.3931 13.718 13.2265 9.64343L10.2221 8.30739C8.70729 7.63364 7 8.74281 7 10.402V44.5982C7 46.2574 8.70729 47.3666 10.2221 46.6928L13.2265 45.3568C22.3931 41.2845 32.8569 41.2845 42.0235 45.3568Z" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M34.5002 35.5209H20.7502C19.4852 35.5209 18.4585 34.4942 18.4585 33.2292V21.7709C18.4585 20.5059 19.4852 19.4792 20.7502 19.4792H34.5002C35.7652 19.4792 36.7918 20.5059 36.7918 21.7709V33.2292C36.7918 34.4942 35.7652 35.5209 34.5002 35.5209Z" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
@@ -37,8 +37,17 @@
           <path d="M26.0665 30.2043L23.3853 28.4167" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M23.3856 28.4167L18.4585 32.5647" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
+        <p class="optml-font is-size-5 has-text-weight-bold">
+          {{145}} / &infin;
+        </p>
+        <p class="is-size-6">
+          Images optimized
+        </p>
+        <p class="optml-gray">
+          During last month
+        </p>
       </div>
-      <div>
+      <div style="position: absolute; left: 44%;">
         <svg xmlns="http://www.w3.org/2000/svg" width="56" height="55" viewBox="0 0 56 55" fill="none">
           <path d="M36.681 6.875H13.7643C8.70203 6.875 4.59766 10.9794 4.59766 16.0417C4.59766 21.104 8.70203 25.2083 13.7643 25.2083H36.681C41.7433 25.2083 45.8477 21.104 45.8477 16.0417C45.8477 10.9794 41.7433 6.875 36.681 6.875Z" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M13.7643 25.2084C8.70203 25.2084 4.59766 29.3127 4.59766 34.375C4.59766 39.4373 8.70203 43.5417 13.7643 43.5417H29.806" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
@@ -51,17 +60,17 @@
         </svg>
         <div>
           <p class="optml-font is-size-5 has-text-weight-bold">
-            {{145}} / &infin;
+            {{222}}MB/ &infin;
           </p>
-          <p>
-            Images optimized
+          <p class="is-size-6">
+            Saved file size
           </p>
-          <p>
+          <p class="optml-gray">
             During last month
           </p>
         </div>
       </div>
-      <div>
+      <div style="position:absolute; right: 2%;">
         <svg xmlns="http://www.w3.org/2000/svg" width="55" height="55" viewBox="0 0 55 55" fill="none">
           <path d="M43.5418 32.0833C41.0095 32.0833 38.9585 30.0323 38.9585 27.5C38.9585 24.9677 41.0095 22.9166 43.5418 22.9166C46.0741 22.9166 48.1252 24.9677 48.1252 27.5C48.1252 30.0323 46.0741 32.0833 43.5418 32.0833Z" stroke="#577BF9" stroke-width="1.97917" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M32.0832 43.5417C32.0832 46.074 30.0321 48.1251 27.4998 48.1251C24.9675 48.1251 22.9165 46.074 22.9165 43.5417C22.9165 41.0094 24.9675 38.9584 27.4998 38.9584C30.0321 38.9584 32.0832 41.0094 32.0832 43.5417Z" stroke="#577BF9" stroke-width="1.97917" stroke-linecap="round" stroke-linejoin="round"/>
@@ -77,6 +86,15 @@
           <path d="M16.0417 43.5417C16.0417 46.074 13.9906 48.1251 11.4583 48.1251C8.92604 48.1251 6.875 46.074 6.875 43.5417C6.875 41.0094 8.92604 38.9584 11.4583 38.9584C13.9906 38.9584 16.0417 41.0094 16.0417 43.5417Z" stroke="#577BF9" stroke-width="1.97917" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M11.4583 16.0417C8.92604 16.0417 6.875 13.9906 6.875 11.4583C6.875 8.92604 8.92604 6.875 11.4583 6.875C13.9906 6.875 16.0417 8.92604 16.0417 11.4583C16.0417 13.9906 13.9906 16.0417 11.4583 16.0417Z" stroke="#577BF9" stroke-width="1.97917" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
+        <p class="optml-font is-size-5 has-text-weight-bold">
+          {{64}}%
+        </p>
+        <p class="is-size-6">
+          Average compression
+        </p>
+        <p class="optml-gray">
+          During last month
+        </p>
       </div>
     </div>
 

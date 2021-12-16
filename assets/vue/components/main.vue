@@ -62,7 +62,7 @@
 																						</a>
 																				</li>
                                         <!-- Refresh stats -->
-                                        <li style="position: relative; left: 57%;">
+                                        <li style="position: absolute; right: 1%;">
                                             <div class="level-item">
 
                                               <span class="is-size-7" style="font-weight: bold; color: #626262;">{{ this.$store.state.loading ?  strings.updating_stats_cta : strings.refresh_stats_cta}}</span>
