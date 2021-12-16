@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<div class="header has-text-centered level" style="padding-top: 1em; padding-bottom: 3em;">
+		<div class="header has-text-centered level" style="padding-top: 1em; padding-bottom: 2em;">
 			
 			<div class="level-left">
 				<a class="logo level-item" href="https://optimole.com" target="_blank">

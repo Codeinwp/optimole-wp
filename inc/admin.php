@@ -784,7 +784,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'no_conflicts_found' => __( 'No conflicts found. We are all peachy now. 🍑', 'optimole-wp' ),
 			],
 			'upgrade'                        => [
-				'title'    => __( 'Upgrade to Pro', 'optimole-wp' ),
+				'title'    => __( 'Upgrade', 'optimole-wp' ),
 				'reason_1' => __( 'Priority & Live Chat support', 'optimole-wp' ),
 				'reason_2' => __( 'Extend visits limit', 'optimole-wp' ),
 				'reason_3' => __( 'Custom domain', 'optimole-wp' ),

@@ -11,12 +11,24 @@
   .optml-side-by-side {
     display : flex;
     flex-direction : row;
+    position: relative;
   }
   .optml-light-background {
     background: #EEF2FE;
     border: 1px solid #D9E7F0;
     box-sizing: border-box;
     border-radius: 6px;
+  }
+  .optml-button {
+    position: absolute;
+    background-color: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #577BF9;
+    font-weight: bold !important;
+    padding: 0.4%;
+    /* opt/accent 1 */
+    border: 2px solid #577BF9;
+    border-radius: 7px;
   }
   .select:not(.is-multiple):not(.is-loading)::after{
     display: none;
