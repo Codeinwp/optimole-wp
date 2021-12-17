@@ -27,7 +27,7 @@
         </div>
       </div>
     </div>
-    <div class="optml-side-by-side" style="margin: 2.5% 0 2.5% 0;">
+    <div class="optml-side-by-side" style="margin: 4% 0 4% 0;">
       <div style="position: absolute;left: 2%;">
         <svg xmlns="http://www.w3.org/2000/svg" width="55" height="55" viewBox="0 0 55 55" fill="none">
           <path d="M42.0235 45.3568L45.0279 46.6928C46.5427 47.3666 48.25 46.2574 48.25 44.5982V10.402C48.25 8.74281 46.5427 7.63364 45.0279 8.30739L42.0235 9.64343C32.8569 13.718 22.3931 13.718 13.2265 9.64343L10.2221 8.30739C8.70729 7.63364 7 8.74281 7 10.402V44.5982C7 46.2574 8.70729 47.3666 10.2221 46.6928L13.2265 45.3568C22.3931 41.2845 32.8569 41.2845 42.0235 45.3568Z" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
@@ -47,7 +47,7 @@
           During last month
         </p>
       </div>
-      <div style="position: absolute; left: 44%;">
+      <div style="position: relative; left: 42%;">
         <svg xmlns="http://www.w3.org/2000/svg" width="56" height="55" viewBox="0 0 56 55" fill="none">
           <path d="M36.681 6.875H13.7643C8.70203 6.875 4.59766 10.9794 4.59766 16.0417C4.59766 21.104 8.70203 25.2083 13.7643 25.2083H36.681C41.7433 25.2083 45.8477 21.104 45.8477 16.0417C45.8477 10.9794 41.7433 6.875 36.681 6.875Z" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M13.7643 25.2084C8.70203 25.2084 4.59766 29.3127 4.59766 34.375C4.59766 39.4373 8.70203 43.5417 13.7643 43.5417H29.806" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>

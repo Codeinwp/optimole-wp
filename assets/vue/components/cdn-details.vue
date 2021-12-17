@@ -1,90 +1,65 @@
 <template>
-	<div class="cdn-details">
-		<hr/>
-		<div class="has-text-centered">
-			<div>
-				<span class="label level-item">{{strings.logged_in_as}}:</span>
-				<p class="details level-item tags has-addons">
-					<span class="tag is-light">{{userData.display_name}}</span>
-					<span class="tag is-paddingless"><img :src="userData.picture" class="image is-24x24 is-rounded"
-					                                      :alt="userData.display_name"></span>
+	<div class="cdn-details" style="padding-top: 1.5em;">
+
+			<div class="optml-side-by-side" style="margin-bottom:14%;">
+        <div class="optml-circle"></div>
+        <div class="is-size-7 optml-gray has-text-left" style="position: relative; left: 24%; top: 12px; ">
+				<p class="has-text-weight-bold">{{strings.logged_in_as}}:</p>
+				<p>
+					{{userData.display_name}}
 				</p>
+        </div>
 			</div>
       <hr/>
 			<div>
-				<span class="label level-item">{{strings.private_cdn_url}}:</span>
-				<p class="details level-item tag is-light">{{connectedDomain}}</p>
+				<p class="is-size-7 has-text-weight-bold optml-gray has-text-left">{{strings.private_cdn_url}}:</p>
 			</div>
-		</div>
-		<hr/>
+    <div class="control is-large">
+      <input type="text" :disabled="true" class="optml-light-background is-large optml-gray" style="width: 100%; height: 40px; font-size:1em; vertical-align: middle;" v-model="connectedDomain">
+    </div>
+    <div class="is-size-7 optml-gray has-text-left">
+      <p class="has-text-weight-bold">{{strings.your_api_key}}:</p>
+    </div>
+    <div class="control is-large">
+      <input type="password" :disabled="true" name="api_key" class="optml-light-background is-large" style="width: 100%; height: 40px; font-size:3.5em; vertical-align: middle; color: black; letter-spacing: -0.158em;" value="11111111111111">
+    </div>
+    <div class="control is-large" style="height: 37px; margin: 4% 0 7% 0;">
+      <button  class="optml-button " style="height: 37px; font-size: 0.8em; margin: 2% 0 4% 0; padding: 2%;">{{strings.disconnect_btn}}</button>
+    </div>
+    <div class=" is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile" style="margin-top: 7%; color:white !important; background-color: #577BF9;" v-if="this.$store.state.userData.plan === 'free'">
+    <div style="margin: 4%;">
+        <p class="is-size-5 has-text-centered has-text-weight-bold">
+          {{strings.upgrade.title_long}}
+        </p>
+    </div>
+      <ul class="is-size-6 upgrade">
+        <li><span class="dashicons dashicons-yes-alt "></span>{{strings.upgrade.reason_1}}</li>
+        <li><span class="dashicons dashicons-yes-alt "></span>{{strings.upgrade.reason_2}}</li>
+        <li><span class="dashicons dashicons-yes-alt "></span>{{strings.upgrade.reason_3}}</li>
+        <li><span class="dashicons dashicons-yes-alt "></span>{{strings.upgrade.reason_4}}</li>
+      </ul>
+      <div class="is-size-5" style="background: rgba(0, 0, 0, 0.43);border-radius: 4px;">
+        {{strings.upgrade.cta}}
+      </div>
+    </div>
 
-		<div  v-if="this.userData.visitors_limit && parseInt( this.userData.visitors_limit ) > 0" class="level stats">
-			<div class="level-left">
-				<div class="level-item">
-					<div class="tags has-addons">
-						<span class="tag is-info">{{strings.usage}}:</span>
-						<span class="tag">{{this.userData.visitors_pretty}} </span>
-					</div>
-				</div>
-			</div>
-			<h4 class="level-item is-size-5 is-marginless has-text-grey">
-				{{computedPercentageVisitors()}}%
-			</h4>
-			<div class="level-right">
-				<div class="level-item">
-					<div class="tags has-addons">
-						<span class="tag is-info">{{strings.quota}}:</span>
-						<span class="tag">{{this.userData.visitors_limit_pretty}} (<a href="https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors" target="_blank">?</a>)</span>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div   v-else class="level stats">
-			<div class="level-left">
-				<div class="level-item">
-					<div class="tags has-addons">
-						<span class="tag is-info">{{strings.usage}}:</span>
-						<span class="tag">{{this.userData.usage_pretty}}</span>
-					</div>
-				</div>
-			</div>
-			<h4 class="level-item is-size-5 is-marginless has-text-grey">
-				{{computedPercentage()}}%
-			</h4>
-			<div class="level-right">
-				<div class="level-item">
-					<div class="tags has-addons">
-						<span class="tag is-info">{{strings.quota}}:</span>
-						<span class="tag">{{this.userData.quota_pretty}}</span>
-					</div>
-				</div>
-			</div>
-		</div>
-		
-		<div class="level-right">
-			
-			<div class="level-item optml-refresh-wrapper">
-			<a class="button is-small is-warning" v-if="this.$store.state.loading"><span class="icon"><i
-					class="dashicons dashicons-backup is-size-6"></i></span> <span>{{strings.updating_stats_cta}}</span>
-			</a>
-			<a class="button is-small is-info" v-else v-on:click="requestUpdate"><span class="icon"><i
-					class="dashicons dashicons-image-rotate  is-size-6"></i></span> <span>{{strings.refresh_stats_cta}}</span>
-			</a>
-			</div>
-		</div>
-		<hr/>
-		<progress v-if="this.userData.visitors_limit && parseInt( this.userData.visitors_limit ) > 0" class="progress is-success" :value="this.userData.visitors" :max="this.userData.visitors_limit">60%</progress>
-		<progress v-else class="progress is-success" :value="this.userData.usage" :max="this.userData.quota">60%</progress>
 
-	</div>
+
+
+  </div>
+
 </template>
 
 <script>
+
+  import ApiKeyForm from "./api-key-form.vue";
+
 	export default {
 		name: "cdn-details",
 		data() {
 			return {
-				strings: optimoleDashboardApp.strings
+				strings: optimoleDashboardApp.strings,
+        apiKey: this.$store.state.apiKey ? this.$store.state.apiKey : '',
 			}
 		},
 		computed:{
@@ -100,16 +75,11 @@
 			}
 		},
 		methods: {
-			computedPercentage() {
-				return ((this.userData.usage / this.userData.quota) * 100).toFixed(2);
-			},
-			computedPercentageVisitors() {
-				return ((this.userData.visitors / this.userData.visitors_limit) * 100).toFixed(2);
-			},
-			requestUpdate() {
-				this.$store.dispatch('requestStatsUpdate', {waitTime: 0, component: null});
-			}
+
 		},
+    components: {
+		  ApiKeyForm
+    }
 	}
 </script>
 

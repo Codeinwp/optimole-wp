@@ -2,21 +2,26 @@
 	<div>
 		<div class="optimized-images" v-if="! loading ">
 			<div v-if="!noImages">
-				<h3 class="has-text-centered">{{strings.last}} {{strings.optimized_images}}</h3>
+				<h3 class="has-text-weight-bold is-size-6" style="margin-bottom: 4%;">{{strings.last}} {{strings.optimized_images}}</h3>
 				<table class="table is-striped is-hoverable is-fullwidth">
-					<thead>
-					<tr>
-						<th class="optml-image-heading">{{strings.image}}</th>
-						<th class="optml-image-ratio-heading">{{strings.compression}}</th>
-					</tr>
-					</thead>
 					<tbody>
-					<tr v-for="(item, index) in imageData">
-						<td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>
-						<td><p
-								class="optml-ratio-feedback"
-								v-html="compressionRate(item.ex_size_raw, item.new_size_raw)"></p>
-						</td>
+					<tr v-for="index in [0,5]">
+						<td><a :href="imageData[index].url" target="_blank"><img :src="imageData[index].url" class="optml-image"/></a></td>
+            <td><a :href="imageData[index+1].url" target="_blank"><img :src="imageData[index+1].url" class="optml-image"/></a></td>
+            <td><a :href="imageData[index+2].url" target="_blank"><img :src="imageData[index+2].url" class="optml-image"/></a></td>
+            <td><a :href="imageData[index+3].url" target="_blank"><img :src="imageData[index+3].url" class="optml-image"/></a></td>
+            <td><a :href="imageData[index+4].url" target="_blank"><img :src="imageData[index+4].url" class="optml-image"/></a></td>
+
+
+
+            <!--            <td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>-->
+<!--            <td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>-->
+<!--            <td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>-->
+<!--            <td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>-->
+<!--						<td><p-->
+<!--								class="optml-ratio-feedback"-->
+<!--								v-html="compressionRate(item.ex_size_raw, item.new_size_raw)"></p>-->
+<!--						</td>-->
 					</tr>
 					</tbody>
 				</table>

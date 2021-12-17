@@ -733,8 +733,9 @@ class Optml_Admin {
 			'not_connected'                  => __( 'NOT CONNECTED', 'optimole-wp' ),
 			'usage'                          => __( 'Monthly Usage', 'optimole-wp' ),
 			'quota'                          => __( 'Monthly visits quota', 'optimole-wp' ),
-			'logged_in_as'                   => __( 'Logged in as', 'optimole-wp' ),
-			'private_cdn_url'                => __( 'Images domain', 'optimole-wp' ),
+			'logged_in_as'                   => __( 'LOGGED IN AS', 'optimole-wp' ),
+			'your_api_key'                   => __( 'YOUR API KEY', 'optimole-wp' ),
+			'private_cdn_url'                => __( 'IMAGES DOMAIN', 'optimole-wp' ),
 			'notification_message_register'  => __( 'We have sent you an email with the API key. Please copy and paste the key in the field below.', 'optimole-wp' ),
 			'account_needed_title'           => sprintf(
 				__( 'In order to get access to free image optimization service you will need an API key from %s.', 'optimole-wp' ),
@@ -785,6 +786,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			],
 			'upgrade'                        => [
 				'title'    => __( 'Upgrade', 'optimole-wp' ),
+				'title_long'  => __( 'Upgrade to Optimole Pro', 'optimole-wp' ),
 				'reason_1' => __( 'Priority & Live Chat support', 'optimole-wp' ),
 				'reason_2' => __( 'Extend visits limit', 'optimole-wp' ),
 				'reason_3' => __( 'Custom domain', 'optimole-wp' ),

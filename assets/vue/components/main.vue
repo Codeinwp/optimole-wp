@@ -65,7 +65,7 @@
                                         <li style="position: absolute; right: 1%;">
                                             <div class="level-item">
 
-                                              <span class="is-size-7" style="font-weight: bold; color: #626262;">{{ this.$store.state.loading ?  strings.updating_stats_cta : strings.refresh_stats_cta}}</span>
+                                              <span class="is-size-7 has-text-weight-bold optml-gray">{{ this.$store.state.loading ?  strings.updating_stats_cta : strings.refresh_stats_cta}}</span>
 
                                               <a style="padding:0; margin:0;">
                                               <svg v-bind:class="{ 'optml-spin': this.$store.state.loading }" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="visibility: visible"  v-on:click="requestUpdate">
@@ -90,10 +90,11 @@
 																		<div class="notification is-danger" v-if="user_status === 'inactive' "
 																				 v-html="strings.notice_disabled_account"></div>
                                     <metrics></metrics>
+                                <hr/>
 
 
-<!--
-	<last-images :status="fetchStatus" v-if="! remove_images"></last-images>-->
+
+	                              <last-images :status="fetchStatus" v-if="! remove_images"></last-images>
 																</div>
 																<div class="is-tab" v-if=" tab === 'settings'">
 																		<options></options>
@@ -119,32 +120,13 @@
 								</div>
 						</div>
 				</div>
-				<div v-if="is_connected && this.$store.state.userData.plan === 'free' "
-						 class="column is-narrow is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile">
+				<div v-if="is_connected"
+						 class="column is-narrow">
 
 <!--          right side-->
 						<div class="card optml-upgrade">
               <cdn-details v-if="this.$store.state.userData"></cdn-details>
-              <api-key-form></api-key-form>
-								<div class="card-header">
-										<h3 class="is-size-5 card-header-title"><span class="dashicons dashicons-chart-line"></span>
-												{{strings.upgrade.title}}</h3>
-								</div>
-								<div class="card-content">
-										<ul>
-												<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_1}}</li>
-												<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_2}}</li>
-												<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_3}}</li>
-												<li><span class="dashicons dashicons-yes"></span>{{strings.upgrade.reason_4}}</li>
-										</ul>
-								</div>
-								<div class="card-footer  ">
-										<div class="card-footer-item">
-												<a href="https://optimole.com/pricing" target="_blank"
-													 class="button is-centered is-small is-success"><span
-																class="dashicons dashicons-external"></span>{{strings.upgrade.cta}}</a>
-										</div>
-								</div>
+
 						</div>
 				</div>
 		</div>
@@ -156,7 +138,6 @@
 	import ConnectLayout from './connect-layout.vue';
 	import LastImages from './last-images.vue';
 	import Conflicts from './conflicts.vue';
-	import ApiKeyForm from "./api-key-form.vue";
 	import Options from "./options.vue";
 	import Watermarks from "./watermarks.vue";
   import Metrics from "./metrics.vue";
@@ -194,7 +175,6 @@
 			Options,
 			Watermarks,
 			ConnectLayout,
-			ApiKeyForm,
 			CdnDetails,
 			Conflicts,
 			LastImages,
@@ -314,6 +294,7 @@
 
 		#optimole-app .optml-upgrade {
 				min-width: 200px;
+        max-width: 270px;
 		}
 
 		#optimole-app .is-tab.no-images {
