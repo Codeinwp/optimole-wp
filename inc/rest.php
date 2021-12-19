@@ -484,7 +484,17 @@ class Optml_Rest {
 		$final_images = array_splice( $images['list'], 0, 10 );
 
 		foreach ( $final_images as $index => $value ) {
-			$final_images[ $index ]['url'] = Optml_Media_Offload::instance()->get_media_optimized_url( $value['url'], $value['key'] );
+			$final_images[ $index ]['url'] = Optml_Media_Offload::instance()->get_media_optimized_url(
+				$value['url'],
+				$value['key'],
+				140,
+				140,
+				[
+					'type'    => Optml_Resize::RESIZE_FILL,
+					'enlarge' => false,
+					'gravity' => Optml_Resize::GRAVITY_CENTER,
+				]
+			);
 			unset( $final_images[ $index ]['key'] );
 		}
 

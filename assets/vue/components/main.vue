@@ -120,14 +120,34 @@
 								</div>
 						</div>
 				</div>
-				<div v-if="is_connected"
-						 class="column is-narrow">
+        <!--right side-->
+				<div v-if="is_connected" class="column is-narrow">
 
-<!--          right side-->
+
 						<div class="card optml-upgrade">
               <cdn-details v-if="this.$store.state.userData"></cdn-details>
-
 						</div>
+          <div class=" is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile" style="padding-bottom:8%; margin-top: -4%; color:white !important; background-color: #577BF9;" v-if="this.$store.state.userData.plan === 'free'">
+            <div style="margin: 4% 4% 7.5% 4%; padding-top: 10%;" >
+              <p class="is-size-5 has-text-centered has-text-weight-bold">
+                {{strings.upgrade.title_long}}
+              </p>
+            </div>
+            <div style="position:relative;">
+            <ul class="is-size-6 upgrade" style="margin-left: 10%;">
+              <li><span class="dashicons dashicons-yes-alt" style="margin: 0 2% 1% 0;"></span>{{strings.upgrade.reason_1}}</li>
+              <li><span class="dashicons dashicons-yes-alt " style="margin: 0 2% 1% 0;"></span>{{strings.upgrade.reason_2}}</li>
+              <li><span class="dashicons dashicons-yes-alt " style="margin: 0 2% 1% 0;"></span>{{strings.upgrade.reason_3}}</li>
+              <li><span class="dashicons dashicons-yes-alt " style="margin: 0 2% 1% 0;"></span>{{strings.upgrade.reason_4}}</li>
+            </ul>
+              <figure class="image is-hidden-touch" style="position: absolute; left: 50%; top: 17%;">
+                <img :src="logo" :alt="strings.optimole + ' ' + strings.service_details" >
+              </figure>
+            </div>
+            <a class="is-size-6 optml-button" href="https://optimole.com/pricing" target="_blank" style="display:block; position:relative; color:white !important; margin:8% 10% 0 10%; padding: 4% 10% 4% 10%; text-align:center;background: rgba(0, 0, 0, 0.43);border-radius: 4px;">
+              {{strings.upgrade.cta}}
+            </a>
+          </div>
 				</div>
 		</div>
 </template>
@@ -153,7 +173,8 @@
 				timer: 0,
 				max_time: 25,
 				loading_percent: 0,
-				tab: 'dashboard'
+				tab: 'dashboard',
+        logo: optimoleDashboardApp.assets_url + 'img/logo2.png',
 			}
 		},
 		computed: {

@@ -24,24 +24,9 @@
       <input type="password" :disabled="true" name="api_key" class="optml-light-background is-large" style="width: 100%; height: 40px; font-size:3.5em; vertical-align: middle; color: black; letter-spacing: -0.158em;" value="11111111111111">
     </div>
     <div class="control is-large" style="height: 37px; margin: 4% 0 7% 0;">
-      <button  class="optml-button " style="height: 37px; font-size: 0.8em; margin: 2% 0 4% 0; padding: 2%;">{{strings.disconnect_btn}}</button>
+      <a  class="optml-button " style="height: 37px; font-size: 0.8em; margin: 2.5% 0 4% 0; padding: 2.5% 2% 0 2%;" @click="disconnect">{{strings.disconnect_btn}}</a>
     </div>
-    <div class=" is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile" style="margin-top: 7%; color:white !important; background-color: #577BF9;" v-if="this.$store.state.userData.plan === 'free'">
-    <div style="margin: 4%;">
-        <p class="is-size-5 has-text-centered has-text-weight-bold">
-          {{strings.upgrade.title_long}}
-        </p>
-    </div>
-      <ul class="is-size-6 upgrade">
-        <li><span class="dashicons dashicons-yes-alt "></span>{{strings.upgrade.reason_1}}</li>
-        <li><span class="dashicons dashicons-yes-alt "></span>{{strings.upgrade.reason_2}}</li>
-        <li><span class="dashicons dashicons-yes-alt "></span>{{strings.upgrade.reason_3}}</li>
-        <li><span class="dashicons dashicons-yes-alt "></span>{{strings.upgrade.reason_4}}</li>
-      </ul>
-      <div class="is-size-5" style="background: rgba(0, 0, 0, 0.43);border-radius: 4px;">
-        {{strings.upgrade.cta}}
-      </div>
-    </div>
+
 
 
 
@@ -75,7 +60,11 @@
 			}
 		},
 		methods: {
-
+      disconnect: function () {
+        this.apiKey = '';
+        this.$store.dispatch( 'disconnectOptimole', {
+        } );
+      },
 		},
     components: {
 		  ApiKeyForm

@@ -31,6 +31,23 @@
   .optml-circle {
     /* Frame 1 */position: absolute;width: 57px;height: 57px;left: 14.7px;top: 21px;border-radius: 999px;/* Ellipse 3 */position: absolute;left: 0%;right: 0%;top: 0%;bottom: 0%;background: #B5B5B5;
   }
+  .optml-center-table-text {
+    left: 3%;
+    position: relative;
+    top: -5px;
+  }
+  .optml-point {
+    /* Ellipse 4 */
+
+    position: relative;
+    width: 8px;
+    height: 8px;
+
+    border-radius: 4px;
+
+    /* connected */
+    background: #6D955A;
+  }
   .optml-button {
     position: absolute;
     background-color: transparent;
@@ -204,7 +221,11 @@
 
 #optimole-app img.optml-image {
   float: left;
-  max-width: 100px;
+  max-width: 140px;
+  max-height: 140px;
+  border-radius: 4px;
+  left: 10%;
+  position: relative;
   width: auto;
   margin: auto;
 }

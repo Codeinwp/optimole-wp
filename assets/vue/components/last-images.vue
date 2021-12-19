@@ -5,12 +5,13 @@
 				<h3 class="has-text-weight-bold is-size-6" style="margin-bottom: 4%;">{{strings.last}} {{strings.optimized_images}}</h3>
 				<table class="table is-striped is-hoverable is-fullwidth">
 					<tbody>
-					<tr v-for="index in [0,5]">
-						<td><a :href="imageData[index].url" target="_blank"><img :src="imageData[index].url" class="optml-image"/></a></td>
-            <td><a :href="imageData[index+1].url" target="_blank"><img :src="imageData[index+1].url" class="optml-image"/></a></td>
-            <td><a :href="imageData[index+2].url" target="_blank"><img :src="imageData[index+2].url" class="optml-image"/></a></td>
-            <td><a :href="imageData[index+3].url" target="_blank"><img :src="imageData[index+3].url" class="optml-image"/></a></td>
-            <td><a :href="imageData[index+4].url" target="_blank"><img :src="imageData[index+4].url" class="optml-image"/></a></td>
+          <template  v-for="index in [0,5]">
+					<tr>
+						<td style="border: none !important;"><a :href="imageData[index].url" target="_blank"><img :src="imageData[index].url" class="optml-image"/></a></td>
+            <td style="border: none !important;"><a :href="imageData[index+1].url" target="_blank"><img :src="imageData[index+1].url" class="optml-image"/></a></td>
+            <td style="border: none !important;"><a :href="imageData[index+2].url" target="_blank"><img :src="imageData[index+2].url" class="optml-image"/></a></td>
+            <td style="border: none !important;"><a :href="imageData[index+3].url" target="_blank"><img :src="imageData[index+3].url" class="optml-image"/></a></td>
+            <td style="border: none !important;"><a :href="imageData[index+4].url" target="_blank"><img :src="imageData[index+4].url" class="optml-image"/></a></td>
 
 
 
@@ -20,9 +21,42 @@
 <!--            <td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>-->
 <!--						<td><p-->
 <!--								class="optml-ratio-feedback"-->
-<!--								v-html="compressionRate(item.ex_size_raw, item.new_size_raw)"></p>-->
+<!--								></p>-->
 <!--						</td>-->
 					</tr>
+          <tr>
+            <td style="border: none !important; position:relative; padding-left: 2.5%;">
+              <div class="optml-side-by-side">
+                <div class="optml-point"></div>
+                <div class="optml-center-table-text">{{compressionRate(imageData[index].ex_size_raw, imageData[index].new_size_raw)}}% Saved</div>
+              </div>
+            </td>
+            <td style="border: none !important; position:relative; padding-left: 2.5%;">
+              <div class="optml-side-by-side">
+                <div class="optml-point"></div>
+                <div class="optml-center-table-text">{{compressionRate(imageData[index+1].ex_size_raw, imageData[index+1].new_size_raw)}}% Saved</div>
+              </div>
+            </td>
+            <td style="border: none !important; position:relative; padding-left: 2.5%;">
+              <div class="optml-side-by-side">
+                <div class="optml-point"></div>
+                <div class="optml-center-table-text">{{compressionRate(imageData[index+2].ex_size_raw, imageData[index+2].new_size_raw)}}% Saved</div>
+              </div>
+            </td>
+            <td style="border: none !important; position:relative; padding-left: 2.5%;">
+              <div class="optml-side-by-side">
+                <div class="optml-point"></div>
+                <div class="optml-center-table-text">{{compressionRate(imageData[index+3].ex_size_raw, imageData[index+3].new_size_raw)}}% Saved</div>
+              </div>
+            </td>
+            <td style="border: none !important; position:relative; padding-left: 2.5%;">
+              <div class="optml-side-by-side">
+                <div class="optml-point"></div>
+                <div class="optml-center-table-text">{{compressionRate(imageData[index+4].ex_size_raw, imageData[index+4].new_size_raw)}}% Saved</div>
+              </div>
+            </td>
+          </tr>
+          </template>
 					</tbody>
 				</table>
 			</div>
@@ -96,17 +130,12 @@
 			compressionRate(oldSize, newSize) {
 				let value = (parseFloat(oldSize / newSize * 100) - 100).toFixed(1);
 				if (value < 1) {
-					return this.strings.same_size;
+					return "1%";
 				}
-				if (value > 1 && value < 25) {
-					return this.strings.small_optimization.replace('{ratio}', value.toString() + '%');
-				}
-				if (value > 25 && value < 100) {
-					return this.strings.medium_optimization.replace('{ratio}', value.toString() + '%');
-				}
-				if (value > 100) {
-					return this.strings.big_optimization.replace('{ratio}', (Math.floor((value / 10) + 10) / 10).toFixed(1).toString() + 'x');
-				}
+        if (value > 100) {
+          return (Math.floor((value / 10) + 10) / 10).toFixed(1).toString();
+        }
+				return value.toString();
 			}
 		}
 	}
