@@ -21,7 +21,7 @@
 				<div class="tags has-addons level-item has-text-weight-bold optml-font">
 					<span class="button is-size-7" style="border: none">{{strings.status}}</span>
 					<span v-if="connected" class="button is-success is-size-7">{{strings.connected}}</span>
-					<span v-else class="tag is-danger">{{strings.not_connected}}</span>
+					<span v-else class="button is-size-7 is-danger">{{strings.not_connected}}</span>
 				</div>
 			</div>
 			

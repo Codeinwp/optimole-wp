@@ -49,50 +49,52 @@
 				<div class="hero">
 					<div class="hero-body content">
 						<p class="title">{{strings.account_needed_heading}}</p>
-						<p class="subtitle " v-html="strings.account_needed_title"></p>
+						<p style="margin-top: 5%;" class="subtitle " v-html="strings.account_needed_title"></p>
 						<div class="  is-hidden-touch">
-							<div class="columns  is-vcentered  ">
-								<div class=" is-narrow is-hidden-touch column">
-									<span class="dashicons   icon dashicons-format-image is-size-4 "></span>
+							<div class="columns  is-vcentered  optml-side-by-side">
+								<div class=" is-narrow is-hidden-touch column " style="background-color: white; color:#577BF9 !important;">
+                  <span class="dashicons dashicons-yes-alt" style="margin: 0 0 1% 0;"></span>
 								</div>
 								<div class="column">
-									<p class="subtitle column is-size-6 is-vcentered has-text-left"
+									<p class="subtitle column is-size-6 is-vcentered has-text-left" style="margin-left: -3%;"
 										 v-html="strings.account_needed_subtitle_1"></p>
 								</div>
 							</div>
-							<div class="columns  is-vcentered">
-								<div class=" is-narrow is-hidden-touch column">
-									<span class="dashicons   icon dashicons-plus is-size-4 "></span>
+							<div class="columns  is-vcentered optml-side-by-side">
+								<div class=" is-narrow is-hidden-touch column" style="background-color: white; color:#577BF9 !important;">
+                  <span class="dashicons dashicons-yes-alt" style="margin: 0 0 1% 0;"></span>
 								</div>
 								<div class="column">
-									<p class="subtitle column is-size-6 is-vcentered has-text-left"
+
+									<p class="subtitle column is-size-6 is-vcentered has-text-left" style="margin-left: -3%;"
 										 v-html="strings.account_needed_subtitle_2"></p>
 								</div>
 							</div>
-							<div class="columns  is-vcentered">
-								<div class=" is-narrow is-hidden-touch column">
-									<span class="dashicons   icon dashicons-format-aside is-size-4 "></span>
-								</div>
-								<div class="column">
-									<p class="subtitle column is-size-6 is-vcentered has-text-left"
-										 v-html="strings.account_needed_subtitle_3"></p>
+							<div class="columns  is-vcentered ">
+								<div class="column optml-side-by-side" style="margin-top: 10%;">
+                  <div class="optml-circle optml-light-background"></div>
+
+									<div class="subtitle column is-size-6 is-vcentered has-text-left" style="position: relative; left:5%; top: -12px; line-height: 87%;">
+                    <div class="has-text-weight-bold"> Need help?</div> <br>
+                    <div v-html="strings.account_needed_subtitle_3"></div>
+										 </div>
 								</div>
 							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-			<div class="column is-4-desktop is-full-touch  ">
+			<div class="column is-4-desktop is-full-touch  optml-light-background">
 				<p v-html="strings.account_needed_title" class="is-size-6 has-text-centered is-hidden-desktop"></p>
-				<div class="field     " v-show="showRegisterField">
+				<div class="field" >
 					<label for="optml-email" class="label title is-size-5   is-12">{{strings.email_address_label}}
 						:</label>
 					<div class="control   is-12 is-small has-icons-left ">
-						<input name="optml-email" id="optml-email" class="input is-medium is-fullwidth is-danger"
+						<input name="optml-email" id="optml-email" class="input is-medium is-fullwidth is-info"
 									 type="email"
 									 v-model="email"/>
 						<span class="icon is-small is-left dashicons dashicons-email"></span>
-					
+
 					</div>
 					
 					<p class="help is-danger" v-if="error" v-html="strings.error_register"></p>
@@ -101,7 +103,7 @@
 				<div class="field   ">
 					<div class="control ">
 						<div class="    has-text-centered-mobile">
-							<button @click="registerAccount" class="button is-fullwidth is-medium is-primary  "
+							<button @click="registerAccount" class="button is-fullwidth is-medium is-info  "
 											:class="isLoading ? 'is-loading' :'' ">
 								<span class="icon dashicons dashicons-admin-users"></span>
 								<span>{{strings.register_btn}}</span>
@@ -109,7 +111,7 @@
 						</div>
 						<hr/>
 						<div class="   is-right has-text-centered-mobile has-text-right">
-							<button @click="toggleApiForm" class="button  is-fullwidth is-medium  is-outlined is-info">
+							<button @click="toggleApiForm" class="button  is-fullwidth is-medium  is-outlined" style="background-color: #757296;">
 								<span class="icon dashicons dashicons-admin-network is-small"></span>
 								<span>{{strings.api_exists}}</span>
 							</button>

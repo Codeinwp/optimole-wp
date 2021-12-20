@@ -766,7 +766,7 @@ class Optml_Admin {
 The root cause might be either a security plugin which blocks this feature or some faulty server configuration which constrain this WordPress feature.You can try to disable any of the security plugins that you use in order to see if the issue persists or ask the hosting company to further investigate.',
 				'optimole-wp'
 			),
-			'notice_disabled_account'        => sprintf( __( 'Your account has been disabled due to exceeding quota. All images are being redirected to the original unoptimized URL. Please %1$supgrade%2$s to re-activate the account.', 'optimole-wp' ), '<a href="https://optimole.com/pricing">', '</a>' ),
+			'notice_disabled_account'        => sprintf( __( '%3$sYour account has been disabled due to exceeding quota.%4$s All images are being redirected to the original unoptimized URL. %5$sPlease %1$supgrade%2$s to re-activate the account.', 'optimole-wp' ), '<b><a href="https://optimole.com/pricing">', '</a></b>', '<b>', '</b>', '<br>' ),
 			'dashboard_menu_item'            => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'             => __( 'Settings', 'optimole-wp' ),
 			'settings_exclusions_menu_item'  => __( 'Exclusions', 'optimole-wp' ),

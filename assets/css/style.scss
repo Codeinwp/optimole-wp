@@ -4,7 +4,7 @@
 
   $primary: #EF686B;
   $success: #6D955A;
-  $danger: #D54222;
+  $danger: #E77777;;
   $info: #577BF9;
   @import "~bulma/bulma";
 
@@ -13,8 +13,14 @@
     flex-direction : row;
     position: relative;
   }
+  .optml-warning {
+    background: #FFEBEB;
+    border: 1px solid #EAB3B3;
+    border-radius: 6px;
+    color: #AF3535;
+  }
   .optml-light-background {
-    background: #EEF2FE;
+    background: #EEF2FE !important;
     border: 1px solid #D9E7F0;
     box-sizing: border-box;
     border-radius: 6px;
