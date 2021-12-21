@@ -709,7 +709,7 @@ class Optml_Admin {
 			'privacy_menu'                   => __( 'Privacy', 'optimole-wp' ),
 			'testdrive_menu'                 => __( 'Test Optimole', 'optimole-wp' ),
 			'service_details'                => __( 'Image optimization service', 'optimole-wp' ),
-			'connect_btn'                    => __( 'Connect to OptiMole Service', 'optimole-wp' ),
+			'connect_btn'                    => __( 'Connect to Optimole', 'optimole-wp' ),
 			'disconnect_btn'                 => __( 'Disconnect', 'optimole-wp' ),
 			'refresh_stats_cta'              => __( 'REFRESH STATS', 'optimole-wp' ),
 			'updating_stats_cta'             => __( 'UPDATING STATS', 'optimole-wp' ),
@@ -718,16 +718,14 @@ class Optml_Admin {
 			'invalid_key'                    => __( 'Invalid API Key', 'optimole-wp' ),
 			'status'                         => __( 'STATUS', 'optimole-wp' ),
 			'email_address_label'            => __( 'Your email address', 'optimole-wp' ),
-			'register_btn'                   => __( 'Register & Email API key', 'optimole-wp' ),
+			'steps_connect_api_title'        => __( 'Connect your account', 'optimole-wp' ),
+			'register_btn'                   => __( 'Send me the API key', 'optimole-wp' ),
 			'step_one_api_title'             => __( 'Enter your API key.', 'optimole-wp' ),
-			'step_one_api_desc'              => sprintf( __( 'Copy the API key you have received via email or you can get it from %1$s Optimole dashboard%2$s. <br/>', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/" target="_blank"> ', '</a>' ),
-			'step_two_api_title'             => __( 'Connect to Optimole.', 'optimole-wp' ),
-			'step_two_api_desc'              => __( 'Fill in the upper API key field and connect to Optimole service.', 'optimole-wp' ),
-			'step_three_api_title'           => __( 'Select your domain', 'optimole-wp' ),
-			'step_three_api_desc'            => __( 'If your account has multiple domains select the one you want to use.', 'optimole-wp' ),
+			'steps_connect_api_desc'              => sprintf( __( 'Copy the API Key you have received via email or you can get it from %1$s Optimole dashboard%2$s. If your account has multiple domains select the one you want to use. <br/>', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/" target="_blank"> ', '</a>' ),
+
 			'api_exists'                     => __( 'I already have an API key.', 'optimole-wp' ),
 			'back_to_register'               => __( 'Register account', 'optimole-wp' ),
-			'back_to_connect'                => __( 'Connect account', 'optimole-wp' ),
+			'back_to_connect'                => __( 'Go to previous step', 'optimole-wp' ),
 			'error_register'                 => sprintf( __( 'Error registering account. You can try again %1$shere%2$s ', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/register" target="_blank"> ', '</a>' ),
 			'connected'                      => __( 'CONNECTED', 'optimole-wp' ),
 			'not_connected'                  => __( 'NOT CONNECTED', 'optimole-wp' ),
@@ -736,13 +734,14 @@ class Optml_Admin {
 			'logged_in_as'                   => __( 'LOGGED IN AS', 'optimole-wp' ),
 			'your_api_key'                   => __( 'YOUR API KEY', 'optimole-wp' ),
 			'private_cdn_url'                => __( 'IMAGES DOMAIN', 'optimole-wp' ),
-			'notification_message_register'  => __( 'We have sent you an email with the API key. Please copy and paste the key in the field below.', 'optimole-wp' ),
+			'existing_user'                  => __( 'Existing user', 'optimole-wp' ),
+			'notification_message_register'  => __( 'We sent you the API Key in the email. Add it below to connect to Optimole.', 'optimole-wp' ),
 			'account_needed_title'           => sprintf(
 				__( 'In order to get access to free image optimization service you will need an API key from %s.', 'optimole-wp' ),
 				' <a href="https://dashboard.optimole.com/register" target="_blank">optimole.com</a>'
 			),
 			'account_needed_subtitle_1'      => sprintf(
-				__( 'You will get access to our image optimization service for %1$sFREE%2$s in the limit of %3$s5k%4$s %5$svisitors%6$s per month. ', 'optimole-wp' ),
+				__( 'You will get access to our %1$simage optimization service for FREE%2$s in the limit of %3$s5k%4$s %5$svisitors%6$s per month. ', 'optimole-wp' ),
 				'<strong>',
 				'</strong>',
 				'<strong>',
@@ -756,7 +755,12 @@ class Optml_Admin {
 				'</a>'
 			),
 			'account_needed_subtitle_2'      => sprintf(
-				__( 'Bonus, if you dont use a CDN, we got you covered, we will serve the images using CloudFront CDN from 200 locations.', 'optimole-wp' )
+				__(
+					'Bonus, if you dont use a CDN, we got you covered, %1$swe will serve the images using CloudFront CDN%2$s from 200 locations.',
+					'optimole-wp'
+				),
+				'<strong>',
+				'</strong>'
 			),
 			'notice_just_activated'          => ! $this->settings->is_connected() ?
 				sprintf( __( '%1$sImage optimisation is currently running.%2$s <br/> Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You might see for the very first image request being redirected to the original URL while we do the optimization in the background.<br/> You can relax, we\'ll take it from here.', 'optimole-wp' ), '<strong>', '</strong>' )

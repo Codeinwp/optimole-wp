@@ -1,30 +1,26 @@
 <template>
-	<div>
-		<div class="field has-addons api-key-field">
-			<label v-if="isConnected"
-					class="label api-key-label has-text-grey-dark">{{strings.api_key_placeholder}}:</label>
-			<div class="control is-expanded api-key-control">
-				<input :type="isConnected ? 'password' : 'text'" :disabled="isConnected" name="api_key" class="input  "
-						:class="validKey ? '' : 'is-danger'" :placeholder="strings.api_key_placeholder"
-						v-model="apiKey">
-			</div>
-			<div class="control">
-				<button v-if="! isConnected" class="button button is-success  "
-						@click="connect" :class="{ 'is-loading' : this.$store.state.isConnecting }">
-					<span class="icon"><i class="dashicons dashicons-admin-plugins"></i></span>
-					<span>{{strings.connect_btn}}</span>
-				</button>
-				<button v-else class="button is-danger " @click="disconnect"
-						:class="{ 'is-loading' : this.$store.state.isConnecting }">
-					<span class="icon"><i class="dashicons dashicons-dismiss"></i></span>
-					<span>{{strings.disconnect_btn}}</span>
-				</button>
-			</div>
-		</div>
+		<div class="field api-key-field optml-light-background" style="padding: 2%; display: inline-block; width: 40%;">
+        <div class="has-text-weight-bold has-text-left is-size-6" style="margin-bottom: 4%;">
+          Add your API Key
+        </div>
+        <div class="optml-side-by-side" style="justify-content: center; ">
+          <div class="control api-key-control" style="width: 70%">
+            <input :type="isConnected ? 'password' : 'text'" :disabled="isConnected" name="api_key" class="input  "
+                :class="validKey ? '' : 'is-danger'" :placeholder="strings.api_key_placeholder"
+                v-model="apiKey">
+          </div>
+          <div class="control" style="display: inline-block;">
+            <button v-if="! isConnected" class="button button is-info  "
+                @click="connect" :class="{ 'is-loading' : this.$store.state.isConnecting }">
+              <span>{{strings.connect_btn}}</span>
+            </button>
+          </div>
+		    </div>
+    </div>
 		<p v-if="! validKey" class="help is-danger">
 			{{connectionError}}
 		</p>
-	</div>
+
 </template>
 
 <script>

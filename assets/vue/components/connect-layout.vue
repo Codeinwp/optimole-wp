@@ -1,47 +1,19 @@
 <template>
 	<section class="is-clearfix">
-		<nav class="breadcrumb" aria-label="breadcrumbs" v-if="showApiKey">
-			<ul>
-				<li><a @click="toggleApiForm" href="#">{{strings.back_to_register}}</a></li>
-				<li class="is-active is-marginless" v-if="showApiKey"><a href="#" aria-current="page">{{strings.back_to_connect}}</a>
-				</li>
-			</ul>
-		</nav>
 		<div class="notification is-danger" v-if="isRestApiWorking" v-html="strings.notice_api_not_working"></div>
-		<div class="section" v-if="showApiKey">
-			<div class="notification is-success" v-if="from_register">
+		<div class="section" v-if="showApiKey" style="text-align: center;">
+			<div class="notification is-success has-text-centered" v-if="from_register">
 				{{strings.notification_message_register}}
 			</div>
+      <div class="has-text-centered" style="display: inline-block;">
+        <div class="is-size-5 has-text-weight-bold" style="margin-bottom: 2%;" v-html="strings.steps_connect_api_title"> </div>
+        <div class="is-size-6" style="margin-bottom: 2%;" v-html="strings.steps_connect_api_desc"></div>
+      </div>
 			<api-key-form></api-key-form>
+      <div style="margin-top: 2%"><a @click="toggleApiForm" v-if="showApiKey" href="#" aria-current="page">{{strings.back_to_connect}}</a></div>
 			<app-selection-form></app-selection-form>
 			<hr/>
-			<div class="columns">
-				
-				<div class="column  columns is-marginless  is-vcentered ">
-					
-					<span class="dashicons dashicons-share column is-2 is-size-3 is-paddingless"></span>
-					<div class="is-pulled-left column is-10 is-paddingless">
-						<p class="title is-size-5 ">1. {{strings.step_one_api_title}}</p>
-						<p class="subtitle is-size-6" v-html="strings.step_one_api_desc"></p>
-					</div>
-				</div>
-				<div class="column   is columns is-vcentered is-marginless">
-					
-					<span class="dashicons dashicons-admin-plugins column is-2 is-size-3 is-paddingless"></span>
-					<div class="is-pulled-left column is-10 is-paddingless">
-						<p class="title is-size-5">2. {{strings.step_two_api_title}}</p>
-						<p class="subtitle is-size-6">{{strings.step_two_api_desc}}</p>
-					</div>
-				</div>
-				<div class="column   is columns is-vcentered is-marginless">
 
-          <span class="dashicons dashicons-cloud-saved column is-2 is-size-3 is-paddingless"></span>
-          <div class="is-pulled-left column is-10 is-paddingless">
-            <p class="title is-size-5">3. {{strings.step_three_api_title}}</p>
-            <p class="subtitle is-size-6">{{strings.step_three_api_desc}}</p>
-          </div>
-        </div>
-			</div>
 		
 		</div>
 		<div class="columns   is-vcentered is-desktop " v-else>
@@ -70,12 +42,12 @@
 										 v-html="strings.account_needed_subtitle_2"></p>
 								</div>
 							</div>
-							<div class="columns  is-vcentered ">
+							<div class="columns  is-vcentered " style="position: relative;top:70%;">
 								<div class="column optml-side-by-side" style="margin-top: 10%;">
                   <div class="optml-circle optml-light-background"></div>
 
-									<div class="subtitle column is-size-6 is-vcentered has-text-left" style="position: relative; left:5%; top: -12px; line-height: 87%;">
-                    <div class="has-text-weight-bold"> Need help?</div> <br>
+									<div class="subtitle is-size-6 is-vcentered has-text-left" style="position: relative; left:3%; top: -17%; line-height: 87%;">
+                    <div class="has-text-weight-bold">Need help?</div> <br>
                     <div v-html="strings.account_needed_subtitle_3"></div>
 										 </div>
 								</div>
@@ -84,18 +56,16 @@
 					</div>
 				</div>
 			</div>
-			<div class="column is-4-desktop is-full-touch  optml-light-background">
+			<div class="column is-4-desktop is-full-touch  optml-light-background" style="padding: 2% 3% 3% 2.5%">
 				<p v-html="strings.account_needed_title" class="is-size-6 has-text-centered is-hidden-desktop"></p>
 				<div class="field" >
 					<label for="optml-email" class="label title is-size-5   is-12">{{strings.email_address_label}}
 						:</label>
-					<div class="control   is-12 is-small has-icons-left ">
+					<div class="control   is-12 is-small ">
 						<input name="optml-email" id="optml-email" class="input is-medium is-fullwidth is-info"
 									 type="email"
 									 v-model="email"/>
-						<span class="icon is-small is-left dashicons dashicons-email"></span>
-
-					</div>
+          </div>
 					
 					<p class="help is-danger" v-if="error" v-html="strings.error_register"></p>
 					<p class="help is-danger" v-else-if="email_registered" v-html="email_registered"></p>
@@ -105,15 +75,15 @@
 						<div class="    has-text-centered-mobile">
 							<button @click="registerAccount" class="button is-fullwidth is-medium is-info  "
 											:class="isLoading ? 'is-loading' :'' ">
-								<span class="icon dashicons dashicons-admin-users"></span>
 								<span>{{strings.register_btn}}</span>
 							</button>
 						</div>
 						<hr/>
-						<div class="   is-right has-text-centered-mobile has-text-right">
-							<button @click="toggleApiForm" class="button  is-fullwidth is-medium  is-outlined" style="background-color: #757296;">
-								<span class="icon dashicons dashicons-admin-network is-small"></span>
-								<span>{{strings.api_exists}}</span>
+						<div class="is-right has-text-centered-mobile has-text-right">
+              <div class="is-size-6 is-vcentered has-text-left has-text-weight-bold" style="margin-bottom: 6%;">{{strings.existing_user}} ?</div>
+
+              <button @click="toggleApiForm" class="button  is-fullwidth is-medium  is-outlined" style="background-color: #757296;">
+                <span>{{strings.api_exists}}</span>
 							</button>
 						</div>
 					</div>
@@ -158,10 +128,6 @@
 				this.showApiKey = !this.showApiKey;
 			},
 			registerAccount: function () {
-				if (!this.showRegisterField) {
-					this.showRegisterField = true;
-					return;
-				}
 				this.error = false;
 				this.$store.dispatch('registerOptimole', {
 					email: this.email,
