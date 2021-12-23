@@ -11,7 +11,6 @@
       </div>
 			<api-key-form></api-key-form>
       <div style="margin-top: 2%"><a @click="toggleApiForm" v-if="showApiKey" href="#" aria-current="page">{{strings.back_to_connect}}</a></div>
-			<app-selection-form></app-selection-form>
 			<hr/>
 
 		
@@ -96,11 +95,11 @@
 <script>
 
 	import ApiKeyForm from "./api-key-form.vue";
-	import AppSelectionForm from "./app-selection-form.vue";
+
 
 	export default {
 		name: 'connect-layout',
-		components: {ApiKeyForm, AppSelectionForm},
+		components: {ApiKeyForm},
 		data() {
 			return {
 				email: optimoleDashboardApp.current_user.email,

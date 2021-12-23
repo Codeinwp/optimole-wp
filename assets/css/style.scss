@@ -13,7 +13,16 @@
     flex-direction : row;
     position: relative;
   }
+  .optml-padding {
+    padding: 4%;
+  }
+  .optml-margin-left {
+    margin-left: 2%;
+  }
 
+  //.api-key-field > div {
+  //  display: inline-block;
+  //}
   .optml-warning {
     background: #FFEBEB;
     border: 1px solid #EAB3B3;
@@ -65,6 +74,10 @@
     /* opt/accent 1 */
     border: 2px solid #577BF9;
     border-radius: 7px;
+    cursor: pointer;
+  }
+  .optml-button :hover {
+    color: #363636;
   }
   .select:not(.is-multiple):not(.is-loading)::after{
     display: none;
