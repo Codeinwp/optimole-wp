@@ -21,11 +21,12 @@
             </div>
 
 		    </div>
+        <p v-if="! validKey" class="help is-danger">
+          {{connectionError}}
+        </p>
       <app-selection-form></app-selection-form>
     </div>
-		<p v-if="! validKey" class="help is-danger">
-			{{connectionError}}
-		</p>
+
 
 </template>
 

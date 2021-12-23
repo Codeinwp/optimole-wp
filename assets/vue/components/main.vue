@@ -8,25 +8,36 @@
 										<div class="content">
 												<connect-layout v-if="!this.is_connected "></connect-layout>
 
+                        <!--Connecting-->
 												<transition name="slide-fade">
-														<div v-if="this.is_connected && ! this.$store.state.is_loaded" id="optml-loader">
+                          <div class="optml-side-by-side" style="align-items: center; justify-content: center; margin-right: 4%;" v-if="this.is_connected && ! this.$store.state.is_loaded" id="optml-loader">
+                            <div>
+                              <figure class="image">
+                                <img :src="connecting" >
+                              </figure>
+                            </div>
+														<div>
 																<div class="columns">
 																		<div class="column">
 
 																				<transition name="slide-fade">
-																						<h4 class="has-text-centered">{{this.getProgressMessage()}}</h4>
+																						<div class="has-text-left is-size-4 has-text-weight-bold">Connecting to Optimole</div>
+
 																				</transition>
+                                      <transition name="slide-fade">
+
+                                        <div class="has-text-left is-size-6" style="margin: 4% 0 1% 0;">Sit tight while we connect you to the Dashboard</div>
+                                      </transition>
 																		</div>
 																</div>
-																<div class="columns">
-																		<div class=" column is-vertical-center ">
-																				<progress id="optml-progress-bar" class="progress is-medium is-info"
-																									:class="'optml-progres-'+(Math.floor(this.loading_percent/10))"
-																									max="100"></progress>
-																		</div>
+																<div class="columns" style="flex-direction: column; margin:1%;">
+
+																				<progress id="optml-progress-bar" style="margin-bottom: 0;" class="progress is-small is-success" :value="this.timer" max="25"></progress>
+                                        <div class="has-text-centered is-size-7">{{this.getProgressMessage()}}</div>
+
 																</div>
-																<iframe :src="home" style="opacity:0;" ></iframe>
 														</div>
+                          </div>
 												</transition>
 												<transition name="fade" mode="out-in">
 														<div v-if="this.$store.state.connected && this.$store.state.hasApplication && this.$store.state.is_loaded">
@@ -180,6 +191,7 @@
 				loading_percent: 0,
 				tab: 'dashboard',
         logo: optimoleDashboardApp.assets_url + 'img/logo2.png',
+        connecting: optimoleDashboardApp.assets_url + 'img/connecting.png',
 			}
 		},
 		computed: {
@@ -343,7 +355,6 @@
 
 		#optml-loader {
 				min-height: 400px;
-				margin-top: 150px;
 		}
 
     .optml-font {

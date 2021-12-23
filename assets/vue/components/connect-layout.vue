@@ -11,9 +11,6 @@
       </div>
 			<api-key-form></api-key-form>
       <div style="margin-top: 2%"><a @click="toggleApiForm" v-if="showApiKey" href="#" aria-current="page">{{strings.back_to_connect}}</a></div>
-			<hr/>
-
-		
 		</div>
 		<div class="columns   is-vcentered is-desktop " v-else>
 			<div class="column  has-text-left is-fluid  is-hidden-touch">
