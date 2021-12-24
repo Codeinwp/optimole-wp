@@ -12,10 +12,9 @@
                 <toggle-button :class="'has-text-dark'"
                                v-model="getReplacerStatus"
                                :disabled="this.$store.state.loading"
-                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                               :width="80"
-                               :height="25"
-                               color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
             </div>
 
         </div>
@@ -35,10 +34,9 @@
                 <toggle-button :class="'has-text-dark'"
                                v-model="lazyLoadStatus"
                                :disabled="this.$store.state.loading"
-                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                               :width="80"
-                               :height="25"
-                               color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
             </div>
         </div>
 
@@ -58,17 +56,16 @@
                 <toggle-button :class="'has-text-dark'"
                                v-model="reportScriptStatus"
                                :disabled="this.$store.state.loading"
-                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                               :width="80"
-                               :height="25"
-                               color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
             </div>
         </div>
 
         <hr/>
 
         <!-- Clear Cache images button -->
-        <div class="field  is-fullwidth columns " :class="{'is-field-disabled':isReplacerOff }">
+        <div class="field  is-fullwidth columns " style="flex-direction: column;" :class="{'is-field-disabled':isReplacerOff }">
             <label class="label column has-text-grey-dark">
                 {{strings.cache_title}}
 
@@ -76,43 +73,34 @@
                     {{strings.cache_desc}}
                 </p>
             </label>
-            <div class="column is-3 is-right">
-                <button @click="clearCache()" class="button is-primary is-small "
+          <div class="optml-side-by-side" style="justify-content: center; padding-right: 15%;">
+
+                <div @click="clearCache()" class="optml-button is-small is-3 is-center" style="position: relative; margin-right: 2%;"
                         :class="this.$store.state.loading ? 'is-loading'  : '' ">
                     {{strings.clear_cache_images}}
-                </button>
-            </div>
-        </div>
+                </div>
 
-        <hr v-if="isAssetsOn"/>
+              <div v-if="isAssetsOn" @click="clearCache('assets')" class="optml-button is-small is-3 is-center" style="position: relative;"
+                      :class="this.$store.state.loading ? 'is-loading'  : '' ">
+                {{strings.clear_cache_assets}}
+              </div>
 
-        <!-- Clear Cache assets button -->
-        <div class="field  is-fullwidth columns " v-if="isAssetsOn">
-          <label class="label column has-text-grey-dark">
-            {{strings.cache_title_assets}}
-
-            <p class="is-italic has-text-weight-normal">
-              {{strings.cache_desc_assets}}
-            </p>
-          </label>
-          <div class="column is-3 is-right">
-            <button @click="clearCache('assets')" class="button is-primary is-small "
-                    :class="this.$store.state.loading ? 'is-loading'  : '' ">
-              {{strings.clear_cache_assets}}
-            </button>
           </div>
         </div>
-        <!-- Save changes button -->
-        <div class="field  is-fullwidth columns ">
-            <div class="column is-left">
-                <button @click="saveChanges()" class="button is-success is-small "
-                        :class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">
-                    {{strings.save_changes}}
-                </button>
-            </div>
-        </div>
 
+
+          <!-- Save changes button -->
+          <div class="field  is-fullwidth columns ">
+            <div class="column is-left">
+              <button @click="saveChanges()" class="button is-success is-small "
+                      :class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">
+                {{strings.save_changes}}
+              </button>
+            </div>
+          </div>
     </div>
+
+
 </template>
 
 <script>

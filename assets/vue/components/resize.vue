@@ -11,10 +11,9 @@
                 <toggle-button :class="'has-text-dark'"
                                v-model="resizeSmart"
                                :disabled="this.$store.state.loading"
-                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                               :width="80"
-                               :height="25"
-                               color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
             </div>
 
         </div>
@@ -29,10 +28,9 @@
                 <toggle-button :class="'has-text-dark'"
                                v-model="retinaReady"
                                :disabled="this.$store.state.loading"
-                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                               :width="80"
-                               :height="25"
-                               color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
             </div>
 
         </div>

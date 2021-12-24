@@ -11,10 +11,9 @@
 								<toggle-button :class="'has-text-dark'"
 															 v-model="lazyloadPlaceholder"
 															 :disabled="this.$store.state.loading"
-															 :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-															 :width="80"
-															 :height="25"
-															 color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
 						</div>
 				</div>
 				<!--Rollback on disable notice-->
@@ -49,10 +48,9 @@
 								<toggle-button :class="'has-text-dark'"
 															 v-model="nativeLazyStatus"
 															 :disabled="this.$store.state.loading"
-															 :labels="{checked: strings.on_toggle, unchecked: strings.off_toggle}"
-															 :width="80"
-															 :height="25"
-															 color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
 						</div>
 				</div>
 				<div class="field  is-fullwidth columns">
@@ -68,10 +66,9 @@
 								<toggle-button :class="'has-text-dark'"
 															 v-model="scaleStatus"
 															 :disabled="this.$store.state.loading"
-															 :labels="{checked: strings.on_toggle, unchecked: strings.off_toggle}"
-															 :width="80"
-															 :height="25"
-															 color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
 						</div>
 				</div>
 				<div class="field columns">
@@ -85,10 +82,9 @@
 								<toggle-button :class="'has-text-dark'"
 															 v-model="lazyloadBgImages"
 															 :disabled="this.$store.state.loading"
-															 :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-															 :width="80"
-															 :height="25"
-															 color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
 						</div>
 				</div>
 				<!--Video lazyload toggle-->
@@ -103,10 +99,9 @@
 								<toggle-button :class="'has-text-dark'"
 															 v-model="lazyloadVideo"
 															 :disabled="this.$store.state.loading"
-															 :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-															 :width="80"
-															 :height="25"
-															 color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
 						</div>
 				</div>
 				<div class="field columns" v-if="showBgSelectors">

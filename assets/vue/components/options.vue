@@ -1,44 +1,36 @@
 <template>
-    <div class="columns">
+    <div class="columns" style="margin-top: 1.7%;">
         <aside id="optml-settings-menu" class="menu column  is-2-fullhd is-3-desktop is-3-tablet is-hidden-mobile">
-            <ul class="menu-list optml-settings-submenu is-marginless">
+            <ul class="optml-menu optml-settings-submenu is-marginless">
                 <li><a @click="changeTab('general')" href="#" :class="tab === 'general' ? 'is-active' : ''"
                        :title="all_strings.general_settings_menu_item+' '+all_strings.settings_menu_item">{{all_strings.general_settings_menu_item}}</a>
                 </li>
-                <li :class="isDisabled ? 'is-menu-disabled' : '' "><a @click="ToggleAdvanced()" href="#"
+                <li :class="isDisabled ? 'is-menu-disabled' : '' " style="width: 100%;"><a @click="ToggleAdvanced()" href="#" :class="advancedOpen ? 'is-active' : '' "
                                                                       title="General settings"><span>{{all_strings.advanced_settings_menu_item}}</span>
                     <span class="   dashicons advanced-link "
-                          :class="advancedOpen ? 'dashicons-arrow-down-alt2' : 'dashicons-arrow-right-alt2'"></span>
+                          :class="advancedOpen ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2'"></span>
                 </a>
-                    <ul class="menu-list optml-settings-submenu is-marginless "
+                    <!--Advanced-->
+                    <ul class="optml-sublist optml-settings-submenu is-marginless "
                         :class=" ! advancedOpen ? 'is-hidden' : '' ">
                         <li><a @click="changeTab('compression')" href="#"
-                               :class="tab === 'compression' ? 'is-active' : ''"
+                               :class="tab === 'compression' ? 'is-active optml-light-background' : ''"
                                :title="all_strings.settings_compression_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_compression_menu_item}}</a>
                         </li>
                         <li><a @click="changeTab('resize')" href="#"
-                               :class="tab === 'resize' ? 'is-active' : ''"
+                               :class="tab === 'resize' ? 'is-active optml-light-background' : ''"
                                :title="all_strings.settings_resize_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_resize_menu_item}}</a>
                         </li>
-<!--                        <li><a @click="changeTab('cssjs')" href="#"-->
-<!--                               :class="tab === 'cssjs' ? 'cssjs' : ''"-->
-<!--                               title="CSS/JS">CSS/JS</a>-->
-<!--                        </li>-->
+
                         <li v-if="this.$store.state.site_settings.lazyload==='enabled'"><a @click="changeTab('lazyload')" href="#"
-                               :class="tab === 'lazyload' ? 'is-active' : ''"
+                               :class="tab === 'lazyload' ? 'is-active optml-light-background' : ''"
                                :title="all_strings.lazyload_settings_menu_item+' '+all_strings.lazyload_settings_menu_item">{{all_strings.lazyload_settings_menu_item}}</a>
                         </li>
                         <li><a href="#"
                                @click="changeTab('exclusions')" href="#"
-                               :class="tab === 'exclusions' ? 'is-active' : ''"
+                               :class="tab === 'exclusions' ? 'is-active optml-light-background' : ''"
                                :title="all_strings.settings_exclusions_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_exclusions_menu_item}}</a>
                         </li>
-<!--                        <li><a-->
-<!--                                @click="changeTab('watermark')" href="#"-->
-<!--                                :class="tab === 'watermark' ? 'is-active' : ''"-->
-<!--                                :title="all_strings.watermarks_menu_item+' '+all_strings.settings_menu_item">{{all_strings.watermarks_menu_item}}-->
-<!--                            <span-->
-<!--                                    class=" optml-beta is-normal tag is-warning">Beta</span></a></li>-->
                     </ul>
                 </li>
               <!--                    Offload media menu-->
@@ -121,10 +113,12 @@
 
 <style scoped>
 
-    #optml-settings-menu > ul.menu-list.optml-settings-submenu {
-        list-style: none;
+    #optml-settings-menu > ul.optml-menu.optml-settings-submenu {
+        width: fit-content !important;
     }
-
+    ul.optml-settings-submenu {
+      list-style: none !important;
+    }
     #optml-settings-menu li a span.tag.optml-beta {
         border-radius: 2px;
         font-family: Verdana;
@@ -140,6 +134,36 @@
         border: none;
         font-size: 0.8rem;
         list-style: none;
+        width: fit-content;
+    }
+    .optml-menu > li > a{
+      color: black !important;
+      display: block;
+      padding: 0 20% 20px 0;
+      list-style: none !important;
+      box-shadow: none !important;
+      font-weight: bold;
+      width: fit-content;
+      white-space: nowrap;
+    }
+    .optml-menu > li :hover {
+      color: #3273dc !important;
+    }
+    .optml-menu > li > a.is-active {
+      color: #3273dc !important;
+    }
+
+    .optml-menu > li {
+      width: fit-content;
+    }
+    .optml-sublist > li {
+        margin-top: 0 !important;
+    }
+    .optml-sublist > li > a {
+      display: inline-block;
+      color: black !important;
+      padding: 7% 15% 7% 5%;
+      width: 100%;
     }
 
     .subtab-content {
@@ -149,6 +173,8 @@
 
     #optml-settings-menu {
         padding-top: 23px;
+        width: fit-content !important;
+        margin-right: 4%;
     }
 
     .subtab-content {
