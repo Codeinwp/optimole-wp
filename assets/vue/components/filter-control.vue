@@ -55,7 +55,7 @@
             </div>
 
         </div>
-        <div class="field columns">
+        <div class="field columns optml-light-background">
             <div class="field has-addons column has-addons-centered">
                 <p class="control ">
                             <span class="select  is-small">
@@ -81,14 +81,14 @@
                                     <option value="gif">.GIF</option>
                                 </select>
                             </span>
-                    <input v-else v-model="selected_value" class="input is-small" type="text" placeholder="word">
+                    <input v-else v-model="selected_value" class="optml-textarea" type="text" placeholder="word">
                 </p>
-                <p class="control">
-                    <a class="button is-primary  is-small" :class="this.$store.state.loading ? 'is-loading'  : '' "
+
+                    <div class="optml-button" :class="this.$store.state.loading ? 'is-loading'  : '' "
                        @click="saveRule()">
                         {{strings.add_filter}}
-                    </a>
-                </p>
+                    </div>
+
             </div>
         </div>
         <p class="has-text-centered " v-if="this.selected_filter === FILTER_TYPES.URL">

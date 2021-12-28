@@ -1,13 +1,13 @@
 <template>
     <div :class="{ 'saving--option' : this.$store.state.loading }">
         <div class="field  columns">
-            <label class="label column has-text-grey-dark">
+            <label class="label column has-text-grey-dark optml-custom-label-margin">
                 {{strings.enable_network_opt_title}}
-                <p class="is-italic has-text-weight-normal">
+                <p class="optml-settings-desc-margin has-text-weight-normal">
                     {{strings.enable_network_opt_desc}}
                 </p>
             </label>
-            <div class="column is-3">
+            <div class="column is-1">
                 <br/>
                 <toggle-button :class="'has-text-dark'"
                                :disabled="this.$store.state.loading"
@@ -17,18 +17,18 @@
                                color="#577BF9"></toggle-button>
             </div>
         </div>
-
+        <hr/>
         <!--CSS & JS Assets load toggle -->
         <div class="field  is-fullwidth columns" >
-            <label class="label column has-text-grey-dark">
+            <label class="label column has-text-grey-dark optml-custom-label-margin">
                 {{strings.toggle_cdn}}
 
-                <p class="is-italic has-text-weight-normal">
+                <p class="has-text-weight-normal optml-settings-desc-margin">
                     {{strings.cdn_desc}}
                 </p>
             </label>
 
-            <div class="column is-3 ">
+            <div class="column is-1 ">
                 <toggle-button :class="'has-text-dark'"
                                v-model="cdnStatus"
                                :disabled="this.$store.state.loading"
@@ -37,17 +37,18 @@
                                color="#577BF9"></toggle-button>
             </div>
         </div>
+        <hr/>
         <!-- GIF replacement toggle button -->
         <div class="field  columns">
-            <label class="label column has-text-grey-dark">
+            <label class="label column has-text-grey-dark optml-custom-label-margin">
                 {{strings.enable_gif_replace_title}}
 
-                <p class="is-italic has-text-weight-normal">
+                <p class="optml-settings-desc-margin has-text-weight-normal">
                     {{strings.gif_replacer_desc}}
                 </p>
             </label>
 
-            <div class="column is-3 ">
+            <div class="column is-1 ">
                 <toggle-button :class="'has-text-dark'"
                                v-model="gifReplacementStatus"
                                :disabled="this.$store.state.loading"
@@ -56,11 +57,11 @@
                                color="#577BF9"></toggle-button>
             </div>
         </div>
-
+        <hr/>
         <div class="field  columns">
-            <label class="label column has-text-grey-dark">
+            <label class="label column has-text-grey-dark optml-custom-label-margin">
                 {{strings.quality_title}}
-                <p class="is-italic has-text-weight-normal">
+                <p class="optml-settings-desc-margin has-text-weight-normal">
                     {{strings.quality_desc}}
                 </p>
             </label>
@@ -72,7 +73,8 @@
                 <vue-slider @change="() => { showSave=true;showSample=true }" v-bind="sliderOptions" v-model="new_data.quality"></vue-slider>
             </div>
         </div>
-        <div class="field  is-fullwidth columns ">
+
+        <div class="field  is-fullwidth columns optml-settings-desc-margin">
             <div class="column is-left">
                 <button @click="saveChanges()" class="button is-success is-small "
                         :class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">{{strings.save_changes}}
@@ -178,11 +180,11 @@
                 },
                 sliderOptions: {
                     processStyle: {
-                        backgroundColor: '#3273dc'
+                        backgroundColor: '#577BF9'
                     },
                     contained: true,
                     dotStyle: {
-                        borderColor: '#3273dc'
+                        borderColor: '#577BF9'
                     },
                     min: 50,
                     max: 100,
@@ -191,11 +193,11 @@
                     },
                     marks: function (value) {
                         let style = {
-                            width: '12px',
-                            height: '12px',
+                            width: '14px',
+                            height: '14px',
                             display: 'block',
-                            backgroundColor: '#3273dc',
-                            borderColor: '#3273dc',
+                            backgroundColor: '#577BF9',
+                            borderColor: '#577BF9',
                             boxShadow: 'none',
                             transform: 'translate(-4px, -4px)'
                         };

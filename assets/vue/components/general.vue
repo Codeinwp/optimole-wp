@@ -2,13 +2,13 @@
     <div :class="{ 'saving--option' : this.$store.state.loading }">
         <!--Enable image replacement button -->
         <div class="field  columns">
-            <label class="label column has-text-grey-dark">
+            <label class="label column has-text-grey-dark optml-custom-label-margin">
                 {{strings.enable_image_replace}}
-                <p class="is-italic has-text-weight-normal">
+                <p class="has-text-weight-normal optml-settings-desc-margin">
                     {{strings.replacer_desc}}
                 </p>
             </label>
-            <div class="column is-3">
+            <div class="column is-1">
                 <toggle-button :class="'has-text-dark'"
                                v-model="getReplacerStatus"
                                :disabled="this.$store.state.loading"
@@ -22,15 +22,15 @@
         <hr/>
         <!--Lazy load toggle -->
         <div class="field  is-fullwidth columns" :class="{'is-field-disabled':isReplacerOff }">
-            <label class="label column has-text-grey-dark">
+            <label class="label column has-text-grey-dark optml-custom-label-margin">
                 {{strings.toggle_lazyload}}
 
-                <p class="is-italic has-text-weight-normal">
+                <p class="has-text-weight-normal optml-settings-desc-margin">
                     {{strings.lazyload_desc}}
                 </p>
             </label>
 
-            <div class="column is-3 ">
+            <div class="column is-1 ">
                 <toggle-button :class="'has-text-dark'"
                                v-model="lazyLoadStatus"
                                :disabled="this.$store.state.loading"
@@ -44,15 +44,15 @@
 
         <!-- Show report toggle-->
         <div class="field  columns">
-            <label class="label column has-text-grey-dark">
+            <label class="label column has-text-grey-dark optml-custom-label-margin">
                 {{strings.enable_report_title}}
 
-                <p class="is-italic has-text-weight-normal">
+                <p class=" has-text-weight-normal optml-settings-desc-margin">
                     {{strings.enable_report_desc}}
                 </p>
             </label>
 
-            <div class="column is-3 ">
+            <div class="column is-1 ">
                 <toggle-button :class="'has-text-dark'"
                                v-model="reportScriptStatus"
                                :disabled="this.$store.state.loading"
@@ -66,10 +66,10 @@
 
         <!-- Clear Cache images button -->
         <div class="field  is-fullwidth columns " style="flex-direction: column;" :class="{'is-field-disabled':isReplacerOff }">
-            <label class="label column has-text-grey-dark">
+            <label class="label column has-text-grey-dark optml-custom-label-margin">
                 {{strings.cache_title}}
 
-                <p class="is-italic has-text-weight-normal">
+                <p class="has-text-weight-normal optml-settings-desc-margin">
                     {{strings.cache_desc}}
                 </p>
             </label>
@@ -86,6 +86,11 @@
               </div>
 
           </div>
+          <div class="column optml-gray" style="margin-top: 1%;">
+            <svg style="position: relative; top:10%;" width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.9581 0C13.5192 0 17.2136 3.58 17.2136 8C17.2136 12.42 13.5192 16 8.9581 16C4.39696 16 0.702637 12.42 0.702637 8C0.702637 3.58 4.39696 0 8.9581 0ZM10.6558 9L11.0219 3H7.92606L8.29211 9H10.6558ZM11.0219 11.5115C11.0219 11.9809 10.8811 12.3473 10.6213 12.6107C10.3507 12.874 9.97188 13 9.48478 13C8.99768 13 8.61882 12.874 8.33739 12.6107C8.06677 12.3473 7.92606 11.9809 7.92606 11.5115C7.92606 11.0305 8.05595 10.6641 8.32656 10.4008C8.59717 10.1374 8.97603 10 9.48478 10C9.99353 10 10.3724 10.1374 10.6322 10.4008C10.892 10.6641 11.0219 11.0305 11.0219 11.5115Z" fill="#AF3535"/>
+            </svg>
+            Clearing cached resources will temporarily impact site</div>
         </div>
 
 

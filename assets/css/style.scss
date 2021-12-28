@@ -19,6 +19,39 @@
   .optml-margin-left {
     margin-left: 2%;
   }
+  .optml-textarea {
+    border: 1px solid #D9D9D9;
+    box-sizing: border-box;
+    box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    left: 4%;
+    position: relative;
+    width: 12ch;
+    height: 4ch;
+    text-align: center;
+  }
+  /* Chrome, Safari, Edge, Opera */
+  .optml-textarea::-webkit-outer-spin-button,
+  .optml-textarea::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Firefox */
+  .optml-textarea[type=number] {
+    -moz-appearance: textfield;
+  }
+  .vue-slider-rail {
+    background-color: #EEF2FE;
+    border-radius: 15px;
+    transition: background-color 0.3s;
+  }
+  .optml-settings-desc-margin {
+    margin-top:2%;
+  }
+  .optml-custom-label-margin {
+    margin-bottom: 0 !important;
+  }
   .optml-warning {
     background: #FFEBEB;
     border: 1px solid #EAB3B3;

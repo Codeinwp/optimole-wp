@@ -13,43 +13,33 @@
             <td style="border: none !important;"><a :href="imageData[index+3].url" target="_blank"><img :src="imageData[index+3].url" class="optml-image"/></a></td>
             <td style="border: none !important;"><a :href="imageData[index+4].url" target="_blank"><img :src="imageData[index+4].url" class="optml-image"/></a></td>
 
-
-
-            <!--            <td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>-->
-<!--            <td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>-->
-<!--            <td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>-->
-<!--            <td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>-->
-<!--						<td><p-->
-<!--								class="optml-ratio-feedback"-->
-<!--								></p>-->
-<!--						</td>-->
 					</tr>
-          <tr>
-            <td style="border: none !important; position:relative; padding-left: 2.5%;">
+          <tr style="left:2%; position:relative;">
+            <td class="optml-optimized-percent-position">
               <div class="optml-side-by-side">
                 <div class="optml-point"></div>
                 <div class="optml-center-table-text">{{compressionRate(imageData[index].ex_size_raw, imageData[index].new_size_raw)}}% Saved</div>
               </div>
             </td>
-            <td style="border: none !important; position:relative; padding-left: 2.5%;">
+            <td class="optml-optimized-percent-position">
               <div class="optml-side-by-side">
                 <div class="optml-point"></div>
                 <div class="optml-center-table-text">{{compressionRate(imageData[index+1].ex_size_raw, imageData[index+1].new_size_raw)}}% Saved</div>
               </div>
             </td>
-            <td style="border: none !important; position:relative; padding-left: 2.5%;">
+            <td class="optml-optimized-percent-position">
               <div class="optml-side-by-side">
                 <div class="optml-point"></div>
                 <div class="optml-center-table-text">{{compressionRate(imageData[index+2].ex_size_raw, imageData[index+2].new_size_raw)}}% Saved</div>
               </div>
             </td>
-            <td style="border: none !important; position:relative; padding-left: 2.5%;">
+            <td class="optml-optimized-percent-position">
               <div class="optml-side-by-side">
                 <div class="optml-point"></div>
                 <div class="optml-center-table-text">{{compressionRate(imageData[index+3].ex_size_raw, imageData[index+3].new_size_raw)}}% Saved</div>
               </div>
             </td>
-            <td style="border: none !important; position:relative; padding-left: 2.5%;">
+            <td class="optml-optimized-percent-position">
               <div class="optml-side-by-side">
                 <div class="optml-point"></div>
                 <div class="optml-center-table-text">{{compressionRate(imageData[index+4].ex_size_raw, imageData[index+4].new_size_raw)}}% Saved</div>
@@ -64,12 +54,12 @@
 		<div v-else>
 			<iframe width="1" height="1" :src="home_url" style="visibility: hidden"></iframe>
 			<h6 class="has-text-centered">{{strings.loading_latest_images}}</h6>
-			<progress class="progress is-large" :value="startTime" :max="maxTime"></progress>
+      <progress id="optml-progress-bar" style="margin-bottom: 0;" class="progress is-small is-success" :value="startTime" :max="maxTime"></progress>
 		</div>
-		<table class="table is-striped is-hoverable is-fullwidth" v-if="noImages">
+		<table class="table is-striped is-hoverable is-fullwidth" v-if="noImages" style="margin-top: 12%;">
 			<thead>
 			<tr>
-				<th class="optml-image-heading has-text-centered" v-html="strings.no_images_found"></th>
+				<th class="is-size-6 has-text-centered" style="border: none !important; font-weight: normal;" v-html="strings.no_images_found"></th>
 			</tr>
 			</thead>
 		</table>
@@ -149,8 +139,14 @@
 		border-bottom: 2px solid #888 !important;
 		margin-top: 0.2em;
 	}
-	
+
 	.progress::-webkit-progress-value {
 		transition: width 0.5s ease;
 	}
+
+  .optml-optimized-percent-position {
+    border: none !important;
+    position:relative;
+    padding-left: 2.5%;
+  }
 </style>
