@@ -99,12 +99,16 @@
 																		<div class="notification is-success is-size-6 optml-side-by-side" v-if="strings.notice_just_activated.length > 0 && user_status === 'active' ">
                                       <div><span style="position: relative; top:4%;" class="dashicons dashicons-cloud-saved"></span></div> <div style="margin-left:1%; line-height: 168.75%; " v-html="strings.notice_just_activated"></div>
                                     </div>
+                                    <!--Disabled notice-->
 																		<div class="notification optml-warning is-size-6 optml-side-by-side" v-if="user_status === 'inactive'"  >
                                       <div>
                                         <svg style="position: relative; top:10%;" width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                              <path fill-rule="evenodd" clip-rule="evenodd" d="M8.9581 0C13.5192 0 17.2136 3.58 17.2136 8C17.2136 12.42 13.5192 16 8.9581 16C4.39696 16 0.702637 12.42 0.702637 8C0.702637 3.58 4.39696 0 8.9581 0ZM10.6558 9L11.0219 3H7.92606L8.29211 9H10.6558ZM11.0219 11.5115C11.0219 11.9809 10.8811 12.3473 10.6213 12.6107C10.3507 12.874 9.97188 13 9.48478 13C8.99768 13 8.61882 12.874 8.33739 12.6107C8.06677 12.3473 7.92606 11.9809 7.92606 11.5115C7.92606 11.0305 8.05595 10.6641 8.32656 10.4008C8.59717 10.1374 8.97603 10 9.48478 10C9.99353 10 10.3724 10.1374 10.6322 10.4008C10.892 10.6641 11.0219 11.0305 11.0219 11.5115Z" fill="#AF3535"/>
                                         </svg>
-                                      </div><div style="margin-left:1%; line-height: 168.75%; " v-html="strings.notice_disabled_account"></div></div>
+                                      </div>
+                                      <div style="margin-left:1%; line-height: 168.75%; " v-html="strings.notice_disabled_account">
+                                      </div>
+                                    </div>
                                     <metrics></metrics>
                                 <hr/>
 
@@ -360,14 +364,6 @@
     .optml-font {
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       color: #282828;
-    }
-    @keyframes spin {
-      100% {  transform: rotate(-359deg); }
-      0% { transform: rotate(0deg); }
-
-    }
-    .optml-spin {
-      animation: spin 2s linear infinite;
     }
 
 

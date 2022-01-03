@@ -22,7 +22,7 @@
         </div>
 
         <div style="position:relative;">
-        <progress class="progress is-info optml-quota-progress" :value="this.userData.visitors" :max="this.userData.visitors_limit"></progress>
+        <progress class="progress is-info optml-progress" :value="this.userData.visitors" :max="this.userData.visitors_limit"></progress>
         <p class="optml-progress-value">{{computedPercentageVisitors()}}%</p>
         </div>
       </div>
@@ -127,13 +127,7 @@ export default {
 </script>
 
 <style scoped>
-.optml-quota-progress {
-  background-color: white;
-  height: 14px !important;
-  border: 1px solid rgba(87, 123, 249, 0.36) !important;
-  box-sizing: border-box !important;
-  border-radius: 100px !important;
-}
+
 .optml-progress-value {
   position: absolute;
   margin-top: -1.5px !important;
