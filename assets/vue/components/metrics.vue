@@ -38,16 +38,16 @@
           <path d="M23.3856 28.4167L18.4585 32.5647" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <p class="optml-font is-size-5 has-text-weight-bold">
-          {{145}} / &infin;
+          {{this.userData.images_number}} / &infin;
         </p>
         <p class="is-size-6">
           Images optimized
         </p>
         <p class="optml-gray">
-          During last month
+          Since plugin activation
         </p>
       </div>
-      <div style="position: relative; left: 42%;">
+      <div style="position: relative; left: 30%;">
         <svg xmlns="http://www.w3.org/2000/svg" width="56" height="55" viewBox="0 0 56 55" fill="none">
           <path d="M36.681 6.875H13.7643C8.70203 6.875 4.59766 10.9794 4.59766 16.0417C4.59766 21.104 8.70203 25.2083 13.7643 25.2083H36.681C41.7433 25.2083 45.8477 21.104 45.8477 16.0417C45.8477 10.9794 41.7433 6.875 36.681 6.875Z" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M13.7643 25.2084C8.70203 25.2084 4.59766 29.3127 4.59766 34.375C4.59766 39.4373 8.70203 43.5417 13.7643 43.5417H29.806" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
@@ -60,17 +60,17 @@
         </svg>
         <div>
           <p class="optml-font is-size-5 has-text-weight-bold">
-            {{222}}MB/ &infin;
+            {{this.userData.saved_size.toFixed(2)}}KB/ &infin;
           </p>
           <p class="is-size-6">
             Saved file size
           </p>
           <p class="optml-gray">
-            During last month
+            For the latest images optimized
           </p>
         </div>
       </div>
-      <div style="position:absolute; right: 2%;">
+      <div style="position:absolute; left: 60%;">
         <svg xmlns="http://www.w3.org/2000/svg" width="55" height="55" viewBox="0 0 55 55" fill="none">
           <path d="M43.5418 32.0833C41.0095 32.0833 38.9585 30.0323 38.9585 27.5C38.9585 24.9677 41.0095 22.9166 43.5418 22.9166C46.0741 22.9166 48.1252 24.9677 48.1252 27.5C48.1252 30.0323 46.0741 32.0833 43.5418 32.0833Z" stroke="#577BF9" stroke-width="1.97917" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M32.0832 43.5417C32.0832 46.074 30.0321 48.1251 27.4998 48.1251C24.9675 48.1251 22.9165 46.074 22.9165 43.5417C22.9165 41.0094 24.9675 38.9584 27.4998 38.9584C30.0321 38.9584 32.0832 41.0094 32.0832 43.5417Z" stroke="#577BF9" stroke-width="1.97917" stroke-linecap="round" stroke-linejoin="round"/>
@@ -87,10 +87,22 @@
           <path d="M11.4583 16.0417C8.92604 16.0417 6.875 13.9906 6.875 11.4583C6.875 8.92604 8.92604 6.875 11.4583 6.875C13.9906 6.875 16.0417 8.92604 16.0417 11.4583C16.0417 13.9906 13.9906 16.0417 11.4583 16.0417Z" stroke="#577BF9" stroke-width="1.97917" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
         <p class="optml-font is-size-5 has-text-weight-bold">
-          {{64}}%
+          {{this.userData.compression_percentage.toFixed(2)}}%
         </p>
         <p class="is-size-6">
           Average compression
+        </p>
+        <p class="optml-gray">
+          During last month
+        </p>
+      </div>
+      <div style="position:absolute; right: 2%;">
+        <svg width="55" height="55" viewBox="0 0 64 64" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" svg-inline="" role="presentation" focusable="false" tabindex="-1" class="absolute w-16 h-16 text-o-blue" style="top: -0.25rem; left: -0.5rem;"><path data-v-767b24d4="" d="M23.997 28c0 2.947-4.178 5.333-9.333 5.333S5.334 30.944 5.334 28" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M23.997 28c0 2.947-4.178 5.333-9.333 5.333S5.334 30.944 5.334 28" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M23.997 28c0 2.947-4.178 5.333-9.333 5.333S5.334 30.944 5.334 28" stroke="#577BF9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M23.997 36c0 2.947-4.178 5.333-9.333 5.333S5.334 38.944 5.334 36" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M23.997 36c0 2.947-4.178 5.333-9.333 5.333S5.334 38.944 5.334 36" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M23.997 36c0 2.947-4.178 5.333-9.333 5.333S5.334 38.944 5.334 36" stroke="#577BF9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M23.997 36c0 2.947-4.178 5.333-9.333 5.333S5.334 38.944 5.334 36" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M23.997 36c0 2.947-4.178 5.333-9.333 5.333S5.334 38.944 5.334 36" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M23.997 36c0 2.947-4.178 5.333-9.333 5.333S5.334 38.944 5.334 36" stroke="#577BF9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M50.667 56H40a5.332 5.332 0 01-5.333-5.333V13.333A5.332 5.332 0 0140 8h10.667A5.332 5.332 0 0156 13.333v37.334A5.332 5.332 0 0150.667 56z" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M50.667 56H40a5.332 5.332 0 01-5.333-5.333V13.333A5.332 5.332 0 0140 8h10.667A5.332 5.332 0 0156 13.333v37.334A5.332 5.332 0 0150.667 56z" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M50.667 56H40a5.332 5.332 0 01-5.333-5.333V13.333A5.332 5.332 0 0140 8h10.667A5.332 5.332 0 0156 13.333v37.334A5.332 5.332 0 0150.667 56z" stroke="#577BF9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M24 32h10.667M24 32h10.667" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M24 32h10.667" stroke="#577BF9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M42.667 16H48M42.667 16H48" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M42.667 16H48" stroke="#577BF9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M42.667 26.667H48M42.667 26.667H48" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M42.667 26.667H48" stroke="#577BF9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M42.667 37.333H48M42.667 37.333H48" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M42.667 37.333H48" stroke="#577BF9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M42.667 48H48M42.667 48H48" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M42.667 48H48" stroke="#577BF9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M5.333 20c0 2.947 4.179 5.333 9.334 5.333C19.82 25.333 24 22.947 24 20" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M5.333 20c0 2.947 4.179 5.333 9.334 5.333C19.82 25.333 24 22.947 24 20" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M5.333 20c0 2.947 4.179 5.333 9.334 5.333C19.82 25.333 24 22.947 24 20" stroke="#577BF9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M5.333 20c.003-2.944 4.182-5.333 9.334-5.333 5.152 0 9.333 2.386 9.33 5.333v24c0 2.947-4.178 5.333-9.333 5.333S5.334 46.944 5.334 44V20v0z" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M5.333 20c.003-2.944 4.182-5.333 9.334-5.333 5.152 0 9.333 2.386 9.33 5.333v24c0 2.947-4.178 5.333-9.333 5.333S5.334 46.944 5.334 44V20v0z" stroke="#EDF0FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path><path data-v-767b24d4="" d="M5.333 20c.003-2.944 4.182-5.333 9.334-5.333 5.152 0 9.333 2.386 9.33 5.333v24c0 2.947-4.178 5.333-9.333 5.333S5.334 46.944 5.334 44V20v0z" stroke="#577BF9" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        <p class="optml-font is-size-5 has-text-weight-bold">
+          {{this.userData.traffic.toFixed(2)}}MB / &infin;
+        </p>
+        <p class="is-size-6">
+          Traffic
         </p>
         <p class="optml-gray">
           During last month
