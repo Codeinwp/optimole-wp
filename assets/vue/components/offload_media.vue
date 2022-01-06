@@ -5,8 +5,7 @@
 			<label class="label column has-text-grey-dark">
 				{{strings.enable_cloud_images_title}}
 
-				<p class="optml-settings-desc-margin has-text-weight-normal">
-					{{strings.enable_cloud_images_desc}}<a href="https://docs.optimole.com/article/1323-cloud-library-browsing">{{strings.here}}</a>
+				<p class="optml-settings-desc-margin has-text-weight-normal" v-html="strings.enable_cloud_images_desc">
 				</p>
 			</label>
 
@@ -145,7 +144,20 @@
 			</div>
 
 		</div>
-    <hr v-if="this.showOffloadDisabled" />
+		<hr v-if="this.showOffloadDisabled" />
+
+		<!--Rollback on enable notice-->
+		<div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showOffloadEnabled">
+			<label class="label column">
+
+
+				<p class="has-text-weight-normal" v-html="strings.offload_enable_info_desc">
+
+				</p>
+			</label>
+
+		</div>
+		<hr v-if="this.showOffloadEnabled" />
 
 		<!-- Sync Media button -->
 		<div :class="{ 'saving--option' : this.$store.state.loading }" class="field  is-fullwidth columns " v-if="this.site_settings.offload_media==='enabled'">
@@ -198,17 +210,17 @@
 		<!--Sync error notice-->
 		<div class="notification optml-warning is-size-6 optml-side-by-side" v-if="this.$store.state.errorMedia === 'offload_images'">
 
-        <div>
-          <svg style="position: relative; top:10%;" width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.9581 0C13.5192 0 17.2136 3.58 17.2136 8C17.2136 12.42 13.5192 16 8.9581 16C4.39696 16 0.702637 12.42 0.702637 8C0.702637 3.58 4.39696 0 8.9581 0ZM10.6558 9L11.0219 3H7.92606L8.29211 9H10.6558ZM11.0219 11.5115C11.0219 11.9809 10.8811 12.3473 10.6213 12.6107C10.3507 12.874 9.97188 13 9.48478 13C8.99768 13 8.61882 12.874 8.33739 12.6107C8.06677 12.3473 7.92606 11.9809 7.92606 11.5115C7.92606 11.0305 8.05595 10.6641 8.32656 10.4008C8.59717 10.1374 8.97603 10 9.48478 10C9.99353 10 10.3724 10.1374 10.6322 10.4008C10.892 10.6641 11.0219 11.0305 11.0219 11.5115Z" fill="#AF3535"/>
-          </svg>
-        </div>
-      <div style="margin-left:1%; ">
-        <div><strong>{{strings.sync_media_error}} </strong></div>
-        <div>{{strings.sync_media_error_desc}}</div>
-        </div>
+				<div>
+					<svg style="position: relative; top:10%;" width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M8.9581 0C13.5192 0 17.2136 3.58 17.2136 8C17.2136 12.42 13.5192 16 8.9581 16C4.39696 16 0.702637 12.42 0.702637 8C0.702637 3.58 4.39696 0 8.9581 0ZM10.6558 9L11.0219 3H7.92606L8.29211 9H10.6558ZM11.0219 11.5115C11.0219 11.9809 10.8811 12.3473 10.6213 12.6107C10.3507 12.874 9.97188 13 9.48478 13C8.99768 13 8.61882 12.874 8.33739 12.6107C8.06677 12.3473 7.92606 11.9809 7.92606 11.5115C7.92606 11.0305 8.05595 10.6641 8.32656 10.4008C8.59717 10.1374 8.97603 10 9.48478 10C9.99353 10 10.3724 10.1374 10.6322 10.4008C10.892 10.6641 11.0219 11.0305 11.0219 11.5115Z" fill="#AF3535"/>
+					</svg>
+				</div>
+			<div style="margin-left:1%; ">
+				<div><strong>{{strings.sync_media_error}} </strong></div>
+				<div>{{strings.sync_media_error_desc}}</div>
+				</div>
 		</div>
-    <hr/>
+		<hr v-if="this.site_settings.offload_media==='enabled'"/>
 		<!-- Rollback Media button -->
 		<div class="field  is-fullwidth columns " v-if="this.site_settings.offload_media==='enabled' || this.$store.state.loadingRollback">
 			<label class="label column has-text-grey-dark">
@@ -227,53 +239,53 @@
 		</div>
 
 
-    <div class="field columns optml-light-background" v-if="this.$store.state.loadingRollback">
-      <div class="column optml-media-progress-labels">
+		<div class="field columns optml-light-background" v-if="this.$store.state.loadingRollback">
+			<div class="column optml-media-progress-labels">
 
-        <label class="label has-text-grey-dark">
-          <span>{{strings.rollback_media_progress}}</span>
-          <div style="float: right;"><svg class="optml-spin" xmlns="http://www.w3.org/2000/svg" width="18" height="14" viewBox="0 0 18 14" fill="none">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M9 2.5C6.9 2.5 5.1 4 4.7 6H7L3.5 10L0 6H2.1C2.6 2.6 5.5 0 9 0C11.1 0 13 0.9 14.2 2.3L12.5 4.3C11.7 3.2 10.5 2.5 9 2.5ZM13.3 8H11L14.5 4L18 8H15.9C15.4 11.4 12.5 14 9 14C6.9 14 5 13.1 3.8 11.6L5.5 9.7C6.3 10.8 7.5 11.5 9 11.5C11.1 11.5 12.8 10 13.3 8Z" fill="#577BF9"/>
-          </svg>
-          </div>
-        </label>
-        <div style="position:relative;">
-          <progress class="progress is-info optml-progress" :value="this.$store.state.pushedImagesProgress" :max="maxTime"></progress>
-        </div>
+				<label class="label has-text-grey-dark">
+					<span>{{strings.rollback_media_progress}}</span>
+					<div style="float: right;"><svg class="optml-spin" xmlns="http://www.w3.org/2000/svg" width="18" height="14" viewBox="0 0 18 14" fill="none">
+						<path fill-rule="evenodd" clip-rule="evenodd" d="M9 2.5C6.9 2.5 5.1 4 4.7 6H7L3.5 10L0 6H2.1C2.6 2.6 5.5 0 9 0C11.1 0 13 0.9 14.2 2.3L12.5 4.3C11.7 3.2 10.5 2.5 9 2.5ZM13.3 8H11L14.5 4L18 8H15.9C15.4 11.4 12.5 14 9 14C6.9 14 5 13.1 3.8 11.6L5.5 9.7C6.3 10.8 7.5 11.5 9 11.5C11.1 11.5 12.8 10 13.3 8Z" fill="#577BF9"/>
+					</svg>
+					</div>
+				</label>
+				<div style="position:relative;">
+					<progress class="progress is-info optml-progress" :value="this.$store.state.pushedImagesProgress" :max="maxTime"></progress>
+				</div>
 
-        <label v-if="this.$store.state.estimatedTime == 0" class="label has-text-grey-dark">
-          <span>{{strings.calculating_estimated_time}}</span>
-        </label>
+				<label v-if="this.$store.state.estimatedTime == 0" class="label has-text-grey-dark">
+					<span>{{strings.calculating_estimated_time}}</span>
+				</label>
 
 
-        <label v-else class="label has-text-grey-dark has-text-weight-normal" >
-          <span>{{strings.estimated_time}}: <strong>{{this.$store.state.estimatedTime}} {{strings.minutes}}</strong></span>
-        </label>
+				<label v-else class="label has-text-grey-dark has-text-weight-normal" >
+					<span>{{strings.estimated_time}}: <strong>{{this.$store.state.estimatedTime}} {{strings.minutes}}</strong></span>
+				</label>
 
-      </div>
-    </div>
-    <div class="field  columns" v-if="this.$store.state.rollbackLibraryLink === true">
-      <label class="label column">
-        {{strings.rollback_media_link}} <a :href="this.$store.state.queryArgs.url">{{strings.here}}</a>
-      </label>
-    </div>
-    <!--Rollback error notice-->
-    <div class="notification optml-warning is-size-6 optml-side-by-side" v-if="this.$store.state.errorMedia === 'rollback_images'">
+			</div>
+		</div>
+		<div class="field  columns" v-if="this.$store.state.rollbackLibraryLink === true">
+			<label class="label column">
+				{{strings.rollback_media_link}} <a :href="this.$store.state.queryArgs.url">{{strings.here}}</a>
+			</label>
+		</div>
+		<!--Rollback error notice-->
+		<div class="notification optml-warning is-size-6 optml-side-by-side" v-if="this.$store.state.errorMedia === 'rollback_images'">
 
-      <div>
-        <svg style="position: relative; top:10%;" width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M8.9581 0C13.5192 0 17.2136 3.58 17.2136 8C17.2136 12.42 13.5192 16 8.9581 16C4.39696 16 0.702637 12.42 0.702637 8C0.702637 3.58 4.39696 0 8.9581 0ZM10.6558 9L11.0219 3H7.92606L8.29211 9H10.6558ZM11.0219 11.5115C11.0219 11.9809 10.8811 12.3473 10.6213 12.6107C10.3507 12.874 9.97188 13 9.48478 13C8.99768 13 8.61882 12.874 8.33739 12.6107C8.06677 12.3473 7.92606 11.9809 7.92606 11.5115C7.92606 11.0305 8.05595 10.6641 8.32656 10.4008C8.59717 10.1374 8.97603 10 9.48478 10C9.99353 10 10.3724 10.1374 10.6322 10.4008C10.892 10.6641 11.0219 11.0305 11.0219 11.5115Z" fill="#AF3535"/>
-        </svg>
-      </div>
-      <div style="margin-left:1%; ">
-        <div><strong>{{strings.rollback_media_error}} </strong></div>
-        <div>{{strings.rollback_media_error_desc}}</div>
-      </div>
-    </div>
+			<div>
+				<svg style="position: relative; top:10%;" width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path fill-rule="evenodd" clip-rule="evenodd" d="M8.9581 0C13.5192 0 17.2136 3.58 17.2136 8C17.2136 12.42 13.5192 16 8.9581 16C4.39696 16 0.702637 12.42 0.702637 8C0.702637 3.58 4.39696 0 8.9581 0ZM10.6558 9L11.0219 3H7.92606L8.29211 9H10.6558ZM11.0219 11.5115C11.0219 11.9809 10.8811 12.3473 10.6213 12.6107C10.3507 12.874 9.97188 13 9.48478 13C8.99768 13 8.61882 12.874 8.33739 12.6107C8.06677 12.3473 7.92606 11.9809 7.92606 11.5115C7.92606 11.0305 8.05595 10.6641 8.32656 10.4008C8.59717 10.1374 8.97603 10 9.48478 10C9.99353 10 10.3724 10.1374 10.6322 10.4008C10.892 10.6641 11.0219 11.0305 11.0219 11.5115Z" fill="#AF3535"/>
+				</svg>
+			</div>
+			<div style="margin-left:1%; ">
+				<div><strong>{{strings.rollback_media_error}} </strong></div>
+				<div>{{strings.rollback_media_error_desc}}</div>
+			</div>
+		</div>
 
 		<div class="field  is-fullwidth columns ">
 			<div class="column is-left">
-				<button @click="saveChanges()" class="button is-success is-small "
+				<button @click="saveChanges()" class="button is-info is-small "
 								:class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">
 					{{strings.save_changes}}
 				</button>
@@ -296,8 +308,9 @@ export default {
 			maxTime: 100,
 			showSave: false,
 			showOffloadDisabled : false,
+			showOffloadEnabled : false,
 			offloadDisableOptions : [],
-			select_rollback : 'no_rollback',
+			select_rollback : 'yes_rollback',
 			new_data: {},
 		}
 	},
@@ -334,11 +347,12 @@ export default {
 			this.$store.dispatch('callSync', { action: action, images: imageIds });
 		},
 		saveChanges: function () {
-			this.showOffloadDisabled = false;
-			if ( this.select_rollback === 'yes_rollback' ) {
+			this.showOffloadEnabled = false;
+			if ( this.showOffloadDisabled  && this.select_rollback === 'yes_rollback'  ) {
 				this.callSync('rollback_images' );
 				this.select_rollback = 'no_rollback';
 			}
+      this.showOffloadDisabled = false;
 			this.$store.dispatch('saveSettings', {
 				settings: this.new_data
 			});
@@ -380,10 +394,10 @@ export default {
 		},
 		offloadMediaStatus: {
 			set: function (value) {
-				this.showSave = !!value;
-				this.select_rollback = 'no_rollback';
+				this.showSave = true;
 				this.new_data.offload_media = value ? 'enabled' : 'disabled';
 				this.showOffloadDisabled = ! value;
+				this.showOffloadEnabled = !! value;
 			},
 			get: function () {
 				return !(this.site_settings.offload_media === 'disabled');

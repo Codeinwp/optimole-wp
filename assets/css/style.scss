@@ -1,6 +1,7 @@
 
 #optimole-app {
   padding: 0 30px 0 20px;
+  min-width: 430px;
 
   $primary: #EF686B;
   $success: #5F9D61;
@@ -123,7 +124,7 @@
     color: #626262;
   }
   .cdn-details > div {
-    margin: 2% 0 2% 0;
+    margin: 2% 0 5% 0;
   }
   .upgrade > li {
     margin: 4% 0 4% 0;
@@ -147,6 +148,9 @@
 
     /* connected */
     background: #6D955A;
+  }
+  .button {
+    border-radius: 4px !important;
   }
   .optml-button {
     position: absolute;
@@ -357,7 +361,7 @@ th.optml-image-ratio-heading {
   font-size: 150%;
 }
 @media screen and (max-width: 768px) {
-  li:not(.is-active) > a > span:not(.icon):not(.ab-icon) {
+  .optml-hide-on-mobile {
     visibility: hidden;
     position:  absolute;
   }

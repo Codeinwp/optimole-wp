@@ -3,7 +3,7 @@
 
 			<div class="optml-side-by-side" style="margin-bottom:14%;">
         <div class="optml-circle"></div>
-        <div class="is-size-7 optml-gray has-text-left" style="position: relative; left: 24%; top: 12px; ">
+        <div class="is-size-6 optml-gray has-text-left" style="position: relative; left: 24%; top: 12px; ">
 				<p class="has-text-weight-bold">{{strings.logged_in_as}}:</p>
 				<p>
 					{{userData.display_name}}
@@ -18,10 +18,10 @@
       <input type="text" :disabled="true" class="optml-light-background is-large optml-gray" style="width: 100%; height: 40px; font-size:1em; vertical-align: middle;" v-model="connectedDomain">
     </div>
     <div class="is-size-7 optml-gray has-text-left">
-      <p class="has-text-weight-bold">{{strings.your_api_key}}:</p>
+      <p class="has-text-weight-bold">{{strings.your_api_key}}</p>
     </div>
-    <div class="control is-large">
-      <input type="password" :disabled="true" name="api_key" class="optml-light-background is-large" style="width: 100%; height: 40px; font-size:3.5em; vertical-align: middle; color: black; letter-spacing: -0.158em;" value="11111111111111">
+    <div class="control is-size-6" v-html="strings.optml_dashboard">
+
     </div>
     <div class="control is-large" style="height: 37px; margin: 4% 0 7% 0;">
       <a  class="optml-button " style="height: 37px; font-size: 0.8em; margin: 2.5% 0 4% 0; padding: 2.5% 2% 0 2%;" @click="disconnect">{{strings.disconnect_btn}}</a>

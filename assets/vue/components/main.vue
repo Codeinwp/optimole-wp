@@ -41,11 +41,11 @@
 												</transition>
 												<transition name="fade" mode="out-in">
 														<div v-if="this.$store.state.connected && this.$store.state.hasApplication && this.$store.state.is_loaded">
-																<div class="tabs is-left is-medium optml-tabs optml-font">
+																<div class="tabs is-left is-medium optml-tabs optml-font" style="overflow-x: hidden !important;">
 																		<ul class="is-marginless ">
 																				<li :class="tab === 'dashboard' ? 'is-active' : ''">
 																						<a @click="changeTab('dashboard')" class="is-size-5">
-																								<span class="tab-text is-size-5">
+																								<span class="tab-text is-size-5-mobile is-size-5-touch">
                                                   {{strings.dashboard_menu_item}}
                                                 </span>
                                               <svg width="110%" height="4" viewBox="0 0 110 4" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
@@ -58,7 +58,7 @@
 																				</li>
 																				<li :class="tab === 'conflicts' ? 'is-active' : ''" v-if="conflictCount > 0">
 																						<a @click="changeTab('conflicts')" class="is-size-5">
-																								<span class="tab-text is-size-5">{{strings.conflicts_menu_item}}</span>
+																								<span class="tab-text is-size-5-mobile is-size-5-touch">{{strings.conflicts_menu_item}}</span>
                                               <svg width="110%" height="6" viewBox="0 0 100 6" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
                                                 <rect width="110%" height="6" rx="2" fill="#D54222"/>
                                               </svg>
@@ -66,7 +66,7 @@
 																				</li>
 																				<li :class="tab === 'settings' ? 'is-active' : ''">
 																						<a @click="changeTab('settings')" class="is-size-5  ">
-																								<span class="tab-text is-size-5">{{strings.settings_menu_item}}</span>
+																								<span class="tab-text is-size-5-mobile is-size-5-touch">{{strings.settings_menu_item}}</span>
                                               <svg width="110%" height="4" viewBox="0 0 110 4" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
                                                 <rect width="110%" height="4" rx="2" fill="#577BF9"/>
                                               </svg>
@@ -76,7 +76,7 @@
                                         <li style="position: absolute; right: 1%;">
                                             <div class="level-item">
 
-                                              <span class="is-size-7 has-text-weight-bold optml-gray">{{ this.$store.state.loading ?  strings.updating_stats_cta : strings.refresh_stats_cta}}</span>
+                                              <span class="is-size-7 has-text-weight-bold optml-gray optml-hide-on-mobile">{{ this.$store.state.loading ?  strings.updating_stats_cta : strings.refresh_stats_cta}}</span>
 
                                               <a style="padding:0; margin:0;">
                                               <svg v-bind:class="{ 'optml-spin': this.$store.state.loading }" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="visibility: visible"  v-on:click="requestUpdate">

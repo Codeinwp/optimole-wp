@@ -97,7 +97,7 @@
           <!-- Save changes button -->
           <div class="field  is-fullwidth columns ">
             <div class="column is-left">
-              <button @click="saveChanges()" class="button is-success is-small "
+              <button @click="saveChanges()" class="button is-info is-small "
                       :class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">
                 {{strings.save_changes}}
               </button>

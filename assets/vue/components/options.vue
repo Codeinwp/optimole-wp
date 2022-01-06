@@ -1,6 +1,6 @@
 <template>
     <div class="columns" style="margin-top: 1.7%;">
-        <aside id="optml-settings-menu" class="menu column  is-2-fullhd is-3-desktop is-3-tablet is-hidden-mobile">
+        <aside id="optml-settings-menu" class="menu column  is-2-fullhd is-3-desktop is-3-tablet">
             <ul class="optml-menu optml-settings-submenu is-marginless">
                 <li><a @click="changeTab('general')" href="#" :class="tab === 'general' ? 'is-active' : ''"
                        :title="all_strings.general_settings_menu_item+' '+all_strings.settings_menu_item">{{all_strings.general_settings_menu_item}}</a>
@@ -42,6 +42,7 @@
 
               </li>
             </ul>
+          <hr/>
         </aside>
         <div :class="[{ 'saving--option' : this.$store.state.loading, 'is-tab-disabled':isDisabled},'is-tab-'+tab] "
              class="  column">
@@ -115,6 +116,31 @@
 
     #optml-settings-menu > ul.optml-menu.optml-settings-submenu {
         width: fit-content !important;
+        display: flex;
+        flex-direction: column;
+    }
+    #optml-settings-menu >  hr{
+      visibility: hidden;
+    }
+    @media screen and (max-width: 768px) {
+      #optml-settings-menu > ul.optml-menu.optml-settings-submenu {
+        width: fit-content !important;
+        display: flex;
+        flex-direction: row;
+        margin-top: 0;
+        padding-top : 0;
+      }
+      #optml-settings-menu {
+        padding-top: 0 !important;
+      }
+      #optml-settings-menu >  hr{
+        visibility: visible;
+        margin: 0 !important;
+      }
+      #optml-settings-menu > ul.optml-menu.optml-settings-submenu > li {
+        margin-top: 0 !important;
+        margin-left: 5% !important;
+      }
     }
     ul.optml-settings-submenu {
       list-style: none !important;
