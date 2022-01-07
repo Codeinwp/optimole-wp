@@ -1,7 +1,7 @@
 
 #optimole-app {
   padding: 0 30px 0 20px;
-  min-width: 430px;
+  overflow-x: scroll;
 
   $primary: #EF686B;
   $success: #5F9D61;
@@ -43,6 +43,15 @@
     border: 1px solid rgba(87, 123, 249, 0.36) !important;
     box-sizing: border-box !important;
     border-radius: 100px !important;
+  }
+  @media screen and (max-width: 768px) {
+    div > .optml-button-page-position {
+      margin: 0 0 1% 0;
+      padding: 2% !important;
+      right: 10%;
+      position: relative !important;
+      left: 1%;
+    }
   }
   .optml-button-page-position {
     margin: 4%;

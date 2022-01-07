@@ -6,7 +6,7 @@
                 <span v-if="type==='optimize'">{{strings.exclude_title_optimize}}</span>
             </label>
         </div>
-        <div class="field columns optml-light-background optml-fit-content" style="min-width: 450px; padding: 1% 2%;">
+        <div class="field columns optml-light-background optml-fit-content" style="padding: 1% 5%;">
             <div class="field has-addons column has-addons-centered optml-filters-content">
                 <p>
                             <span>

@@ -5,7 +5,7 @@
                 <li><a @click="changeTab('general')" href="#" :class="tab === 'general' ? 'is-active' : ''"
                        :title="all_strings.general_settings_menu_item+' '+all_strings.settings_menu_item">{{all_strings.general_settings_menu_item}}</a>
                 </li>
-                <li :class="isDisabled ? 'is-menu-disabled' : '' " style="width: 100%;"><a @click="ToggleAdvanced()" href="#" :class="advancedOpen ? 'is-active' : '' "
+                <li :class="advancedOpen ? 'is-active' : '' " class="optml-advanced-settings" :class="isDisabled ? 'is-menu-disabled' : '' "><a @click="ToggleAdvanced()" href="#" :class="advancedOpen ? 'is-active' : '' "
                                                                       title="General settings"><span>{{all_strings.advanced_settings_menu_item}}</span>
                     <span class="   dashicons advanced-link "
                           :class="advancedOpen ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2'"></span>
@@ -13,20 +13,20 @@
                     <!--Advanced-->
                     <ul class="optml-sublist optml-settings-submenu is-marginless "
                         :class=" ! advancedOpen ? 'is-hidden' : '' ">
-                        <li><a @click="changeTab('compression')" href="#"
+                        <li><a class="optml-fit-content" @click="changeTab('compression')" href="#"
                                :class="tab === 'compression' ? 'is-active optml-light-background' : ''"
                                :title="all_strings.settings_compression_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_compression_menu_item}}</a>
                         </li>
-                        <li><a @click="changeTab('resize')" href="#"
+                        <li><a class="optml-fit-content"  @click="changeTab('resize')" href="#"
                                :class="tab === 'resize' ? 'is-active optml-light-background' : ''"
                                :title="all_strings.settings_resize_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_resize_menu_item}}</a>
                         </li>
 
-                        <li v-if="this.$store.state.site_settings.lazyload==='enabled'"><a @click="changeTab('lazyload')" href="#"
+                        <li v-if="this.$store.state.site_settings.lazyload==='enabled'"><a class="optml-fit-content"  @click="changeTab('lazyload')" href="#"
                                :class="tab === 'lazyload' ? 'is-active optml-light-background' : ''"
                                :title="all_strings.lazyload_settings_menu_item+' '+all_strings.lazyload_settings_menu_item">{{all_strings.lazyload_settings_menu_item}}</a>
                         </li>
-                        <li><a href="#"
+                        <li><a  class="optml-fit-content"  href="#"
                                @click="changeTab('exclusions')" href="#"
                                :class="tab === 'exclusions' ? 'is-active optml-light-background' : ''"
                                :title="all_strings.settings_exclusions_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_exclusions_menu_item}}</a>
@@ -122,6 +122,13 @@
     #optml-settings-menu >  hr{
       visibility: hidden;
     }
+    .optml-sublist {
+      display: flex;
+      flex-direction: column;
+    }
+    .optml-advanced-settings {
+      width: 100%;
+    }
     @media screen and (max-width: 768px) {
       #optml-settings-menu > ul.optml-menu.optml-settings-submenu {
         width: fit-content !important;
@@ -140,6 +147,26 @@
       #optml-settings-menu > ul.optml-menu.optml-settings-submenu > li {
         margin-top: 0 !important;
         margin-left: 5% !important;
+        height : fit-content;
+      }
+      .optml-sublist {
+        display: flex;
+        flex-direction: row;
+        left: -87%;
+        position: relative;
+
+      }
+      .optml-sublist > li {
+        margin-right: 5% !important;
+      }
+      .optml-sublist > li > a {
+        padding: 5px !important;
+      }
+      .optml-advanced-settings {
+        width: 37% !important;
+      }
+      .optml-advanced-settings.is-active {
+        width: 20% !important;
       }
     }
     ul.optml-settings-submenu {

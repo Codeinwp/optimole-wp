@@ -1,5 +1,5 @@
 <template>
-		<div class="columns is-desktop">
+		<div class="columns is-desktop" style="min-width: 500px;">
 
 				<div class="column  ">
 						<div class="card">
