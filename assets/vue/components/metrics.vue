@@ -22,8 +22,10 @@
         </div>
 
         <div style="position:relative;">
-        <progress class="progress is-info optml-progress" :value="this.userData.visitors" :max="this.userData.visitors_limit"></progress>
-        <p class="optml-progress-value">{{computedPercentageVisitors()}}%</p>
+        <progress style="margin-bottom: 0.1%;" class="progress is-info optml-progress" :value="this.userData.visitors" :max="this.userData.visitors_limit"></progress>
+        <div class="optml-is-horizontal-center">
+        <p style="width: fit-content;border-radius: 4px;padding: 0.4%;background-color: #577BF9;color: white;">{{computedPercentageVisitors()}}%</p>
+        </div>
         </div>
       </div>
     </div>
