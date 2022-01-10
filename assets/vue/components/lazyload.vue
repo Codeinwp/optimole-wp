@@ -18,7 +18,7 @@
 				</div>
         <hr/>
 
-				<div class="field  columns" style="flex-direction: column;">
+				<div class="field  columns optml-flex-column" >
 					<label class="label column optml-custom-label-margin">
 						{{strings.exclude_first_images_title}}
 

@@ -276,8 +276,13 @@ final class Optml_Api {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
-
-		return $this->request( '/optml/v1/stats/images' );
+		$app_key = '';
+		$settings = new Optml_Settings();
+		$service_data = $settings->get( 'service_data' );
+		if ( isset( $service_data['cdn_key'] ) ) {
+			$app_key = $service_data['cdn_key'];
+		}
+		return $this->request( '/optml/v1/stats/images', 'GET', [], ['application' => $app_key] );
 	}
 
 	/**

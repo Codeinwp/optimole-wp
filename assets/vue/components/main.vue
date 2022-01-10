@@ -30,9 +30,9 @@
                                       </transition>
 																		</div>
 																</div>
-																<div class="columns" style="flex-direction: column; margin:1%;">
+																<div class="columns optml-flex-column" style="margin:1%;">
 
-																				<progress id="optml-progress-bar" style="margin-bottom: 0;" class="progress is-small is-success" :value="this.timer" max="25"></progress>
+																				<progress id="optml-progress-bar" class="progress is-small is-success optml-custom-label-margin" :value="this.timer" max="25"></progress>
                                         <div class="has-text-centered is-size-7">{{this.getProgressMessage()}}</div>
 
 																</div>
@@ -114,7 +114,7 @@
 
 
 
-	                              <last-images :status="fetchStatus" v-if="! remove_images"></last-images>
+	                              <last-images class="optml-hide-on-mobile" :status="fetchStatus" v-if="! remove_images"></last-images>
 																</div>
 																<div class="is-tab" v-if=" tab === 'settings'">
 																		<options></options>

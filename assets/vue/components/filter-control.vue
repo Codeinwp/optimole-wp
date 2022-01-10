@@ -45,7 +45,7 @@
         <p class="has-text-centered " v-if="this.selected_filter === FILTER_TYPES.URL">
             <i>For homepage use <strong>home</strong> keyword.</i>
         </p>
-      <div class="field  columns" style="flex-direction: column; margin-top: 4%;">
+      <div class="field  columns optml-flex-column" style="margin-top: 4%;">
         <div v-if="anyFilter" class="optml-gray has-text-weight-bold" style="white-space: nowrap;"> {{strings.active_exclusions}}: </div>
         <div class="column is-paddingless is-full">
           <div class="list" style="margin-top: 4%;">

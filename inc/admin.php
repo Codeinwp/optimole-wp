@@ -781,6 +781,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			'settings_compression_menu_item' => __( 'Compression', 'optimole-wp' ),
 			'advanced_settings_menu_item'    => __( 'Advanced', 'optimole-wp' ),
 			'general_settings_menu_item'     => __( 'General', 'optimole-wp' ),
+			'for_latest_optimized_images'    => __( 'For the latest 10 images optimized', 'optimole-wp' ),
 			'lazyload_settings_menu_item'    => __( 'Lazyload', 'optimole-wp' ),
 			'offload_media_settings_menu_item'    => __( 'Cloud Integration', 'optimole-wp' ),
 			'watermarks_menu_item'           => __( 'Watermark', 'optimole-wp' ),

@@ -5,48 +5,48 @@
 				<h3 class="has-text-weight-bold is-size-6" style="margin-bottom: 4%;">{{strings.last}} {{strings.optimized_images}}</h3>
 				<table class="table is-striped is-hoverable is-fullwidth">
 					<tbody>
-          <template  v-for="index in [0,5]">
+					<template  v-for="index in [0,5]">
 					<tr>
 						<td style="border: none !important;"><a :href="imageData[index].url" target="_blank"><img :src="imageData[index].url" class="optml-image"/></a></td>
-            <td style="border: none !important;"><a :href="imageData[index+1].url" target="_blank"><img :src="imageData[index+1].url" class="optml-image"/></a></td>
-            <td style="border: none !important;"><a :href="imageData[index+2].url" target="_blank"><img :src="imageData[index+2].url" class="optml-image"/></a></td>
-            <td style="border: none !important;"><a :href="imageData[index+3].url" target="_blank"><img :src="imageData[index+3].url" class="optml-image"/></a></td>
-            <td style="border: none !important;"><a :href="imageData[index+4].url" target="_blank"><img :src="imageData[index+4].url" class="optml-image"/></a></td>
+						<td style="border: none !important;"><a :href="imageData[index+1].url" target="_blank"><img :src="imageData[index+1].url" class="optml-image"/></a></td>
+						<td style="border: none !important;"><a :href="imageData[index+2].url" target="_blank"><img :src="imageData[index+2].url" class="optml-image"/></a></td>
+						<td style="border: none !important;"><a :href="imageData[index+3].url" target="_blank"><img :src="imageData[index+3].url" class="optml-image"/></a></td>
+						<td class="optml-hide-on-tablet" style="border: none !important;"><a :href="imageData[index+4].url" target="_blank"><img :src="imageData[index+4].url" class="optml-image"/></a></td>
 
 					</tr>
-          <tr style="left:2%; position:relative;">
-            <td class="optml-optimized-percent-position">
-              <div class="optml-side-by-side">
-                <div class="optml-point"></div>
-                <div class="optml-center-table-text">{{compressionRate(imageData[index].ex_size_raw, imageData[index].new_size_raw)}}% Saved</div>
-              </div>
-            </td>
-            <td class="optml-optimized-percent-position">
-              <div class="optml-side-by-side">
-                <div class="optml-point"></div>
-                <div class="optml-center-table-text">{{compressionRate(imageData[index+1].ex_size_raw, imageData[index+1].new_size_raw)}}% Saved</div>
-              </div>
-            </td>
-            <td class="optml-optimized-percent-position">
-              <div class="optml-side-by-side">
-                <div class="optml-point"></div>
-                <div class="optml-center-table-text">{{compressionRate(imageData[index+2].ex_size_raw, imageData[index+2].new_size_raw)}}% Saved</div>
-              </div>
-            </td>
-            <td class="optml-optimized-percent-position">
-              <div class="optml-side-by-side">
-                <div class="optml-point"></div>
-                <div class="optml-center-table-text">{{compressionRate(imageData[index+3].ex_size_raw, imageData[index+3].new_size_raw)}}% Saved</div>
-              </div>
-            </td>
-            <td class="optml-optimized-percent-position">
-              <div class="optml-side-by-side">
-                <div class="optml-point"></div>
-                <div class="optml-center-table-text">{{compressionRate(imageData[index+4].ex_size_raw, imageData[index+4].new_size_raw)}}% Saved</div>
-              </div>
-            </td>
-          </tr>
-          </template>
+					<tr style="left:2%; position:relative;">
+						<td class="optml-optimized-percent-position">
+							<div class="optml-side-by-side">
+								<div class="optml-point"></div>
+								<div class="optml-center-table-text">{{compressionRate(imageData[index].ex_size_raw, imageData[index].new_size_raw)}}% Saved</div>
+							</div>
+						</td>
+						<td class="optml-optimized-percent-position">
+							<div class="optml-side-by-side">
+								<div class="optml-point"></div>
+								<div class="optml-center-table-text">{{compressionRate(imageData[index+1].ex_size_raw, imageData[index+1].new_size_raw)}}% Saved</div>
+							</div>
+						</td>
+						<td class="optml-optimized-percent-position">
+							<div class="optml-side-by-side">
+								<div class="optml-point"></div>
+								<div class="optml-center-table-text">{{compressionRate(imageData[index+2].ex_size_raw, imageData[index+2].new_size_raw)}}% Saved</div>
+							</div>
+						</td>
+						<td class="optml-optimized-percent-position">
+							<div class="optml-side-by-side">
+								<div class="optml-point"></div>
+								<div class="optml-center-table-text">{{compressionRate(imageData[index+3].ex_size_raw, imageData[index+3].new_size_raw)}}% Saved</div>
+							</div>
+						</td>
+						<td class="optml-optimized-percent-position optml-hide-on-tablet">
+							<div class="optml-side-by-side">
+								<div class="optml-point"></div>
+								<div class="optml-center-table-text">{{compressionRate(imageData[index+4].ex_size_raw, imageData[index+4].new_size_raw)}}% Saved</div>
+							</div>
+						</td>
+					</tr>
+					</template>
 					</tbody>
 				</table>
 			</div>
@@ -54,7 +54,7 @@
 		<div v-else>
 			<iframe width="1" height="1" :src="home_url" style="visibility: hidden"></iframe>
 			<h6 class="has-text-centered">{{strings.loading_latest_images}}</h6>
-      <progress id="optml-progress-bar" style="margin-bottom: 0;" class="progress is-small is-success" :value="startTime" :max="maxTime"></progress>
+			<progress id="optml-progress-bar" class="progress is-small is-success optml-custom-label-margin" :value="startTime" :max="maxTime"></progress>
 		</div>
 		<table class="table is-striped is-hoverable is-fullwidth" v-if="noImages" style="margin-top: 12%;">
 			<thead>
@@ -118,13 +118,13 @@
 
 			},
 			compressionRate(oldSize, newSize) {
-				let value = (parseFloat(oldSize / newSize * 100) - 100).toFixed(1);
+				let value = ((1 - newSize / oldSize) * 100).toFixed(1);
 				if (value < 1) {
-					return "1%";
+					return "1";
 				}
-        if (value > 100) {
-          return (Math.floor((value / 10) + 10) / 10).toFixed(1).toString();
-        }
+				if (value > 100) {
+					return (Math.floor((value / 10) + 10) / 10).toFixed(1).toString();
+				}
 				return value.toString();
 			}
 		}
@@ -144,9 +144,9 @@
 		transition: width 0.5s ease;
 	}
 
-  .optml-optimized-percent-position {
-    border: none !important;
-    position:relative;
-    padding-left: 2.5%;
-  }
+	.optml-optimized-percent-position {
+		border: none !important;
+		position:relative;
+		padding-left: 2.5%;
+	}
 </style>

@@ -54,7 +54,7 @@
 
 								</div>
 							</div>
-							<div class="field  columns" style="flex-direction: column; margin-top: 4%;">
+							<div class="field  columns optml-flex-column" style="margin-top: 4%;">
 								<div v-if="cloud_sites.length > 0" class="optml-gray has-text-weight-bold field" style="white-space: nowrap; margin-left: 2%; font-size: 0.75rem;"> {{strings.selected_sites_title}}: </div>
 
 								<div class="column is-paddingless is-full">
@@ -396,7 +396,7 @@ export default {
 			set: function (value) {
 				this.showSave = true;
 				this.new_data.offload_media = value ? 'enabled' : 'disabled';
-				this.showOffloadDisabled = ! value;
+				this.showOffloadDisabled = this.site_settings.offload_media === 'enabled' && ! value;
 				this.showOffloadEnabled = !! value;
 			},
 			get: function () {

@@ -1,7 +1,7 @@
 <template>
 	<section class="is-clearfix">
 		<div class="notification is-danger" v-if="isRestApiWorking" v-html="strings.notice_api_not_working"></div>
-		<div class="section" v-if="showApiKey" style="text-align: center;">
+		<div class="section has-text-centered" v-if="showApiKey">
 			<div class="notification is-success has-text-centered" v-if="from_register">
 				{{strings.notification_message_register}}
 			</div>

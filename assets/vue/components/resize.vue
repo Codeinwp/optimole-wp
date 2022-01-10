@@ -36,7 +36,7 @@
 
         </div>
         <hr/>
-        <div class="field   columns " style="flex-direction: column;align-content: center;justify-content: center;">
+        <div class="field   columns optml-flex-column" style="align-content: center;justify-content: center;">
             <label class="label   column has-text-grey-dark no-padding-right optml-custom-label-margin">
                 {{strings.size_title}}
                 <p class="optml-settings-desc-margin has-text-weight-normal">
@@ -48,7 +48,7 @@
                 <div class="columns">
                     <div class="field column is-narrow has-addons" style="align-items: center;">
 
-                        <p style="margin-bottom: 0;">
+                        <p class="optml-custom-label-margin">
                            {{strings.width_field}}
                         </p>
 
@@ -56,7 +56,7 @@
 
                     </div>
                     <div class="field column is-narrow has-addons" style="align-items: center;  margin-bottom: 0.75rem;">
-                        <p style="margin-bottom: 0;">
+                        <p class="optml-custom-label-margin">
                            {{strings.height_field}}
                         </p>
 

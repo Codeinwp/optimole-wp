@@ -69,7 +69,7 @@
             Saved file size
           </p>
           <p class="optml-gray">
-            For the latest images optimized
+            {{strings.for_latest_optimized_images}}
           </p>
         </div>
       </li>

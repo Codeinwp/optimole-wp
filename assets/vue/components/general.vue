@@ -65,7 +65,7 @@
         <hr/>
 
         <!-- Clear Cache images button -->
-        <div class="field  is-fullwidth columns " style="flex-direction: column;" :class="{'is-field-disabled':isReplacerOff }">
+        <div class="field  is-fullwidth columns optml-flex-column"  :class="{'is-field-disabled':isReplacerOff }">
             <label class="label column has-text-grey-dark optml-custom-label-margin">
                 {{strings.cache_title}}
 
