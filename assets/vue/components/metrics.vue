@@ -63,7 +63,7 @@
         </svg>
         <div>
           <p class="optml-font is-size-5 has-text-weight-bold">
-            {{this.userData.saved_size.toFixed(2)}}KB/ &infin;
+            {{ (this.userData.saved_size/1000).toFixed(2)}}MB / &infin;
           </p>
           <p class="is-size-6">
             Saved file size
