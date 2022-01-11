@@ -18,7 +18,7 @@
       <input type="text" :disabled="true" class="optml-light-background is-large optml-gray" style="width: 100%; height: 40px; font-size:1em; vertical-align: middle;" v-model="connectedDomain">
     </div>
     <div class="is-size-7 optml-gray has-text-left">
-      <p class="has-text-weight-bold">{{strings.your_api_key}}</p>
+      <p class="has-text-weight-bold">{{strings.looking_for_api_key}}</p>
     </div>
     <div class="control is-size-6" v-html="strings.optml_dashboard">
 
