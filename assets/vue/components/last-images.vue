@@ -3,7 +3,7 @@
 		<div class="optimized-images" v-if="! loading ">
 			<div v-if="!noImages">
 				<h3 class="has-text-weight-bold is-size-6" style="margin-bottom: 4%;">{{strings.last}} {{strings.optimized_images}}</h3>
-				<table class="table is-striped is-hoverable is-fullwidth">
+				<table class="table is-fullwidth">
 					<tbody>
 					<template  v-for="index in [0,5]">
 					<tr>

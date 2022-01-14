@@ -76,7 +76,7 @@
                                         <li style="position: absolute; right: 1%;">
                                             <div class="level-item">
 
-                                              <span class="is-size-7 has-text-weight-bold optml-gray optml-hide-on-mobile">{{ this.$store.state.loading ?  strings.updating_stats_cta : strings.refresh_stats_cta}}</span>
+                                              <span class="is-size-7 has-text-weight-bold optml-gray optml-hide-on-mobile" style="margin-right: 20px;">{{ this.$store.state.loading ?  strings.updating_stats_cta : strings.refresh_stats_cta}}</span>
 
                                               <a style="padding:0; margin:0;">
                                               <svg v-bind:class="{ 'optml-spin': this.$store.state.loading }" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="visibility: visible"  v-on:click="requestUpdate">

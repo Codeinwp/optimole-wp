@@ -16,13 +16,13 @@
         </svg>
       </div>
       <div style="width: 100%; margin: 0.5% 0 0 1%;">
-        <div class="optml-font optml-side-by-side" style="margin-bottom: 1%;">
+        <div class="optml-font optml-side-by-side" >
           <span class="is-size-5" style="font-weight: bold !important;" > {{this.userData.visitors_pretty}}/{{this.userData.visitors_limit_pretty}} </span><span class="is-size-6" style="margin-left: 1%;"> {{strings.quota}} </span>
           <a href="https://optimole.com/pricing" target="_blank" class="optml-button" style="right:0; bottom: -20%;"> {{strings.upgrade.title}} </a>
         </div>
 
         <div style="position:relative;">
-        <progress style="margin-bottom: 0.1%;" class="progress is-info optml-progress" :value="this.userData.visitors" :max="this.userData.visitors_limit"></progress>
+        <progress style="margin: calc(max(1%, 10px)) auto calc(max(0.5%, 5px)); height: 10px !important;" class="progress is-info optml-progress" :value="this.userData.visitors" :max="this.userData.visitors_limit"></progress>
         <div class="optml-is-horizontal-center">
         <p style="width: fit-content;border-radius: 4px;padding: 0.4%;background-color: #577BF9;color: white;">{{computedPercentageVisitors()}}%</p>
         </div>
@@ -61,7 +61,7 @@
           <path d="M38.9725 48.125C32.6452 48.125 27.5142 42.994 27.5142 36.6667C27.5142 30.3394 32.6452 25.2084 38.9725 25.2084C45.3021 25.2084 50.4308 30.3394 50.4308 36.6667C50.4308 42.994 45.3021 48.125 38.9725 48.125Z" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
           <path d="M40.2465 31.5745L36.4263 35.3924L41.5184 37.9407L37.6981 41.7586" stroke="#577BF9" stroke-width="1.875" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
-        <div>
+
           <p class="optml-font is-size-5 has-text-weight-bold">
             {{ (this.userData.saved_size/1000).toFixed(2)}}MB / &infin;
           </p>
@@ -71,7 +71,7 @@
           <p class="optml-gray">
             {{strings.for_latest_optimized_images}}
           </p>
-        </div>
+
       </li>
       <hr/>
 
@@ -148,12 +148,22 @@ export default {
 
 .optml-metric {
   flex: 1 1 100%;
-  text-align: center;
+  text-align: left;
   white-space: nowrap;
+}
+.optml-metric > p {
+  font-size: 14px;
+}
+.optml-metric > p:nth-child(3) {
+  margin-bottom: 1% !important;
+}
+.optml-metric > p:nth-child(2){
+  margin-bottom: 2.6% !important;
 }
 .optml-metric-wrapper {
   margin: 4% 0 4% 0 !important;
   list-style: none !important;
+  padding-left: 2% !important;
 }
 .optml-metric-wrapper > hr {
   visibility: hidden;

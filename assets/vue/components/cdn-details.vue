@@ -20,7 +20,7 @@
     <div class="is-size-7 optml-gray has-text-left">
       <p class="has-text-weight-bold">{{strings.looking_for_api_key}}</p>
     </div>
-    <div class="control is-size-6" v-html="strings.optml_dashboard">
+    <div class="control" style="font-size: 14px !important" v-html="strings.optml_dashboard">
 
     </div>
     <div class="control is-large" style="height: 37px; margin: 4% 0 7% 0;">
