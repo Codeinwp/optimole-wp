@@ -132,7 +132,7 @@
 
 				<div class="field  is-fullwidth columns ">
 						<div class="column is-left">
-								<button @click="saveChanges()" class="button is-info is-small "
+								<button @click="saveChanges()" class="button optml-button-style-1"
 												:class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">
 										{{strings.save_changes}}
 								</button>

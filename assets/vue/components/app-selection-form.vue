@@ -10,7 +10,7 @@
 					</select>
         </span>
 			</div>
-			<div class="button is-info  " style=" margin-left: 2%; padding-left: 4%; padding-right:4%"
+			<div class="button optml-button-style-1" style=" margin-left: 2%; padding: 3.4% 7%;"
 								@click="selectDomain" :class="{ 'is-loading' : this.$store.state.isConnecting }">
 					<span>{{strings.select}} </span>
 			</div>

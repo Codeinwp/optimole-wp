@@ -18,7 +18,7 @@
       <div style="width: 100%; margin: 0.5% 0 0 1%;">
         <div class="optml-font optml-side-by-side" >
           <span class="is-size-5" style="font-weight: bold !important;" > {{this.userData.visitors_pretty}}/{{this.userData.visitors_limit_pretty}} </span><span class="is-size-6" style="margin-left: 1%;"> {{strings.quota}} </span>
-          <a href="https://optimole.com/pricing" target="_blank" class="optml-button" style="right:0; bottom: -20%;"> {{strings.upgrade.title}} </a>
+          <a href="https://optimole.com/pricing" target="_blank" class="optml-button" style="right:0; bottom: -20%; font-size: 11px; padding: 5px 10px;"> {{strings.upgrade.title}} </a>
         </div>
 
         <div style="position:relative;">

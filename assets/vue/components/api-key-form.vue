@@ -6,16 +6,16 @@
         <div class="optml-side-by-side">
           <div v-if="isConnected" ><span class="dashicons dashicons-yes-alt" style="color: #5F9D61; margin: 7px 7px 0 0;"></span></div>
           <div class="control api-key-control" style="width: 75%">
-            <input type="text"  name="api_key" class="input  "
+            <input type="text"  name="api_key" class="input optml-font-size-medium"
                 :class="validKey ? '' : 'is-danger'" :placeholder="strings.api_key_placeholder"
                 v-model="apiKey">
           </div>
 
-            <div v-if="! isConnected" class="button is-info optml-margin-left"
+            <div v-if="! isConnected" class="button optml-button-style-1 optml-margin-left optml-font-size-medium"
                 @click="connect" :class="{ 'is-loading' : this.$store.state.isConnecting }">
               <span>{{strings.connect_btn}}</span>
             </div>
-            <div v-else class="optml-button optml-margin-left optml-margin-left" style="padding: 7px; position: relative;"
+            <div v-else class="optml-button-style-1 optml-margin-left" style="position: relative; padding: 9px 20px; background-color: #E77777;"
                     @click="disconnect" :class="{ 'is-loading' : this.$store.state.isConnecting }">
               <span>{{strings.disconnect_btn}}</span>
             </div>

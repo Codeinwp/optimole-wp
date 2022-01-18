@@ -75,7 +75,6 @@
 				loading: true,
 				startTime: 0,
 				maxTime: 20,
-				noImages: false,
 				home_url: optimoleDashboardApp.home_url,
 				strings: optimoleDashboardApp.strings.latest_images,
 			}
@@ -84,7 +83,7 @@
 			status,
 		},
 		mounted() {
-			if ( this.$store.state.optimizedImages.length > 0) {
+			if ( this.$store.state.optimizedImages.length >= 10) {
 				this.loading = false;
 				return;
 			}
@@ -106,6 +105,10 @@
 
 				return this.$store.state.optimizedImages !== null ? this.$store.state.optimizedImages : [];
 			},
+			noImages () {
+			  console.log(this.$store.state.optimizedImages.length);
+				return this.$store.state.optimizedImages.length < 10;
+			}
 		},
 		methods: {
 			doProgressBar() {

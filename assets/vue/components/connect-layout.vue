@@ -58,7 +58,7 @@
 					<label for="optml-email" class="label title is-size-5   is-12">{{strings.email_address_label}}
 						:</label>
 					<div class="control   is-12 is-small ">
-						<input name="optml-email" id="optml-email" class="input is-medium is-fullwidth is-info"
+						<input name="optml-email" id="optml-email" class="input is-fullwidth is-info" style="font-size: 16px;"
 									 type="email"
 									 v-model="email"/>
           </div>
@@ -69,7 +69,7 @@
 				<div class="field   ">
 					<div class="control ">
 						<div class="    has-text-centered-mobile">
-							<button @click="registerAccount" class="button is-fullwidth is-medium is-info  "
+							<button @click="registerAccount" class="button optml-button-style-1 is-fullwidth"
 											:class="isLoading ? 'is-loading' :'' ">
 								<span>{{strings.register_btn}}</span>
 							</button>
@@ -78,7 +78,7 @@
 						<div class="is-right has-text-centered-mobile has-text-right">
               <div class="is-size-6 is-vcentered has-text-left has-text-weight-bold" style="margin-bottom: 6%;">{{strings.existing_user}} ?</div>
 
-              <button @click="toggleApiForm" class="button  is-fullwidth is-medium  is-outlined" style="background-color: #757296;">
+              <button @click="toggleApiForm" class="button  is-fullwidth   is-outlined" style="background-color: #757296; font-size: 14px;">
                 <span>{{strings.api_exists}}</span>
 							</button>
 						</div>

@@ -75,12 +75,12 @@
             </label>
           <div class="optml-side-by-side" style="justify-content: center; padding-right: 15%;">
 
-                <div @click="clearCache()" class="optml-button is-small is-3 is-center" style="position: relative; margin-right: 2%;"
+                <div @click="clearCache()" class="optml-button optml-button-style-2 is-center" style="position: relative; margin-right: 2%;"
                         :class="this.$store.state.loading ? 'is-loading'  : '' ">
                     {{strings.clear_cache_images}}
                 </div>
 
-              <div v-if="isAssetsOn" @click="clearCache('assets')" class="optml-button is-small is-3 is-center" style="position: relative;"
+              <div v-if="isAssetsOn" @click="clearCache('assets')" class="optml-button optml-button-style-2 is-center" style="position: relative;"
                       :class="this.$store.state.loading ? 'is-loading'  : '' ">
                 {{strings.clear_cache_assets}}
               </div>
@@ -97,7 +97,7 @@
           <!-- Save changes button -->
           <div class="field  is-fullwidth columns ">
             <div class="column is-left">
-              <button @click="saveChanges()" class="button is-info is-small "
+              <button @click="saveChanges()" class="button optml-button-style-1"
                       :class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">
                 {{strings.save_changes}}
               </button>

@@ -172,6 +172,33 @@
   .button {
     border-radius: 4px !important;
   }
+  .button:focus {
+    color: white;
+    box-shadow: none !important;
+    border-color: #0071AE;
+  }
+  .optml-font-size-medium {
+    font-size: 16px !important;
+  }
+  .optml-button-style-1 {
+    border-radius: 4px;
+    background-color: #0071AE;
+    border-color: #0071AE;
+    //padding: 9px 20px; the default from bulma looks better TODO: ask John
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: bold !important;
+    color: white;
+  }
+  .optml-button-style-2 {
+    border: 2px solid #577BF9;
+    border-radius: 4px;
+    font-size: 13px;
+    padding: 7px 9px 10px !important;
+  }
+  .optml-button-style-1:hover {
+    color: white !important;
+  }
   .optml-button {
     position: absolute;
     background-color: transparent;

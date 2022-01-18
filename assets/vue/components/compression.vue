@@ -76,7 +76,7 @@
 
         <div class="field  is-fullwidth columns optml-settings-desc-margin">
             <div class="column is-left">
-                <button @click="saveChanges()" class="button is-info is-small "
+                <button @click="saveChanges()" class="button optml-button-style-1"
                         :class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">{{strings.save_changes}}
                 </button>
                 <a href="#" v-if="showSample" @click="newSample(false)" class="view-sample-image is-link">{{strings.view_sample_image}}

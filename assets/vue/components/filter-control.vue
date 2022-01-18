@@ -35,7 +35,7 @@
                     <input v-else v-model="selected_value" class="optml-textarea optml-text-input-border" type="text" placeholder="word">
                 </p>
 
-                    <div class="optml-button optml-fit-content" style="background-color: #577BF9; position: relative; white-space: nowrap; height: fit-content; padding: 1.4%;color: white;margin: 0 0 0 4%;" :class="this.$store.state.loading ? 'is-loading'  : '' "
+                    <div class="button optml-button-style-1 optml-fit-content" style="background-color: #3D3D3D; position: relative; white-space: nowrap; height: fit-content; padding: 1.4%;color: white;margin: 0 0 0 4%;" :class="this.$store.state.loading ? 'is-loading'  : '' "
                        @click="saveRule()">
                         {{strings.add_filter}}
                     </div>
