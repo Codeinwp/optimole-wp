@@ -368,15 +368,19 @@ class Optml_Admin {
 			return;
 		}
 		?>
-		<div class="notice notice-warning optml-notice-optin">
-			<p> <?php printf( __( 'It seems your are close to the %1$s5.0000%2$s visits limit with %3$sOptiMole%4$s for this month. You might want to check the upgrade plans for a larger quota. %5$s %6$s What happens if i exceed the quota ?%7$s We will need to deliver back your original %8$sun-optimized%9$s images which might decrease your site speed perfomance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
-			<p>
-				<a href="https://optimole.com/pricing" target="_blank" class="button button-primary"><span
-							class="dashicons dashicons-external"></span><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
+		<div class="notice optml-notice-optin" style="background-color: #577BF9; color:white; border: none !important; display: flex;">
+	  <div style="margin: 1% 2%;">
+		<img src='<?php echo OPTML_URL . 'assets/img/upgrade_icon.png'; ?>'>
+	  </div>
+	  <div style="margin-top: 0.7%;">
+			<p style="font-size: 16px !important;"> <?php printf( __( '%1$sIt seems your are close to the 5.0000 visits limit with %3$sOptiMole%4$s for this month.%2$s %5$s For a larger quota you may want to check the upgrade plans. If you exceed the quota we will need to deliver back your original, un-optimized images, which might decrease your site speed performance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
+			<p style="margin: 1.5% 0;">
+				<a href="https://optimole.com/pricing" target="_blank" style="border-radius: 4px;padding: 9px 10px;border: 2px solid #FFF;color: white;text-decoration: none;"><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 				</a>
-				<a class="button"
-					 href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_upg' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I\'ve done this', 'optimole-wp' ); ?></a>
+				<a style="padding: 2%; color: white;"
+					 href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_upg' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I have already done this', 'optimole-wp' ); ?></a>
 			</p>
+	  </div>
 		</div>
 		<?php
 	}
@@ -818,6 +822,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'auto_q_title'                      => __( 'Auto', 'optimole-wp' ),
 				'cache_desc'                        => __( 'Clear all cached resources(images,js,css) by Optimole from this site. Useful if you updated them and Optimole shows the old version.', 'optimole-wp' ),
 				'cache_title'                       => __( 'Clear cached resources', 'optimole-wp' ),
+				'clear_cache_notice'                => __( 'Clearing cached resources will temporarily impact site', 'optimole-wp' ),
 				'clear_cache_images'                => __( 'Clear cached images', 'optimole-wp' ),
 				'clear_cache_assets'                => __( 'Clear cached CSS & JS', 'optimole-wp' ),
 				'connect_step_0'                    => __( 'Connecting your site to the Optimole service.', 'optimole-wp' ),

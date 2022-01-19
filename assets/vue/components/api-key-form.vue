@@ -1,5 +1,5 @@
 <template>
-		<div class="field api-key-field optml-light-background" style="padding: 2%; display: inline-block;">
+		<div class="field api-key-field optml-light-background" style="padding: 2%; display: inline-block; width: 57%;">
         <div class="has-text-weight-bold has-text-left is-size-6" style="margin-bottom: 4%;">
           {{!isConnected ? strings.add_api : strings.your_api_key}}
         </div>
@@ -15,7 +15,7 @@
                 @click="connect" :class="{ 'is-loading' : this.$store.state.isConnecting }">
               <span>{{strings.connect_btn}}</span>
             </div>
-            <div v-else class="optml-button-style-1 optml-margin-left" style="position: relative; padding: 9px 20px; background-color: #E77777;"
+            <div v-else class="optml-button optml-button-style-2 optml-margin-left" style="position: relative;"
                     @click="disconnect" :class="{ 'is-loading' : this.$store.state.isConnecting }">
               <span>{{strings.disconnect_btn}}</span>
             </div>

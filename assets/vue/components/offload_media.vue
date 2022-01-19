@@ -113,7 +113,7 @@
 			</div>
 
 		</div>
-		<hr/>
+
 
 
 		<!--Rollback on disable notice-->
@@ -144,7 +144,7 @@
 			</div>
 
 		</div>
-		<hr v-if="this.showOffloadDisabled" />
+
 
 		<!--Rollback on enable notice-->
 		<div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showOffloadEnabled">
@@ -157,7 +157,7 @@
 			</label>
 
 		</div>
-		<hr v-if="this.showOffloadEnabled" />
+		<hr/>
 
 		<!-- Sync Media button -->
 		<div :class="{ 'saving--option' : this.$store.state.loading }" class="field  is-fullwidth columns " v-if="this.site_settings.offload_media==='enabled'">
@@ -397,7 +397,7 @@ export default {
 				this.showSave = true;
 				this.new_data.offload_media = value ? 'enabled' : 'disabled';
 				this.showOffloadDisabled = this.site_settings.offload_media === 'enabled' && ! value;
-				this.showOffloadEnabled = !! value;
+				this.showOffloadEnabled = this.site_settings.offload_media === 'disabled' && !! value;
 			},
 			get: function () {
 				return !(this.site_settings.offload_media === 'disabled');
@@ -420,10 +420,4 @@ export default {
 
 <style scoped>
 
-.optml-restore-notice-background {
-	background: #FFF0C9;
-	border: 1px solid #E3D5AF;
-	box-sizing: border-box;
-	border-radius: 6px;
-}
 </style>

@@ -5,7 +5,7 @@
                 <li><a @click="changeTab('general')" href="#" :class="tab === 'general' ? 'is-active' : ''"
                        :title="all_strings.general_settings_menu_item+' '+all_strings.settings_menu_item">{{all_strings.general_settings_menu_item}}</a>
                 </li>
-                <li :class="advancedOpen ? 'is-active' : '' " class="optml-advanced-settings" :class="isDisabled ? 'is-menu-disabled' : '' "><a @click="ToggleAdvanced()" href="#" :class="advancedOpen ? 'is-active' : '' "
+                <li :class="advancedOpen ? 'is-active' : '' " class="optml-advanced-settings optml-fill-container" :class="isDisabled ? 'is-menu-disabled' : '' "><a @click="ToggleAdvanced()" href="#" :class="advancedOpen ? 'is-active' : '' "
                                                                       title="General settings"><span>{{all_strings.advanced_settings_menu_item}}</span>
                     <span class="   dashicons advanced-link "
                           :class="advancedOpen ? 'dashicons-arrow-up-alt2' : 'dashicons-arrow-down-alt2'"></span>
@@ -13,22 +13,18 @@
                     <!--Advanced-->
                     <ul class="optml-sublist optml-settings-submenu is-marginless "
                         :class=" ! advancedOpen ? 'is-hidden' : '' ">
-                        <li><a class="optml-fit-content" @click="changeTab('compression')" href="#"
-                               :class="tab === 'compression' ? 'is-active optml-light-background' : ''"
+                        <li :class="tab === 'compression' ? 'optml-light-background' : ''"><a class="optml-fit-content" @click="changeTab('compression')" href="#"
                                :title="all_strings.settings_compression_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_compression_menu_item}}</a>
                         </li>
-                        <li><a class="optml-fit-content"  @click="changeTab('resize')" href="#"
-                               :class="tab === 'resize' ? 'is-active optml-light-background' : ''"
+                        <li :class="tab === 'resize' ? 'is-active optml-light-background' : ''"><a class="optml-fit-content"  @click="changeTab('resize')" href="#"
                                :title="all_strings.settings_resize_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_resize_menu_item}}</a>
                         </li>
 
-                        <li v-if="this.$store.state.site_settings.lazyload==='enabled'"><a class="optml-fit-content"  @click="changeTab('lazyload')" href="#"
-                               :class="tab === 'lazyload' ? 'is-active optml-light-background' : ''"
+                        <li :class="tab === 'lazyload' ? 'optml-light-background' : ''" v-if="this.$store.state.site_settings.lazyload==='enabled'"><a class="optml-fit-content"  @click="changeTab('lazyload')" href="#"
                                :title="all_strings.lazyload_settings_menu_item+' '+all_strings.lazyload_settings_menu_item">{{all_strings.lazyload_settings_menu_item}}</a>
                         </li>
-                        <li><a  class="optml-fit-content"  href="#"
+                        <li :class="tab === 'exclusions' ? 'optml-light-background' : ''"><a   class="optml-fit-content"  href="#"
                                @click="changeTab('exclusions')" href="#"
-                               :class="tab === 'exclusions' ? 'is-active optml-light-background' : ''"
                                :title="all_strings.settings_exclusions_menu_item+' '+all_strings.settings_menu_item">{{all_strings.settings_exclusions_menu_item}}</a>
                         </li>
                     </ul>

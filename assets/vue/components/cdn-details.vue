@@ -24,7 +24,7 @@
 
     </div>
     <div class="control is-large" style="height: 37px; margin: 4% 0 7% 0;">
-      <a  class="optml-button optml-button-style-2 " style="height: 37px; font-size: 0.8em; margin: 2.5% 0 4% 0;" @click="disconnect">{{strings.disconnect_btn}}</a>
+      <a  class="optml-button optml-button-style-2 " style="margin: 2.5% 0 4% 0;" @click="disconnect">{{strings.disconnect_btn}}</a>
     </div>
 
 

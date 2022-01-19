@@ -1,12 +1,12 @@
 <template>
-    <div :id="'filter-type-'+type" class="optml-fit-content">
+    <div :id="'filter-type-'+type" class="optml-fill-container">
         <div class="field    ">
             <label class="label column has-text-grey-dark">
                 <span v-if="type==='lazyload'">{{strings.exclude_title_lazyload}}</span>
                 <span v-if="type==='optimize'">{{strings.exclude_title_optimize}}</span>
             </label>
         </div>
-        <div class="field columns optml-light-background optml-fit-content" style="padding: 1% 5%;">
+        <div class="field columns optml-light-background" style="padding: 1% 5%;">
             <div class="field has-addons column has-addons-centered optml-filters-content">
                 <p>
                             <span>
@@ -18,12 +18,12 @@
                               </select>
                             </span>
                 </p>
-                <p style="margin: 0 3%;">
+                <p style="margin-left: 2.5%;">
 
                         {{getFilterOperator()}}
 
                 </p>
-                <p>
+                <p class="optml-fill-container has-text-centered">
                             <span v-if="this.selected_filter===this.FILTER_TYPES.EXT" >
                                 <select v-model="selected_value" class="optml-text-input-border">
                                     <option value="svg">.SVG</option>
@@ -32,10 +32,10 @@
                                     <option value="gif">.GIF</option>
                                 </select>
                             </span>
-                    <input v-else v-model="selected_value" class="optml-textarea optml-text-input-border" type="text" placeholder="word">
+                    <input v-else v-model="selected_value" class="optml-textarea optml-text-input-border optml-fill-container" type="text" placeholder="word">
                 </p>
 
-                    <div class="button optml-button-style-1 optml-fit-content" style="background-color: #3D3D3D; position: relative; white-space: nowrap; height: fit-content; padding: 1.4%;color: white;margin: 0 0 0 4%;" :class="this.$store.state.loading ? 'is-loading'  : '' "
+                    <div class="button optml-button-style-1 optml-fit-content" style="margin: 0 0 0 4%;" :class="this.$store.state.loading ? 'is-loading'  : '' "
                        @click="saveRule()">
                         {{strings.add_filter}}
                     </div>

@@ -56,7 +56,7 @@
 			<h6 class="has-text-centered">{{strings.loading_latest_images}}</h6>
 			<progress id="optml-progress-bar" class="progress is-small is-success optml-custom-label-margin" :value="startTime" :max="maxTime"></progress>
 		</div>
-		<table class="table is-striped is-hoverable is-fullwidth" v-if="noImages" style="margin-top: 12%;">
+		<table class="table is-striped is-hoverable is-fullwidth" v-if="noImages && !loading" style="margin-top: 12%;">
 			<thead>
 			<tr>
 				<th class="is-size-6 has-text-centered" style="border: none !important; font-weight: normal;" v-html="strings.no_images_found"></th>
@@ -106,7 +106,6 @@
 				return this.$store.state.optimizedImages !== null ? this.$store.state.optimizedImages : [];
 			},
 			noImages () {
-			  console.log(this.$store.state.optimizedImages.length);
 				return this.$store.state.optimizedImages.length < 10;
 			}
 		},
