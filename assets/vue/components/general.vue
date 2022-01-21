@@ -73,7 +73,7 @@
                     {{strings.cache_desc}}
                 </p>
             </label>
-          <div class="optml-side-by-side" style="justify-content: center; padding-right: 15%;">
+          <div class="optml-side-by-side" style="justify-content: left; padding-left: 0.75rem">
 
                 <div @click="clearCache()" class="button optml-button optml-button-style-2 is-center" style="position: relative; margin-right: 2%;"
                         :class="this.$store.state.loading ? 'is-loading'  : '' ">

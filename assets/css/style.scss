@@ -170,7 +170,7 @@
     background: #6D955A;
   }
   .button {
-    border-radius: 4px !important;
+    border-radius: 6px !important;
   }
   .button:focus {
     color: white;
@@ -181,7 +181,7 @@
     font-size: 16px !important;
   }
   .optml-button-style-1 {
-    border-radius: 4px;
+    border-radius: 6px;
     background-color: #577BF9;
     border-color: #577BF9;
     //padding: 9px 20px; the default from bulma looks better TODO: ask John
@@ -192,7 +192,7 @@
   }
   .optml-button-style-2 {
     border: 2px solid #577BF9;
-    border-radius: 4px !important;
+    border-radius: 6px !important;
     font-size: 13px;
     padding: 7px 10px !important;
     height: auto !important;
@@ -210,8 +210,10 @@
     padding: 0.4%;
     /* opt/accent 1 */
     border: 2px solid #577BF9;
-    border-radius: 4px;
-
+    border-radius: 6px;
+  }
+  .optml-button-px-padding {
+    padding: 9px 20px !important;
   }
   .optml-button:not([disabled]):hover {
     color: #363636;

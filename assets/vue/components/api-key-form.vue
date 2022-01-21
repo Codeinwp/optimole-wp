@@ -1,5 +1,5 @@
 <template>
-		<div class="field api-key-field optml-light-background" style="padding: 2%; display: inline-block; width: 57%;">
+		<div class="field api-key-field optml-light-background" style="padding: 2%; display: inline-block; width: 100%;">
         <div class="has-text-weight-bold has-text-left is-size-6" style="margin-bottom: 4%;">
           {{!isConnected ? strings.add_api : strings.your_api_key}}
         </div>

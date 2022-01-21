@@ -2,8 +2,8 @@
 	<div class="cdn-details" style="padding-top: 1.5em;">
 
 			<div class="optml-side-by-side" style="margin-bottom:14%;">
-        <div class="optml-circle"></div>
-        <div class="is-size-6 optml-gray has-text-left" style="position: relative; left: 24%; top: 12px; ">
+        <div class="optml-circle" style="position: relative !important;" v-if="userData.display_name.length < 20"></div>
+        <div class="is-size-6 optml-gray has-text-left"  style="position: relative; top: 12px; ">
 				<p class="has-text-weight-bold">{{strings.logged_in_as}}:</p>
 				<p>
 					{{userData.display_name}}

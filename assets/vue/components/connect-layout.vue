@@ -1,8 +1,8 @@
 <template>
-	<section class="is-clearfix">
+	<section class="is-clearfix" style="line-height: 1.5em;">
 		<div class="notification is-danger" v-if="isRestApiWorking" v-html="strings.notice_api_not_working"></div>
-		<div class="section has-text-centered" v-if="showApiKey">
-			<div class="notification is-success has-text-centered" v-if="from_register">
+		<div class="section" v-if="showApiKey">
+			<div class="notification is-success" v-if="from_register">
 				{{strings.notification_message_register}}
 			</div>
       <div class="has-text-centered" style="display: inline-block;">
@@ -20,20 +20,21 @@
 						<p style="margin-top: 5%;" class="subtitle " v-html="strings.account_needed_title"></p>
 						<div class="  is-hidden-touch">
 							<div class="columns  is-vcentered  optml-side-by-side">
-								<div class=" is-narrow is-hidden-touch column " style="background-color: white; color:#577BF9 !important;">
-                  <span class="dashicons dashicons-yes-alt" style="margin: 0 0 1% 0;"></span>
-								</div>
-								<div class="column">
+
+								<div class="column optml-side-by-side">
+                  <div class=" is-narrow is-hidden-touch column " style="background-color: white; color:#577BF9 !important; margin-right: 7px;margin-left: -10px;">
+                    <span class="dashicons dashicons-yes-alt" style="margin-top: 2px;"></span>
+                  </div>
 									<p class="subtitle column is-size-6 is-vcentered has-text-left" style="margin-left: -3%;"
 										 v-html="strings.account_needed_subtitle_1"></p>
 								</div>
 							</div>
 							<div class="columns  is-vcentered optml-side-by-side">
-								<div class=" is-narrow is-hidden-touch column" style="background-color: white; color:#577BF9 !important;">
-                  <span class="dashicons dashicons-yes-alt" style="margin: 0 0 1% 0;"></span>
-								</div>
-								<div class="column">
 
+								<div class="column optml-side-by-side">
+                  <div class=" is-narrow is-hidden-touch column" style="background-color: white; color:#577BF9 !important; margin-right: 7px;margin-left: -10px;">
+                    <span class="dashicons dashicons-yes-alt" style="margin-top: 2px;"></span>
+                  </div>
 									<p class="subtitle column is-size-6 is-vcentered has-text-left" style="margin-left: -3%;"
 										 v-html="strings.account_needed_subtitle_2"></p>
 								</div>
@@ -52,7 +53,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="column is-4-desktop is-full-touch  optml-light-background" style="padding: 2% 3% 3% 2.5%">
+			<div class="column is-5-desktop is-full-touch  optml-light-background" style="padding: 2% 3% 3% 2.5%">
 				<p v-html="strings.account_needed_title" class="is-size-6 has-text-centered is-hidden-desktop"></p>
 				<div class="field" >
 					<label for="optml-email" class="label title is-size-5   is-12">{{strings.email_address_label}}
@@ -69,7 +70,7 @@
 				<div class="field   ">
 					<div class="control ">
 						<div class="    has-text-centered-mobile">
-							<button @click="registerAccount" class="button optml-button-style-1 is-fullwidth"
+							<button @click="registerAccount" class="button optml-button-style-1 is-fullwidth optml-button-px-padding"
 											:class="isLoading ? 'is-loading' :'' ">
 								<span>{{strings.register_btn}}</span>
 							</button>
@@ -78,7 +79,7 @@
 						<div class="is-right has-text-centered-mobile has-text-right">
               <div class="is-size-6 is-vcentered has-text-left has-text-weight-bold" style="margin-bottom: 6%;">{{strings.existing_user}} ?</div>
 
-              <button @click="toggleApiForm" class="button  is-fullwidth   is-outlined" style="background-color: #757296; font-size: 14px;">
+              <button @click="toggleApiForm" class="button  is-fullwidth is-outlined optml-button-px-padding has-text-weight-bold" style="background-color: #757296; font-size: 14px; color: white;">
                 <span>{{strings.api_exists}}</span>
 							</button>
 						</div>
@@ -147,5 +148,8 @@
 	input, .notification .delete, button {
 		box-sizing: border-box !important;
 	}
+  #optimole-app .subtitle {
+    line-height: 1.5em;
+  }
 
 </style>
