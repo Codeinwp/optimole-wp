@@ -1,7 +1,7 @@
 
 #optimole-app {
   padding: 0 30px 0 20px;
-  overflow-x: scroll;
+
 
   $primary: #EF686B;
   $success: #5F9D61;
@@ -184,7 +184,6 @@
     border-radius: 6px;
     background-color: #577BF9;
     border-color: #577BF9;
-    //padding: 9px 20px; the default from bulma looks better TODO: ask John
     font-size: 14px;
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     font-weight: bold !important;
@@ -215,9 +214,19 @@
   .optml-button-px-padding {
     padding: 9px 20px !important;
   }
+  .optml-line-height {
+    line-height: 1.5em;
+  }
   .optml-button:not([disabled]):hover {
-    color: #363636;
     cursor: pointer;
+  }
+  a.optml-button:hover {
+    cursor: pointer;
+    color: #577BF9;
+  }
+  .optml-button-style-2:hover {
+    border-color: #577BF9;
+    color: #577BF9;
   }
   .optml-restore-notice-background {
     background: #FFF0C9;
@@ -372,10 +381,13 @@
   #filters-list .exclusion-filter .tag.is-link i {
     margin-right: 5px;
   }
+  .optml-position-relative {
+    position: relative !important;
+  }
 
   #filters-list .exclusion-filter .tag.is-link {
     text-decoration: none;
-    width: 80%;
+    width: 100%;
     height: auto;
     min-height: 2em;
     justify-content: left;

@@ -40,6 +40,7 @@ const store = new Vuex.Store(
 			offloadLibraryLink : false,
 			rollbackLibraryLink: false,
 			queryArgs : [],
+			showDisconnect: false,
 		},
 		mutations,
 		actions

@@ -75,13 +75,13 @@
             </label>
           <div class="optml-side-by-side" style="justify-content: left; padding-left: 0.75rem">
 
-                <div @click="clearCache()" class="button optml-button optml-button-style-2 is-center" style="position: relative; margin-right: 2%;"
+                <div @click="clearCache()" class="button optml-button optml-button-style-2 is-center optml-position-relative" style="margin-right: 2%;"
                         :class="this.$store.state.loading ? 'is-loading'  : '' ">
                     {{strings.clear_cache_images}}
                 </div>
 
-              <div v-if="isAssetsOn" @click="clearCache('assets')" class="button optml-button optml-button-style-2 is-center" style="position: relative;"
-                      :class="this.$store.state.loading ? 'is-loading'  : '' ">
+              <div v-if="isAssetsOn" @click="clearCache('assets')" class="button optml-button optml-button-style-2 is-center optml-position-relative"
+                   :class="this.$store.state.loading ? 'is-loading'  : '' ">
                 {{strings.clear_cache_assets}}
               </div>
 
@@ -90,13 +90,6 @@
             <label class="label column ">
               <p class="has-text-weight-normal optml-restore-notice-background" style="padding: 2%;">{{strings.clear_cache_notice}}</p>
             </label>
-
-
-<!--          <div class="column optml-gray" style="margin-top: 1%;">-->
-<!--            <svg style="position: relative; top:10%;" width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg">-->
-<!--            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.9581 0C13.5192 0 17.2136 3.58 17.2136 8C17.2136 12.42 13.5192 16 8.9581 16C4.39696 16 0.702637 12.42 0.702637 8C0.702637 3.58 4.39696 0 8.9581 0ZM10.6558 9L11.0219 3H7.92606L8.29211 9H10.6558ZM11.0219 11.5115C11.0219 11.9809 10.8811 12.3473 10.6213 12.6107C10.3507 12.874 9.97188 13 9.48478 13C8.99768 13 8.61882 12.874 8.33739 12.6107C8.06677 12.3473 7.92606 11.9809 7.92606 11.5115C7.92606 11.0305 8.05595 10.6641 8.32656 10.4008C8.59717 10.1374 8.97603 10 9.48478 10C9.99353 10 10.3724 10.1374 10.6322 10.4008C10.892 10.6641 11.0219 11.0305 11.0219 11.5115Z" fill="#AF3535"/>-->
-<!--            </svg>-->
-<!--            Clearing cached resources will temporarily impact site</div>-->
         </div>
 
 

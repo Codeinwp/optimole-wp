@@ -32,7 +32,7 @@
                                     <option value="gif">.GIF</option>
                                 </select>
                             </span>
-                    <input v-else v-model="selected_value" class="optml-textarea optml-text-input-border optml-fill-container" type="text" placeholder="word">
+                    <input v-else v-model="selected_value" class="optml-textarea optml-text-input-border optml-fill-container has-text-left" type="text" placeholder="word">
                 </p>
 
                     <div class="button optml-button-style-1 optml-fit-content" style="margin: 0 0 0 4%;" :class="this.$store.state.loading ? 'is-loading'  : '' "
@@ -47,7 +47,7 @@
         </p>
       <div class="field  columns optml-flex-column" style="margin-top: 4%;">
         <div v-if="anyFilter" class="optml-gray has-text-weight-bold" style="white-space: nowrap;"> {{strings.active_exclusions}}: </div>
-        <div class="column is-paddingless is-full">
+        <div class="column is-paddingless is-full optml-fill-container">
           <div class="list" style="margin-top: 4%;">
             <div class=" exclusion-filter" v-for="(item, index) in filters[this.FILTER_TYPES.EXT]">
               <div>

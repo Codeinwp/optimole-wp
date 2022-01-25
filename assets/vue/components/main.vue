@@ -1,16 +1,26 @@
 <template>
-		<div class="columns is-desktop" style="min-width: 480px;">
+		<div class="columns is-desktop" style="min-width: 480px;" v-bind:style="maxWidth">
 
 				<div class="column  ">
 						<div class="card">
 								<app-header></app-header>
 								<div class="card-content">
-										<div class="content" v-bind:style="maxWidth">
-												<connect-layout v-if="!this.is_connected "></connect-layout>
+										<div class="content">
+												<div v-if="showDisconnect">
+													<div class="has-text-weight-bold" style="font-size: 19px; margin-bottom: 20px;">{{strings.disconnect_title}}</div>
+													<div class="optml-line-height" style="font-size: 16px; margin-bottom: 20px;">{{strings.disconnect_desc}}</div>
+													<div class="optml-side-by-side optml-settings-desc-margin" style="justify-content: center;">
+														<div @click="keepConnected" class="button optml-button optml-button-style-2 optml-position-relative" > {{strings.keep_connected}}</div>
+														<div @click="disconnect" :class="this.$store.state.loading ? 'is-loading'  : '' " class="button optml-button-style-1 optml-position-relative" style="margin-left: 20px; background-color: #e77777; border-color: #E77777;"> {{strings.disconnect_btn}}</div>
+
+													</div>
+
+												</div>
+												<connect-layout v-if="!this.is_connected"></connect-layout>
 
 												<!--Connecting-->
 												<transition name="slide-fade">
-													<div class="optml-side-by-side" style="align-items: center; justify-content: center; margin-right: 4%;" v-if="this.is_connected && ! this.$store.state.is_loaded" id="optml-loader">
+													<div class="optml-side-by-side" style="align-items: center; justify-content: center; margin-right: 4%;" v-if="!showDisconnect && this.is_connected && ! this.$store.state.is_loaded" id="optml-loader">
 														<div>
 															<figure class="image">
 																<img :src="connecting" >
@@ -40,7 +50,7 @@
 													</div>
 												</transition>
 												<transition name="fade" mode="out-in">
-														<div v-if="this.$store.state.connected && this.$store.state.hasApplication && this.$store.state.is_loaded">
+														<div v-if="this.$store.state.connected && this.$store.state.hasApplication && this.$store.state.is_loaded && !showDisconnect">
 																<div class="tabs is-left is-medium optml-tabs optml-font" style="overflow-x: hidden !important;">
 																		<ul class="is-marginless ">
 																				<li :class="tab === 'dashboard' ? 'is-active' : ''">
@@ -199,13 +209,13 @@
 			}
 		},
 		computed: {
-		  maxWidth() {
-        if (!this.is_connected) {
-          return {
-            'max-width':  '700px'
-          }
-        }
-      },
+			maxWidth() {
+				if (!this.is_connected || this.showDisconnect) {
+					return {
+						'max-width':  '1000px'
+					}
+				}
+			},
 			conflictCount() {
 				return this.$store.state.conflicts.count || 0
 			},
@@ -214,6 +224,9 @@
 			},
 			is_loaded() {
 				return this.$store.state.is_loaded;
+			},
+			showDisconnect() {
+				return this.$store.state.showDisconnect;
 			},
 			user_status() {
 				return this.$store.state.userStatus;
@@ -263,6 +276,13 @@
 			}
 		},
 		methods: {
+			disconnect () {
+				this.$store.dispatch( 'disconnectOptimole', {
+				} );
+			},
+			keepConnected () {
+				this.$store.commit('toggleShowDisconnectNotice', false);
+			},
 			requestUpdate() {
 				this.$store.dispatch('requestStatsUpdate', {waitTime: 0, component: null});
 			},

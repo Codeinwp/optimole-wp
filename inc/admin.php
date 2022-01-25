@@ -726,6 +726,13 @@ class Optml_Admin {
 			'account_needed_heading'         => __( 'Sign-up for API key', 'optimole-wp' ),
 			'invalid_key'                    => __( 'Invalid API Key', 'optimole-wp' ),
 			'status'                         => __( 'STATUS', 'optimole-wp' ),
+			'keep_connected'                 => __( 'Ok, keep me connected', 'optimole-wp' ),
+			'disconnect_title'               => __( 'You are about to disconnect from the Optimole API', 'optimole-wp' ),
+			'disconnect_desc'                => __(
+				'Please note that disconnecting your site from the Optimole API will impact your website performance.
+If you still want to disconnect click the button below.',
+				'optimole-wp'
+			),
 			'email_address_label'            => __( 'Your email address', 'optimole-wp' ),
 			'steps_connect_api_title'        => __( 'Connect your account', 'optimole-wp' ),
 			'register_btn'                   => __( 'Send me the API key', 'optimole-wp' ),

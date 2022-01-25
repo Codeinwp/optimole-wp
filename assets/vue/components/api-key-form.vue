@@ -15,7 +15,7 @@
                 @click="connect" :class="{ 'is-loading' : this.$store.state.isConnecting }">
               <span>{{strings.connect_btn}}</span>
             </div>
-            <div v-else class="optml-button optml-button-style-2 optml-margin-left" style="position: relative;"
+            <div v-else class="optml-button optml-button-style-2 optml-margin-left optml-position-relative"
                     @click="disconnect" :class="{ 'is-loading' : this.$store.state.isConnecting }">
               <span>{{strings.disconnect_btn}}</span>
             </div>
