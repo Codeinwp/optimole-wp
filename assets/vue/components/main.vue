@@ -9,7 +9,7 @@
 												<div v-if="showDisconnect">
 													<div class="has-text-weight-bold" style="font-size: 19px; margin-bottom: 20px;">{{strings.disconnect_title}}</div>
 													<div class="optml-line-height" style="font-size: 16px; margin-bottom: 20px;">{{strings.disconnect_desc}}</div>
-													<div class="optml-side-by-side optml-settings-desc-margin" style="justify-content: center;">
+													<div class="optml-side-by-side optml-settings-desc-margin">
 														<div @click="keepConnected" class="button optml-button optml-button-style-2 optml-position-relative" > {{strings.keep_connected}}</div>
 														<div @click="disconnect" :class="this.$store.state.loading ? 'is-loading'  : '' " class="button optml-button-style-1 optml-position-relative" style="margin-left: 20px; background-color: #e77777; border-color: #E77777;"> {{strings.disconnect_btn}}</div>
 
@@ -145,7 +145,7 @@
 																						 target="_blank">{{strings.terms_menu}}</a></p>
 										<p class="level-item"><a href="https://optimole.com/privacy-policy/" target="_blank">{{strings.privacy_menu}}</a>
 										</p>
-										<p class="level-item"><a :href="'https://speedtest.optimole.com/?url=' + home " target="_blank">{{strings.testdrive_menu}}</a>
+										<p class="level-item"><a :href="'https://optimole.com/test-drive?url=' + home " target="_blank">{{strings.testdrive_menu}}</a>
 										</p>
 								</div>
 						</div>

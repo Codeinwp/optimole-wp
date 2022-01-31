@@ -725,7 +725,6 @@ class Optml_Admin {
 			'api_key_placeholder'            => __( 'API Key', 'optimole-wp' ),
 			'account_needed_heading'         => __( 'Sign-up for API key', 'optimole-wp' ),
 			'invalid_key'                    => __( 'Invalid API Key', 'optimole-wp' ),
-			'status'                         => __( 'STATUS', 'optimole-wp' ),
 			'keep_connected'                 => __( 'Ok, keep me connected', 'optimole-wp' ),
 			'disconnect_title'               => __( 'You are about to disconnect from the Optimole API', 'optimole-wp' ),
 			'disconnect_desc'                => __(
