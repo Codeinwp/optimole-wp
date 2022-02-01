@@ -17,7 +17,7 @@
 					</span>
 				</h3>
 			</div>
-			<div class="level-right has-text-weight-bold optml-font">
+			<div class="level-right has-text-weight-bold optml-font" style="padding-right:17px;">
 
 					<div v-if="connected" class="is-size-7 optml-side-by-side" style="color: #6D955A;">
             <div>{{strings.connected}}</div>
