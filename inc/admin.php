@@ -929,7 +929,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'sync_media_progress'               => __( 'Moving your images to Optimole...', 'optimole-wp' ),
 				'estimated_time'                    => __( 'Estimated time remaining', 'optimole-wp' ),
 				'calculating_estimated_time'        => __( 'We are currently calculating the estimated time for this job...', 'optimole-wp' ),
-				'active_exclusions'                 => __( 'ACTIVE_EXCLUSIONS', 'optimole-wp' ),
+				'active_exclusions'                 => __( 'ACTIVE EXCLUSIONS', 'optimole-wp' ),
 				'minutes'                           => __( 'minutes', 'optimole-wp' ),
 				'rollback_media_progress'           => __( 'Moving images into your media library...', 'optimole-wp' ),
 				'rollback_media_error'              => __( 'An unexpected error occured while pulling the offloaded back to your site', 'optimole-wp' ),

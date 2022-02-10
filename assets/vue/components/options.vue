@@ -97,7 +97,10 @@
 	            }
             },
             changeTab(value) {
-                this.tab = value;
+              if ( ![ 'advanced', 'compression', 'resize', 'lazyload', 'exclusions' ].includes(value) )  {
+                this.advancedOpen = false;
+              }
+              this.tab = value;
             },
             updateGlobalState(value) {
                 this.isDisabled = !value;
