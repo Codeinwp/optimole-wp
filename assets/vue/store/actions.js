@@ -251,12 +251,22 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 						}
 						console.log( '%c Images Fetched.', 'color: #59B278' );
 					} else {
-							  component.noImages = true;
-							  data.component.loading = false;
-							  console.log( '%c No images available.', 'color: #E7602A' );
+						if ( data.component !== null ) {
+							data.component.noImages = true;
+							data.component.loading = false;
+							console.log('%c No images available.', 'color: #E7602A');
+						}
 					}
 				}
-			);
+			)
+			.catch( err => {
+				if ( data.component !== null ) {
+					data.component.noImages = true;
+					data.component.loading = false;
+					console.log('Error while polling images', err);
+				}
+			});
+
 		},
 		data.waitTime
 	);
