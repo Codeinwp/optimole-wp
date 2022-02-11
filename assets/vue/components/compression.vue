@@ -79,9 +79,8 @@
 								<button @click="saveChanges()" class="button optml-button-style-1"
 												:class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">{{strings.save_changes}}
 								</button>
-              <button  v-if="showSample" @click="newSample(false)" class="button optml-button-style-1" style="margin-left: 25px;"
-                      :class="loading_images ? 'is-loading'  : '' " :disabled="!showSample">{{strings.view_sample_image}}
-              </button>
+              <a v-if="showSample" @click="newSample(false)" style="text-decoration: underline !important; margin-top: 5px; font-size:14px !important;" class="view-sample-image is-link">{{strings.view_sample_image}}
+              </a>
 						</div>
 				</div>
 				<div v-if="showComparison" class="sample-image">
