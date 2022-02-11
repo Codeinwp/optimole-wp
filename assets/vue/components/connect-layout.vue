@@ -153,7 +153,7 @@
 	}
   #optimole-app .subtitle {
     line-height: 1.5em;
-    word-break: normal !important;
+    word-break: keep-all !important;
   }
 
 </style>
