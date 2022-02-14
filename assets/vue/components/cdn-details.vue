@@ -1,114 +1,71 @@
 <template>
-	<div class="cdn-details">
-		<hr/>
-		<div class="account level has-text-centered">
-			<div class="level-left">
-				<span class="label level-item">{{strings.logged_in_as}}:</span>
-				<p class="details level-item tags has-addons">
-					<span class="tag is-light">{{userData.display_name}}</span>
-					<span class="tag is-paddingless"><img :src="userData.picture" class="image is-24x24 is-rounded"
-					                                      :alt="userData.display_name"></span>
-				</p>
-			</div>
-			<div class="level-right">
-				<span class="label level-item">{{strings.private_cdn_url}}:</span>
-				<p class="details level-item tag is-light">{{connectedDomain}}</p>
-			</div>
-		</div>
-		<hr/>
+	<div class="cdn-details" style="padding-top: 1.5em;">
 
-		<div  v-if="this.userData.visitors_limit && parseInt( this.userData.visitors_limit ) > 0" class="level stats">
-			<div class="level-left">
-				<div class="level-item">
-					<div class="tags has-addons">
-						<span class="tag is-info">{{strings.usage}}:</span>
-						<span class="tag">{{this.userData.visitors_pretty}} </span>
-					</div>
+			<div class="optml-side-by-side" style="margin-bottom:14%;">
+				<div class="is-size-6 optml-gray has-text-left"  style="position: relative; top: 12px; ">
+				<p class="has-text-weight-bold">{{strings.logged_in_as}}:</p>
+				<p>
+					{{userData.display_name}}
+				</p>
 				</div>
 			</div>
-			<h4 class="level-item is-size-5 is-marginless has-text-grey">
-				{{computedPercentageVisitors()}}%
-			</h4>
-			<div class="level-right">
-				<div class="level-item">
-					<div class="tags has-addons">
-						<span class="tag is-info">{{strings.quota}}:</span>
-						<span class="tag">{{this.userData.visitors_limit_pretty}} (<a href="https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors" target="_blank">?</a>)</span>
-					</div>
-				</div>
+			<hr/>
+			<div>
+				<p class="is-size-7 has-text-weight-bold optml-gray has-text-left">{{strings.private_cdn_url}}:</p>
 			</div>
+		<div class="control is-large">
+			<input type="text" :disabled="true" class="optml-light-background is-large optml-gray" style="width: 100%; height: 40px; font-size:1em; vertical-align: middle;" v-model="connectedDomain">
 		</div>
-		<div   v-else class="level stats">
-			<div class="level-left">
-				<div class="level-item">
-					<div class="tags has-addons">
-						<span class="tag is-info">{{strings.usage}}:</span>
-						<span class="tag">{{this.userData.usage_pretty}}</span>
-					</div>
-				</div>
-			</div>
-			<h4 class="level-item is-size-5 is-marginless has-text-grey">
-				{{computedPercentage()}}%
-			</h4>
-			<div class="level-right">
-				<div class="level-item">
-					<div class="tags has-addons">
-						<span class="tag is-info">{{strings.quota}}:</span>
-						<span class="tag">{{this.userData.quota_pretty}}</span>
-					</div>
-				</div>
-			</div>
+		<div class="is-size-7 optml-gray has-text-left">
+			<p class="has-text-weight-bold">{{strings.looking_for_api_key}}</p>
 		</div>
-		
-		<div class="level-right">
-			
-			<div class="level-item optml-refresh-wrapper">
-			<a class="button is-small is-warning" v-if="this.$store.state.loading"><span class="icon"><i
-					class="dashicons dashicons-backup is-size-6"></i></span> <span>{{strings.updating_stats_cta}}</span>
-			</a>
-			<a class="button is-small is-info" v-else v-on:click="requestUpdate"><span class="icon"><i
-					class="dashicons dashicons-image-rotate  is-size-6"></i></span> <span>{{strings.refresh_stats_cta}}</span>
-			</a>
-			</div>
+		<div class="control" style="font-size: 14px !important" v-html="strings.optml_dashboard">
+
 		</div>
-		<hr/>
-		<progress v-if="this.userData.visitors_limit && parseInt( this.userData.visitors_limit ) > 0" class="progress is-success" :value="this.userData.visitors" :max="this.userData.visitors_limit">60%</progress>
-		<progress v-else class="progress is-success" :value="this.userData.usage" :max="this.userData.quota">60%</progress>
+		<div class="control is-large" style="height: 37px; margin: 4% 0 7% 0;">
+			<a  class="button optml-button optml-button-style-2 " :class="this.$store.state.showDisconnect ? 'disabled' : ''" style="margin: 2.5% 0 4% 0;" @click="disconnect">{{strings.disconnect_btn}}</a>
+		</div>
+
+
+
+
 
 	</div>
+
 </template>
 
 <script>
+
+	import ApiKeyForm from "./api-key-form.vue";
+
 	export default {
 		name: "cdn-details",
 		data() {
 			return {
-				strings: optimoleDashboardApp.strings
+				strings: optimoleDashboardApp.strings,
+				apiKey: this.$store.state.apiKey ? this.$store.state.apiKey : '',
 			}
 		},
 		computed:{
-		  connectedDomain() {
-		    if ( this.userData.domain !== undefined && this.userData.domain !== '' ) {
-		      return this.userData.domain;
-        }
-		    return this.userData.cdn_key + '.i.optimole.com';
-      },
+			connectedDomain() {
+				if ( this.userData.domain !== undefined && this.userData.domain !== '' ) {
+					return this.userData.domain;
+				}
+				return this.userData.cdn_key + '.i.optimole.com';
+			},
 			userData:function(){
 
-                return  this.$store.state.userData;
+								return  this.$store.state.userData;
 			}
 		},
 		methods: {
-			computedPercentage() {
-				return ((this.userData.usage / this.userData.quota) * 100).toFixed(2);
+			disconnect: function () {
+				this.$store.commit('toggleShowDisconnectNotice', true);
 			},
-			computedPercentageVisitors() {
-				return ((this.userData.visitors / this.userData.visitors_limit) * 100).toFixed(2);
-			},
-			requestUpdate() {
-				this.$store.dispatch('requestStatsUpdate', {waitTime: 0, component: null});
-			}
 		},
+		components: {
+			ApiKeyForm
+		}
 	}
 </script>
 

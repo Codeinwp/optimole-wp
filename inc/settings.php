@@ -40,6 +40,8 @@ class Optml_Settings {
 		'api_key'              => '',
 		'service_data'         => '',
 		'cache_buster'         => '',
+		'cache_buster_assets'  => '',
+		'cache_buster_images'  => '',
 		'cdn'                  => 'disabled',
 		'max_height'           => 1500,
 		'max_width'            => 2000,
@@ -239,6 +241,8 @@ class Optml_Settings {
 				case 'wm_id':
 					$sanitized_value = intval( $value );
 					break;
+				case 'cache_buster_assets':
+				case 'cache_buster_images':
 				case 'cache_buster':
 					$sanitized_value = is_string( $value ) ? $value : '';
 					break;

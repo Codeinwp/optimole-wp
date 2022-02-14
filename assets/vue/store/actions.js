@@ -136,6 +136,7 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 			if ( response.ok ) {
 				  commit( 'toggleConnectedToOptml', false );
 				  commit( 'toggleIsServiceLoaded', false );
+				  commit( 'toggleShowDisconnectNotice', false);
 				  console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
 			} else {
 				  console.error( response );
@@ -150,6 +151,9 @@ const clearCache = function ( {commit, state}, data ) {
 		{
 			url: optimoleDashboardApp.routes['clear_cache_request'],
 			method: 'POST',
+			body: {
+				'type': data.type,
+			},
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			emulateJSON: true,
 			responseType: 'json'
@@ -247,12 +251,22 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 						}
 						console.log( '%c Images Fetched.', 'color: #59B278' );
 					} else {
-							  component.noImages = true;
-							  data.component.loading = false;
-							  console.log( '%c No images available.', 'color: #E7602A' );
+						if ( data.component !== null ) {
+							data.component.noImages = true;
+							data.component.loading = false;
+							console.log('%c No images available.', 'color: #E7602A');
+						}
 					}
 				}
-			);
+			)
+			.catch( err => {
+				if ( data.component !== null ) {
+					data.component.noImages = true;
+					data.component.loading = false;
+					console.log('Error while polling images', err);
+				}
+			});
+
 		},
 		data.waitTime
 	);

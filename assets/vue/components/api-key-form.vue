@@ -1,35 +1,41 @@
 <template>
-	<div>
-		<div class="field has-addons api-key-field">
-			<label v-if="isConnected"
-					class="label api-key-label has-text-grey-dark">{{strings.api_key_placeholder}}:</label>
-			<div class="control is-expanded api-key-control">
-				<input :type="isConnected ? 'password' : 'text'" :disabled="isConnected" name="api_key" class="input  "
-						:class="validKey ? '' : 'is-danger'" :placeholder="strings.api_key_placeholder"
-						v-model="apiKey">
-			</div>
-			<div class="control">
-				<button v-if="! isConnected" class="button button is-success  "
-						@click="connect" :class="{ 'is-loading' : this.$store.state.isConnecting }">
-					<span class="icon"><i class="dashicons dashicons-admin-plugins"></i></span>
-					<span>{{strings.connect_btn}}</span>
-				</button>
-				<button v-else class="button is-danger " @click="disconnect"
-						:class="{ 'is-loading' : this.$store.state.isConnecting }">
-					<span class="icon"><i class="dashicons dashicons-dismiss"></i></span>
-					<span>{{strings.disconnect_btn}}</span>
-				</button>
-			</div>
-		</div>
-		<p v-if="! validKey" class="help is-danger">
-			{{connectionError}}
-		</p>
-	</div>
+		<div class="field api-key-field optml-light-background" style="padding: 2%; display: inline-block; width: 100%;">
+        <div class="has-text-weight-bold has-text-left is-size-6" style="margin-bottom: 4%;">
+          {{!isConnected ? strings.add_api : strings.your_api_key}}
+        </div>
+        <div class="optml-side-by-side">
+          <div v-if="isConnected" ><span class="dashicons dashicons-yes-alt" style="color: #5F9D61; margin: 7px 7px 0 0;"></span></div>
+          <div class="control api-key-control" style="width: 75%">
+            <input type="text"  name="api_key" class="input optml-font-size-medium"
+                :class="validKey ? '' : 'is-danger'" :placeholder="strings.api_key_placeholder"
+                v-model="apiKey">
+          </div>
+
+            <div v-if="! isConnected" class="button optml-button-style-1 optml-margin-left optml-font-size-medium"
+                @click="connect" :class="{ 'is-loading' : this.$store.state.isConnecting }">
+              <span>{{strings.connect_btn}}</span>
+            </div>
+            <div v-else class="optml-button optml-button-style-2 optml-margin-left optml-position-relative"
+                    @click="disconnect" :class="{ 'is-loading' : this.$store.state.isConnecting }">
+              <span>{{strings.disconnect_btn}}</span>
+            </div>
+
+		    </div>
+        <p v-if="! validKey" class="help is-danger">
+          {{connectionError}}
+        </p>
+      <app-selection-form></app-selection-form>
+    </div>
+
+
 </template>
 
 <script>
+
+import AppSelectionForm from "./app-selection-form.vue";
 	export default {
 		name: 'api-key-form',
+    components: {AppSelectionForm},
 		data() {
 			return {
 				apiKey: this.$store.state.apiKey ? this.$store.state.apiKey : '',

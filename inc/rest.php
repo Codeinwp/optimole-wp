@@ -211,9 +211,18 @@ class Optml_Rest {
 	 */
 	public function clear_cache_request( WP_REST_Request $request ) {
 		$settings = new Optml_Settings();
-		$token    = $settings->get( 'cache_buster' );
+		$type = $request->get_param( 'type' );
+		$token = $settings->get( 'cache_buster' );
+		$token_images = $settings->get( 'cache_buster_images' );
+
+		if ( ! empty( $token_images ) ) {
+			$token = $token_images;
+		}
+		if ( ! empty( $type ) && $type === 'assets' ) {
+			$token = $settings->get( 'cache_buster_assets' );
+		}
 		$request  = new Optml_Api();
-		$data     = $request->get_cache_token( $token );
+		$data     = $request->get_cache_token( $token, $type );
 		if ( $data === false || is_wp_error( $data ) || empty( $data ) || ! isset( $data['token'] ) ) {
 			$extra = '';
 			if ( is_wp_error( $data ) ) {
@@ -227,8 +236,13 @@ class Optml_Rest {
 			wp_send_json_error( __( 'Can not get new token from Optimole service', 'optimole-wp' ) . $extra );
 		}
 
-		set_transient( 'optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS );
-		$settings->update( 'cache_buster', $data['token'] );
+		if ( ! empty( $type ) && $type === 'assets' ) {
+			set_transient( 'optml_cache_lock_assets', 'yes', 5 * MINUTE_IN_SECONDS );
+			$settings->update( 'cache_buster_assets', $data['token'] );
+		} else {
+			set_transient( 'optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS );
+			$settings->update( 'cache_buster_images', $data['token'] );
+		}
 
 		return $this->response( $data['token'], '200' );
 	}
@@ -470,7 +484,17 @@ class Optml_Rest {
 		$final_images = array_splice( $images['list'], 0, 10 );
 
 		foreach ( $final_images as $index => $value ) {
-			$final_images[ $index ]['url'] = Optml_Media_Offload::instance()->get_media_optimized_url( $value['url'], $value['key'] );
+			$final_images[ $index ]['url'] = Optml_Media_Offload::instance()->get_media_optimized_url(
+				$value['url'],
+				$value['key'],
+				140,
+				140,
+				[
+					'type'    => Optml_Resize::RESIZE_FILL,
+					'enlarge' => false,
+					'gravity' => Optml_Resize::GRAVITY_CENTER,
+				]
+			);
 			unset( $final_images[ $index ]['key'] );
 		}
 

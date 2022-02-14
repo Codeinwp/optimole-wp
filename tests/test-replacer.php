@@ -407,8 +407,8 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$attachement_url = wp_get_attachment_image_src( self::$sample_attachement, 'sample_size_crop' );
 
-		$this->assertContains( 'w:100', $attachement_url[0] );
-		$this->assertContains( 'h:100', $attachement_url[0] );
+		$this->assertContains( 'w:96', $attachement_url[0] );
+		$this->assertContains( 'h:96', $attachement_url[0] );
 		$this->assertContains( 'rt:fill', $attachement_url[0] );
 		global $_test_posssible_values_y_sizes;
 		global $_test_posssible_values_x_sizes;
