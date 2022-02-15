@@ -828,7 +828,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'auto_q_title'                      => __( 'Auto', 'optimole-wp' ),
 				'cache_desc'                        => __( 'Clear all cached resources(images,js,css) by Optimole from this site. Useful if you updated them and Optimole shows the old version.', 'optimole-wp' ),
 				'cache_title'                       => __( 'Clear cached resources', 'optimole-wp' ),
-				'clear_cache_notice'                => __( 'Clearing cached resources will temporarily impact site', 'optimole-wp' ),
+				'clear_cache_notice'                => __( 'Clearing cached resources will re-optimize the images and might affect for a few minutes the site performance.', 'optimole-wp' ),
 				'clear_cache_images'                => __( 'Clear cached images', 'optimole-wp' ),
 				'clear_cache_assets'                => __( 'Clear cached CSS & JS', 'optimole-wp' ),
 				'connect_step_0'                    => __( 'Connecting your site to the Optimole service.', 'optimole-wp' ),
