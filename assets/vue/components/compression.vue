@@ -60,23 +60,22 @@
 				<hr/>
       <!-- Use avif toggle button -->
       <div class="field  columns">
-        <label class="label column has-text-grey-dark">
+        <label class="label column has-text-grey-dark optml-custom-label-margin">
           {{ strings.enable_avif_title }}
 
-          <p class="is-italic has-text-weight-normal">
+          <p class="optml-settings-desc-margin has-text-weight-normal">
             {{ strings.enable_avif_desc }}
           </p>
         </label>
 
-        <div class="column is-3 ">
+        <div class="column is-1 ">
           <toggle-button
               v-model="avifStatus"
               :class="'has-text-dark'"
               :disabled="this.$store.state.loading"
-              :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-              :width="80"
-              :height="25"
-              color="#008ec2"
+              :width="37"
+              :height="20"
+              color="#577BF9"
           />
         </div>
       </div>
