@@ -58,6 +58,28 @@
 						</div>
 				</div>
 				<hr/>
+      <!-- Use avif toggle button -->
+      <div class="field  columns">
+        <label class="label column has-text-grey-dark optml-custom-label-margin">
+          {{ strings.enable_avif_title }}
+
+          <p class="optml-settings-desc-margin has-text-weight-normal">
+            {{ strings.enable_avif_desc }}
+          </p>
+        </label>
+
+        <div class="column is-1 ">
+          <toggle-button
+              v-model="avifStatus"
+              :class="'has-text-dark'"
+              :disabled="this.$store.state.loading"
+              :width="37"
+              :height="20"
+              color="#577BF9"
+          />
+        </div>
+      </div>
+      <hr/>
 				<div class="field  columns">
 						<label class="label column has-text-grey-dark optml-custom-label-margin">
 								{{strings.quality_title}}
@@ -269,6 +291,16 @@
 					return !(this.site_settings.cdn === 'disabled');
 				}
 			},
+          avifStatus: {
+            set: function ( value ) {
+              this.showSave = true;
+              this.new_data.avif = value ? 'enabled' : 'disabled';
+            },
+            get: function () {
+              return !( this.site_settings.avif === 'disabled' );
+
+            }
+          },
 						compressionRatio() {
 							if ( this.sample_images.optimized_size > this.sample_images.original_size ) {
 								return Math.floor(Math.random() * 60  ) + 10;
