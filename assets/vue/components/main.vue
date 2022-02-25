@@ -350,7 +350,7 @@
 				margin-bottom: -7%;
 				color: #282828 !important;
 				text-decoration: none !important;
-        max-width:110px;
+				max-width:110px;
 
 		}
 
