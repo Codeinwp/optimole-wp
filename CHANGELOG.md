@@ -1,3 +1,11 @@
+#### [Version 3.3.0](https://github.com/Codeinwp/optimole-wp/compare/v3.2.1...v3.3.0) (2022-02-25)
+
+#### Features
+* Adds opt-in AVIF compatibility, improving the image optimization savings on average with at 30%
+* Major dashboard UI/UX improvements make it cleaner and easier to use.
+* Adds separate functionality for clearing only CSS/JS when Optimole is serving those.
+* Improve Optimole Cloud optimizations speed and performances
+
 ##### [Version 3.2.1](https://github.com/Codeinwp/optimole-wp/compare/v3.2.0...v3.2.1) (2021-10-01)
 
 * Fix issue when the quota exceeded message shows up on new connections. 
