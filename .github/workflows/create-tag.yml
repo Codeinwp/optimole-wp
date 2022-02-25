@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - dev
 jobs:
   create_tag:
     runs-on: ubuntu-latest

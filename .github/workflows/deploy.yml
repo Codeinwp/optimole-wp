@@ -1,14 +1,18 @@
 name: Deploy
 on:
   push:
-    tags:
-      - "*"
+    branches:
+      - master
 jobs:
   tag:
     name: New version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
+      - name: Install node version
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
       - name: Build
         run: |
           npm ci
@@ -17,4 +21,5 @@ jobs:
         uses: 10up/action-wordpress-plugin-deploy@master
         env:
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          VERSION: "3.3.0"
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
