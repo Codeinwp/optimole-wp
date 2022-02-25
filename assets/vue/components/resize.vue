@@ -1,79 +1,74 @@
 <template>
     <div :class="{ 'saving--option' : this.$store.state.loading }">
         <div class="field  columns">
-            <label class="label column has-text-grey-dark">
+            <label class="label column has-text-grey-dark optml-custom-label-margin">
                 {{strings.enable_resize_smart_title}}
-                <p class="is-italic has-text-weight-normal">
+                <p class="optml-settings-desc-margin has-text-weight-normal">
                     {{strings.enable_resize_smart_desc}}
                 </p>
             </label>
-            <div class="column is-3">
+            <div class="column is-1">
                 <toggle-button :class="'has-text-dark'"
                                v-model="resizeSmart"
                                :disabled="this.$store.state.loading"
-                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                               :width="80"
-                               :height="25"
-                               color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
             </div>
 
         </div>
+        <hr/>
         <div class="field  columns">
-            <label class="label column has-text-grey-dark">
+            <label class="label column has-text-grey-dark optml-custom-label-margin">
                 {{strings.enable_retina_title}}
-                <p class="is-italic has-text-weight-normal">
+                <p class="optml-settings-desc-margin has-text-weight-normal">
                     {{strings.enable_retina_desc}}
                 </p>
             </label>
-            <div class="column is-3">
+            <div class="column is-1">
                 <toggle-button :class="'has-text-dark'"
                                v-model="retinaReady"
                                :disabled="this.$store.state.loading"
-                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                               :width="80"
-                               :height="25"
-                               color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
             </div>
 
         </div>
-        <div class="field   columns ">
-            <label class="label   column has-text-grey-dark no-padding-right ">
+        <hr/>
+        <div class="field   columns optml-flex-column" style="align-content: center;justify-content: center;">
+            <label class="label   column has-text-grey-dark no-padding-right optml-custom-label-margin">
                 {{strings.size_title}}
-                <p class="is-italic has-text-weight-normal">
+                <p class="optml-settings-desc-margin has-text-weight-normal">
                     {{strings.size_desc}}
                 </p>
             </label>
 
             <div class="column is-6 ">
                 <div class="columns">
-                    <div class="field column is-narrow has-addons">
-                        <p class="control">
-                            <a class="button is-small is-static">
-                                {{strings.width_field}}
-                            </a>
+                    <div class="field column is-narrow has-addons" style="align-items: center;">
+
+                        <p class="optml-custom-label-margin">
+                           {{strings.width_field}}
                         </p>
-                        <p class="control ">
-                            <input v-model="widthStatus" class="input is-small" type="number" min="100"
-                                   max="10000">
-                        </p>
+
+                        <input v-model="widthStatus" class="optml-textarea" type="number" min="100" max="10000">
+
                     </div>
-                    <div class="field column is-small has-addons">
-                        <p class="control">
-                            <a class="button is-small is-static">
-                                {{strings.height_field}}
-                            </a>
+                    <div class="field column is-narrow has-addons" style="align-items: center;  margin-bottom: 0.75rem;">
+                        <p class="optml-custom-label-margin">
+                           {{strings.height_field}}
                         </p>
-                        <p class="control  ">
-                            <input v-model="heightStatus" class="input is-small" type="number" min="100"
-                                   max="10000">
-                        </p>
+
+                        <input class="optml-textarea" v-model="heightStatus" type="number" min="100" max="10000">
                     </div>
                 </div>
             </div>
         </div>
+
         <div class="field  is-fullwidth columns ">
             <div class="column is-left">
-                <button @click="saveChanges()" class="button is-success is-small "
+                <button @click="saveChanges()" class="button optml-button-style-1 "
                         :class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">
                     {{strings.save_changes}}
                 </button>

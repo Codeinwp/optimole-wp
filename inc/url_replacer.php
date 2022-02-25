@@ -187,7 +187,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 				$new_url = str_replace( '/' . $url, $id_and_filename, $new_url );
 			}
 		} else {
-			$new_url = ( new Optml_Asset( $url, $args, $this->active_cache_buster, $this->is_css_minify_on, $this->is_js_minify_on ) )->get_url();
+			$new_url = ( new Optml_Asset( $url, $args, $this->active_cache_buster_assets, $this->is_css_minify_on, $this->is_js_minify_on ) )->get_url();
 		}
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
@@ -249,6 +249,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) {
 			$arguments['format'] = $args['format'];
+		}
+
+		if ( empty( $arguments['format'] ) && $this->settings->get( 'avif' ) === 'enabled' ) {
+			$arguments['format'] = 'avif';
 		}
 
 		return  ( new Optml_Image( $url, $args, $this->active_cache_buster ) )->get_url( $arguments );

@@ -23,6 +23,10 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_PATH: ${{ secrets.SSH_PATH }}
         run: ./bin/run-e2e-tests.sh
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: E2E tests chrome
         uses: cypress-io/github-action@v2
         with:
@@ -34,6 +38,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - uses: cypress-io/github-action@v2
         with:
           env: host=testing.optimole.com

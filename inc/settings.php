@@ -40,6 +40,8 @@ class Optml_Settings {
 		'api_key'              => '',
 		'service_data'         => '',
 		'cache_buster'         => '',
+		'cache_buster_assets'  => '',
+		'cache_buster_images'  => '',
 		'cdn'                  => 'disabled',
 		'max_height'           => 1500,
 		'max_width'            => 2000,
@@ -67,6 +69,7 @@ class Optml_Settings {
 		'css_minify'           => 'enabled',
 		'js_minify'            => 'disabled',
 		'report_script'        => 'disabled',
+		'avif'                 => 'disabled',
 		'native_lazyload'      => 'disabled',
 		'offload_media'        => 'disabled',
 		'cloud_images'         => 'disabled',
@@ -221,6 +224,7 @@ class Optml_Settings {
 				case 'bg_replacer':
 				case 'video_lazyload':
 				case 'report_script':
+				case 'avif':
 				case 'offload_media':
 				case 'cloud_images':
 				case 'img_to_video':
@@ -239,6 +243,8 @@ class Optml_Settings {
 				case 'wm_id':
 					$sanitized_value = intval( $value );
 					break;
+				case 'cache_buster_assets':
+				case 'cache_buster_images':
 				case 'cache_buster':
 					$sanitized_value = is_string( $value ) ? $value : '';
 					break;
@@ -413,6 +419,7 @@ class Optml_Settings {
 			'js_minify'            => $this->get( 'js_minify' ),
 			'native_lazyload'      => $this->get( 'native_lazyload' ),
 			'report_script'        => $this->get( 'report_script' ),
+			'avif'                 => $this->get( 'avif' ),
 			'offload_media'        => $this->get( 'offload_media' ),
 			'cloud_images'         => $this->get( 'cloud_images' ),
 			'whitelist_domains'    => $whitelist,

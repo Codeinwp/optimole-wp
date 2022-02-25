@@ -26,6 +26,9 @@ const toggleKeyValidity = ( state, data ) => {
 const toggleConnectedToOptml = ( state, data ) => {
 	state.connected = data;
 };
+const toggleShowDisconnectNotice = ( state, data ) => {
+	state.showDisconnect = data;
+};
 const toggleHasOptmlApp = ( state, data ) => {
 	state.hasApplication = data;
 };
@@ -118,5 +121,6 @@ export default {
 	estimatedTime,
 	toggleLoadingRollback,
 	toggleLoadingSync,
-	toggleActionError
+	toggleActionError,
+	toggleShowDisconnectNotice
 };

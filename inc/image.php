@@ -94,7 +94,6 @@ class Optml_Image extends Optml_Resource {
 		if ( isset( $params['apply_watermark'] ) && $params['apply_watermark'] && is_array( self::$watermark->get() ) && isset( self::$watermark->get()['id'] ) && self::$watermark->get()['id'] > 0 ) {
 			$path_parts[] = self::$watermark->toString();
 		}
-
 		$path = '/' . $this->source_url;
 
 		if ( isset( $params['format'] ) && ! empty( $params['format'] ) ) {

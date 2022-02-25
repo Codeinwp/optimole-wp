@@ -1,119 +1,120 @@
 <template>
 		<div :class="{ 'saving--option' : this.$store.state.loading }">
 				<div class="field columns">
-						<label class="label column has-text-grey-dark">
+						<label class="label column has-text-grey-dark optml-custom-label-margin">
 								{{strings.enable_lazyload_placeholder_title}}
-								<p class="is-italic has-text-weight-normal">
+								<p class="optml-settings-desc-margin has-text-weight-normal">
 										{{strings.enable_lazyload_placeholder_desc}}
 								</p>
 						</label>
-						<div class="column is-3">
+						<div class="column is-1">
 								<toggle-button :class="'has-text-dark'"
 															 v-model="lazyloadPlaceholder"
 															 :disabled="this.$store.state.loading"
-															 :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-															 :width="80"
-															 :height="25"
-															 color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
 						</div>
 				</div>
-				<!--Rollback on disable notice-->
-				<div class="field  columns">
-					<label class="label column">
+        <hr/>
+
+				<div class="field  columns optml-flex-column" >
+					<label class="label column optml-custom-label-margin">
 						{{strings.exclude_first_images_title}}
 
-						<p class="is-italic has-text-weight-normal">
+						<p class="optml-settings-desc-margin has-text-weight-normal">
 							{{strings.exclude_first_images_desc}}
 						</p>
 					</label>
-					<hr>
-					<div class="column is-3 ">
-						<p class="control ">
-																<input v-model="selectedValue" class="input is-small" type="number" min="0" @change="changedValue">
 
-						</p>
+					<div class="column optml-custom-label-margin">
+
+							{{strings.exclude_first}} <div style="display: inline-block; margin: 0 0.7%;"><input v-model="selectedValue" style="width: 6ch; " class="optml-textarea" type="number" min="0" @change="changedValue"></div>  {{strings.images}}
+
+
 					</div>
 
 			</div>
+      <hr/>
 				<!--Native lazy toggle-->
 				<div class="field  is-fullwidth columns">
-						<label class="label column has-text-grey-dark">
+						<label class="label column has-text-grey-dark optml-custom-label-margin">
 								{{strings.toggle_native}}
 
-								<p class="is-italic has-text-weight-normal">
+								<p class="optml-settings-desc-margin has-text-weight-normal">
 										{{strings.native_desc}}
 								</p>
 						</label>
 
-						<div class="column is-3 ">
+						<div class="column is-1 ">
 								<toggle-button :class="'has-text-dark'"
 															 v-model="nativeLazyStatus"
 															 :disabled="this.$store.state.loading"
-															 :labels="{checked: strings.on_toggle, unchecked: strings.off_toggle}"
-															 :width="80"
-															 :height="25"
-															 color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
 						</div>
 				</div>
+      <hr/>
 				<div class="field  is-fullwidth columns">
-						<label class="label column has-text-grey-dark">
+						<label class="label column has-text-grey-dark optml-custom-label-margin">
 								{{strings.toggle_scale}}
 
-								<p class="is-italic has-text-weight-normal">
+								<p class="optml-settings-desc-margin has-text-weight-normal">
 										{{strings.scale_desc}}
 								</p>
 						</label>
 
-						<div class="column is-3 ">
+						<div class="column is-1 ">
 								<toggle-button :class="'has-text-dark'"
 															 v-model="scaleStatus"
 															 :disabled="this.$store.state.loading"
-															 :labels="{checked: strings.on_toggle, unchecked: strings.off_toggle}"
-															 :width="80"
-															 :height="25"
-															 color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
 						</div>
 				</div>
+      <hr/>
 				<div class="field columns">
-						<label class="label column has-text-grey-dark">
+						<label class="label column has-text-grey-dark optml-custom-label-margin">
 								{{strings.enable_bg_lazyload_title}}
-								<p class="is-italic has-text-weight-normal">
+								<p class="optml-settings-desc-margin has-text-weight-normal">
 										{{strings.enable_bg_lazyload_desc}}
 								</p>
 						</label>
-						<div class="column is-3">
+						<div class="column is-1">
 								<toggle-button :class="'has-text-dark'"
 															 v-model="lazyloadBgImages"
 															 :disabled="this.$store.state.loading"
-															 :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-															 :width="80"
-															 :height="25"
-															 color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
 						</div>
 				</div>
+      <hr/>
 				<!--Video lazyload toggle-->
 				<div class="field columns">
-						<label class="label column has-text-grey-dark">
+						<label class="label column has-text-grey-dark optml-custom-label-margin">
 								{{strings.enable_video_lazyload_title}}
-								<p class="is-italic has-text-weight-normal">
+								<p class="optml-settings-desc-margin has-text-weight-normal">
 										{{strings.enable_video_lazyload_desc}}
 								</p>
 						</label>
-						<div class="column is-3">
+						<div class="column is-1">
 								<toggle-button :class="'has-text-dark'"
 															 v-model="lazyloadVideo"
 															 :disabled="this.$store.state.loading"
-															 :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-															 :width="80"
-															 :height="25"
-															 color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
 						</div>
 				</div>
+      <hr/>
 				<div class="field columns" v-if="showBgSelectors">
 						<div class="column">
-								<label class="label has-text-grey-dark">
+								<label class="label has-text-grey-dark optml-custom-label-margin">
 										<span>{{strings.watch_title_lazyload}}</span>
-										<p class="is-italic has-text-weight-normal">
+										<p class="optml-settings-desc-margin has-text-weight-normal">
 												{{strings.watch_desc_lazyload}}
 										</p>
 								</label>
@@ -128,9 +129,10 @@
 								</div>
 						</div>
 				</div>
+
 				<div class="field  is-fullwidth columns ">
 						<div class="column is-left">
-								<button @click="saveChanges()" class="button is-success is-small "
+								<button @click="saveChanges()" class="button optml-button-style-1"
 												:class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">
 										{{strings.save_changes}}
 								</button>

@@ -2,22 +2,51 @@
 	<div>
 		<div class="optimized-images" v-if="! loading ">
 			<div v-if="!noImages">
-				<h3 class="has-text-centered">{{strings.last}} {{strings.optimized_images}}</h3>
-				<table class="table is-striped is-hoverable is-fullwidth">
-					<thead>
-					<tr>
-						<th class="optml-image-heading">{{strings.image}}</th>
-						<th class="optml-image-ratio-heading">{{strings.compression}}</th>
-					</tr>
-					</thead>
+				<h3 class="has-text-weight-bold is-size-6" style="margin-bottom: 4%;">{{strings.last}} {{strings.optimized_images}}</h3>
+				<table class="table is-fullwidth">
 					<tbody>
-					<tr v-for="(item, index) in imageData">
-						<td><a :href="item.url" target="_blank"><img :src="item.url" class="optml-image"/></a></td>
-						<td><p
-								class="optml-ratio-feedback"
-								v-html="compressionRate(item.ex_size_raw, item.new_size_raw)"></p>
+					<template  v-for="index in [0,5]">
+					<tr>
+						<td style="border: none !important;"><a :href="imageData[index].url" target="_blank"><img :src="imageData[index].url" class="optml-image"/></a></td>
+						<td style="border: none !important;"><a :href="imageData[index+1].url" target="_blank"><img :src="imageData[index+1].url" class="optml-image"/></a></td>
+						<td style="border: none !important;"><a :href="imageData[index+2].url" target="_blank"><img :src="imageData[index+2].url" class="optml-image"/></a></td>
+						<td style="border: none !important;"><a :href="imageData[index+3].url" target="_blank"><img :src="imageData[index+3].url" class="optml-image"/></a></td>
+						<td class="optml-hide-on-tablet" style="border: none !important;"><a :href="imageData[index+4].url" target="_blank"><img :src="imageData[index+4].url" class="optml-image"/></a></td>
+
+					</tr>
+					<tr style="left:2%; position:relative;">
+						<td class="optml-optimized-percent-position">
+							<div class="optml-side-by-side">
+								<div class="optml-point"></div>
+								<div class="optml-center-table-text">{{compressionRate(imageData[index].ex_size_raw, imageData[index].new_size_raw)}}% Saved</div>
+							</div>
+						</td>
+						<td class="optml-optimized-percent-position">
+							<div class="optml-side-by-side">
+								<div class="optml-point"></div>
+								<div class="optml-center-table-text">{{compressionRate(imageData[index+1].ex_size_raw, imageData[index+1].new_size_raw)}}% Saved</div>
+							</div>
+						</td>
+						<td class="optml-optimized-percent-position">
+							<div class="optml-side-by-side">
+								<div class="optml-point"></div>
+								<div class="optml-center-table-text">{{compressionRate(imageData[index+2].ex_size_raw, imageData[index+2].new_size_raw)}}% Saved</div>
+							</div>
+						</td>
+						<td class="optml-optimized-percent-position">
+							<div class="optml-side-by-side">
+								<div class="optml-point"></div>
+								<div class="optml-center-table-text">{{compressionRate(imageData[index+3].ex_size_raw, imageData[index+3].new_size_raw)}}% Saved</div>
+							</div>
+						</td>
+						<td class="optml-optimized-percent-position optml-hide-on-tablet">
+							<div class="optml-side-by-side">
+								<div class="optml-point"></div>
+								<div class="optml-center-table-text">{{compressionRate(imageData[index+4].ex_size_raw, imageData[index+4].new_size_raw)}}% Saved</div>
+							</div>
 						</td>
 					</tr>
+					</template>
 					</tbody>
 				</table>
 			</div>
@@ -25,12 +54,12 @@
 		<div v-else>
 			<iframe width="1" height="1" :src="home_url" style="visibility: hidden"></iframe>
 			<h6 class="has-text-centered">{{strings.loading_latest_images}}</h6>
-			<progress class="progress is-large" :value="startTime" :max="maxTime"></progress>
+			<progress id="optml-progress-bar" class="progress is-small is-success optml-custom-label-margin" :value="startTime" :max="maxTime"></progress>
 		</div>
-		<table class="table is-striped is-hoverable is-fullwidth" v-if="noImages">
+		<table class="table is-striped is-hoverable is-fullwidth" v-if="noImages && !loading" style="margin-top: 12%;">
 			<thead>
 			<tr>
-				<th class="optml-image-heading has-text-centered" v-html="strings.no_images_found"></th>
+				<th class="is-size-6 has-text-centered" style="border: none !important; font-weight: normal;" v-html="strings.no_images_found"></th>
 			</tr>
 			</thead>
 		</table>
@@ -46,7 +75,6 @@
 				loading: true,
 				startTime: 0,
 				maxTime: 20,
-				noImages: false,
 				home_url: optimoleDashboardApp.home_url,
 				strings: optimoleDashboardApp.strings.latest_images,
 			}
@@ -55,7 +83,7 @@
 			status,
 		},
 		mounted() {
-			if ( this.$store.state.optimizedImages.length > 0) {
+			if ( this.$store.state.optimizedImages.length >= 10) {
 				this.loading = false;
 				return;
 			}
@@ -77,6 +105,9 @@
 
 				return this.$store.state.optimizedImages !== null ? this.$store.state.optimizedImages : [];
 			},
+			noImages () {
+				return this.$store.state.optimizedImages.length < 10;
+			}
 		},
 		methods: {
 			doProgressBar() {
@@ -89,19 +120,14 @@
 
 			},
 			compressionRate(oldSize, newSize) {
-				let value = (parseFloat(oldSize / newSize * 100) - 100).toFixed(1);
+				let value = ((1 - newSize / oldSize) * 100).toFixed(1);
 				if (value < 1) {
-					return this.strings.same_size;
-				}
-				if (value > 1 && value < 25) {
-					return this.strings.small_optimization.replace('{ratio}', value.toString() + '%');
-				}
-				if (value > 25 && value < 100) {
-					return this.strings.medium_optimization.replace('{ratio}', value.toString() + '%');
+					return "1";
 				}
 				if (value > 100) {
-					return this.strings.big_optimization.replace('{ratio}', (Math.floor((value / 10) + 10) / 10).toFixed(1).toString() + 'x');
+					return (Math.floor((value / 10) + 10) / 10).toFixed(1).toString();
 				}
+				return value.toString();
 			}
 		}
 	}
@@ -115,8 +141,14 @@
 		border-bottom: 2px solid #888 !important;
 		margin-top: 0.2em;
 	}
-	
+
 	.progress::-webkit-progress-value {
 		transition: width 0.5s ease;
+	}
+
+	.optml-optimized-percent-position {
+		border: none !important;
+		position:relative;
+		padding-left: 2.5%;
 	}
 </style>

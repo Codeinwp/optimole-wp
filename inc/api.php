@@ -74,15 +74,19 @@ final class Optml_Api {
 	 *
 	 * @return array|bool User data.
 	 */
-	public function get_cache_token( $token = '', $api_key = '' ) {
+	public function get_cache_token( $token = '', $type = '', $api_key = '' ) {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
 		$lock = get_transient( 'optml_cache_lock' );
+		if ( ! empty( $type ) && $type === 'assets' ) {
+			$lock = get_transient( 'optml_cache_lock_assets' );
+		}
+
 		if ( $lock === 'yes' ) {
 			return new WP_Error( 'cache_throttle', __( 'You can clear cache only once per 5 minutes.', 'optimole-wp' ) );
 		}
-		return $this->request( '/optml/v1/cache/tokens', 'POST', [ 'token' => $token ] );
+		return $this->request( '/optml/v1/cache/tokens', 'POST', [ 'token' => $token, 'type' => $type ] );
 	}
 
 	/**
@@ -272,8 +276,13 @@ final class Optml_Api {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
-
-		return $this->request( '/optml/v1/stats/images' );
+		$app_key = '';
+		$settings = new Optml_Settings();
+		$service_data = $settings->get( 'service_data' );
+		if ( isset( $service_data['cdn_key'] ) ) {
+			$app_key = $service_data['cdn_key'];
+		}
+		return $this->request( '/optml/v1/stats/images', 'GET', [], ['application' => $app_key] );
 	}
 
 	/**

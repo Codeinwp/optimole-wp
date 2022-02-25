@@ -16,10 +16,9 @@
                 <toggle-button :class="'has-text-dark'"
                                v-model="cssMinifyStatus"
                                :disabled="this.$store.state.loading"
-                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                               :width="80"
-                               :height="25"
-                               color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
             </div>
         </div>
         <!-- JS minify toggle button -->
@@ -36,15 +35,14 @@
                 <toggle-button :class="'has-text-dark'"
                                v-model="jsMinifyStatus"
                                :disabled="this.$store.state.loading"
-                               :labels="{checked: strings.enabled, unchecked: strings.disabled}"
-                               :width="80"
-                               :height="25"
-                               color="#008ec2"></toggle-button>
+                               :width="37"
+                               :height="20"
+                               color="#577BF9"></toggle-button>
             </div>
         </div>
         <div class="field  is-fullwidth columns ">
             <div class="column is-left">
-                <button @click="saveChanges()" class="button is-success is-small "
+                <button @click="saveChanges()" class="button is-info is-small "
                         :class="this.$store.state.loading ? 'is-loading'  : '' " :disabled="!showSave">{{strings.save_changes}}
                 </button>
                 <a href="#" v-if="showSample" @click="newSample(false)" class="view-sample-image is-link">{{strings.view_sample_image}}
