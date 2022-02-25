@@ -17,6 +17,7 @@ Automatically compress, optimize and serve scaled images along with next-gen Web
 > * Fully automated; [set and forget](https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps)
 > * Supports all image types
 > * Supports both Retina and WebP images
+> * AVIF format support for lower image size
 > * Cloud image library support
 > * Serves images from a global CDN for free
 > * Optimizes based on the visitor's actual device (no more guesswork and width estimations)
