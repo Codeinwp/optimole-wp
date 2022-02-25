@@ -4,14 +4,14 @@ name: Sync assets with wordpress.org
 on:
   push:
     branches:
-      - dev
+      - master
     paths:
       - 'readme.txt'
       - '.wordpress-org/**'
 jobs:
   run:
     runs-on: ubuntu-latest
-    if: "! contains(github.event.head_commit.message, 'chore(release)')"
+    if: "! contains(github.event.head_commit.message, 'chore(release)') && ! contains(github.event.head_commit.message, 'release:')"
     name: Push assets to wporg
     steps:
         - uses: actions/checkout@master
