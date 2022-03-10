@@ -323,6 +323,14 @@ abstract class Optml_App_Replacer {
 
 		self::$filters = $this->settings->get_filters();
 		add_filter(
+			'optml_should_avif_ext',
+			function( $should_avif, $ext ) {
+				return $ext !== 'svg';
+			},
+			10,
+			2
+		);
+		add_filter(
 			'optml_possible_lazyload_flags',
 			function ( $strings = [] ) {
 				foreach ( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_CLASS ] as $rule_flag => $status ) {

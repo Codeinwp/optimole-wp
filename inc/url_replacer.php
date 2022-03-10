@@ -181,8 +181,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( substr( $url, 0, 2 ) === '//' ) {
 			$url = sprintf( '%s:%s', is_ssl() ? 'https' : 'http', $url );
 		}
-		if ( isset( Optml_Config::$image_extensions[ strtolower( $ext ) ] ) ) {
-			$new_url = $this->normalize_image( $url, $original_url, $args, $is_uploaded );
+		$normalized_ext = strtolower( $ext );
+		if ( isset( Optml_Config::$image_extensions[ $normalized_ext ] ) ) {
+			$new_url = $this->normalize_image( $url, $original_url, $args, $is_uploaded, $normalized_ext );
 			if ( $is_uploaded ) {
 				$new_url = str_replace( '/' . $url, $id_and_filename, $new_url );
 			}
@@ -201,7 +202,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 *
 	 * @return string
 	 */
-	private function normalize_image( $url, $original_url, $args, $is_uploaded = false ) {
+	private function normalize_image( $url, $original_url, $args, $is_uploaded = false, $ext = '' ) {
 
 		$new_url = $this->strip_image_size_from_url( $url );
 
@@ -251,7 +252,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$arguments['format'] = $args['format'];
 		}
 
-		if ( empty( $arguments['format'] ) && $this->settings->get( 'avif' ) === 'enabled' ) {
+		if ( apply_filters( 'optml_should_avif_ext', true, $ext ) && empty( $arguments['format'] ) && $this->settings->get( 'avif' ) === 'enabled' ) {
 			$arguments['format'] = 'avif';
 		}
 
