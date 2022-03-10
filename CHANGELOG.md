@@ -1,3 +1,10 @@
+##### [Version 3.3.1](https://github.com/Codeinwp/optimole-wp/compare/v3.3.0...v3.3.1) (2022-03-10)
+
+#### Features
+- Adds filter, `optml_should_avif_ext` , for more control over which images are converted to AVIF, by default SVG images are not converted
+#### Fixes
+- Plugin interface header display size on safari
+
 #### [Version 3.3.0](https://github.com/Codeinwp/optimole-wp/compare/v3.2.1...v3.3.0) (2022-02-25)
 
 #### Features
