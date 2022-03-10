@@ -252,7 +252,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$arguments['format'] = $args['format'];
 		}
 
-		if ( apply_filters( 'optml_should_avif_ext', true, $ext ) && empty( $arguments['format'] ) && $this->settings->get( 'avif' ) === 'enabled' ) {
+		if ( empty( $arguments['format'] ) && $this->settings->get( 'avif' ) === 'enabled' && apply_filters( 'optml_should_avif_ext', true, $ext, $original_url ) ) {
 			$arguments['format'] = 'avif';
 		}
 
