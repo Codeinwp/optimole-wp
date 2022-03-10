@@ -350,6 +350,8 @@
 				margin-bottom: -7%;
 				color: #282828 !important;
 				text-decoration: none !important;
+				max-width:110px;
+
 		}
 
 		#optimole-app .tabs li:not(.is-active) svg{
