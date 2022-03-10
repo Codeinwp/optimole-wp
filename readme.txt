@@ -97,7 +97,7 @@ Premium users will be able to optimize images starting with more than 25k monthl
 ##### [Version 3.3.1](https://github.com/Codeinwp/optimole-wp/compare/v3.3.0...v3.3.1) (2022-03-10)
 
 #### Features
-- Adds filter,  , for more control over which images are converted to AVIF, by default SVG images are not converted
+- Adds filter, <code>optml_should_avif_ext</code> , for more control over which images are converted to AVIF, by default SVG images are not converted
 #### Fixes
 - Plugin interface header display size on safari
 
