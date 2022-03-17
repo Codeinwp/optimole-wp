@@ -18,6 +18,13 @@ class Test_Video_Tag extends WP_UnitTestCase {
                         <img src="https://www.example.org/wp-content/uploads/2018/05/brands.webp"/>
                         <img src="https://www.example.org/wp-content/uploads/2018/05/brands"/>
                      </div>';
+    const IMG_TAGS_EXCLUDED_GIFS = '<div id="wp-custom-header" class="wp-custom-header">
+                        <img src="https://www.example.org/wp-content/uploads/2018/05/lazyload.gif"/>
+                        <img src="https://www.example.org/wp-content/uploads/2018/05/placeholder.gif"/>
+                        <img src="https://www.example.org/wp-content/uploads/2018/05/lazy_placeholder.gif"/>
+                        <img src="https://www.example.org/wp-content/uploads/2018/05/plugin-placeholders/something.gif"/>
+
+                     </div>';
 
     public static $sample_post;
     public function setUp() {
@@ -61,5 +68,12 @@ class Test_Video_Tag extends WP_UnitTestCase {
         $this->assertNotContains( 'type="video/mp4', $replaced_content );
         $this->assertNotContains( '/f:mp4', $replaced_content );
 
+    }
+    public function test_should_not_replace_placeholder_gifs () {
+
+        $replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_EXCLUDED_GIFS );
+        $this->assertNotContains( '<video autoplay muted loop playsinline poster', $replaced_content );
+        $this->assertNotContains( 'type="video/mp4', $replaced_content );
+        $this->assertNotContains( '/f:mp4', $replaced_content );
     }
 }
