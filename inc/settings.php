@@ -5,6 +5,7 @@
  */
 class Optml_Settings {
 	use Optml_Normalizer;
+
 	const FILTER_EXT = 'extension';
 	const FILTER_URL = 'page_url';
 	const FILTER_FILENAME = 'filename';
@@ -31,6 +32,12 @@ class Optml_Settings {
 		'scale'                => 'bool',
 		'cdn'                  => 'bool',
 	];
+	/**
+	 * Holds the status of the auto connect hook.
+	 *
+	 * @var boolean Whether or not the auto connect action is hooked.
+	 */
+	private static $auto_connect_hooked = false;
 	/**
 	 * Default settings schema.
 	 *
@@ -88,12 +95,6 @@ class Optml_Settings {
 	 * @var array All options.
 	 */
 	private $options;
-	/**
-	 * Holds the status of the auto connect hook.
-	 *
-	 * @var boolean Whether or not the auto connect action is hooked.
-	 */
-	private static $auto_connect_hooked = false;
 
 	/**
 	 * Optml_Settings constructor.
@@ -112,13 +113,13 @@ class Optml_Settings {
 		if ( defined( 'OPTIML_USE_ENV' ) && constant( 'OPTIML_USE_ENV' ) && $this->to_boolean( constant( 'OPTIML_USE_ENV' ) ) ) {
 
 			if ( defined( 'OPTIML_API_KEY' )
-				&& constant( 'OPTIML_API_KEY' ) !== ''
+				 && constant( 'OPTIML_API_KEY' ) !== ''
 			) {
 				if ( ! $this->is_connected() && ! self::$auto_connect_hooked ) {
 					self::$auto_connect_hooked = true;
 					add_action(
 						'plugins_loaded',
-						[$this, 'auto_connect']
+						[ $this, 'auto_connect' ]
 					);
 				}
 			}
@@ -141,12 +142,56 @@ class Optml_Settings {
 					if ( $type === 'int' && ( $value === '' || (int) $value > 100 || (int) $value < 0 ) ) {
 						continue;
 					}
-					$sanitized_value = ( $type === 'bool' ) ? ( $value === 'on' ? 'enabled' : 'disabled' ) : (int) $value;
+					$sanitized_value       = ( $type === 'bool' ) ? ( $value === 'on' ? 'enabled' : 'disabled' ) : (int) $value;
 					$this->options[ $key ] = $sanitized_value;
 				}
 			}
 		}
 	}
+
+	/**
+	 * Check if the user is connected to Optimole.
+	 *
+	 * @return bool Connection status.
+	 */
+	public function is_connected() {
+		$service_data = $this->get( 'service_data' );
+		if ( ! isset( $service_data['cdn_key'] ) ) {
+			return false;
+		}
+		if ( empty( $service_data ['cdn_key'] ) || empty( $service_data['cdn_secret'] ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Get setting value by key.
+	 *
+	 * @param string $key Key to search against.
+	 *
+	 * @return mixed|null Setting value.
+	 */
+	public function get( $key ) {
+		if ( ! $this->is_allowed( $key ) ) {
+			return null;
+		}
+
+		return isset( $this->options[ $key ] ) ? $this->options[ $key ] : '';
+	}
+
+	/**
+	 * Check if key is allowed.
+	 *
+	 * @param string $key Is key allowed or not.
+	 *
+	 * @return bool Is key allowed or not.
+	 */
+	private function is_allowed( $key ) {
+		return isset( $this->default_schema[ $key ] );
+	}
+
 	/**
 	 * Auto connect action.
 	 */
@@ -157,48 +202,6 @@ class Optml_Settings {
 
 		remove_action( 'plugins_loaded', [ $this, 'auto_connect' ] );
 		self::$auto_connect_hooked = false;
-	}
-	/**
-	 * Return filter definitions.
-	 *
-	 * @return mixed|null Filter values.
-	 */
-	public function get_watchers() {
-
-		return $this->get( 'watchers' );
-
-	}
-
-	/**
-	 * Return filter definitions.
-	 *
-	 * @return mixed|null Filter values.
-	 */
-	public function get_filters() {
-
-		$filters = $this->get( 'filters' );
-		if ( ! isset( $filters[ self::FILTER_TYPE_LAZYLOAD ] ) ) {
-			$filters[ self::FILTER_TYPE_LAZYLOAD ] = [];
-		}
-		if ( ! isset( $filters[ self::FILTER_TYPE_OPTIMIZE ] ) ) {
-			$filters[ self::FILTER_TYPE_OPTIMIZE ] = [];
-		}
-		foreach ( $filters as $filter_key => $filter_rules ) {
-			if ( ! isset( $filter_rules[ self::FILTER_EXT ] ) ) {
-				$filters[ $filter_key ][ self::FILTER_EXT ] = [];
-			}
-			if ( ! isset( $filter_rules[ self::FILTER_FILENAME ] ) ) {
-				$filters[ $filter_key ][ self::FILTER_FILENAME ] = [];
-			}
-			if ( ! isset( $filter_rules[ self::FILTER_URL ] ) ) {
-				$filters[ $filter_key ][ self::FILTER_URL ] = [];
-			}
-			if ( ! isset( $filter_rules[ self::FILTER_CLASS ] ) ) {
-				$filters[ $filter_key ][ self::FILTER_CLASS ] = [];
-			}
-		}
-
-		return $filters;
 	}
 
 	/**
@@ -246,10 +249,10 @@ class Optml_Settings {
 				case 'cache_buster_assets':
 				case 'cache_buster_images':
 				case 'cache_buster':
-					$sanitized_value = is_string( $value ) ? $value : '';
+					$sanitized_value = is_string( $value ) ? sanitize_text_field( $value ) : '';
 					break;
 				case 'cloud_sites':
-					$current_sites = $this->get( 'cloud_sites' );
+					$current_sites   = $this->get( 'cloud_sites' );
 					$sanitized_value = array_replace_recursive( $current_sites, $value );
 					if ( isset( $value['all'] ) && $value['all'] === 'true' ) {
 						$sanitized_value = [ 'all' => 'true' ];
@@ -271,7 +274,7 @@ class Optml_Settings {
 					}
 					break;
 				case 'watchers':
-					$sanitized_value = $value;
+					$sanitized_value = sanitize_text_field( $value );
 					break;
 				case 'skip_lazyload_images':
 					$sanitized_value = $this->to_bound_integer( $value, 0, 100 );
@@ -313,6 +316,38 @@ class Optml_Settings {
 	}
 
 	/**
+	 * Return filter definitions.
+	 *
+	 * @return mixed|null Filter values.
+	 */
+	public function get_filters() {
+
+		$filters = $this->get( 'filters' );
+		if ( ! isset( $filters[ self::FILTER_TYPE_LAZYLOAD ] ) ) {
+			$filters[ self::FILTER_TYPE_LAZYLOAD ] = [];
+		}
+		if ( ! isset( $filters[ self::FILTER_TYPE_OPTIMIZE ] ) ) {
+			$filters[ self::FILTER_TYPE_OPTIMIZE ] = [];
+		}
+		foreach ( $filters as $filter_key => $filter_rules ) {
+			if ( ! isset( $filter_rules[ self::FILTER_EXT ] ) ) {
+				$filters[ $filter_key ][ self::FILTER_EXT ] = [];
+			}
+			if ( ! isset( $filter_rules[ self::FILTER_FILENAME ] ) ) {
+				$filters[ $filter_key ][ self::FILTER_FILENAME ] = [];
+			}
+			if ( ! isset( $filter_rules[ self::FILTER_URL ] ) ) {
+				$filters[ $filter_key ][ self::FILTER_URL ] = [];
+			}
+			if ( ! isset( $filter_rules[ self::FILTER_CLASS ] ) ) {
+				$filters[ $filter_key ][ self::FILTER_CLASS ] = [];
+			}
+		}
+
+		return $filters;
+	}
+
+	/**
 	 * Update settings.
 	 *
 	 * @param string $key Settings key.
@@ -341,59 +376,17 @@ class Optml_Settings {
 	}
 
 	/**
-	 * Check if key is allowed.
-	 *
-	 * @param string $key Is key allowed or not.
-	 *
-	 * @return bool Is key allowed or not.
-	 */
-	private function is_allowed( $key ) {
-		return isset( $this->default_schema[ $key ] );
-	}
-
-	/**
-	 * Check if the user is connected to Optimole.
-	 *
-	 * @return bool Connection status.
-	 */
-	public function is_connected() {
-		$service_data = $this->get( 'service_data' );
-		if ( ! isset( $service_data['cdn_key'] ) ) {
-			return false;
-		}
-		if ( empty( $service_data ['cdn_key'] ) || empty( $service_data['cdn_secret'] ) ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Get setting value by key.
-	 *
-	 * @param string $key Key to search against.
-	 *
-	 * @return mixed|null Setting value.
-	 */
-	public function get( $key ) {
-		if ( ! $this->is_allowed( $key ) ) {
-			return null;
-		}
-
-		return isset( $this->options[ $key ] ) ? $this->options[ $key ] : '';
-	}
-
-	/**
 	 * Return site settings.
 	 *
 	 * @return array Site settings.
 	 */
 	public function get_site_settings() {
 		$service_data = $this->get( 'service_data' );
-		$whitelist = [];
+		$whitelist    = [];
 		if ( isset( $service_data['whitelist'] ) ) {
 			$whitelist = $service_data['whitelist'];
 		}
+
 		return [
 			'quality'              => $this->get_quality(),
 			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
@@ -449,6 +442,17 @@ class Optml_Settings {
 	}
 
 	/**
+	 * Return filter definitions.
+	 *
+	 * @return mixed|null Filter values.
+	 */
+	public function get_watchers() {
+
+		return $this->get( 'watchers' );
+
+	}
+
+	/**
 	 * Return an watermark array.
 	 *
 	 * @return array
@@ -498,6 +502,7 @@ class Optml_Settings {
 		if ( isset( $service_data['status'] ) && $service_data['status'] === 'inactive' ) {
 			return false;
 		}
+
 		return $this->to_boolean( $status );
 	}
 
@@ -555,7 +560,7 @@ class Optml_Settings {
 	 * @return bool Reset action status.
 	 */
 	public function reset() {
-		$reset_schema = $this->default_schema;
+		$reset_schema            = $this->default_schema;
 		$reset_schema['filters'] = $this->options['filters'];
 
 		$update = update_option( $this->namespace, $reset_schema );
