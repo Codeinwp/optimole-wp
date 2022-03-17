@@ -1,3 +1,9 @@
+##### [Version 3.3.2](https://github.com/Codeinwp/optimole-wp/compare/v3.3.1...v3.3.2) (2022-03-17)
+
+#### Fixes
+* Hardening security for users with administrator roles. 
+* Update dependencies to the latest version.
+
 ##### [Version 3.3.1](https://github.com/Codeinwp/optimole-wp/compare/v3.3.0...v3.3.1) (2022-03-10)
 
 #### Features
