@@ -96,7 +96,7 @@ Premium users will be able to optimize images starting with more than 25k monthl
 
 ##### [Version 3.3.3](https://github.com/Codeinwp/optimole-wp/compare/v3.3.2...v3.3.3) (2022-03-18)
 
- #### Fixes
+#### Fixes
 - adds filter <code>optml_gif_to_video_flags</code> to exclude GIF placeholders from video conversion
 - adds compatibility with Avada live to remove replacement in edit mode
 
