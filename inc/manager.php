@@ -183,7 +183,12 @@ final class Optml_Manager {
 		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
+		// avada
 		if ( array_key_exists( 'fb-edit', $_GET ) && ! empty( $_GET['fb-edit'] ) ) {
+			return false; // @codeCoverageIgnore
+		}
+		if ( array_key_exists( 'builder', $_GET ) && ! empty( $_GET['builder'] )
+			&& array_key_exists( 'builder_id', $_GET ) && ! empty( $_GET['builder_id'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
 		/**

@@ -85,6 +85,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( ! $this->is_valid_gif( $image_url ) ) {
 			return false;
 		}
+		if ( false === Optml_Filters::should_do_image( $image_url, apply_filters( 'optml_gif_to_video_flags', [ 'lazyload' => true, 'placeholder' => true ] ) ) ) {
+			return false;
+		}
 		$link_mp4 = apply_filters(
 			'optml_content_url',
 			$image_url,
