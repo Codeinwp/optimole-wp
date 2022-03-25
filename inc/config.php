@@ -14,13 +14,15 @@ class Optml_Config {
 	 * @var array
 	 */
 	public static $image_extensions = [
-		'jpg'          => 'image/jpeg',
-		'jpeg'         => 'image/jpeg',
-		'jpe'          => 'image/jpeg',
-		'png'          => 'image/png',
-		'webp'         => 'image/webp',
-		'svg'          => 'image/svg+xml',
-		'gif'          => 'image/gif',
+		'jpg'  => 'image/jpeg',
+		'jpeg' => 'image/jpeg',
+		'jpe'  => 'image/jpeg',
+		'png'  => 'image/png',
+		'heic' => 'image/heif',
+		'avif' => 'image/avif',
+		'webp' => 'image/webp',
+		'svg'  => 'image/svg+xml',
+		'gif'  => 'image/gif',
 	];
 	/**
 	 * CSS/Js mimetypes.
@@ -40,6 +42,8 @@ class Optml_Config {
 		'jpg|jpeg|jpe' => 'image/jpeg',
 		'png'          => 'image/png',
 		'webp'         => 'image/webp',
+		'heic'         => 'image/heif',
+		'avif'         => 'image/avif',
 		'svg'          => 'image/svg+xml',
 		'gif'          => 'image/gif',
 		'css'          => 'text/css',
