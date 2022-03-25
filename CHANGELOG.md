@@ -1,3 +1,7 @@
+##### [Version 3.3.4](https://github.com/Codeinwp/optimole-wp/compare/v3.3.3...v3.3.4) (2022-03-25)
+
+* Add support for HEIC/AVIF formats as source input
+
 ##### [Version 3.3.3](https://github.com/Codeinwp/optimole-wp/compare/v3.3.2...v3.3.3) (2022-03-18)
 
  #### Fixes
