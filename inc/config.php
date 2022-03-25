@@ -42,6 +42,8 @@ class Optml_Config {
 		'jpg|jpeg|jpe' => 'image/jpeg',
 		'png'          => 'image/png',
 		'webp'         => 'image/webp',
+		'heic'         => 'image/heif',
+		'avif'         => 'image/avif',
 		'svg'          => 'image/svg+xml',
 		'gif'          => 'image/gif',
 		'css'          => 'text/css',
