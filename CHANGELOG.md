@@ -1,3 +1,9 @@
+##### [Version 3.3.5](https://github.com/Codeinwp/optimole-wp/compare/v3.3.4...v3.3.5) (2022-03-31)
+
+#### Fixes
+- updates compatibility with FacetWP 
+- fixes warning regarding image size calculation
+
 ##### [Version 3.3.4](https://github.com/Codeinwp/optimole-wp/compare/v3.3.3...v3.3.4) (2022-03-25)
 
 * Add support for HEIC/AVIF formats as source input
