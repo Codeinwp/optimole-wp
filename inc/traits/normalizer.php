@@ -143,8 +143,8 @@ trait Optml_Normalizer {
 
 		$enlarge = false;
 		if ( isset( $crop_args['enlarge'] ) ) {
-			$crop_args = $crop_args['crop'];
 			$enlarge = $crop_args['enlarge'];
+			$crop_args = $crop_args['crop'];
 		}
 		if ( $crop_args === true ) {
 			return [
