@@ -37,7 +37,10 @@ class Optml_facetwp extends Optml_compatibility {
 		do_action( 'optml_replacer_setup' );
 
 		$output = json_decode( $output );
-		$output->template = Optml_Main::instance()->manager->replace_content( $output->template );
+
+		if ( isset( $output->template ) ) {
+			$output->template = Optml_Main::instance()->manager->replace_content( $output->template );
+		}
 
 		// Ignore invalid UTF-8 characters in PHP 7.2+
 		if ( version_compare( phpversion(), '7.2', '<' ) ) {
