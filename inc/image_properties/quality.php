@@ -4,7 +4,9 @@
  * Class Optml_Quality
  */
 class Optml_Quality extends Optml_Property_Type {
-
+	const ECO = 'eco';
+	const MAUTO = 'mauto';
+	const AUTO = 'auto';
 	/**
 	 * Default quality value.
 	 *
@@ -36,14 +38,13 @@ class Optml_Quality extends Optml_Property_Type {
 	 * @param mixed $value Value to set.
 	 */
 	public function set( $value ) {
-
-		if ( $value === 'auto' ) {
-			$this->quality = 'auto';
-
-			return;
-		}
-		if ( $value === 'eco' ) {
-			$this->quality = 'eco';
+		static $quality_enums = [
+			self::ECO   => true,
+			self::MAUTO => true,
+			self::AUTO  => true,
+		];
+		if ( isset( $quality_enums[ $value ] ) ) {
+			$this->quality = $value;
 
 			return;
 		}

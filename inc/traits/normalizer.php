@@ -37,26 +37,6 @@ trait Optml_Normalizer {
 	public function strip_slashes( $string ) {
 		return html_entity_decode( stripslashes( preg_replace( '/\\\u([\da-fA-F]{4})/', '&#x\1;', $string ) ) );
 	}
-	/**
-	 * Normalize value to an integer within bounds.
-	 *
-	 * @param mixed   $value Value to process.
-	 * @param integer $min Lower bound.
-	 * @param integer $max Upper bound.
-	 *
-	 * @return integer
-	 */
-	public function to_bound_integer( $value, $min, $max ) {
-		$integer = absint( $value );
-		if ( $integer < $min ) {
-			$integer = $min;
-		}
-		if ( $integer > $max ) {
-			$integer = $max;
-		}
-
-		return $integer;
-	}
 
 	/**
 	 * Normalize value to positive integer.
@@ -104,6 +84,7 @@ trait Optml_Normalizer {
 		$accepted_qualities = [
 			'eco'      => 'eco',
 			'auto'     => 'auto',
+			'mauto'    => 'mauto',
 			'high_c'   => 55,
 			'medium_c' => 75,
 			'low_c'    => 90,
@@ -133,6 +114,27 @@ trait Optml_Normalizer {
 	}
 
 	/**
+	 * Normalize value to an integer within bounds.
+	 *
+	 * @param mixed   $value Value to process.
+	 * @param integer $min Lower bound.
+	 * @param integer $max Upper bound.
+	 *
+	 * @return integer
+	 */
+	public function to_bound_integer( $value, $min, $max ) {
+		$integer = absint( $value );
+		if ( $integer < $min ) {
+			$integer = $min;
+		}
+		if ( $integer > $max ) {
+			$integer = $max;
+		}
+
+		return $integer;
+	}
+
+	/**
 	 * Normalize arguments for crop.
 	 *
 	 * @param array $crop_args Crop arguments.
@@ -143,7 +145,7 @@ trait Optml_Normalizer {
 
 		$enlarge = false;
 		if ( isset( $crop_args['enlarge'] ) ) {
-			$enlarge = $crop_args['enlarge'];
+			$enlarge   = $crop_args['enlarge'];
 			$crop_args = $crop_args['crop'];
 		}
 		if ( $crop_args === true ) {

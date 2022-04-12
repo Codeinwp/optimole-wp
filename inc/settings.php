@@ -23,6 +23,7 @@ class Optml_Settings {
 		'lazyload'             => 'bool',
 		'lazyload_placeholder' => 'bool',
 		'network_optimization' => 'bool',
+		'autoquality'          => 'bool',
 		'img_to_video'         => 'bool',
 		'resize_smart'         => 'bool',
 		'retina_images'        => 'bool',
@@ -77,6 +78,7 @@ class Optml_Settings {
 		'js_minify'            => 'disabled',
 		'report_script'        => 'disabled',
 		'avif'                 => 'disabled',
+		'autoquality'          => 'enabled',
 		'native_lazyload'      => 'disabled',
 		'offload_media'        => 'disabled',
 		'cloud_images'         => 'disabled',
@@ -230,6 +232,7 @@ class Optml_Settings {
 				case 'avif':
 				case 'offload_media':
 				case 'cloud_images':
+				case 'autoquality':
 				case 'img_to_video':
 				case 'css_minify':
 				case 'js_minify':
@@ -413,6 +416,7 @@ class Optml_Settings {
 			'native_lazyload'      => $this->get( 'native_lazyload' ),
 			'report_script'        => $this->get( 'report_script' ),
 			'avif'                 => $this->get( 'avif' ),
+			'autoquality'          => $this->get( 'autoquality' ),
 			'offload_media'        => $this->get( 'offload_media' ),
 			'cloud_images'         => $this->get( 'cloud_images' ),
 			'whitelist_domains'    => $whitelist,
@@ -426,6 +430,9 @@ class Optml_Settings {
 	 */
 	public function get_quality() {
 		$quality = $this->get( 'quality' );
+		if ( $this->get( 'autoquality' ) === 'enabled' ) {
+			return 'mauto';
+		}
 		// Legacy compat.
 		if ( $quality === 'low' ) {
 			return 'high_c';
