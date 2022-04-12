@@ -77,7 +77,7 @@ class Optml_Settings {
 		'css_minify'           => 'enabled',
 		'js_minify'            => 'disabled',
 		'report_script'        => 'disabled',
-		'avif'                 => 'disabled',
+		'avif'                 => 'enabled',
 		'autoquality'          => 'enabled',
 		'native_lazyload'      => 'disabled',
 		'offload_media'        => 'disabled',
