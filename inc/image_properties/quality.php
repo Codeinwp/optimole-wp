@@ -12,7 +12,7 @@ class Optml_Quality extends Optml_Property_Type {
 	 *
 	 * @var string Quality value.
 	 */
-	public static $default_quality = 'auto';
+	public static $default_quality = 'mauto';
 	/**
 	 * Quality Property.
 	 *
@@ -50,7 +50,7 @@ class Optml_Quality extends Optml_Property_Type {
 		}
 
 		if ( ! $this->is_valid_numeric( $value ) ) {
-			$this->quality = 'auto';
+			$this->quality = 'mauto';
 
 			return;
 		}
