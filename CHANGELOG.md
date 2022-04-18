@@ -1,3 +1,9 @@
+#### [Version 3.4.0](https://github.com/Codeinwp/optimole-wp/compare/v3.3.5...v3.4.0) (2022-04-18)
+
+* Adds Machine Learning(ML) quality compression which will predict the right quality for your image in order to get the smallest possible size with minimum perceived quality losses, delivering images with ~40% smaller size than the current solution.
+* Adds AVIF format conversion enabled by default for everyone. 
+* Fix edge case when content URL is relative and prevents Optimole from replacing the URLs.
+
 ##### [Version 3.3.5](https://github.com/Codeinwp/optimole-wp/compare/v3.3.4...v3.3.5) (2022-03-31)
 
 #### Fixes
