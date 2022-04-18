@@ -398,6 +398,7 @@ abstract class Optml_App_Replacer {
 			$this->site_mappings[ rtrim( get_home_url(), '/' ) ] = rtrim( constant( 'OPTML_SITE_MIRROR' ), '/' );
 		}
 
+		// some comment to open a pr
 		$this->possible_sources = $this->extract_domain_from_urls(
 			array_merge(
 				[ get_home_url() ],
