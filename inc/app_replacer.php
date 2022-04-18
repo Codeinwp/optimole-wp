@@ -368,8 +368,13 @@ abstract class Optml_App_Replacer {
 		];
 		$this->upload_resource['url_length'] = strlen( $this->upload_resource['url'] );
 
-		$content_parts = parse_url( content_url() );
+		$site_url = get_site_url();
+		$content_url = content_url();
 
+		if ( strpos( $content_url, $site_url ) === false && strpos( $content_url, '/' ) === 0 ) {
+				$content_url = $site_url . $content_url;
+		}
+		$content_parts = parse_url( $content_url );
 		$this->upload_resource['content_path'] = '/';
 		$this->upload_resource['content_folder'] = '/';
 		if ( isset( $content_parts['path'] ) ) {
