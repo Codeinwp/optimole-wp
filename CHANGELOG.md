@@ -1,3 +1,25 @@
+##### [Version 3.3.5](https://github.com/Codeinwp/optimole-wp/compare/v3.3.4...v3.3.5) (2022-03-31)
+
+#### Fixes
+- updates compatibility with FacetWP 
+- fixes warning regarding image size calculation
+
+##### [Version 3.3.4](https://github.com/Codeinwp/optimole-wp/compare/v3.3.3...v3.3.4) (2022-03-25)
+
+* Add support for HEIC/AVIF formats as source input
+
+##### [Version 3.3.3](https://github.com/Codeinwp/optimole-wp/compare/v3.3.2...v3.3.3) (2022-03-18)
+
+ #### Fixes
+- adds filter <code>optml_gif_to_video_flags</code> to exclude GIF placeholders from video conversion
+- adds compatibility with Avada live to remove replacement in edit mode
+
+##### [Version 3.3.2](https://github.com/Codeinwp/optimole-wp/compare/v3.3.1...v3.3.2) (2022-03-17)
+
+#### Fixes
+* Hardening security for users with administrator roles. 
+* Update dependencies to the latest version.
+
 ##### [Version 3.3.1](https://github.com/Codeinwp/optimole-wp/compare/v3.3.0...v3.3.1) (2022-03-10)
 
 #### Features
