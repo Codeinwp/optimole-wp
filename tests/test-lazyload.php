@@ -264,7 +264,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertNotEquals( $replaced_content, $html );
 		$this->assertNotContains( 'q:eco/rt:fill/g:ce', $replaced_content );
 		$this->assertContains( '/rt:fill/g:ce', $replaced_content );
-		$this->assertContains( '/w:96/h:96/q:eco/http://example.org/', $replaced_content );
+		$this->assertContains( '/w:96/h:96/q:eco/f:avif/http://example.org/', $replaced_content );
 
 	}
 
@@ -312,7 +312,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertEquals( 9, substr_count( $replaced_content, 'i.optimole.com' ) );
 		$this->assertEquals( 3, substr_count( $replaced_content, 'data-opt-src' ) );
 		$this->assertEquals( 3, substr_count( $replaced_content, '/q:eco/' ) );
-		$this->assertEquals( 6, substr_count( $replaced_content, '/q:auto/' ) );
+		$this->assertEquals( 6, substr_count( $replaced_content, '/q:mauto/' ) );
 	}
 
 	public function test_replacement_with_data_attr() {
