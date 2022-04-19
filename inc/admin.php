@@ -34,6 +34,7 @@ class Optml_Admin {
 		add_action( 'admin_notices', [ $this, 'add_notice_upgrade' ] );
 		add_filter( 'admin_body_class', [ $this, 'add_body_class' ] );
 		add_action( 'optml_daily_sync', [ $this, 'daily_sync' ] );
+		add_action( 'init', [ $this, 'check_domain_change' ] );
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
 			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', [] );
@@ -42,6 +43,20 @@ class Optml_Admin {
 
 	}
 
+	/**
+	 * Checks if domain has changed
+	 */
+	public function check_domain_change() {
+		$previous_domain = get_option( 'optml_previous_domain', 0 );
+		$site_url = base64_encode( get_home_url() );
+
+		if ( $site_url !== $previous_domain ) {
+			update_option( 'optml_previous_domain', $site_url );
+			if ( $previous_domain !== 0 ) {
+				$this->daily_sync();
+			}
+		}
+	}
 	/**
 	 * Adds Optimole tag to admin bar
 	 */
