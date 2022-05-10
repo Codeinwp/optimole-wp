@@ -17,6 +17,7 @@ Automatically compress, optimize and serve scaled images along with next-gen Web
 > * Fully automated; [set and forget](https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps)
 > * Supports all image types
 > * Supports both Retina and WebP images
+> * Machine Learning(ML) powered automatic compression
 > * AVIF format support for lower image size
 > * Cloud image library support
 > * Serves images from a global CDN for free
@@ -44,13 +45,13 @@ With the basic plan, you will be able to optimize unmetered number of images for
 Better yet. The free version is fully functional and includes all of the following great features:
 
 **Format Based Optimization**
-Our cloud-based transformation process means we can optimize images based on the format as well as serve images in next-gen formats. If your visitor is using a WebP capable browser, then Optimole will convert to WebP the image and send it to their device.
+Our cloud-based transformation process means we can optimize images based on the format as well as serve images in next-gen formats. If your visitor is using a WebP capable browser, then Optimole will convert to WebP the image and send it to their device. AVIF support included.
 
 **Cloud Library support**
 Offload your website images directly to Optimole Cloud and save storage space on your server. Cross share images between your all your websites connected to Optimole.
 
 **Image Optimization**
-Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size.
+Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size using Machine Learning(ML) powered compression.
 
 **Exact Used Size**
 Optimole will use just one image and resize it delivering a responsive image to fit perfectly on your visitors' devices. No more awkward guesses at potential screen widths. Serve scaled images instantly.
