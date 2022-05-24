@@ -395,6 +395,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 						if ( $found_size[0] !== false && $found_size[1] !== false ) {
 							$strip_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
 						}
+						if ( strpos( $strip_url, '//' ) === 0 ) {
+							$strip_url = is_ssl() ? 'https:' : 'http:' . $strip_url;
+						}
 						$attachment_id = attachment_url_to_postid( $strip_url );
 					}
 				}
