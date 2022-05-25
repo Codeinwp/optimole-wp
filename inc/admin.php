@@ -14,7 +14,7 @@
  * Class Optml_Admin
  */
 class Optml_Admin {
-
+	use Optml_Normalizer;
 	/**
 	 * Hold the settings object.
 	 *
@@ -51,7 +51,7 @@ class Optml_Admin {
 	 */
 	public function check_domain_change() {
 		$previous_domain = get_option( 'optml_current_domain', 0 );
-		$site_url = base64_encode( get_home_url() );
+		$site_url = $this->to_domain_hash( get_home_url() );
 
 		if ( $site_url !== $previous_domain ) {
 			update_option( 'optml_current_domain', $site_url );
