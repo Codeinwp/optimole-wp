@@ -28,6 +28,23 @@ trait Optml_Normalizer {
 	}
 
 	/**
+	 * Return domain hash.
+	 *
+	 * @param string $domain Full url.
+	 *
+	 * @return string Domain hash.
+	 */
+	public function to_domain_hash( $domain ) {
+		$domain_parts = parse_url( $domain );
+		$domain       = isset( $domain_parts['host'] ) ? $domain_parts['host'] : '';
+		$prefix       = substr( $domain, 0, 4 );
+		if ( $prefix === 'www.' ) {
+			$domain = substr( $domain, 4 );
+		}
+
+		return base64_encode( $domain );
+	}
+	/**
 	 * Strip slashes on unicode encoded strings.
 	 *
 	 * @param string $string Input string.

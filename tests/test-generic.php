@@ -12,6 +12,7 @@
  * Class Test_Generic.
  */
 class Test_Generic extends WP_UnitTestCase {
+	use Optml_Normalizer;
 	/**
 	 * Check if the version is defined
 	 */
@@ -26,5 +27,21 @@ class Test_Generic extends WP_UnitTestCase {
 	function test_debug_mode() {
 
 		$this->assertFalse( OPTML_DEBUG );
+	}
+	/**
+	 * Test domain hash.
+	 */
+	function test_domain_hash() {
+		$value = $this->to_domain_hash( "https://domain.com");
+
+		$this->assertEquals( $this->to_domain_hash("https://domain.com/fr/"), $value );
+		$this->assertEquals( $this->to_domain_hash("https://domain.com/fr/dada"), $value );
+		$this->assertEquals( $this->to_domain_hash("https://domain.com/fr/dada/dada"), $value );
+		$this->assertEquals( $this->to_domain_hash("https://domain.com/fr"), $value );
+		$this->assertEquals( $this->to_domain_hash("https://domain.com/"), $value );
+		$this->assertEquals( $this->to_domain_hash("https://www.domain.com/"), $value );
+		$this->assertEquals( $this->to_domain_hash("http://www.domain.com/"), $value );
+		$this->assertEquals( $this->to_domain_hash("//www.domain.com/"), $value );
+		$this->assertNotEquals( $this->to_domain_hash("https://something.com/"), $value );
 	}
 }
