@@ -1,3 +1,7 @@
+##### [Version 3.4.2](https://github.com/Codeinwp/optimole-wp/compare/v3.4.1...v3.4.2) (2022-05-25)
+
+Fix edge cases for auto allowing domain on site migration.
+
 ##### [Version 3.4.1](https://github.com/Codeinwp/optimole-wp/compare/v3.4.0...v3.4.1) (2022-05-10)
 
 * Auto allow domain when the website URL is being changed, such as moving from production -> staging or viceversa
