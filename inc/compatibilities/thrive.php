@@ -38,7 +38,11 @@ class Optml_thrive extends Optml_compatibility {
 		}
 
 	}
-
+	/**
+	 * Update tve_updated_post meta with the correct status for images: offloaded/rollback.
+	 *
+	 * @param int $post_id The post id to be updated.
+	 */
 	public function update_trive_postmeta( $post_id ) {
 
 		$post_meta = get_post_meta( $post_id, 'tve_updated_post', true );
