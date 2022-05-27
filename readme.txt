@@ -97,7 +97,7 @@ Premium users will be able to optimize images starting with more than 25k monthl
 
 ##### [Version 3.4.2](https://github.com/Codeinwp/optimole-wp/compare/v3.4.1...v3.4.2) (2022-05-25)
 
-Fix edge cases for auto allowing domain on site migration.
+* Fix edge cases for auto allowing domain on site migration.
 
 
 
