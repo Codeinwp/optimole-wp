@@ -1135,6 +1135,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( is_wp_error( $post_update ) || $post_update === 0 ) {
 			return false;
 		}
+		do_action( 'optml_updated_post', $post_id );
 		return true;
 	}
 	/**

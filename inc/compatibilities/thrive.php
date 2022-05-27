@@ -45,11 +45,11 @@ class Optml_thrive extends Optml_compatibility {
 	 */
 	public function update_trive_postmeta( $post_id ) {
 
-		$post_meta = get_post_meta( $post_id, 'tve_updated_post', true );
+		$post_meta = tve_get_post_meta( $post_id, 'tve_updated_post' );
 
 		$content = Optml_Media_Offload::instance()->filter_uploaded_images( ['post_content' => $post_meta ] );
 
-		update_post_meta( $post_id, 'tve_updated_post', $content['post_content'] );
+		tve_update_post_meta( $post_id, 'tve_updated_post', $content['post_content'] );
 	}
 	/**
 	 * Should we early load the compatibility?
