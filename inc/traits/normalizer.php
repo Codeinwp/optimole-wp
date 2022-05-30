@@ -246,4 +246,18 @@ trait Optml_Normalizer {
 			'position' => $gravity,
 		];
 	}
+	/**
+	 * If missing, add schema to urls.
+	 *
+	 * @param string $url Url to check.
+	 *
+	 * @return string
+	 */
+	public function add_schema( $url ) {
+		$schema_url = $url;
+		if ( str_starts_with( $schema_url, '//' ) ) {
+			$schema_url = is_ssl() ? 'https:' : 'http:' . $schema_url;
+		}
+		return $schema_url;
+	}
 }
