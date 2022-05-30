@@ -340,6 +340,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$size = $found_size;
 					$strip_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
 				}
+				$strip_url = $this->add_schema( $strip_url );
+
 				$attachment_id = attachment_url_to_postid( $strip_url );
 			}
 
@@ -395,6 +397,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 						if ( $found_size[0] !== false && $found_size[1] !== false ) {
 							$strip_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
 						}
+						$strip_url = $this->add_schema( $strip_url );
+
 						$attachment_id = attachment_url_to_postid( $strip_url );
 					}
 				}
@@ -1131,6 +1135,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( is_wp_error( $post_update ) || $post_update === 0 ) {
 			return false;
 		}
+		do_action( 'optml_updated_post', $post_id );
 		return true;
 	}
 	/**

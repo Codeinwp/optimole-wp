@@ -33,6 +33,31 @@ class Optml_thrive extends Optml_compatibility {
 				return $all_watchers;
 			}
 		);
+		if ( Optml_Main::instance()->admin->settings->get( 'offload_media' ) === 'enabled' ) {
+			add_action( 'optml_updated_post', [$this, 'update_trive_postmeta'], 1, 1 );
+		}
+
+	}
+	/**
+	 * Update tve_updated_post meta with the correct status for images: offloaded/rollback.
+	 *
+	 * @param int $post_id The post id to be updated.
+	 */
+	public function update_trive_postmeta( $post_id ) {
+
+		$post_meta = tve_get_post_meta( $post_id, 'tve_updated_post' );
+
+		$content = Optml_Media_Offload::instance()->filter_uploaded_images( ['post_content' => $post_meta ] );
+
+		tve_update_post_meta( $post_id, 'tve_updated_post', $content['post_content'] );
+	}
+	/**
+	 * Should we early load the compatibility?
+	 *
+	 * @return bool Whether to load the compatibility or not.
+	 */
+	public function should_load_early() {
+		return true;
 	}
 }
 
