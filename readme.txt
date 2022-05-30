@@ -95,6 +95,13 @@ Premium users will be able to optimize images starting with more than 25k monthl
 
 == Changelog ==
 
+##### [Version 3.4.3](https://github.com/Codeinwp/optimole-wp/compare/v3.4.2...v3.4.3) (2022-05-30)
+
+* Enhance Thrive compatibility when users are offloading the images to Optimole cloud.
+
+
+
+
 ##### [Version 3.4.2](https://github.com/Codeinwp/optimole-wp/compare/v3.4.1...v3.4.2) (2022-05-25)
 
 * Fix edge cases for auto allowing domain on site migration.
