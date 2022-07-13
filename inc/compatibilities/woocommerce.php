@@ -15,14 +15,20 @@ class Optml_woocommerce extends Optml_compatibility {
 	 */
 	function should_load() {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-		return Optml_Main::instance()->admin->settings->use_lazyload() && is_plugin_active( 'woocommerce/woocommerce.php' );
+		return is_plugin_active( 'woocommerce/woocommerce.php' );
 	}
 
 	/**
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_ignore_lazyload' ], PHP_INT_MAX, 1 );
+		if ( Optml_Main::instance()->admin->settings->use_lazyload() ) {
+			add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_ignore_lazyload' ], PHP_INT_MAX, 1 );
+		}
+
+		if ( Optml_Main::instance()->admin->settings->get( 'offload_media' ) === 'enabled' ) {
+			add_filter( 'optml_offload_images_post_parents', [ $this, 'add_product_pages_to_image_query' ], PHP_INT_MAX, 1 );
+		}
 	}
 	/**
 	 * Add ignore lazyload flag.
@@ -35,5 +41,36 @@ class Optml_woocommerce extends Optml_compatibility {
 		$flags[] = 'data-large_image';
 
 		return $flags;
+	}
+	/**
+	 * Ads the product pages to the list of posts parents when querying images for offload.
+	 *
+	 * @param array $parents Default post parents.
+	 *
+	 * @return array New post parents that include product pages.
+	 */
+	public function add_product_pages_to_image_query( $parents = [ 0 ] ) {
+		$product_pages_ids = get_posts(
+			[
+				'post_type' => 'product',
+				'numberposts' => -1,
+				'post_status' => 'publish',
+				'fields' => 'ids',
+			]
+		);
+		$parents = array_merge( $parents, $product_pages_ids );
+
+		return $parents;
+	}
+	/**
+	 * Should we early load the compatibility?
+	 *
+	 * @return bool Whether to load the compatibility or not.
+	 */
+	public function should_load_early() {
+		if ( Optml_Main::instance()->admin->settings->get( 'offload_media' ) === 'enabled' ) {
+			return true;
+		}
+		return false;
 	}
 }
