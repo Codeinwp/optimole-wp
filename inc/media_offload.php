@@ -408,7 +408,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$found_images[] = intval( $attachment_id );
 			}
 		}
-		return $found_images;
+		return apply_filters( 'optml_content_images_to_update', $found_images, $content );
 	}
 
 	/**

@@ -80,6 +80,7 @@ final class Optml_Manager {
 		'smart_search_woocommerce',
 		'facetwp',
 		'wp_rest_cache',
+		'wp_bakery',
 	];
 	/**
 	 * The current state of the buffer.
