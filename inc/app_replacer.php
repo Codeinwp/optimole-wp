@@ -549,6 +549,9 @@ abstract class Optml_App_Replacer {
 	 **/
 	public function strip_image_size_from_url( $url ) {
 
+		if ( apply_filters( 'optml_should_skip_strip_image_size', false, $url ) === true ) {
+			return $url;
+		}
 		if ( preg_match( '#(-\d+x\d+(?:_c)?|(@2x))\.(' . implode( '|', array_keys( Optml_Config::$image_extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
 			$stripped_url = str_replace( $src_parts[1], '', $url );
 			// Extracts the file path to the image minus the base url

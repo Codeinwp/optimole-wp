@@ -80,6 +80,7 @@ final class Optml_Manager {
 		'smart_search_woocommerce',
 		'facetwp',
 		'wp_rest_cache',
+		'wp_bakery',
 	];
 	/**
 	 * The current state of the buffer.
@@ -569,7 +570,7 @@ final class Optml_Manager {
 		$extracted_urls  = array_filter(
 			$extracted_urls,
 			function ( $value ) use ( $slashed_config ) {
-				return strpos( $value, Optml_Config::$service_url ) === false && strpos( $value, $slashed_config ) === false;
+				return strpos( $value, Optml_Config::$service_url ) === false && strpos( $value, $slashed_config ) === false || Optml_Media_Offload::is_not_processed_image( $value );
 			}
 		);
 		$upload_resource = $this->tag_replacer->get_upload_resource();
