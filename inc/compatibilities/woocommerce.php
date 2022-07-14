@@ -60,15 +60,12 @@ class Optml_woocommerce extends Optml_compatibility {
 		];
 		$products = new \WP_Query( $query_args );
 		$ids = $products->get_posts();
-		if ( ! empty( $ids ) ) {
-			do {
+		while ( ! empty( $ids ) ) {
 				$paged++;
 				$parents = array_merge( $parents, $ids );
 				$query_args['paged'] = $paged;
 				$products = new \WP_Query( $query_args );
 				$ids = $products->get_posts();
-
-			} while ( ! empty( $ids ) );
 		}
 
 		return $parents;
