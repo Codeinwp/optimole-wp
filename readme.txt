@@ -95,6 +95,14 @@ Premium users will be able to optimize images starting with more than 25k monthl
 
 == Changelog ==
 
+##### [Version 3.4.4](https://github.com/Codeinwp/optimole-wp/compare/v3.4.3...v3.4.4) (2022-07-14)
+
+* Enhance WooCommerce and WPBakery compatibilities when users are offloading the images to Optimole cloud.
+* Improve compatibility with all plugins that are editing the media modal tabs.
+
+
+
+
 ##### [Version 3.4.3](https://github.com/Codeinwp/optimole-wp/compare/v3.4.2...v3.4.3) (2022-05-30)
 
 * Enhance Thrive compatibility when users are offloading the images to Optimole cloud.
