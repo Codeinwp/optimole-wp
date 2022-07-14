@@ -30,17 +30,14 @@ jQuery(document).ready( function($){
                 }
             );
         },
-        browseRouter: function( routerView ) {
-            const l10n = wp.media.view.l10n;
+        /**
+         * overwrite router to add Optimole media browser
+         *
+         * @param {wp.media.view.Router} routerView
+         */
+        browseRouter( routerView ) {
+            oldMediaFrame.prototype.browseRouter.apply( this, arguments );
             routerView.set({
-                upload: {
-                    text: l10n.uploadFilesTitle,
-                    priority: 20
-                },
-                browse: {
-                    text: l10n.mediaLibraryTitle,
-                    priority: 40
-                },
                 optimole: {
                     text: 'Optimole',
                     priority: 60
