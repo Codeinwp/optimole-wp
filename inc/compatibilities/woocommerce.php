@@ -50,15 +50,26 @@ class Optml_woocommerce extends Optml_compatibility {
 	 * @return array New post parents that include product pages.
 	 */
 	public function add_product_pages_to_image_query( $parents = [ 0 ] ) {
-		$product_pages_ids = get_posts(
-			[
-				'post_type' => 'product',
-				'numberposts' => -1,
-				'post_status' => 'publish',
-				'fields' => 'ids',
-			]
-		);
-		$parents = array_merge( $parents, $product_pages_ids );
+		$paged = 1;
+		$query_args = [
+			'post_type' => 'product',
+			'fields'   => 'ids',
+			'posts_per_page' => 150,
+			'post_status' => 'publish',
+			'paged' => $paged,
+		];
+		$products = new \WP_Query( $query_args );
+		$ids = $products->get_posts();
+		if ( ! empty( $ids ) ) {
+			do {
+				$paged++;
+				$parents = array_merge( $parents, $ids );
+				$query_args['paged'] = $paged;
+				$products = new \WP_Query( $query_args );
+				$ids = $products->get_posts();
+
+			} while ( ! empty( $ids ) );
+		}
 
 		return $parents;
 	}
