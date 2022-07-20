@@ -24,6 +24,9 @@ class Optml_divi_builder extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
+
+		add_action( 'et_core_static_file_created', [$this, 'optimize_divi_static_files'] );
+
 		add_filter(
 			'optml_lazyload_bg_selectors',
 			function ( $all_watchers ) {
@@ -38,5 +41,16 @@ class Optml_divi_builder extends Optml_compatibility {
 			}
 		);
 	}
+	public function optimize_divi_static_files( $resource ) {
+		if ( class_exists( 'ET_Core_PageResource' ) && null !== ET_Core_PageResource::$wpfs ) {
+			if ( isset( $resource->path ) ) {
+				$data = $resource->get_data( 'file' );
 
+				if ( ! empty( $data ) ) {
+					$data = Optml_Main::instance()->manager->replace_content( $data );
+					ET_Core_PageResource::$wpfs->put_contents( $resource->path, $data, 0644 );
+				}
+			}
+		}
+	}
 }
