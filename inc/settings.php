@@ -374,7 +374,7 @@ class Optml_Settings {
 		if ( $update ) {
 			$this->options = $opt;
 		}
-
+		do_action( 'optml_settings_updated' );
 		return $update;
 	}
 

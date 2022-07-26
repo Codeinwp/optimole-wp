@@ -42,7 +42,6 @@ class Optml_Divi extends Optml_abstract_conflict {
 			}
 			$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/divi-builder/divi-builder.php' );
 			if ( isset( $plugin_data['Version'] ) && version_compare( $plugin_data['Version'], '4.10.8', '<' ) ) {
-				do_action( 'optml_log', $plugin_data['Version'] );
 				$show_message = true;
 			}
 		}
