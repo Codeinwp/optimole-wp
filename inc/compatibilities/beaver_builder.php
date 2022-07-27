@@ -33,6 +33,7 @@ class Optml_beaver_builder extends Optml_compatibility {
 			}
 		);
 		add_filter( 'fl_builder_render_css', [ Optml_Main::instance()->manager, 'replace_content' ], PHP_INT_MAX, 1 );
+		add_filter( 'fl_builder_render_js', [ Optml_Main::instance()->manager, 'replace_content' ], PHP_INT_MAX, 1 );
 	}
 
 }
