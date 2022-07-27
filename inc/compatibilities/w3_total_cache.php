@@ -15,14 +15,33 @@ class Optml_w3_total_cache extends Optml_compatibility {
 	 */
 	function should_load() {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-		return Optml_Main::instance()->admin->settings->get( 'cdn' ) === 'enabled' && is_plugin_active( 'w3-total-cache/w3-total-cache.php' );
+		return  is_plugin_active( 'w3-total-cache/w3-total-cache.php' );
 	}
 
 	/**
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'w3tc_minify_processed', [ Optml_Main::instance()->manager, 'replace_content' ], 10, 1 );
+		if ( Optml_Main::instance()->admin->settings->get( 'cdn' ) === 'enabled' ) {
+			add_filter( 'w3tc_minify_processed', [Optml_Main::instance()->manager, 'replace_content'], 10, 1 );
+		}
+
+		add_action(
+			'optml_settings_updated',
+			function () {
+				// TODO make it work
+				do_action( 'w3tc_flush_all' );
+			}
+		);
+	}
+
+	/**
+	 * Should we early load the compatibility?
+	 *
+	 * @return bool Whether to load the compatibility or not.
+	 */
+	public function should_load_early() {
+		return true;
 	}
 }
 
