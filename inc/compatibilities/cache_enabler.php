@@ -7,7 +7,6 @@
  */
 class Optml_cache_enabler extends Optml_compatibility {
 
-
 	/**
 	 * Should we load the integration logic.
 	 *
@@ -23,7 +22,26 @@ class Optml_cache_enabler extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'cache_enabler_before_store', [ Optml_Main::instance()->manager, 'replace_content' ], PHP_INT_MAX, 1 );
+		// www.keycdn.com/support/wordpress-cache-enabler-plugin#hooks
+
+		add_filter( 'cache_enabler_page_contents_before_store', [ Optml_Main::instance()->manager, 'replace_content' ], PHP_INT_MAX, 1 );
+
+		add_action(
+			'optml_settings_updated',
+			function () {
+				do_action( 'cache_enabler_clear_site_cache' );
+			}
+		);
+
+	}
+
+	/**
+	 * Should we early load the compatibility?
+	 *
+	 * @return bool Whether to load the compatibility or not.
+	 */
+	public function should_load_early() {
+		return true;
 	}
 
 }
