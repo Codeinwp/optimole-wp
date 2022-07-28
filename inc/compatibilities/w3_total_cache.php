@@ -29,8 +29,9 @@ class Optml_w3_total_cache extends Optml_compatibility {
 		add_action(
 			'optml_settings_updated',
 			function () {
-				// TODO make it work
-				do_action( 'w3tc_flush_all' );
+				if ( function_exists( 'w3tc_flush_all' ) ) {
+					w3tc_flush_all();
+				}
 			}
 		);
 	}
