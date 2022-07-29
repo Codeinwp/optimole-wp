@@ -3,7 +3,8 @@
 /**
  * Class Optml_master_slider.
  *
- * @reason Added classes to watch for background lazyload
+ * @reason Added classes to watch for background lazyload,
+ * we can only hook the css before storing in db ('masterslider_get_all_custom_css'), but we can not reliably regenerate it when settings are changing
  */
 class Optml_master_slider extends Optml_compatibility {
 
