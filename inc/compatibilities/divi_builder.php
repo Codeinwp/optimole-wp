@@ -44,6 +44,12 @@ class Optml_divi_builder extends Optml_compatibility {
 		);
 	}
 
+	/**
+	 * Replace image urls upon divi's static css files creation
+	 *
+	 * @param object $resource ET_Core_PageResource object.
+	 * @return void
+	 */
 	public function optimize_divi_static_files( $resource ) {
 		if ( class_exists( 'ET_Core_PageResource' ) && null !== ET_Core_PageResource::$wpfs ) {
 			if ( isset( $resource->path ) ) {
@@ -57,10 +63,15 @@ class Optml_divi_builder extends Optml_compatibility {
 		}
 	}
 
-	public function clear_divi_static_files(  ) {
+	/**
+	 * Clear divi static files when plugin settings are changed
+	 *
+	 * @return void
+	 */
+	public function clear_divi_static_files() {
 
 		if ( class_exists( 'ET_Core_PageResource' ) && method_exists( ET_Core_PageResource::class, 'remove_static_resources' ) ) {
-			//same call as in et_core_page_resource_auto_clear but that function is not declared at this point
+			// same call as in et_core_page_resource_auto_clear but that function is not declared at this point
 			ET_Core_PageResource::remove_static_resources( 'all', 'all' );
 		}
 	}
