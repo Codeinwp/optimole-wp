@@ -209,8 +209,9 @@ final class Optml_Manager {
 				return false;
 			}
 		}
+		$filters = $this->settings->get_filters();
 
-		return Optml_Filters::should_do_page( $this->settings->get_filters()[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_URL ] );
+		return Optml_Filters::should_do_page( $filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_URL ], $filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_URL_MATCH ] );
 	}
 
 	/**

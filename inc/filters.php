@@ -15,11 +15,17 @@ final class Optml_Filters {
 	 *
 	 * @return bool Should do action on page?
 	 */
-	public static function should_do_page( $flags ) {
+	public static function should_do_page( $containts_flags, $match_flags ) {
 		if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
 			return true;
 		}
-		foreach ( $flags as $rule_flag => $status ) {
+
+		foreach ( $match_flags as $rule_flag => $status ) {
+			if (  $rule_flag === $_SERVER['REQUEST_URI']  ) {
+				return false;
+			}
+		}
+		foreach ( $containts_flags as $rule_flag => $status ) {
 			if ( strpos( $_SERVER['REQUEST_URI'], $rule_flag ) !== false ) {
 				return false;
 			}
