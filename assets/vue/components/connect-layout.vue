@@ -113,6 +113,14 @@
 
 			}
 		},
+    mounted: function () {
+      const urlSearchParams = new URLSearchParams(window.location.search);
+      const params = Object.fromEntries(urlSearchParams.entries());
+      if ( Object.prototype.hasOwnProperty.call(params, 'optimole_connect') ) {
+        this.email = params.optimole_connect;
+        this.registerAccount();
+      }
+    },
 		computed: {
 			isLoading: function () {
 				return this.$store.state.loading;
@@ -127,7 +135,7 @@
 				this.from_register = false;
 				this.showApiKey = !this.showApiKey;
 			},
-			registerAccount: function () {
+			registerAccount: function ( ) {
 				this.error = false;
 				this.$store.dispatch('registerOptimole', {
 					email: this.email,

@@ -259,6 +259,7 @@ class Optml_Rest {
 		$original_request = $request;
 		$request = new Optml_Api();
 		$data    = $request->connect( $api_key );
+
 		if ( $data === false || is_wp_error( $data ) ) {
 			$extra = '';
 			if ( is_wp_error( $data ) ) {
@@ -329,8 +330,10 @@ class Optml_Rest {
 	public function register_service( WP_REST_Request $request ) {
 		$email = $request->get_param( 'email' );
 		$api   = new Optml_Api();
+
 		$user  = $api->create_account( $email );
-		if ( $user === false ) {
+
+		if ( $user === false || is_wp_error( $user ) ) {
 			return new WP_REST_Response(
 				[
 					'data'    => null,
@@ -351,8 +354,15 @@ class Optml_Rest {
 			);
 
 		}
+		$user_data = $user['res'];
 
-		return $this->response( $user );
+		$settings = new Optml_Settings();
+		$settings->update( 'api_key', $user_data['api_key'] );
+		if ( $user_data['app_count'] === 1 ) {
+			$settings->update( 'service_data', $user_data );
+		}
+
+		return $this->response( $user_data );
 	}
 
 	/**
