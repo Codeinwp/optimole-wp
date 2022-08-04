@@ -204,6 +204,32 @@ const saveSettings = function ( {commit, state}, data ) {
 		}
 	);
 };
+//
+// const addImageSize = function ( {commit, state}, data ) {
+// 	commit( 'toggleLoading', true );
+// 	return Vue.http(
+// 		{
+// 			url: optimoleDashboardApp.routes['add_image_size'],
+// 			method: 'POST',
+// 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+// 			emulateJSON: true,
+// 			body: {
+// 				'new_size': data.new_size
+// 			},
+// 			responseType: 'json'
+// 		}
+// 	).then(
+// 		function ( response ) {
+// 			if ( response.body.code === 'success' ) {
+// 				commit( 'updateSettings', response.body.data );
+// 			}
+// 			commit( 'toggleLoading', false );
+//
+// 		}
+// 	);
+// };
+
+
 const sampleRate = function ( {commit, state}, data ) {
 
 	data.component.loading_images = true;

@@ -84,6 +84,7 @@ class Optml_Settings {
 		'offload_media'        => 'disabled',
 		'cloud_images'         => 'disabled',
 		'skip_lazyload_images' => 3,
+		'defined_image_sizes'          => [ ],
 
 	];
 	/**
@@ -262,6 +263,18 @@ class Optml_Settings {
 						$sanitized_value = [ 'all' => 'true' ];
 					}
 					break;
+				case 'defined_image_sizes':
+					do_action( 'optml_log', $value );
+					$current_sizes   = $this->get( 'defined_image_sizes' );
+					foreach ( $value as $size_name => $size_value ) {
+						if ( $size_value === 'remove' ) {
+							unset( $current_sizes[ $size_name ] );
+							unset( $value[ $size_name ] );
+						}
+					}
+					$sanitized_value = array_replace_recursive( $current_sizes, $value );
+					do_action( 'optml_log', $sanitized_value );
+					break;
 				case 'filters':
 					$current_filters = $this->get_filters();
 					$sanitized_value = array_replace_recursive( $current_filters, $value );
@@ -411,6 +424,7 @@ class Optml_Settings {
 			'max_height'           => $this->get( 'max_height' ),
 			'filters'              => $this->get_filters(),
 			'cloud_sites'          => $this->get( 'cloud_sites' ),
+			'defined_image_sizes'  => $this->get( 'defined_image_sizes' ),
 			'watchers'             => $this->get_watchers(),
 			'watermark'            => $this->get_watermark(),
 			'img_to_video'         => $this->get( 'img_to_video' ),
