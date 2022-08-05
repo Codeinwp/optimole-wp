@@ -878,8 +878,6 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_resize_smart_title'         => __( 'Enable Smart Cropping', 'optimole-wp' ),
 				'enable_retina_desc'                => __( 'Deliver retina ready images to your visitors', 'optimole-wp' ),
 				'enable_retina_title'               => __( 'Enable Retina images', 'optimole-wp' ),
-				'images_sizes_add'                  => __( 'Deliver retina ready images to your visitors', 'optimole-wp' ),
-				'images_sizes_list'                 => __( 'Deliver retina ready images to your visitors', 'optimole-wp' ),
 				'image_sizes_title'                 => __( 'Your image sizes', 'optimole-wp' ),
 				'enabled'                           => __( 'Enabled', 'optimole-wp' ),
 				'exclude_class_desc'                => sprintf( __( '%1$sImage tag%2$s contains class', 'optimole-wp' ), '<strong>', '</strong>' ),
