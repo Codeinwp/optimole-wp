@@ -11,8 +11,8 @@ final class Optml_Filters {
 	/**
 	 * Generic method to check if the page is allowed to do the action.
 	 *
-	 * @param array $flags Flags array.
-	 *
+	 * @param array $containts_flags Contains flags array.
+	 * @param array $match_flags Exact path match flags array.
 	 * @return bool Should do action on page?
 	 */
 	public static function should_do_page( $containts_flags, $match_flags ) {
