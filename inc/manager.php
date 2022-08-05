@@ -119,7 +119,7 @@ final class Optml_Manager {
 		$this->settings = new Optml_Settings();
 		$added_sizes = $this->settings->get( 'defined_image_sizes' );
 		foreach ( $added_sizes as $key => $value ) {
-			add_image_size( $key, $value['width'], $value['height'], $value['crop'] );
+			add_image_size( $key, $value['width'], $value['height'], $value['crop'] === 'true' );
 		}
 		foreach ( $this->possible_compatibilities as $compatibility_class ) {
 			$compatibility_class = 'Optml_' . $compatibility_class;

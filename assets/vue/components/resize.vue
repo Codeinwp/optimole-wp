@@ -36,7 +36,7 @@
 
         </div>
         <hr/>
-        <div v-if="is_wp_53  === 'yes'" class="field  columns">
+        <div class="field  columns">
 
           <div class="columns"  style="width: 100%;margin-left: 3px;">
           <div class="optml-fill-container">
@@ -52,14 +52,14 @@
                       <input v-model="size_width" class="optml-textarea optml-text-input-border optml-fill-container has-text-left" type="number" min="1"  :placeholder="this.strings.width_field">
                     </p>
 
-                    <p class="optml-fill-container has-text-centered">
+                    <p class="optml-fill-container has-text-centered" style="margin-left: 5%;">
 
                       <input v-model="size_height" class="optml-textarea optml-text-input-border optml-fill-container has-text-left" type="number" min="1" :placeholder="this.strings.height_field">
                     </p>
 
-                    <p class="optml-fill-container has-text-centered">
+                    <p class="optml-fill-container has-text-centered" style="margin-left: -5%;  margin-top: 0.5%;">
                       <input type="checkbox"  v-model="crop">
-                      <label>{{ strings.crop }}</label>
+                      <label style="top: -5px;position: relative;left: 5px;">{{ strings.crop }}</label>
                     </p>
 
                     <div class="button optml-button-style-1 optml-fit-content" style="margin: 0 0 0 4%;" :class="this.$store.state.loading ? 'is-loading'  : '' "
@@ -78,7 +78,7 @@
                           <div>
                             <div class="tags  has-addons">
                               <div class="tag  optml-light-background is-marginless  is-link has-text-left" style="width: 100%;"><p v-html="strings.name"></p>
-                                &nbsp;{{index}} &nbsp;&nbsp;&nbsp;&nbsp; <strong>{{strings.width_field}}</strong> : {{sizes[index].width}} &nbsp;&nbsp;&nbsp;&nbsp; <strong>{{strings.height_field}}</strong> : {{sizes[index].height}} &nbsp;&nbsp;&nbsp;&nbsp;<strong>{{sizes[index].crop === true ? strings.cropped : ''}}</strong>
+                                &nbsp;{{index}} &nbsp;&nbsp;&nbsp;&nbsp; <strong>{{strings.width_field}}</strong> : {{sizes[index].width}} &nbsp;&nbsp;&nbsp;&nbsp; <strong>{{strings.height_field}}</strong> : {{sizes[index].height}} &nbsp;&nbsp;&nbsp;&nbsp;<span v-if="sizes[index].crop === 'true'"><strong>{{strings.cropped}}</strong></span>
                                 <a @click="removeSize(index)">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="13" height="16" viewBox="0 0 13 16" fill="none">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M9 2H12C12.6 2 13 2.4 13 3V4H0V3C0 2.4 0.5 2 1 2H4C4.2 0.9 5.3 0 6.5 0C7.7 0 8.8 0.9 9 2ZM8 2C7.8 1.4 7.1 1 6.5 1C5.9 1 5.2 1.4 5 2H8ZM11.1 15.1L12 5H1L1.9 15.1C2 15.6 2.4 16 2.9 16H10.1C10.6 16 11.1 15.6 11.1 15.1Z" fill="#757296"/>
@@ -147,7 +147,6 @@
             return {
                 strings: optimoleDashboardApp.strings.options_strings,
                 all_strings: optimoleDashboardApp.strings,
-                is_wp_53 : optimoleDashboardApp.is_offload_media_available,
                 size_width: '',
                 size_height: '',
                 crop: false,
@@ -165,7 +164,8 @@
           },
           addImageSize: function () {
             if ('' !== this.size_height && '' !== this.size_width) {
-              let size_name = 'optimole_' + '_' + this.size_height + '_' + this.size_height + (this.crop === true ? '_crop' : '');
+              let crop_string = this.crop === true ? '_crop' : '';
+              let size_name = 'optimole_' + '_' + this.size_width + '_' + this.size_height + crop_string;
 
               let new_size = {
                 [size_name]: {
@@ -198,12 +198,10 @@
         },
         computed: {
             site_settings() {
-              console.log(JSON.stringify(this.$store.state.site_settings));
                 return this.$store.state.site_settings;
             },
 
           sizes() {
-              console.log(JSON.stringify(this.$store.state.site_settings.defined_image_sizes));
             return this.$store.state.site_settings.defined_image_sizes;
           },
           anySize () {

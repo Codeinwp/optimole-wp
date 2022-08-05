@@ -264,7 +264,6 @@ class Optml_Settings {
 					}
 					break;
 				case 'defined_image_sizes':
-					do_action( 'optml_log', $value );
 					$current_sizes   = $this->get( 'defined_image_sizes' );
 					foreach ( $value as $size_name => $size_value ) {
 						if ( $size_value === 'remove' ) {
@@ -273,7 +272,6 @@ class Optml_Settings {
 						}
 					}
 					$sanitized_value = array_replace_recursive( $current_sizes, $value );
-					do_action( 'optml_log', $sanitized_value );
 					break;
 				case 'filters':
 					$current_filters = $this->get_filters();
