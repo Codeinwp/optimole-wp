@@ -138,9 +138,9 @@ final class Optml_Api {
 			return false;
 		}
 		if ( intval( $response['code'] ) !== 200 ) {
-			if (  $path === 'optml/v2/account/complete_register_remote'
+			if ( $path === 'optml/v2/account/complete_register_remote'
 				&& isset( $response['error'] )
-				&& $response['error'] === 'ERROR: This username is already registered. Please choose another one.'  ) {
+				&& $response['error'] === 'ERROR: This username is already registered. Please choose another one.' ) {
 				return 'email_registered';
 			}
 			if ( $path === '/optml/v2/account/details'

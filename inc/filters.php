@@ -21,7 +21,7 @@ final class Optml_Filters {
 		}
 
 		foreach ( $match_flags as $rule_flag => $status ) {
-			if (  $rule_flag === $_SERVER['REQUEST_URI']  ) {
+			if ( $rule_flag === $_SERVER['REQUEST_URI'] ) {
 				return false;
 			}
 		}
