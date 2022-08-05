@@ -389,7 +389,9 @@ class Optml_Settings {
 		if ( $update ) {
 			$this->options = $opt;
 		}
-		do_action( 'optml_settings_updated' );
+		if ( apply_filters( 'optml_dont_trigger_settings_updated', false ) === false ) {
+			do_action( 'optml_settings_updated' );
+		}
 		return $update;
 	}
 

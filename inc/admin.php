@@ -591,7 +591,9 @@ class Optml_Admin {
 			return;
 		}
 
+		add_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
 		$this->settings->update( 'service_data', $data );
+		remove_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
 
 	}
 
