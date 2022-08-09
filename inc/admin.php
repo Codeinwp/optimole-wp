@@ -683,6 +683,7 @@ class Optml_Admin {
 		$service_data = $this->settings->get( 'service_data' );
 		$user         = get_userdata( get_current_user_id() );
 		$user_status = 'inactive';
+		$auto_connect = get_option( Optml_Settings::OPTML_USER_EMAIL, 'no' );
 		$available_apps = isset( $service_data['available_apps'] ) ? $service_data['available_apps'] : null;
 		if ( isset( $service_data['cdn_key'] ) && $available_apps !== null ) {
 			foreach ( $service_data['available_apps'] as $app ) {
@@ -716,6 +717,7 @@ class Optml_Admin {
 			'site_settings'              => $this->settings->get_site_settings(),
 			'home_url'                   => home_url(),
 			'is_offload_media_available' => $is_offload_media_available,
+			'auto_connect'               => $auto_connect,
 		];
 	}
 
@@ -849,6 +851,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'cache_desc'                        => __( 'Clear all cached resources(images,js,css) by Optimole from this site. Useful if you updated them and Optimole shows the old version.', 'optimole-wp' ),
 				'cache_title'                       => __( 'Clear cached resources', 'optimole-wp' ),
 				'clear_cache_notice'                => __( 'Clearing cached resources will re-optimize the images and might affect for a few minutes the site performance.', 'optimole-wp' ),
+				'image_size_notice'                  => __( 'If you have images that are no longer cropped after optimization you should add those images sizes here.', 'optimole-wp' ),
 				'clear_cache_images'                => __( 'Clear cached images', 'optimole-wp' ),
 				'clear_cache_assets'                => __( 'Clear cached CSS & JS', 'optimole-wp' ),
 				'connect_step_0'                    => __( 'Connecting your site to the Optimole service.', 'optimole-wp' ),

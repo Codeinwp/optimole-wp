@@ -358,6 +358,11 @@ class Optml_Rest {
 
 		$settings = new Optml_Settings();
 		$settings->update( 'api_key', $user_data['api_key'] );
+		$auto_connect = $request->get_param( 'auto_connect' );
+
+		if ( ! empty( $auto_connect ) && $auto_connect === 'true' ) {
+			delete_option( Optml_Settings::OPTML_USER_EMAIL );
+		}
 		if ( $user_data['app_count'] === 1 ) {
 			$settings->update( 'service_data', $user_data );
 		}

@@ -13,6 +13,7 @@ class Optml_Settings {
 	const FILTER_CLASS = 'class';
 	const FILTER_TYPE_LAZYLOAD = 'lazyload';
 	const FILTER_TYPE_OPTIMIZE = 'optimize';
+	const OPTML_USER_EMAIL = 'optml_user_email';
 	/**
 	 * Holds an array of possible settings to alter via wp cli or wp-config constants.
 	 *

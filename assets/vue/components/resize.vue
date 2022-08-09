@@ -44,41 +44,38 @@
               <label class="label column has-text-grey-dark" style="margin:2% 0;">
                 <span> {{this.strings.add_image_size_desc}} </span>
               </label>
-            </div>
-                <div class="field columns optml-light-background" style="padding: 1% 5%;">
-                  <div class="field has-addons column has-addons-centered optml-filters-content">
-                    <p class="optml-fill-container has-text-centered">
+              <label class="label column ">
+                <p class="has-text-weight-normal optml-restore-notice-background" style="padding: 2%;">{{strings.image_size_notice}}</p>
+              </label>
+              <div class="fields column optml-light-background" style="padding: 1% 5%; margin: 0 1%;">
+                <div class="field has-addons column has-addons-centered optml-filters-content">
+                  <p class="optml-fill-container has-text-centered">
 
-                      <input v-model="size_width" class="optml-textarea optml-text-input-border optml-fill-container has-text-left" type="number" min="1"  :placeholder="this.strings.width_field">
-                    </p>
+                    <input v-model="size_width" class="optml-textarea optml-text-input-border optml-fill-container has-text-left" type="number" min="1"  :placeholder="this.strings.width_field">
+                  </p>
 
-                    <p class="optml-fill-container has-text-centered" style="margin-left: 5%;">
+                  <p class="optml-fill-container has-text-centered" style="margin-left: 5%;">
 
-                      <input v-model="size_height" class="optml-textarea optml-text-input-border optml-fill-container has-text-left" type="number" min="1" :placeholder="this.strings.height_field">
-                    </p>
+                    <input v-model="size_height" class="optml-textarea optml-text-input-border optml-fill-container has-text-left" type="number" min="1" :placeholder="this.strings.height_field">
+                  </p>
 
-                    <p class="optml-fill-container has-text-centered" style="margin-left: -5%;  margin-top: 0.5%;">
-                      <input type="checkbox"  v-model="crop">
-                      <label style="top: -5px;position: relative;left: 5px;">{{ strings.crop }}</label>
-                    </p>
 
-                    <div class="button optml-button-style-1 optml-fit-content" style="margin: 0 0 0 4%;" :class="this.$store.state.loading ? 'is-loading'  : '' "
-                        @click="addImageSize" >
-                           {{this.strings.add_image_size_button}}
-                    </div>
-
+                  <div class="button optml-button-style-1 optml-fit-content" style="margin: 0 0 0 4%;" :class="this.$store.state.loading ? 'is-loading'  : '' "
+                       @click="addImageSize" >
+                    {{this.strings.add_image_size_button}}
                   </div>
-                </div>
 
-            <div class="field  columns optml-flex-column" style="margin-top: 2%;">
+                </div>
+              </div>
+            </div>
+
               <div v-if="anySize" class="label column has-text-grey-dark" style="white-space: nowrap;"> {{strings.image_sizes_title}}: </div>
-                  <div class="column is-paddingless is-full optml-fill-container">
-                    <div style="margin-top: 2%;">
+                  <div class="column is-full optml-fill-container">
                         <div class=" exclusion-filter" v-for="(item, index) in sizes"   style="margin-bottom: 2%;">
                           <div>
                             <div class="tags  has-addons">
-                              <div class="tag  optml-light-background is-marginless  is-link has-text-left" style="width: 100%;"><p v-html="strings.name"></p>
-                                &nbsp;{{index}} &nbsp;&nbsp;&nbsp;&nbsp; <strong>{{strings.width_field}}</strong> : {{sizes[index].width}} &nbsp;&nbsp;&nbsp;&nbsp; <strong>{{strings.height_field}}</strong> : {{sizes[index].height}} &nbsp;&nbsp;&nbsp;&nbsp;<span v-if="sizes[index].crop === 'true'"><strong>{{strings.cropped}}</strong></span>
+                              <div class="tag  optml-light-background is-marginless  is-link has-text-left" style="width: 97.8%;"><p v-html="strings.name"></p>
+                                &nbsp;{{index}} &nbsp;&nbsp;&nbsp;&nbsp; <strong>{{strings.width_field}}</strong> : {{sizes[index].width}} &nbsp;&nbsp;&nbsp;&nbsp; <strong>{{strings.height_field}}</strong> : {{sizes[index].height}}
                                 <a @click="removeSize(index)">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="13" height="16" viewBox="0 0 13 16" fill="none">
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M9 2H12C12.6 2 13 2.4 13 3V4H0V3C0 2.4 0.5 2 1 2H4C4.2 0.9 5.3 0 6.5 0C7.7 0 8.8 0.9 9 2ZM8 2C7.8 1.4 7.1 1 6.5 1C5.9 1 5.2 1.4 5 2H8ZM11.1 15.1L12 5H1L1.9 15.1C2 15.6 2.4 16 2.9 16H10.1C10.6 16 11.1 15.6 11.1 15.1Z" fill="#757296"/>
@@ -88,12 +85,10 @@
                             </div>
                           </div>
                         </div>
-                     </div>
                   </div>
                </div>
-          </div>
        </div>
-        </div>
+    </div>
 
 
         <hr/>
@@ -164,14 +159,12 @@
           },
           addImageSize: function () {
             if ('' !== this.size_height && '' !== this.size_width) {
-              let crop_string = this.crop === true ? '_crop' : '';
-              let size_name = 'optimole_' + '_' + this.size_width + '_' + this.size_height + crop_string;
+              let size_name = 'optimole_' + this.size_width + '_' + this.size_height + '_crop';
 
               let new_size = {
                 [size_name]: {
                   width: this.size_width,
-                  height: this.size_height,
-                  crop: this.crop
+                  height: this.size_height
                 }
               };
 

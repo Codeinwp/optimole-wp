@@ -99,6 +99,7 @@ const registerOptimole = function ( {commit, state}, data ) {
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			body: {
 				'email': data.email,
+				'auto_connect' : data.autoConnect,
 			},
 			emulateJSON: true,
 			responseType: 'json'
