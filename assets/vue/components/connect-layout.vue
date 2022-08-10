@@ -110,15 +110,7 @@
 				email_registered: false,
 				showRegisterField: false,
 				from_register: false,
-				autoConnect: false,
 
-			}
-		},
-		mounted: function () {
-			if ( this.$store.state.autoConnect !== 'no' ) {
-				this.email = this.$store.state.autoConnect;
-				this.autoConnect = true;
-				this.registerAccount();
 			}
 		},
 		computed: {
@@ -139,7 +131,6 @@
 				this.error = false;
 				this.$store.dispatch('registerOptimole', {
 					email: this.email,
-					autoConnect: this.autoConnect,
 				}).then((response) => {
 					if ( response.code === 'email_registered') {
 						this.email_registered = response.message;

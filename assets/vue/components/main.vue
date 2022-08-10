@@ -16,11 +16,11 @@
 													</div>
 
 												</div>
-												<connect-layout v-if="!this.is_connected"></connect-layout>
+												<connect-layout v-if="!this.is_connected && this.$store.state.autoConnect === 'no'"></connect-layout>
 
 												<!--Connecting-->
 												<transition name="slide-fade">
-													<div class="optml-side-by-side" style="align-items: center; justify-content: center; margin-right: 4%;" v-if="!showDisconnect && this.is_connected && ! this.$store.state.is_loaded" id="optml-loader">
+													<div class="optml-side-by-side" style="align-items: center; justify-content: center; margin-right: 4%;" v-if="((!showDisconnect && this.is_connected ) ||  this.$store.state.autoConnect !== 'no') && ! this.$store.state.is_loaded" id="optml-loader">
 														<div>
 															<figure class="image">
 																<img :src="connecting" >
@@ -210,7 +210,7 @@
 		},
 		computed: {
 			maxWidth() {
-				if (!this.is_connected || this.showDisconnect) {
+				if ((!this.is_connected || this.showDisconnect) && this.$store.state.autoConnect === 'no') {
 					return {
 						'max-width':  '1000px'
 					}
@@ -274,12 +274,24 @@
 				this.$store.state.queryArgs = params;
 				this.changeTab('settings');
 			}
+      if ( this.$store.state.autoConnect !== 'no' ) {
+        this.triggerLoading();
+        this.createAndConnect( this.$store.state.autoConnect );
+      }
 		},
 		methods: {
 			disconnect () {
 				this.$store.dispatch( 'disconnectOptimole', {
 				} );
 			},
+      createAndConnect: function ( email ) {
+        this.$store.dispatch('registerOptimole', {
+          email: email,
+          autoConnect: true,
+        }).then(() => {
+
+        })
+      },
 			keepConnected () {
 				this.$store.commit('toggleShowDisconnectNotice', false);
 			},

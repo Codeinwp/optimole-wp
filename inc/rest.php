@@ -333,6 +333,12 @@ class Optml_Rest {
 
 		$user  = $api->create_account( $email );
 
+		$auto_connect = $request->get_param( 'auto_connect' );
+
+		if ( ! empty( $auto_connect ) && $auto_connect === 'true' ) {
+			delete_option( Optml_Settings::OPTML_USER_EMAIL );
+		}
+
 		if ( $user === false || is_wp_error( $user ) ) {
 			return new WP_REST_Response(
 				[
@@ -358,11 +364,7 @@ class Optml_Rest {
 
 		$settings = new Optml_Settings();
 		$settings->update( 'api_key', $user_data['api_key'] );
-		$auto_connect = $request->get_param( 'auto_connect' );
 
-		if ( ! empty( $auto_connect ) && $auto_connect === 'true' ) {
-			delete_option( Optml_Settings::OPTML_USER_EMAIL );
-		}
 		if ( $user_data['app_count'] === 1 ) {
 			$settings->update( 'service_data', $user_data );
 		}
