@@ -38,6 +38,7 @@ class Optml_revslider extends Optml_compatibility {
 	function add_lazyflag( $strings = [] ) {
 
 		$strings[] = 'rev-slidebg';
+		$strings[] = 'rs-lazyload';
 
 		return $strings;
 	}
@@ -64,7 +65,7 @@ class Optml_revslider extends Optml_compatibility {
 	 */
 	public function add_data_ignore( $flags = [] ) {
 		$flags[] = 'rev-slidebg';
-
+		$flags[] = 'rs-lazyload';
 		return $flags;
 	}
 

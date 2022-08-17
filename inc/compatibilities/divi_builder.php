@@ -24,6 +24,11 @@ class Optml_divi_builder extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
+
+		add_action( 'et_core_static_file_created', [$this, 'optimize_divi_static_files'] );
+
+		add_action( 'optml_settings_updated', [$this, 'clear_divi_static_files'] );
+
 		add_filter(
 			'optml_lazyload_bg_selectors',
 			function ( $all_watchers ) {
@@ -39,4 +44,44 @@ class Optml_divi_builder extends Optml_compatibility {
 		);
 	}
 
+	/**
+	 * Replace image urls upon divi's static css files creation
+	 *
+	 * @param object $resource ET_Core_PageResource object.
+	 * @return void
+	 */
+	public function optimize_divi_static_files( $resource ) {
+		if ( class_exists( 'ET_Core_PageResource' ) && null !== ET_Core_PageResource::$wpfs ) {
+			if ( isset( $resource->path ) ) {
+				$data = $resource->get_data( 'file' );
+
+				if ( ! empty( $data ) ) {
+					$data = Optml_Main::instance()->manager->replace_content( $data );
+					ET_Core_PageResource::$wpfs->put_contents( $resource->path, $data, 0644 );
+				}
+			}
+		}
+	}
+
+	/**
+	 * Clear divi static files when plugin settings are changed
+	 *
+	 * @return void
+	 */
+	public function clear_divi_static_files() {
+
+		if ( class_exists( 'ET_Core_PageResource' ) && method_exists( ET_Core_PageResource::class, 'remove_static_resources' ) ) {
+			// same call as in et_core_page_resource_auto_clear but that function is not declared at this point
+			ET_Core_PageResource::remove_static_resources( 'all', 'all' );
+		}
+	}
+
+	/**
+	 * Should we early load the compatibility?
+	 *
+	 * @return bool Whether to load the compatibility or not.
+	 */
+	public function should_load_early() {
+		return true;
+	}
 }

@@ -198,7 +198,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->settings->use_lazyload() ) {
 			return;
 		}
-		if ( ! Optml_Filters::should_do_page( self::$filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_URL ] ) ) {
+		$filters = $this->settings->get_filters();
+		if ( ! Optml_Filters::should_do_page( $filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_URL ], $filters[ Optml_Settings::FILTER_TYPE_LAZYLOAD ][ Optml_Settings::FILTER_URL_MATCH ] ) ) {
 			return;
 		}
 

@@ -117,7 +117,10 @@ final class Optml_Manager {
 	public function init() {
 
 		$this->settings = new Optml_Settings();
-
+		$added_sizes = $this->settings->get( 'defined_image_sizes' );
+		foreach ( $added_sizes as $key => $value ) {
+			add_image_size( $key, $value['width'], $value['height'], true );
+		}
 		foreach ( $this->possible_compatibilities as $compatibility_class ) {
 			$compatibility_class = 'Optml_' . $compatibility_class;
 			$compatibility       = new $compatibility_class;
@@ -209,8 +212,9 @@ final class Optml_Manager {
 				return false;
 			}
 		}
+		$filters = $this->settings->get_filters();
 
-		return Optml_Filters::should_do_page( $this->settings->get_filters()[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_URL ] );
+		return Optml_Filters::should_do_page( $filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_URL ], $filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_URL_MATCH ] );
 	}
 
 	/**
