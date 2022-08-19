@@ -51,7 +51,7 @@
 												</transition>
 												<transition name="fade" mode="out-in">
 														<div v-if="this.$store.state.connected && this.$store.state.hasApplication && this.$store.state.is_loaded && !showDisconnect">
-																<div class="tabs is-left is-medium optml-tabs optml-font" style="overflow-x: hidden !important;">
+																<div class="tabs is-left is-medium optml-tabs optml-font">
 																		<ul class="is-marginless ">
 																				<li :class="tab === 'dashboard' ? 'is-active' : ''">
 																						<a @click="changeTab('dashboard')" class="is-size-5">
@@ -83,7 +83,7 @@
 																						</a>
 																				</li>
 																				<!-- Refresh stats -->
-																				<li style="position: absolute; right: 1%;">
+																				<li style="margin-left:auto; position:relative; right:1%;">
 																						<div class="level-item">
 
 																							<span class="is-size-7 has-text-weight-bold optml-gray optml-hide-on-mobile" style="margin-right: 20px;">{{ this.$store.state.loading ?  strings.updating_stats_cta : strings.refresh_stats_cta}}</span>
