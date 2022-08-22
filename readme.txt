@@ -95,6 +95,25 @@ Premium users will be able to optimize images starting with more than 25k monthl
 
 == Changelog ==
 
+##### [Version 3.4.5](https://github.com/Codeinwp/optimole-wp/compare/v3.4.4...v3.4.5) (2022-08-22)
+
+#### Features
+* Allows users to add cropped image sizes from within the plugin settings
+* Adds an option to exclude a page path from optimization using exact matching
+* Adds the option to create and connect an account with one click
+* Adds filter, <code>optml_keep_copyright</code> , to control if image optimization should keep copyright metadata 
+#### Fixes
+* Enhances compatibility with Beaver builder to optimize images in javascript files 
+* Enhances compatibility with Cache enabler to use the latest plugin's filters and clears page cache when Optimole's settings are updated
+* Updates compatibility with Divi theme/builder to optimize images in the static css/js files and regenerate those files when Optimole's settings are updated
+* Enhances compatibility with Elementor to update the optimized images in the generated css files upon changing Optimole's settings
+* Adds the latest lazyload exclusion flags for Slider Revolution
+* Enhances W3 Total Cache compatibility to clear the cache when Optimole's settings are updated
+* Updates compatibility with YITH WooCommerce Quick View to optimize quick view images
+
+
+
+
 ##### [Version 3.4.4](https://github.com/Codeinwp/optimole-wp/compare/v3.4.3...v3.4.4) (2022-07-14)
 
 * Enhance WooCommerce and WPBakery compatibilities when users are offloading the images to Optimole cloud.
