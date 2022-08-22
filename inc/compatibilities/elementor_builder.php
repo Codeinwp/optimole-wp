@@ -7,7 +7,6 @@
  */
 class Optml_elementor_builder extends Optml_compatibility {
 
-
 	/**
 	 * Should we load the integration logic.
 	 *
@@ -31,6 +30,24 @@ class Optml_elementor_builder extends Optml_compatibility {
 				return $all_watchers;
 			}
 		);
-	}
+		add_action(
+			'optml_settings_updated',
+			function () {
+				if ( did_action( 'elementor/loaded' ) ) {
+					if ( class_exists( '\Elementor\Plugin' ) ) {
+						\Elementor\Plugin::instance()->files_manager->clear_cache();
+					}
+				}
+			}
+		);
 
+	}
+	/**
+	 * Should we early load the compatibility?
+	 *
+	 * @return bool Whether to load the compatibility or not.
+	 */
+	public function should_load_early() {
+		return true;
+	}
 }

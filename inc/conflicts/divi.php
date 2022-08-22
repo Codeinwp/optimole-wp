@@ -35,18 +35,24 @@ class Optml_Divi extends Optml_abstract_conflict {
 	 * @access  public
 	 */
 	public function is_conflict_valid() {
-		$show_message = false;
+		$show_message = true;
 		if ( is_plugin_active( 'divi-builder/divi-builder.php' ) ) {
-			$show_message = true;
+			if ( ! function_exists( 'get_plugin_data' ) ) {
+				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+			}
+			$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/divi-builder/divi-builder.php' );
+			if ( isset( $plugin_data['Version'] ) && version_compare( $plugin_data['Version'], '4.10.8', '<' ) ) {
+				$show_message = true;
+			}
 		}
 
 		$theme = wp_get_theme();
 		// Divi, no child theme.
-		if ( strcmp( $theme->get( 'Name' ), 'Divi' ) === 0 && $theme->parent() === false ) {
+		if ( strcmp( $theme->get( 'Name' ), 'Divi' ) === 0 && $theme->parent() === false && version_compare( $theme->get( 'Version' ), '4.10.8', '<' ) ) {
 			$show_message = true;
 		}
 		// Child theme, parent divi.
-		if ( $theme->parent() !== false && strcmp( $theme->parent()->get( 'Name' ), 'Divi' ) === 0 ) {
+		if ( $theme->parent() !== false && strcmp( $theme->parent()->get( 'Name' ), 'Divi' ) === 0 && version_compare( $theme->parent()->get( 'Version' ), '4.10.8', '<' ) ) {
 			$show_message = true;
 		}
 		if ( ! function_exists( 'et_get_option' ) ) {

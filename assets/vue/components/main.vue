@@ -16,11 +16,11 @@
 													</div>
 
 												</div>
-												<connect-layout v-if="!this.is_connected"></connect-layout>
+												<connect-layout v-if="!this.is_connected && this.$store.state.autoConnect === 'no'"></connect-layout>
 
 												<!--Connecting-->
 												<transition name="slide-fade">
-													<div class="optml-side-by-side" style="align-items: center; justify-content: center; margin-right: 4%;" v-if="!showDisconnect && this.is_connected && ! this.$store.state.is_loaded" id="optml-loader">
+													<div class="optml-side-by-side" style="align-items: center; justify-content: center; margin-right: 4%;" v-if="((!showDisconnect && this.is_connected ) ||  this.$store.state.autoConnect !== 'no') && ! this.$store.state.is_loaded" id="optml-loader">
 														<div>
 															<figure class="image">
 																<img :src="connecting" >
@@ -51,7 +51,7 @@
 												</transition>
 												<transition name="fade" mode="out-in">
 														<div v-if="this.$store.state.connected && this.$store.state.hasApplication && this.$store.state.is_loaded && !showDisconnect">
-																<div class="tabs is-left is-medium optml-tabs optml-font" style="overflow-x: hidden !important;">
+																<div class="tabs is-left is-medium optml-tabs optml-font">
 																		<ul class="is-marginless ">
 																				<li :class="tab === 'dashboard' ? 'is-active' : ''">
 																						<a @click="changeTab('dashboard')" class="is-size-5">
@@ -83,7 +83,7 @@
 																						</a>
 																				</li>
 																				<!-- Refresh stats -->
-																				<li style="position: absolute; right: 1%;">
+																				<li style="margin-left:auto; position:relative; right:1%;">
 																						<div class="level-item">
 
 																							<span class="is-size-7 has-text-weight-bold optml-gray optml-hide-on-mobile" style="margin-right: 20px;">{{ this.$store.state.loading ?  strings.updating_stats_cta : strings.refresh_stats_cta}}</span>
@@ -210,7 +210,7 @@
 		},
 		computed: {
 			maxWidth() {
-				if (!this.is_connected || this.showDisconnect) {
+				if ((!this.is_connected || this.showDisconnect) && this.$store.state.autoConnect === 'no') {
 					return {
 						'max-width':  '1000px'
 					}
@@ -274,12 +274,24 @@
 				this.$store.state.queryArgs = params;
 				this.changeTab('settings');
 			}
+      if ( this.$store.state.autoConnect !== 'no' ) {
+        this.triggerLoading();
+        this.createAndConnect( this.$store.state.autoConnect );
+      }
 		},
 		methods: {
 			disconnect () {
 				this.$store.dispatch( 'disconnectOptimole', {
 				} );
 			},
+      createAndConnect: function ( email ) {
+        this.$store.dispatch('registerOptimole', {
+          email: email,
+          autoConnect: true,
+        }).then(() => {
+
+        })
+      },
 			keepConnected () {
 				this.$store.commit('toggleShowDisconnectNotice', false);
 			},

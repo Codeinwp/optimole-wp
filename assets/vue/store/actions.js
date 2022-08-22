@@ -90,6 +90,7 @@ const connectOptimole = function ( {commit, state}, data ) {
 const registerOptimole = function ( {commit, state}, data ) {
 
 	commit( 'restApiNotWorking', false );
+	commit( 'toggleConnecting', true );
 	commit( 'toggleLoading', true );
 	return Vue.http(
 		{
@@ -98,17 +99,27 @@ const registerOptimole = function ( {commit, state}, data ) {
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
 			body: {
 				'email': data.email,
+				'auto_connect' : data.autoConnect,
 			},
 			emulateJSON: true,
 			responseType: 'json'
 		}
 	).then(
 		function ( response ) {
+			commit( 'toggleConnecting', false );
 			commit( 'toggleLoading', false );
+			if ( response.body.code === 'success' ) {
+				commit( 'toggleConnectedToOptml', true );
+				commit( 'toggleKeyValidity', true );
+				commit( 'toggleHasOptmlApp', true );
+				commit( 'updateApiKey', data.apiKey );
+				commit( 'updateUserData', response.body.data );
+				commit( 'updateAvailableApps', response.body.data );
+			}
 			return response.data;
 		},
 		function ( response ) {
-			commit( 'toggleLoading', false );
+			commit( 'toggleConnecting', false );
 			commit( 'restApiNotWorking', true );
 			return response.data;
 		}
@@ -136,7 +147,7 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 			if ( response.ok ) {
 				  commit( 'toggleConnectedToOptml', false );
 				  commit( 'toggleIsServiceLoaded', false );
-				  commit( 'toggleShowDisconnectNotice', false);
+				  commit( 'toggleShowDisconnectNotice', false );
 				  console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
 			} else {
 				  console.error( response );
@@ -194,6 +205,7 @@ const saveSettings = function ( {commit, state}, data ) {
 		}
 	);
 };
+
 const sampleRate = function ( {commit, state}, data ) {
 
 	data.component.loading_images = true;
@@ -254,18 +266,18 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 						if ( data.component !== null ) {
 							data.component.noImages = true;
 							data.component.loading = false;
-							console.log('%c No images available.', 'color: #E7602A');
+							console.log( '%c No images available.', 'color: #E7602A' );
 						}
 					}
 				}
 			)
-			.catch( err => {
-				if ( data.component !== null ) {
-					data.component.noImages = true;
-					data.component.loading = false;
-					console.log('Error while polling images', err);
-				}
-			});
+				.catch( err => {
+					if ( data.component !== null ) {
+						data.component.noImages = true;
+						data.component.loading = false;
+						console.log( 'Error while polling images', err );
+					}
+				} );
 
 		},
 		data.waitTime

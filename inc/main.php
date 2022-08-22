@@ -105,8 +105,6 @@ final class Optml_Main {
 		$conflicts_to_register = array_merge(
 			$conflicts_to_register,
 			[
-				'Optml_Elementor',
-				'Optml_Beaver',
 				'Optml_Jetpack_Photon',
 				'Optml_Jetpack_Lazyload',
 				'Optml_Wprocket',

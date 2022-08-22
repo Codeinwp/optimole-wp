@@ -11,15 +11,21 @@ final class Optml_Filters {
 	/**
 	 * Generic method to check if the page is allowed to do the action.
 	 *
-	 * @param array $flags Flags array.
-	 *
+	 * @param array $contains_flags Contains flags array.
+	 * @param array $match_flags Exact path match flags array.
 	 * @return bool Should do action on page?
 	 */
-	public static function should_do_page( $flags ) {
+	public static function should_do_page( $contains_flags, $match_flags ) {
 		if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
 			return true;
 		}
-		foreach ( $flags as $rule_flag => $status ) {
+
+		foreach ( $match_flags as $rule_flag => $status ) {
+			if ( $rule_flag === $_SERVER['REQUEST_URI'] ) {
+				return false;
+			}
+		}
+		foreach ( $contains_flags as $rule_flag => $status ) {
 			if ( strpos( $_SERVER['REQUEST_URI'], $rule_flag ) !== false ) {
 				return false;
 			}

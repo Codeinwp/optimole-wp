@@ -100,6 +100,10 @@ class Optml_Image extends Optml_Resource {
 			$path = '/f:' . $params['format'] . '/' . $this->source_url;
 		}
 
+		if ( apply_filters( 'optml_keep_copyright', false ) === true ) {
+			$path = '/keep_copyright:true' . $path;
+		}
+
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
 		$path = sprintf( '/%s%s', $this->get_domain_token() . $this->get_cache_buster(), $path );

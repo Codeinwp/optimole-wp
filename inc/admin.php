@@ -591,7 +591,9 @@ class Optml_Admin {
 			return;
 		}
 
+		add_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
 		$this->settings->update( 'service_data', $data );
+		remove_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
 
 	}
 
@@ -681,6 +683,7 @@ class Optml_Admin {
 		$service_data = $this->settings->get( 'service_data' );
 		$user         = get_userdata( get_current_user_id() );
 		$user_status = 'inactive';
+		$auto_connect = get_option( Optml_Settings::OPTML_USER_EMAIL, 'no' );
 		$available_apps = isset( $service_data['available_apps'] ) ? $service_data['available_apps'] : null;
 		if ( isset( $service_data['cdn_key'] ) && $available_apps !== null ) {
 			foreach ( $service_data['available_apps'] as $app ) {
@@ -714,6 +717,7 @@ class Optml_Admin {
 			'site_settings'              => $this->settings->get_site_settings(),
 			'home_url'                   => home_url(),
 			'is_offload_media_available' => $is_offload_media_available,
+			'auto_connect'               => $auto_connect,
 		];
 	}
 
@@ -752,7 +756,7 @@ If you still want to disconnect click the button below.',
 			),
 			'email_address_label'            => __( 'Your email address', 'optimole-wp' ),
 			'steps_connect_api_title'        => __( 'Connect your account', 'optimole-wp' ),
-			'register_btn'                   => __( 'Send me the API key', 'optimole-wp' ),
+			'register_btn'                   => __( 'Create & connect your account ', 'optimole-wp' ),
 			'step_one_api_title'             => __( 'Enter your API key.', 'optimole-wp' ),
 			'optml_dashboard'                => sprintf( __( 'Get it from the %1$s Optimole Dashboard%2$s.', 'optimole-wp' ), '<a style="text-decoration: underline !important;" href="https://dashboard.optimole.com/" target="_blank"> ', '</a>' ),
 			'steps_connect_api_desc'         => sprintf( __( 'Copy the API Key you have received via email or you can get it from %1$s Optimole dashboard%2$s. If your account has multiple domains select the one you want to use. <br/>', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/" target="_blank"> ', '</a>' ),
@@ -847,6 +851,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'cache_desc'                        => __( 'Clear all cached resources(images,js,css) by Optimole from this site. Useful if you updated them and Optimole shows the old version.', 'optimole-wp' ),
 				'cache_title'                       => __( 'Clear cached resources', 'optimole-wp' ),
 				'clear_cache_notice'                => __( 'Clearing cached resources will re-optimize the images and might affect for a few minutes the site performance.', 'optimole-wp' ),
+				'image_size_notice'                  => __( 'If you have images that are no longer cropped after optimization you should add those images sizes here.', 'optimole-wp' ),
 				'clear_cache_images'                => __( 'Clear cached images', 'optimole-wp' ),
 				'clear_cache_assets'                => __( 'Clear cached CSS & JS', 'optimole-wp' ),
 				'connect_step_0'                    => __( 'Connecting your site to the Optimole service.', 'optimole-wp' ),
@@ -876,6 +881,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_resize_smart_title'         => __( 'Enable Smart Cropping', 'optimole-wp' ),
 				'enable_retina_desc'                => __( 'Deliver retina ready images to your visitors', 'optimole-wp' ),
 				'enable_retina_title'               => __( 'Enable Retina images', 'optimole-wp' ),
+				'image_sizes_title'                 => __( 'Your cropped image sizes', 'optimole-wp' ),
 				'enabled'                           => __( 'Enabled', 'optimole-wp' ),
 				'exclude_class_desc'                => sprintf( __( '%1$sImage tag%2$s contains class', 'optimole-wp' ), '<strong>', '</strong>' ),
 				'exclude_ext_desc'                  => sprintf( __( '%1$sImage extension%2$s is', 'optimole-wp' ), '<strong>', '</strong>' ),
@@ -883,6 +889,9 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exclude_title_lazyload'            => __( 'Don\'t lazyload images if', 'optimole-wp' ),
 				'exclude_title_optimize'            => __( 'Don\'t optimize images if', 'optimole-wp' ),
 				'exclude_url_desc'                  => sprintf( __( '%1$sPage url%2$s contains', 'optimole-wp' ), '<strong>', '</strong>' ),
+				'name'                              => sprintf( __( '%1$sName: %2$s', 'optimole-wp' ), '<strong>', '</strong>' ),
+				'cropped'                           => __( 'cropped', 'optimole-wp' ),
+				'exclude_url_match_desc'            => sprintf( __( '%1$sPage url%2$s matches', 'optimole-wp' ), '<strong>', '</strong>' ),
 				'exclude_first'                     => __( 'Exclude first', 'optimole-wp' ),
 				'images'                            => __( 'images', 'optimole-wp' ),
 				'exclude_first_images_title'        => __( 'Exclude first X of images from lazyload', 'optimole-wp' ),
@@ -891,10 +900,13 @@ The root cause might be either a security plugin which blocks this feature or so
 				'filter_ext'                        => __( 'Image extension', 'optimole-wp' ),
 				'filter_filename'                   => __( 'Image filename', 'optimole-wp' ),
 				'filter_operator_contains'          => __( 'contains', 'optimole-wp' ),
+				'filter_operator_matches'           => __( 'matches', 'optimole-wp' ),
 				'filter_operator_is'                => __( 'is', 'optimole-wp' ),
 				'filter_url'                        => __( 'Page URL', 'optimole-wp' ),
 				'gif_replacer_desc'                 => __( 'Automatically convert GIF images to Video files(MP4 and WebM)', 'optimole-wp' ),
 				'height_field'                      => __( 'Height', 'optimole-wp' ),
+				'add_image_size_button'             => __( 'Add size', 'optimole-wp' ),
+				'add_image_size_desc'               => __( 'Add a new crop image size', 'optimole-wp' ),
 				'here'                              => __( ' here.', 'optimole-wp' ),
 				'hide'                              => __( 'Hide', 'optimole-wp' ),
 				'high_q_title'                      => __( 'High', 'optimole-wp' ),
@@ -935,6 +947,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'watch_desc_lazyload'               => __( 'You can add each CSS selector on a new line or separated by comma(,).', 'optimole-wp' ),
 				'watch_title_lazyload'              => __( 'Lazyload background images for selectors:', 'optimole-wp' ),
 				'width_field'                       => __( 'Width', 'optimole-wp' ),
+				'crop'                              => __( 'crop', 'optimole-wp' ),
 				'toggle_cdn'                        => __( 'Serve CSS & JS through Optimole', 'optimole-wp' ),
 				'cdn_desc'                          => __( 'Useful when you have images into CSS/JS files. Optimole will optimize the images from them and serve the CSS/JS through the CDN.', 'optimole-wp' ),
 				'enable_css_minify_title'           => __( 'Minify CSS files', 'optimole-wp' ),

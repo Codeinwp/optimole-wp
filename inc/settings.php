@@ -8,10 +8,12 @@ class Optml_Settings {
 
 	const FILTER_EXT = 'extension';
 	const FILTER_URL = 'page_url';
+	const FILTER_URL_MATCH = 'page_url_match';
 	const FILTER_FILENAME = 'filename';
 	const FILTER_CLASS = 'class';
 	const FILTER_TYPE_LAZYLOAD = 'lazyload';
 	const FILTER_TYPE_OPTIMIZE = 'optimize';
+	const OPTML_USER_EMAIL = 'optml_user_email';
 	/**
 	 * Holds an array of possible settings to alter via wp cli or wp-config constants.
 	 *
@@ -83,6 +85,7 @@ class Optml_Settings {
 		'offload_media'        => 'disabled',
 		'cloud_images'         => 'disabled',
 		'skip_lazyload_images' => 3,
+		'defined_image_sizes'          => [ ],
 
 	];
 	/**
@@ -261,6 +264,16 @@ class Optml_Settings {
 						$sanitized_value = [ 'all' => 'true' ];
 					}
 					break;
+				case 'defined_image_sizes':
+					$current_sizes   = $this->get( 'defined_image_sizes' );
+					foreach ( $value as $size_name => $size_value ) {
+						if ( $size_value === 'remove' ) {
+							unset( $current_sizes[ $size_name ] );
+							unset( $value[ $size_name ] );
+						}
+					}
+					$sanitized_value = array_replace_recursive( $current_sizes, $value );
+					break;
 				case 'filters':
 					$current_filters = $this->get_filters();
 					$sanitized_value = array_replace_recursive( $current_filters, $value );
@@ -342,6 +355,9 @@ class Optml_Settings {
 			if ( ! isset( $filter_rules[ self::FILTER_URL ] ) ) {
 				$filters[ $filter_key ][ self::FILTER_URL ] = [];
 			}
+			if ( ! isset( $filter_rules[ self::FILTER_URL_MATCH ] ) ) {
+				$filters[ $filter_key ][ self::FILTER_URL_MATCH ] = [];
+			}
 			if ( ! isset( $filter_rules[ self::FILTER_CLASS ] ) ) {
 				$filters[ $filter_key ][ self::FILTER_CLASS ] = [];
 			}
@@ -374,7 +390,9 @@ class Optml_Settings {
 		if ( $update ) {
 			$this->options = $opt;
 		}
-
+		if ( apply_filters( 'optml_dont_trigger_settings_updated', false ) === false ) {
+			do_action( 'optml_settings_updated' );
+		}
 		return $update;
 	}
 
@@ -407,6 +425,7 @@ class Optml_Settings {
 			'max_height'           => $this->get( 'max_height' ),
 			'filters'              => $this->get_filters(),
 			'cloud_sites'          => $this->get( 'cloud_sites' ),
+			'defined_image_sizes'  => $this->get( 'defined_image_sizes' ),
 			'watchers'             => $this->get_watchers(),
 			'watermark'            => $this->get_watermark(),
 			'img_to_video'         => $this->get( 'img_to_video' ),
