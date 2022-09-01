@@ -106,7 +106,7 @@ class Optml_Image extends Optml_Resource {
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
-		$path = sprintf( '/%s%s', $this->get_domain_token() . $this->get_cache_buster(), $path );
+		$path = sprintf( '/%s%s', 'cb:' . $this->get_cache_buster(), $path );
 
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 

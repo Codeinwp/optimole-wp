@@ -110,9 +110,9 @@ abstract class Optml_Resource {
 	 */
 	public function get_cache_buster() {
 		if ( $this->cache_buster !== '' ) {
-			return '.' . $this->cache_buster;
+			return $this->cache_buster . '.' . $this->get_url_token();
 		}
-		return '-' . $this->get_url_token();
+		return $this->get_url_token();
 	}
 
 	/**
