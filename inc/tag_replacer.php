@@ -263,12 +263,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	private function parse_dimensions_from_tag( $tag, $image_sizes, $args = [] ) {
 		if ( preg_match( '#width=["|\']?([\d%]+)["|\']?#i', $tag, $width_string ) ) {
-			if ( strpos( $width_string[1], '%' ) === false ) {
+			if ( ctype_digit( $width_string[1] ) === true ) {
 				$args['width'] = $width_string[1];
 			}
 		}
 		if ( preg_match( '#height=["|\']?([\d%]+)["|\']?#i', $tag, $height_string ) ) {
-			if ( strpos( $height_string[1], '%' ) === false ) {
+			if ( ctype_digit( $width_string[1] ) === true ) {
 				$args['height'] = $height_string[1];
 			}
 		}
