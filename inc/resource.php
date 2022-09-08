@@ -106,13 +106,13 @@ abstract class Optml_Resource {
 	/**
 	 * Return a the cache buster, defaults to the url token used previously.
 	 *
-	 * @return string
+	 * @return string|bool
 	 */
 	public function get_cache_buster() {
 		if ( $this->cache_buster !== '' ) {
-			return '.' . $this->cache_buster;
+			return $this->cache_buster;
 		}
-		return '-' . $this->get_url_token();
+		return false;
 	}
 
 	/**
