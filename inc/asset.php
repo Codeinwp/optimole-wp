@@ -100,7 +100,10 @@ class Optml_Asset extends Optml_Resource {
 
 		$path = sprintf( '/%s%s', implode( '/', $path_parts ), $path );
 
-		$path = sprintf( '/%s%s', 'cb:' . $this->get_cache_buster(), $path );
+		$cache_buster = $this->get_cache_buster();
+		if ( $cache_buster !== false ) {
+			$path = sprintf( '/%s%s', 'cb:' . $cache_buster, $path );
+		}
 
 		return sprintf( '%s%s', Optml_Config::$service_url, $path );
 
