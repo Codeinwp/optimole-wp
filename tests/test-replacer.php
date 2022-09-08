@@ -127,6 +127,8 @@ class Test_Replacer extends WP_UnitTestCase {
 		] );
 		$settings->update( 'lazyload', 'disabled' );
 		$settings->update( 'cdn', 'enabled' );
+		$settings->update( 'cache_buster_images', 'eFRn.20eff' );
+		$settings->update( 'cache_buster_assets', 'eFRn.20eff' );
 		$settings->update('filters', array(
 			Optml_Settings::FILTER_TYPE_OPTIMIZE => array (
 				Optml_Settings::FILTER_CLASS => array (
@@ -180,10 +182,10 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertContains( '/w:2000/', $replaced_content );
 		$this->assertContains( '/h:1200/', $replaced_content );
 		$this->assertContains( 'http://example.org', $replaced_content );
-        $this->assertContains( 'decoding=async', $replaced_content );
+		$this->assertContains( 'decoding=async', $replaced_content );
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::TEST_STAGING );
-        $this->assertContains( 'decoding=async', $replaced_content );
+		$this->assertContains( 'decoding=async', $replaced_content );
 		$this->assertContains( 'i.optimole.com', $replaced_content );
 		$this->assertContains( '/https://www.example.org', $replaced_content );
 
@@ -218,13 +220,15 @@ class Test_Replacer extends WP_UnitTestCase {
 						http://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js
 						http://example.org/wp-includes/js/hoverintent-js.min.png-random.css
 						http://example.org/wp-includes/js/assets/whatever.jpg.png.css.js
+						https://example.org/wp-includes/js/assets/whatever.jpg.jpg
 						';
 		$replaced_content = Optml_Manager::instance()->replace_content( $edge_case_urls );
 
-		$this->assertContains( 'https://test123.i.optimole.com/F7bDy7k-qJfPUR5J/f:js/q:mauto/m:0/https://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
-		$this->assertContains( 'https://test123.i.optimole.com/F7bDy7k-fXTTyV95/f:js/q:mauto/m:0/http://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
-		$this->assertContains( 'https://test123.i.optimole.com/F7bDy7k-DQ9xsda6/f:css/q:mauto/m:1/http://example.org/wp-includes/js/hoverintent-js.min.png-random.css', $replaced_content );
-		$this->assertContains( 'https://test123.i.optimole.com/F7bDy7k-gtTzWlC5/f:js/q:mauto/m:0/http://example.org/wp-includes/js/assets/whatever.jpg.png.css.js', $replaced_content );
+		$this->assertContains( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/https://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
+		$this->assertContains( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/http://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
+		$this->assertContains( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:css/q:mauto/m:1/http://example.org/wp-includes/js/hoverintent-js.min.png-random.css', $replaced_content );
+		$this->assertContains( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/http://example.org/wp-includes/js/assets/whatever.jpg.png.css.js', $replaced_content );
+		$this->assertContains( 'https://test123.i.optimole.com/cb:eFRn.20eff/w:auto/h:auto/q:mauto/f:avif/https://example.org/wp-includes/js/assets/whatever.jpg.jpg', $replaced_content );
 
 		$settings = new Optml_Settings();
 		$settings->update( 'css_minify', 'disabled' );
