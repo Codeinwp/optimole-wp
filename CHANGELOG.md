@@ -1,3 +1,8 @@
+##### [Version 3.4.6](https://github.com/Codeinwp/optimole-wp/compare/v3.4.5...v3.4.6) (2022-09-08)
+
+* Updated cache buster format
+* Adds validation for width/height values according to HTML standards
+
 ##### [Version 3.4.5](https://github.com/Codeinwp/optimole-wp/compare/v3.4.4...v3.4.5) (2022-08-22)
 
 #### Features
