@@ -192,10 +192,10 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertContains('/w:200/h:200/q:mauto/rt:fill/g:nowe/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $my_size_image[0]);
 
 		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size[0] );
-		$this->assertContains( 'w:150/h:150/q:mauto/rt:fill/g:ce/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $image_thumbnail_size[0] );
+		$this->assertContains( '/w:150/h:150/q:mauto/rt:fill/g:ce/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $image_thumbnail_size[0] );
 
 		$this->assertContains( 'example.i.optimole.com', $image_medium_size[0] );
-		$this->assertContains( 'w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $image_medium_size[0] );
+		$this->assertContains( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $image_medium_size[0] );
 		$this->assertFalse( file_exists( get_attached_file(self::$sample_attachement) ) );
 
 		$image_meta  = wp_get_attachment_metadata( self::$sample_attachement);
@@ -218,10 +218,10 @@ class Test_Media extends WP_UnitTestCase {
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
 
 		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size[0] );
-		$this->assertContains( 'w:150/h:150/q:mauto/rt:fill/g:ce/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $image_thumbnail_size[0] );
+		$this->assertContains( '/w:150/h:150/q:mauto/rt:fill/g:ce/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $image_thumbnail_size[0] );
 
 		$this->assertContains( 'example.i.optimole.com', $image_medium_size );
-		$this->assertContains( 'w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117', $image_medium_size[0] );
+		$this->assertContains( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117', $image_medium_size[0] );
 	}
 
 	public function test_image_rollback() {
