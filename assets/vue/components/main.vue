@@ -51,7 +51,7 @@
 												</transition>
 												<transition name="fade" mode="out-in">
 														<div v-if="this.$store.state.connected && this.$store.state.hasApplication && this.$store.state.is_loaded && !showDisconnect">
-																<div class="tabs is-left is-medium optml-tabs optml-font">
+															<div class="tabs is-left is-medium optml-tabs optml-font overflow-mobile">
 																		<ul class="is-marginless ">
 																				<li :class="tab === 'dashboard' ? 'is-active' : ''">
 																						<a @click="changeTab('dashboard')" class="is-size-5">
@@ -274,24 +274,24 @@
 				this.$store.state.queryArgs = params;
 				this.changeTab('settings');
 			}
-      if ( this.$store.state.autoConnect !== 'no' ) {
-        this.triggerLoading();
-        this.createAndConnect( this.$store.state.autoConnect );
-      }
+			if ( this.$store.state.autoConnect !== 'no' ) {
+				this.triggerLoading();
+				this.createAndConnect( this.$store.state.autoConnect );
+			}
 		},
 		methods: {
 			disconnect () {
 				this.$store.dispatch( 'disconnectOptimole', {
 				} );
 			},
-      createAndConnect: function ( email ) {
-        this.$store.dispatch('registerOptimole', {
-          email: email,
-          autoConnect: true,
-        }).then(() => {
+			createAndConnect: function ( email ) {
+				this.$store.dispatch('registerOptimole', {
+					email: email,
+					autoConnect: true,
+				}).then(() => {
 
-        })
-      },
+				})
+			},
 			keepConnected () {
 				this.$store.commit('toggleShowDisconnectNotice', false);
 			},
@@ -352,6 +352,11 @@
 <style lang="sass-loader">
 		@import '../../css/style.scss';
 
+		@media ( min-width: 769px ) {
+			#optimole-app .overflow-mobile {
+				overflow-x: hidden !important;
+			}
+		}
 		#optimole-app .tabs li a {
 				border: none;
 				display: flex;
