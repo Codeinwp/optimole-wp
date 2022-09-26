@@ -822,6 +822,29 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
 			return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $attachment_id . $file, $optimized_url );
 		}
+		else {
+			$local_file = get_attached_file($attachment_id);
+			if (!file_exists($local_file)) {
+				global $wpdb;
+				$guid = get_the_guid($attachment_id);
+
+				$ids = $wpdb->get_results($wpdb->prepare(
+					"SELECT ID from $wpdb->posts WHERE guid = %s and ID <> %s",
+					$guid,
+					$attachment_id
+				), 'ARRAY_A');
+
+				foreach ($ids as $id) {
+					if (isset($id['ID'])) {
+						$duplicated_meta = wp_get_attachment_metadata($id['ID']);
+						if (isset($duplicated_meta['file']) && self::is_uploaded_image($duplicated_meta['file'])) {
+							$optimized_url = (new Optml_Image($url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get('cache_buster')))->get_url();
+							return str_replace('/' . $url, '/' . self::KEYS['not_processed_flag'] . $id['ID'] . $duplicated_meta['file'], $optimized_url);
+						}
+					}
+				}
+			}
+		}
 		return $url;
 	}
 	/**
