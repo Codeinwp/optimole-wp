@@ -586,6 +586,25 @@ const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
 		}
 	} );
 };
+const getOffloadConflicts = function ( data, commit, consecutiveErrors = 0 ) {
+	Vue.http( {
+		url: optimoleDashboardApp.routes['get_offload_conflicts'],
+		method: 'GET',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		emulateJSON: true,
+		responseType: 'json',
+	} ).then( function ( response ) {
+		console.log(response);
+		this.$store.state.checkedOffloadConflicts = true;
+		if( response.status === 200 && response.body.data > 0 ) {
+
+		} else {
+
+		}
+	} ).catch( function ( err ) {
+
+	} );
+};
 const callSync = function ( {commit, state}, data ) {
 	commit( 'updatePushedImagesProgress', 'init' );
 	if ( data.action === "offload_images" ) {
@@ -612,5 +631,6 @@ export default {
 	retrieveWatermarks,
 	sampleRate,
 	saveSettings,
-	callSync
+	callSync,
+	getOffloadConflicts
 };

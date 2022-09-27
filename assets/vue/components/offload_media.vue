@@ -146,7 +146,7 @@
 		</div>
 
 
-		<!--Rollback on enable notice-->
+		<!--Offload on enable notice-->
 		<div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showOffloadEnabled">
 			<label class="label column">
 
@@ -170,11 +170,23 @@
 			</label>
 			<div class="column is-2 is-right" style="position: relative;">
 				<button @click="callSync('offload_images')" class="optml-button is-small optml-button-page-position "
-								:class="this.$store.state.loadingSync ? 'is-loading'  : '' " :disabled="this.$store.state.loadingRollback || this.$store.state.loadingSync">
+								:class="this.$store.state.loadingSync ? 'is-loading'  : '' " :disabled="this.$store.state.loadingRollback || this.$store.state.loadingSync || this.showConflictNotice">
 					{{strings.sync_media}}
 				</button>
 			</div>
 		</div>
+    <!--Offload on enable notice-->
+    <div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showConflictNotice">
+      <label class="label column">
+
+
+        <p class="has-text-weight-normal" v-html="strings.offload_enable_info_desc">
+
+        </p>
+      </label>
+
+    </div>
+    <hr v-if="this.showConflictNotice"/>
 
 		<div class="field columns optml-light-background" v-if="this.$store.state.loadingSync">
 			<div class="column optml-media-progress-labels">
@@ -232,11 +244,23 @@
 			</label>
 			<div class="column is-2 is-right" style="position: relative;">
 				<button @click="callSync('rollback_images')" class="optml-button optml-button-page-position is-primary is-small "
-								:class="this.$store.state.loadingRollback ? 'is-loading'  : '' " :disabled="this.$store.state.loadingSync || this.$store.state.loadingRollback">
+								:class="this.$store.state.loadingRollback ? 'is-loading'  : '' " :disabled="this.$store.state.loadingSync || this.$store.state.loadingRollback || this.showConflictNotice">
 					{{strings.rollback_media}}
 				</button>
 			</div>
 		</div>
+    <!--Offload on enable notice-->
+    <div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showConflictNotice">
+      <label class="label column">
+
+
+        <p class="has-text-weight-normal" v-html="strings.offload_enable_info_desc">
+
+        </p>
+      </label>
+
+    </div>
+    <hr v-if="this.showConflictNotice"/>
 
 
 		<div class="field columns optml-light-background" v-if="this.$store.state.loadingRollback">
@@ -309,6 +333,7 @@ export default {
 			showSave: false,
 			showOffloadDisabled : false,
 			showOffloadEnabled : false,
+      showConflictNotice: false,
 			offloadDisableOptions : [],
 			select_rollback : 'yes_rollback',
 			new_data: {},
@@ -343,8 +368,16 @@ export default {
 			});
 		},
 		callSync : function ( action, imageIds = "none" ) {
-			this.$store.state.errorMedia = false;
-			this.$store.dispatch('callSync', { action: action, images: imageIds });
+      this.$store.state.checkedOffloadConflicts = false;
+      this.$store.dispatch('getOffloadConflicts' );
+      let interval = setInterval( function ( savedThis ) {
+        if ( savedThis.$store.state.checkedOffloadConflicts === true ) {
+          console.log("checked");
+          savedThis.$store.state.errorMedia = false;
+          savedThis.$store.dispatch('callSync', { action: action, images: imageIds });
+          clearInterval( interval );
+        }
+      }, 10000, this );
 		},
 		saveChanges: function () {
 			this.showOffloadEnabled = false;
@@ -419,5 +452,7 @@ export default {
 </script>
 
 <style scoped>
-
+button:disabled {
+  opacity: 0.5;
+}
 </style>

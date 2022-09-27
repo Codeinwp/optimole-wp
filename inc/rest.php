@@ -67,6 +67,7 @@ class Optml_Rest {
 			'update_page' => 'POST',
 			'upload_rollback_images' => 'POST',
 			'number_of_images_and_pages' => 'POST',
+            'get_offload_conflicts' => 'GET',
 		],
 		'watermark_routes' => [
 			'poll_watermarks' => 'GET',
@@ -818,4 +819,20 @@ class Optml_Rest {
 		}
 		return $this->response( Optml_Media_Offload::number_of_images_and_pages( $action ) );
 	}
+    /**
+     * Get conflicts list.
+     *
+     * @param WP_REST_Request $request rest request object.
+     *
+     * @return WP_REST_Response
+     */
+    public function get_offload_conflicts( WP_REST_Request $request ) {
+        $request = new Optml_Api();
+        $conflicts_list = $request->call_upload_api( '', 'false', '', 'false', 'false','auto', 'auto', 0, 'true' );
+        do_action('optml_log', $conflicts_list['body']);
+        if ( isset($conflicts_list['body']) ) {
+            //plugins name should be like swift-performance-lite/performance.php and then simply check with is_plugin_active
+            return $this->response(json_decode($conflicts_list['body']));
+        }
+    }
 }
