@@ -586,7 +586,7 @@ const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
 		}
 	} );
 };
-const getOffloadConflicts = function ( data, commit, consecutiveErrors = 0 ) {
+const getOffloadConflicts = function ({commit, state} ) {
 	Vue.http( {
 		url: optimoleDashboardApp.routes['get_offload_conflicts'],
 		method: 'GET',
@@ -594,9 +594,8 @@ const getOffloadConflicts = function ( data, commit, consecutiveErrors = 0 ) {
 		emulateJSON: true,
 		responseType: 'json',
 	} ).then( function ( response ) {
-		console.log(response);
-		this.$store.state.checkedOffloadConflicts = true;
-		if( response.status === 200 && response.body.data > 0 ) {
+		commit( 'toggleCheckedOffloadConflicts', true);
+		if( response.body.data.length === 0 ) {
 
 		} else {
 

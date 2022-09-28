@@ -372,12 +372,11 @@ export default {
       this.$store.dispatch('getOffloadConflicts' );
       let interval = setInterval( function ( savedThis ) {
         if ( savedThis.$store.state.checkedOffloadConflicts === true ) {
-          console.log("checked");
           savedThis.$store.state.errorMedia = false;
           savedThis.$store.dispatch('callSync', { action: action, images: imageIds });
           clearInterval( interval );
         }
-      }, 10000, this );
+      }, 1000, this );
 		},
 		saveChanges: function () {
 			this.showOffloadEnabled = false;

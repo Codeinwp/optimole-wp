@@ -219,7 +219,7 @@ final class Optml_Api {
 	 * @param int    $file_size Original file size.
 	 * @return array
 	 */
-	public function call_upload_api( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto', $file_size = 0, $check_conflicts = 'false' ) {
+	public function call_upload_api( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto', $file_size = 0 ) {
 		$body = [
 			'secret' => Optml_Config::$secret,
 			'userKey' => Optml_Config::$key,
@@ -231,7 +231,6 @@ final class Optml_Api {
 			'width' => $width,
 			'height' => $height,
 			'originalFileSize' => $file_size,
-            'checkConflicts' => $check_conflicts,
 		];
 		$body = wp_json_encode( $body );
 

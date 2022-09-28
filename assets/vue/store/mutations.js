@@ -29,6 +29,9 @@ const toggleConnectedToOptml = ( state, data ) => {
 const toggleShowDisconnectNotice = ( state, data ) => {
 	state.showDisconnect = data;
 };
+const toggleCheckedOffloadConflicts = ( state, data ) => {
+	state.checkedOffloadConflicts = data;
+};
 const toggleHasOptmlApp = ( state, data ) => {
 	state.hasApplication = data;
 };
@@ -122,5 +125,6 @@ export default {
 	toggleLoadingRollback,
 	toggleLoadingSync,
 	toggleActionError,
-	toggleShowDisconnectNotice
+	toggleShowDisconnectNotice,
+	toggleCheckedOffloadConflicts,
 };
