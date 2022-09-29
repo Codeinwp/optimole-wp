@@ -438,11 +438,34 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			'optml_replacement_wp_query_args',
 			['post_type' => $post_types, 'post_status' => 'any', 'fields' => 'ids',
 				'posts_per_page' => $batch,
-				'update_post_meta_cache' => false,
+				'update_post_meta_cache' => true,
 				'update_post_term_cache' => false,
 			]
 		);
-		$query_args['paged'] = $page;
+		if ( $job === 'offload_images' ) {
+            $query_args['meta_query'] = [
+				'relation' => 'AND',
+				[
+					'key' => 'optimole_offload_post',
+					'compare' => 'NOT EXISTS',
+				],
+			];
+		}
+		if ( $job === 'rollback_images' ) {
+            $query_args['meta_query'] = [
+				'relation' => 'AND',
+				[
+					'key' => 'optimole_offload_post',
+					'value' => 'true',
+					'compare' => '=',
+				],
+				[
+					'key' => 'optimole_rollback_post',
+					'compare' => 'NOT EXISTS',
+				],
+			];
+		}
+
 		$content = new \WP_Query( $query_args );
 		if ( OPTML_DEBUG ) {
 			do_action( 'optml_log', $page );
@@ -456,6 +479,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$ids = $this->get_image_id_from_content( get_post_field( 'post_content', $content_id ), $job );
 					if ( count( $ids ) > 0 ) {
 						$images_to_update[ $content_id ] = $ids;
+					}
+					if ( $job === 'offload_images' ) {
+                       update_post_meta( $content_id, 'optimole_offload_post', 'true' );
+					}
+					if ( $job === 'rollback_images' ) {
+                       update_post_meta( $content_id, 'optimole_rollback_post', 'true' );
 					}
 				}
 			}
