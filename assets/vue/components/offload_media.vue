@@ -159,6 +159,26 @@
 		</div>
 		<hr/>
 
+		<!--Offload/Rollback conflicts notice-->
+		<div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showConflictNotice">
+			<label class="label column">
+
+
+				<p class="has-text-weight-normal"> {{strings.offload_conflicts_part_1 }} </p>
+				<div v-for="(item, index) in getOffloadConflicts">
+				<p style = "margin-bottom:10px;"> {{item}}</p>
+				</div>
+				<p class="has-text-weight-normal"> {{strings.offload_conflicts_part_2 + "!" }} </p>
+
+			</label>
+			<a :class="is_loading ? 'is-loading' : '' "
+				 class="is-pulled-right button optml-conflict-done is-small is-link"
+				 v-on:click="dismissOffloadConflicts()"><span v-if="!is_loading" class="dashicons dashicons-yes"></span>{{conflictStrings.conflict_close}}</a>
+			<div class=" is-clearfix"></div>
+
+		</div>
+		<hr v-if="this.showConflictNotice"/>
+
 		<!-- Sync Media button -->
 		<div :class="{ 'saving--option' : this.$store.state.loading }" class="field  is-fullwidth columns " v-if="this.site_settings.offload_media==='enabled'">
 			<label class="label column has-text-grey-dark">
@@ -175,18 +195,7 @@
 				</button>
 			</div>
 		</div>
-    <!--Offload on enable notice-->
-    <div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showConflictNotice">
-      <label class="label column">
 
-
-        <p class="has-text-weight-normal" v-html="strings.offload_enable_info_desc">
-
-        </p>
-      </label>
-
-    </div>
-    <hr v-if="this.showConflictNotice"/>
 
 		<div class="field columns optml-light-background" v-if="this.$store.state.loadingSync">
 			<div class="column optml-media-progress-labels">
@@ -249,18 +258,6 @@
 				</button>
 			</div>
 		</div>
-    <!--Offload on enable notice-->
-    <div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showConflictNotice">
-      <label class="label column">
-
-
-        <p class="has-text-weight-normal" v-html="strings.offload_enable_info_desc">
-
-        </p>
-      </label>
-
-    </div>
-    <hr v-if="this.showConflictNotice"/>
 
 
 		<div class="field columns optml-light-background" v-if="this.$store.state.loadingRollback">
@@ -328,14 +325,16 @@ export default {
 	data() {
 		return {
 			strings: optimoleDashboardApp.strings.options_strings,
+			conflictStrings: optimoleDashboardApp.strings.conflicts,
 			all_strings: optimoleDashboardApp.strings,
 			maxTime: 100,
 			showSave: false,
 			showOffloadDisabled : false,
 			showOffloadEnabled : false,
-      showConflictNotice: false,
+			showConflictNotice: false,
 			offloadDisableOptions : [],
 			select_rollback : 'yes_rollback',
+			is_loading: false,
 			new_data: {},
 		}
 	},
@@ -368,15 +367,26 @@ export default {
 			});
 		},
 		callSync : function ( action, imageIds = "none" ) {
-      this.$store.state.checkedOffloadConflicts = false;
-      this.$store.dispatch('getOffloadConflicts' );
-      let interval = setInterval( function ( savedThis ) {
-        if ( savedThis.$store.state.checkedOffloadConflicts === true ) {
-          savedThis.$store.state.errorMedia = false;
-          savedThis.$store.dispatch('callSync', { action: action, images: imageIds });
-          clearInterval( interval );
-        }
-      }, 1000, this );
+			this.$store.commit('toggleCheckedOffloadConflicts', false);
+      this.$store.commit('updateOffloadConflicts', {body: { data: [] }});
+			this.$store.dispatch('getOffloadConflicts' );
+			let interval = setInterval( function ( savedThis ) {
+				if ( savedThis.$store.state.checkedOffloadConflicts === true ) {
+					if ( savedThis.$store.state.offloadConflicts.length === 0 ) {
+						savedThis.$store.state.errorMedia = false;
+						savedThis.$store.dispatch('callSync', {action: action, images: imageIds});
+					} else {
+						savedThis.showConflictNotice = true;
+					}
+					clearInterval( interval );
+				}
+			}, 1000, this );
+		},
+		dismissOffloadConflicts() {
+			this.is_loading = true;
+			this.$store.commit('toggleCheckedOffloadConflicts', false);
+			this.showConflictNotice = false;
+			this.is_loading = false;
 		},
 		saveChanges: function () {
 			this.showOffloadEnabled = false;
@@ -384,7 +394,7 @@ export default {
 				this.callSync('rollback_images' );
 				this.select_rollback = 'no_rollback';
 			}
-      this.showOffloadDisabled = false;
+			this.showOffloadDisabled = false;
 			this.$store.dispatch('saveSettings', {
 				settings: this.new_data
 			});
@@ -407,6 +417,12 @@ export default {
 	computed: {
 		site_settings() {
 			return this.$store.state.site_settings;
+		},
+		showConflictNotice() {
+			return this.showConflictNotice;
+		},
+		getOffloadConflicts () {
+			return this.$store.state.offloadConflicts;
 		},
 		sites() {
 			return this.$store.state.site_settings.whitelist_domains;
@@ -452,6 +468,6 @@ export default {
 
 <style scoped>
 button:disabled {
-  opacity: 0.5;
+	opacity: 0.5;
 }
 </style>

@@ -595,10 +595,8 @@ const getOffloadConflicts = function ({commit, state} ) {
 		responseType: 'json',
 	} ).then( function ( response ) {
 		commit( 'toggleCheckedOffloadConflicts', true);
-		if( response.body.data.length === 0 ) {
-
-		} else {
-
+		if( response.body.data.length !== 0 ) {
+			commit( 'updateOffloadConflicts', response );
 		}
 	} ).catch( function ( err ) {
 

@@ -102,6 +102,9 @@ const updatePushedImagesProgress = ( state, data ) => {
 		state.pushedImagesProgress += data/state.totalNumberOfImages*100;
 	}
 };
+const updateOffloadConflicts = ( state, data ) => {
+	state.offloadConflicts = data.body.data;
+};
 export default {
 	restApiNotWorking,
 	toggleConnectedToOptml,
@@ -127,4 +130,5 @@ export default {
 	toggleActionError,
 	toggleShowDisconnectNotice,
 	toggleCheckedOffloadConflicts,
+	updateOffloadConflicts,
 };
