@@ -190,7 +190,7 @@
 			</label>
 			<div class="column is-2 is-right" style="position: relative;">
 				<button @click="callSync('offload_images')" class="optml-button is-small optml-button-page-position "
-								:class="this.$store.state.loadingSync ? 'is-loading'  : '' " :disabled="this.$store.state.loadingRollback || this.$store.state.loadingSync || this.showConflictNotice">
+								:class="this.$store.state.loadingSync ? 'is-loading'  : '' " :disabled="this.$store.state.loadingRollback || this.$store.state.loadingSync">
 					{{strings.sync_media}}
 				</button>
 			</div>
@@ -367,20 +367,26 @@ export default {
 			});
 		},
 		callSync : function ( action, imageIds = "none" ) {
-			this.$store.commit('toggleCheckedOffloadConflicts', false);
-      this.$store.commit('updateOffloadConflicts', {body: { data: [] }});
-			this.$store.dispatch('getOffloadConflicts' );
-			let interval = setInterval( function ( savedThis ) {
-				if ( savedThis.$store.state.checkedOffloadConflicts === true ) {
-					if ( savedThis.$store.state.offloadConflicts.length === 0 ) {
-						savedThis.$store.state.errorMedia = false;
-						savedThis.$store.dispatch('callSync', {action: action, images: imageIds});
-					} else {
-						savedThis.showConflictNotice = true;
-					}
-					clearInterval( interval );
-				}
-			}, 1000, this );
+      if ( action === 'rollback_images' ) {
+        this.$store.commit('toggleCheckedOffloadConflicts', false);
+        this.$store.commit('updateOffloadConflicts', {body: { data: [] }});
+        this.$store.dispatch('getOffloadConflicts' );
+        let interval = setInterval(function (savedThis) {
+          if (savedThis.$store.state.checkedOffloadConflicts === true) {
+            if (savedThis.$store.state.offloadConflicts.length === 0) {
+              savedThis.$store.state.errorMedia = false;
+              savedThis.$store.dispatch('callSync', {action: action, images: imageIds});
+            } else {
+              savedThis.showConflictNotice = true;
+            }
+            clearInterval(interval);
+          }
+        }, 1000, this);
+      }
+      else {
+        this.$store.state.errorMedia = false;
+        this.$store.dispatch('callSync', {action: action, images: imageIds});
+      }
 		},
 		dismissOffloadConflicts() {
 			this.is_loading = true;
