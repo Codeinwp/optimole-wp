@@ -159,26 +159,6 @@
 		</div>
 		<hr/>
 
-		<!--Offload/Rollback conflicts notice-->
-		<div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showConflictNotice">
-			<label class="label column">
-
-
-				<p class="has-text-weight-normal"> {{strings.offload_conflicts_part_1 }} </p>
-				<div v-for="(item, index) in getOffloadConflicts">
-				<p style = "margin-bottom:10px;"> {{item}}</p>
-				</div>
-				<p class="has-text-weight-normal"> {{strings.offload_conflicts_part_2 + "!" }} </p>
-
-			</label>
-			<a :class="is_loading ? 'is-loading' : '' "
-				 class="is-pulled-right button optml-conflict-done is-small is-link"
-				 v-on:click="dismissOffloadConflicts()"><span v-if="!is_loading" class="dashicons dashicons-yes"></span>{{conflictStrings.conflict_close}}</a>
-			<div class=" is-clearfix"></div>
-
-		</div>
-		<hr v-if="this.showConflictNotice"/>
-
 		<!-- Sync Media button -->
 		<div :class="{ 'saving--option' : this.$store.state.loading }" class="field  is-fullwidth columns " v-if="this.site_settings.offload_media==='enabled'">
 			<label class="label column has-text-grey-dark">
@@ -242,6 +222,25 @@
 				</div>
 		</div>
 		<hr v-if="this.site_settings.offload_media==='enabled'"/>
+		<!--Rollback conflicts notice-->
+		<div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showConflictNotice">
+			<label class="label column">
+
+
+				<p class="has-text-weight-normal"> {{strings.offload_conflicts_part_1 }} </p>
+				<div v-for="(item, index) in getOffloadConflicts">
+					<p style = "margin-bottom:10px;"> {{item}}</p>
+				</div>
+				<p class="has-text-weight-normal"> {{strings.offload_conflicts_part_2 + "!" }} </p>
+
+			</label>
+			<a :class="is_loading ? 'is-loading' : '' "
+				 class="is-pulled-right button optml-conflict-done is-small is-link"
+				 v-on:click="dismissOffloadConflicts()"><span v-if="!is_loading" class="dashicons dashicons-yes"></span>{{conflictStrings.conflict_close}}</a>
+			<div class=" is-clearfix"></div>
+
+		</div>
+
 		<!-- Rollback Media button -->
 		<div class="field  is-fullwidth columns " v-if="this.site_settings.offload_media==='enabled' || this.$store.state.loadingRollback">
 			<label class="label column has-text-grey-dark">
@@ -367,26 +366,26 @@ export default {
 			});
 		},
 		callSync : function ( action, imageIds = "none" ) {
-      if ( action === 'rollback_images' ) {
-        this.$store.commit('toggleCheckedOffloadConflicts', false);
-        this.$store.commit('updateOffloadConflicts', {body: { data: [] }});
-        this.$store.dispatch('getOffloadConflicts' );
-        let interval = setInterval(function (savedThis) {
-          if (savedThis.$store.state.checkedOffloadConflicts === true) {
-            if (savedThis.$store.state.offloadConflicts.length === 0) {
-              savedThis.$store.state.errorMedia = false;
-              savedThis.$store.dispatch('callSync', {action: action, images: imageIds});
-            } else {
-              savedThis.showConflictNotice = true;
-            }
-            clearInterval(interval);
-          }
-        }, 1000, this);
-      }
-      else {
-        this.$store.state.errorMedia = false;
-        this.$store.dispatch('callSync', {action: action, images: imageIds});
-      }
+			if ( action === 'rollback_images' ) {
+				this.$store.commit('toggleCheckedOffloadConflicts', false);
+				this.$store.commit('updateOffloadConflicts', {body: { data: [] }});
+				this.$store.dispatch('getOffloadConflicts' );
+				let interval = setInterval(function (savedThis) {
+					if (savedThis.$store.state.checkedOffloadConflicts === true) {
+						if (savedThis.$store.state.offloadConflicts.length === 0) {
+							savedThis.$store.state.errorMedia = false;
+							savedThis.$store.dispatch('callSync', {action: action, images: imageIds});
+						} else {
+							savedThis.showConflictNotice = true;
+						}
+						clearInterval(interval);
+					}
+				}, 1000, this);
+			}
+			else {
+				this.$store.state.errorMedia = false;
+				this.$store.dispatch('callSync', {action: action, images: imageIds});
+			}
 		},
 		dismissOffloadConflicts() {
 			this.is_loading = true;

@@ -192,27 +192,23 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'media_row_actions', [self::$instance, 'add_inline_media_action'], 10, 2 );
 				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
 
-                //TODO: check why this triggers multiple times
-				add_action( 'post_updated', [self::$instance,'update_offload_meta'], 10, 3 );
+				// TODO: check why this triggers multiple times
+				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
 			}
 		}
 		return self::$instance;
 	}
-	public function update_offload_meta($post_ID, $post_after, $post_before ) {
-        do_action('optml_log', "here");
-        do_action('optml_log', self::$offload_update_post);
+	public function update_offload_meta( $post_ID, $post_after, $post_before ) {
 		if ( self::$offload_update_post === true ) {
-            self::$offload_update_post = false;
 			return;
 		}
-		if ( get_post_type($post_ID) === 'attachment' ) {
+		if ( get_post_type( $post_ID ) === 'attachment' ) {
 			return;
 		}
-		//revisions are skipped inside the function no need to check them before
-		do_action('optml_log', $post_ID);
 
-		delete_post_meta( $post_ID, self::POST_OFFLOADED_FLAG);
-		delete_post_meta( $post_ID, self::POST_ROLLBACK_FLAG);
+		// revisions are skipped inside the function no need to check them before
+		delete_post_meta( $post_ID, self::POST_OFFLOADED_FLAG );
+		delete_post_meta( $post_ID, self::POST_ROLLBACK_FLAG );
 	}
 	/**
 	 * Get image size name from width and meta.
@@ -502,16 +498,17 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$content->the_post();
 				$content_id = get_the_ID();
 				if ( get_post_type() !== 'attachment' ) {
-					do_action('optml_log', $page);
 					$ids = $this->get_image_id_from_content( get_post_field( 'post_content', $content_id ), $job );
 					if ( count( $ids ) > 0 ) {
 						$images_to_update[ $content_id ] = $ids;
 					}
 					if ( $job === 'offload_images' ) {
 						update_post_meta( $content_id, self::POST_OFFLOADED_FLAG, 'true' );
+						delete_post_meta( $content_id, self::POST_ROLLBACK_FLAG );
 					}
 					if ( $job === 'rollback_images' ) {
 						update_post_meta( $content_id, self::POST_ROLLBACK_FLAG, 'true' );
+						delete_post_meta( $content_id, self::POST_OFFLOADED_FLAG );
 					}
 				}
 			}
@@ -1189,6 +1186,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public function update_page( $post_id ) {
 		self::$offload_update_post = true;
 		$post_update = wp_update_post( ['ID' => $post_id] );
+		self::$offload_update_post = false;
 		if ( is_wp_error( $post_update ) || $post_update === 0 ) {
 			return false;
 		}

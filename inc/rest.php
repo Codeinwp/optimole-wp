@@ -21,12 +21,12 @@ class Optml_Rest {
 	 */
 	private $namespace;
 
-    /**
-     * Upload conflicts api.
-     *
-     * @var string upload_conflicts_api.
-     */
-    private $upload_conflicts_api;
+	/**
+	 * Upload conflicts api.
+	 *
+	 * @var string upload_conflicts_api.
+	 */
+	private $upload_conflicts_api;
 	/**
 	 * Rest api routes.
 	 *
@@ -73,7 +73,7 @@ class Optml_Rest {
 			'update_page' => 'POST',
 			'upload_rollback_images' => 'POST',
 			'number_of_images_and_pages' => 'POST',
-            'get_offload_conflicts' => 'GET',
+			'get_offload_conflicts' => 'GET',
 		],
 		'watermark_routes' => [
 			'poll_watermarks' => 'GET',
@@ -94,10 +94,10 @@ class Optml_Rest {
 	 */
 	public function __construct() {
 		$this->namespace = OPTML_NAMESPACE . '/v1';
-        $this->upload_conflicts_api = "https://placeholder_replace_with_live_value";
-        if ( defined( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) && constant( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) ) {
-            $this->upload_conflicts_api = constant( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' );
-        }
+		$this->upload_conflicts_api = 'https://placeholder_replace_with_live_value';
+		if ( defined( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) && constant( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) ) {
+			$this->upload_conflicts_api = constant( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' );
+		}
 		add_action( 'rest_api_init', [ $this, 'register' ] );
 	}
 
@@ -829,25 +829,25 @@ class Optml_Rest {
 		}
 		return $this->response( Optml_Media_Offload::number_of_images_and_pages( $action ) );
 	}
-    /**
-     * Get conflicts list.
-     *
-     * @param WP_REST_Request $request rest request object.
-     *
-     * @return WP_REST_Response
-     */
-    public function get_offload_conflicts( WP_REST_Request $request ) {
-        $conflicts_list =  wp_remote_retrieve_body( wp_remote_get( $this->upload_conflicts_api ) );
-        $decoded_list = json_decode($conflicts_list,true );
-        $active_conflicts = [];
-        if ( $decoded_list['plugins'] ) {
-            foreach ($decoded_list['plugins'] as $slug => $plugin_name) {
-                if ( is_plugin_active($slug)) {
-                    $active_conflicts[] = $plugin_name;
-                }
-            }
-        }
+	/**
+	 * Get conflicts list.
+	 *
+	 * @param WP_REST_Request $request rest request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function get_offload_conflicts( WP_REST_Request $request ) {
+		$conflicts_list = wp_remote_retrieve_body( wp_remote_get( $this->upload_conflicts_api ) );
+		$decoded_list = json_decode( $conflicts_list, true );
+		$active_conflicts = [];
+		if ( $decoded_list['plugins'] ) {
+			foreach ( $decoded_list['plugins'] as $slug => $plugin_name ) {
+				if ( is_plugin_active( $slug ) ) {
+					$active_conflicts[] = $plugin_name;
+				}
+			}
+		}
 
-        return $this->response($active_conflicts);
-    }
+		return $this->response( $active_conflicts );
+	}
 }
