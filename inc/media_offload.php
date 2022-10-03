@@ -191,13 +191,22 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'bulk_actions-upload', [self::$instance, 'register_bulk_media_actions'] );
 				add_filter( 'media_row_actions', [self::$instance, 'add_inline_media_action'], 10, 2 );
 				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
-
-				// TODO: check why this triggers multiple times
 				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
 			}
 		}
 		return self::$instance;
 	}
+
+	/**
+	 * Update offload meta when the page is updated.
+	 *
+	 * @param int     $post_ID Updated post id.
+	 * @param WP_Post $post_after Post before the update.
+	 * @param WP_post $post_before Post after the update.
+	 * @uses action:post_updated
+	 *
+	 * @return void
+	 */
 	public function update_offload_meta( $post_ID, $post_after, $post_before ) {
 		if ( self::$offload_update_post === true ) {
 			return;
