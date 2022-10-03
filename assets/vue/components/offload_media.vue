@@ -231,7 +231,7 @@
 				<div v-for="(item, index) in getOffloadConflicts">
 					<p style = "margin-bottom:10px;"> {{item}}</p>
 				</div>
-				<p class="has-text-weight-normal"> {{strings.offload_conflicts_part_2 + "!" }} </p>
+				<p class="has-text-weight-normal"> {{strings.offload_conflicts_part_2 }} </p>
 
 			</label>
 			<a :class="is_loading ? 'is-loading' : '' "

@@ -26,12 +26,6 @@ class Optml_Rest {
 	 *
 	 * @var string upload_conflicts_api.
 	 */
-	private $upload_conflicts_api;
-	/**
-	 * Rest api routes.
-	 *
-	 * @var array List of routes and details (type, required args).
-	 */
 	public static $rest_routes = [
 		'service_routes' => ['update_option' => 'POST', 'request_update' => 'GET', 'check_redirects' => 'POST_PUT_PATCH',
 			'connect' => [ 'POST', 'args'  => [
@@ -94,10 +88,7 @@ class Optml_Rest {
 	 */
 	public function __construct() {
 		$this->namespace = OPTML_NAMESPACE . '/v1';
-		$this->upload_conflicts_api = 'https://placeholder_replace_with_live_value';
-		if ( defined( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) && constant( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) ) {
-			$this->upload_conflicts_api = constant( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' );
-		}
+
 		add_action( 'rest_api_init', [ $this, 'register' ] );
 	}
 
@@ -837,8 +828,8 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function get_offload_conflicts( WP_REST_Request $request ) {
-		$conflicts_list = wp_remote_retrieve_body( wp_remote_get( $this->upload_conflicts_api ) );
-		$decoded_list = json_decode( $conflicts_list, true );
+		$request  = new Optml_Api();
+		$decoded_list     = $request->get_offload_conflicts();
 		$active_conflicts = [];
 		if ( $decoded_list['plugins'] ) {
 			foreach ( $decoded_list['plugins'] as $slug => $plugin_name ) {
