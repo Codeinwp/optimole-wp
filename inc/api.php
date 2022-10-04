@@ -390,7 +390,6 @@ final class Optml_Api {
 		$headers = wp_remote_retrieve_headers( $error_response );
 		$body = wp_remote_retrieve_body( $error_response );
 
-
 		wp_remote_post(
 			$this->upload_conflicts_api,
 			[
