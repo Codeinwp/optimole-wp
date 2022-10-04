@@ -390,6 +390,10 @@ final class Optml_Api {
 		$headers = wp_remote_retrieve_headers( $error_response );
 		$body = wp_remote_retrieve_body( $error_response );
 
+		$headers_to_log = 'no_headers_returned';
+		if ( ! empty( $headers ) ) {
+			$headers_to_log = wp_json_encode( $headers->getAll() );
+		}
 		wp_remote_post(
 			$this->upload_conflicts_api,
 			[
@@ -400,7 +404,7 @@ final class Optml_Api {
 				'data_format' => 'body',
 				'body' => [
 					'error_body' => wp_json_encode( $body ),
-					'error_headers' => wp_json_encode( $headers->getAll() ),
+					'error_headers' => $headers_to_log,
 				],
 			]
 		);

@@ -831,10 +831,13 @@ class Optml_Rest {
 		$request  = new Optml_Api();
 		$decoded_list     = $request->get_offload_conflicts();
 		$active_conflicts = [];
-		if ( $decoded_list['plugins'] ) {
-			foreach ( $decoded_list['plugins'] as $slug => $plugin_name ) {
+		if ( isset( $decoded_list['plugins'] ) ) {
+			foreach ( $decoded_list['plugins'] as $slug ) {
 				if ( is_plugin_active( $slug ) ) {
-					$active_conflicts[] = $plugin_name;
+					$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $slug );
+					if ( ! empty( $plugin_data['Name'] ) ) {
+						$active_conflicts[] = $plugin_data['Name'];
+					}
 				}
 			}
 		}
