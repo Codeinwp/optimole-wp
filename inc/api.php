@@ -405,6 +405,7 @@ final class Optml_Api {
 				'body' => [
 					'error_body' => wp_json_encode( $body ),
 					'error_headers' => $headers_to_log,
+					'error_site' => wp_json_encode( get_home_url() ),
 				],
 			]
 		);
