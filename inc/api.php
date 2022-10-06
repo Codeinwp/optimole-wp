@@ -26,7 +26,7 @@ final class Optml_Api {
 	 *
 	 * @var string Api root.
 	 */
-	private $upload_conflicts_api = 'https://placeholder_replace_with_live_value';
+	private $upload_conflicts_api = 'https://conflicts.i.optimole.com/offload_api/';
 	/**
 	 * Hold the user api key.
 	 *
