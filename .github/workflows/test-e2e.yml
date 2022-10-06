@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: 14
       - name: E2E tests chrome
-        uses: cypress-io/github-action@v2
+        uses: cypress-io/github-action@v4
         with:
           env: host=testing.optimole.com
           browser: chrome
@@ -42,7 +42,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 14
-      - uses: cypress-io/github-action@v2
+      - uses: cypress-io/github-action@v4
         with:
           env: host=testing.optimole.com
           browser: firefox
