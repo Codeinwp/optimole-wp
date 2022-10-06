@@ -2,7 +2,7 @@
 Contributors: optimole
 Tags: image optimization, convert webp, responsive images, lazy load, images, optimization, performance, photos, free cdn
 Requires at least: 4.7
-Tested up to: 5.9
+Tested up to: 6.0
 Requires PHP: 5.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -17,6 +17,7 @@ Automatically compress, optimize and serve scaled images along with next-gen Web
 > * Fully automated; [set and forget](https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps)
 > * Supports all image types
 > * Supports both Retina and WebP images
+> * Machine Learning(ML) powered automatic compression
 > * AVIF format support for lower image size
 > * Cloud image library support
 > * Serves images from a global CDN for free
@@ -44,13 +45,13 @@ With the basic plan, you will be able to optimize unmetered number of images for
 Better yet. The free version is fully functional and includes all of the following great features:
 
 **Format Based Optimization**
-Our cloud-based transformation process means we can optimize images based on the format as well as serve images in next-gen formats. If your visitor is using a WebP capable browser, then Optimole will convert to WebP the image and send it to their device.
+Our cloud-based transformation process means we can optimize images based on the format as well as serve images in next-gen formats. If your visitor is using a WebP capable browser, then Optimole will convert to WebP the image and send it to their device. AVIF support included.
 
 **Cloud Library support**
 Offload your website images directly to Optimole Cloud and save storage space on your server. Cross share images between your all your websites connected to Optimole.
 
 **Image Optimization**
-Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size.
+Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size using Machine Learning(ML) powered compression.
 
 **Exact Used Size**
 Optimole will use just one image and resize it delivering a responsive image to fit perfectly on your visitors' devices. No more awkward guesses at potential screen widths. Serve scaled images instantly.
@@ -93,6 +94,71 @@ Premium users will be able to optimize images starting with more than 25k monthl
 4. Plugin settings
 
 == Changelog ==
+
+##### [Version 3.4.6](https://github.com/Codeinwp/optimole-wp/compare/v3.4.5...v3.4.6) (2022-09-08)
+
+* Updated cache buster format
+* Adds validation for width/height values according to HTML standards
+
+
+
+
+##### [Version 3.4.5](https://github.com/Codeinwp/optimole-wp/compare/v3.4.4...v3.4.5) (2022-08-22)
+
+#### Features
+* Allows users to add cropped image sizes from within the plugin settings
+* Adds an option to exclude a page path from optimization using exact matching
+* Adds the option to create and connect an account with one click
+* Adds filter, <code>optml_keep_copyright</code> , to control if image optimization should keep copyright metadata 
+#### Fixes
+* Enhances compatibility with Beaver builder to optimize images in javascript files 
+* Enhances compatibility with Cache enabler to use the latest plugin's filters and clears page cache when Optimole's settings are updated
+* Updates compatibility with Divi theme/builder to optimize images in the static css/js files and regenerate those files when Optimole's settings are updated
+* Enhances compatibility with Elementor to update the optimized images in the generated css files upon changing Optimole's settings
+* Adds the latest lazyload exclusion flags for Slider Revolution
+* Enhances W3 Total Cache compatibility to clear the cache when Optimole's settings are updated
+* Updates compatibility with YITH WooCommerce Quick View to optimize quick view images
+
+
+
+
+##### [Version 3.4.4](https://github.com/Codeinwp/optimole-wp/compare/v3.4.3...v3.4.4) (2022-07-14)
+
+* Enhance WooCommerce and WPBakery compatibilities when users are offloading the images to Optimole cloud.
+* Improve compatibility with all plugins that are editing the media modal tabs.
+
+
+
+
+##### [Version 3.4.3](https://github.com/Codeinwp/optimole-wp/compare/v3.4.2...v3.4.3) (2022-05-30)
+
+* Enhance Thrive compatibility when users are offloading the images to Optimole cloud.
+
+
+
+
+##### [Version 3.4.2](https://github.com/Codeinwp/optimole-wp/compare/v3.4.1...v3.4.2) (2022-05-25)
+
+* Fix edge cases for auto allowing domain on site migration.
+
+
+
+
+##### [Version 3.4.1](https://github.com/Codeinwp/optimole-wp/compare/v3.4.0...v3.4.1) (2022-05-10)
+
+* Auto allow domain when the website URL is being changed, such as moving from production -> staging or viceversa
+
+
+
+
+#### [Version 3.4.0](https://github.com/Codeinwp/optimole-wp/compare/v3.3.5...v3.4.0) (2022-04-18)
+
+* Adds Machine Learning(ML) quality compression which will predict the right quality for your image in order to get the smallest possible size with minimum perceived quality losses, delivering images with ~40% smaller size than the current solution.
+* Adds AVIF format conversion enabled by default for everyone. 
+* Fix edge case when content URL is relative and prevents Optimole from replacing the URLs.
+
+
+
 
 ##### [Version 3.3.5](https://github.com/Codeinwp/optimole-wp/compare/v3.3.4...v3.3.5) (2022-03-31)
 

@@ -1,3 +1,47 @@
+##### [Version 3.4.6](https://github.com/Codeinwp/optimole-wp/compare/v3.4.5...v3.4.6) (2022-09-08)
+
+* Updated cache buster format
+* Adds validation for width/height values according to HTML standards
+
+##### [Version 3.4.5](https://github.com/Codeinwp/optimole-wp/compare/v3.4.4...v3.4.5) (2022-08-22)
+
+#### Features
+* Allows users to add cropped image sizes from within the plugin settings
+* Adds an option to exclude a page path from optimization using exact matching
+* Adds the option to create and connect an account with one click
+* Adds filter, <code>optml_keep_copyright</code> , to control if image optimization should keep copyright metadata 
+#### Fixes
+* Enhances compatibility with Beaver builder to optimize images in javascript files 
+* Enhances compatibility with Cache enabler to use the latest plugin's filters and clears page cache when Optimole's settings are updated
+* Updates compatibility with Divi theme/builder to optimize images in the static css/js files and regenerate those files when Optimole's settings are updated
+* Enhances compatibility with Elementor to update the optimized images in the generated css files upon changing Optimole's settings
+* Adds the latest lazyload exclusion flags for Slider Revolution
+* Enhances W3 Total Cache compatibility to clear the cache when Optimole's settings are updated
+* Updates compatibility with YITH WooCommerce Quick View to optimize quick view images
+
+##### [Version 3.4.4](https://github.com/Codeinwp/optimole-wp/compare/v3.4.3...v3.4.4) (2022-07-14)
+
+* Enhance WooCommerce and WPBakery compatibilities when users are offloading the images to Optimole cloud.
+* Improve compatibility with all plugins that are editing the media modal tabs.
+
+##### [Version 3.4.3](https://github.com/Codeinwp/optimole-wp/compare/v3.4.2...v3.4.3) (2022-05-30)
+
+* Enhance Thrive compatibility when users are offloading the images to Optimole cloud.
+
+##### [Version 3.4.2](https://github.com/Codeinwp/optimole-wp/compare/v3.4.1...v3.4.2) (2022-05-25)
+
+Fix edge cases for auto allowing domain on site migration.
+
+##### [Version 3.4.1](https://github.com/Codeinwp/optimole-wp/compare/v3.4.0...v3.4.1) (2022-05-10)
+
+* Auto allow domain when the website URL is being changed, such as moving from production -> staging or viceversa
+
+#### [Version 3.4.0](https://github.com/Codeinwp/optimole-wp/compare/v3.3.5...v3.4.0) (2022-04-18)
+
+* Adds Machine Learning(ML) quality compression which will predict the right quality for your image in order to get the smallest possible size with minimum perceived quality losses, delivering images with ~40% smaller size than the current solution.
+* Adds AVIF format conversion enabled by default for everyone. 
+* Fix edge case when content URL is relative and prevents Optimole from replacing the URLs.
+
 ##### [Version 3.3.5](https://github.com/Codeinwp/optimole-wp/compare/v3.3.4...v3.3.5) (2022-03-31)
 
 #### Fixes
