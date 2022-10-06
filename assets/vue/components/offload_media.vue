@@ -146,7 +146,7 @@
 		</div>
 
 
-		<!--Rollback on enable notice-->
+		<!--Offload on enable notice-->
 		<div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showOffloadEnabled">
 			<label class="label column">
 
@@ -175,6 +175,7 @@
 				</button>
 			</div>
 		</div>
+
 
 		<div class="field columns optml-light-background" v-if="this.$store.state.loadingSync">
 			<div class="column optml-media-progress-labels">
@@ -221,6 +222,25 @@
 				</div>
 		</div>
 		<hr v-if="this.site_settings.offload_media==='enabled'"/>
+		<!--Rollback conflicts notice-->
+		<div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showConflictNotice">
+			<label class="label column">
+
+
+				<p class="has-text-weight-normal"> {{strings.offload_conflicts_part_1 }} </p>
+				<div v-for="(item, index) in getOffloadConflicts">
+					<p style = "margin-bottom:10px;"> {{item}}</p>
+				</div>
+				<p class="has-text-weight-normal"> {{strings.offload_conflicts_part_2 }} </p>
+
+			</label>
+			<a :class="is_loading ? 'is-loading' : '' "
+				 class="is-pulled-right button optml-conflict-done is-small is-link"
+				 v-on:click="dismissOffloadConflicts()"><span v-if="!is_loading" class="dashicons dashicons-yes"></span>{{conflictStrings.conflict_close}}</a>
+			<div class=" is-clearfix"></div>
+
+		</div>
+
 		<!-- Rollback Media button -->
 		<div class="field  is-fullwidth columns " v-if="this.site_settings.offload_media==='enabled' || this.$store.state.loadingRollback">
 			<label class="label column has-text-grey-dark">
@@ -232,7 +252,7 @@
 			</label>
 			<div class="column is-2 is-right" style="position: relative;">
 				<button @click="callSync('rollback_images')" class="optml-button optml-button-page-position is-primary is-small "
-								:class="this.$store.state.loadingRollback ? 'is-loading'  : '' " :disabled="this.$store.state.loadingSync || this.$store.state.loadingRollback">
+								:class="this.$store.state.loadingRollback ? 'is-loading'  : '' " :disabled="this.$store.state.loadingSync || this.$store.state.loadingRollback || this.showConflictNotice">
 					{{strings.rollback_media}}
 				</button>
 			</div>
@@ -304,13 +324,16 @@ export default {
 	data() {
 		return {
 			strings: optimoleDashboardApp.strings.options_strings,
+			conflictStrings: optimoleDashboardApp.strings.conflicts,
 			all_strings: optimoleDashboardApp.strings,
 			maxTime: 100,
 			showSave: false,
 			showOffloadDisabled : false,
 			showOffloadEnabled : false,
+			showConflictNotice: false,
 			offloadDisableOptions : [],
 			select_rollback : 'yes_rollback',
+			is_loading: false,
 			new_data: {},
 		}
 	},
@@ -343,8 +366,32 @@ export default {
 			});
 		},
 		callSync : function ( action, imageIds = "none" ) {
-			this.$store.state.errorMedia = false;
-			this.$store.dispatch('callSync', { action: action, images: imageIds });
+			if ( action === 'rollback_images' ) {
+				this.$store.commit('toggleCheckedOffloadConflicts', false);
+				this.$store.commit('updateOffloadConflicts', {body: { data: [] }});
+				this.$store.dispatch('getOffloadConflicts' );
+				let interval = setInterval(function (savedThis) {
+					if (savedThis.$store.state.checkedOffloadConflicts === true) {
+						if (savedThis.$store.state.offloadConflicts.length === 0) {
+							savedThis.$store.state.errorMedia = false;
+							savedThis.$store.dispatch('callSync', {action: action, images: imageIds});
+						} else {
+							savedThis.showConflictNotice = true;
+						}
+						clearInterval(interval);
+					}
+				}, 1000, this);
+			}
+			else {
+				this.$store.state.errorMedia = false;
+				this.$store.dispatch('callSync', {action: action, images: imageIds});
+			}
+		},
+		dismissOffloadConflicts() {
+			this.is_loading = true;
+			this.$store.commit('toggleCheckedOffloadConflicts', false);
+			this.showConflictNotice = false;
+			this.is_loading = false;
 		},
 		saveChanges: function () {
 			this.showOffloadEnabled = false;
@@ -352,7 +399,7 @@ export default {
 				this.callSync('rollback_images' );
 				this.select_rollback = 'no_rollback';
 			}
-      this.showOffloadDisabled = false;
+			this.showOffloadDisabled = false;
 			this.$store.dispatch('saveSettings', {
 				settings: this.new_data
 			});
@@ -375,6 +422,12 @@ export default {
 	computed: {
 		site_settings() {
 			return this.$store.state.site_settings;
+		},
+		showConflictNotice() {
+			return this.showConflictNotice;
+		},
+		getOffloadConflicts () {
+			return this.$store.state.offloadConflicts;
 		},
 		sites() {
 			return this.$store.state.site_settings.whitelist_domains;
@@ -419,5 +472,7 @@ export default {
 </script>
 
 <style scoped>
-
+button:disabled {
+	opacity: 0.5;
+}
 </style>

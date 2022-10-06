@@ -22,6 +22,12 @@ final class Optml_Api {
 	 */
 	private $upload_api_root = 'https://generateurls-prod.i.optimole.com/upload';
 	/**
+	 * Optimole offload conflicts api root url.
+	 *
+	 * @var string Api root.
+	 */
+	private $upload_conflicts_api = 'https://conflicts.i.optimole.com/offload_api/';
+	/**
 	 * Hold the user api key.
 	 *
 	 * @var string Api key.
@@ -38,6 +44,9 @@ final class Optml_Api {
 		}
 		if ( defined( 'OPTIML_UPLOAD_API_ROOT' ) && constant( 'OPTIML_UPLOAD_API_ROOT' ) ) {
 			$this->upload_api_root = constant( 'OPTIML_UPLOAD_API_ROOT' );
+		}
+		if ( defined( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) && constant( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) ) {
+			$this->upload_conflicts_api = constant( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' );
 		}
 	}
 
@@ -200,7 +209,9 @@ final class Optml_Api {
 	 */
 	public function check_optimized_url( $url ) {
 		$response = wp_remote_get( $url, ['timeout' => 30] );
-		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 ) {
+
+		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 || ! empty( wp_remote_retrieve_header( $response, 'x-not-found-o' ) ) ) {
+			$this->log_offload_error( $response );
 			return false;
 		}
 		return true;
@@ -359,6 +370,45 @@ final class Optml_Api {
 			$params['domains'] = implode( ',', $domains );
 		}
 		return $this->request( 'optml/v2/media/browser', 'GET', $params );
+	}
+	/**
+	 * Get offload conflicts.
+	 *
+	 * @return array The decoded conflicts list.
+	 */
+	public function get_offload_conflicts() {
+		$conflicts_list = wp_remote_retrieve_body( wp_remote_get( $this->upload_conflicts_api ) );
+		return json_decode( $conflicts_list, true );
+	}
+	/**
+	 * Get offload conflicts.
+	 *
+	 * @param array $error_response The error to send as a string.
+	 */
+	public function log_offload_error( $error_response ) {
+
+		$headers = wp_remote_retrieve_headers( $error_response );
+		$body = wp_remote_retrieve_body( $error_response );
+
+		$headers_to_log = 'no_headers_returned';
+		if ( ! empty( $headers ) ) {
+			$headers_to_log = wp_json_encode( $headers->getAll() );
+		}
+		wp_remote_post(
+			$this->upload_conflicts_api,
+			[
+				'headers' => [         'Content-Type' => 'application/json'                      ],
+				'timeout'     => 15,
+				'blocking'    => true,
+				'sslverify'   => false,
+				'data_format' => 'body',
+				'body' => [
+					'error_body' => wp_json_encode( $body ),
+					'error_headers' => $headers_to_log,
+					'error_site' => wp_json_encode( get_home_url() ),
+				],
+			]
+		);
 	}
 
 	/**

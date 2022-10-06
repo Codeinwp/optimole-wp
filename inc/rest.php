@@ -22,9 +22,9 @@ class Optml_Rest {
 	private $namespace;
 
 	/**
-	 * Rest api routes.
+	 * Upload conflicts api.
 	 *
-	 * @var array List of routes and details (type, required args).
+	 * @var string upload_conflicts_api.
 	 */
 	public static $rest_routes = [
 		'service_routes' => ['update_option' => 'POST', 'request_update' => 'GET', 'check_redirects' => 'POST_PUT_PATCH',
@@ -67,6 +67,7 @@ class Optml_Rest {
 			'update_page' => 'POST',
 			'upload_rollback_images' => 'POST',
 			'number_of_images_and_pages' => 'POST',
+			'get_offload_conflicts' => 'GET',
 		],
 		'watermark_routes' => [
 			'poll_watermarks' => 'GET',
@@ -87,6 +88,7 @@ class Optml_Rest {
 	 */
 	public function __construct() {
 		$this->namespace = OPTML_NAMESPACE . '/v1';
+
 		add_action( 'rest_api_init', [ $this, 'register' ] );
 	}
 
@@ -817,5 +819,29 @@ class Optml_Rest {
 			$action = $request->get_param( 'action' );
 		}
 		return $this->response( Optml_Media_Offload::number_of_images_and_pages( $action ) );
+	}
+	/**
+	 * Get conflicts list.
+	 *
+	 * @param WP_REST_Request $request rest request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function get_offload_conflicts( WP_REST_Request $request ) {
+		$request  = new Optml_Api();
+		$decoded_list     = $request->get_offload_conflicts();
+		$active_conflicts = [];
+		if ( isset( $decoded_list['plugins'] ) ) {
+			foreach ( $decoded_list['plugins'] as $slug ) {
+				if ( is_plugin_active( $slug ) ) {
+					$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/' . $slug );
+					if ( ! empty( $plugin_data['Name'] ) ) {
+						$active_conflicts[] = $plugin_data['Name'];
+					}
+				}
+			}
+		}
+
+		return $this->response( $active_conflicts );
 	}
 }

@@ -976,6 +976,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'offload_disable_warning_title'     => __( 'Important! Please read carefully', 'optimole-wp' ),
 				'offload_disable_warning_desc'      => __( 'If you disable this option you will not be able to see the images in the media library without restoring the images first, do you want to restore the images to your site upon disabling the option ?', 'optimole-wp' ),
 				'offload_enable_info_desc'          => sprintf( __( 'You are not required to use the offload functionality for the plugin to work, use it if you want to save on hosting space. %1$s More details. %2$s', 'optimole-wp' ), '<a href="https://docs.optimole.com/article/1323-cloud-library-browsing">', '</a>' ),
+				'offload_conflicts_part_1'          => __( 'We have detected the following plugins that conflict with the offload features: ', 'optimole-wp' ),
+				'offload_conflicts_part_2'          => __( 'Please disable those plugins temporarily in order for Optimole to rollback the images to your site.', 'optimole-wp' ),
 				'select'                            => __( 'Please select one ...', 'optimole-wp' ),
 				'yes'                               => __( 'Restore images after disabling', 'optimole-wp' ),
 				'no'                                => __( 'Do not restore images after disabling', 'optimole-wp' ),
