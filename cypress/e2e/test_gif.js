@@ -6,7 +6,7 @@ Cypress.on("uncaught:exception", () => {
   return false;
 });
 
-describe("Check gif page", function () {
+describe("Check gif page", { browser: 'chrome' }, function () {
   it("successfully loads", function () {
     cy.visit("/no-builder/testing-gif-with-video/");
   });
