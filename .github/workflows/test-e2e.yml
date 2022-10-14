@@ -31,6 +31,7 @@ jobs:
         uses: cypress-io/github-action@v2
         with:
           env: host=testing.optimole.com
+          config-file: cypress.config.json
           browser: chrome
           record: true
   e2eFirefox:
@@ -45,5 +46,6 @@ jobs:
       - uses: cypress-io/github-action@v2
         with:
           env: host=testing.optimole.com
+          config-file: cypress.config.json
           browser: firefox
           record: true
