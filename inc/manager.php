@@ -81,6 +81,7 @@ final class Optml_Manager {
 		'facetwp',
 		'wp_rest_cache',
 		'wp_bakery',
+		'elementor_builder_late',
 	];
 	/**
 	 * The current state of the buffer.
@@ -274,8 +275,6 @@ final class Optml_Manager {
 		add_action( 'template_redirect', [ $this, 'register_after_setup' ] );
 		add_action( 'rest_api_init', [ $this, 'process_template_redirect_content' ], PHP_INT_MIN );
 
-		add_action( 'get_post_metadata', [ $this, 'replace_meta' ], PHP_INT_MAX, 4 );
-
 		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
 			$registered_compatibility->register();
 		}
@@ -286,37 +285,6 @@ final class Optml_Manager {
 	 */
 	public function register_after_setup() {
 		do_action( 'optml_after_setup' );
-	}
-
-	/**
-	 * Replace urls in post meta values.
-	 *
-	 * @param mixed  $metadata Metadata.
-	 * @param int    $object_id Post id.
-	 * @param string $meta_key Meta key.
-	 * @param bool   $single Is single.
-	 *
-	 * @return mixed Altered meta.
-	 */
-	public function replace_meta( $metadata, $object_id, $meta_key, $single ) {
-
-		$meta_needed = '_elementor_data';
-
-		if ( isset( $meta_key ) && $meta_needed === $meta_key ) {
-			remove_filter( 'get_post_metadata', [ $this, 'replace_meta' ], PHP_INT_MAX );
-
-			$current_meta = get_post_meta( $object_id, $meta_needed, $single );
-			add_filter( 'get_post_metadata', [ $this, 'replace_meta' ], PHP_INT_MAX, 4 );
-
-			if ( ! is_string( $current_meta ) ) {
-				return $metadata;
-			}
-
-			return $this->replace_content( $current_meta );
-		}
-
-		// Return original if the check does not pass
-		return $metadata;
 	}
 
 	/**
