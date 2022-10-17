@@ -432,7 +432,7 @@ const updateContent =  function ( commit,action, imageIds, postID, batch, consec
 	}
 };
 
-const updatePage =  function ( postID ) {
+const updatePage =  function ( postID, consecutiveErrors = 0 ) {
 	Vue.http(
 		{
 			url: optimoleDashboardApp.routes['update_page'],
@@ -449,12 +449,14 @@ const updatePage =  function ( postID ) {
 		function ( response ) {
 			if ( response.body.code === 'success' && response.body.data === true  ) {
 				updatePageStatus = 'done';
+			} else {
+				throw "failed_update";
 			}
 		}
 	).catch( function ( err ) {
 		if ( consecutiveErrors < 10 ) {
 			setTimeout( function () {
-				updatePage( postID );
+				updatePage( postID, consecutiveErrors + 1 );
 			}, consecutiveErrors * 1000 + 5000 );
 		} else {
 			updateStatus = 'fail';
@@ -500,7 +502,7 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, images,
 						}
 						updateContent( commit, action, foundImages, postID, batch, 0 );
 						let interval = setInterval( function () {
-							if ( updateStatus === 'done' ) {
+							if ( updateStatus === 'done' || ( updateStatus === 'fail' && action === "rollback_images" ) ) {
 								updateStatus = 'pending';
 								commit( 'updatePushedImagesProgress', batch );
 								commit( 'estimatedTime', {
@@ -584,6 +586,22 @@ const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
 		}
 	} );
 };
+const getOffloadConflicts = function ({commit, state} ) {
+	Vue.http( {
+		url: optimoleDashboardApp.routes['get_offload_conflicts'],
+		method: 'GET',
+		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+		emulateJSON: true,
+		responseType: 'json',
+	} ).then( function ( response ) {
+		commit( 'toggleCheckedOffloadConflicts', true);
+		if( response.body.data.length !== 0 ) {
+			commit( 'updateOffloadConflicts', response );
+		}
+	} ).catch( function ( err ) {
+
+	} );
+};
 const callSync = function ( {commit, state}, data ) {
 	commit( 'updatePushedImagesProgress', 'init' );
 	if ( data.action === "offload_images" ) {
@@ -610,5 +628,6 @@ export default {
 	retrieveWatermarks,
 	sampleRate,
 	saveSettings,
-	callSync
+	callSync,
+	getOffloadConflicts
 };

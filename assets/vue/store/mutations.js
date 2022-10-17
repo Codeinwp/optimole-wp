@@ -29,6 +29,9 @@ const toggleConnectedToOptml = ( state, data ) => {
 const toggleShowDisconnectNotice = ( state, data ) => {
 	state.showDisconnect = data;
 };
+const toggleCheckedOffloadConflicts = ( state, data ) => {
+	state.checkedOffloadConflicts = data;
+};
 const toggleHasOptmlApp = ( state, data ) => {
 	state.hasApplication = data;
 };
@@ -99,6 +102,9 @@ const updatePushedImagesProgress = ( state, data ) => {
 		state.pushedImagesProgress += data/state.totalNumberOfImages*100;
 	}
 };
+const updateOffloadConflicts = ( state, data ) => {
+	state.offloadConflicts = data.body.data;
+};
 export default {
 	restApiNotWorking,
 	toggleConnectedToOptml,
@@ -122,5 +128,7 @@ export default {
 	toggleLoadingRollback,
 	toggleLoadingSync,
 	toggleActionError,
-	toggleShowDisconnectNotice
+	toggleShowDisconnectNotice,
+	toggleCheckedOffloadConflicts,
+	updateOffloadConflicts,
 };

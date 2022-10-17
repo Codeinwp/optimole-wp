@@ -1,9 +1,0 @@
-{
-  "projectId": "767db5",
-  "pluginsFile": false,
-  "supportFile": false,
-  "videoUploadOnPasses": false,
-  "numTestsKeptInMemory": 0,
-  "baseUrl": "http://testing.optimole.com",
-  "experimentalStudio": true
-}
