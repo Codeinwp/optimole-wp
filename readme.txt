@@ -95,6 +95,16 @@ Premium users will be able to optimize images starting with more than 25k monthl
 
 == Changelog ==
 
+#### [Version 3.5.0](https://github.com/Codeinwp/optimole-wp/compare/v3.4.6...v3.5.0) (2022-10-17)
+
+* Improved images offload speed by marking processed pages
+* Adds conflict validation before the rollback process
+* Updated the logging for images that fail when offloading
+* Enhance Elementor compatibility
+
+
+
+
 ##### [Version 3.4.6](https://github.com/Codeinwp/optimole-wp/compare/v3.4.5...v3.4.6) (2022-09-08)
 
 * Updated cache buster format
