@@ -894,7 +894,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exclude_url_match_desc'            => sprintf( __( '%1$sPage url%2$s matches', 'optimole-wp' ), '<strong>', '</strong>' ),
 				'exclude_first'                     => __( 'Exclude first', 'optimole-wp' ),
 				'images'                            => __( 'images', 'optimole-wp' ),
-				'exclude_first_images_title'        => __( 'Exclude first X of images from lazyload', 'optimole-wp' ),
+				'exclude_first_images_title'        => __( 'Exclude the first X images from lazyload', 'optimole-wp' ),
 				'exclude_first_images_desc'         => __( 'Exclude the first <number> images from lazyload on every page to avoid lazy load on above the fold images. Use 0 to disable this.', 'optimole-wp' ),
 				'filter_class'                      => __( 'Image class', 'optimole-wp' ),
 				'filter_ext'                        => __( 'Image extension', 'optimole-wp' ),
