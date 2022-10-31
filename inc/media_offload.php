@@ -1134,6 +1134,30 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				];
 				return $args;
 			}
+		} else {
+			if ( $action === 'offload_images' ) {
+				$args['meta_query'] = [
+					'relation' => 'AND',
+					[
+						'key' => self::POST_OFFLOADED_FLAG,
+						'compare' => 'NOT EXISTS',
+					],
+				];
+			}
+			if ( $action === 'rollback_images' ) {
+				$args['meta_query'] = [
+					'relation' => 'AND',
+					[
+						'key' => self::POST_OFFLOADED_FLAG,
+						'value' => 'true',
+						'compare' => '=',
+					],
+					[
+						'key' => self::POST_ROLLBACK_FLAG,
+						'compare' => 'NOT EXISTS',
+					],
+				];
+			}
 		}
 		$post_types = array_values(
 			array_filter(
