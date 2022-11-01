@@ -749,7 +749,9 @@ class Optml_Rest {
 		if ( ! empty( $request->get_param( 'batch' ) ) ) {
 			$batch = $request->get_param( 'batch' );
 		}
-		return $this->response( Optml_Media_Offload::instance()->update_content( $page, $job, $batch ) );
+		$media_response = Optml_Media_Offload::instance()->update_content( $page, $job, $batch );
+		$media_response['nonce'] = wp_create_nonce( 'wp_rest' );
+		return $this->response( $media_response );
 	}
 	/**
 	 * Rollback images to media library.

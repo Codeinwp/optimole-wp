@@ -147,8 +147,8 @@
 
 
 		<!--Offload on enable notice-->
-		<div class="field  columns optml-flex-column optml-restore-notice-background" v-if="this.showOffloadEnabled">
-			<label class="label column">
+		<div class="field  columns optml-flex-column " v-if="this.showOffloadEnabled">
+			<label class="label column optml-restore-notice-background">
 
 
 				<p class="has-text-weight-normal" v-html="strings.offload_enable_info_desc">

@@ -139,13 +139,13 @@
 								</div>
 
 								<div class="level-right">
-										<p class="level-item"><a href="https://optimole.com" target="_blank">Optimole
-												v{{strings.version}}</a></p>
-										<p class="level-item"><a href="https://optimole.com/terms/"
-																						 target="_blank">{{strings.terms_menu}}</a></p>
-										<p class="level-item"><a href="https://optimole.com/privacy-policy/" target="_blank">{{strings.privacy_menu}}</a>
+										<p class="level-item"><a  style="white-space:nowrap" href="https://optimole.com" target="_blank">Optimole
+												v{{strings.version}} <span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a></p>
+										<p class="level-item"><a style="white-space:nowrap" href="https://optimole.com/terms/"
+																						 target="_blank">{{strings.terms_menu}}<span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a></p>
+										<p class="level-item"><a style="white-space:nowrap" href="https://optimole.com/privacy-policy/" target="_blank">{{strings.privacy_menu}} <span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>
 										</p>
-										<p class="level-item"><a :href="'https://optimole.com/test-drive?url=' + home " target="_blank">{{strings.testdrive_menu}}</a>
+										<p class="level-item"><a style="white-space:nowrap" :href="'https://optimole.com/test-drive?url=' + home " target="_blank">{{strings.testdrive_menu}} <span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>
 										</p>
 								</div>
 						</div>
