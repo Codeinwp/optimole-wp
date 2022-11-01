@@ -751,7 +751,7 @@ class Optml_Rest {
 		}
 		$media_response = Optml_Media_Offload::instance()->update_content( $page, $job, $batch );
 		$media_response['nonce'] = wp_create_nonce( 'wp_rest' );
-		return $this->response(  $media_response );
+		return $this->response( $media_response );
 	}
 	/**
 	 * Rollback images to media library.
