@@ -646,11 +646,7 @@ class Optml_Admin {
 	 * Render dashboard page.
 	 */
 	public function render_dashboard_page() {
-		if ( get_option( 'optml_notice_optin', 'no' ) !== 'yes' ) {
-			update_option( 'optml_notice_optin', 'yes' );
-		}
 		?>
-
 		<div id="optimole-app">
 			<app></app>
 		</div>
