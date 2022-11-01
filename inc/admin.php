@@ -32,7 +32,6 @@ class Optml_Admin {
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ], PHP_INT_MIN );
 		add_action( 'admin_notices', [ $this, 'add_notice' ] );
 		add_action( 'admin_notices', [ $this, 'add_notice_upgrade' ] );
-		add_filter( 'admin_body_class', [ $this, 'add_body_class' ] );
 		add_action( 'optml_daily_sync', [ $this, 'daily_sync' ] );
 
 		if ( $this->settings->is_connected() ) {
@@ -318,20 +317,6 @@ class Optml_Admin {
 				'<a href="' . admin_url( 'upload.php?page=optimole' ) . '">' . __( 'Settings', 'optimole-wp' ) . '</a>',
 			]
 		);
-	}
-
-	/**
-	 * Adds optimole optin class.
-	 *
-	 * @return string Optimole class.
-	 */
-	public function add_body_class( $classes ) {
-
-		if ( ! $this->should_show_notice() ) {
-			return $classes;
-		}
-
-		return $classes . ' optimole-optin-show ';
 	}
 
 	/**
