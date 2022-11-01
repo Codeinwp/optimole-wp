@@ -206,6 +206,12 @@ final class Optml_Main {
 	 */
 	public function activate() {
 		update_option( OPTML_NAMESPACE . '-version', OPTML_VERSION );
+
+		if ( is_multisite() ) {
+			return;
+		}
+
+		set_transient( 'optml_fresh_install', true, MINUTE_IN_SECONDS );
 	}
 
 	/**

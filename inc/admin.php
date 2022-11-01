@@ -37,7 +37,7 @@ class Optml_Admin {
 		if ( $this->settings->is_connected() ) {
 			add_action( 'init', [$this, 'check_domain_change'] );
 		}
-		add_action( 'admin_init', [ $this, 'maybe_remove_notices' ] );
+		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
 			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', [] );
 		}
@@ -542,22 +542,35 @@ class Optml_Admin {
 	/**
 	 * Maybe redirect to dashboard page.
 	 */
-	public function maybe_remove_notices() {
-		if ( ! isset( $_GET['optml_nonce'] ) ) {
-			return;
-		}
-
-		if ( ! wp_verify_nonce( $_GET['optml_nonce'], 'hide_nonce' ) ) {
-			return;
-		}
-
-		if ( isset( $_GET['optml_hide_optin'] ) && $_GET['optml_hide_optin'] === 'yes' ) {
+	public function maybe_redirect() {
+		if ( isset( $_GET['optml_nonce'] ) && isset( $_GET['optml_hide_optin'] ) && $_GET['optml_hide_optin'] === 'yes' && wp_verify_nonce( $_GET['optml_nonce'], 'hide_nonce' ) ) {
 			update_option( 'optml_notice_optin', 'yes' );
 		}
 
-		if ( isset( $_GET['optml_hide_upg'] ) && $_GET['optml_hide_upg'] === 'yes' ) {
+		if ( isset( $_GET['optml_nonce'] ) && isset( $_GET['optml_hide_upg'] ) && $_GET['optml_hide_upg'] === 'yes' && wp_verify_nonce( $_GET['optml_nonce'], 'hide_nonce' ) ) {
 			update_option( 'optml_notice_hide_upg', 'yes' );
 		}
+
+		if ( ! get_transient( 'optml_fresh_install' ) ) {
+			return;
+		}
+
+		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+			return;
+		}
+
+		delete_transient( 'optml_fresh_install' );
+
+		if ( is_network_admin() || isset( $_GET['activate-multi'] ) ) {
+			return;
+		}
+
+		if ( $this->settings->is_connected() ) {
+			return;
+		}
+
+		wp_safe_redirect( admin_url( 'upload.php?page=optimole' ) );
+		exit;
 	}
 
 	/**
@@ -646,6 +659,9 @@ class Optml_Admin {
 	 * Render dashboard page.
 	 */
 	public function render_dashboard_page() {
+		if ( get_option( 'optml_notice_optin', 'no' ) !== 'yes' ) {
+			update_option( 'optml_notice_optin', 'yes' );
+		}
 		?>
 		<div id="optimole-app">
 			<app></app>
