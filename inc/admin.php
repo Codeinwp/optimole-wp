@@ -325,31 +325,31 @@ class Optml_Admin {
 	 * @return bool Should show?
 	 */
 	public function should_show_notice() {
-        if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
-            return false;
-        }
+		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+			return false;
+		}
 
-        if ( is_network_admin() ) {
-            return false;
-        }
+		if ( is_network_admin() ) {
+			return false;
+		}
 
-        if ( ! current_user_can( 'manage_options' ) ) {
-            return false;
-        }
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return false;
+		}
 
-        if ( $this->settings->is_connected() ) {
-            return false;
-        }
+		if ( $this->settings->is_connected() ) {
+			return false;
+		}
 
-        $current_screen = get_current_screen();
+		$current_screen = get_current_screen();
 
-        if ( empty( $current_screen ) ) {
-            return false;
-        }
+		if ( empty( $current_screen ) ) {
+			return false;
+		}
 
-        if ( ( get_option( 'optml_notice_optin', 'no' ) === 'yes' ) ) {
-            return false;
-        }
+		if ( ( get_option( 'optml_notice_optin', 'no' ) === 'yes' ) ) {
+			return false;
+		}
 
 		return true;
 	}
@@ -427,62 +427,62 @@ class Optml_Admin {
 			return;
 		}
 		?>
-        <style>
-            .optml-notice-optin {
-                background: url(" <?php echo esc_attr(OPTML_URL . '/assets/img/disconnected.svg'); ?> ") #fff 100% 0 no-repeat;
-                position: relative;
-                padding: 0;
-            }
+		<style>
+			.optml-notice-optin {
+				background: url(" <?php echo esc_attr( OPTML_URL . '/assets/img/disconnected.svg' ); ?> ") #fff 100% 0 no-repeat;
+				position: relative;
+				padding: 0;
+			}
 
-            .optml-notice-optin .content {
-                background: rgba(255, 255, 255, 0.75);
-                display: flex;
-                align-items: center;
-                padding: 20px;
-            }
+			.optml-notice-optin .content {
+				background: rgba(255, 255, 255, 0.75);
+				display: flex;
+				align-items: center;
+				padding: 20px;
+			}
 
-            .optml-notice-optin img {
-                max-width: 100px;
-                margin-right: 20px;
-                display: none;
-            }
+			.optml-notice-optin img {
+				max-width: 100px;
+				margin-right: 20px;
+				display: none;
+			}
 
-            .optml-notice-optin .description {
-                font-size: 14px;
-                margin-bottom: 20px;
-                color: #000;
-            }
+			.optml-notice-optin .description {
+				font-size: 14px;
+				margin-bottom: 20px;
+				color: #000;
+			}
 
-            .optml-notice-optin .actions {
-                margin-top: auto;
-                display: flex;
-                gap: 20px;
-            }
+			.optml-notice-optin .actions {
+				margin-top: auto;
+				display: flex;
+				gap: 20px;
+			}
 
-            @media screen and (min-width: 768px) {
-                .optml-notice-optin img {
-                    display: block;
-                }
-            }
-        </style>
-        <div class="notice notice-info optml-notice-optin">
-            <div class="content">
-                <img src="<?php echo OPTML_URL . '/assets/img/logo.svg'; ?>" alt="<?php echo esc_attr__( 'Logo', 'optimole-wp' ); ?>"/>
+			@media screen and (min-width: 768px) {
+				.optml-notice-optin img {
+					display: block;
+				}
+			}
+		</style>
+		<div class="notice notice-info optml-notice-optin">
+			<div class="content">
+				<img src="<?php echo OPTML_URL . '/assets/img/logo.svg'; ?>" alt="<?php echo esc_attr__( 'Logo', 'optimole-wp' ); ?>"/>
 
-                <div>
-                    <p class="notice-title"> <?php echo esc_html__( 'Finish setting up!', 'optimole-wp' ); ?></p>
-                    <p class="description"> <?php printf( __( 'Welcome to %1$sOptiMole%2$s, the easiest way to optimize your website images. Your users will enjoy a %3$sfaster%4$s website after you connect it with our service.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>' ); ?></p>
-                    <div class="actions">
-                        <a href="<?php echo esc_url( admin_url( 'upload.php?page=optimole' ) ); ?>"
-                           class="button button-primary button-hero"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?>
-                        </a>
-                        <a class="button button-secondary button-hero"
-                           href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_optin' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+				<div>
+					<p class="notice-title"> <?php echo esc_html__( 'Finish setting up!', 'optimole-wp' ); ?></p>
+					<p class="description"> <?php printf( __( 'Welcome to %1$sOptiMole%2$s, the easiest way to optimize your website images. Your users will enjoy a %3$sfaster%4$s website after you connect it with our service.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>' ); ?></p>
+					<div class="actions">
+						<a href="<?php echo esc_url( admin_url( 'upload.php?page=optimole' ) ); ?>"
+						   class="button button-primary button-hero"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?>
+						</a>
+						<a class="button button-secondary button-hero"
+						   href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_optin' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?>
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
 		<?php
 	}
 
@@ -543,21 +543,21 @@ class Optml_Admin {
 	 * Maybe redirect to dashboard page.
 	 */
 	public function maybe_remove_notices() {
-        if ( ! isset( $_GET['optml_nonce'] ) ) {
-            return;
-        }
+		if ( ! isset( $_GET['optml_nonce'] ) ) {
+			return;
+		}
 
-        if ( ! wp_verify_nonce( $_GET['optml_nonce'], 'hide_nonce' ) ) {
-            return;
-        }
+		if ( ! wp_verify_nonce( $_GET['optml_nonce'], 'hide_nonce' ) ) {
+			return;
+		}
 
-        if ( isset( $_GET['optml_hide_optin'] ) && $_GET['optml_hide_optin'] === 'yes' ) {
-            update_option( 'optml_notice_optin', 'yes' );
-        }
+		if ( isset( $_GET['optml_hide_optin'] ) && $_GET['optml_hide_optin'] === 'yes' ) {
+			update_option( 'optml_notice_optin', 'yes' );
+		}
 
-        if ( isset( $_GET['optml_hide_upg'] ) && $_GET['optml_hide_upg'] === 'yes' ) {
-            update_option( 'optml_notice_hide_upg', 'yes' );
-        }
+		if ( isset( $_GET['optml_hide_upg'] ) && $_GET['optml_hide_upg'] === 'yes' ) {
+			update_option( 'optml_notice_hide_upg', 'yes' );
+		}
 	}
 
 	/**
