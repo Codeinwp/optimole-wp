@@ -492,6 +492,7 @@ const pushBatch = function ( commit,batch, page, action, processedBatch, images,
 	).then(
 		function ( response ) {
 			if ( response.body.code === 'success' && ( response.body.data.page > page || response.body.data.found_images > 0 ) ) {
+				optimoleDashboardApp.nonce = response.body.data.nonce;
 				if ( unattached === false && Object.keys( response.body.data.imagesToUpdate ).length !== 0  ) {
 					for ( let postID of Object.keys( response.body.data.imagesToUpdate ) ) {
 						let foundImages = response.body.data.imagesToUpdate[postID];

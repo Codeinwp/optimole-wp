@@ -205,7 +205,6 @@ final class Optml_Main {
 	 * @since  1.0.0
 	 */
 	public function activate() {
-
 		update_option( OPTML_NAMESPACE . '-version', OPTML_VERSION );
 
 		if ( is_multisite() ) {

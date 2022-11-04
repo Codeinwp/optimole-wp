@@ -32,7 +32,6 @@ class Optml_Admin {
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ], PHP_INT_MIN );
 		add_action( 'admin_notices', [ $this, 'add_notice' ] );
 		add_action( 'admin_notices', [ $this, 'add_notice_upgrade' ] );
-		add_filter( 'admin_body_class', [ $this, 'add_body_class' ] );
 		add_action( 'optml_daily_sync', [ $this, 'daily_sync' ] );
 
 		if ( $this->settings->is_connected() ) {
@@ -321,57 +320,34 @@ class Optml_Admin {
 	}
 
 	/**
-	 * Adds optimole optin class.
-	 *
-	 * @return string Optimole class.
-	 */
-	public function add_body_class( $classes ) {
-
-		if ( ! $this->should_show_notice() ) {
-			return $classes;
-		}
-
-		return $classes . ' optimole-optin-show ';
-	}
-
-	/**
 	 * Check if we should show the notice.
 	 *
 	 * @return bool Should show?
 	 */
 	public function should_show_notice() {
-
-		$current_screen = get_current_screen();
-		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ||
-			 is_network_admin() ||
-			 $this->settings->is_connected() ||
-			 empty( $current_screen )
-		) {
+		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
 			return false;
 		}
 
-		static $allowed_base = [
-			'plugins'                               => true,
-			'upload'                                => true,
-			'media'                                 => true,
-			'themes'                                => true,
-			'appearance_page_tgmpa-install-plugins' => true,
-		];
-
-		$screen_slug = '';
-		if ( isset( $current_screen->base ) ) {
-			$screen_slug = $current_screen->base;
+		if ( is_network_admin() ) {
+			return false;
 		}
 
-		if ( isset( $current_screen->parent_base ) ) {
-			$screen_slug = $current_screen->parent_base;
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return false;
 		}
 
-		if ( empty( $screen_slug ) ||
-			 ( ! isset( $allowed_base[ $screen_slug ] ) ) ||
-			 ! current_user_can( 'manage_options' ) ||
-			 ( get_option( 'optml_notice_optin', 'no' ) === 'yes' )
-		) {
+		if ( $this->settings->is_connected() ) {
+			return false;
+		}
+
+		$current_screen = get_current_screen();
+
+		if ( empty( $current_screen ) ) {
+			return false;
+		}
+
+		if ( ( get_option( 'optml_notice_optin', 'no' ) === 'yes' ) ) {
 			return false;
 		}
 
@@ -451,14 +427,61 @@ class Optml_Admin {
 			return;
 		}
 		?>
-		<div class="notice notice-success optml-notice-optin">
-			<p> <?php printf( __( 'Welcome to %1$sOptiMole%2$s, the easiest way to optimize your website images. Your users will enjoy a %3$sfaster%4$s website after you connect it with our service.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>' ); ?></p>
-			<p>
-				<a href="<?php echo esc_url( admin_url( 'upload.php?page=optimole' ) ); ?>"
-					 class="button button-primary"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?></a>
-				<a class="button"
-					 href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_optin' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?></a>
-			</p>
+		<style>
+			.optml-notice-optin {
+				background: url(" <?php echo esc_attr( OPTML_URL . '/assets/img/disconnected.svg' ); ?> ") #fff 100% 0 no-repeat;
+				position: relative;
+				padding: 0;
+			}
+
+			.optml-notice-optin .content {
+				background: rgba(255, 255, 255, 0.75);
+				display: flex;
+				align-items: center;
+				padding: 20px;
+			}
+
+			.optml-notice-optin img {
+				max-width: 100px;
+				margin-right: 20px;
+				display: none;
+			}
+
+			.optml-notice-optin .description {
+				font-size: 14px;
+				margin-bottom: 20px;
+				color: #000;
+			}
+
+			.optml-notice-optin .actions {
+				margin-top: auto;
+				display: flex;
+				gap: 20px;
+			}
+
+			@media screen and (min-width: 768px) {
+				.optml-notice-optin img {
+					display: block;
+				}
+			}
+		</style>
+		<div class="notice notice-info optml-notice-optin">
+			<div class="content">
+				<img src="<?php echo OPTML_URL . '/assets/img/logo.svg'; ?>" alt="<?php echo esc_attr__( 'Logo', 'optimole-wp' ); ?>"/>
+
+				<div>
+					<p class="notice-title"> <?php echo esc_html__( 'Finish setting up!', 'optimole-wp' ); ?></p>
+					<p class="description"> <?php printf( __( 'Welcome to %1$sOptiMole%2$s, the easiest way to optimize your website images. Your users will enjoy a %3$sfaster%4$s website after you connect it with our service.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>' ); ?></p>
+					<div class="actions">
+						<a href="<?php echo esc_url( admin_url( 'upload.php?page=optimole' ) ); ?>"
+						   class="button button-primary button-hero"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?>
+						</a>
+						<a class="button button-secondary button-hero"
+						   href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_optin' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?>
+						</a>
+					</div>
+				</div>
+			</div>
 		</div>
 		<?php
 	}
@@ -520,7 +543,6 @@ class Optml_Admin {
 	 * Maybe redirect to dashboard page.
 	 */
 	public function maybe_redirect() {
-
 		if ( isset( $_GET['optml_nonce'] ) && isset( $_GET['optml_hide_optin'] ) && $_GET['optml_hide_optin'] === 'yes' && wp_verify_nonce( $_GET['optml_nonce'], 'hide_nonce' ) ) {
 			update_option( 'optml_notice_optin', 'yes' );
 		}
@@ -546,6 +568,7 @@ class Optml_Admin {
 		if ( $this->settings->is_connected() ) {
 			return;
 		}
+
 		wp_safe_redirect( admin_url( 'upload.php?page=optimole' ) );
 		exit;
 	}
@@ -640,7 +663,6 @@ class Optml_Admin {
 			update_option( 'optml_notice_optin', 'yes' );
 		}
 		?>
-
 		<div id="optimole-app">
 			<app></app>
 		</div>
@@ -758,7 +780,7 @@ If you still want to disconnect click the button below.',
 			'steps_connect_api_title'        => __( 'Connect your account', 'optimole-wp' ),
 			'register_btn'                   => __( 'Create & connect your account ', 'optimole-wp' ),
 			'step_one_api_title'             => __( 'Enter your API key.', 'optimole-wp' ),
-			'optml_dashboard'                => sprintf( __( 'Get it from the %1$s Optimole Dashboard%2$s.', 'optimole-wp' ), '<a style="text-decoration: underline !important;" href="https://dashboard.optimole.com/" target="_blank"> ', '</a>' ),
+			'optml_dashboard'                => sprintf( __( 'Get it from the %1$s Optimole Dashboard%2$s.', 'optimole-wp' ), '<a  style="white-space:nowrap; text-decoration: underline !important;" href="https://dashboard.optimole.com/" target="_blank"> ', '<span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
 			'steps_connect_api_desc'         => sprintf( __( 'Copy the API Key you have received via email or you can get it from %1$s Optimole dashboard%2$s. If your account has multiple domains select the one you want to use. <br/>', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/" target="_blank"> ', '</a>' ),
 			'api_exists'                     => __( 'I already have an API key.', 'optimole-wp' ),
 			'back_to_register'               => __( 'Register account', 'optimole-wp' ),
@@ -871,7 +893,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_offload_media_title'        => __( 'Enable offloading images', 'optimole-wp' ),
 				'enable_offload_media_desc'         => __( 'Offload your new images automatically to Optimole Cloud. You will no longer store them on your server and you can restore them back anytime.', 'optimole-wp' ),
 				'enable_cloud_images_title'         => __( 'Enable cloud library browsing', 'optimole-wp' ),
-				'enable_cloud_images_desc'          => sprintf( __( 'Allow access from this site to all images from your Optimole account. %1$s More details here %2$s', 'optimole-wp' ), '<a href="https://docs.optimole.com/article/1323-cloud-library-browsing">', '</a>' ),
+				'enable_cloud_images_desc'          => sprintf( __( 'Allow access from this site to all images from your Optimole account. %1$s More details here%2$s', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://docs.optimole.com/article/1323-cloud-library-browsing">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
 				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
@@ -894,7 +916,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exclude_url_match_desc'            => sprintf( __( '%1$sPage url%2$s matches', 'optimole-wp' ), '<strong>', '</strong>' ),
 				'exclude_first'                     => __( 'Exclude first', 'optimole-wp' ),
 				'images'                            => __( 'images', 'optimole-wp' ),
-				'exclude_first_images_title'        => __( 'Exclude first X of images from lazyload', 'optimole-wp' ),
+				'exclude_first_images_title'        => __( 'Exclude the first X images from lazyload', 'optimole-wp' ),
 				'exclude_first_images_desc'         => __( 'Exclude the first <number> images from lazyload on every page to avoid lazy load on above the fold images. Use 0 to disable this.', 'optimole-wp' ),
 				'filter_class'                      => __( 'Image class', 'optimole-wp' ),
 				'filter_ext'                        => __( 'Image extension', 'optimole-wp' ),
@@ -975,7 +997,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'sync_media_error_desc'             => __( 'You can try again to offload the rest of the images to Optimole.', 'optimole-wp' ),
 				'offload_disable_warning_title'     => __( 'Important! Please read carefully', 'optimole-wp' ),
 				'offload_disable_warning_desc'      => __( 'If you disable this option you will not be able to see the images in the media library without restoring the images first, do you want to restore the images to your site upon disabling the option ?', 'optimole-wp' ),
-				'offload_enable_info_desc'          => sprintf( __( 'You are not required to use the offload functionality for the plugin to work, use it if you want to save on hosting space. %1$s More details. %2$s', 'optimole-wp' ), '<a href="https://docs.optimole.com/article/1323-cloud-library-browsing">', '</a>' ),
+				'offload_enable_info_desc'          => sprintf( __( 'You are not required to use the offload functionality for the plugin to work, use it if you want to save on hosting space. %1$s More details%2$s', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://docs.optimole.com/article/1323-cloud-library-browsing">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
 				'offload_conflicts_part_1'          => __( 'We have detected the following plugins that conflict with the offload features: ', 'optimole-wp' ),
 				'offload_conflicts_part_2'          => __( 'Please disable those plugins temporarily in order for Optimole to rollback the images to your site.', 'optimole-wp' ),
 				'select'                            => __( 'Please select one ...', 'optimole-wp' ),
