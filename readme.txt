@@ -7,7 +7,7 @@ Requires PHP: 5.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-Automatically compress, optimize and serve scaled images along with next-gen WebP all from CloudFront CDN. Lazy load included ⚡
+Automatically compress, optimize and serve scaled images as well as convert WebP & AVIF all from CloudFront CDN. Lazy load included ⚡
 
 == Description ==
 
