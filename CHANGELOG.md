@@ -1,3 +1,11 @@
+##### [Version 3.5.1](https://github.com/Codeinwp/optimole-wp/compare/v3.5.0...v3.5.1) (2022-11-04)
+
+* Improve media offload estimation time.
+* Improve gif to video conversion.
+* Accessibility improvements to docs and external links.
+* Improve media offload process for sites with thousands of images. 
+* Improve welcome notice
+
 #### [Version 3.5.0](https://github.com/Codeinwp/optimole-wp/compare/v3.4.6...v3.5.0) (2022-10-17)
 
 * Improved images offload speed by marking processed pages
