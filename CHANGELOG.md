@@ -1,3 +1,7 @@
+##### [Version 3.5.2](https://github.com/Codeinwp/optimole-wp/compare/v3.5.1...v3.5.2) (2022-11-11)
+
+* Fixed media offload nonce update
+
 ##### [Version 3.5.1](https://github.com/Codeinwp/optimole-wp/compare/v3.5.0...v3.5.1) (2022-11-04)
 
 * Improve media offload estimation time.
