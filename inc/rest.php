@@ -727,7 +727,9 @@ class Optml_Rest {
 		if ( ! empty( $request->get_param( 'images' ) ) ) {
 			$images = $request->get_param( 'images' );
 		}
-		return $this->response( Optml_Media_Offload::instance()->upload_images( $batch, $images ) );
+		$media_response = Optml_Media_Offload::instance()->upload_images( $batch, $images );
+		$media_response['nonce'] = wp_create_nonce( 'wp_rest' );
+		return $this->response( $media_response );
 	}
 	/**
 	 * Update posts content.
@@ -769,7 +771,9 @@ class Optml_Rest {
 		if ( ! empty( $request->get_param( 'images' ) ) ) {
 			$images = $request->get_param( 'images' );
 		}
-		return $this->response( Optml_Media_Offload::instance()->rollback_images( $batch, $images ) );
+		$media_response = Optml_Media_Offload::instance()->rollback_images( $batch, $images );
+		$media_response['nonce'] = wp_create_nonce( 'wp_rest' );
+		return $this->response( $media_response );
 	}
 	/**
 	 * Update page to replace the image urls.
