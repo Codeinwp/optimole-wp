@@ -883,6 +883,32 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( self::is_uploaded_image( $file ) ) {
 			$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
 			return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $attachment_id . $file, $optimized_url );
+		} else {
+			$local_file = get_attached_file($attachment_id);
+			if (!file_exists($local_file)) {
+				// Get the TRID (Translation ID) from element. REF: https://wpml.org/wpml-hook/wpml_element_trid/
+				$trid = apply_filters( 'wpml_element_trid', NULL, $attachment_id, 'post_attachment' );
+
+				// Get all translations (elements with the same TRID). REF: https://wpml.org/wpml-hook/wpml_get_element_translations/
+				$translations = apply_filters( 'wpml_get_element_translations', NULL, $trid, 'post_attachment' );
+
+				$ids = [];
+				foreach ( $translations as $translation ) {
+					if ( isset( $translation->element_id ) ) {
+						$ids[] = $translation->element_id;
+					}
+				 }
+
+				foreach ($ids as $id) {
+					if (!empty($id)) {
+						$duplicated_meta = wp_get_attachment_metadata($id);
+						if (isset($duplicated_meta['file']) && self::is_uploaded_image($duplicated_meta['file'])) {
+							$optimized_url = (new Optml_Image($url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get('cache_buster')))->get_url();
+							return str_replace('/' . $url, '/' . self::KEYS['not_processed_flag'] . $id . $duplicated_meta['file'], $optimized_url);
+						}
+					}
+				}
+			}
 		}
 		return $url;
 	}
