@@ -916,24 +916,24 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( self::is_uploaded_image( $file ) ) {
 			$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
 			return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $attachment_id . $file, $optimized_url );
+		} else {
+			//this is for the users that already offloaded the images before the other fixes
+			$local_file = get_attached_file( $attachment_id );
+			if ( ! file_exists( $local_file ) ) {
+				$duplicated_images = apply_filters( 'optml_offload_duplicated_images', [], $attachment_id );
+				if ( is_array( $duplicated_images ) && ! empty( $duplicated_images ) ) {
+					foreach ( $duplicated_images as $id ) {
+						if ( ! empty( $id ) ) {
+							$duplicated_meta = wp_get_attachment_metadata( $id );
+							if ( isset( $duplicated_meta['file'] ) && self::is_uploaded_image( $duplicated_meta['file'] ) ) {
+								$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
+								return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $id . $duplicated_meta['file'], $optimized_url );
+							}
+						}
+					}
+				}
+			}
 		}
-		// else {
-		// $local_file = get_attached_file( $attachment_id );
-		// if ( ! file_exists( $local_file ) ) {
-		// $duplicated_images = apply_filters( 'optml_offload_duplicated_images', [], $attachment_id );
-		// if ( is_array( $duplicated_images ) && ! empty( $duplicated_images ) ) {
-		// foreach ( $duplicated_images as $id ) {
-		// if ( ! empty( $id ) ) {
-		// $duplicated_meta = wp_get_attachment_metadata( $id );
-		// if ( isset( $duplicated_meta['file'] ) && self::is_uploaded_image( $duplicated_meta['file'] ) ) {
-		// $optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
-		// return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $id . $duplicated_meta['file'], $optimized_url );
-		// }
-		// }
-		// }
-		// }
-		// }
-		// }
 		return $url;
 	}
 	/**
