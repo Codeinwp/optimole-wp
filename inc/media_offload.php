@@ -332,6 +332,27 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		preg_match( '/\/' . Optml_Media_Offload::KEYS['not_processed_flag'] . '([^\/]*)\//', $url, $attachment_id );
 		return isset( $attachment_id[1] ) ? $attachment_id[1] : false;
 	}
+	private function get_local_attachement_id_from_url( $url ) {
+
+		$size = 'full';
+		$found_size = $this->parse_dimensions_from_filename( $url );
+		$strip_url = $url;
+		$scaled_url = $url;
+		if ( $found_size[0] !== false && $found_size[1] !== false ) {
+			$size = $found_size;
+			$strip_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
+			$scaled_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '-scaled', $url );
+		}
+		$strip_url = $this->add_schema( $strip_url );
+
+		$attachment_id = attachment_url_to_postid( $strip_url );
+		if ( $attachment_id === 0 ) {
+			$scaled_url = $this->add_schema( $scaled_url );
+			$attachment_id = attachment_url_to_postid( $scaled_url );
+		}
+
+		return [ 'attachment_id' => $attachment_id, 'size' => $size ];
+	}
 	/**
 	 * Filter out the urls that are saved to our servers when saving to the DB.
 	 *
@@ -357,7 +378,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		foreach ( $images as $url ) {
 			$is_original_uploaded = self::is_uploaded_image( $url );
-			$size = 'full';
 			$attachment_id = false;
 			if ( $is_original_uploaded ) {
 				$found_size = $this->parse_dimension_from_optimized_url( $url );
@@ -366,15 +386,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				}
 				$attachment_id = self::get_attachment_id_from_url( $url );
 			} else {
-				$found_size = $this->parse_dimensions_from_filename( $url );
-				$strip_url = $url;
-				if ( $found_size[0] !== false && $found_size[1] !== false ) {
-					$size = $found_size;
-					$strip_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
-				}
-				$strip_url = $this->add_schema( $strip_url );
-
-				$attachment_id = attachment_url_to_postid( $strip_url );
+				$id_and_size = $this->get_local_attachement_id_from_url( $url );
+				$attachment_id = $id_and_size['attachment_id'];
+				$size = $id_and_size['size'];
 			}
 
 			if ( OPTML_DEBUG ) {
@@ -424,17 +438,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					}
 				} else {
 					if ( $job === 'offload_images' ) {
-						$found_size = $this->parse_dimensions_from_filename( $url );
-						$strip_url = $url;
-						if ( $found_size[0] !== false && $found_size[1] !== false ) {
-							$strip_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
-						}
-						$strip_url = $this->add_schema( $strip_url );
-
-						$attachment_id = attachment_url_to_postid( $strip_url );
+						$id_and_size = $this->get_local_attachement_id_from_url( $url );
+						$attachment_id = $id_and_size['attachment_id'];
 					}
 				}
-				if ( false === $attachment_id || ! wp_attachment_is_image( $attachment_id ) ) {
+				if ( false === $attachment_id || $attachment_id === 0 || ! wp_attachment_is_image( $attachment_id ) ) {
 					continue;
 				}
 				$found_images[] = intval( $attachment_id );
@@ -510,6 +518,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$ids = $this->get_image_id_from_content( get_post_field( 'post_content', $content_id ), $job );
 					if ( count( $ids ) > 0 ) {
 						$images_to_update[ $content_id ] = $ids;
+						$duplicated_pages = apply_filters( 'optml_offload_duplicated_images', [], $content_id );
+						if ( is_array( $duplicated_pages ) && ! empty( $duplicated_pages ) ) {
+							foreach ( $duplicated_pages as $duplicated_id ) {
+								$duplicated_ids = $this->get_image_id_from_content( get_post_field( 'post_content', $duplicated_id ), $job );
+								$images_to_update[ $duplicated_id ] = $duplicated_ids;
+							}
+						}
 					}
 					if ( $job === 'offload_images' ) {
 						update_post_meta( $content_id, self::POST_OFFLOADED_FLAG, 'true' );
@@ -741,7 +756,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				update_post_meta( $id, 'optimole_rollback_error', 'true' );
 				continue;
 			}
-			wp_create_image_subsizes( $results['file'], $id );
+			$original_meta = wp_create_image_subsizes( $results['file'], $id );
 			if ( $type === 'image/svg+xml' ) {
 				if ( ! function_exists( 'wp_get_attachment_metadata' ) || ! function_exists( 'wp_update_attachment_metadata' ) ) {
 					include_once ABSPATH . '/wp-admin/includes/post.php';
@@ -767,6 +782,24 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				continue;
 			}
 			update_attached_file( $id, $results['file'] );
+			$duplicated_images = apply_filters( 'optml_offload_duplicated_images', [], $id );
+			if ( is_array( $duplicated_images ) && ! empty( $duplicated_images ) ) {
+				foreach ( $duplicated_images as $duplicated_id ) {
+					$duplicated_meta = wp_get_attachment_metadata( $duplicated_id );
+					if ( isset( $duplicated_meta['file'] ) && self::is_uploaded_image( $duplicated_meta['file'] ) ) {
+						$duplicated_meta['file'] = $results['file'];
+						if ( isset( $duplicated_meta['sizes'] ) ) {
+							foreach ( $meta['sizes'] as $key => $value ) {
+								if ( isset( $original_meta['sizes'][ $key ]['file'] ) ) {
+									$duplicated_meta['sizes'][ $key ]['file'] = $original_meta['sizes'][ $key ]['file'];
+								}
+							}
+						}
+						wp_update_attachment_metadata( $duplicated_id, $duplicated_meta );
+						delete_post_meta( $duplicated_id, 'optimole_offload' );
+					}
+				}
+			}
 			$success_back++;
 			$original_url  = self::get_original_url( $id );
 			if ( $original_url === false ) {
@@ -883,33 +916,24 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( self::is_uploaded_image( $file ) ) {
 			$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
 			return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $attachment_id . $file, $optimized_url );
-		} else {
-			$local_file = get_attached_file($attachment_id);
-			if (!file_exists($local_file)) {
-				// Get the TRID (Translation ID) from element. REF: https://wpml.org/wpml-hook/wpml_element_trid/
-				$trid = apply_filters( 'wpml_element_trid', NULL, $attachment_id, 'post_attachment' );
-
-				// Get all translations (elements with the same TRID). REF: https://wpml.org/wpml-hook/wpml_get_element_translations/
-				$translations = apply_filters( 'wpml_get_element_translations', NULL, $trid, 'post_attachment' );
-
-				$ids = [];
-				foreach ( $translations as $translation ) {
-					if ( isset( $translation->element_id ) ) {
-						$ids[] = $translation->element_id;
-					}
-				 }
-
-				foreach ($ids as $id) {
-					if (!empty($id)) {
-						$duplicated_meta = wp_get_attachment_metadata($id);
-						if (isset($duplicated_meta['file']) && self::is_uploaded_image($duplicated_meta['file'])) {
-							$optimized_url = (new Optml_Image($url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get('cache_buster')))->get_url();
-							return str_replace('/' . $url, '/' . self::KEYS['not_processed_flag'] . $id . $duplicated_meta['file'], $optimized_url);
-						}
-					}
-				}
-			}
 		}
+		// else {
+		// $local_file = get_attached_file( $attachment_id );
+		// if ( ! file_exists( $local_file ) ) {
+		// $duplicated_images = apply_filters( 'optml_offload_duplicated_images', [], $attachment_id );
+		// if ( is_array( $duplicated_images ) && ! empty( $duplicated_images ) ) {
+		// foreach ( $duplicated_images as $id ) {
+		// if ( ! empty( $id ) ) {
+		// $duplicated_meta = wp_get_attachment_metadata( $id );
+		// if ( isset( $duplicated_meta['file'] ) && self::is_uploaded_image( $duplicated_meta['file'] ) ) {
+		// $optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
+		// return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $id . $duplicated_meta['file'], $optimized_url );
+		// }
+		// }
+		// }
+		// }
+		// }
+		// }
 		return $url;
 	}
 	/**
@@ -1108,6 +1132,23 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$generated_image_size_path = str_replace( $file_name, $meta['sizes'][ $key ]['file'], $local_file );
 				file_exists( $generated_image_size_path ) && unlink( $generated_image_size_path );
 				$meta['sizes'][ $key ]['file'] = $file_name;
+			}
+		}
+		$duplicated_images = apply_filters( 'optml_offload_duplicated_images', [], $attachment_id );
+
+		if ( is_array( $duplicated_images ) && ! empty( $duplicated_images ) ) {
+			foreach ( $duplicated_images as $duplicated_id ) {
+				$duplicated_meta = wp_get_attachment_metadata( $duplicated_id );
+				if ( isset( $duplicated_meta['file'] ) && ! self::is_uploaded_image( $duplicated_meta['file'] ) ) {
+					$duplicated_meta['file'] = $meta['file'];
+					if ( isset( $duplicated_meta['sizes'] ) ) {
+						foreach ( $meta['sizes'] as $key => $value ) {
+							$duplicated_meta['sizes'][ $key ]['file'] = $file_name;
+						}
+					}
+					wp_update_attachment_metadata( $duplicated_id, $duplicated_meta );
+					update_post_meta( $duplicated_id, 'optimole_offload', 'true' );
+				}
 			}
 		}
 		return $meta;
