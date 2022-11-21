@@ -332,6 +332,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		preg_match( '/\/' . Optml_Media_Offload::KEYS['not_processed_flag'] . '([^\/]*)\//', $url, $attachment_id );
 		return isset( $attachment_id[1] ) ? $attachment_id[1] : false;
 	}
+
+	/**
+	 * Get attachment id from local url
+	 *
+	 * @param string $url The url to look for.
+	 * @return array The attachment id and the size from the url.
+	 */
 	private function get_local_attachement_id_from_url( $url ) {
 
 		$size = 'full';
@@ -917,7 +924,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
 			return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $attachment_id . $file, $optimized_url );
 		} else {
-			//this is for the users that already offloaded the images before the other fixes
+			// this is for the users that already offloaded the images before the other fixes
 			$local_file = get_attached_file( $attachment_id );
 			if ( ! file_exists( $local_file ) ) {
 				$duplicated_images = apply_filters( 'optml_offload_duplicated_images', [], $attachment_id );

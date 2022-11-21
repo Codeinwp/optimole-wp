@@ -26,10 +26,10 @@ class Optml_wpml extends Optml_compatibility {
 	}
 
 	/**
-	 * Ads the product pages to the list of posts parents when querying images for offload.
+	 * Ads the duplicated pages/images when offloading.
 	 *
-	 * @param array  $found_images The found images from the default workflow.
-	 * @param string $content Post content to look for images.
+	 * @param array  $duplicated_attachments The duplicated attachments array.
+	 * @param string $attachment_id The attachment id that is first offloaded.
 	 *
 	 * @return array The images array with the specific bakery images.
 	 */
