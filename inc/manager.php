@@ -82,6 +82,7 @@ final class Optml_Manager {
 		'wp_rest_cache',
 		'wp_bakery',
 		'elementor_builder_late',
+		'wpml',
 	];
 	/**
 	 * The current state of the buffer.
