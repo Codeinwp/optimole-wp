@@ -192,9 +192,44 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'media_row_actions', [self::$instance, 'add_inline_media_action'], 10, 2 );
 				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
 				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
+				add_filter( 'wp_unique_filename', [self::$instance, 'unique_filename'], 10, 6 );
 			}
 		}
 		return self::$instance;
+	}
+
+	/**
+	 * Function for `wp_unique_filename` filter-hook.
+	 *
+	 * @param string        $filename                 Unique file name.
+	 * @param string        $ext                      File extension. Example: ".png".
+	 * @param string        $dir                      Directory path.
+	 * @param callable|null $unique_filename_callback Callback function that generates the unique file name.
+	 * @param string[]      $alt_filenames            Array of alternate file names that were checked for collisions.
+	 * @param int|string    $number                   The highest number that was used to make the file name unique or an empty string if unused.
+	 *
+	 * @return string
+	 */
+	public function unique_filename( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number ) {
+
+		$sanitized_filename = str_replace($ext, '', $filename);
+		$args = array(
+			'post_type' => 'attachment',
+			'post_mime_type' => 'image',
+			'post_name__like' => $sanitized_filename,
+			'posts_per_page' => -1,
+			'fields' => 'ids',
+			'post_status' => 'any',
+		);
+
+		$query = new WP_Query( $args );
+		$matched_count = $query->found_posts;
+
+		if ( ! empty( $matched_count ) && $matched_count > 0 ) {
+			return  $sanitized_filename. '-' . $matched_count . $ext;
+		}
+
+		return $filename;
 	}
 
 	/**
