@@ -43,6 +43,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	private static $offload_update_post = false;
 	/**
+	 * Flag used inside wp_unique_filename filter.
+	 *
+	 * @var bool Whether to skip our custom deduplication.
+	 */
+	private static $should_not_deduplicate = false;
+	/**
 	 * Enqueue script for generating cloud media tab.
 	 */
 	public function add_cloud_script( $hook ) {
@@ -212,21 +218,24 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function unique_filename( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number ) {
 
-		$sanitized_filename = str_replace($ext, '', $filename);
-		$args = array(
+		if ( self::$should_not_deduplicate === true ) {
+			return $filename;
+		}
+		$sanitized_filename = str_replace( $ext, '', $filename );
+		$args = [
 			'post_type' => 'attachment',
 			'post_mime_type' => 'image',
 			'post_name__like' => $sanitized_filename,
 			'posts_per_page' => -1,
 			'fields' => 'ids',
 			'post_status' => 'any',
-		);
+		];
 
 		$query = new WP_Query( $args );
 		$matched_count = $query->found_posts;
 
 		if ( ! empty( $matched_count ) && $matched_count > 0 ) {
-			return  $sanitized_filename. '-' . $matched_count . $ext;
+			return  $sanitized_filename . '-' . $matched_count . $ext;
 		}
 
 		return $filename;
@@ -695,6 +704,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', ' images to rollback ' );
 			do_action( 'optml_log', $image_ids );
 		}
+
+		self::$should_not_deduplicate = true;
+
 		foreach ( $image_ids as $id ) {
 			$current_meta = wp_get_attachment_metadata( $id );
 			if ( ! isset( $current_meta['file'] ) || ! self::is_uploaded_image( $current_meta['file'] ) ) {
@@ -851,6 +863,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			$this->delete_attachment_from_server( $original_url, $id, $table_id );
 		}
+		self::$should_not_deduplicate = false;
 		if ( $success_back > 0 ) {
 			if ( OPTML_DEBUG ) {
 				do_action( 'optml_log', ' call update post, success rollback' );
@@ -934,7 +947,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			preg_match( '/\/' . self::KEYS['uploaded_flag'] . '([^\/]*)\//', $file, $table_id );
 
 			if ( ! isset( $table_id[1] ) ) {
-					return;
+				return;
 			}
 			$this->delete_attachment_from_server( $original_url, $post_id, $table_id[1] );
 		}
