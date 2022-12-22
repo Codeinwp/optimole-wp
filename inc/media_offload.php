@@ -48,6 +48,19 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @var bool Whether to skip our custom deduplication.
 	 */
 	private static $should_not_deduplicate = false;
+
+	/**
+	 * Flag used inside wp_unique_filename filter.
+	 *
+	 * @var bool Whether to skip our custom deduplication.
+	 */
+	private static $current_file_deduplication = false;
+	/**
+	 * Flag used inside wp_unique_filename filter.
+	 *
+	 * @var bool Whether to skip our custom deduplication.
+	 */
+	private static $last_deduplicated = false;
 	/**
 	 * Enqueue script for generating cloud media tab.
 	 */
@@ -198,48 +211,62 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'media_row_actions', [self::$instance, 'add_inline_media_action'], 10, 2 );
 				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
 				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
-				add_filter( 'wp_unique_filename', [self::$instance, 'unique_filename'], 10, 6 );
+				add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
 			}
 		}
 		return self::$instance;
 	}
 
+
 	/**
-	 * Function for `wp_unique_filename` filter-hook.
+	 * Function for `update_attached_file` filter-hook.
 	 *
-	 * @param string        $filename                 Unique file name.
-	 * @param string        $ext                      File extension. Example: ".png".
-	 * @param string        $dir                      Directory path.
-	 * @param callable|null $unique_filename_callback Callback function that generates the unique file name.
-	 * @param string[]      $alt_filenames            Array of alternate file names that were checked for collisions.
-	 * @param int|string    $number                   The highest number that was used to make the file name unique or an empty string if unused.
+	 * @param string $file          Path to the attached file to update.
+	 * @param int    $attachment_id Attachment ID.
 	 *
 	 * @return string
 	 */
-	public function unique_filename( $filename, $ext, $dir, $unique_filename_callback, $alt_filenames, $number ) {
+	function wp_update_attached_file_filter( $file, $attachment_id ){
 
-		if ( self::$should_not_deduplicate === true ) {
-			return $filename;
-		}
-		$sanitized_filename = str_replace( $ext, '', $filename );
-		$args = [
-			'post_type' => 'attachment',
-			'post_mime_type' => 'image',
-			'post_name__like' => $sanitized_filename,
-			'posts_per_page' => -1,
-			'fields' => 'ids',
-			'post_status' => 'any',
-		];
-
-		$query = new WP_Query( $args );
-		$matched_count = $query->found_posts;
-
-		if ( ! empty( $matched_count ) && $matched_count > 0 ) {
-			return  $sanitized_filename . '-' . $matched_count . $ext;
+		$info = pathinfo($file);
+		$file_name =  basename($file,'.'.$info['extension']);
+		if ( !empty( self::$current_file_deduplication ) && strpos(self::$current_file_deduplication, $file_name) !== false ) {
+			$file = str_replace($file_name, self::$current_file_deduplication, $file);
+			self::$last_deduplicated = $file_name;
+			self::$current_file_deduplication = false;
+			return $file;
 		}
 
-		return $filename;
+		return $file;
 	}
+
+	/**
+	 * Function for `wp_insert_attachment_data` filter-hook.
+	 *
+	 * @param array $data                An array of slashed, sanitized, and processed attachment post data.
+	 * @param array $postarr             An array of slashed and sanitized attachment post data, but not processed.
+	 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data as originally passed to wp_insert_post().
+	 * @param bool  $update              Whether this is an existing attachment post being updated.
+	 *
+	 * @return array
+	 */
+	function insert( $data, $postarr, $unsanitized_postarr, $update ){
+
+		//the post name is unique against the database so not affected by removing the files
+		//https://developer.wordpress.org/reference/functions/wp_unique_post_slug/
+
+		if ( !empty($data['post_name']) &&  $data['post_title'] !== $data['post_name']) {
+			$data['guid'] = str_replace($data['post_title'], $data['post_name'], $data['guid']);
+			self::$current_file_deduplication = $data['post_name'];
+			add_filter( 'update_attached_file', [self::$instance,'wp_update_attached_file_filter'], 10, 2 );
+			do_action('optml_log', $data['post_name']);
+		}
+		return $data;
+	}
+
+
+
+
 
 	/**
 	 * Update offload meta when the page is updated.
@@ -1056,6 +1083,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @uses filter:wp_generate_attachment_metadata
 	 */
 	public function generate_image_meta( $meta, $attachment_id ) {
+
 		if ( ! isset( $meta['file'] ) || ! isset( $meta['width'] ) || ! isset( $meta['height'] ) || self::is_uploaded_image( $meta['file'] ) ) {
 			do_action( 'optml_log', 'invalid meta' );
 			do_action( 'optml_log', $meta );
@@ -1076,13 +1104,26 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		$local_file = get_attached_file( $attachment_id );
+
+		$extension = $this->get_ext( $local_file );
+		$content_type = Optml_Config::$image_extensions [ $extension ];
+		$temp = explode( '/', $local_file );
+		$file_name = end( $temp );
+		$no_ext_filename = str_replace('.' . $extension, '',$file_name);
+
+		if ( !empty(self::$last_deduplicated) && strpos( $no_ext_filename, self::$last_deduplicated ) !== false ) {
+			$original_url = str_replace($no_ext_filename, self::$last_deduplicated, $original_url);
+			$local_file = str_replace($no_ext_filename, self::$last_deduplicated, $local_file);
+			self::$last_deduplicated = false;
+
+		}
 		if ( ! file_exists( $local_file ) ) {
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 			do_action( 'optml_log', 'missing file' );
 			do_action( 'optml_log', $local_file );
 			return $meta;
 		}
-		$extension = $this->get_ext( $local_file );
+
 
 		if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) ) {
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
@@ -1097,9 +1138,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $meta;
 		}
 
-		$content_type = Optml_Config::$image_extensions [ $extension ];
-		$temp = explode( '/', $local_file );
-		$file_name = end( $temp );
 		$request = new Optml_Api();
 		$generate_url_response = $request->call_upload_api( $original_url );
 
