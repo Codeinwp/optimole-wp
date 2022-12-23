@@ -226,15 +226,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @return string
 	 */
-	function wp_update_attached_file_filter( $file, $attachment_id ){
+	function wp_update_attached_file_filter( $file, $attachment_id ) {
 
-		$info = pathinfo($file);
-		$file_name =  basename($file,'.'.$info['extension']);
-		if ( !empty( self::$current_file_deduplication ) && strpos(self::$current_file_deduplication, $file_name) !== false ) {
-			$file = str_replace($file_name, self::$current_file_deduplication, $file);
+		$info = pathinfo( $file );
+		$file_name = basename( $file );
+		$no_ext_file_name = basename( $file, '.' . $info['extension'] );
+
+		if ( ! empty( self::$current_file_deduplication ) && stripos( self::$current_file_deduplication, $no_ext_file_name ) !== false ) {
+			$file = str_replace( $file_name, self::$current_file_deduplication, $file );
 			self::$last_deduplicated = $file_name;
 			self::$current_file_deduplication = false;
-			return $file;
 		}
 
 		return $file;
@@ -250,16 +251,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @return array
 	 */
-	function insert( $data, $postarr, $unsanitized_postarr, $update ){
+	function insert( $data, $postarr, $unsanitized_postarr, $update ) {
 
-		//the post name is unique against the database so not affected by removing the files
-		//https://developer.wordpress.org/reference/functions/wp_unique_post_slug/
-
-		if ( !empty($data['post_name']) &&  $data['post_title'] !== $data['post_name']) {
-			$data['guid'] = str_replace($data['post_title'], $data['post_name'], $data['guid']);
-			self::$current_file_deduplication = $data['post_name'];
-			add_filter( 'update_attached_file', [self::$instance,'wp_update_attached_file_filter'], 10, 2 );
-			do_action('optml_log', $data['post_name']);
+		// the post name is unique against the database so not affected by removing the files
+		// https://developer.wordpress.org/reference/functions/wp_unique_post_slug/
+		if ( ! empty( $data['guid'] ) ) {
+			$filename = wp_basename( $data['guid'] );
+			$ext = $this->get_ext( $filename );
+			$sanitized_post_name = str_replace( '.' . $ext, '', $data['post_name'] );
+		}
+		if ( ! empty( $data['post_name'] ) && $data['post_title'] !== $sanitized_post_name ) {
+			$to_replace_with = $sanitized_post_name . '.' . $ext;
+			$data['guid'] = str_replace( $filename, $to_replace_with, $data['guid'] );
+			self::$current_file_deduplication = $to_replace_with;
+			add_filter( 'update_attached_file', [self::$instance, 'wp_update_attached_file_filter'], 10, 2 );
 		}
 		return $data;
 	}
@@ -1109,13 +1114,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$content_type = Optml_Config::$image_extensions [ $extension ];
 		$temp = explode( '/', $local_file );
 		$file_name = end( $temp );
-		$no_ext_filename = str_replace('.' . $extension, '',$file_name);
-
-		if ( !empty(self::$last_deduplicated) && strpos( $no_ext_filename, self::$last_deduplicated ) !== false ) {
-			$original_url = str_replace($no_ext_filename, self::$last_deduplicated, $original_url);
-			$local_file = str_replace($no_ext_filename, self::$last_deduplicated, $local_file);
+		$no_ext_filename = str_replace( '.' . $extension, '', $file_name );
+		$original_name = $file_name;
+		if ( ! empty( self::$last_deduplicated ) && strpos( $no_ext_filename, str_replace( '.' . $extension, '', self::$last_deduplicated ) ) !== false ) {
+			$original_url = str_replace( $file_name, self::$last_deduplicated, $original_url );
+			$local_file = str_replace( $file_name, self::$last_deduplicated, $local_file );
+			$original_name = self::$last_deduplicated;
 			self::$last_deduplicated = false;
-
 		}
 		if ( ! file_exists( $local_file ) ) {
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
@@ -1123,7 +1128,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', $local_file );
 			return $meta;
 		}
-
 
 		if ( ! isset( Optml_Config::$image_extensions [ $extension ] ) ) {
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
@@ -1207,6 +1211,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		$url_to_append = $original_url;
 		$url_parts = parse_url( $original_url );
+
 		if ( isset( $url_parts['scheme'] ) && isset( $url_parts['host'] ) ) {
 			$url_to_append = $url_parts['scheme'] . '://' . $url_parts['host'] . '/' . $file_name;
 		}
@@ -1222,9 +1227,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		file_exists( $local_file ) && unlink( $local_file );
 		update_post_meta( $attachment_id, 'optimole_offload', 'true' );
 		$meta['file'] = '/' . self::KEYS['uploaded_flag'] . $table_id . '/' . $url_to_append;
+
 		if ( isset( $meta['sizes'] ) ) {
 			foreach ( $meta['sizes'] as $key => $value ) {
-				$generated_image_size_path = str_replace( $file_name, $meta['sizes'][ $key ]['file'], $local_file );
+				$generated_image_size_path = str_replace( $original_name, $meta['sizes'][ $key ]['file'], $local_file );
 				file_exists( $generated_image_size_path ) && unlink( $generated_image_size_path );
 				$meta['sizes'][ $key ]['file'] = $file_name;
 			}
