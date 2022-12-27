@@ -19,6 +19,8 @@ class Test_Media extends WP_UnitTestCase {
 
 	public static $sample_post;
 	public static $sample_attachement;
+	private static $sample_attachement_upper_case;
+
 	/**
 	 * Mock the api calls and remote images requests
 	 */
@@ -153,9 +155,16 @@ class Test_Media extends WP_UnitTestCase {
 			]
 		);
 		self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1.jpg' );
+		self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/1PQ7p.jpg' );
+		self::$sample_attachement_upper_case = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/1PQ7p.jpg' );
+	}
+	public function test_duplicated_image() {
+
+		$content =  wp_get_attachment_image( self::$sample_attachement_upper_case );
+		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:45/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1pq7p-2.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content);
 	}
 	public function test_page_images_process() {
-		
+
 		$content =  wp_get_attachment_image( self::$sample_attachement );
 		$this->assertStringContainsString( 'example.i.optimole.com', $content );
 		$settings = new Optml_Settings();
@@ -244,15 +253,6 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertEquals('http://35f86c81ba7c.ngrok.io/wp-content/uploads/2021/04/2AAPaNcjDJQ.jpg', $images[0]);
 		$this->assertEquals('http://35f86c81ba7c.ngrok.io/wp-content/uploads/2021/04/Screenshot-2021-02-15-at-10.42.07-1200x675.png', $images[1]);
 
-	}
-
-	public function test_duplicated_image() {
-
-		copy(OPTML_PATH . 'assets/img/1.jpg', OPTML_PATH . 'assets/img/1PQ7p.jpg');
-		self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1PQ7p.jpg' );
-		$sample_attachement_upper_case = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1PQ7p.jpg' );
-		$content =  wp_get_attachment_image( $sample_attachement_upper_case );
-		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:55/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1pq7p-2.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content);
 	}
 
 }
