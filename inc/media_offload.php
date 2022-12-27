@@ -234,7 +234,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		if ( ! empty( self::$current_file_deduplication ) && stripos( self::$current_file_deduplication, $no_ext_file_name ) !== false ) {
 			$file = str_replace( $file_name, self::$current_file_deduplication, $file );
-			self::$last_deduplicated = $file_name;
+			self::$last_deduplicated = strtolower( $file_name );
 			self::$current_file_deduplication = false;
 		}
 

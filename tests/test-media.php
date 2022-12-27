@@ -244,4 +244,14 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertEquals('http://35f86c81ba7c.ngrok.io/wp-content/uploads/2021/04/Screenshot-2021-02-15-at-10.42.07-1200x675.png', $images[1]);
 
 	}
+
+	public function test_duplicated_image() {
+
+		copy(OPTML_PATH . 'assets/img/1.jpg', OPTML_PATH . 'assets/img/1TESTstring.jpg');
+		self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1TESTstring.jpg' );
+		$sample_attachement_upper_case = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1TESTstring.jpg' );
+		$content =  wp_get_attachment_image( $sample_attachement_upper_case );
+		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:17/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1teststring-2.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content);
+	}
+
 }
