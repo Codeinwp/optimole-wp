@@ -248,11 +248,11 @@ class Test_Media extends WP_UnitTestCase {
 
 	public function test_duplicated_image() {
 
-		copy(OPTML_PATH . 'assets/img/1.jpg', OPTML_PATH . 'assets/img/1TESTstring.jpg');
-		self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1TESTstring.jpg' );
-		$sample_attachement_upper_case = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1TESTstring.jpg' );
+		copy(OPTML_PATH . 'assets/img/1.jpg', OPTML_PATH . 'assets/img/1PQ7p.jpg');
+		self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1PQ7p.jpg' );
+		$sample_attachement_upper_case = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1PQ7p.jpg' );
 		$content =  wp_get_attachment_image( $sample_attachement_upper_case );
-		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:55/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1teststring-2.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content);
+		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:55/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1pq7p-2.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content);
 	}
 
 }
