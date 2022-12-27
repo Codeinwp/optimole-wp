@@ -258,7 +258,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! empty( $data['guid'] ) ) {
 			$filename = wp_basename( $data['guid'] );
 			$ext = $this->get_ext( $filename );
-			$sanitized_post_name = str_replace( '.' . $ext, '', $data['post_name'] );
+			$sanitized_post_name = str_replace( '-' . $ext, '', $data['post_name'] );
 		}
 		if ( ! empty( $data['post_name'] ) && $data['post_title'] !== $sanitized_post_name ) {
 			$to_replace_with = $sanitized_post_name . '.' . $ext;
