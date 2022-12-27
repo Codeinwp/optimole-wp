@@ -16,7 +16,7 @@ class Test_Lazyload_Class_Exclusion extends WP_UnitTestCase
 
 	public static $sample_attachement;
 
-	public function setUp()
+	public function setUp() : void
 	{
 		parent::setUp();
 		$settings = new Optml_Settings();
@@ -52,7 +52,7 @@ class Test_Lazyload_Class_Exclusion extends WP_UnitTestCase
 					</div>';
 		$replaced_content = Optml_Manager::instance()->process_images_from_content($content);
 		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
-		$this->assertNotContains('data-opt-src', $replaced_content);
+		$this->assertStringNotContainsString('data-opt-src', $replaced_content);
 	}
 	public function test_class_exclusions_does_not_affect_regular_replacement()
 	{
