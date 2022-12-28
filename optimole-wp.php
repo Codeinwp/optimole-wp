@@ -84,6 +84,10 @@ function optml() {
 
 	if ( ! defined( 'OPTML_DEBUG' ) ) {
 		define( 'OPTML_DEBUG', ( defined( 'TEST_GROUND' ) && TEST_GROUND ) ? true : false );
+
+	}
+	if ( ! defined( 'OPTML_DEBUG_MEDIA' ) ) {
+		define('OPTML_DEBUG_MEDIA', false);
 	}
 
 	return Optml_Main::instance();
