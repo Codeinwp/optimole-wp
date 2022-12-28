@@ -87,7 +87,7 @@ function optml() {
 
 	}
 	if ( ! defined( 'OPTML_DEBUG_MEDIA' ) ) {
-		define('OPTML_DEBUG_MEDIA', false);
+		define( 'OPTML_DEBUG_MEDIA', false );
 	}
 
 	return Optml_Main::instance();

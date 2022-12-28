@@ -26,7 +26,7 @@ require_once $_tests_dir . '/includes/functions.php';
  */
 function _manually_load_plugin() {
 	//override the log action for testing
-	define('OPTML_DEBUG_MEDIA', true);
+	//define('OPTML_DEBUG_MEDIA', true);
 	add_action(
 		'optml_log',
 		function( $message ) {
