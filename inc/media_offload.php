@@ -11,6 +11,7 @@
  */
 class Optml_Media_Offload extends Optml_App_Replacer {
 	use Optml_Normalizer;
+
 	/**
 	 * Hold the settings object.
 	 *
@@ -56,11 +57,17 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	private static $current_file_deduplication = false;
 	/**
-	 * Flag used inside wp_unique_filename filter.
+	 * Keeps the last deduplicated lower case value.
 	 *
-	 * @var bool Whether to skip our custom deduplication.
+	 * @var string Used to check if the current processed image was deduplicated.
 	 */
 	private static $last_deduplicated = false;
+	/**
+	 * Keeps the last deduplicated original value.
+	 *
+	 * @var string Used when moving the file to our servers.
+	 */
+	private static $last_deduplicated_original;
 	/**
 	 * Enqueue script for generating cloud media tab.
 	 */
@@ -238,6 +245,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! empty( self::$current_file_deduplication ) && stripos( self::$current_file_deduplication, $no_ext_file_name ) !== false ) {
 			$file = str_replace( $file_name, self::$current_file_deduplication, $file );
 			self::$last_deduplicated = strtolower( $file_name );
+			self::$last_deduplicated_original = $file_name;
 			self::$current_file_deduplication = false;
 		}
 		if ( OPTML_DEBUG_MEDIA ) {
@@ -1133,11 +1141,19 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$file_name = end( $temp );
 		$no_ext_filename = str_replace( '.' . $extension, '', $file_name );
 		$original_name = $file_name;
+		if ( OPTML_DEBUG_MEDIA ) {
+			do_action( 'optml_log', 'file before replace' );
+			do_action( 'optml_log', $local_file );
+		}
 		if ( ! empty( self::$last_deduplicated ) && strpos( $no_ext_filename, str_replace( '.' . $extension, '', self::$last_deduplicated ) ) !== false ) {
-			$original_url = str_replace( $file_name, self::$last_deduplicated, $original_url );
-			$local_file = str_replace( $file_name, self::$last_deduplicated, $local_file );
-			$original_name = self::$last_deduplicated;
+			$original_url = str_replace( $file_name, self::$last_deduplicated_original, $original_url );
+			$local_file = str_replace( $file_name, self::$last_deduplicated_original, $local_file );
+			$original_name = self::$last_deduplicated_original;
 			self::$last_deduplicated = false;
+		}
+		if ( OPTML_DEBUG_MEDIA ) {
+			do_action( 'optml_log', 'file after replace' );
+			do_action( 'optml_log', $local_file );
 		}
 		if ( ! file_exists( $local_file ) ) {
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
