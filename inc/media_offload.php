@@ -228,6 +228,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	function wp_update_attached_file_filter( $file, $attachment_id ) {
 
+		var_dump( 'called updated attached' );
 		$info = pathinfo( $file );
 		$file_name = basename( $file );
 		$no_ext_file_name = basename( $file, '.' . $info['extension'] );
@@ -237,7 +238,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			self::$last_deduplicated = strtolower( $file_name );
 			self::$current_file_deduplication = false;
 		}
-
+		var_dump( self::$last_deduplicated );
 		return $file;
 	}
 
@@ -255,6 +256,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		// the post name is unique against the database so not affected by removing the files
 		// https://developer.wordpress.org/reference/functions/wp_unique_post_slug/
+		var_dump( 'data before' );
+		var_dump( $data );
 		if ( ! empty( $data['guid'] ) ) {
 			$filename = wp_basename( $data['guid'] );
 			$ext = $this->get_ext( $filename );
@@ -266,6 +269,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			self::$current_file_deduplication = $to_replace_with;
 			add_filter( 'update_attached_file', [self::$instance, 'wp_update_attached_file_filter'], 10, 2 );
 		}
+		var_dump( 'data after' );
+		var_dump( $data );
+
 		return $data;
 	}
 
@@ -1089,6 +1095,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function generate_image_meta( $meta, $attachment_id ) {
 
+		var_dump( 'called generate meta' );
 		if ( ! isset( $meta['file'] ) || ! isset( $meta['width'] ) || ! isset( $meta['height'] ) || self::is_uploaded_image( $meta['file'] ) ) {
 			do_action( 'optml_log', 'invalid meta' );
 			do_action( 'optml_log', $meta );
@@ -1252,6 +1259,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				}
 			}
 		}
+		var_dump( 'success offload' );
 		return $meta;
 	}
 
