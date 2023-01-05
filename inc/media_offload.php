@@ -241,21 +241,31 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$info = pathinfo( $file );
 		$file_name = basename( $file );
 		$no_ext_file_name = basename( $file, '.' . $info['extension'] );
-
+		// if we have current deduplication set and it contains the filename that is updated
+		// we replace the updated filename with the deduplicated filename
 		if ( ! empty( self::$current_file_deduplication ) && stripos( self::$current_file_deduplication, $no_ext_file_name ) !== false ) {
 			$file = str_replace( $file_name, self::$current_file_deduplication, $file );
+			// we need to store the lowercase version of the filename we replaced to check when uploading the image if it was deduplicated
 			self::$last_deduplicated = strtolower( $file_name );
+			// we also need the original filename before deduplication in order to delete it and upload to our servers
 			self::$last_deduplicated_original = $file_name;
 			self::$current_file_deduplication = false;
 		}
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', self::$last_deduplicated );
 		}
+		remove_filter( 'update_attached_file', [self::$instance, 'wp_update_attached_file_filter'], 10 );
 		return $file;
 	}
 
 	/**
 	 * Function for `wp_insert_attachment_data` filter-hook.
+	 * Because we remove the images when new images are added the wp deduplication using the files will not work
+	 * To overcome this we hook the attachment data when it's added to the database and we use the post name (slug) which is unique against the database
+	 * For creating a unique quid by replacing the filename with the slug inside the existing guid
+	 * This will ensure the guid is unique and the next step will be to make sure the attached_file meta for the image is also unique
+	 * For this we will hook `update_attached_file` filter which is called after the data is inserted and there we will make sure we replace the filename
+	 * with the deduplicated one which we stored into `$current_file_deduplication` variable
 	 *
 	 * @param array $data                An array of slashed, sanitized, and processed attachment post data.
 	 * @param array $postarr             An array of slashed and sanitized attachment post data, but not processed.
@@ -275,11 +285,18 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! empty( $data['guid'] ) ) {
 			$filename = wp_basename( $data['guid'] );
 			$ext = $this->get_ext( $filename );
+			// on some instances (just unit tests) the post name has the extension appended like this : `image-1-jpg`
+			// we remove that as it is redundant for the file name deduplication we are using it
 			$sanitized_post_name = str_replace( '-' . $ext, '', $data['post_name'] );
 		}
+		// with the wp deduplication working the post_title is identical to the post_name
+		// so when they are different it means we need to deduplicate using the post_name
 		if ( ! empty( $data['post_name'] ) && $data['post_title'] !== $sanitized_post_name ) {
+			// we append the extension to the post_name to create a filename
+			// and use it to replace the filename in the guid
 			$to_replace_with = $sanitized_post_name . '.' . $ext;
 			$data['guid'] = str_replace( $filename, $to_replace_with, $data['guid'] );
+			// we store the deduplication to be used and add the filter for updating the attached_file meta
 			self::$current_file_deduplication = $to_replace_with;
 			add_filter( 'update_attached_file', [self::$instance, 'wp_update_attached_file_filter'], 10, 2 );
 		}
@@ -1145,8 +1162,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', 'file before replace' );
 			do_action( 'optml_log', $local_file );
 		}
+
+		// check if the current filename is the last deduplicated filename
 		if ( ! empty( self::$last_deduplicated ) && strpos( $no_ext_filename, str_replace( '.' . $extension, '', self::$last_deduplicated ) ) !== false ) {
-			$original_url = str_replace( $file_name, self::$last_deduplicated_original, $original_url );
+			// replace the file with the original before deduplication to get the path where the image is uploaded
 			$local_file = str_replace( $file_name, self::$last_deduplicated_original, $local_file );
 			$original_name = self::$last_deduplicated_original;
 			self::$last_deduplicated = false;
