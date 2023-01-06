@@ -27,7 +27,7 @@ class Test_Video_Tag extends WP_UnitTestCase {
                      </div>';
 
     public static $sample_post;
-    public function setUp() {
+    public function setUp():void {
 
         parent::setUp();
         $settings = new Optml_Settings();
@@ -55,25 +55,25 @@ class Test_Video_Tag extends WP_UnitTestCase {
 
         $replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_GIF );
 
-        $this->assertContains( 'i.optimole.com', $replaced_content );
-        $this->assertContains( '<video autoplay muted loop playsinline poster', $replaced_content );
-        $this->assertContains( 'type="video/mp4', $replaced_content );
-        $this->assertContains( '/f:mp4', $replaced_content );
-        $this->assertContains( 'https://www.example.org', $replaced_content );
+        $this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+        $this->assertStringContainsString( '<video autoplay muted loop playsinline poster', $replaced_content );
+        $this->assertStringContainsString( 'type="video/mp4', $replaced_content );
+        $this->assertStringContainsString( '/f:mp4', $replaced_content );
+        $this->assertStringContainsString( 'https://www.example.org', $replaced_content );
       }
     public function test_should_not_replace_tag () {
 
         $replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_NOT_GIF );
-        $this->assertNotContains( '<video autoplay muted loop playsinline poster', $replaced_content );
-        $this->assertNotContains( 'type="video/mp4', $replaced_content );
-        $this->assertNotContains( '/f:mp4', $replaced_content );
+        $this->assertStringNotContainsString( '<video autoplay muted loop playsinline poster', $replaced_content );
+        $this->assertStringNotContainsString( 'type="video/mp4', $replaced_content );
+        $this->assertStringNotContainsString( '/f:mp4', $replaced_content );
 
     }
     public function test_should_not_replace_placeholder_gifs () {
 
         $replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_EXCLUDED_GIFS );
-        $this->assertNotContains( '<video autoplay muted loop playsinline poster', $replaced_content );
-        $this->assertNotContains( 'type="video/mp4', $replaced_content );
-        $this->assertNotContains( '/f:mp4', $replaced_content );
+        $this->assertStringNotContainsString( '<video autoplay muted loop playsinline poster', $replaced_content );
+        $this->assertStringNotContainsString( 'type="video/mp4', $replaced_content );
+        $this->assertStringNotContainsString( '/f:mp4', $replaced_content );
     }
 }

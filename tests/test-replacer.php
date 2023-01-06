@@ -114,7 +114,7 @@ class Test_Replacer extends WP_UnitTestCase {
 	public static $sample_post;
 	public static $sample_attachement;
 
-	public function setUp() {
+	public function setUp(): void {
 
 
 		parent::setUp();
@@ -178,24 +178,24 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
 
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( '/w:2000/', $replaced_content );
-		$this->assertContains( '/h:1200/', $replaced_content );
-		$this->assertContains( 'http://example.org', $replaced_content );
-		$this->assertContains( 'decoding=async', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '/w:2000/', $replaced_content );
+		$this->assertStringContainsString( '/h:1200/', $replaced_content );
+		$this->assertStringContainsString( 'http://example.org', $replaced_content );
+		$this->assertStringContainsString( 'decoding=async', $replaced_content );
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::TEST_STAGING );
-		$this->assertContains( 'decoding=async', $replaced_content );
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( '/https://www.example.org', $replaced_content );
+		$this->assertStringContainsString( 'decoding=async', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '/https://www.example.org', $replaced_content );
 
 	}
 
 	public function test_optimization_url() {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
 
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( 'http://example.org', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'http://example.org', $replaced_content );
 
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
 
@@ -205,8 +205,8 @@ class Test_Replacer extends WP_UnitTestCase {
 	public function test_assets_url() {
 		$replaced_content = Optml_Manager::instance()->process_urls_from_content( self::ASSETS_URL );
 
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( 'http://example.org', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'http://example.org', $replaced_content );
 
 		$replaced_content = Optml_Manager::instance()->replace_content( self::ASSETS_URL );
 
@@ -224,11 +224,11 @@ class Test_Replacer extends WP_UnitTestCase {
 						';
 		$replaced_content = Optml_Manager::instance()->replace_content( $edge_case_urls );
 
-		$this->assertContains( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/https://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
-		$this->assertContains( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/http://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
-		$this->assertContains( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:css/q:mauto/m:1/http://example.org/wp-includes/js/hoverintent-js.min.png-random.css', $replaced_content );
-		$this->assertContains( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/http://example.org/wp-includes/js/assets/whatever.jpg.png.css.js', $replaced_content );
-		$this->assertContains( 'https://test123.i.optimole.com/cb:eFRn.20eff/w:auto/h:auto/q:mauto/f:avif/https://example.org/wp-includes/js/assets/whatever.jpg.jpg', $replaced_content );
+		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/https://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
+		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/http://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
+		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:css/q:mauto/m:1/http://example.org/wp-includes/js/hoverintent-js.min.png-random.css', $replaced_content );
+		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/http://example.org/wp-includes/js/assets/whatever.jpg.png.css.js', $replaced_content );
+		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/w:auto/h:auto/q:mauto/f:avif/https://example.org/wp-includes/js/assets/whatever.jpg.jpg', $replaced_content );
 
 		$settings = new Optml_Settings();
 		$settings->update( 'css_minify', 'disabled' );
@@ -245,17 +245,17 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertEquals( 7, substr_count( $replaced_content, 'w:auto' ) );
 		$this->assertEquals( 7, substr_count( $replaced_content, 'h:auto' ) );
 		$this->assertEquals( 7, substr_count( $replaced_content, 'q:mauto' ) );
-		$this->assertNotContains( 'm:0', $replaced_content );
-		$this->assertNotContains( 'm:1', $replaced_content );
-		$this->assertNotContains( 'f:css', $replaced_content );
-		$this->assertNotContains( 'f:js', $replaced_content );
+		$this->assertStringNotContainsString( 'm:0', $replaced_content );
+		$this->assertStringNotContainsString( 'm:1', $replaced_content );
+		$this->assertStringNotContainsString( 'f:css', $replaced_content );
+		$this->assertStringNotContainsString( 'f:js', $replaced_content );
 	}
 
 	public function test_style_replacement() {
 		$replaced_content = Optml_Manager::instance()->replace_content( self::CSS_STYLE );
 
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( 'http://example.org', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'http://example.org', $replaced_content );
 		$this->assertEquals( 6, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 	}
@@ -263,8 +263,8 @@ class Test_Replacer extends WP_UnitTestCase {
 	public function test_replacement_non_whitelisted_urls() {
 		$replaced_content = Optml_Manager::instance()->replace_content( self::TEST_WRONG_URLS );
 
-		$this->assertNotContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( 'https://www.codeinwp.org', $replaced_content );
+		$this->assertStringNotContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'https://www.codeinwp.org', $replaced_content );
 	}
 
 	public function test_replacement_remove_query_arg() {
@@ -276,8 +276,8 @@ class Test_Replacer extends WP_UnitTestCase {
 			</div>';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( '?param=123', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '?param=123', $replaced_content );
 	}
 
 	public function test_replacement_with_relative_url() {
@@ -290,7 +290,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
-		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 
 	}
 	public function test_replacement_without_quotes() {
@@ -300,7 +300,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
-		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 
 	}
 
@@ -324,31 +324,31 @@ class Test_Replacer extends WP_UnitTestCase {
 				</div>
 			</div>';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( 'http://www.example.org', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'http://www.example.org', $replaced_content );
 	}
 
 	public function test_non_allowed_extensions() {
 		$replaced_content = Optml_Manager::instance()->replace_content( ( self::CSS_STYLE . self::IMG_TAGS . self::WRONG_EXTENSION ) );
-		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 		//Test if wrong extension is still present in the output.
-		$this->assertContains( 'http://example.org/wp-content/themes/twentyseventeen/assets/images/header.gif', $replaced_content );
+		$this->assertStringContainsString( 'http://example.org/wp-content/themes/twentyseventeen/assets/images/header.gif', $replaced_content );
 	}
 
 	public function test_elementor_data() {
 		$html             = self::get_html_array();
 		$replaced_content = Optml_Manager::instance()->replace_content( json_encode( $html ) );
 
-		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 		$this->assertEquals( 54, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 		//Ensure the json is not corrupted after replacement.
 		$this->assertTrue( is_array( json_decode( $replaced_content, true ) ) );
 
 		//The content should be sucessfully processed.
-		$this->assertNotContains( "\"https:\/\/www.example.org\/wp-content", $replaced_content );
-		$this->assertNotContains( "\"\/\/www.example.org\/wp-content", $replaced_content );
-		$this->assertNotContains( "\"\/wp-content", $replaced_content );
+		$this->assertStringNotContainsString( "\"https:\/\/www.example.org\/wp-content", $replaced_content );
+		$this->assertStringNotContainsString( "\"\/\/www.example.org\/wp-content", $replaced_content );
+		$this->assertStringNotContainsString( "\"\/wp-content", $replaced_content );
 		$count_unicode = 0;
 		$replaced_html = json_decode( $replaced_content, true );
 		foreach ( $replaced_html as $value ) {
@@ -402,8 +402,8 @@ class Test_Replacer extends WP_UnitTestCase {
 			'width'  => 99999,
 			'height' => 99999
 		] );
-		$this->assertContains( 'i.optimole.com', $new_url );
-		$this->assertNotContains( '99999', $new_url );
+		$this->assertStringContainsString( 'i.optimole.com', $new_url );
+		$this->assertStringNotContainsString( '99999', $new_url );
 
 	}
 
@@ -411,9 +411,9 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$attachement_url = wp_get_attachment_image_src( self::$sample_attachement, 'sample_size_crop' );
 
-		$this->assertContains( 'w:96', $attachement_url[0] );
-		$this->assertContains( 'h:96', $attachement_url[0] );
-		$this->assertContains( 'rt:fill', $attachement_url[0] );
+		$this->assertStringContainsString( 'w:96', $attachement_url[0] );
+		$this->assertStringContainsString( 'h:96', $attachement_url[0] );
+		$this->assertStringContainsString( 'rt:fill', $attachement_url[0] );
 		global $_test_posssible_values_y_sizes;
 		global $_test_posssible_values_x_sizes;
 		$allowed_gravities = array(
@@ -446,11 +446,11 @@ class Test_Replacer extends WP_UnitTestCase {
 				}
 
 				$attachement_url = wp_get_attachment_image_src( self::$sample_attachement, 'sample_size_h_' . $x_value . $y_value );
-				$this->assertContains( 'rt:fill', $attachement_url[0] );
+				$this->assertStringContainsString( 'rt:fill', $attachement_url[0] );
 				if ( ! is_array( $gravity_key ) ) {
-					$this->assertContains( 'g:' . $gravity_key, $attachement_url[0], sprintf( ' %s for X %s for Y should contain %s gravity', $x_value, $y_value, $gravity_key ) );
+					$this->assertStringContainsString( 'g:' . $gravity_key, $attachement_url[0], sprintf( ' %s for X %s for Y should contain %s gravity', $x_value, $y_value, $gravity_key ) );
 				} else {
-					$this->assertContains( 'g:fp:' . $gravity_key[0] . ':' . $gravity_key[1], $attachement_url[0] );
+					$this->assertStringContainsString( 'g:fp:' . $gravity_key[0] . ':' . $gravity_key[1], $attachement_url[0] );
 				}
 			}
 		}
@@ -460,22 +460,22 @@ class Test_Replacer extends WP_UnitTestCase {
 	public function test_post_content() {
 		$content = apply_filters( 'the_content', get_post_field( 'post_content', self::$sample_post ) );
 
-		$this->assertContains( 'i.optimole.com', $content );
+		$this->assertStringContainsString( 'i.optimole.com', $content );
 	}
 
 	public function test_strip_image_size() {
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMAGE_SIZE_DATA );
 
 		//Test fake sample image size.
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertContains( '282x123', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '282x123', $replaced_content );
 		$this->assertEquals( 4, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 		//Test valid wordpress image size, it should strip the size suffix.
 		$attachement_url  = wp_get_attachment_image_src( self::$sample_attachement, 'medium' );
 		$replaced_content = Optml_Manager::instance()->replace_content( $attachement_url[0] );
 
-		$this->assertNotContains( '282x123', $replaced_content );
+		$this->assertStringNotContainsString( '282x123', $replaced_content );
 	}
 
 	/**
@@ -491,10 +491,10 @@ class Test_Replacer extends WP_UnitTestCase {
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_TAGS );
 
 		//Test custom source.
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( 'http://example.org', $replaced_content );
-		$this->assertNotContains( 'example.org', $replaced_content );
-		$this->assertContains( 'mycnd.com', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringNotContainsString( 'http://example.org', $replaced_content );
+		$this->assertStringNotContainsString( 'example.org', $replaced_content );
+		$this->assertStringContainsString( 'mycnd.com', $replaced_content );
 
 	}
 
@@ -502,15 +502,15 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->go_to( '/?feed=rss2' );
 
 		$replaced_content = Optml_Manager::instance()->replace_content( Test_Replacer::IMG_TAGS_WITH_SRCSET );
-		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 		$this->assertEquals( 5, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 		$replaced_content = Optml_Manager::instance()->replace_content( Test_Replacer::IMG_TAGS_WITH_SRCSET_SCHEMALESS );
-		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 		$this->assertEquals( 5, substr_count( $replaced_content, 'i.optimole.com' ) );
 
 		$replaced_content = Optml_Manager::instance()->replace_content( Test_Replacer::IMG_TAGS_WITH_SRCSET_RELATIVE );
-		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 		$this->assertEquals( 5, substr_count( $replaced_content, 'i.optimole.com' ) );
 	}
 
@@ -520,15 +520,15 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$doubled_ccontent = Optml_Manager::instance()->replace_content( $replaced_content . Test_Replacer::IMG_TAGS );
 
-		$this->assertContains( 'i.optimole.com', $doubled_ccontent );
+		$this->assertStringContainsString( 'i.optimole.com', $doubled_ccontent );
 		$this->assertEquals( 2, substr_count( $doubled_ccontent, 'i.optimole.com' ) );
 	}
 
 	public function test_image_size_2_crop() {
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMAGE_SIZE_NO_CLASS );
 
-		$this->assertContains( 'rt:fill', $replaced_content );
-		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'rt:fill', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 	}
 
 	public function test_replacement_with_image_size() {
@@ -543,10 +543,10 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->replace_content( " " . $content . " " );
 
-		$this->assertContains( 'i.optimole.com', $replaced_content );
-		$this->assertNotContains( '-300x300.png', $replaced_content );
-		$this->assertContains( 'w:300', $replaced_content );
-		$this->assertContains( 'h:300', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringNotContainsString( '-300x300.png', $replaced_content );
+		$this->assertStringContainsString( 'w:300', $replaced_content );
+		$this->assertStringContainsString( 'h:300', $replaced_content );
 
 	}
 
@@ -576,7 +576,7 @@ class Test_Replacer extends WP_UnitTestCase {
 			'height' => 1000
 		);
 		$response = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
-		$this->assertContains( '(max-width: 1000px) 100vw, 1000px', $response );
+		$this->assertStringContainsString( '(max-width: 1000px) 100vw, 1000px', $response );
 		$wp_current_filter = array();
 		$response          = apply_filters( 'wp_calculate_image_sizes', $sizes, array( 10000 ) );
 		$this->assertTrue( ! empty( $response ) );
@@ -598,7 +598,7 @@ class Test_Replacer extends WP_UnitTestCase {
 			';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
-		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 
 		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
 
@@ -613,7 +613,7 @@ class Test_Replacer extends WP_UnitTestCase {
 			';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
-		$this->assertContains( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 
 		$this->assertEquals( 3, substr_count( $replaced_content, 'i.optimole.com' ) );
 
@@ -632,7 +632,7 @@ class Test_Replacer extends WP_UnitTestCase {
 					</div>';
 		$replaced_content = Optml_Manager::instance()->process_images_from_content($content);
 		$this->assertEquals( 0, substr_count( $replaced_content, 'i.optimole.com' ) );
-		$this->assertNotContains('data-opt-src', $replaced_content);
+		$this->assertStringNotContainsString('data-opt-src', $replaced_content);
 	}
 
 }

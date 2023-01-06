@@ -4,6 +4,11 @@
  *
  * @package eyepatch-manager
  */
+
+if ( getenv( 'WP_LOCAL_TESTING' ) === 'true' ) {
+	require dirname(dirname(__FILE__)) . '/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php';
+}
+
 $_tests_dir = getenv( 'WP_TESTS_DIR' );
 if ( ! $_tests_dir ) {
 	$_tests_dir = '/tmp/wordpress-tests-lib';
@@ -20,6 +25,14 @@ require_once $_tests_dir . '/includes/functions.php';
  * Manually load the plugin being tested.
  */
 function _manually_load_plugin() {
+	//override the log action for testing
+	//define('OPTML_DEBUG_MEDIA', true);
+	add_action(
+		'optml_log',
+		function( $message ) {
+			var_dump($message);
+		}
+	);
 	global $_test_posssible_values_x_sizes;
 	$_test_posssible_values_x_sizes = array(
 		true,
