@@ -95,6 +95,13 @@ Premium users will be able to optimize images starting with more than 25k monthl
 
 == Changelog ==
 
+##### [Version 3.5.4](https://github.com/Codeinwp/optimole-wp/compare/v3.5.3...v3.5.4) (2023-01-06)
+
+* Fixed image deduplication on media offload
+
+
+
+
 ##### [Version 3.5.3](https://github.com/Codeinwp/optimole-wp/compare/v3.5.2...v3.5.3) (2022-12-12)
 
 * Improve compatibility with WPML plugin
