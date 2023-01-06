@@ -17,7 +17,7 @@ class Test_Video_Tag_Disabled extends WP_UnitTestCase
 
     public static $sample_post;
 
-    public function setUp()
+    public function setUp() : void
     {
 
         parent::setUp();
@@ -43,8 +43,8 @@ class Test_Video_Tag_Disabled extends WP_UnitTestCase
     public function test_should_replace_disabled()
     {
         $replaced_content = Optml_Manager::instance()->process_images_from_content(self::IMG_TAGS_GIF);
-        $this->assertNotContains('<video autoplay muted loop playsinline poster', $replaced_content);
-        $this->assertNotContains('type="video/mp4', $replaced_content);
-        $this->assertNotContains('/f:mp4', $replaced_content);
+        $this->assertStringNotContainsString('<video autoplay muted loop playsinline poster', $replaced_content);
+        $this->assertStringNotContainsString('type="video/mp4', $replaced_content);
+        $this->assertStringNotContainsString('/f:mp4', $replaced_content);
     }
 }

@@ -17,7 +17,7 @@ class Test_Rest extends WP_UnitTestCase
 
 	private $namespaced_route = '/' . OPTML_NAMESPACE . '/v1/check_redirects';
 
-	public function setUp()
+	public function setUp() : void
 	{
 		parent::setUp();
 		global $wp_rest_server;
@@ -100,8 +100,8 @@ class Test_Rest extends WP_UnitTestCase
 		$this->assertArrayHasKey( 'data', $data );
 		$this->assertArrayHasKey( 'code', $data );
 		$this->assertEquals( 'log', $data[ 'code' ] );
-		$this->assertRegexp( '/media.gettyimages.com/' , $data ['data'] );
-		$this->assertRegexp( '/image.shutterstock.com/', $data ['data'] );
+		$this->assertMatchesRegularExpression( '/media.gettyimages.com/' , $data ['data'] );
+		$this->assertMatchesRegularExpression( '/image.shutterstock.com/', $data ['data'] );
 	}
 	public function test_response_is_ok () {
 		$request_body = array (

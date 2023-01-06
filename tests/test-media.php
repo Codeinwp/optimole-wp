@@ -19,6 +19,8 @@ class Test_Media extends WP_UnitTestCase {
 
 	public static $sample_post;
 	public static $sample_attachement;
+	private static $sample_attachement_upper_case;
+
 	/**
 	 * Mock the api calls and remote images requests
 	 */
@@ -126,7 +128,7 @@ class Test_Media extends WP_UnitTestCase {
 		return $false;
 	}
 
-	public function setUp() {
+	public function setUp() : void {
 
 
 		parent::setUp();
@@ -153,11 +155,18 @@ class Test_Media extends WP_UnitTestCase {
 			]
 		);
 		self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1.jpg' );
+		self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/1PQ7p.jpg' );
+		self::$sample_attachement_upper_case = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/1PQ7p.jpg' );
+	}
+	public function test_duplicated_image() {
+
+		$content =  wp_get_attachment_image( self::$sample_attachement_upper_case );
+		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:45/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1pq7p-2.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content);
 	}
 	public function test_page_images_process() {
-		
+
 		$content =  wp_get_attachment_image( self::$sample_attachement );
-		$this->assertContains( 'example.i.optimole.com', $content );
+		$this->assertStringContainsString( 'example.i.optimole.com', $content );
 		$settings = new Optml_Settings();
 		$settings->update( 'quality', 75 );
 		$settings->update( 'autoquality', 'disabled' );
@@ -178,8 +187,8 @@ class Test_Media extends WP_UnitTestCase {
 		);
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 		$this->assertEquals(  3, substr_count($replaced_content, 'https://my_costum_domain'));
-		$this->assertContains( '/w:150/h:150/q:75/rt:fill/g:ce/f:avif/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $replaced_content );
-		$this->assertContains( '/w:150/h:150/q:eco/f:avif/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $replaced_content );
+		$this->assertStringContainsString( '/w:150/h:150/q:75/rt:fill/g:ce/f:avif/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $replaced_content );
+		$this->assertStringContainsString( '/w:150/h:150/q:eco/f:avif/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $replaced_content );
 	}
 
 	public function test_image_processed() {
@@ -188,19 +197,19 @@ class Test_Media extends WP_UnitTestCase {
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
 		$my_size_image = wp_get_attachment_image_src(self::$sample_attachement, 'my_size_crop' );
 
-		$this->assertContains( 'example.i.optimole.com', $my_size_image[0] );
-		$this->assertContains('/w:200/h:200/q:mauto/rt:fill/g:nowe/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $my_size_image[0]);
+		$this->assertStringContainsString( 'example.i.optimole.com', $my_size_image[0] );
+		$this->assertStringContainsString('/w:200/h:200/q:mauto/rt:fill/g:nowe/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $my_size_image[0]);
 
-		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size[0] );
-		$this->assertContains( '/w:150/h:150/q:mauto/rt:fill/g:ce/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $image_thumbnail_size[0] );
+		$this->assertStringContainsString( 'example.i.optimole.com', $image_thumbnail_size[0] );
+		$this->assertStringContainsString( '/w:150/h:150/q:mauto/rt:fill/g:ce/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $image_thumbnail_size[0] );
 
-		$this->assertContains( 'example.i.optimole.com', $image_medium_size[0] );
-		$this->assertContains( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $image_medium_size[0] );
+		$this->assertStringContainsString( 'example.i.optimole.com', $image_medium_size[0] );
+		$this->assertStringContainsString( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $image_medium_size[0] );
 		$this->assertFalse( file_exists( get_attached_file(self::$sample_attachement) ) );
 
 		$image_meta  = wp_get_attachment_metadata( self::$sample_attachement);
 
-		$this->assertContains( '/id:579c7f7707ce87caa65fdf50c238a117', $image_meta['file'] );
+		$this->assertStringContainsString( '/id:579c7f7707ce87caa65fdf50c238a117', $image_meta['file'] );
 	}
 
 	public function test_image_sync() {
@@ -212,16 +221,17 @@ class Test_Media extends WP_UnitTestCase {
 
 		$image_meta  = wp_get_attachment_metadata( self::$sample_attachement);
 
-		$this->assertContains( '/id:579c7f7707ce87caa65fdf50c238a117', $image_meta['file'] );
+		$this->assertStringContainsString( '/id:579c7f7707ce87caa65fdf50c238a117', $image_meta['file'] );
 
 		$image_medium_size = wp_get_attachment_image_src(self::$sample_attachement, 'medium');
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
 
-		$this->assertContains( 'example.i.optimole.com', $image_thumbnail_size[0] );
-		$this->assertContains( '/w:150/h:150/q:mauto/rt:fill/g:ce/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $image_thumbnail_size[0] );
+		$this->assertStringContainsString( 'example.i.optimole.com', $image_thumbnail_size[0] );
+		$this->assertStringContainsString( '/w:150/h:150/q:mauto/rt:fill/g:ce/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $image_thumbnail_size[0] );
 
-		$this->assertContains( 'example.i.optimole.com', $image_medium_size );
-		$this->assertContains( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117', $image_medium_size[0] );
+
+		$this->assertStringContainsString( 'example.i.optimole.com', $image_medium_size[0] );
+		$this->assertStringContainsString( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117', $image_medium_size[0] );
 	}
 
 	public function test_image_rollback() {
@@ -231,9 +241,9 @@ class Test_Media extends WP_UnitTestCase {
 		
 		$image_meta  = wp_get_attachment_metadata( self::$sample_attachement);
 		
-		$this->assertNotContains( 'id:', $image_meta['file'] );
-		$this->assertContains( '-300x200', $image_meta['sizes']['medium']['file'] );
-		$this->assertContains( '-150x150', $image_meta['sizes']['thumbnail']['file'] );
+		$this->assertStringNotContainsString( 'id:', $image_meta['file'] );
+		$this->assertStringContainsString( '-300x200', $image_meta['sizes']['medium']['file'] );
+		$this->assertStringContainsString( '-150x150', $image_meta['sizes']['thumbnail']['file'] );
 	}
 	public function test_custom_post_image_extraction () {
 		$content = '[fusion_builder_container type="flex" hundred_percent="no" hundred_percent_height="no" hundred_percent_height_scroll="no" align_content="stretch" flex_align_items="flex-start" flex_justify_content="flex-start" hundred_percent_height_center_content="yes" equal_height_columns="no" container_tag="div" hide_on_mobile="small-visibility,medium-visibility,large-visibility" status="published" border_style="solid" box_shadow="no" box_shadow_blur="0" box_shadow_spread="0" gradient_start_position="0" gradient_end_position="100" gradient_type="linear" radial_direction="center center" linear_angle="180" background_position="center center" background_repeat="no-repeat" fade="no" background_parallax="none" enable_mobile="no" parallax_speed="0.3" background_blend_mode="none" video_aspect_ratio="16:9" video_loop="yes" video_mute="yes" absolute="off" absolute_devices="small,medium,large" sticky="off" sticky_devices="small-visibility,medium-visibility,large-visibility" sticky_transition_offset="0" scroll_offset="0" animation_direction="left" animation_speed="0.3" filter_hue="0" filter_saturation="100" filter_brightness="100" filter_contrast="100" filter_invert="0" filter_sepia="0" filter_opacity="100" filter_blur="0" filter_hue_hover="0" filter_saturation_hover="100" filter_brightness_hover="100" filter_contrast_hover="100" filter_invert_hover="0" filter_sepia_hover="0" filter_opacity_hover="100" filter_blur_hover="0"][fusion_builder_row][fusion_builder_column type="1_3" type="1_3" align_self="auto" content_layout="column" align_content="flex-start" valign_content="flex-start" content_wrap="wrap" spacing="" center_content="no" link="" target="_self" min_height="" hide_on_mobile="small-visibility,medium-visibility,large-visibility" sticky_display="normal,sticky" class="" id="" type_medium="" type_small="" order_medium="0" order_small="0" dimension_spacing_medium="" dimension_spacing_small="" dimension_spacing="" dimension_margin_medium="" dimension_margin_small="" margin_top="" margin_bottom="" padding_medium="" padding_small="" padding_top="" padding_right="" padding_bottom="" padding_left="" hover_type="none" border_sizes="" border_color="" border_style="solid" border_radius="" box_shadow="no" dimension_box_shadow="" box_shadow_blur="0" box_shadow_spread="0" box_shadow_color="" box_shadow_style="" background_type="single" gradient_start_color="" gradient_end_color="" gradient_start_position="0" gradient_end_position="100" gradient_type="linear" radial_direction="center center" linear_angle="180" background_color="" background_image="" background_image_id="" background_position="left top" background_repeat="no-repeat" background_blend_mode="none" render_logics="" filter_type="regular" filter_hue="0" filter_saturation="100" filter_brightness="100" filter_contrast="100" filter_invert="0" filter_sepia="0" filter_opacity="100" filter_blur="0" filter_hue_hover="0" filter_saturation_hover="100" filter_brightness_hover="100" filter_contrast_hover="100" filter_invert_hover="0" filter_sepia_hover="0" filter_opacity_hover="100" filter_blur_hover="0" animation_type="" animation_direction="left" animation_speed="0.3" animation_offset="" last="no" border_position="all"][fusion_imageframe image_id="144|full" max_width="" sticky_max_width="" style_type="" blur="" stylecolor="" hover_type="none" bordersize="" bordercolor="" borderradius="" align_medium="none" align_small="none" align="none" margin_top="" margin_right="" margin_bottom="" margin_left="" lightbox="no" gallery_id="" lightbox_image="" lightbox_image_id="" alt="" link="" linktarget="_self" hide_on_mobile="small-visibility,medium-visibility,large-visibility" sticky_display="normal,sticky" class="" id="" animation_type="" animation_direction="left" animation_speed="0.3" animation_offset="" filter_hue="0" filter_saturation="100" filter_brightness="100" filter_contrast="100" filter_invert="0" filter_sepia="0" filter_opacity="100" filter_blur="0" filter_hue_hover="0" filter_saturation_hover="100" filter_brightness_hover="100" filter_contrast_hover="100" filter_invert_hover="0" filter_sepia_hover="0" filter_opacity_hover="100"
@@ -244,4 +254,5 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertEquals('http://35f86c81ba7c.ngrok.io/wp-content/uploads/2021/04/Screenshot-2021-02-15-at-10.42.07-1200x675.png', $images[1]);
 
 	}
+
 }
