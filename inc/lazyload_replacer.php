@@ -323,8 +323,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$search = [];
 		$replace = [];
 		foreach ( $video_tags as $video_tag ) {
-			do_action( 'optml_log', 'here' );
-			do_action( 'optml_log', $video_tag );
 
 			if ( ! $this->should_lazyload_iframe( $video_tag ) ) {
 				continue;
@@ -482,7 +480,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return bool Should add?
 	 */
 	public function should_lazyload_iframe( $tag ) {
-		do_action( 'optml_log', self::get_iframe_lazyload_flags() );
+
 		foreach ( self::get_iframe_lazyload_flags() as $banned_string ) {
 			if ( strpos( $tag, $banned_string ) !== false ) {
 				return false;
