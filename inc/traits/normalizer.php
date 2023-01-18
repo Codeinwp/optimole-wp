@@ -255,7 +255,13 @@ trait Optml_Normalizer {
 	 */
 	public function add_schema( $url ) {
 		$schema_url = $url;
-		if ( str_starts_with( $schema_url, '//' ) ) {
+		$should_add_schema = false;
+		if ( function_exists( 'str_starts_with' ) ) {
+			$should_add_schema = str_starts_with( $schema_url, '//' );
+		} else {
+			$should_add_schema = substr( $schema_url, 0, strlen( '//' ) ) === '//';
+		}
+		if ( $should_add_schema ) {
 			$schema_url = is_ssl() ? 'https:' : 'http:' . $schema_url;
 		}
 		return $schema_url;
