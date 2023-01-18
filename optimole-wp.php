@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Image optimization service by Optimole
  * Description:       Complete handling of your website images.
- * Version:           3.5.4
+ * Version:           3.5.5
  * Author:            Optimole
  * Author URI:        https://optimole.com
  * License:           GPL-2.0+
@@ -74,7 +74,7 @@ function optml() {
 	}
 	define( 'OPTML_URL', plugin_dir_url( __FILE__ ) );
 	define( 'OPTML_PATH', plugin_dir_path( __FILE__ ) );
-	define( 'OPTML_VERSION', '3.5.4' );
+	define( 'OPTML_VERSION', '3.5.5' );
 	define( 'OPTML_NAMESPACE', 'optml' );
 	define( 'OPTML_BASEFILE', __FILE__ );
 	// Fallback for old PHP versions when this constant is not defined.

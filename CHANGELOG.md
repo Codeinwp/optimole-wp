@@ -1,3 +1,8 @@
+##### [Version 3.5.5](https://github.com/Codeinwp/optimole-wp/compare/v3.5.4...v3.5.5) (2023-01-18)
+
+* Updated iframe lazyload exclusion flags to include the default flags
+* Fixed offload media compatibility with all php versions above 5.4
+
 ##### [Version 3.5.4](https://github.com/Codeinwp/optimole-wp/compare/v3.5.3...v3.5.4) (2023-01-06)
 
 * Fixed image deduplication on media offload
