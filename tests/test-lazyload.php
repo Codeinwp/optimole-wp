@@ -469,6 +469,16 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertStringContainsString( 'data-opt-src', $replaced_content );
 		$this->assertStringContainsString( '<noscript>', $replaced_content );
 	}
+	public function test_lazyload_video_with_source_and_no_src() {
+
+		$content = '<video controls="">
+                    <source type="video/mp4" src="https://test.com/wp-content/video.mp4">
+                    </video>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+
+		$this->assertStringContainsString( 'preload="metadata"', $replaced_content );
+	}
 	public function test_lazyload_video_source() {
 
 		$content = '<figure class="wp-block-video"><video controls=""><source type="video/mp4" src="https://file-examples-com.github.io/uploads/2017/04/file_example_MP4_480_1_5MG.mp4"></video>
@@ -477,9 +487,9 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 		$replaced_content_skip = Optml_Manager::instance()->replace_content( $content_skip );
-		$this->assertStringContainsString( 'preload=none', $replaced_content );
-		$this->assertStringContainsString( '<noscript>', $replaced_content );
-		$this->assertStringNotContainsString( 'preload=none', $replaced_content_skip );
+		$this->assertStringContainsString( 'preload="metadata"', $replaced_content );
+		$this->assertStringNotContainsString( '<noscript>', $replaced_content );
+		$this->assertStringNotContainsString( 'preload="metadata"', $replaced_content_skip );
 		$this->assertStringNotContainsString( '<noscript>', $replaced_content_skip );
 		$this->assertStringNotContainsString( 'data-opt-src', $replaced_content_skip );
 	}
