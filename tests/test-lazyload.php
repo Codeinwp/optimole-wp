@@ -473,6 +473,9 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 
 		$content = '<video controls="">
                     <source type="video/mp4" src="https://test.com/wp-content/video.mp4">
+                    </video>
+                    <video controls="" preload="none">
+                    <source type="video/mp4" src="https://test.com/wp-content/video.mp4">
                     </video>';
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
