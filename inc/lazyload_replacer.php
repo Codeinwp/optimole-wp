@@ -317,11 +317,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$iframes = [];
 		$videos = [];
 		preg_match_all( '#(?:<noscript\s*>\s*)?<iframe(.*?)></iframe>(?:\s*</noscript\s*>)?#is', $content, $iframes );
-		preg_match_all( '#(?:<noscript\s*>\s*)?<video(.*?)></video>(?:\s*</noscript\s*>)?#is', $content, $videos );
+		preg_match_all( '#(?:<noscript\s*>\s*)?<video(.*?)>.*?</video>(?:\s*</noscript\s*>)?#is', $content, $videos );
 		$video_tags = array_merge( $iframes[0], $videos[0] );
 
 		$search = [];
 		$replace = [];
+
 		foreach ( $video_tags as $video_tag ) {
 
 			if ( ! $this->should_lazyload_iframe( $video_tag ) ) {
@@ -330,6 +331,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			if ( preg_match( "/ data-opt-src=['\"]/is", $video_tag ) ) {
 				continue;
 			}
+			$should_add_noscript = true;
 			$original_tag = $video_tag;
 			// replace the src and add the data-opt-src attribute
 			if ( strpos( $video_tag, 'iframe' ) !== false ) {
@@ -337,7 +339,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			} elseif ( strpos( $video_tag, 'video' ) !== false ) {
 				if ( strpos( $video_tag, 'source' ) !== false ) {
 					if ( strpos( $video_tag, 'preload' ) === false ) {
-						$video_tag = preg_replace( '/video(.*?)>/is', 'video$1 preload=none>', $video_tag, 1 );
+						$video_tag = preg_replace( '/video(.*?)>/is', 'video$1 preload="metadata">', $video_tag, 1 );
+						$should_add_noscript = false;
 					} else {
 						continue;
 					}
@@ -345,7 +348,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 					$video_tag = preg_replace( '/video(.*?)src=/is', 'video$1 data-opt-src=', $video_tag );
 				}
 			}
-			if ( $this->should_add_noscript( $video_tag ) ) {
+			if ( $this->should_add_noscript( $video_tag ) && $should_add_noscript ) {
 				$video_tag .= '<noscript>' . $original_tag . '</noscript>';
 			}
 			array_push( $search, $original_tag );

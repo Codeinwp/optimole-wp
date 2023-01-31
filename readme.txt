@@ -2,7 +2,7 @@
 Contributors: optimole
 Tags: image optimization, convert webp, responsive images, lazy load, images, optimization, performance, photos, free cdn
 Requires at least: 4.7
-Tested up to: 6.0
+Tested up to: 6.1
 Requires PHP: 5.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -94,6 +94,56 @@ Premium users will be able to optimize images starting with more than 25k monthl
 4. Plugin settings
 
 == Changelog ==
+
+##### [Version 3.5.5](https://github.com/Codeinwp/optimole-wp/compare/v3.5.4...v3.5.5) (2023-01-18)
+
+* Updated iframe lazyload exclusion flags to include the default flags
+* Fixed offload media compatibility with all php versions above 5.4
+
+
+
+
+##### [Version 3.5.4](https://github.com/Codeinwp/optimole-wp/compare/v3.5.3...v3.5.4) (2023-01-06)
+
+* Fixed image deduplication on media offload
+
+
+
+
+##### [Version 3.5.3](https://github.com/Codeinwp/optimole-wp/compare/v3.5.2...v3.5.3) (2022-12-12)
+
+* Improve compatibility with WPML plugin
+
+
+
+
+##### [Version 3.5.2](https://github.com/Codeinwp/optimole-wp/compare/v3.5.1...v3.5.2) (2022-11-11)
+
+* Fixed media offload nonce update
+
+
+
+
+##### [Version 3.5.1](https://github.com/Codeinwp/optimole-wp/compare/v3.5.0...v3.5.1) (2022-11-04)
+
+* Improve media offload estimation time.
+* Improve gif to video conversion.
+* Accessibility improvements to docs and external links.
+* Improve media offload process for sites with thousands of images. 
+* Improve welcome notice
+
+
+
+
+#### [Version 3.5.0](https://github.com/Codeinwp/optimole-wp/compare/v3.4.6...v3.5.0) (2022-10-17)
+
+* Improved images offload speed by marking processed pages
+* Adds conflict validation before the rollback process
+* Updated the logging for images that fail when offloading
+* Enhance Elementor compatibility
+
+
+
 
 ##### [Version 3.4.6](https://github.com/Codeinwp/optimole-wp/compare/v3.4.5...v3.4.6) (2022-09-08)
 
