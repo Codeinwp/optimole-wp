@@ -72,9 +72,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Adds page meta query args
 	 *
-	 * @param string $action The action for which the args are needed
-	 * @param array  $args The initial args without the added meta_query args
-	 * @return array The args with the added meta_query args
+	 * @param string $action The action for which the args are needed.
+	 * @param array  $args The initial args without the added meta_query args.
+	 * @return array The args with the added meta_query args.
 	 */
 	public static function add_page_meta_query_args( $action, $args ) {
 		if ( $action === 'offload_images' ) {
