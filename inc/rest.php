@@ -445,13 +445,16 @@ class Optml_Rest {
 
 		// Arguments for get_posts function
 		$args = [
-			'post_type' => 'attachment',
-			'post_mime_type' => 'image',
-			'post_status' => 'inherit',
-			'posts_per_page' => 100,
-			'offset' => $offset,
-			'fields' => 'ids',
-			'orderby' => [
+			'post_type'              => 'attachment',
+			'post_mime_type'         => 'image',
+			'post_status'            => 'inherit',
+			'posts_per_page'         => 50,
+			'offset'                 => $offset,
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'orderby'                => [
 				'parent' => 'DESC',
 			],
 		];
@@ -460,6 +463,16 @@ class Optml_Rest {
 		$image_urls = [];
 
 		add_filter( 'optml_dont_replace_url', '__return_true' );
+
+		// If site has a logo, get the logo url if offset is 0, ie first request
+		if ( $offset === 0 ) {
+			$custom_logo_id = get_theme_mod( 'custom_logo' );
+
+			if ( $custom_logo_id ) {
+				$image_urls[] = wp_get_attachment_url( $custom_logo_id );
+			}
+		}
+
 		$query = new \WP_Query( $args );
 
 		if ( $query->have_posts() ) {
@@ -474,7 +487,9 @@ class Optml_Rest {
 
 		$api = new Optml_Api();
 		$api->call_onboard_api( $image_urls );
-		return $this->response( count( $image_urls ) === 100 ? false : true );
+
+		// Check if image_url array has at least 50 items, if not, we have reached the end of the images
+		return $this->response( count( $image_urls ) < 50 ? true : false );
 	}
 
 	/**

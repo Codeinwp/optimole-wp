@@ -26,7 +26,7 @@ final class Optml_Api {
 	 *
 	 * @var string Api root.
 	 */
-	private $onboard_api_root = 'https://onboard-prod.i.optimole.com/onboard_api/';
+	private $onboard_api_root = 'https://onboard.ha.optml.cloud/onboard_api/';
 	/**
 	 * Optimole offload conflicts api root url.
 	 *
