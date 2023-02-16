@@ -68,6 +68,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @var string Used when moving the file to our servers.
 	 */
 	private static $last_deduplicated_original;
+	/**
+	 * Checks if the plugin was installed before adding POST_OFFLOADED_FLAG.
+	 *
+	 * @var bool Used when applying the flags for the page query.
+	 */
+	private static $is_legacy_install = null;
 
 	/**
 	 * Adds page meta query args
@@ -94,7 +100,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					'compare' => 'NOT EXISTS',
 				],
 			];
-			if ( get_option( 'optimole_wp_install', 0 ) > 1666123200 ) {
+			if ( self::$is_legacy_install ) {
 				$args['meta_query'][] = [
 					'key' => self::POST_OFFLOADED_FLAG,
 					'value' => 'true',
@@ -256,6 +262,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
 				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
 				add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
+
+				if ( self::$is_legacy_install === null ) {
+					self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) > 1666123200;
+				}
 			}
 		}
 		return self::$instance;
