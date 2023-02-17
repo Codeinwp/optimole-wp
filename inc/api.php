@@ -274,10 +274,14 @@ final class Optml_Api {
 	 * @return array
 	 */
 	public function call_onboard_api( $images = [] ) {
+		$settings     = new Optml_Settings();
+		$token_images = $settings->get( 'cache_buster_images' );
+
 		$body = [
-			'secret' => Optml_Config::$secret,
-			'userKey' => Optml_Config::$key,
-			'images' => $images,
+			'secret'       => Optml_Config::$secret,
+			'userKey'      => Optml_Config::$key,
+			'images'       => $images,
+			'cache_buster' => $token_images,
 		];
 		$body = wp_json_encode( $body );
 
