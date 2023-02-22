@@ -69,6 +69,7 @@
 					
 					<p class="help is-danger" v-if="error" v-html="strings.error_register"></p>
 					<p class="help is-danger" v-else-if="email_registered" v-html="email_registered"></p>
+					<p class="help is-danger" v-else-if="this.$store.state.autoConnectError" v-html="this.$store.state.autoConnectError"></p>
 				</div>
 				<div class="field   ">
 					<div class="control ">
