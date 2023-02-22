@@ -1358,7 +1358,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$args ['post_type'] = 'attachment';
 			$args ['post_mime_type'] = 'image';
 			$args ['post_status'] = 'inherit';
-			$args['post_parent__in'] = apply_filters( 'optml_offload_images_post_parents', [ 0 ] );
 			if ( $action === 'offload_images' ) {
 				$args['meta_query'] = [
 					'relation' => 'AND',
