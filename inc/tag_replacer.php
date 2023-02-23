@@ -82,9 +82,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( $this->settings->get( 'img_to_video' ) === 'disabled' ) {
 			return false;
 		}
-		if ( ! $this->is_valid_gif( $image_url ) ) {
-			return false;
-		}
+
 		if ( false === Optml_Filters::should_do_image( $image_tag, apply_filters( 'optml_gif_to_video_flags', [ 'lazyload' => true, 'placeholder' => true, 'original-src' => true ] ) ) ) {
 			return false;
 		}
@@ -171,10 +169,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				continue; // @codeCoverageIgnore
 			}
 
-			if ( $this->img_to_video( $images['img_url'][ $index ], $images['img_tag'][ $index ], $content ) ) {
-				continue;
-			}
-
 			$resize = apply_filters( 'optml_default_crop', [] );
 
 			list( $width, $height, $resize ) = self::parse_dimensions_from_tag(
@@ -196,6 +190,14 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 
 			$optml_args = [ 'width' => $width, 'height' => $height, 'resize' => $resize ];
+
+			$is_gif = $this->is_valid_gif( $images['img_url'][ $index ] );
+			$should_lazy_gif = $is_gif ? $this->should_lazy_gif( $images['img_url'][ $index ], $optml_args ) : null;
+
+			if ( $should_lazy_gif === true && $this->img_to_video( $images['img_url'][ $index ], $images['img_tag'][ $index ], $content ) ) {
+				continue;
+			}
+
 			$tmp        = $this->strip_image_size_from_url( $tmp );
 			$new_url    = apply_filters( 'optml_content_url', $tmp, $optml_args );
 
@@ -219,8 +221,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$image_tag
 			);
 
-			// If the image is in header or has a class excluded from lazyload, we need to do the regular replace.
-			if ( $images['in_header'][ $index ] ) {
+			// If the image is in header or has a class excluded from lazyload or is an excluded gif, we need to do the regular replace.
+			if ( $images['in_header'][ $index ] || $should_lazy_gif === false ) {
 				$image_tag = $this->regular_tag_replace( $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
 			} else {
 				$image_tag = apply_filters( 'optml_tag_replace', $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
@@ -233,6 +235,23 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$content = str_replace( $images['img_tag'][ $index ], $image_tag, $content );
 		}
 		return $content;
+	}
+	/**
+	 * Check if we should lazyload a gif.
+	 *
+	 * @param string $url URL to check.
+	 * @param array  $optml_args The width/height that we find for the image.
+	 * @return bool Should we lazyload the gif ?
+	 */
+	public function should_lazy_gif( $url, $optml_args = [] ) {
+
+		if ( strpos( $url, '/plugins/' ) !== false ) {
+			return false;
+		}
+		if ( $this->is_valid_numeric( $optml_args['width'] ) && $this->is_valid_numeric( $optml_args['height'] ) && min( $optml_args['height'], $optml_args['width'] ) <= 20 ) {
+			return false;
+		}
+		return true;
 	}
 	/**
 	 * Check replacement is allowed for this tag.

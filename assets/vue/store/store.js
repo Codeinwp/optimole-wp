@@ -32,6 +32,7 @@ const store = new Vuex.Store(
 			userData: optimoleDashboardApp.user_data ? optimoleDashboardApp.user_data : null,
 			hasApplication: optimoleDashboardApp.has_application === 'yes',
 			autoConnect: optimoleDashboardApp.auto_connect,
+			autoConnectError: '',
 			availableApps: optimoleDashboardApp.available_apps ? optimoleDashboardApp.available_apps : null,
 			optimizedImages: [],
 			watermarks: [],
