@@ -438,7 +438,7 @@ class Optml_Rest {
 	/**
 	 * Crawl & upload initial load.
 	 *
-	 * @return boolean True if no more posts left to receive, false if there are more left.
+	 * @return WP_REST_Response If there are more posts left to receive.
 	 */
 	public function upload_onboard_images( WP_REST_Request $request ) {
 		$offset = absint( $request->get_param( 'offset' ) );
