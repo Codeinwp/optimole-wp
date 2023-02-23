@@ -1,3 +1,9 @@
+##### [Version 3.5.7](https://github.com/Codeinwp/optimole-wp/compare/v3.5.6...v3.5.7) (2023-02-23)
+
+* Improved media rollback stability
+* Updated GIF lazyload and video conversion default exclusions
+* Added notification for existing accounts on auto connect
+
 ##### [Version 3.5.6](https://github.com/Codeinwp/optimole-wp/compare/v3.5.5...v3.5.6) (2023-01-31)
 
 * Improved video lazyload
