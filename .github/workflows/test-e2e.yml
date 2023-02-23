@@ -33,7 +33,6 @@ jobs:
           env: host=testing.optimole.com
           config-file: cypress.config.js
           browser: chrome
-          record: true
   e2eFirefox:
     needs: e2e
     runs-on: ubuntu-latest
@@ -48,4 +47,3 @@ jobs:
           env: host=testing.optimole.com
           config-file: cypress.config.js
           browser: firefox
-          record: true
