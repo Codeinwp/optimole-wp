@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 composer install --no-dev
-npm ci
+npm ci --lockfile-version 1
 
+npm run-script build
 npm run-script dist
 
 eval "$(ssh-agent -s)"

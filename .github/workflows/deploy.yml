@@ -12,11 +12,14 @@ jobs:
       - name: Install node version
         uses: actions/setup-node@v1
         with:
-          node-version: 12.x
-      - name: Build
+          node-version: 14.x
+      - name: Install dependencies
         run: |
           npm ci
           composer install --no-dev --prefer-dist --no-progress --no-suggest
+      - name: Make build
+        run: |
+          npm run build
       - name: WordPress Plugin Deploy
         uses: 10up/action-wordpress-plugin-deploy@master
         env:
