@@ -23,7 +23,10 @@ class Test_Video_Tag extends WP_UnitTestCase {
                         <img src="https://www.example.org/wp-content/uploads/2018/05/placeholder.gif"/>
                         <img src="https://www.example.org/wp-content/uploads/2018/05/lazy_placeholder.gif"/>
                         <img src="https://www.example.org/wp-content/uploads/2018/05/plugin-placeholders/something.gif"/>
-
+                         <img src="https://www.example.org/wp-content/uploads/2018/05/plugins/something.gif"/>
+                         <img src="https://www.example.org/wp-content/uploads/2018/05/image.gif" width="10" height="15"/>
+                         <img src="https://www.example.org/wp-content/uploads/2018/05/plugins/something.gif" width="710" height="15"/>
+                         <img src="https://www.example.org/wp-content/uploads/2018/05/uploads/something17.gif" width="710" height="15"/>
                      </div>';
 
     public static $sample_post;

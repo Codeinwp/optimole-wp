@@ -22,7 +22,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo2.JPE">
 	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo3.WEBP">
 	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo4.svg">
-	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo5.gif">
+	<img src="http://example.org/wp-content/optimole-wp/assets/img/logo5.gif">
 	 ';
 	public function setUp() : void {
 		parent::setUp();
