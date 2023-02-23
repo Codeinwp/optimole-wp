@@ -289,9 +289,12 @@
 					email: email,
 					autoConnect: true,
 				}).then((response) => {
-					if ( response.code === 'email_registered') {
+					if ( response.code !== 'success' ) {
 						this.$store.state.autoConnect = 'no';
-						this.$store.state.autoConnectError = response.message;
+
+						if ( response.message ) {
+							this.$store.state.autoConnectError = response.message;
+						}
 						return;
 					}
 				})
