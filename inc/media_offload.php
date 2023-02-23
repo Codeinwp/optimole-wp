@@ -264,7 +264,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
 
 				if ( self::$is_legacy_install === null ) {
-					self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) > 1666123200;
+					self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) > 1677171600;
 				}
 			}
 		}
