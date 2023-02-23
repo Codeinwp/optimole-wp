@@ -69,6 +69,49 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	private static $last_deduplicated_original;
 	/**
+	 * Checks if the plugin was installed before adding POST_OFFLOADED_FLAG.
+	 *
+	 * @var bool Used when applying the flags for the page query.
+	 */
+	private static $is_legacy_install = null;
+
+	/**
+	 * Adds page meta query args
+	 *
+	 * @param string $action The action for which the args are needed.
+	 * @param array  $args The initial args without the added meta_query args.
+	 * @return array The args with the added meta_query args.
+	 */
+	public static function add_page_meta_query_args( $action, $args ) {
+		if ( $action === 'offload_images' ) {
+			$args['meta_query'] = [
+				'relation' => 'AND',
+				[
+					'key' => self::POST_OFFLOADED_FLAG,
+					'compare' => 'NOT EXISTS',
+				],
+			];
+		}
+		if ( $action === 'rollback_images' ) {
+			$args['meta_query'] = [
+				'relation' => 'AND',
+				[
+					'key' => self::POST_ROLLBACK_FLAG,
+					'compare' => 'NOT EXISTS',
+				],
+			];
+			if ( self::$is_legacy_install ) {
+				$args['meta_query'][] = [
+					'key' => self::POST_OFFLOADED_FLAG,
+					'value' => 'true',
+					'compare' => '=',
+				];
+			}
+		}
+		return $args;
+	}
+
+	/**
 	 * Enqueue script for generating cloud media tab.
 	 */
 	public function add_cloud_script( $hook ) {
@@ -219,6 +262,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
 				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
 				add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
+
+				if ( self::$is_legacy_install === null ) {
+					self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) > 1666123200;
+				}
 			}
 		}
 		return self::$instance;
@@ -331,7 +378,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		// revisions are skipped inside the function no need to check them before
-		delete_post_meta( $post_ID, self::POST_OFFLOADED_FLAG );
 		delete_post_meta( $post_ID, self::POST_ROLLBACK_FLAG );
 	}
 	/**
@@ -604,29 +650,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				'update_post_term_cache' => false,
 			]
 		);
-		if ( $job === 'offload_images' ) {
-			$query_args['meta_query'] = [
-				'relation' => 'AND',
-				[
-					'key' => self::POST_OFFLOADED_FLAG,
-					'compare' => 'NOT EXISTS',
-				],
-			];
-		}
-		if ( $job === 'rollback_images' ) {
-			$query_args['meta_query'] = [
-				'relation' => 'AND',
-				[
-					'key' => self::POST_OFFLOADED_FLAG,
-					'value' => 'true',
-					'compare' => '=',
-				],
-				[
-					'key' => self::POST_ROLLBACK_FLAG,
-					'compare' => 'NOT EXISTS',
-				],
-			];
-		}
+		$query_args = self::add_page_meta_query_args( $job, $query_args );
 		$content = new \WP_Query( $query_args );
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', $page );
@@ -1307,6 +1331,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', 'success offload' );
 		}
+		$attachment_page_id = wp_get_post_parent_id( $attachment_id );
+
+		if ( $attachment_page_id !== false && $attachment_page_id !== 0 ) {
+			self::$offload_update_post = true;
+			update_post_meta( $attachment_page_id, self::POST_OFFLOADED_FLAG, 'true' );
+			self::$offload_update_post = false;
+		}
 		return $meta;
 	}
 
@@ -1327,7 +1358,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$args ['post_type'] = 'attachment';
 			$args ['post_mime_type'] = 'image';
 			$args ['post_status'] = 'inherit';
-			$args['post_parent__in'] = apply_filters( 'optml_offload_images_post_parents', [ 0 ] );
 			if ( $action === 'offload_images' ) {
 				$args['meta_query'] = [
 					'relation' => 'AND',
@@ -1358,29 +1388,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				return $args;
 			}
 		} else {
-			if ( $action === 'offload_images' ) {
-				$args['meta_query'] = [
-					'relation' => 'AND',
-					[
-						'key' => self::POST_OFFLOADED_FLAG,
-						'compare' => 'NOT EXISTS',
-					],
-				];
-			}
-			if ( $action === 'rollback_images' ) {
-				$args['meta_query'] = [
-					'relation' => 'AND',
-					[
-						'key' => self::POST_OFFLOADED_FLAG,
-						'value' => 'true',
-						'compare' => '=',
-					],
-					[
-						'key' => self::POST_ROLLBACK_FLAG,
-						'compare' => 'NOT EXISTS',
-					],
-				];
-			}
+			$args = self::add_page_meta_query_args( $action, $args );
 		}
 		$post_types = array_values(
 			array_filter(
