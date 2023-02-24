@@ -288,8 +288,15 @@
 				this.$store.dispatch('registerOptimole', {
 					email: email,
 					autoConnect: true,
-				}).then(() => {
+				}).then((response) => {
+					if ( response.code !== 'success' ) {
+						this.$store.state.autoConnect = 'no';
 
+						if ( response.message ) {
+							this.$store.state.autoConnectError = response.message;
+						}
+						return;
+					}
 				})
 			},
 			keepConnected () {

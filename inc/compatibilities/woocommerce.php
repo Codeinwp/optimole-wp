@@ -26,9 +26,6 @@ class Optml_woocommerce extends Optml_compatibility {
 			add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_ignore_lazyload' ], PHP_INT_MAX, 1 );
 		}
 
-		if ( Optml_Main::instance()->admin->settings->get( 'offload_media' ) === 'enabled' ) {
-			add_filter( 'optml_offload_images_post_parents', [ $this, 'add_product_pages_to_image_query' ], PHP_INT_MAX, 1 );
-		}
 	}
 	/**
 	 * Add ignore lazyload flag.
