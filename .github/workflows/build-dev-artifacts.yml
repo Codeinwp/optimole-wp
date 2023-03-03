@@ -21,6 +21,10 @@ jobs:
     steps:
       - name: Check out source files
         uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: Get Composer Cache Directory
         id: composer-cache
         run: |
@@ -32,8 +36,13 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-composer-
-      - name: Install composer deps
-        run: composer install --no-dev --prefer-dist --no-progress --no-suggest
+      - name: Install dependencies
+        run: |
+          npm ci
+          composer install --no-dev --prefer-dist --no-progress --no-suggest
+      - name: Make build
+        run: |
+          npm run build
       - name: Create zip
         run: yarn run dist
       - name: Retrieve branch name
