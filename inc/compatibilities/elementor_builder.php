@@ -22,6 +22,7 @@ class Optml_elementor_builder extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
+		add_filter('elementor/frontend/builder_content/before_enqueue_css_file', [$this, 'replace_css'], PHP_INT_MAX, 1);
 		add_filter(
 			'optml_lazyload_bg_selectors',
 			function ( $all_watchers ) {
@@ -41,6 +42,34 @@ class Optml_elementor_builder extends Optml_compatibility {
 			}
 		);
 
+	}
+	public function replace_css ( $css_data ) {
+		if ( ! is_object( $css_data ) ) {
+			return $css_data;
+		}
+
+		// this is currently the only way to get the css path
+		// as the data is private and has no getter
+		// could not find any other filters to filter the css
+		// this is also an open issue on elementor
+		$obj = (array)($css_data);
+		$css_path = false;
+		foreach ($obj as $key => $value) {
+			if (is_string($value) && strpos($value, '/css/') !== false) {
+				$css_path = $value;
+			}
+		}
+		if ( $css_path === false ) {
+			return $css_data;
+		}
+
+		$css_contents = file_get_contents($css_path);
+
+		$modified_css_contents = Optml_Main::instance()->manager->process_urls_from_content( $css_contents );
+
+		file_put_contents($css_path, $modified_css_contents);
+
+		return $css_data;
 	}
 	/**
 	 * Should we early load the compatibility?

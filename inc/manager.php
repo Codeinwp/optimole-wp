@@ -81,7 +81,6 @@ final class Optml_Manager {
 		'facetwp',
 		'wp_rest_cache',
 		'wp_bakery',
-		'elementor_builder_late',
 		'wpml',
 	];
 	/**
