@@ -386,17 +386,19 @@ final class Optml_Manager {
 	 * @return bool
 	 */
 	public static function should_ignore_image_tags() {
-		// Ignore image tags replacement in amp context as they are not available.
-		if ( function_exists( 'is_amp_endpoint' ) ) {
-			return is_amp_endpoint();
-		}
-		if ( function_exists( 'ampforwp_is_amp_endpoint' ) ) {
-			return ampforwp_is_amp_endpoint();
-		}
 
 		// Ignore image tag replacement in feed context as we don't need it.
 		if ( is_feed() ) {
 			return true;
+		}
+
+		// Ignore image tags replacement in amp context as they are not available.
+		if ( function_exists( 'is_amp_endpoint' ) ) {
+			return is_amp_endpoint();
+		}
+
+		if ( function_exists( 'ampforwp_is_amp_endpoint' ) ) {
+			return ampforwp_is_amp_endpoint();
 		}
 
 		return apply_filters( 'optml_should_ignore_image_tags', false ) === true;
