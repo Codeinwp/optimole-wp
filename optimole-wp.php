@@ -61,7 +61,7 @@ function optml_php_notice() {
 }
 
 /**
- * Initiate the Optimole plugin.
+ * Initiate the Optimole plugin. 
  *
  * @return Optml_Main Optimole instance.
  */
