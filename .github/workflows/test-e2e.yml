@@ -2,6 +2,8 @@ name: E2E Tests
 
 on:
   pull_request:
+    branches-ignore:
+      - 'dependabot/*'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
