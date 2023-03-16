@@ -22,6 +22,10 @@ class Optml_elementor_builder extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
+		add_filter( 'elementor/frontend/builder_content/before_enqueue_css_file', [$this, 'add_src_filter'], PHP_INT_MIN, 1 );
+
+		add_filter( 'elementor/frontend/builder_content/before_print_css', [$this, 'remove_src_filter'], PHP_INT_MIN, 1 );
+
 		add_filter(
 			'optml_lazyload_bg_selectors',
 			function ( $all_watchers ) {
@@ -40,6 +44,54 @@ class Optml_elementor_builder extends Optml_compatibility {
 				}
 			}
 		);
+
+	}
+
+	/**
+	 * Remove filter for the image src after the css is saved by elementor.
+	 *
+	 * @param bool $with_css Flag used to determine if the css will be inline or not. Not used.
+	 * @return bool
+	 * @uses filter:elementor/frontend/builder_content/before_print_css
+	 */
+	public function remove_src_filter( $with_css ) {
+
+		remove_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'], PHP_INT_MAX );
+		return $with_css;
+	}
+	/**
+	 * Add filter for the image src after the css is enqueued.
+	 *
+	 * @param object $css Elementor css info. Not used.
+	 * @return object
+	 * @uses filter:elementor/frontend/builder_content/before_enqueue_css_file
+	 */
+	public function add_src_filter( $css ) {
+
+		add_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'], PHP_INT_MAX, 4 );
+
+		return $css;
+	}
+
+	/**
+	 * Optimize the image src when it is requested in elementor.
+	 *
+	 * @param array        $image  Image data.
+	 * @param  int          $attachment_id  Attachment id.
+	 * @param string|int[] $size  Image size.
+	 * @param bool         $icon  Whether to use icon or not.
+	 * @return array
+	 * @uses filter:wp_get_attachment_image_src
+	 */
+	public function optimize_src( $image, $attachment_id, $size, $icon ) {
+
+		if ( ! isset( $image[0] ) ) {
+			return $image;
+		}
+
+		$image[0] = Optml_Main::instance()->manager->url_replacer->build_url( $image[0] );
+
+		return $image;
 
 	}
 	/**
