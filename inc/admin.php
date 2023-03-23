@@ -1076,7 +1076,7 @@ The root cause might be either a security plugin which blocks this feature or so
 	}
 
 	/**
-	 * Allow JSON uploads
+	 * Allow SVG uploads
 	 *
 	 * @param null $data File data.
 	 * @param null $file File object.
