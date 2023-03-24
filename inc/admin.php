@@ -946,6 +946,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'quality_selected_value'            => __( 'Selected value', 'optimole-wp' ),
 				'quality_slider_desc'               => __( 'See one sample image which will help you choose the right quality of the compression.', 'optimole-wp' ),
 				'quality_title'                     => __( 'Enable Auto Quality powered by ML(Machine Learning)', 'optimole-wp' ),
+				'strip_meta_title'                  => __( 'Strip Image Metadata', 'optimole-wp' ),
+				'strip_meta_desc'                   => __( 'When enabled, Optimole will strip the metadata (EXIF, IPTC, etc.) on JPEG and WebP output images.', 'optimole-wp' ),
 				'replacer_desc'                     => __( 'Replace all the image urls from your website with the ones optimized by Optimole.', 'optimole-wp' ),
 				'sample_image_loading'              => __( 'Loading a sample image. ', 'optimole-wp' ),
 				'save_changes'                      => __( 'Save changes', 'optimole-wp' ),

@@ -84,6 +84,7 @@ class Optml_Settings {
 		'native_lazyload'      => 'disabled',
 		'offload_media'        => 'disabled',
 		'cloud_images'         => 'disabled',
+		'strip_metadata'       => 'enabled',
 		'skip_lazyload_images' => 3,
 		'defined_image_sizes'          => [ ],
 
@@ -240,6 +241,7 @@ class Optml_Settings {
 				case 'css_minify':
 				case 'js_minify':
 				case 'native_lazyload':
+				case 'strip_metadata':
 					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
 				case 'max_width':
@@ -438,6 +440,7 @@ class Optml_Settings {
 			'autoquality'          => $this->get( 'autoquality' ),
 			'offload_media'        => $this->get( 'offload_media' ),
 			'cloud_images'         => $this->get( 'cloud_images' ),
+			'strip_metadata'       => $this->get( 'strip_metadata' ),
 			'whitelist_domains'    => $whitelist,
 		];
 	}
