@@ -45,7 +45,6 @@ class Optml_Admin {
 
 		if ( ! function_exists( 'is_wpcom_vip' ) ) {
 			add_filter( 'upload_mimes', [ $this, 'allow_meme_types' ] ); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
-			add_filter( 'wp_check_filetype_and_ext', [ $this, 'fix_mime_type_svg' ], 75, 4 );
 		}
 	}
 
@@ -1069,35 +1068,10 @@ The root cause might be either a security plugin which blocks this feature or so
 	 *
 	 * @return array
 	 * @access public
+	 * @uses filter:upload_mimes
 	 */
 	public function allow_meme_types( $mimes ) {
 		$mimes['svg']  = 'image/svg+xml';
 		return $mimes;
-	}
-
-	/**
-	 * Allow SVG uploads
-	 *
-	 * @param null $data File data.
-	 * @param null $file File object.
-	 * @param null $filename File name.
-	 * @param null $mimes Supported mimes.
-	 *
-	 * @return array
-	 * @access public
-	 */
-	public function fix_mime_type_svg( $data = null, $file = null, $filename = null, $mimes = null ) {
-		$ext = isset( $data['ext'] ) ? $data['ext'] : '';
-
-		if ( 1 > strlen( $ext ) ) {
-			$exploded = explode( '.', $filename );
-			$ext      = strtolower( end( $exploded ) );
-		}
-
-		if ( 'svg' === $ext ) {
-			$data['type'] = 'image/svg+xml';
-			$data['ext']  = 'svg';
-		}
-		return $data;
 	}
 }
