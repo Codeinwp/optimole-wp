@@ -27,7 +27,6 @@ services:
     volumes:
       - "~/wpcore:/var/www/html/"
       - "./:/var/www/html/wp-content/plugins/optimole-wp"
-      - "../optimole-troubleshoot/optimole-troubleshoot.php:/var/www/html/wp-content/mu-plugins/optimole-troubleshoot.php"
     restart: always
     environment:
       WORDPRESS_DB_NAME: wordpress
