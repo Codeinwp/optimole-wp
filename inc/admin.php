@@ -43,6 +43,9 @@ class Optml_Admin {
 		}
 		add_action( 'optml_after_setup', [ $this, 'register_public_actions' ], 999999 );
 
+		if ( ! function_exists( 'is_wpcom_vip' ) ) {
+			add_filter( 'upload_mimes', [ $this, 'allow_meme_types' ] ); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
+		}
 	}
 
 	/**
@@ -1058,4 +1061,17 @@ The root cause might be either a security plugin which blocks this feature or so
 		];
 	}
 
+	/**
+	 * Allow SVG uploads
+	 *
+	 * @param array $mimes Supported mimes.
+	 *
+	 * @return array
+	 * @access public
+	 * @uses filter:upload_mimes
+	 */
+	public function allow_meme_types( $mimes ) {
+		$mimes['svg']  = 'image/svg+xml';
+		return $mimes;
+	}
 }

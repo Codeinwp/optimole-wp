@@ -255,4 +255,11 @@ class Test_Media extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * Test if the svg upload works.
+	 */
+	public function test_svg_upload() : void {
+		self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/logo.svg' );
+		$this->assertTrue( file_exists( get_attached_file(self::$sample_attachement) ) );
+	}
 }
