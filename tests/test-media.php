@@ -264,7 +264,7 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:71/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/special-characters-•⋿∀.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content );
 	}
 
-
+	/**
 	 * Test if the svg upload works.
 	 */
 	public function test_svg_upload() : void {
