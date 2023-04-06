@@ -255,4 +255,21 @@ class Test_Media extends WP_UnitTestCase {
 
 	}
 
+	/**
+	 * Test images with special characters.
+	 */
+	public function test_special_characters_upload() : void {
+		$special_character_attachment = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/special-characters-•⋿∀.jpg' );
+		$content = wp_get_attachment_image( $special_character_attachment );
+		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:71/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/special-characters-•⋿∀.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content );
+	}
+
+	/**
+	 * Test if the svg upload works.
+	 */
+	public function test_svg_upload() : void {
+		self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/logo.svg' );
+		$this->assertTrue( file_exists( get_attached_file(self::$sample_attachement) ) );
+	}
+
 }

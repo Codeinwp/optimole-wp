@@ -55,4 +55,3 @@ class Optml_elementor_builder_late extends Optml_compatibility {
 		return $metadata;
 	}
 }
-

@@ -520,7 +520,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		self::$iframe_lazyload_flags = self::possible_lazyload_flags();
-		self::$iframe_lazyload_flags = array_merge( self::$iframe_lazyload_flags, apply_filters( 'optml_iframe_lazyload_flags', [ 'gform_ajax_frame', '<noscript', 'recaptcha', 'original-src' ] ) );
+		self::$iframe_lazyload_flags = array_merge( self::$iframe_lazyload_flags, apply_filters( 'optml_iframe_lazyload_flags', [ 'gform_ajax_frame', '<noscript', 'recaptcha', '-src' ] ) );
 
 		return self::$iframe_lazyload_flags;
 	}

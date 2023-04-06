@@ -472,11 +472,11 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 	public function test_lazyload_video_with_source_and_no_src() {
 
 		$content = '<video controls="">
-                    <source type="video/mp4" src="https://test.com/wp-content/video.mp4">
-                    </video>
-                    <video controls="" preload="none">
-                    <source type="video/mp4" src="https://test.com/wp-content/video.mp4">
-                    </video>';
+					<source type="video/mp4" src="https://test.com/wp-content/video.mp4">
+					</video>
+					<video controls="" preload="none">
+					<source type="video/mp4" src="https://test.com/wp-content/video.mp4">
+					</video>';
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
@@ -519,16 +519,19 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 
 		$content = '<figure class="wp-block-embed-youtube wp-block-embed is-type-video is-provider-youtube wp-embed-aspect-16-9 wp-has-aspect-ratio">
 					<div class="wp-block-embed__wrapper">
+					<iframe random-src="private" title="test" width="640" height="360" src="https://www.youtube.com/" allowfullscreen>
+					<iframe -src="https://www.youtube.com/" allowfullscreen>
+					<iframe data-cli-src="something" title="test" width="640" height="360" src="https://www.youtube.com/embed/-HwJNxE7hd8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 					<iframe id="gform_ajax_frame" title="test" width="640" height="360" src="https://www.youtube.com/embed/-HwJNxE7hd8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 					<iframe id="skip-lazy" title="test" width="640" height="360" src="https://www.youtube.com/embed/-HwJNxE7hd8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 					<iframe id="data-skip-lazy" title="test" width="640" height="360" src="https://www.youtube.com/embed/-HwJNxE7hd8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 					</div></figure>
-					<iframe id="gform_ajax_frame_7" width="930" height="523" src="http://5c128bbdd3b4.ngrok.io/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>';
-		
+					<iframe id="gform_ajax_frame_7" width="930" height="523" src="http://5c128bbdd3b4.ngrok.io/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
+		<video data-cli-src="something" title="test" width="640" height="360" src="https://www.youtube.com/embed/-HwJNxE7hd8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></video>';
+
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 		$this->assertStringNotContainsString( 'src="about:blank"', $replaced_content );
 		$this->assertStringNotContainsString( 'data-opt-src', $replaced_content );
 		$this->assertStringNotContainsString( '<noscript>', $replaced_content );
-		
 	}
 }

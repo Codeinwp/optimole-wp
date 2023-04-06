@@ -52,7 +52,6 @@
 			</div>
 		</div>
 		<div v-else>
-			<iframe width="1" height="1" :src="home_url" style="visibility: hidden"></iframe>
 			<h6 class="has-text-centered">{{strings.loading_latest_images}}</h6>
 			<progress id="optml-progress-bar" class="progress is-small is-success optml-custom-label-margin" :value="startTime" :max="maxTime"></progress>
 		</div>

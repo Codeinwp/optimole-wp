@@ -22,6 +22,12 @@ final class Optml_Api {
 	 */
 	private $upload_api_root = 'https://generateurls-prod.i.optimole.com/upload';
 	/**
+	 * Optimole onboard api root url.
+	 *
+	 * @var string Api root.
+	 */
+	private $onboard_api_root = 'https://onboard.i.optimole.com/onboard_api/';
+	/**
 	 * Optimole offload conflicts api root url.
 	 *
 	 * @var string Api root.
@@ -44,6 +50,9 @@ final class Optml_Api {
 		}
 		if ( defined( 'OPTIML_UPLOAD_API_ROOT' ) && constant( 'OPTIML_UPLOAD_API_ROOT' ) ) {
 			$this->upload_api_root = constant( 'OPTIML_UPLOAD_API_ROOT' );
+		}
+		if ( defined( 'OPTIML_ONBOARD_API_ROOT' ) && constant( 'OPTIML_ONBOARD_API_ROOT' ) ) {
+			$this->onboard_api_root = constant( 'OPTIML_ONBOARD_API_ROOT' );
 		}
 		if ( defined( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) && constant( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) ) {
 			$this->upload_conflicts_api = constant( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' );
@@ -257,6 +266,38 @@ final class Optml_Api {
 		];
 		return wp_remote_post( $this->upload_api_root, $options );
 	}
+
+	/**
+	 * Send a list of images to upload.
+	 *
+	 * @param array $images List of Images.
+	 * @return array
+	 */
+	public function call_onboard_api( $images = [] ) {
+		$settings     = new Optml_Settings();
+		$token_images = $settings->get( 'cache_buster_images' );
+
+		$body = [
+			'secret'       => Optml_Config::$secret,
+			'userKey'      => Optml_Config::$key,
+			'images'       => $images,
+			'cache_buster' => $token_images,
+		];
+		$body = wp_json_encode( $body );
+
+		$options = [
+			'body'        => $body,
+			'headers'     => [
+				'Content-Type' => 'application/json',
+			],
+			'timeout'     => 60,
+			'blocking'    => true,
+			'sslverify'   => false,
+			'data_format' => 'body',
+		];
+		return wp_remote_post( $this->onboard_api_root, $options );
+	}
+
 	/**
 	 * Register user remotely on optimole.com.
 	 *

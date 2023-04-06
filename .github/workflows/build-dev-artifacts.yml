@@ -21,6 +21,10 @@ jobs:
     steps:
       - name: Check out source files
         uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
       - name: Get Composer Cache Directory
         id: composer-cache
         run: |
@@ -32,8 +36,13 @@ jobs:
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: |
             ${{ runner.os }}-composer-
-      - name: Install composer deps
-        run: composer install --no-dev --prefer-dist --no-progress --no-suggest
+      - name: Install dependencies
+        run: |
+          npm ci
+          composer install --no-dev --prefer-dist --no-progress --no-suggest
+      - name: Make build
+        run: |
+          npm run build
       - name: Create zip
         run: yarn run dist
       - name: Retrieve branch name
@@ -71,9 +80,10 @@ jobs:
 
       - name: Check if a comment was already made
         id: find-comment
-        uses: peter-evans/find-comment@v1
+        uses: peter-evans/find-comment@v2
         with:
           issue-number: ${{ steps.get-pr-number.outputs.num }}
+          token: ${{ secrets.BOT_TOKEN }}
           comment-author: github-actions[bot]
           body-includes: Download [build]
 
@@ -86,15 +96,17 @@ jobs:
           echo "::set-output name=body::$body"
       - name: Create comment on PR with links to plugin builds
         if: ${{ steps.find-comment.outputs.comment-id == '' }}
-        uses: peter-evans/create-or-update-comment@v1
+        uses: peter-evans/create-or-update-comment@v2
         with:
           issue-number: ${{ steps.get-pr-number.outputs.num }}
+          token: ${{ secrets.BOT_TOKEN }}
           body: ${{ steps.get-comment-body.outputs.body }}
 
       - name: Update comment on PR with links to plugin builds
         if: ${{ steps.find-comment.outputs.comment-id != '' }}
-        uses: peter-evans/create-or-update-comment@v1
+        uses: peter-evans/create-or-update-comment@v2
         with:
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          token: ${{ secrets.BOT_TOKEN }}
           edit-mode: replace
           body: ${{ steps.get-comment-body.outputs.body }}
