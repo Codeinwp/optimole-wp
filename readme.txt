@@ -95,6 +95,28 @@ Premium users will be able to optimize images starting with more than 25k monthl
 
 == Changelog ==
 
+#### [Version 3.6.0](https://github.com/Codeinwp/optimole-wp/compare/v3.5.7...v3.6.0) (2023-04-06)
+
+#### Improvements
+- **Initial Setup Speed**: Warmed up the cache on connect to speed up the initial setup process, providing a more efficient and seamless user experience.
+- **Iframe Lazyload**: Enhanced the iframe lazyload feature by improving conflict detection mechanisms to avoid issues with other plugins or themes.
+
+#### Bug Fixes
+- **RSS Feed Lazyload**: Resolved an issue where lazyload replacements were not functioning correctly on RSS feeds.
+- **Elementor CSS Image Replacement**: Fixed compatibility issues with newer versions of the Elementor page builder, ensuring proper CSS image replacement.
+- **Bullet Symbol Filenames**: Fixed a bug where images with a bullet symbol in the filename were not being optimized correctly.
+
+#### New Features
+- **SVG Upload Compatibility**: Added support for SVG file uploads when Optimole is installed, allowing users to work with this popular image format.
+- **Central Dashboard Image Upload**: Added the ability to upload images directly to the central dashboard at dashboard.optimole.com for more convenient management.
+- **Export Offloaded Source Images**: Implemented the ability to export source images offloaded to Optimole, giving users more control over their image assets.
+
+#### Updates
+- **Dependencies and WordPress Compatibility**: Updated dependencies and ensured compatibility with the latest tested WordPress version, guaranteeing smooth integration with the platform.
+
+
+
+
 ##### [Version 3.5.7](https://github.com/Codeinwp/optimole-wp/compare/v3.5.6...v3.5.7) (2023-02-23)
 
 * Improved media rollback stability
