@@ -1,3 +1,8 @@
+##### [Version 3.6.1](https://github.com/Codeinwp/optimole-wp/compare/v3.6.0...v3.6.1) (2023-04-09)
+
+#### Bug Fixes
+- **Posts Screen Error**: Resolved an issue with the last releases that show an error on the Posts screen.
+
 #### [Version 3.6.0](https://github.com/Codeinwp/optimole-wp/compare/v3.5.7...v3.6.0) (2023-04-06)
 
 #### Improvements
