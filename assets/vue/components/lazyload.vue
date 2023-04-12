@@ -11,12 +11,12 @@
 								<toggle-button :class="'has-text-dark'"
 															 v-model="lazyloadPlaceholder"
 															 :disabled="this.$store.state.loading"
-                               :width="37"
-                               :height="20"
-                               color="#577BF9"></toggle-button>
+															 :width="37"
+															 :height="20"
+															 color="#577BF9"></toggle-button>
 						</div>
 				</div>
-        <hr/>
+				<hr/>
 
 				<div class="field  columns optml-flex-column" >
 					<label class="label column optml-custom-label-margin">
@@ -35,7 +35,7 @@
 					</div>
 
 			</div>
-      <hr/>
+			<hr/>
 				<!--Native lazy toggle-->
 				<div class="field  is-fullwidth columns">
 						<label class="label column has-text-grey-dark optml-custom-label-margin">
@@ -50,12 +50,12 @@
 								<toggle-button :class="'has-text-dark'"
 															 v-model="nativeLazyStatus"
 															 :disabled="this.$store.state.loading"
-                               :width="37"
-                               :height="20"
-                               color="#577BF9"></toggle-button>
+															 :width="37"
+															 :height="20"
+															 color="#577BF9"></toggle-button>
 						</div>
 				</div>
-      <hr/>
+			<hr/>
 				<div class="field  is-fullwidth columns">
 						<label class="label column has-text-grey-dark optml-custom-label-margin">
 								{{strings.toggle_scale}}
@@ -69,12 +69,12 @@
 								<toggle-button :class="'has-text-dark'"
 															 v-model="scaleStatus"
 															 :disabled="this.$store.state.loading"
-                               :width="37"
-                               :height="20"
-                               color="#577BF9"></toggle-button>
+															 :width="37"
+															 :height="20"
+															 color="#577BF9"></toggle-button>
 						</div>
 				</div>
-      <hr/>
+			<hr/>
 				<div class="field columns">
 						<label class="label column has-text-grey-dark optml-custom-label-margin">
 								{{strings.enable_bg_lazyload_title}}
@@ -86,12 +86,12 @@
 								<toggle-button :class="'has-text-dark'"
 															 v-model="lazyloadBgImages"
 															 :disabled="this.$store.state.loading"
-                               :width="37"
-                               :height="20"
-                               color="#577BF9"></toggle-button>
+															 :width="37"
+															 :height="20"
+															 color="#577BF9"></toggle-button>
 						</div>
 				</div>
-      <hr/>
+			<hr/>
 				<!--Video lazyload toggle-->
 				<div class="field columns">
 						<label class="label column has-text-grey-dark optml-custom-label-margin">
@@ -104,12 +104,30 @@
 								<toggle-button :class="'has-text-dark'"
 															 v-model="lazyloadVideo"
 															 :disabled="this.$store.state.loading"
-                               :width="37"
-                               :height="20"
-                               color="#577BF9"></toggle-button>
+															 :width="37"
+															 :height="20"
+															 color="#577BF9"></toggle-button>
 						</div>
 				</div>
-      <hr/>
+			<hr/>
+			<!--Noscript toggle-->
+			<div class="field columns">
+				<label class="label column has-text-grey-dark optml-custom-label-margin">
+					{{strings.enable_noscript_title}}
+					<p class="optml-settings-desc-margin has-text-weight-normal">
+						{{strings.enable_noscript_desc}}
+					</p>
+				</label>
+				<div class="column is-1">
+					<toggle-button :class="'has-text-dark'"
+												 v-model="noscriptToggle"
+												 :disabled="this.$store.state.loading"
+												 :width="37"
+												 :height="20"
+												 color="#577BF9"></toggle-button>
+				</div>
+			</div>
+			<hr/>
 				<div class="field columns" v-if="showBgSelectors">
 						<div class="column">
 								<label class="label has-text-grey-dark optml-custom-label-margin">
@@ -198,6 +216,15 @@
 				},
 				get: function () {
 					return !(this.site_settings.video_lazyload === 'disabled');
+				}
+			},
+			noscriptToggle: {
+				set: function (value) {
+					this.showSave = true;
+					this.new_data.no_script = value ? 'enabled' : 'disabled';
+				},
+				get: function () {
+					return !(this.site_settings.no_script === 'disabled');
 				}
 			},
 			lazyloadSelectors: {

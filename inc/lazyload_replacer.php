@@ -467,6 +467,9 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return bool Should add?
 	 */
 	public function should_add_noscript( $tag ) {
+		if ( $this->settings->get( 'no_script') === 'disabled') {
+			return false;
+		}
 		foreach ( self::get_ignore_noscript_flags() as $banned_string ) {
 			if ( strpos( $tag, $banned_string ) !== false ) {
 				return false;
