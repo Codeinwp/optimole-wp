@@ -115,7 +115,7 @@ class Optml_Settings {
 	public function __construct() {
 
 		if ( self::$is_legacy_install === null ) {
-			//CHANGE THIS WHEN DEPLOYING LIVE
+			// CHANGE THIS WHEN DEPLOYING LIVE
 			self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) < 1681313471;
 		}
 
@@ -197,9 +197,10 @@ class Optml_Settings {
 			return null;
 		}
 
-		if ( $key === 'no_script' && isset( $this->options[ $key ] ) &&  $this->options[ $key ] === 'default' ) {
-			if ( self::$is_legacy_install )
+		if ( $key === 'no_script' && isset( $this->options[ $key ] ) && $this->options[ $key ] === 'default' ) {
+			if ( self::$is_legacy_install ) {
 				return 'enabled';
+			}
 			return 'disabled';
 		}
 		return isset( $this->options[ $key ] ) ? $this->options[ $key ] : '';
