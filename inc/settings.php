@@ -606,9 +606,8 @@ class Optml_Settings {
 	 *
 	 * @return  array
 	 */
-	 public function get_raw_settings()
-	 {
-		 return get_option( $this->namespace, false );
-	 }
+	public function get_raw_settings() {
+		return get_option( $this->namespace, false );
+	}
 
 }
