@@ -38,6 +38,7 @@ class Optml_Admin {
 			add_action( 'init', [$this, 'check_domain_change'] );
 		}
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
+		add_action( 'admin_init', [ $this, 'init_no_script' ] );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
 			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', [] );
 		}
@@ -48,6 +49,16 @@ class Optml_Admin {
 		}
 	}
 
+	/**
+	 * Init no_script setup value based on whether the user is connected or not.
+	 */
+	public function init_no_script() {
+		if ( $this->settings->is_connected() ) {
+			if ( empty( $this->settings->get( 'no_script' ) ) ) {
+				$this->settings->update( 'no_script', 'enabled' );
+			}
+		}
+	}
 	/**
 	 * Checks if domain has changed
 	 */

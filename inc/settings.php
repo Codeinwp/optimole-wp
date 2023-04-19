@@ -43,12 +43,6 @@ class Optml_Settings {
 	private static $auto_connect_hooked = false;
 
 	/**
-	 * Checks if the plugin was installed before adding the no_script option.
-	 *
-	 * @var bool Used for enabling the option for old users.
-	 */
-	private static $is_legacy_install = null;
-	/**
 	 * Default settings schema.
 	 *
 	 * @var array Settings schema.
@@ -71,7 +65,7 @@ class Optml_Settings {
 		'video_lazyload'       => 'enabled',
 		'retina_images'        => 'disabled',
 		'resize_smart'         => 'disabled',
-		'no_script'            => 'default',
+		'no_script'            => 'disabled',
 		'filters'              => [],
 		'cloud_sites'          => [ 'all' => 'true' ],
 		'watchers'             => '',
@@ -113,11 +107,6 @@ class Optml_Settings {
 	 * Optml_Settings constructor.
 	 */
 	public function __construct() {
-
-		if ( self::$is_legacy_install === null ) {
-			// CHANGE THIS WHEN DEPLOYING LIVE
-			self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) < 1681313471;
-		}
 
 		$this->namespace      = OPTML_NAMESPACE . '_settings';
 		$this->default_schema = apply_filters( 'optml_default_settings', $this->default_schema );
@@ -197,12 +186,6 @@ class Optml_Settings {
 			return null;
 		}
 
-		if ( $key === 'no_script' && isset( $this->options[ $key ] ) && $this->options[ $key ] === 'default' ) {
-			if ( self::$is_legacy_install ) {
-				return 'enabled';
-			}
-			return 'disabled';
-		}
 		return isset( $this->options[ $key ] ) ? $this->options[ $key ] : '';
 	}
 
