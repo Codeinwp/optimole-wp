@@ -84,7 +84,7 @@ jobs:
         with:
           issue-number: ${{ steps.get-pr-number.outputs.num }}
           token: ${{ secrets.BOT_TOKEN }}
-          comment-author: github-actions[bot]
+          comment-author: pirate-bot
           body-includes: Download [build]
 
       - name: Get comment body
