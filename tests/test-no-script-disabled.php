@@ -14,7 +14,6 @@
 class Test_Lazyload_No_Script extends WP_UnitTestCase
 {
 
-
 	public function setUp(): void
 	{
 		parent::setUp();
@@ -33,8 +32,6 @@ class Test_Lazyload_No_Script extends WP_UnitTestCase
 		Optml_Tag_Replacer::instance()->init();
 		Optml_Lazyload_Replacer::instance()->init();
 		Optml_Manager::instance()->init();
-
-		self::$sample_attachement = self::factory()->attachment->create_upload_object(OPTML_PATH . 'assets/img/logo.png');
 	}
 
 	//changing the setting to disabled in a test inside the lazyload class will not work due to test concurrency
