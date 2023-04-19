@@ -54,7 +54,8 @@ class Optml_Admin {
 	 */
 	public function init_no_script() {
 		if ( $this->settings->is_connected() ) {
-			if ( empty( $this->settings->get( 'no_script' ) ) ) {
+			$raw_settings = $this->settings->get_raw_settings();
+			if ( ! isset( $raw_settings['no_script'] ) ) {
 				$this->settings->update( 'no_script', 'enabled' );
 			}
 		}

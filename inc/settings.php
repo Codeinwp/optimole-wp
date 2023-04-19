@@ -601,5 +601,14 @@ class Optml_Settings {
 
 		return $update;
 	}
+	/**
+	 * Get raw settings value.
+	 *
+	 * @return  array
+	 */
+	 public function get_raw_settings()
+	 {
+		 return get_option( $this->namespace, false );
+	 }
 
 }
