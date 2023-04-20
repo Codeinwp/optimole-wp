@@ -16,21 +16,32 @@ final class Optml_Filters {
 	 * @return bool Should do action on page?
 	 */
 	public static function should_do_page( $contains_flags, $match_flags ) {
+
+		if ( empty( $contains_flags ) && empty( $match_flags ) ) {
+			return true;
+		}
+
 		if ( ! isset( $_SERVER['REQUEST_URI'] ) ) {
 			return true;
 		}
 
-		foreach ( $match_flags as $rule_flag => $status ) {
-			if ( $rule_flag === $_SERVER['REQUEST_URI'] ) {
-				return false;
-			}
+		$check_against = [ $_SERVER['REQUEST_URI'] ];
+		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
+			$check_against[] = $_SERVER['HTTP_REFERER'];
 		}
-		foreach ( $contains_flags as $rule_flag => $status ) {
-			if ( strpos( $_SERVER['REQUEST_URI'], $rule_flag ) !== false ) {
-				return false;
+		foreach ( $check_against as $check ) {
+			foreach ( $match_flags as $rule_flag => $status ) {
+				if ( $rule_flag === $check ) {
+					return false;
+				}
 			}
-			if ( $rule_flag === 'home' && ( empty( $_SERVER['REQUEST_URI'] ) || $_SERVER['REQUEST_URI'] === '/' ) ) {
-				return false;
+			foreach ( $contains_flags as $rule_flag => $status ) {
+				if ( strpos( $check, $rule_flag ) !== false ) {
+					return false;
+				}
+				if ( $rule_flag === 'home' && ( empty( $check ) || $check === '/' ) ) {
+					return false;
+				}
 			}
 		}
 
