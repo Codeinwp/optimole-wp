@@ -41,6 +41,7 @@ class Optml_Settings {
 	 * @var boolean Whether or not the auto connect action is hooked.
 	 */
 	private static $auto_connect_hooked = false;
+
 	/**
 	 * Default settings schema.
 	 *
@@ -61,9 +62,10 @@ class Optml_Settings {
 		'network_optimization' => 'disabled',
 		'lazyload_placeholder' => 'disabled',
 		'bg_replacer'          => 'enabled',
-		'video_lazyload'       => 'disabled',
+		'video_lazyload'       => 'enabled',
 		'retina_images'        => 'disabled',
 		'resize_smart'         => 'disabled',
+		'no_script'            => 'disabled',
 		'filters'              => [],
 		'cloud_sites'          => [ 'all' => 'true' ],
 		'watchers'             => '',
@@ -105,6 +107,7 @@ class Optml_Settings {
 	 * Optml_Settings constructor.
 	 */
 	public function __construct() {
+
 		$this->namespace      = OPTML_NAMESPACE . '_settings';
 		$this->default_schema = apply_filters( 'optml_default_settings', $this->default_schema );
 		$this->options        = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
@@ -240,6 +243,7 @@ class Optml_Settings {
 				case 'css_minify':
 				case 'js_minify':
 				case 'native_lazyload':
+				case 'no_script':
 					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
 				case 'max_width':
@@ -419,6 +423,7 @@ class Optml_Settings {
 			'bg_replacer'          => $this->get( 'bg_replacer' ),
 			'video_lazyload'       => $this->get( 'video_lazyload' ),
 			'resize_smart'         => $this->get( 'resize_smart' ),
+			'no_script'            => $this->get( 'no_script' ),
 			'image_replacer'       => $this->get( 'image_replacer' ),
 			'cdn'                  => $this->get( 'cdn' ),
 			'max_width'            => $this->get( 'max_width' ),
@@ -595,6 +600,14 @@ class Optml_Settings {
 		}
 
 		return $update;
+	}
+	/**
+	 * Get raw settings value.
+	 *
+	 * @return  array
+	 */
+	public function get_raw_settings() {
+		return get_option( $this->namespace, false );
 	}
 
 }

@@ -139,6 +139,7 @@ class Test_Media extends WP_UnitTestCase {
 			'whitelist'  => [ 'example.com', 'example.org' ],
 
 		] );
+		$settings->update( 'no_script', 'enabled' );
 		$settings->update( 'lazyload', 'enabled' );
 		$settings->update( 'offload_media', 'enabled' );
 		$settings->update( 'quality', 90 );
