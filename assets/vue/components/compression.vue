@@ -257,6 +257,7 @@ export default {
     }
   },
   mounted: function () {
+    this.showSample = this.$store.state.site_settings.quality !== 'auto';
   },
   methods: {
     saveChanges: function () {
@@ -325,6 +326,7 @@ export default {
     autoQuality: {
       set: function (value) {
         this.showSave = true;
+        this.showSample = ! this.showSample;
         this.showManualQuality = ! value;
         this.new_data.autoquality = value ? 'enabled' : 'disabled';
       },
