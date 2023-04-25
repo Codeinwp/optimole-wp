@@ -257,7 +257,7 @@ export default {
     }
   },
   mounted: function () {
-    this.showSample = this.$store.state.site_settings.quality !== 'auto';
+    this.showSample = this.site_settings.autoquality === 'disabled';
   },
   methods: {
     saveChanges: function () {
