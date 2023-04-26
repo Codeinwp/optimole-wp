@@ -83,6 +83,7 @@ final class Optml_Manager {
 		'wp_bakery',
 		'elementor_builder_late',
 		'wpml',
+		'otter_blocks',
 	];
 	/**
 	 * The current state of the buffer.
