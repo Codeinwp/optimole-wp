@@ -38,7 +38,7 @@ class Optml_otter_blocks extends Optml_compatibility {
 		);
 
 		// Replace the image URL with the optimized one in Otter-generated CSS.
-		add_filter( 'otter_apply_dynamic_image', [ Optml_Main::instance()->manager->url_replacer, 'build_url' ], PHP_INT_MAX, 1 );
+		add_filter( 'otter_apply_dynamic_image', [ Optml_Main::instance()->manager->url_replacer, 'build_url' ], 99 );
 	}
 
 }
