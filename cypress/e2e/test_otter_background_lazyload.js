@@ -36,6 +36,7 @@ describe("Check Otter Background Lazyload", function () {
     });
 
     it("Otter Section Block should have background lazyloaded", function () {
+      cy.scrollTo( 0, 500 );
       cy.get("#wp-block-themeisle-blocks-advanced-columns-e62611eb")
         .eq(0)
         .should("have.attr", "class")
@@ -50,8 +51,8 @@ describe("Check Otter Background Lazyload", function () {
     });
 
     it("Otter Section Block's Overlay should have background lazyloaded", function () {
-      cy.get("#wp-block-themeisle-blocks-advanced-columns-e62611eb")
-      .find(".wp-block-themeisle-blocks-advanced-columns-overlay")
+        cy.get("#wp-block-themeisle-blocks-advanced-columns-e62611eb")
+        .find(".wp-block-themeisle-blocks-advanced-columns-overlay")
         .eq(0)
         .should("have.attr", "class")
         .and("include", "optml-bg-lazyloaded");
