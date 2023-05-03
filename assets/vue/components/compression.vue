@@ -80,28 +80,6 @@
       </div>
     </div>
     <hr/>
-    <!-- Use ML toggle button -->
-    <div class="field  columns">
-      <label class="label column has-text-grey-dark optml-custom-label-margin">
-        {{ strings.quality_title }}
-        <p class="optml-settings-desc-margin has-text-weight-normal">
-          {{ strings.ml_quality_desc }}
-        </p>
-        <p v-if="showManualQuality" class="optml-settings-desc-margin has-text-weight-normal">
-          <i>{{ strings.quality_desc }}</i>
-        </p>
-      </label>
-      <div class="column is-1 ">
-        <toggle-button
-            v-model="autoQuality"
-            :class="'has-text-dark'"
-            :disabled="this.$store.state.loading"
-            :width="37"
-            :height="20"
-            color="#577BF9"
-        />
-      </div>
-    </div>
     <!-- Use strip metadata toggle button -->
     <div class="field  columns">
       <label class="label column has-text-grey-dark optml-custom-label-margin">
@@ -124,6 +102,29 @@
       </div>
     </div>
     <hr/>
+    <!-- Use ML toggle button -->
+    <div class="field  columns">
+      <label class="label column has-text-grey-dark optml-custom-label-margin">
+        {{ strings.quality_title }}
+        <p class="optml-settings-desc-margin has-text-weight-normal">
+          {{ strings.ml_quality_desc }}
+        </p>
+        <p v-if="showManualQuality" class="optml-settings-desc-margin has-text-weight-normal">
+          <i>{{ strings.quality_desc }}</i>
+        </p>
+      </label>
+      <div class="column is-1 ">
+        <toggle-button
+            v-model="autoQuality"
+            :class="'has-text-dark'"
+            :disabled="this.$store.state.loading"
+            :width="37"
+            :height="20"
+            color="#577BF9"
+        />
+      </div>
+    </div>
+
     <div class="field  columns" v-if="showManualQuality">
 
       <div class="column">
