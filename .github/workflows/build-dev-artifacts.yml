@@ -6,7 +6,6 @@ on:
     branches-ignore:
       - 'update_dependencies'
 
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
   cancel-in-progress: true
@@ -84,7 +83,7 @@ jobs:
         with:
           issue-number: ${{ steps.get-pr-number.outputs.num }}
           token: ${{ secrets.BOT_TOKEN }}
-          comment-author: github-actions[bot]
+          comment-author: pirate-bot
           body-includes: Download [build]
 
       - name: Get comment body

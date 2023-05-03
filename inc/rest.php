@@ -59,6 +59,14 @@ class Optml_Rest {
 		'image_routes' => [
 			'poll_optimized_images' => 'GET',
 			'get_sample_rate' => 'POST',
+			'upload_onboard_images' => [ 'POST', 'args'  => [
+					'offset' => [
+						'type'     => 'number',
+						'required' => false,
+						'default'  => 0,
+					],
+				],
+			],
 		],
 		'media_cloud_routes' => [
 			'offload_images' => 'POST',
@@ -164,7 +172,11 @@ class Optml_Rest {
 	 */
 	public function register_image_routes() {
 		foreach ( self::$rest_routes['image_routes'] as $route => $details ) {
+			if ( is_array( $details ) ) {
+				$this->reqister_route( $route, $details[0], $details['args'] );
+			} else {
 				$this->reqister_route( $route, $details );
+			}
 		}
 
 	}
@@ -421,6 +433,63 @@ class Optml_Rest {
 		$image['original_size']  = (int) wp_remote_retrieve_header( $original, 'content-length' );
 
 		return $this->response( $image );
+	}
+
+	/**
+	 * Crawl & upload initial load.
+	 *
+	 * @return WP_REST_Response If there are more posts left to receive.
+	 */
+	public function upload_onboard_images( WP_REST_Request $request ) {
+		$offset = absint( $request->get_param( 'offset' ) );
+
+		// Arguments for get_posts function
+		$args = [
+			'post_type'              => 'attachment',
+			'post_mime_type'         => 'image',
+			'post_status'            => 'inherit',
+			'posts_per_page'         => 50,
+			'offset'                 => $offset,
+			'fields'                 => 'ids',
+			'no_found_rows'          => true,
+			'update_post_meta_cache' => false,
+			'update_post_term_cache' => false,
+			'orderby'                => [
+				'parent' => 'DESC',
+			],
+		];
+
+		// Initialize an array to store the image URLs
+		$image_urls = [];
+
+		add_filter( 'optml_dont_replace_url', '__return_true' );
+
+		// If site has a logo, get the logo url if offset is 0, ie first request
+		if ( $offset === 0 ) {
+			$custom_logo_id = get_theme_mod( 'custom_logo' );
+
+			if ( $custom_logo_id ) {
+				$image_urls[] = wp_get_attachment_url( $custom_logo_id );
+			}
+		}
+
+		$query = new \WP_Query( $args );
+
+		if ( $query->have_posts() ) {
+			$image_ids = $query->get_posts();
+			$image_urls = array_map( 'wp_get_attachment_url', $image_ids );
+		}
+		remove_filter( 'optml_dont_replace_url', '__return_true' );
+
+		if ( count( $image_urls ) === 0 ) {
+			return $this->response( true );
+		}
+
+		$api = new Optml_Api();
+		$api->call_onboard_api( $image_urls );
+
+		// Check if image_url array has at least 50 items, if not, we have reached the end of the images
+		return $this->response( count( $image_urls ) < 50 ? true : false );
 	}
 
 	/**

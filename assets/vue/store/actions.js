@@ -72,6 +72,8 @@ const connectOptimole = function ( {commit, state}, data ) {
 					commit( 'toggleHasOptmlApp', true );
 				  }
 
+				  sendOnboardImages();
+
 				  console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
 
 			} else {
@@ -115,6 +117,7 @@ const registerOptimole = function ( {commit, state}, data ) {
 				commit( 'updateApiKey', data.apiKey );
 				commit( 'updateUserData', response.body.data );
 				commit( 'updateAvailableApps', response.body.data );
+				sendOnboardImages();
 			}
 			return response.data;
 		},
@@ -282,6 +285,34 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 		},
 		data.waitTime
 	);
+};
+
+const sendOnboardImages = function( offset = 0 ) {
+	Vue.http(
+		{
+			url: optimoleDashboardApp.routes['upload_onboard_images'],
+			method: 'POST',
+			params: {
+				offset
+			},
+			emulateJSON: true,
+			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
+			responseType: 'json'
+		}
+	).then(
+		function ( response ) {
+			if ( false === response.body.data && offset < 1000 ) {
+				sendOnboardImages( offset + 50 );
+			}
+
+			if ( response.body.code === 'success' ) {
+				console.log( '%c Images Crawled.', 'color: #59B278' );
+			}
+		}
+	)
+		.catch( err => {
+			console.log( 'Error while crawling images', err );
+		} );
 };
 
 const retrieveWatermarks = function ( {commit, state}, data ) {
@@ -587,7 +618,7 @@ const getNumberOfImages = function ( data, commit, consecutiveErrors = 0 ) {
 		}
 	} );
 };
-const getOffloadConflicts = function ({commit, state} ) {
+const getOffloadConflicts = function ( {commit, state} ) {
 	Vue.http( {
 		url: optimoleDashboardApp.routes['get_offload_conflicts'],
 		method: 'GET',
@@ -595,7 +626,7 @@ const getOffloadConflicts = function ({commit, state} ) {
 		emulateJSON: true,
 		responseType: 'json',
 	} ).then( function ( response ) {
-		commit( 'toggleCheckedOffloadConflicts', true);
+		commit( 'toggleCheckedOffloadConflicts', true );
 		if( response.body.data.length !== 0 ) {
 			commit( 'updateOffloadConflicts', response );
 		}

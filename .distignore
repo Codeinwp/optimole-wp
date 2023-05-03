@@ -32,7 +32,6 @@ logs
 grunt
 tests
 dist
-build
 artifact
 assets/vue
 .wporg

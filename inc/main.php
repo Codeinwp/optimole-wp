@@ -24,6 +24,15 @@ final class Optml_Main {
 	public $manager;
 
 	/**
+	 * Holds the media_offload class.
+	 *
+	 * @access  public
+	 * @since   1.0.0
+	 * @var  Optml_Media_Offload instance.
+	 */
+	public $media_offload;
+
+	/**
 	 * Holds the rest class.
 	 *
 	 * @access  public

@@ -139,6 +139,7 @@ class Test_Media extends WP_UnitTestCase {
 			'whitelist'  => [ 'example.com', 'example.org' ],
 
 		] );
+		$settings->update( 'no_script', 'enabled' );
 		$settings->update( 'lazyload', 'enabled' );
 		$settings->update( 'offload_media', 'enabled' );
 		$settings->update( 'quality', 90 );
@@ -253,6 +254,23 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertEquals('http://35f86c81ba7c.ngrok.io/wp-content/uploads/2021/04/2AAPaNcjDJQ.jpg', $images[0]);
 		$this->assertEquals('http://35f86c81ba7c.ngrok.io/wp-content/uploads/2021/04/Screenshot-2021-02-15-at-10.42.07-1200x675.png', $images[1]);
 
+	}
+
+	/**
+	 * Test images with special characters.
+	 */
+	public function test_special_characters_upload() : void {
+		$special_character_attachment = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/special-characters-•⋿∀.jpg' );
+		$content = wp_get_attachment_image( $special_character_attachment );
+		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:71/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/special-characters-•⋿∀.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content );
+	}
+
+	/**
+	 * Test if the svg upload works.
+	 */
+	public function test_svg_upload() : void {
+		self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/logo.svg' );
+		$this->assertTrue( file_exists( get_attached_file(self::$sample_attachement) ) );
 	}
 
 }
