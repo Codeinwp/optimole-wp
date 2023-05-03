@@ -635,4 +635,16 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertStringNotContainsString('data-opt-src', $replaced_content);
 	}
 
+	public function test_strip_metadata() {
+		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
+		$this->assertStringNotContainsString( '/sm:0/', $replaced_content );
+
+		// To do same check but after we've disabled the strip metadata option.
+		$settings = new Optml_Settings();
+		$settings->update( 'strip_metadata', 'disabled' );
+		Optml_Manager::instance()->init();
+		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
+		$this->assertEquals( 27, substr_count( $replaced_content, '/sm:0/' ) );
+	}
+
 }
