@@ -829,7 +829,7 @@ If you still want to disconnect click the button below.',
 			),
 			'account_needed_subtitle_2'      => sprintf(
 				__(
-					'Bonus, if you dont use a CDN, we got you covered, %1$swe will serve the images using CloudFront CDN%2$s from 200 locations.',
+					'Bonus, if you dont use a CDN, we got you covered, %1$swe will serve the images using CloudFront CDN%2$s from 450+ locations.',
 					'optimole-wp'
 				),
 				'<strong>',
