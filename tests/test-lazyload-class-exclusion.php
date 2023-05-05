@@ -28,6 +28,7 @@ class Test_Lazyload_Class_Exclusion extends WP_UnitTestCase
 
 		$settings->update('lazyload', 'enabled');
 		$settings->update('no_script', 'enabled');
+		$settings->update( 'lazyload_placeholder', 'disabled' );
 		$settings->update('filters', array(
 			Optml_Settings::FILTER_TYPE_LAZYLOAD => array (
 			 Optml_Settings::FILTER_CLASS => array (

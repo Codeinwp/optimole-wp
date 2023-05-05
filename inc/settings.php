@@ -60,7 +60,7 @@ class Optml_Settings {
 		'lazyload'             => 'disabled',
 		'scale'                => 'disabled',
 		'network_optimization' => 'disabled',
-		'lazyload_placeholder' => 'disabled',
+		'lazyload_placeholder' => 'enabled',
 		'bg_replacer'          => 'enabled',
 		'video_lazyload'       => 'enabled',
 		'retina_images'        => 'disabled',

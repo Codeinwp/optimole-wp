@@ -36,6 +36,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$settings->update( 'lazyload', 'enabled' );
 		$settings->update( 'native_lazyload', 'enabled' );
 		$settings->update( 'video_lazyload', 'enabled' );
+		$settings->update( 'lazyload_placeholder', 'disabled' );
 		$settings->update( 'no_script', 'enabled' );
 		Optml_Url_Replacer::instance()->init();
 		Optml_Tag_Replacer::instance()->init();
