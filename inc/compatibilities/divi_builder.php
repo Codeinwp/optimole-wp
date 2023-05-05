@@ -35,7 +35,7 @@ class Optml_divi_builder extends Optml_compatibility {
 				$all_watchers[] = '.et_pb_slides > .et_pb_slide';
 				$all_watchers[] = '.et_parallax_bg';
 				$all_watchers[] = '.et_pb_video_overlay';
-				$all_watchers[] = '.et_pb_module:not(.et_pb_blog_grid_wrapper)';
+				$all_watchers[] = '.et_pb_module:not([class*="et_pb_blog"])';
 				$all_watchers[] = '.et_pb_row';
 				$all_watchers[] = '.et_pb_section.et_pb_section_1';
 				$all_watchers[] = '.et_pb_with_background';
