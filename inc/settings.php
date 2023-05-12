@@ -64,6 +64,9 @@ class Optml_Settings {
 		'bg_replacer'          => 'enabled',
 		'video_lazyload'       => 'enabled',
 		'retina_images'        => 'disabled',
+		'limit_dimensions'     => 'disabled',
+		'limit_height'         => 1080,
+		'limit_width'          => 1920,
 		'resize_smart'         => 'disabled',
 		'no_script'            => 'disabled',
 		'filters'              => [],
@@ -231,6 +234,7 @@ class Optml_Settings {
 				case 'network_optimization':
 				case 'lazyload_placeholder':
 				case 'retina_images':
+				case 'limit_dimensions':
 				case 'resize_smart':
 				case 'bg_replacer':
 				case 'video_lazyload':
@@ -248,6 +252,8 @@ class Optml_Settings {
 					break;
 				case 'max_width':
 				case 'max_height':
+				case 'limit_height':
+				case 'limit_width':
 					$sanitized_value = $this->to_bound_integer( $value, 100, 5000 );
 					break;
 				case 'quality':
@@ -418,6 +424,9 @@ class Optml_Settings {
 			'lazyload'             => $this->get( 'lazyload' ),
 			'network_optimization' => $this->get( 'network_optimization' ),
 			'retina_images'        => $this->get( 'retina_images' ),
+			'limit_dimensions'     => $this->get( 'limit_dimensions' ),
+			'limit_height'         => $this->get( 'limit_height' ),
+			'limit_width'          => $this->get( 'limit_width' ),
 			'lazyload_placeholder' => $this->get( 'lazyload_placeholder' ),
 			'skip_lazyload_images' => $this->get( 'skip_lazyload_images' ),
 			'bg_replacer'          => $this->get( 'bg_replacer' ),

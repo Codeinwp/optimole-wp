@@ -69,6 +69,24 @@ abstract class Optml_App_Replacer {
 	 */
 	protected $max_height = 3000;
 	/**
+	 * Defines if the dimensions should be limited when images are served.
+	 *
+	 * @var int
+	 */
+	protected $limit_dimensions_enabled = false;
+	/**
+	 * Defines which is the maximum width accepted when images are served.
+	 *
+	 * @var int
+	 */
+	protected $limit_width = 1920;
+	/**
+	 * Defines which is the maximum height accepted when images are served.
+	 *
+	 * @var int
+	 */
+	protected $limit_height = 1080;
+	/**
 	 * Defines if css minification should be used.
 	 *
 	 * @var int
@@ -141,6 +159,8 @@ abstract class Optml_App_Replacer {
 	 * @var string Cache Buster value.
 	 */
 	protected $active_cache_buster_assets = '';
+
+	const DIRECT_UPLOAD_SOURCE = 'directUpload';
 
 	/**
 	 * Returns possible src attributes.
@@ -404,7 +424,9 @@ abstract class Optml_App_Replacer {
 
 		$this->possible_sources = $this->extract_domain_from_urls(
 			array_merge(
-				[ get_home_url() ],
+				[
+					get_home_url(),
+				],
 				array_values( $this->site_mappings ),
 				array_keys( $this->site_mappings )
 			)
@@ -429,6 +451,12 @@ abstract class Optml_App_Replacer {
 
 		$this->max_height = $this->settings->get( 'max_height' );
 		$this->max_width  = $this->settings->get( 'max_width' );
+
+		$this->limit_dimensions_enabled = $this->settings->get( 'limit_dimensions' ) === 'enabled';
+		if ( $this->limit_dimensions_enabled ) {
+			$this->limit_height = $this->settings->get( 'limit_height' );
+			$this->limit_width  = $this->settings->get( 'limit_width' );
+		}
 
 		$this->is_css_minify_on = ( $this->settings->get( 'css_minify' ) === 'enabled' ) ? 1 : 0;
 		$this->is_js_minify_on  = ( $this->settings->get( 'js_minify' ) === 'enabled' ) ? 1 : 0;

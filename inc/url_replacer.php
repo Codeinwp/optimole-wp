@@ -224,14 +224,32 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			}
 			$url = $new_url;
 		}
+
 		if ( ! isset( $args['width'] ) ) {
-			$args['width'] = 'auto';
+			$args['width'] = $this->limit_dimensions_enabled ? $this->limit_width : 'auto';
 		}
 		if ( ! isset( $args['height'] ) ) {
-			$args['height'] = 'auto';
+			$args['height'] = $this->limit_dimensions_enabled ? $this->limit_height : 'auto';
 		}
+
 		$args['width']  = (int) $args['width'];
 		$args['height'] = (int) $args['height'];
+
+		if ( $this->limit_dimensions_enabled ) {
+			if ( $args['width'] > $this->limit_width || $args['height'] > $this->limit_height ) {
+				$scale = min( $this->limit_width / $args['width'], $this->limit_height / $args['height'] );
+
+				if ( $scale < 1 ) {
+					$args['width']  = (int) floor( $scale * $args['width'] );
+					$args['height'] = (int) floor( $scale * $args['height'] );
+				}
+			}
+
+			if ( isset( $args['resize'], $args['resize']['enlarge'] ) ) {
+				$args['resize']['enlarge'] = false;
+			}
+		}
+
 		if ( $args['width'] > 0 && $args['height'] > 0 ) {
 			list( $args['width'], $args['height'] ) = wp_constrain_dimensions( $args['width'], $args['height'], $this->max_width, $this->max_height );
 		} elseif ( $args['width'] > 0 ) {
