@@ -222,8 +222,8 @@ class Optml_Admin {
 		$watcher_classes       = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
 		$default_network       = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
 		$limit_dimensions      = $this->settings->get( 'limit_dimensions' ) === 'enabled';
-		$limit_width           = $this->settings->get( 'limit_width' );
-		$limit_height          = $this->settings->get( 'limit_height' );
+		$limit_width           = $limit_dimensions ? $this->settings->get( 'limit_width' ) : 0;
+		$limit_height          = $limit_dimensions ? $this->settings->get( 'limit_height' ) : 0;
 		$retina_ready          = $limit_dimensions ||
 								 ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
 		$scale_is_disabled     = ( $this->settings->get( 'scale' ) === 'enabled' );
