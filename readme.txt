@@ -41,7 +41,7 @@ Optimole's format based optimization is handled in the cloud on a case-by-case b
 When the image is requested, Optimole will apply the specific transformations required by the device and deliver it to your visitors. This means every image is perfectly sized for every device. The final result will be cached for a month to ensure ongoing fast delivery and more site speed.
 
 **How many images can be optimized?**
-With the basic plan, you will be able to optimize unmetered number of images for up to 5k monthly [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All delivered from more than 200+ locations around the globe.
+With the basic plan, you will be able to optimize unmetered number of images for up to 5k monthly [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All delivered from more than 450+ locations around the globe.
 Better yet. The free version is fully functional and includes all of the following great features:
 
 **Format Based Optimization**

@@ -88,6 +88,7 @@
 			}
 			this.doProgressBar();
 			this.$store.dispatch('retrieveOptimizedImages', {waitTime: this.maxTime * 1000, component: this});
+			this.$store.dispatch('requestStatsUpdate', {waitTime: 0, component: null});
 		},
 		watch: {
 			imageData: function () {

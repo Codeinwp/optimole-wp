@@ -44,7 +44,7 @@ const selectOptimoleDomain = function ( {commit, state}, data ) {
 	);
 }
 
-const connectOptimole = function ( {commit, state}, data ) {
+const connectOptimole = function ( {dispatch, commit, state}, data ) {
 	commit( 'toggleConnecting', true );
 	commit( 'restApiNotWorking', false );
 	Vue.http(
@@ -72,7 +72,7 @@ const connectOptimole = function ( {commit, state}, data ) {
 					commit( 'toggleHasOptmlApp', true );
 				  }
 
-				  sendOnboardImages();
+				  dispatch( 'sendOnboardImages', [] );
 
 				  console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
 
@@ -89,7 +89,7 @@ const connectOptimole = function ( {commit, state}, data ) {
 	);
 };
 
-const registerOptimole = function ( {commit, state}, data ) {
+const registerOptimole = function ( {dispatch, commit, state}, data ) {
 
 	commit( 'restApiNotWorking', false );
 	commit( 'toggleConnecting', true );
@@ -117,7 +117,7 @@ const registerOptimole = function ( {commit, state}, data ) {
 				commit( 'updateApiKey', data.apiKey );
 				commit( 'updateUserData', response.body.data );
 				commit( 'updateAvailableApps', response.body.data );
-				sendOnboardImages();
+				dispatch( 'sendOnboardImages', {} );
 			}
 			return response.data;
 		},
@@ -287,13 +287,15 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 	);
 };
 
-const sendOnboardImages = function( offset = 0 ) {
+const sendOnboardImages = function ( { dispatch }, data ) {
+	data.offset = undefined !== data.offset ? data.offset : 0;
+
 	Vue.http(
 		{
 			url: optimoleDashboardApp.routes['upload_onboard_images'],
 			method: 'POST',
 			params: {
-				offset
+				offset: data.offset
 			},
 			emulateJSON: true,
 			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
@@ -301,8 +303,10 @@ const sendOnboardImages = function( offset = 0 ) {
 		}
 	).then(
 		function ( response ) {
-			if ( false === response.body.data && offset < 1000 ) {
-				sendOnboardImages( offset + 50 );
+			if ( false === response.body.data && data.offset < 1000 ) {
+				dispatch( 'sendOnboardImages', {
+					offset: data.offset + 100
+				} );
 			}
 
 			if ( response.body.code === 'success' ) {
@@ -659,6 +663,7 @@ export default {
 	retrieveOptimizedImages,
 	retrieveWatermarks,
 	sampleRate,
+	sendOnboardImages,
 	saveSettings,
 	callSync,
 	getOffloadConflicts

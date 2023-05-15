@@ -38,6 +38,7 @@ class Optml_Admin {
 			add_action( 'init', [$this, 'check_domain_change'] );
 		}
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
+		add_action( 'admin_init', [ $this, 'init_no_script' ] );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
 			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', [] );
 		}
@@ -48,6 +49,17 @@ class Optml_Admin {
 		}
 	}
 
+	/**
+	 * Init no_script setup value based on whether the user is connected or not.
+	 */
+	public function init_no_script() {
+		if ( $this->settings->is_connected() ) {
+			$raw_settings = $this->settings->get_raw_settings();
+			if ( ! isset( $raw_settings['no_script'] ) ) {
+				$this->settings->update( 'no_script', 'enabled' );
+			}
+		}
+	}
 	/**
 	 * Checks if domain has changed
 	 */
@@ -817,7 +829,7 @@ If you still want to disconnect click the button below.',
 			),
 			'account_needed_subtitle_2'      => sprintf(
 				__(
-					'Bonus, if you dont use a CDN, we got you covered, %1$swe will serve the images using CloudFront CDN%2$s from 200 locations.',
+					'Bonus, if you dont use a CDN, we got you covered, %1$swe will serve the images using CloudFront CDN%2$s from 450+ locations.',
 					'optimole-wp'
 				),
 				'<strong>',
@@ -890,6 +902,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_bg_lazyload_title'          => __( 'Enable lazyload for background images', 'optimole-wp' ),
 				'enable_video_lazyload_desc'        => __( 'Lazyload iframes/videos', 'optimole-wp' ),
 				'enable_video_lazyload_title'       => __( 'Enable lazyload for embedded videos and iframes.', 'optimole-wp' ),
+				'enable_noscript_desc'              => __( 'The noscript tag offers fallback images for browsers that can\'t handle JavaScript-based lazy loading or related features. Disabling it may resolve conflicts with other plugins or configurations and decrease HTML page size.', 'optimole-wp' ),
+				'enable_noscript_title'             => __( 'Enable noscript tag', 'optimole-wp' ),
 				'enable_gif_replace_title'          => __( 'Enable Gif to Video conversion', 'optimole-wp' ),
 				'enable_report_title'               => __( 'Enable error diagnosis tool', 'optimole-wp' ),
 				'enable_report_desc'                => __( 'Provides a troubleshooting mechanism which should help you identify any possible issues with your site using Optimole.', 'optimole-wp' ),
@@ -949,6 +963,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'quality_selected_value'            => __( 'Selected value', 'optimole-wp' ),
 				'quality_slider_desc'               => __( 'See one sample image which will help you choose the right quality of the compression.', 'optimole-wp' ),
 				'quality_title'                     => __( 'Enable Auto Quality powered by ML(Machine Learning)', 'optimole-wp' ),
+				'strip_meta_title'                  => __( 'Strip Image Metadata', 'optimole-wp' ),
+				'strip_meta_desc'                   => __( 'When enabled, Optimole will strip the metadata (EXIF, IPTC, etc.) from output images.', 'optimole-wp' ),
 				'replacer_desc'                     => __( 'Replace all the image urls from your website with the ones optimized by Optimole.', 'optimole-wp' ),
 				'sample_image_loading'              => __( 'Loading a sample image. ', 'optimole-wp' ),
 				'save_changes'                      => __( 'Save changes', 'optimole-wp' ),
