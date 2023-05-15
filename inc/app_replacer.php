@@ -160,8 +160,6 @@ abstract class Optml_App_Replacer {
 	 */
 	protected $active_cache_buster_assets = '';
 
-	const DIRECT_UPLOAD_SOURCE = 'directUpload';
-
 	/**
 	 * Returns possible src attributes.
 	 *
