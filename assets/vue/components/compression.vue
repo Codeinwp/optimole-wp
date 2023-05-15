@@ -80,6 +80,29 @@
       </div>
     </div>
     <hr/>
+    <!-- Use strip metadata toggle button -->
+    <div class="field  columns">
+      <label class="label column has-text-grey-dark optml-custom-label-margin">
+        {{ strings.strip_meta_title }}
+
+        <p class="optml-settings-desc-margin has-text-weight-normal">
+          {{ strings.strip_meta_desc }}
+        </p>
+      </label>
+
+      <div class="column is-1 ">
+        <toggle-button
+            v-model="stripMetadataStatus"
+            :class="'has-text-dark'"
+            :disabled="this.$store.state.loading"
+            :width="37"
+            :height="20"
+            color="#577BF9"
+        />
+      </div>
+    </div>
+    <hr/>
+    <!-- Use ML toggle button -->
     <div class="field  columns">
       <label class="label column has-text-grey-dark optml-custom-label-margin">
         {{ strings.quality_title }}
@@ -100,8 +123,8 @@
             color="#577BF9"
         />
       </div>
-
     </div>
+
     <div class="field  columns" v-if="showManualQuality">
 
       <div class="column">
@@ -331,6 +354,16 @@ export default {
       get: function () {
         this.showManualQuality = this.site_settings.autoquality === 'disabled';
         return !(this.site_settings.autoquality === 'disabled');
+      }
+    },
+    stripMetadataStatus: {
+      set: function (value) {
+        this.showSave = true;
+        this.new_data.strip_metadata = value ? 'enabled' : 'disabled';
+      },
+      get: function () {
+        return !(this.site_settings.strip_metadata === 'disabled');
+
       }
     },
     compressionRatio() {

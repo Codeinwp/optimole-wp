@@ -100,6 +100,10 @@ class Optml_Image extends Optml_Resource {
 			$path = '/f:' . $params['format'] . '/' . $this->source_url;
 		}
 
+		if ( isset( $params['strip_metadata'] ) && '0' === $params['strip_metadata'] ) {
+			$path = '/sm:' . $params['strip_metadata'] . $path;
+		}
+
 		if ( apply_filters( 'optml_keep_copyright', false ) === true ) {
 			$path = '/keep_copyright:true' . $path;
 		}
