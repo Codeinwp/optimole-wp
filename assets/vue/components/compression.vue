@@ -280,6 +280,7 @@ export default {
     }
   },
   mounted: function () {
+    this.showSample = this.site_settings.autoquality === 'disabled';
   },
   methods: {
     saveChanges: function () {
@@ -348,6 +349,7 @@ export default {
     autoQuality: {
       set: function (value) {
         this.showSave = true;
+        this.showSample = ! this.showSample;
         this.showManualQuality = ! value;
         this.new_data.autoquality = value ? 'enabled' : 'disabled';
       },
