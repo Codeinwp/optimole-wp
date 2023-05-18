@@ -83,7 +83,6 @@ final class Optml_Main {
 			add_filter( 'optimole_wp_feedback_review_message', [ __CLASS__, 'change_review_message' ] );
 			add_filter( 'optimole_wp_logger_heading', [ __CLASS__, 'change_review_message' ] );
 			add_filter( 'optml_default_settings', [ __CLASS__, 'change_lazyload_default' ] );
-			add_filter( 'optml_default_settings', [ __CLASS__, 'change_limits_default' ] );
 			add_filter( 'optml_register_conflicts', [ __CLASS__, 'register_conflicts' ] );
 			self::$_instance          = new self();
 			self::$_instance->manager = Optml_Manager::instance();
@@ -141,26 +140,6 @@ final class Optml_Main {
 		}
 
 		$defaults['lazyload'] = 'enabled';
-
-		return $defaults;
-	}
-
-	/**
-	 * Change limits default for new users.
-	 *
-	 * @param array $defaults Old defaults.
-	 *
-	 * @return array New defaults.
-	 */
-	public static function change_limits_default( $defaults ) {
-		$install_time = get_option( 'optimole_wp_install', 0 );
-
-		// Todo: change this before release to release day.
-		if ( $install_time < 1683870956 ) {
-			return $defaults;
-		}
-
-		$defaults['limit_dimensions'] = 'enabled';
 
 		return $defaults;
 	}

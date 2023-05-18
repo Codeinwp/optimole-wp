@@ -22,6 +22,8 @@ class Optml_Admin {
 	 */
 	public $settings;
 
+	const NEW_USER_DEFAULTS_UPDATED = 'optml_defaults_updated';
+
 	/**
 	 * Optml_Admin constructor.
 	 */
@@ -37,6 +39,7 @@ class Optml_Admin {
 		if ( $this->settings->is_connected() ) {
 			add_action( 'init', [$this, 'check_domain_change'] );
 		}
+		add_action( 'init', [ $this, 'update_default_settings' ] );
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
 		add_action( 'admin_init', [ $this, 'init_no_script' ] );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
@@ -73,6 +76,23 @@ class Optml_Admin {
 				$this->daily_sync();
 			}
 		}
+	}
+	/**
+	 * Update the limit dimensions setting to enabled if the user is new.
+	 */
+	public function update_default_settings() {
+		if ( get_option( self::NEW_USER_DEFAULTS_UPDATED ) === 'yes' ) {
+			return;
+		}
+
+		if ( $this->settings->is_connected() ) {
+			update_option( self::NEW_USER_DEFAULTS_UPDATED, 'yes' );
+			return;
+		}
+
+		$this->settings->update( 'limit_dimensions', 'enabled' );
+
+		update_option( self::NEW_USER_DEFAULTS_UPDATED, 'yes' );
 	}
 	/**
 	 * Adds Optimole tag to admin bar
