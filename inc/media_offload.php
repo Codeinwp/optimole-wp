@@ -132,9 +132,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	private function media_attachment_template( $url, $resource_id, $width, $height, $last_attach ) {
 		$filename = pathinfo( $url, PATHINFO_FILENAME );
 		$optimized_url = $this->get_media_optimized_url( $url, $resource_id, $width, $height );
+		$id = $last_attach + 1 + crc32( $filename );
+		apply_filters('optml_media_attachment_template_id', $id, $optimized_url );
 		return
 		[
-			'id' => $last_attach + 1 + crc32( $filename ),
+			'id' => $id,
 			'title' => $filename,
 			'url' => $optimized_url,
 			'link' => $optimized_url,
