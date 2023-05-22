@@ -169,6 +169,18 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	}
 
+	public function test_resize () {
+		$resize = new Optml_Resize([
+			'enlarge' => true,
+			'gravity' => [
+				0.5, 0,
+			],
+			'type' => 'fill',
+		]);
+
+		$this->assertEquals( 'rt:fill/g:fp:0.5:0/el:1', $resize->toString() );
+
+	}
 	public function test_image_tags() {
 
 		$found_images = Optml_Manager::parse_images_from_html( self::IMG_TAGS );
