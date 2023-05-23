@@ -35,6 +35,7 @@
 																		<option value="jpg">.JPG</option>
 																		<option value="png">.PNG</option>
 																		<option value="gif">.GIF</option>
+																		<option value="webp">.WEBP</option>
 																</select>
 														</span>
 										<input v-else v-model="selected_value" class="optml-textarea optml-text-input-border optml-fill-container has-text-left" type="text" :placeholder="this.selected_url_match_type === 'matches' ? 'path' : 'word'">
@@ -84,21 +85,21 @@
 								</div>
 							</div>
 						</div>
-            <div class=" exclusion-filter" v-for="(item, index) in filters[this.FILTER_TYPES.URL_MATCH]">
-              <div>
-                <div class="tags  has-addons">
-                  <div class="tag  optml-light-background is-marginless  is-link has-text-left"><p v-html="strings.exclude_url_match_desc"></p>
-                    &nbsp;<strong>{{index}}</strong>
-                    <a @click="removeRule(FILTER_TYPES.URL_MATCH,index)">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="13" height="16" viewBox="0 0 13 16" fill="none">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M9 2H12C12.6 2 13 2.4 13 3V4H0V3C0 2.4 0.5 2 1 2H4C4.2 0.9 5.3 0 6.5 0C7.7 0 8.8 0.9 9 2ZM8 2C7.8 1.4 7.1 1 6.5 1C5.9 1 5.2 1.4 5 2H8ZM11.1 15.1L12 5H1L1.9 15.1C2 15.6 2.4 16 2.9 16H10.1C10.6 16 11.1 15.6 11.1 15.1Z" fill="#757296"/>
-                      </svg>
-                    </a>
-                  </div>
+						<div class=" exclusion-filter" v-for="(item, index) in filters[this.FILTER_TYPES.URL_MATCH]">
+							<div>
+								<div class="tags  has-addons">
+									<div class="tag  optml-light-background is-marginless  is-link has-text-left"><p v-html="strings.exclude_url_match_desc"></p>
+										&nbsp;<strong>{{index}}</strong>
+										<a @click="removeRule(FILTER_TYPES.URL_MATCH,index)">
+											<svg xmlns="http://www.w3.org/2000/svg" width="13" height="16" viewBox="0 0 13 16" fill="none">
+												<path fill-rule="evenodd" clip-rule="evenodd" d="M9 2H12C12.6 2 13 2.4 13 3V4H0V3C0 2.4 0.5 2 1 2H4C4.2 0.9 5.3 0 6.5 0C7.7 0 8.8 0.9 9 2ZM8 2C7.8 1.4 7.1 1 6.5 1C5.9 1 5.2 1.4 5 2H8ZM11.1 15.1L12 5H1L1.9 15.1C2 15.6 2.4 16 2.9 16H10.1C10.6 16 11.1 15.6 11.1 15.1Z" fill="#757296"/>
+											</svg>
+										</a>
+									</div>
 
-                </div>
-              </div>
-            </div>
+								</div>
+							</div>
+						</div>
 						<div class="exclusion-filter"
 								 v-for="(item, index) in filters[this.FILTER_TYPES.FILENAME]">
 							<div>
@@ -157,7 +158,7 @@
 				FILTER_TYPES: {
 					EXT: 'extension',
 					URL: 'page_url',
-          URL_MATCH: 'page_url_match',
+					URL_MATCH: 'page_url_match',
 					FILENAME: 'filename',
 					CLASS: 'class'
 				}
