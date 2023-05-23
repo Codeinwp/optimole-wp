@@ -57,7 +57,7 @@ class Optml_elementor_builder extends Optml_compatibility {
 	 * @uses filter:elementor/frontend/builder_content/before_print_css
 	 */
 	public function remove_src_filter( $with_css ) {
-		//check if the filter was added to avoid duplication
+		// check if the filter was added to avoid duplication
 		if ( ! has_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'] ) ) {
 			return $with_css;
 		}
