@@ -638,10 +638,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertEquals( 0, substr_count( $replaced_content, 'i.optimole.com' ) );
 		$this->assertStringNotContainsString('data-opt-src', $replaced_content);
 	}
-	/**
-	 * @runInSeparateProcess
-	 * @preserveGlobalState disabled
-	 */
+
 	public function test_extension_exclusion()
 	{
 		$settings = new Optml_Settings();
@@ -653,6 +650,9 @@ class Test_Replacer extends WP_UnitTestCase {
 						'jpg' => true,
 					)
 				)));
+		Optml_Url_Replacer::instance()->init();
+		Optml_Tag_Replacer::instance()->init();
+		Optml_Manager::instance()->init();
 		$content = '<div>
 						<img  src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;
 						<img src="http://example.org/wp-content/uploads/2019/09/img.jpg" alt=""/>;
