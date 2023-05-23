@@ -57,10 +57,6 @@ class Optml_elementor_builder extends Optml_compatibility {
 	 * @uses filter:elementor/frontend/builder_content/before_print_css
 	 */
 	public function remove_src_filter( $with_css ) {
-		// check if the filter was added to avoid duplication
-		if ( ! has_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'] ) ) {
-			return $with_css;
-		}
 
 		remove_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'], PHP_INT_MAX );
 
@@ -75,7 +71,12 @@ class Optml_elementor_builder extends Optml_compatibility {
 	 */
 	public function add_src_filter( $css ) {
 
-		add_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'], PHP_INT_MIN, 4 );
+		// check if the filter was added to avoid duplication
+		if ( has_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'] ) ) {
+			return $css;
+		}
+
+		add_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'], PHP_INT_MAX, 4 );
 
 		return $css;
 	}
