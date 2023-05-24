@@ -117,7 +117,7 @@ to let everyone know that the code is frozen and no more changes should be merge
 to tag the `qa` team and the `Optimole` team. 
 
 To make sure the qa team gets the notification for testing the pre release pull request, please
-add pull request to the planning project and move it to `ready to test`(same as we do for issues). 
+add the pull request to the planning project and move it to `ready to test`(same as we do for issues). 
 
 
 ###How to release a new version:
