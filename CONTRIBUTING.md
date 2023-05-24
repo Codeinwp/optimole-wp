@@ -104,7 +104,23 @@ That's it! Thank you for your contribution!
 
 This repository uses conventional [changelog commit](https://github.com/Codeinwp/conventional-changelog-simple-preset) messages to trigger release 
 
-How to release a new version:
+###Code freeze
+
+After all the changes for a release are merged into development then we will freeze the code on 
+the development branch and only release a new version after the plugin build is 
+tested and approved by QA.
+
+This help us make sure no error occurs after all the small pr's were tested and merged together. 
+
+Once you decide the development branch is ready for a release you will need to post a comment to the pr 
+to let everyone know that the code is frozen and no more changes should be merged into development. It's important
+to tag the `qa` team and the `Optimole` team. 
+
+To make sure the qa team gets the notification for testing the pre release pull request, please
+add pull request to the planning project and move it to `ready to test`(same as we do for issues). 
+
+
+###How to release a new version:
 
 - Clone the master branch
 - Do your changes
