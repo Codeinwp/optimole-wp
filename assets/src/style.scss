@@ -1,0 +1,284 @@
+// @import 'tailwindcss/base'; // <-- Uncomment this line if you import base styles.
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+#wpcontent {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+}
+
+#optimole-app {
+	$primary: #EF686B;
+	$success: #5F9D61;
+	$danger: #E77777;
+	$info: #577BF9;
+
+	a {
+		text-decoration: none;
+	}
+
+	.text {
+		&__font {
+			font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+			color: #282828;
+		}
+
+		&__size-3 {
+			font-size: 2rem;
+		}
+
+		&__size-7 {
+			font-size: .75rem;
+		}
+
+		&__bold {
+			font-weight: 700;
+		}
+
+		&__uppercase {
+			text-transform: uppercase;
+		}
+
+		&__help {
+			display: block;
+			font-size: .75rem;
+			margin-top: 0.25rem;
+		}
+
+		&__center {
+			text-align: center;
+		}
+	}
+
+	.color {
+		&__primary {
+			color: $primary;
+		}
+
+		&__success {
+			color: $success;
+		}
+
+		&__danger {
+			color: $danger;
+		}
+
+		&__info {
+			color: $info;
+		}
+	}
+
+	.spacing {
+		&__left {
+			margin-left: .75rem;
+		}
+
+		&__right {
+			margin-right: .75rem;
+		}
+
+		&__vertical {
+			padding-top: .75rem;
+			padding-bottom: .75rem;
+		}
+	}
+
+	.flex {
+		display: flex;
+	}
+
+	.align {
+		&__end {
+			align-items: flex-end;
+		}
+	}
+
+	.cursor {
+		cursor: default;
+	}
+
+	.basis {
+		flex-basis: 100%;
+
+		&__20 {
+			flex-basis: 20%;
+		}
+
+		&__80 {
+			flex-basis: 80%;
+		}
+	}
+
+	.card {
+		transition: all 750ms ease-in-out;
+		border: 0;
+		border-radius: .1875rem;
+		box-shadow: 0 1px 15px 1px rgba(39,39,39,0.1);
+		background-color: #fff;
+		color: #4a4a4a;
+		max-width: 100%;
+		position: relative;
+
+		&__light-background {
+			background: #EEF2FE !important;
+			border: 1px solid #D9E7F0;
+			box-sizing: border-box;
+			border-radius: 6px;
+		}
+	}
+
+	.optml-header {
+		background-color: #fff;
+		box-shadow: 0 1px 0 hsla(0,0%,84%,.5),0 1px 2px #eee;
+		padding: 20px 10px;
+
+		&__container {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin: 0 auto;
+			max-width: 1280px;
+		}
+
+		&__logo {
+			align-items: center;
+			display: flex;
+			justify-content: flex-start;
+
+			img {
+				max-width: 64px;
+			}
+		}
+
+		&__status {
+			display: flex;
+			align-items: center;
+		}
+	}
+
+	.optml-connect {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		margin: 50px auto 20px;
+		max-width: 1280px;
+		padding: 0;
+
+		&__container {
+			display: flex;
+			padding: 3rem;
+			gap: 5%;
+
+			@media (max-width: 768px) {
+				flex-direction: column;
+			}
+		}
+
+		&__content {
+			flex-basis: 65%;
+
+			&__title {
+				color: #363636;
+				font-size: 2rem;
+				font-weight: 700;
+				line-height: 1.125;
+				margin: 0;
+			}
+	
+			&__description {
+				color: #4a4a4a;
+				font-size: 1.25rem;
+				font-weight: 400;
+	
+				&__bullet {
+					font-size: 1rem;
+					margin: 0;
+					margin-left: 0.75rem;
+				}
+			}
+		}
+
+		&__key {
+			&__title {
+				color: #363636;
+				font-size: 2rem;
+				font-weight: 700;
+				line-height: 1.125;
+				margin: 0;
+			}
+	
+			&__description {
+				color: #4a4a4a;
+				font-size: 1.25rem;
+				font-weight: 400;
+			}
+		}
+
+		&__form {
+			flex-basis: 35%;
+			padding: 2rem;
+
+			&__horizontal {
+				display: flex;
+				padding: 2rem;
+				gap: 2em;
+			}
+		}
+
+		&__input {
+			.components-base-control__field {
+				display: flex;
+				flex-direction: column;
+				margin-bottom: 0;
+			}
+
+			.components-text-control__input {
+				border: 1px solid #D9D9D9;
+				box-shadow: inset 0 1px 2px rgba(10,10,10,0.1);
+				min-height: 40px;
+			}
+		}
+
+		&__button {
+			display: flex;
+			width: 100%;
+			justify-content: center;
+			background: $info;
+			border-radius: 4px;
+			font-weight: bold;
+			min-height: 40px;
+
+			&.is-busy {
+				background-image: linear-gradient(-45deg,#577BF9 33%,#3557A6 0,#3557A6 70%,#577BF9 0);
+			}
+
+			&__secondary {
+				@extend .optml-connect__button;
+				margin-top: 18px;
+				background: #757296;
+			}
+		}
+
+		&__footer {
+			background-color: #f6f6fa;
+			color: #4A4A4A;
+			text-align: center;
+			font-weight: 700;
+			text-transform: uppercase;
+			padding: 10px;
+		}
+
+		.components-base-control__label {
+			color: #363636;
+			display: block;
+			font-size: 1.25rem;
+			text-transform: none;
+			font-weight: 700;
+			margin-bottom: 12px;
+		}
+
+		.dashicon {
+			color: #577BF9;
+		}
+	}
+}

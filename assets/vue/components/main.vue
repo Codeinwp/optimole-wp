@@ -3,7 +3,6 @@
 
 				<div class="column  ">
 						<div class="card">
-								<app-header></app-header>
 								<div class="card-content">
 										<div class="content">
 												<div v-if="showDisconnect">
@@ -183,7 +182,6 @@
 </template>
 
 <script>
-	import AppHeader from './app-header.vue';
 	import CdnDetails from './cdn-details.vue';
 	import ConnectLayout from './connect-layout.vue';
 	import LastImages from './last-images.vue';
@@ -233,7 +231,6 @@
 			}
 		},
 		components: {
-			AppHeader,
 			Options,
 			Watermarks,
 			ConnectLayout,

@@ -678,9 +678,7 @@ class Optml_Admin {
 			update_option( 'optml_notice_optin', 'yes' );
 		}
 		?>
-		<div id="optimole-app">
-			<app></app>
-		</div>
+		<div id="optimole-app"></div>
 		<?php
 	}
 
@@ -695,12 +693,32 @@ class Optml_Admin {
 		if ( ! isset( $current_screen->id ) ) {
 			return;
 		}
+
 		if ( $current_screen->id !== 'media_page_optimole' ) {
 			return;
 		}
-		wp_register_script( OPTML_NAMESPACE . '-admin', OPTML_URL . 'assets/js/bundle' . ( ! OPTML_DEBUG ? '.min' : '' ) . '.js', [], OPTML_VERSION );
+
+		$asset_file = include OPTML_PATH . 'assets/build/index.asset.php';
+
+		wp_register_script(
+			OPTML_NAMESPACE . '-admin',
+			OPTML_URL . 'assets/build/index.js',
+			$asset_file['dependencies'],
+			$asset_file['version'],
+			true
+		);
+
 		wp_localize_script( OPTML_NAMESPACE . '-admin', 'optimoleDashboardApp', $this->localize_dashboard_app() );
 		wp_enqueue_script( OPTML_NAMESPACE . '-admin' );
+
+		wp_enqueue_style(
+			OPTML_NAMESPACE . '-admin',
+			OPTML_URL . 'assets/build/style-main.css',
+			[
+				'wp-components',
+			],
+			$asset_file['version']
+		);
 	}
 
 	/**
@@ -732,7 +750,7 @@ class Optml_Admin {
 		$routes = [];
 		foreach ( Optml_Rest::$rest_routes as $route_type ) {
 			foreach ( $route_type as $route => $details ) {
-				$routes[ $route ] = rest_url( OPTML_NAMESPACE . '/v1/' . $route );
+				$routes[ $route ] = OPTML_NAMESPACE . '/v1/' . $route;
 			}
 		}
 
@@ -807,7 +825,7 @@ If you still want to disconnect click the button below.',
 			'quota'                          => __( 'Monthly visits quota', 'optimole-wp' ),
 			'logged_in_as'                   => __( 'LOGGED IN AS', 'optimole-wp' ),
 			'private_cdn_url'                => __( 'IMAGES DOMAIN', 'optimole-wp' ),
-			'existing_user'                  => __( 'Existing user', 'optimole-wp' ),
+			'existing_user'                  => __( 'Existing user?', 'optimole-wp' ),
 			'notification_message_register'  => __( 'We sent you the API Key in the email. Add it below to connect to Optimole.', 'optimole-wp' ),
 			'account_needed_title'           => sprintf(
 				__( 'In order to get access to free image optimization service you will need an API key from %s.', 'optimole-wp' ),
@@ -835,6 +853,7 @@ If you still want to disconnect click the button below.',
 				'<strong>',
 				'</strong>'
 			),
+			'account_needed_footer'          => __( 'Trusted by more than 100k happy users', 'optimole-wp' ),
 			'notice_just_activated'          => ! $this->settings->is_connected() ?
 				sprintf( __( '%1$sImage optimisation is currently running.%2$s <br/> Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You might see for the very first image request being redirected to the original URL while we do the optimization in the background. You can relax, we\'ll take it from here.', 'optimole-wp' ), '<strong>', '</strong>' )
 				: '',

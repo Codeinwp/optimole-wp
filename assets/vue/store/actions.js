@@ -92,26 +92,18 @@ const connectOptimole = function ( {dispatch, commit, state}, data ) {
 const registerOptimole = function ( {dispatch, commit, state}, data ) {
 
 	commit( 'restApiNotWorking', false );
-	commit( 'toggleConnecting', true );
-	commit( 'toggleLoading', true );
+	// commit( 'toggleConnecting', true );
+	// commit( 'toggleLoading', true );
 	return Vue.http(
 		{
 			url: optimoleDashboardApp.routes['register_service'],
-			method: 'POST',
-			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			body: {
-				'email': data.email,
-				'auto_connect' : data.autoConnect,
-			},
-			emulateJSON: true,
-			responseType: 'json'
 		}
 	).then(
 		function ( response ) {
-			commit( 'toggleConnecting', false );
-			commit( 'toggleLoading', false );
+			// commit( 'toggleConnecting', false );
+			// commit( 'toggleLoading', false );
 			if ( response.body.code === 'success' ) {
-				commit( 'toggleConnectedToOptml', true );
+				// commit( 'toggleConnectedToOptml', true );
 				commit( 'toggleKeyValidity', true );
 				commit( 'toggleHasOptmlApp', true );
 				commit( 'updateApiKey', data.apiKey );
@@ -122,7 +114,7 @@ const registerOptimole = function ( {dispatch, commit, state}, data ) {
 			return response.data;
 		},
 		function ( response ) {
-			commit( 'toggleConnecting', false );
+			// commit( 'toggleConnecting', false );
 			commit( 'restApiNotWorking', true );
 			return response.data;
 		}
@@ -131,19 +123,15 @@ const registerOptimole = function ( {dispatch, commit, state}, data ) {
 
 
 const disconnectOptimole = function ( {commit, state}, data ) {
-	commit( 'toggleLoading', true, 'loading' );
+	// commit( 'toggleLoading', true, 'loading' );
 	Vue.http(
 		{
 			url: optimoleDashboardApp.routes['disconnect'],
-			method: 'GET',
-			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			emulateJSON: true,
-			responseType: 'json'
 		}
 	).then(
 		function ( response ) {
 			commit( 'updateUserData', null );
-			commit( 'toggleLoading', false );
+			// commit( 'toggleLoading', false );
 			commit( 'updateApiKey', '' );
 			commit( 'updateAvailableApps', null );
 			commit( 'toggleHasOptmlApp', false );
@@ -151,9 +139,9 @@ const disconnectOptimole = function ( {commit, state}, data ) {
 				  commit( 'toggleConnectedToOptml', false );
 				  commit( 'toggleIsServiceLoaded', false );
 				  commit( 'toggleShowDisconnectNotice', false );
-				  console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
+				//   console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
 			} else {
-				  console.error( response );
+				//   console.error( response );
 			}
 		}
 	);
