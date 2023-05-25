@@ -324,11 +324,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		$pattern = '/(?<!\/)' . preg_quote( $original_url, '/' ) . '/i';
 		$replace = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 		if ( $this->settings->get( 'lazyload' ) === 'enabled' && $this->settings->get( 'native_lazyload' ) === 'enabled'
-			&& apply_filters('optml_should_load_eager', '__return_true' ) && ! $this->is_valid_gif( $original_url ) ) {
-			if  (strpos($new_tag, 'loading=') === false ) {
-				$new_tag = preg_replace('/<img/im', $is_slashed ? '<img loading=\"eager\"' : '<img loading="eager"', $new_tag);
-			}
-			else {
+			&& apply_filters( 'optml_should_load_eager', '__return_true' ) && ! $this->is_valid_gif( $original_url ) ) {
+			if ( strpos( $new_tag, 'loading=' ) === false ) {
+				$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img loading=\"eager\"' : '<img loading="eager"', $new_tag );
+			} else {
 				$new_tag = $is_slashed ? str_replace( 'loading=\"lazy\"', 'loading=\"eager\"', $new_tag ) : str_replace( 'loading="lazy"', 'loading="eager"', $new_tag );
 			}
 		}
