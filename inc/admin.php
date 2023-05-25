@@ -713,7 +713,7 @@ class Optml_Admin {
 
 		wp_enqueue_style(
 			OPTML_NAMESPACE . '-admin',
-			OPTML_URL . 'assets/build/style-main.css',
+			OPTML_URL . 'assets/build/style-index.css',
 			[
 				'wp-components',
 			],
