@@ -18,22 +18,22 @@ const Header = () => {
 	} );
 
 	return (
-		<header className="optml-header">
-			<div className="optml-header__container">
-				<div className="optml-header__logo .cursor">
+		<header className="bg-white shadow-sm px-2.5 py-5">
+			<div className="flex justify-between items-center max-w-screen-xl mx-auto my-0">
+				<div className="items-center flex justify-start cursor-default">
 					<img
-						class="spacing__right"
+						class="max-width-64 mr-3"
 						src={ `${ optimoleDashboardApp.assets_url }/img/logo.png` }
 						alt={ optimoleDashboardApp.strings.optimole + ' ' + optimoleDashboardApp.strings.service_details }
 						title={ optimoleDashboardApp.strings.optimole + ' ' + optimoleDashboardApp.strings.service_details }
 					/>
-					<h3 className="text__font text__size-3 text__bold">{ optimoleDashboardApp.strings.optimole }</h3>
+					<h3 className="text-gray-800 text-2 font-serif font-bold">{ optimoleDashboardApp.strings.optimole }</h3>
 				</div>
 
-				<div className="optml-header__status">
+				<div className="flex items-center">
 					{ isConnected ? (
 						<>
-							<div className="text text__uppercase text__bold text__size-7 color__success spacing__right">
+							<div className="uppercase font-bold text-xs text-success mr-3">
 								{ optimoleDashboardApp.strings.connected }
 							</div>
 
@@ -41,7 +41,7 @@ const Header = () => {
 						</>
 					) : (
 						<>
-							<div className="text text__uppercase text__bold text__size-7 color__danger spacing__right">
+							<div className="uppercase font-bold text-xs text-danger mr-3">
 								{ optimoleDashboardApp.strings.not_connected }
 							</div>
 
@@ -49,13 +49,6 @@ const Header = () => {
 						</>
 					) }
 				</div>
-
-				{/* <nav class="otter-navigation">
-					<button class="is-active"><span>Dashboard</span></button>
-					<button class=""><span>Integrations</span></button>
-					<button class=""><span>Free vs PRO</span></button>
-					<button class=""><span>Feedback</span></button>
-				</nav> */}
 			</div>
 		</header>
 	)

@@ -19,7 +19,6 @@ const store = new Vuex.Store(
 			checkedOffloadConflicts: false,
 			offloadConflicts: [],
 			site_settings: optimoleDashboardApp.site_settings,
-			connectError:'',
 			sample_rate: {},
 			autoConnect: optimoleDashboardApp.auto_connect,
 			optimizedImages: [],

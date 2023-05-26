@@ -17,9 +17,6 @@ const toggleActionError = ( state, data ) => {
 const toggleCheckedOffloadConflicts = ( state, data ) => {
 	state.checkedOffloadConflicts = data;
 };
-const updateServiceError = ( state, data ) => {
-	state.connectError = data;
-};
 const updateOptimizedImages = ( state, data ) => {
 	state.optimizedImages = data.body.data;
 };
@@ -65,13 +62,9 @@ const updateOffloadConflicts = ( state, data ) => {
 	state.offloadConflicts = data.body.data;
 };
 export default {
-	toggleConnectedToOptml,
-	toggleConnecting,
-	toggleLoading,
 	updateConflicts,
 	updateOptimizedImages,
 	updateSampleRate,
-	updateServiceError,
 	updateSettings,
 	updateWatermark,
 	updatePushedImagesProgress,

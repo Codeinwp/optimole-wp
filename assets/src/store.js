@@ -10,26 +10,15 @@ const DEFAULT_STATE = {
 	isConnected: optimoleDashboardApp.connection_status === 'yes',
 	isConnecting: false,
 	isLoading: false,
-	apiKeyValidity: true,
+	hasRestError: false,
+	hasValidKey: true,
 	hasApplication: optimoleDashboardApp.has_application === 'yes',
 	apiKey: optimoleDashboardApp.api_key ? optimoleDashboardApp.api_key : '',
 	userStatus: optimoleDashboardApp.user_status ? optimoleDashboardApp.user_status : 'inactive',
-	availableApps: optimoleDashboardApp.available_apps ? optimoleDashboardApp.available_apps : null,
-	apiError: false,
-	is_loaded: optimoleDashboardApp.connection_status === 'yes',
-	showDisconnect: false,
 	userData: optimoleDashboardApp.user_data ? optimoleDashboardApp.user_data : null,
-};
-
-const updateUserData = ( state, data ) => {
-	if ( data && data.app_count && data.app_count >= 1 && data.cdn_key ) {
-		for ( let app of data.available_apps ) {
-			if ( app.key && app.key === data.cdn_key && app.status && app.status === 'active' ) {
-				state.userStatus = 'active';
-			}
-		}
-	}
-	state.userData = data;
+	availableApps: optimoleDashboardApp.available_apps ? optimoleDashboardApp.available_apps : null,
+	hasDashboardLoaded: optimoleDashboardApp.connection_status === 'yes',
+	showDisconnect: false,
 };
 
 const actions = {
@@ -37,6 +26,18 @@ const actions = {
 		return {
 			type: 'SET_AUTO_CONNECT_ERROR',
 			autoConnectError,
+		};
+	},
+	setAPIKey( apiKey ) {
+		return {
+			type: 'SET_API_KEY',
+			apiKey,
+		};
+	},
+	setAvailableApps( availableApps ) {
+		return {
+			type: 'SET_AVAILABLE_APPS',
+			availableApps,
 		};
 	},
 	setIsConnected( isConnected ) {
@@ -57,10 +58,54 @@ const actions = {
 			isLoading,
 		};
 	},
+	sethasDashboardLoaded( hasDashboardLoaded ) {
+		return {
+			type: 'SET_HAS_DASHBOARD_LOADED',
+			hasDashboardLoaded,
+		};
+	},
+	setHasRestError( hasRestError ) {
+		return {
+			type: 'SET_HAS_REST_ERROR',
+			hasRestError,
+		};
+	},
+	setHasValidKey( hasValidKey ) {
+		return {
+			type: 'SET_HAS_VALID_KEY',
+			hasValidKey,
+		};
+	},
+	setHasApplication( hasApplication ) {
+		return {
+			type: 'SET_HAS_APPLICATION',
+			hasApplication,
+		};
+	},
+	setUserData( data ) {
+		return {
+			type: 'SET_USER_DATA',
+			data,
+		};
+	},
+	setUserStatus( status ) {
+		return {
+			type: 'SET_USER_STATUS',
+			status,
+		};
+	},
+	setShowDisconnect( showDisconnect ) {
+		return {
+			type: 'SET_SHOW_DISCONNECT',
+			showDisconnect,
+		};
+	},
 	registerAccount( data, callback = () => {} ) {
 		return ( { dispatch } ) => {
 			dispatch.setIsConnecting( true );
 			dispatch.setIsLoading( true );
+			dispatch.setHasRestError( false );
+
 			apiFetch( {
 				path: optimoleDashboardApp.routes['register_service'],
 				method: 'POST',
@@ -74,6 +119,66 @@ const actions = {
 
 				if ( response.code === 'success' ) {
 					dispatch.setIsConnected( true );
+					dispatch.setHasValidKey( true );
+					dispatch.setHasApplication( true );
+					dispatch.setAPIKey( response.data.api_key );
+					dispatch.setUserData( response.data );
+					dispatch.setAvailableApps( response.data );
+				}
+
+				// ToDo: Send onboarding images.
+
+				if ( callback ) {
+					callback( response );
+				}
+
+				return response.data;
+			})
+			.catch( error => {
+				dispatch.setIsConnecting( false );
+				dispatch.setIsLoading( false );
+				dispatch.setHasRestError( true );
+
+				return error.data;
+			});
+		}
+	},
+	connectAccount( data, callback = () => {} ) {
+		return ( { dispatch } ) => {
+			dispatch.setIsConnecting( true );
+			dispatch.setIsLoading( true );
+			dispatch.setHasRestError( false );
+
+			apiFetch( {
+				path: optimoleDashboardApp.routes['connect'],
+				method: 'POST',
+				data,
+				parse: false,
+			} )
+			.then( response => response.json() )
+			.then( response => {
+				dispatch.setIsConnecting( false );
+				dispatch.setIsLoading( false );
+
+				if ( response.code === 'success' ) {
+					dispatch.setIsConnected( true );
+					dispatch.setHasValidKey( true );
+					dispatch.setAPIKey( response.data.api_key );
+
+					if ( response.data['app_count'] !== undefined && response.data['app_count'] > 1 ) {
+						dispatch.setAvailableApps( response.data );
+					} else {
+						dispatch.setHasApplication( true );
+						dispatch.setUserData( response.data );
+					}
+
+					// ToDo: Send onboarding images.
+
+					console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
+
+				} else {
+					dispatch.setHasValidKey( false );
+					console.log( '%c Invalid API Key.', 'color: #E7602A' );
 				}
 
 				if ( callback ) {
@@ -85,6 +190,7 @@ const actions = {
 			.catch( error => {
 				dispatch.setIsConnecting( false );
 				dispatch.setIsLoading( false );
+				dispatch.setHasRestError( true );
 
 				return error.data;
 			});
@@ -100,9 +206,16 @@ const actions = {
 				parse: false,
 			} )
 			.then( response => {
+				dispatch.setIsLoading( false );
+				dispatch.setHasApplication( false );
+				dispatch.setAPIKey( '' );
+				dispatch.setUserData( null );
+				dispatch.setAvailableApps( null );
+
 				if ( response.ok ) {
-					dispatch.setIsLoading( false );
 					dispatch.setIsConnected( false );
+					dispatch.sethasDashboardLoaded( false );
+					dispatch.setShowDisconnect( false );
 					console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
 				} else {
 					console.error( response );
@@ -119,6 +232,16 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				...state,
 				autoConnectError: action.autoConnectError,
 			};
+		case 'SET_API_KEY':
+			return {
+				...state,
+				apiKey: action.apiKey,
+			};
+		case 'SET_AVAILABLE_APPS':
+			return {
+				...state,
+				availableApps: action.availableApps,
+			};
 		case 'SET_IS_CONNECTED':
 			return {
 				...state,
@@ -134,6 +257,53 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				...state,
 				isLoading: action.isLoading,
 			};
+		case 'SET_IS_DASHBOARD_LOADED':
+			return {
+				...state,
+				hasDashboardLoaded: action.hasDashboardLoaded,
+			};
+		case 'SET_HAS_REST_ERROR':
+			return {
+				...state,
+				hasRestError: action.hasRestError,
+			};
+		case 'SET_HAS_VALID_KEY':
+			return {
+				...state,
+				hasValidKey: action.hasValidKey,
+			};
+		case 'SET_HAS_APPLICATION':
+			return {
+				...state,
+				hasApplication: action.hasApplication,
+			};
+		case 'SET_USER_DATA':
+			let status = 'inactive';
+			const data = action.data;
+
+			if ( data && data.app_count && data.app_count >= 1 && data.cdn_key ) {
+				for ( let app of data.available_apps ) {
+					if ( app.key && app.key === data.cdn_key && app.status && app.status === 'active' ) {
+						status = 'active';
+					}
+				}
+			}
+
+			return {
+				...state,
+				userData: action.data,
+				userStatus: status,
+			};
+		case 'SET_USER_STATUS':
+			return {
+				...state,
+				userStatus: action.status,
+			};
+		case 'SET_SHOW_DISCONNECT':
+			return {
+				...state,
+				showDisconnect: action.showDisconnect,
+			};
 		default:
 			return state;
 	}
@@ -143,6 +313,30 @@ const selectors = {
 	getAutoConnectError( state ) {
 		return state.autoConnectError;
 	},
+	getAPIKey( state ) {
+		return state.apiKey;
+	},
+	getAvailableApps( state ) {
+		return state.availableApps;
+	},
+	getHasRestError( state ) {
+		return state.hasRestError;
+	},
+	getHasValidKey( state ) {
+		return state.hasValidKey;
+	},
+	getHasApplication( state ) {
+		return state.hasApplication;
+	},
+	getHasDashboardLoaded( state ) {
+		return state.hasDashboardLoaded;
+	},
+	getUserData( state ) {
+		return state.userData;
+	},
+	getUserStatus( state ) {
+		return state.userStatus;
+	},
 	isConnected( state ) {
 		return state.isConnected;
 	},
@@ -151,6 +345,9 @@ const selectors = {
 	},
 	isLoading( state ) {
 		return state.isLoading;
+	},
+	showDisconnect( state ) {
+		return state.showDisconnect;
 	}
 };
 

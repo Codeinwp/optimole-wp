@@ -44,109 +44,6 @@ const selectOptimoleDomain = function ( {commit, state}, data ) {
 	);
 }
 
-const connectOptimole = function ( {dispatch, commit, state}, data ) {
-	commit( 'toggleConnecting', true );
-	commit( 'restApiNotWorking', false );
-	Vue.http(
-		{
-			url: optimoleDashboardApp.routes['connect'],
-			method: 'POST',
-			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			body: {
-				'api_key': data.apiKey,
-			},
-			responseType: 'json',
-			emulateJSON: true,
-		}
-	).then(
-		function ( response ) {
-			commit( 'toggleConnecting', false );
-			if ( response.body.code === 'success' ) {
-				  commit( 'toggleKeyValidity', true );
-				  commit( 'toggleConnectedToOptml', true );
-				  commit( 'updateApiKey', data.apiKey );
-				  if ( response.body.data['app_count'] !== undefined && response.body.data['app_count'] > 1 ) {
-					commit( 'updateAvailableApps', response.body.data );
-				  } else {
-					commit( 'updateUserData', response.body.data );
-					commit( 'toggleHasOptmlApp', true );
-				  }
-
-				  dispatch( 'sendOnboardImages', [] );
-
-				  console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
-
-			} else {
-				  commit( 'toggleKeyValidity', false );
-				  commit( 'updateServiceError', response.body.data );
-				  console.log( '%c Invalid API Key.', 'color: #E7602A' );
-			}
-		},
-		function () {
-			commit( 'toggleConnecting', false );
-			commit( 'restApiNotWorking', true );
-		}
-	);
-};
-
-const registerOptimole = function ( {dispatch, commit, state}, data ) {
-
-	commit( 'restApiNotWorking', false );
-	// commit( 'toggleConnecting', true );
-	// commit( 'toggleLoading', true );
-	return Vue.http(
-		{
-			url: optimoleDashboardApp.routes['register_service'],
-		}
-	).then(
-		function ( response ) {
-			// commit( 'toggleConnecting', false );
-			// commit( 'toggleLoading', false );
-			if ( response.body.code === 'success' ) {
-				// commit( 'toggleConnectedToOptml', true );
-				commit( 'toggleKeyValidity', true );
-				commit( 'toggleHasOptmlApp', true );
-				commit( 'updateApiKey', data.apiKey );
-				commit( 'updateUserData', response.body.data );
-				commit( 'updateAvailableApps', response.body.data );
-				dispatch( 'sendOnboardImages', {} );
-			}
-			return response.data;
-		},
-		function ( response ) {
-			// commit( 'toggleConnecting', false );
-			commit( 'restApiNotWorking', true );
-			return response.data;
-		}
-	);
-};
-
-
-const disconnectOptimole = function ( {commit, state}, data ) {
-	// commit( 'toggleLoading', true, 'loading' );
-	Vue.http(
-		{
-			url: optimoleDashboardApp.routes['disconnect'],
-		}
-	).then(
-		function ( response ) {
-			commit( 'updateUserData', null );
-			// commit( 'toggleLoading', false );
-			commit( 'updateApiKey', '' );
-			commit( 'updateAvailableApps', null );
-			commit( 'toggleHasOptmlApp', false );
-			if ( response.ok ) {
-				  commit( 'toggleConnectedToOptml', false );
-				  commit( 'toggleIsServiceLoaded', false );
-				  commit( 'toggleShowDisconnectNotice', false );
-				//   console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
-			} else {
-				//   console.error( response );
-			}
-		}
-	);
-};
-
 const clearCache = function ( {commit, state}, data ) {
 	commit( 'toggleLoading', true );
 	return Vue.http(
@@ -640,11 +537,8 @@ const callSync = function ( {commit, state}, data ) {
 
 export default {
 	clearCache,
-	connectOptimole,
-	disconnectOptimole,
 	selectOptimoleDomain,
 	dismissConflict,
-	registerOptimole,
 	removeWatermark,
 	requestStatsUpdate,
 	retrieveConflicts,

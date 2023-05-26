@@ -22,6 +22,13 @@ import {
  */
 import APIForm from './APIForm';
 
+const RestError = () => (
+	<div
+		className="bg-danger text-white rounded relative mb-6 pl-6 pr-10 py-5 mb-0 m-12"
+		dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.notice_api_not_working } }
+	/>
+);
+
 const ConnectLayout = () => {
 	const [ email, setEmail ] = useState( optimoleDashboardApp.current_user.email );
 	const [ method, setMethod ] = useState( 'email' );
@@ -30,32 +37,35 @@ const ConnectLayout = () => {
 	const { registerAccount } = useDispatch( 'optimole' );
 
 	const {
-		autConnectError,
+		autoConnectError,
+		hasRestError,
 		isConnecting
 	} = useSelect( select => {
 		const {
 			getAutoConnectError,
+			getHasRestError,
 			isConnecting
 		} = select( 'optimole' );
 
 		return {
-			autConnectError: getAutoConnectError(),
+			autoConnectError: getAutoConnectError(),
+			hasRestError: getHasRestError(),
 			isConnecting: isConnecting(),
 		};
 	} );
 
 	useEffect( () => {
-		if ( autConnectError ) {
+		if ( autoConnectError ) {
 			setErrors( {
-				'error_autoconnect': autConnectError
+				'error_autoconnect': autoConnectError
 			} );
 		}
-	}, [ autConnectError ] );
+	}, [ autoConnectError ] );
 
-	const onConnect = async () => {
+	const onConnect = () => {
 		setErrors( {} );
 
-		await registerAccount(
+		registerAccount(
 			{
 				email
 			},
@@ -78,8 +88,10 @@ const ConnectLayout = () => {
 
 	if ( 'key' === method ) {
 		return (
-			<div className="optml-connect card">
-				<div className="optml-connect__container">
+			<div className="optml-connect flex flex-col justify-between max-w-screen-xl mt-12 mb-5 mx-auto p-0 transition-all ease-in-out duration-700 relative bg-white text-gray-700 border-0 rounded-sm shadow-md">
+				{ hasRestError && <RestError /> }
+
+				<div className="flex gap-8 p-12 flex-col md:flex-row">
 					<APIForm
 						setMethod={ setMethod }
 					/>
@@ -89,46 +101,48 @@ const ConnectLayout = () => {
 	}
 
 	return (
-		<div className="optml-connect card">
-			<div className="optml-connect__container">
-				<div className="optml-connect__content">
-					<h2 className="text__font optml-connect__content__title">{ optimoleDashboardApp.strings.account_needed_heading }</h2>
+		<div className="optml-connect flex flex-col justify-between max-w-screen-xl mt-12 mb-5 mx-auto p-0 transition-all ease-in-out duration-700 relative bg-white text-gray-700 border-0 rounded-sm shadow-md">
+			{ hasRestError && <RestError /> }
+
+			<div className="flex gap-8 p-12 flex-col md:flex-row">
+				<div className="optml-connect__content basis-8/12">
+					<div className="text-gray-700 font-serif text-2 font-bold leading-7 m-0">{ optimoleDashboardApp.strings.account_needed_heading }</div>
 					<p
-						className="optml-connect__content__description"
+						className="text-xl font-normal text-gray-800"
 						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_title } }
 					/>
 
-					<div className="flex spacing__vertical">
+					<div className="flex py-3">
 						<Icon icon="yes-alt" />
 						<p
-							className="optml-connect__content__description__bullet"
+							className="text-base ml-3 m-0"
 							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_subtitle_1 } }
 						/>
 					</div>
 
-					<div className="flex spacing__vertical">
+					<div className="flex py-3">
 						<Icon icon="yes-alt" />
 						<p
-							className="optml-connect__content__description__bullet"
+							className="text-base ml-3 m-0"
 							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_subtitle_2 } }
 						/>
 					</div>
 				</div>
 
-				<div className="optml-connect__form card__light-background">
+				<div className="optml-connect__form basis-4/12 p-8 bg-light-blue border border-blue-300 rounded-md">
 					<TextControl
 						label={ optimoleDashboardApp.strings.email_address_label }
 						placeholder={ optimoleDashboardApp.strings.email }
 						value={ email }
 						onChange={ setEmail }
-						className="optml-connect__input"
+						className="optml__input"
 					/>
 
 					{ Object.keys( errors ).length > 0 && Object.keys( errors ).map( key => {
 						return (
 							<p
 								key={ key }
-								className="text__help color__danger"
+								className="block text-xs mt-1 text-danger"
 								dangerouslySetInnerHTML={ { __html: errors[ key ] } }
 							/>
 						);
@@ -136,22 +150,22 @@ const ConnectLayout = () => {
 
 					<Button
 						variant="primary"
-						className="optml-connect__button"
-						onClick={ onConnect }
 						isBusy={ isConnecting }
+						className="optml__button flex w-full justify-center rounded font-bold min-h-40"
+						onClick={ onConnect }
 					>
 						{ optimoleDashboardApp.strings.register_btn }
 					</Button>
 
 					<br/><br/>
 
-					<div className="components-base-control__label">
+					<div className="base-control-label">
 						{ optimoleDashboardApp.strings.existing_user }
 					</div>
 
 					<Button
-						variant="primary"
-						className="optml-connect__button__secondary"
+						variant="secondary"
+						className="optml__button flex w-full justify-center rounded font-bold mt-4 min-h-40"
 						onClick={ () => setMethod( 'key' ) }
 					>
 						{ optimoleDashboardApp.strings.api_exists }
@@ -159,7 +173,7 @@ const ConnectLayout = () => {
 				</div>
 			</div>
 
-			<div className="optml-connect__footer">
+			<div className="bg-grayish-blue text-gray-800 text-center font-bold uppercase p-2.5">
 				<p
 					dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_footer } }
 				/>

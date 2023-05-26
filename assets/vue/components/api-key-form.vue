@@ -36,40 +36,5 @@ import AppSelectionForm from "./app-selection-form.vue";
 	export default {
 		name: 'api-key-form',
     components: {AppSelectionForm},
-		data() {
-			return {
-				apiKey: this.$store.state.apiKey ? this.$store.state.apiKey : '',
-				connected: this.$store.state.connected,
-				strings: optimoleDashboardApp.strings,
-
-				isLoading: false
-			}
-		},
-		mounted:function(){
-		},
-
-		computed: {
-			validKey() {
-				return this.$store.state.apiKeyValidity;
-			},
-			connectionError() {
-				return this.$store.state.connectError;
-			},
-			isConnected() {
-				return this.$store.state.connected;
-			},
-		},
-		methods: {
-			connect: function () {
-				this.$store.dispatch( 'connectOptimole', {
-					apiKey: this.apiKey,
-				} );
-			},
-			disconnect: function () {
-				this.apiKey = '';
-				this.$store.dispatch( 'disconnectOptimole', {
-				} );
-			},
-		}
 	}
 </script>
