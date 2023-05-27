@@ -6,6 +6,7 @@ import apiFetch from '@wordpress/api-fetch';
 import { createReduxStore, register } from '@wordpress/data';
 
 const DEFAULT_STATE = {
+	autoConnect: optimoleDashboardApp.auto_connect === 'yes',
 	autoConnectError: '',
 	isConnected: optimoleDashboardApp.connection_status === 'yes',
 	isConnecting: false,
@@ -22,6 +23,12 @@ const DEFAULT_STATE = {
 };
 
 const actions = {
+	setAutoConnect( autoConnect ) {
+		return {
+			type: 'SET_AUTO_CONNECT',
+			autoConnect,
+		};
+	},
 	setAutoConnectError( autoConnectError ) {
 		return {
 			type: 'SET_AUTO_CONNECT_ERROR',
@@ -227,6 +234,11 @@ const actions = {
 
 const reducer = ( state = DEFAULT_STATE, action ) => {
 	switch ( action.type ) {
+		case 'SET_HAS_REST_ERROR':
+			return {
+				...state,
+				hasRestError: action.hasRestError,
+			};
 		case 'SET_AUTO_CONNECT_ERROR':
 			return {
 				...state,
@@ -257,7 +269,7 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				...state,
 				isLoading: action.isLoading,
 			};
-		case 'SET_IS_DASHBOARD_LOADED':
+		case 'SET_HAS_DASHBOARD_LOADED':
 			return {
 				...state,
 				hasDashboardLoaded: action.hasDashboardLoaded,
@@ -310,6 +322,9 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 };
 
 const selectors = {
+	getAutoConnect( state ) {
+		return state.autoConnect;
+	},
 	getAutoConnectError( state ) {
 		return state.autoConnectError;
 	},
@@ -319,16 +334,16 @@ const selectors = {
 	getAvailableApps( state ) {
 		return state.availableApps;
 	},
-	getHasRestError( state ) {
+	hasRestError( state ) {
 		return state.hasRestError;
 	},
-	getHasValidKey( state ) {
+	hasValidKey( state ) {
 		return state.hasValidKey;
 	},
-	getHasApplication( state ) {
+	hasApplication( state ) {
 		return state.hasApplication;
 	},
-	getHasDashboardLoaded( state ) {
+	hasDashboardLoaded( state ) {
 		return state.hasDashboardLoaded;
 	},
 	getUserData( state ) {

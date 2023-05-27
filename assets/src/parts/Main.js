@@ -7,13 +7,30 @@ import { useSelect } from "@wordpress/data";
  * Internal dependencies.
  */
 import Header from './Header';
-import ConectLayout from './connect-layout';
+import DisconnectLayout from './disconnect';
+import ConnectLayout from './connect';
+import ConnectingLayout from "./connecting";
+import Footer from './Footer';
 
 const Main = () => {
-	const { isConnected } = useSelect( select => {
-		const { isConnected } = select( 'optimole' );
+	const {
+        autoConnect,
+        showDisconnect,
+        isConnected,
+        hasDashboardLoaded
+    } = useSelect( select => {
+		const {
+            getAutoConnect,
+            showDisconnect,
+            isConnected,
+            hasDashboardLoaded
+        } = select( 'optimole' );
+
 		return {
+            autoConnect: getAutoConnect(),
+            showDisconnect: showDisconnect(),
 			isConnected: isConnected(),
+            hasDashboardLoaded: hasDashboardLoaded()
 		};
 	} );
 
@@ -21,11 +38,22 @@ const Main = () => {
         <>
             <Header/>
 
-            { ! isConnected && (
-                <ConectLayout />
+            { ( ! isConnected && ! autoConnect ) && (
+                <ConnectLayout />
             ) }
+
+            { ( ( isConnected || autoConnect ) && ! hasDashboardLoaded ) && (
+                <ConnectingLayout />
+            ) }
+
+            { isConnected && showDisconnect && (
+                <DisconnectLayout />
+            ) }
+
+            <Footer/>
         </>
     );
 };
 
 export default Main;
+

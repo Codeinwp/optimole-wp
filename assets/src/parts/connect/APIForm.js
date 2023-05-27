@@ -26,12 +26,12 @@ const APIForm = ({
 		isConnecting
 	} = useSelect( select => {
 		const {
-			getHasValidKey,
+			hasValidKey,
 			isConnecting
 		} = select( 'optimole' );
 
 		return {
-			hasValidKey: getHasValidKey(),
+			hasValidKey: hasValidKey(),
 			isConnecting: isConnecting(),
 		};
 	} );
@@ -73,6 +73,7 @@ const APIForm = ({
 				<Button
 					variant="primary"
 					isBusy={ isConnecting }
+					disabled={ isConnecting }
 					className="optml__button flex w-full justify-center rounded font-bold min-h-40 basis-1/5"
 					onClick={ onConnect }
 				>

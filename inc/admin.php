@@ -797,7 +797,7 @@ class Optml_Admin {
 			'add_api'                        => __( 'Add your API Key', 'optimole-wp' ),
 			'your_api_key'                   => __( 'Your API Key', 'optimole-wp' ),
 			'looking_for_api_key'            => __( 'LOOKING FOR YOUR API KEY?', 'optimole-wp' ),
-			'refresh_stats_cta'              => __( 'REFRESH STATS', 'optimole-wp' ),
+			'refresh_stats_cta'              => __( 'Refresh Stats', 'optimole-wp' ),
 			'updating_stats_cta'             => __( 'UPDATING STATS', 'optimole-wp' ),
 			'api_key_placeholder'            => __( 'API Key', 'optimole-wp' ),
 			'account_needed_heading'         => __( 'Sign-up for API key', 'optimole-wp' ),
@@ -841,7 +841,7 @@ If you still want to disconnect click the button below.',
 				'</a>'
 			),
 			'account_needed_subtitle_3'      => sprintf(
-				__( 'Here’s %1$show%2$s to install Optimole on your WordPress site in 3 steps.', 'optimole-wp' ),
+				__( 'Need help? %1$sGetting Started with Optimole%2$s', 'optimole-wp' ),
 				'<a target="_blank" href="https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps">',
 				'</a>'
 			),
@@ -854,6 +854,8 @@ If you still want to disconnect click the button below.',
 				'</strong>'
 			),
 			'account_needed_footer'          => __( 'Trusted by more than 100k happy users', 'optimole-wp' ),
+			'account_connecting_title'	     => __( 'Connecting to Optimole', 'optimole-wp' ),
+			'account_connecting_subtitle'	 => __( 'Sit tight while we connect you to the Dashboard', 'optimole-wp' ),
 			'notice_just_activated'          => ! $this->settings->is_connected() ?
 				sprintf( __( '%1$sImage optimisation is currently running.%2$s <br/> Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You might see for the very first image request being redirected to the original URL while we do the optimization in the background. You can relax, we\'ll take it from here.', 'optimole-wp' ), '<strong>', '</strong>' )
 				: '',

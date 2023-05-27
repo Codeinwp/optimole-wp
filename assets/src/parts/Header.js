@@ -1,8 +1,15 @@
 /**
  * WordPress dependencies.
  */
-import { Icon } from "@wordpress/components";
-import { useSelect } from "@wordpress/data";
+import { 
+	DropdownMenu,
+	Icon
+} from "@wordpress/components";
+
+import {
+	useDispatch,
+	useSelect
+} from "@wordpress/data";
 
 /**
  * Internal dependencies.
@@ -10,8 +17,11 @@ import { useSelect } from "@wordpress/data";
 import { connected, disconnected } from "../utils/icons";
 
 const Header = () => {
+	const { setShowDisconnect } = useDispatch( 'optimole' );
+
 	const { isConnected } = useSelect( select => {
 		const { isConnected } = select( 'optimole' );
+
 		return {
 			isConnected: isConnected(),
 		};
@@ -22,7 +32,7 @@ const Header = () => {
 			<div className="flex justify-between items-center max-w-screen-xl mx-auto my-0">
 				<div className="items-center flex justify-start cursor-default">
 					<img
-						class="max-width-64 mr-3"
+						className="max-width-64 mr-3"
 						src={ `${ optimoleDashboardApp.assets_url }/img/logo.png` }
 						alt={ optimoleDashboardApp.strings.optimole + ' ' + optimoleDashboardApp.strings.service_details }
 						title={ optimoleDashboardApp.strings.optimole + ' ' + optimoleDashboardApp.strings.service_details }
@@ -33,11 +43,32 @@ const Header = () => {
 				<div className="flex items-center">
 					{ isConnected ? (
 						<>
-							<div className="uppercase font-bold text-xs text-success mr-3">
-								{ optimoleDashboardApp.strings.connected }
-							</div>
-
-							<Icon icon={ connected } />
+							<DropdownMenu
+								icon={ <Icon icon={ connected } /> }
+								toggleProps={ {
+									className: 'optml-header__dropdown uppercase font-bold text-xs text-success hover:text-success active:text-success focus:text-success mr-3 border border-gray-300 rounded-md border-solid gap-2',
+									iconPosition: 'right',
+								} }
+								popoverProps={ {
+									className: 'optml-header__dropdown__popover',
+								} }
+								text={ optimoleDashboardApp.strings.connected }
+								controls={ [
+									{
+										title: optimoleDashboardApp.strings.optimole + ' ' + optimoleDashboardApp.strings.dashboard_menu_item,
+										onClick: () => window.open( 'https://dashboard.optimole.com/', '_blank' ),
+									},
+									{
+										title: optimoleDashboardApp.strings.refresh_stats_cta,
+										// ToDo: Add Action
+										onClick: () => console.log( 'right' ),
+									},
+									{
+										title: optimoleDashboardApp.strings.disconnect_btn,
+										onClick: () => setShowDisconnect( true ),
+									},
+								] }
+							/>
 						</>
 					) : (
 						<>

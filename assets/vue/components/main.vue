@@ -5,49 +5,7 @@
 						<div class="card">
 								<div class="card-content">
 										<div class="content">
-												<div v-if="showDisconnect">
-													<div class="has-text-weight-bold" style="font-size: 19px; margin-bottom: 20px;">{{strings.disconnect_title}}</div>
-													<div class="optml-line-height" style="font-size: 16px; margin-bottom: 20px;">{{strings.disconnect_desc}}</div>
-													<div class="optml-side-by-side optml-settings-desc-margin">
-														<div @click="keepConnected" class="button optml-button optml-button-style-2 optml-position-relative" > {{strings.keep_connected}}</div>
-														<div @click="disconnect" :class="this.$store.state.loading ? 'is-loading'  : '' " class="button optml-button-style-1 optml-position-relative" style="margin-left: 20px; background-color: #e77777; border-color: #E77777;"> {{strings.disconnect_btn}}</div>
-
-													</div>
-
-												</div>
-												<connect-layout v-if="!this.is_connected && this.$store.state.autoConnect === 'no'"></connect-layout>
-
 												<!--Connecting-->
-												<transition name="slide-fade">
-													<div class="optml-side-by-side" style="align-items: center; justify-content: center; margin-right: 4%;" v-if="((!showDisconnect && this.is_connected ) ||  this.$store.state.autoConnect !== 'no') && ! this.$store.state.is_loaded" id="optml-loader">
-														<div>
-															<figure class="image">
-																<img :src="connecting" >
-															</figure>
-														</div>
-														<div>
-																<div class="columns">
-																		<div class="column">
-
-																				<transition name="slide-fade">
-																						<div class="has-text-left is-size-4 has-text-weight-bold">Connecting to Optimole</div>
-
-																				</transition>
-																			<transition name="slide-fade">
-
-																				<div class="has-text-left is-size-6" style="margin: 4% 0 1% 0;">Sit tight while we connect you to the Dashboard</div>
-																			</transition>
-																		</div>
-																</div>
-																<div class="columns optml-flex-column" style="margin:1%;">
-
-																				<progress id="optml-progress-bar" class="progress is-small is-success optml-custom-label-margin" :value="this.timer" max="25"></progress>
-																				<div class="is-size-7" style="padding-top: 7px;">{{this.getProgressMessage()}}</div>
-
-																</div>
-														</div>
-													</div>
-												</transition>
 												<transition name="fade" mode="out-in">
 														<div v-if="this.$store.state.connected && this.$store.state.hasApplication && this.$store.state.is_loaded && !showDisconnect">
 															<div class="tabs is-left is-medium optml-tabs optml-font overflow-mobile">
@@ -136,17 +94,6 @@
 
 										</div>
 								</div>
-
-								<div class="level-right">
-										<p class="level-item"><a  style="white-space:nowrap" href="https://optimole.com" target="_blank">Optimole
-												v{{strings.version}} <span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a></p>
-										<p class="level-item"><a style="white-space:nowrap" href="https://optimole.com/terms/"
-																						 target="_blank">{{strings.terms_menu}}<span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a></p>
-										<p class="level-item"><a style="white-space:nowrap" href="https://optimole.com/privacy-policy/" target="_blank">{{strings.privacy_menu}} <span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>
-										</p>
-										<p class="level-item"><a style="white-space:nowrap" :href="'https://optimole.com/test-drive?url=' + home " target="_blank">{{strings.testdrive_menu}} <span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>
-										</p>
-								</div>
 						</div>
 				</div>
 				<!--right side-->
@@ -194,26 +141,14 @@
 		data() {
 			return {
 				strings: optimoleDashboardApp.strings,
-				home: optimoleDashboardApp.home_url,
 				remove_images: optimoleDashboardApp.remove_latest_images === 'yes',
 				fetchStatus: false,
-				step_no: 0,
-				timer: 0,
-				max_time: 25,
-				loading_percent: 0,
 				tab: 'dashboard',
 				logo: optimoleDashboardApp.assets_url + 'img/logo2.png',
 				connecting: optimoleDashboardApp.assets_url + 'img/connecting.png',
 			}
 		},
 		computed: {
-			maxWidth() {
-				if ((!this.is_connected || this.showDisconnect) && this.$store.state.autoConnect === 'no') {
-					return {
-						'max-width':  '1000px'
-					}
-				}
-			},
 			conflictCount() {
 				return this.$store.state.conflicts.count || 0
 			},
@@ -238,14 +173,6 @@
 			Conflicts,
 			LastImages,
 			Metrics
-		},
-		watch: {
-			is_connected: function (val) {
-				console.log(val);
-				if(val && ! this.is_loaded) {
-					this.triggerLoading();
-				}
-			}
 		},
 		mounted() {
 			let self = this;
@@ -296,58 +223,12 @@
 					}
 				})
 			},
-			keepConnected () {
-				this.$store.commit('toggleShowDisconnectNotice', false);
-			},
 			requestUpdate() {
 				this.$store.dispatch('requestStatsUpdate', {waitTime: 0, component: null});
 			},
 			changeTab: function (value) {
 				this.tab = value;
 			},
-			getProgressMessage() {
-				let message = '';
-
-				if (this.step_no === 0) {
-					message = this.strings.options_strings.connect_step_0;
-				}
-				if (this.step_no === 1) {
-					message = this.strings.options_strings.connect_step_1;
-				}
-				if (this.step_no === 2) {
-					message = this.strings.options_strings.connect_step_2;
-				}
-				if (this.step_no === 3) {
-					message = this.strings.options_strings.connect_step_3;
-				}
-
-				return `${message} (${this.loading_percent}%)`
-
-			},
-
-			doLoading() {
-				this.timer ++;
-
-				if (this.timer >= this.max_time) {
-					this.$store.commit('toggleIsServiceLoaded', true);
-					this.timer = 0;
-					this.step_no = 0;
-					this.loading_percent = 0;
-					return;
-				}
-				this.loading_percent = (Math.floor((this.timer / this.max_time) * 100));
-								if(this.loading_percent > ((this.step_no + 1 ) * 30) ){
-									this.step_no ++ ;
-								}
-				if (this.timer < this.max_time) {
-					this.triggerLoading();
-				}
-			},
-			triggerLoading: function () {
-				setTimeout(() => {
-					this.doLoading()
-				}, 1000 )
-			}
 
 		}
 
