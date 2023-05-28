@@ -5,6 +5,9 @@ module.exports = {
 	],
 	theme: {
 		extend: {
+			backgroundPosition: {
+				'promo': '90% 70%'
+			},
 			colors: {
 				'primary': '#EF686B',
 				'success': '#5F9D61',
@@ -13,7 +16,9 @@ module.exports = {
 				'light-blue': '#EEF2FE',
 				'dark-blue': '#3557A6',
 				'purple-gray': '#757296',
-				'grayish-blue': '#f6f6fa'
+				'grayish-blue': '#f6f6fa',
+				'light-black': '#626262',
+				'opaque-black': '#0000006E'
 			},
 			fontFamily: {
 				'serif': [ '-apple-system', 'BlinkMacSystemFont', 'sans-serif' ],

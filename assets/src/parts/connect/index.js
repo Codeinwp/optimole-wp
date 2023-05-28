@@ -22,7 +22,7 @@ import {
  */
 import APIForm from './APIForm';
 
-const connectClasses = 'optml-connect flex flex-col justify-between max-w-screen-xl mt-12 mb-5 mx-auto p-0 transition-all ease-in-out duration-700 relative bg-white text-gray-700 border-0 rounded-sm shadow-md';
+const connectClasses = 'optml-connect flex flex-col justify-between max-w-screen-xl mt-12 mb-5 mx-auto p-0 transition-all ease-in-out duration-700 relative bg-white text-gray-700 border-0 rounded-lg shadow-md';
 const connectContainerClasses = 'flex gap-8 p-12 flex-col md:flex-row';
 
 const RestError = () => (
@@ -177,7 +177,7 @@ const ConnectLayout = () => {
 				</div>
 			</div>
 
-			<div className="bg-grayish-blue text-gray-800 text-center font-bold uppercase p-2.5">
+			<div className="bg-grayish-blue text-gray-800 text-center font-bold uppercase p-2.5 rounded-b-lg">
 				<p
 					dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_footer } }
 				/>

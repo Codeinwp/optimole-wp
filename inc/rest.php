@@ -448,7 +448,7 @@ class Optml_Rest {
 			'post_type'              => 'attachment',
 			'post_mime_type'         => 'image',
 			'post_status'            => 'inherit',
-			'posts_per_page'         => 50,
+			'posts_per_page'         => 100,
 			'offset'                 => $offset,
 			'fields'                 => 'ids',
 			'no_found_rows'          => true,
@@ -488,8 +488,8 @@ class Optml_Rest {
 		$api = new Optml_Api();
 		$api->call_onboard_api( $image_urls );
 
-		// Check if image_url array has at least 50 items, if not, we have reached the end of the images
-		return $this->response( count( $image_urls ) < 50 ? true : false );
+		// Check if image_url array has at least 100 items, if not, we have reached the end of the images
+		return $this->response( count( $image_urls ) < 100 ? true : false );
 	}
 
 	/**

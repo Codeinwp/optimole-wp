@@ -93,7 +93,7 @@ $grayish-blue: #f6f6fa;
 			margin-left: 10px;
 		}
 
-		svg {
+		svg:not( .fill-success ) {
 			fill: none;
 		}
 
@@ -189,6 +189,22 @@ $grayish-blue: #f6f6fa;
 			&.is-busy {
 				background-image: linear-gradient(-45deg, #E35151 33%, $danger 0, $danger 70%, #E35151 0) !important;
 			}
+		}
+	}
+
+	&__placeholder {
+		.components-base-control__label {
+			font-weight: 600;
+			font-size: 12px;
+			color: #626262;
+		}
+
+		.components-text-control__input {
+			padding: 8px 13px;
+			background: #EEF2FE;
+			border: none;
+			border-radius: 6px;
+			font-size: 16px;
 		}
 	}
 

@@ -11,19 +11,31 @@ import {
 	useSelect
 } from "@wordpress/data";
 
+import { rotateRight } from "@wordpress/icons";
+
 /**
  * Internal dependencies.
  */
 import { connected, disconnected } from "../utils/icons";
 
 const Header = () => {
-	const { setShowDisconnect } = useDispatch( 'optimole' );
+	const {
+		requestStatsUpdate,
+		setShowDisconnect
+	} = useDispatch( 'optimole' );
 
-	const { isConnected } = useSelect( select => {
-		const { isConnected } = select( 'optimole' );
+	const {
+		isConnected,
+		isLoading
+	} = useSelect( select => {
+		const {
+			isConnected,
+			isLoading
+		} = select( 'optimole' );
 
 		return {
 			isConnected: isConnected(),
+			isLoading: isLoading(),
 		};
 	} );
 
@@ -44,7 +56,7 @@ const Header = () => {
 					{ isConnected ? (
 						<>
 							<DropdownMenu
-								icon={ <Icon icon={ connected } /> }
+								icon={ isLoading ? <Icon icon={ rotateRight } className="animate-spin fill-success" /> : <Icon icon={ connected } /> }
 								toggleProps={ {
 									className: 'optml-header__dropdown uppercase font-bold text-xs text-success hover:text-success active:text-success focus:text-success mr-3 border border-gray-300 rounded-md border-solid gap-2',
 									iconPosition: 'right',
@@ -60,8 +72,7 @@ const Header = () => {
 									},
 									{
 										title: optimoleDashboardApp.strings.refresh_stats_cta,
-										// ToDo: Add Action
-										onClick: () => console.log( 'right' ),
+										onClick: requestStatsUpdate,
 									},
 									{
 										title: optimoleDashboardApp.strings.disconnect_btn,

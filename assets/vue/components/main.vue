@@ -39,24 +39,6 @@
 																							</svg>
 																						</a>
 																				</li>
-																				<!-- Refresh stats -->
-																				<li style="margin-left:auto; position:relative; right:1%;">
-																						<div class="level-item">
-
-																							<span class="is-size-7 has-text-weight-bold optml-gray optml-hide-on-mobile" style="margin-right: 20px;">{{ this.$store.state.loading ?  strings.updating_stats_cta : strings.refresh_stats_cta}}</span>
-
-																							<a style="padding:0; margin:0;">
-																							<svg v-bind:class="{ 'optml-spin': this.$store.state.loading }" width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="visibility: visible"  v-on:click="requestUpdate">
-																								<path d="M17.0002 12.2747L15.4255 10.7L17.0002 9.12537" stroke="#6F6F6F" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-																								<path d="M28.3137 5.6863C34.5621 11.9347 34.5621 22.0653 28.3137 28.3137C22.0653 34.5621 11.9347 34.5621 5.6863 28.3137C-0.562099 22.0653 -0.562099 11.9347 5.6863 5.6863C11.9347 -0.5621 22.0653 -0.5621 28.3137 5.6863Z" fill="#EDF0FF"/>
-																								<path d="M28.3137 5.6863C34.5621 11.9347 34.5621 22.0653 28.3137 28.3137C22.0653 34.5621 11.9347 34.5621 5.6863 28.3137C-0.562099 22.0653 -0.562099 11.9347 5.6863 5.6863C11.9347 -0.5621 22.0653 -0.5621 28.3137 5.6863" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-																								<path d="M18.4014 23.1266C17.9494 23.2306 17.4841 23.296 17.0001 23.296C13.5228 23.296 10.7041 20.4773 10.7041 17C10.7041 15.5826 11.1894 14.2893 11.9788 13.2373" stroke="#577BF9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-																								<path d="M22.0213 20.7626C22.8106 19.7106 23.296 18.4173 23.296 17C23.296 13.5226 20.4773 10.704 17 10.704C16.516 10.704 16.0506 10.7693 15.5986 10.8733" stroke="#577BF9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-																								<path d="M17 21.7252L18.5747 23.2999L17 24.8746" stroke="#577BF9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-																							</svg>
-																							</a>
-																					</div>
-																				</li>
 																		</ul>
 
 																</div>
@@ -96,41 +78,10 @@
 								</div>
 						</div>
 				</div>
-				<!--right side-->
-				<div v-if="is_connected" class="column is-narrow">
-
-
-						<div class="card optml-upgrade">
-							<cdn-details v-if="this.$store.state.userData"></cdn-details>
-						</div>
-					<div class=" is-hidden-desktop-only is-hidden-tablet-only is-hidden-mobile" style="padding-bottom:8%; margin-top: -4%; color:white !important; background-color: #577BF9;" v-if="this.$store.state.userData.plan === 'free'">
-						<div style="margin: 4% 4% 7.5% 4%; padding-top: 10%;" >
-							<p class="is-size-5 has-text-centered has-text-weight-bold">
-								{{strings.upgrade.title_long}}
-							</p>
-						</div>
-						<div style="position:relative;">
-						<ul class="is-size-6 upgrade" style="margin-left: 10%;">
-							<li><span class="dashicons dashicons-yes-alt" style="margin: 0 2% 1% 0;"></span>{{strings.upgrade.reason_1}}</li>
-							<li><span class="dashicons dashicons-yes-alt " style="margin: 0 2% 1% 0;"></span>{{strings.upgrade.reason_2}}</li>
-							<li><span class="dashicons dashicons-yes-alt " style="margin: 0 2% 1% 0;"></span>{{strings.upgrade.reason_3}}</li>
-							<li><span class="dashicons dashicons-yes-alt " style="margin: 0 2% 1% 0;"></span>{{strings.upgrade.reason_4}}</li>
-						</ul>
-							<figure class="image is-hidden-touch" style="position: absolute; left: 50%; top: 17%;">
-								<img :src="logo" :alt="strings.optimole + ' ' + strings.service_details" >
-							</figure>
-						</div>
-						<a class="is-size-6 optml-button" href="https://optimole.com/pricing" target="_blank" style="display:block; position:relative; color:white !important; margin:8% 10% 0 10%; padding: 4% 10% 4% 10%; text-align:center;background: rgba(0, 0, 0, 0.43);border-radius: 4px;">
-							{{strings.upgrade.cta}}
-						</a>
-					</div>
-				</div>
 		</div>
 </template>
 
 <script>
-	import CdnDetails from './cdn-details.vue';
-	import ConnectLayout from './connect-layout.vue';
 	import LastImages from './last-images.vue';
 	import Conflicts from './conflicts.vue';
 	import Options from "./options.vue";
@@ -144,7 +95,6 @@
 				remove_images: optimoleDashboardApp.remove_latest_images === 'yes',
 				fetchStatus: false,
 				tab: 'dashboard',
-				logo: optimoleDashboardApp.assets_url + 'img/logo2.png',
 				connecting: optimoleDashboardApp.assets_url + 'img/connecting.png',
 			}
 		},
@@ -168,8 +118,6 @@
 		components: {
 			Options,
 			Watermarks,
-			ConnectLayout,
-			CdnDetails,
 			Conflicts,
 			LastImages,
 			Metrics
@@ -204,10 +152,6 @@
 			}
 		},
 		methods: {
-			disconnect () {
-				this.$store.dispatch( 'disconnectOptimole', {
-				} );
-			},
 			createAndConnect: function ( email ) {
 				this.$store.dispatch('registerOptimole', {
 					email: email,
@@ -223,9 +167,6 @@
 					}
 				})
 			},
-			requestUpdate() {
-				this.$store.dispatch('requestStatsUpdate', {waitTime: 0, component: null});
-			},
 			changeTab: function (value) {
 				this.tab = value;
 			},
@@ -234,143 +175,3 @@
 
 	}
 </script>
-<style lang="sass-loader">
-		@import '../../css/style.scss';
-
-		@media ( min-width: 769px ) {
-			#optimole-app .overflow-mobile {
-				overflow-x: hidden !important;
-			}
-		}
-		#optimole-app .tabs li a {
-				border: none;
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				line-height: 150%;
-				font-weight: bold;
-				margin-bottom: -7%;
-				color: #282828 !important;
-				text-decoration: none !important;
-				max-width:110px;
-
-		}
-
-		#optimole-app .tabs li:not(.is-active) svg{
-			visibility: hidden;
-		}
-
-
-		 #optimole-app .tab-text {
-			margin-bottom: 7%;
-		}
-
-		#optimole-app .optml-upgrade {
-				min-width: 260px;
-				max-width: 320px;
-		}
-
-		#optimole-app .is-tab.no-images {
-				min-height: 400px;
-		}
-
-		#optimole-app .is-tab {
-				min-height: 700px;
-		}
-
-		.optml-tabs {
-				position: relative;
-		}
-
-		.optml-tabs .optml-conflicts-tabs {
-				position: absolute;
-				right: 0;
-				top: 0;
-		}
-
-		#optml-loader {
-				min-height: 400px;
-		}
-
-		.optml-font {
-			font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-			color: #282828;
-		}
-
-
-		.slide-fade-enter-active {
-				transition: all .3s ease;
-		}
-
-		.slide-fade-leave-active {
-				transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
-		}
-
-		.slide-fade-enter, .slide-fade-leave-to {
-				transform: translateX(10px);
-				opacity: 0;
-		}
-
-		#optml-progress-bar.progress.optml-progres-0:indeterminate {
-				background-image: linear-gradient(to right, #5180C1 5%, #dbdbdb 5%);
-		}
-
-		#optml-progress-bar.progress.optml-progres-1:indeterminate {
-				background-image: linear-gradient(to right, #5180C1 10%, #dbdbdb 10%);
-		}
-
-		#optml-progress-bar.progress.optml-progres-2:indeterminate {
-				background-image: linear-gradient(to right, #5180C1 20%, #dbdbdb 20%);
-		}
-
-		#optml-progress-bar.progress.optml-progres-3:indeterminate {
-				background-image: linear-gradient(to right, #5180C1 30%, #dbdbdb 30%);
-		}
-
-		#optml-progress-bar.progress.optml-progres-4:indeterminate {
-				background-image: linear-gradient(to right, #5180C1 40%, #dbdbdb 40%);
-		}
-
-		#optml-progress-bar.progress.optml-progres-5:indeterminate {
-				background-image: linear-gradient(to right, #5180C1 50%, #dbdbdb 50%);
-		}
-
-		#optml-progress-bar.progress.optml-progres-6:indeterminate {
-				background-image: linear-gradient(to right, #5180C1 60%, #dbdbdb 60%);
-		}
-
-		#optml-progress-bar.progress.optml-progres-7:indeterminate {
-				background-image: linear-gradient(to right, #5180C1 70%, #dbdbdb 70%);
-		}
-
-		#optml-progress-bar.progress.optml-progres-8:indeterminate {
-				background-image: linear-gradient(to right, #5180C1 80%, #dbdbdb 80%);
-		}
-
-		#optml-progress-bar.progress.optml-progres-9:indeterminate {
-				background-image: linear-gradient(to right, #5180C1 90%, #dbdbdb 90%);
-		}
-		.notification .dashicons-external{
-				text-decoration: none;
-				font-size: 18px;
-		}
-
-		.optml-neve li {
-
-			margin-top: 3px !important;
-			margin-bottom: 3px !important;
-		}
-
-		.optml-neve p.optml-nv-byline {
-			margin-top: 5px !important;
-			margin-bottom: 15px !important;
-		}
-
-		.optml-neve {
-			padding: 0.5rem !important;
-		}
-
-		.optml-neve .card-content {
-			padding: 1rem !important;
-		}
-</style>

@@ -133,7 +133,7 @@ const actions = {
 					dispatch.setAvailableApps( response.data );
 				}
 
-				// ToDo: Send onboarding images.
+				dispatch.sendOnboardingImages();
 
 				if ( callback ) {
 					callback( response );
@@ -179,7 +179,7 @@ const actions = {
 						dispatch.setUserData( response.data );
 					}
 
-					// ToDo: Send onboarding images.
+					dispatch.sendOnboardingImages();
 
 					console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
 
@@ -226,6 +226,66 @@ const actions = {
 					console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
 				} else {
 					console.error( response );
+				}
+			} );
+		}
+	},
+	sendOnboardingImages( data = {} ) {
+		data.offset = undefined !== data.offset ? data.offset : 0;
+
+		return ( { dispatch } ) => {
+			apiFetch( {
+				path: optimoleDashboardApp.routes['upload_onboard_images'],
+				method: 'POST',
+				data,
+			} )
+			.then( response => {
+				if ( false === response.data && data.offset < 1000 ) {
+					dispatch.sendOnboardingImages( {
+						offset: data.offset + 100
+					} );
+				}
+
+				if ( response.code === 'success' ) {
+					console.log( '%c Images Crawled.', 'color: #59B278' );
+				}
+			} )
+			.catch( error => {
+				console.log( 'Error while crawling images', error );
+
+				return error.data;
+			});
+		}
+	},
+	requestStatsUpdate() {
+		return ( { dispatch } ) => {
+			dispatch.setIsLoading( true );
+
+			apiFetch( {
+				path: optimoleDashboardApp.routes['request_update'],
+				method: 'GET',
+				parse: false,
+			} )
+			.then( response => {
+			  if ( response.status >= 200 && response.status < 300 ) {
+				return response.json();
+			  } else {
+				console.log( `%c Request failed with status ${ response.status }`, 'color: #E7602A' );
+				return Promise.resolve();
+			  }
+			})
+			.then( response => {
+				if ( ! response ) {
+				  return;
+				}
+
+				dispatch.setIsLoading( false );
+				dispatch.setUserData( response.data );
+
+				if ( response.code === 'disconnected' ) {
+					dispatch.setIsConnected( false );
+					dispatch.sethasDashboardLoaded( false );
+					console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
 				}
 			} );
 		}

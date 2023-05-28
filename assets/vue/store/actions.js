@@ -172,38 +172,6 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 	);
 };
 
-const sendOnboardImages = function ( { dispatch }, data ) {
-	data.offset = undefined !== data.offset ? data.offset : 0;
-
-	Vue.http(
-		{
-			url: optimoleDashboardApp.routes['upload_onboard_images'],
-			method: 'POST',
-			params: {
-				offset: data.offset
-			},
-			emulateJSON: true,
-			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			responseType: 'json'
-		}
-	).then(
-		function ( response ) {
-			if ( false === response.body.data && data.offset < 1000 ) {
-				dispatch( 'sendOnboardImages', {
-					offset: data.offset + 100
-				} );
-			}
-
-			if ( response.body.code === 'success' ) {
-				console.log( '%c Images Crawled.', 'color: #59B278' );
-			}
-		}
-	)
-		.catch( err => {
-			console.log( 'Error while crawling images', err );
-		} );
-};
-
 const retrieveWatermarks = function ( {commit, state}, data ) {
 
 	commit( 'toggleLoading', true );
@@ -245,27 +213,6 @@ const removeWatermark = function ( {commit, state}, data ) {
 
 		commit( 'toggleLoading', false );
 		retrieveWatermarks( {commit, state}, data );
-	} );
-};
-
-
-const requestStatsUpdate = function ( {commit, state}, data ) {
-	commit( 'toggleLoading', true );
-	Vue.http( {
-		url: optimoleDashboardApp.routes['request_update'],
-		method: 'GET',
-		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		responseType: 'json',
-	} ).then( function ( response ) {
-		commit( 'toggleLoading', false );
-		if( response.status === 200 ) {
-			commit( 'updateUserData', response.body.data );
-		}
-		if ( response.body.code === 'disconnected' ) {
-			commit( 'toggleConnectedToOptml', false );
-			commit( 'toggleIsServiceLoaded', false );
-			console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
-		}
 	} );
 };
 
@@ -540,12 +487,10 @@ export default {
 	selectOptimoleDomain,
 	dismissConflict,
 	removeWatermark,
-	requestStatsUpdate,
 	retrieveConflicts,
 	retrieveOptimizedImages,
 	retrieveWatermarks,
 	sampleRate,
-	sendOnboardImages,
 	saveSettings,
 	callSync,
 	getOffloadConflicts
