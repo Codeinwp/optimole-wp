@@ -141,30 +141,15 @@ const retrieveOptimizedImages = function ( {commit, state}, data ) {
 			).then(
 				function ( response ) {
 					if ( response.body.code === 'success' ) {
-							  commit( 'updateOptimizedImages', response );
-						if ( data.component !== null ) {
-							data.component.loading = false;
-							data.component.startTime = data.component.maxTime;
-							if ( response.body.data.length === 0 ) {
-									  data.component.noImages = true;
-							}
-						}
+						commit( 'updateOptimizedImages', response );
 						console.log( '%c Images Fetched.', 'color: #59B278' );
 					} else {
-						if ( data.component !== null ) {
-							data.component.noImages = true;
-							data.component.loading = false;
-							console.log( '%c No images available.', 'color: #E7602A' );
-						}
+						console.log( '%c No images available.', 'color: #E7602A' );
 					}
 				}
 			)
 				.catch( err => {
-					if ( data.component !== null ) {
-						data.component.noImages = true;
-						data.component.loading = false;
-						console.log( 'Error while polling images', err );
-					}
+					console.log( 'Error while polling images', err );
 				} );
 
 		},
@@ -213,23 +198,6 @@ const removeWatermark = function ( {commit, state}, data ) {
 
 		commit( 'toggleLoading', false );
 		retrieveWatermarks( {commit, state}, data );
-	} );
-};
-
-const retrieveConflicts = function ( {commit, state}, data ) {
-
-	commit( 'toggleLoading', true );
-	Vue.http( {
-		url: optimoleDashboardApp.routes['poll_conflicts'],
-		method: 'GET',
-		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		responseType: 'json',
-	} ).then( function ( response ) {
-		commit( 'toggleLoading', false );
-		if( response.status === 200 ) {
-			console.log( response );
-			commit( 'updateConflicts', response );
-		}
 	} );
 };
 
@@ -487,7 +455,6 @@ export default {
 	selectOptimoleDomain,
 	dismissConflict,
 	removeWatermark,
-	retrieveConflicts,
 	retrieveOptimizedImages,
 	retrieveWatermarks,
 	sampleRate,

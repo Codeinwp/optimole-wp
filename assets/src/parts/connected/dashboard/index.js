@@ -23,7 +23,9 @@ import {
 	traffic,
 	quota,
 	warning
-} from "../../utils/icons";
+} from "../../../utils/icons";
+
+import LastImages from "./LastImages";
 
 const cardClasses = 'flex p-6 bg-light-blue border border-blue-300 rounded-md';
 
@@ -209,6 +211,10 @@ const Dashboard = () => {
 					);
 				} ) }
 			</div>
+
+			{ optimoleDashboardApp.remove_latest_images !== 'yes' && (
+				<LastImages />
+			) }
 		</div>
 	);
 }

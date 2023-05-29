@@ -20,6 +20,8 @@ const DEFAULT_STATE = {
 	availableApps: optimoleDashboardApp.available_apps ? optimoleDashboardApp.available_apps : null,
 	hasDashboardLoaded: optimoleDashboardApp.connection_status === 'yes',
 	showDisconnect: false,
+	conflicts: [],
+	optimizedImages: [],
 };
 
 const actions = {
@@ -105,6 +107,18 @@ const actions = {
 		return {
 			type: 'SET_SHOW_DISCONNECT',
 			showDisconnect,
+		};
+	},
+	setConflicts( conflicts ) {
+		return {
+			type: 'SET_CONFLICTS',
+			conflicts,
+		};
+	},
+	setOptimizedImages( optimizedImages ) {
+		return {
+			type: 'SET_OPTIMIZED_IMAGES',
+			optimizedImages,
 		};
 	},
 	registerAccount( data, callback = () => {} ) {
@@ -275,11 +289,12 @@ const actions = {
 			  }
 			})
 			.then( response => {
+				dispatch.setIsLoading( false );
+
 				if ( ! response ) {
 				  return;
 				}
 
-				dispatch.setIsLoading( false );
 				dispatch.setUserData( response.data );
 
 				if ( response.code === 'disconnected' ) {
@@ -288,6 +303,65 @@ const actions = {
 					console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
 				}
 			} );
+		}
+	},
+	retrieveConflicts() {
+		return ( { dispatch } ) => {
+			dispatch.setIsLoading( true );
+
+			apiFetch( {
+				path: optimoleDashboardApp.routes['poll_conflicts'],
+				method: 'GET',
+				parse: false,
+			} )
+			.then( response => {
+				if ( response.status >= 200 && response.status < 300 ) {
+					return response.json();
+				} else {
+					console.log( `%c Request failed with status ${ response.status }`, 'color: #E7602A' );
+					return Promise.resolve();
+				}
+			})
+			.then( response => {
+				dispatch.setIsLoading( false );
+
+				if ( ! response ) {
+					return;
+				}
+
+				dispatch.setConflicts( response.data );
+			} );
+		}
+	},
+	retrieveOptimizedImages( callback = () => {} ) {
+		return ( { dispatch, select } ) => {
+			const optimizedImages = select.getOptimizedImages();
+
+			if ( optimizedImages.length > 0 ) {
+				console.log( '%c Images already exsist.', 'color: #59B278' );
+				return false;
+			}
+
+			apiFetch( {
+				path: optimoleDashboardApp.routes['poll_optimized_images'],
+				method: 'GET',
+			} )
+			.then( response => {
+				if ( response.code === 'success' ) {
+					dispatch.setOptimizedImages( response.data );
+					console.log( '%c Images Fetched.', 'color: #59B278' );
+				} else {
+					console.log( '%c No images available.', 'color: #E7602A' );
+				}
+
+				if ( callback ) {
+					callback( response );
+				}
+			} )
+			.catch( error => {
+				console.log( 'Error while polling images', error );
+				return error.data;
+			});
 		}
 	}
 };
@@ -376,6 +450,16 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				...state,
 				showDisconnect: action.showDisconnect,
 			};
+		case 'SET_CONFLICTS':
+			return {
+				...state,
+				conflicts: action.conflicts,
+			};
+		case 'SET_OPTIMIZED_IMAGES':
+			return {
+				...state,
+				optimizedImages: action.optimizedImages,
+			};
 		default:
 			return state;
 	}
@@ -423,6 +507,12 @@ const selectors = {
 	},
 	showDisconnect( state ) {
 		return state.showDisconnect;
+	},
+	getConflicts( state ) {
+		return state.conflicts;
+	},
+	getOptimizedImages( state ) {
+		return state.optimizedImages;
 	}
 };
 

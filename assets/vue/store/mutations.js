@@ -17,9 +17,6 @@ const toggleActionError = ( state, data ) => {
 const toggleCheckedOffloadConflicts = ( state, data ) => {
 	state.checkedOffloadConflicts = data;
 };
-const updateOptimizedImages = ( state, data ) => {
-	state.optimizedImages = data.body.data;
-};
 const updateSampleRate = ( state, data ) => {
 	state.sample_rate = data;
 };
@@ -36,9 +33,6 @@ const updateWatermark = ( state, data ) => {
 
 };
 
-const updateConflicts = ( state, data ) => {
-	state.conflicts = data.body.data;
-};
 const totalNumberOfImages = ( state, data ) => {
 	state.totalNumberOfImages = data;
 };
@@ -62,8 +56,6 @@ const updateOffloadConflicts = ( state, data ) => {
 	state.offloadConflicts = data.body.data;
 };
 export default {
-	updateConflicts,
-	updateOptimizedImages,
 	updateSampleRate,
 	updateSettings,
 	updateWatermark,

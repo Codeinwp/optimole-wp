@@ -1,7 +1,7 @@
 /**
  * Internal dependencies.
  */
-import Dashboard from "./Dashboard";
+import Dashboard from "./dashboard";
 import Sidebar from "./Sidebar";
 
 const ConnectedLayout = ({
@@ -12,7 +12,7 @@ const ConnectedLayout = ({
             <div
                 className="flex flex-col justify-between mt-8 mb-5 p-0 transition-all ease-in-out duration-700 relative text-gray-700 basis-9/12"
             >
-                { tab === 'dashboard' && <Dashboard/> }
+                { tab === 'dashboard' && <Dashboard /> }
             </div>
 
             <Sidebar/>

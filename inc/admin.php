@@ -1099,6 +1099,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'compression'           => __( 'Optimization', 'optimole-wp' ),
 				'loading_latest_images' => __( 'Loading your optimized images...', 'optimole-wp' ),
 				'last'                  => __( 'Last', 'optimole-wp' ),
+				'saved'                 => __( 'Saved', 'optimole-wp' ),
 				'optimized_images'      => __( 'optimized images', 'optimole-wp' ),
 				'same_size'             => __( '🙉 We couldn\'t do better, this image is already optimized at maximum. ', 'optimole-wp' ),
 				'small_optimization'    => __( '😬 Not that much, just <strong>{ratio}</strong> smaller.', 'optimole-wp' ),

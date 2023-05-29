@@ -46,7 +46,6 @@
                 <General v-if="tab === 'general' " @update-status="updateGlobalState"></General>
                 <Compression v-if="tab === 'compression' "></Compression>
                 <Watermarks v-if="tab ==='watermark'"></Watermarks>
-<!--                <Cssjs v-if="tab ==='cssjs'"></Cssjs>-->
                 <Resize v-if="tab ==='resize'"></Resize>
                 <Lazyload v-if="tab ==='lazyload'"></Lazyload>
                 <Media v-if="tab ==='offload_media'"></Media>
@@ -64,11 +63,10 @@
 	import Exclusions from "./exclusions.vue";
 	import Lazyload from "./lazyload.vue";
   import Media from "./offload_media.vue";
-	import Cssjs from "./cssjs.vue";
 
 	export default {
         name: "options",
-        components: {Cssjs, Lazyload, Media, Exclusions, Resize, Watermarks, Compression, General},
+        components: { Lazyload, Media, Exclusions, Resize, Watermarks, Compression, General},
         data() {
             return {
                 strings: optimoleDashboardApp.strings.options_strings,
