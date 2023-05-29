@@ -22,6 +22,8 @@ class Optml_elementor_builder extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
+		add_action( 'elementor/frontend/after_enqueue_styles', [$this, 'add_src_filter'], PHP_INT_MIN, 1 );
+
 		add_filter( 'elementor/frontend/builder_content/before_enqueue_css_file', [$this, 'add_src_filter'], PHP_INT_MIN, 1 );
 
 		add_filter( 'elementor/frontend/builder_content/before_print_css', [$this, 'remove_src_filter'], PHP_INT_MIN, 1 );
@@ -57,6 +59,7 @@ class Optml_elementor_builder extends Optml_compatibility {
 	public function remove_src_filter( $with_css ) {
 
 		remove_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'], PHP_INT_MAX );
+
 		return $with_css;
 	}
 	/**
@@ -67,6 +70,11 @@ class Optml_elementor_builder extends Optml_compatibility {
 	 * @uses filter:elementor/frontend/builder_content/before_enqueue_css_file
 	 */
 	public function add_src_filter( $css ) {
+
+		// check if the filter was added to avoid duplication
+		if ( has_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'] ) ) {
+			return $css;
+		}
 
 		add_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'], PHP_INT_MAX, 4 );
 
