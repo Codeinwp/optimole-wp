@@ -1,29 +1,13 @@
 <template>
 	<!--Connecting-->
 	<transition name="fade" mode="out-in">
-
-		<li :class="tab === 'conflicts' ? 'is-active' : ''" v-if="conflictCount > 0">
-			<a @click="changeTab('conflicts')" class="is-size-5">
-					<span class="tab-text is-size-5-mobile is-size-5-touch">{{strings.conflicts_menu_item}}</span>
-				<svg width="110%" height="6" viewBox="0 0 100 6" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-					<rect width="110%" height="6" rx="2" fill="#D54222"/>
-				</svg>
-			</a>
-		</li>
-
 					<div class="is-tab" v-if=" tab === 'settings'">
 							<options></options>
-					</div>
-
-					<div class="is-tab" v-if=" tab === 'conflicts'">
-							<conflicts></conflicts>
 					</div>
 	</transition>
 </template>
 
 <script>
-	import LastImages from './last-images.vue';
-	import Conflicts from './conflicts.vue';
 	import Options from "./options.vue";
 	import Watermarks from "./watermarks.vue";
 	module.exports = {
@@ -36,8 +20,6 @@
 		components: {
 			Options,
 			Watermarks,
-			Conflicts,
-			LastImages,
 		},
 		mounted() {
 

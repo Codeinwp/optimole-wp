@@ -333,6 +333,30 @@ const actions = {
 			} );
 		}
 	},
+	dismissConflict( conflictID, callback = () => {} ) {
+		return ( { dispatch } ) => {
+			dispatch.setIsLoading( true );
+
+			apiFetch( {
+				path: optimoleDashboardApp.routes['dismiss_conflict'],
+				method: 'POST',
+				data: {
+					conflictID,
+				},
+			} )
+			.then( response => {
+				dispatch.setIsLoading( false );
+
+				if ( response.code === 'success' ) {
+					dispatch.setConflicts( response.data );
+				}
+
+				if ( callback ) {
+					callback( response );
+				}
+			} );
+		}
+	},
 	retrieveOptimizedImages( callback = () => {} ) {
 		return ( { dispatch, select } ) => {
 			const optimizedImages = select.getOptimizedImages();

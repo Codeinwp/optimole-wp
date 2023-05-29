@@ -16,6 +16,11 @@ import {
 	useSelect
 } from "@wordpress/data";
 
+import {
+	useEffect,
+	useState
+} from "@wordpress/element";
+
 import { rotateRight } from "@wordpress/icons";
 
 /**
@@ -23,25 +28,12 @@ import { rotateRight } from "@wordpress/icons";
  */
 import { connected, disconnected } from "../utils/icons";
 
-const tabs = [
-	{
-		label: optimoleDashboardApp.strings.dashboard_menu_item,
-		value: 'dashboard'
-	},
-	{
-		label: optimoleDashboardApp.strings.settings_menu_item,
-		value: 'settings'
-	},
-	{
-		label: optimoleDashboardApp.strings.help_menu_item,
-		value: 'help'
-	}
-];
-
 const Header = ({
 	tab,
 	setTab
 }) => {
+	const [ showConflicts, setShowConflicts ] = useState( false );
+
 	const {
 		requestStatsUpdate,
 		setShowDisconnect
@@ -51,22 +43,53 @@ const Header = ({
 		isConnected,
 		isLoading,
 		hasApplication,
-		hasDashboardLoaded
+		hasDashboardLoaded,
+		hasConflicts,
 	} = useSelect( select => {
 		const {
 			isConnected,
 			isLoading,
 			hasApplication,
-			hasDashboardLoaded
+			hasDashboardLoaded,
+			getConflicts
 		} = select( 'optimole' );
+
+		const conflicts = getConflicts();
 
 		return {
 			isConnected: isConnected(),
 			isLoading: isLoading(),
 			hasApplication: hasApplication(),
-			hasDashboardLoaded: hasDashboardLoaded()
+			hasDashboardLoaded: hasDashboardLoaded(),
+			hasConflicts: conflicts.count > 0 || 0
 		};
 	} );
+
+	useEffect( () => {
+		if ( hasConflicts ) {
+			setShowConflicts( true );
+		}
+	}, [ hasConflicts ] );
+
+	const tabs = [
+		{
+			label: optimoleDashboardApp.strings.dashboard_menu_item,
+			value: 'dashboard'
+		},
+		{
+			label: optimoleDashboardApp.strings.conflicts_menu_item,
+			value: 'conflicts',
+			isDisabled: ! showConflicts
+		},
+		{
+			label: optimoleDashboardApp.strings.settings_menu_item,
+			value: 'settings'
+		},
+		{
+			label: optimoleDashboardApp.strings.help_menu_item,
+			value: 'help'
+		}
+	];
 
 	return (
 		<header className="bg-white shadow-sm px-2.5 py-5 pb-0">
@@ -124,7 +147,7 @@ const Header = ({
 
 			{ ( isConnected && hasApplication && hasDashboardLoaded ) && (
 				<ul className="flex gap-8 items-center max-w-screen-xl mx-auto my-0">
-					{ tabs.map( ( { label, value } ) => (
+					{ tabs.filter( tab => ! tab?.isDisabled ).map( ( { label, value } ) => (
 						<li
 							key={ value }
 							className={ classnames(

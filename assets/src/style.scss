@@ -33,6 +33,28 @@ $grayish-blue: #f6f6fa;
 		}
 	}
 
+	.bg-info {
+		a {
+			color: white;
+			text-decoration: underline;
+		}
+
+		b {
+			font-weight: 700;
+		}
+	}
+
+	.bg-danger {
+		a {
+			color: white;
+			text-decoration: underline;
+		}
+
+		b {
+			font-weight: 700;
+		}
+	}
+
 	.base-control-label {
 		color: #363636;
 		display: block;

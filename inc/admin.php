@@ -876,7 +876,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			'lazyload_settings_menu_item'    => __( 'Lazyload', 'optimole-wp' ),
 			'offload_media_settings_menu_item'    => __( 'Cloud Integration', 'optimole-wp' ),
 			'watermarks_menu_item'           => __( 'Watermark', 'optimole-wp' ),
-			'conflicts_menu_item'            => __( 'Possible issues', 'optimole-wp' ),
+			'conflicts_menu_item'            => __( 'Possible Issues', 'optimole-wp' ),
 			'conflicts'                      => [
 				'title'              => __( 'We might have some possible conflicts with the plugins that you use. In order to benefit from Optimole\'s full potential you will need to address this issues.', 'optimole-wp' ),
 				'message'            => __( 'Details', 'optimole-wp' ),
