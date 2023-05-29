@@ -1,4 +1,9 @@
 /**
+ * External dependencies.
+ */
+import classnames from "classnames";
+
+/**
  * WordPress dependencies.
  */
 import { 
@@ -18,7 +23,25 @@ import { rotateRight } from "@wordpress/icons";
  */
 import { connected, disconnected } from "../utils/icons";
 
-const Header = () => {
+const tabs = [
+	{
+		label: optimoleDashboardApp.strings.dashboard_menu_item,
+		value: 'dashboard'
+	},
+	{
+		label: optimoleDashboardApp.strings.settings_menu_item,
+		value: 'settings'
+	},
+	{
+		label: optimoleDashboardApp.strings.help_menu_item,
+		value: 'help'
+	}
+];
+
+const Header = ({
+	tab,
+	setTab
+}) => {
 	const {
 		requestStatsUpdate,
 		setShowDisconnect
@@ -26,25 +49,31 @@ const Header = () => {
 
 	const {
 		isConnected,
-		isLoading
+		isLoading,
+		hasApplication,
+		hasDashboardLoaded
 	} = useSelect( select => {
 		const {
 			isConnected,
-			isLoading
+			isLoading,
+			hasApplication,
+			hasDashboardLoaded
 		} = select( 'optimole' );
 
 		return {
 			isConnected: isConnected(),
 			isLoading: isLoading(),
+			hasApplication: hasApplication(),
+			hasDashboardLoaded: hasDashboardLoaded()
 		};
 	} );
 
 	return (
-		<header className="bg-white shadow-sm px-2.5 py-5">
-			<div className="flex justify-between items-center max-w-screen-xl mx-auto my-0">
+		<header className="bg-white shadow-sm px-2.5 py-5 pb-0">
+			<div className="flex justify-between items-center max-w-screen-xl mx-auto my-0 pb-5">
 				<div className="items-center flex justify-start cursor-default">
 					<img
-						className="max-width-64 mr-3"
+						className="max-width-64 w-16 h-16 mr-3"
 						src={ `${ optimoleDashboardApp.assets_url }/img/logo.png` }
 						alt={ optimoleDashboardApp.strings.optimole + ' ' + optimoleDashboardApp.strings.service_details }
 						title={ optimoleDashboardApp.strings.optimole + ' ' + optimoleDashboardApp.strings.service_details }
@@ -92,6 +121,25 @@ const Header = () => {
 					) }
 				</div>
 			</div>
+
+			{ ( isConnected && hasApplication && hasDashboardLoaded ) && (
+				<ul className="flex gap-8 items-center max-w-screen-xl mx-auto my-0">
+					{ tabs.map( ( { label, value } ) => (
+						<li
+							key={ value }
+							className={ classnames(
+								'cursor-pointer text-purple-gray font-bold text-lg m-0 py-2 px-3 transition-colors duration-200 ease-in-out',
+								{
+									'text-black border-0 border-b-4 border-b-info border-solid': tab === value,
+								}
+							) }
+							onClick={ () => setTab( value ) }
+						>
+							{ label }
+						</li>
+					) ) }
+				</ul>
+			) }
 		</header>
 	)
 }

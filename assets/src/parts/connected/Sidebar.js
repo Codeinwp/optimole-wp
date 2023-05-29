@@ -38,7 +38,7 @@ const Sidebar = () => {
 
 	return (
 		<div
-			className="flex flex-col justify-between mt-12 mb-5 p-0 transition-all ease-in-out duration-700 gap-5 basis-3/12"
+			className="flex flex-col justify-between mt-8 mb-5 p-0 transition-all ease-in-out duration-700 gap-5 basis-3/12"
 		>
 			<div className="bg-white gap-5 flex flex-col text-gray-700 border-0 rounded-lg shadow-md p-8">
 				<TextControl

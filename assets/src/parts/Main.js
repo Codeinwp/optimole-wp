@@ -3,6 +3,8 @@
  */
 import { useSelect } from "@wordpress/data";
 
+import { useState } from "@wordpress/element";
+
 /**
  * Internal dependencies.
  */
@@ -14,6 +16,8 @@ import ConnectedLayout from "./connected";
 import Footer from './Footer';
 
 const Main = () => {
+	const [ tab, setTab ] = useState( 'dashboard' );
+
 	const {
 		autoConnect,
 		showDisconnect,
@@ -40,7 +44,10 @@ const Main = () => {
 
 	return (
 		<>
-			<Header/>
+			<Header
+				tab={ tab }
+				setTab={ setTab }
+			/>
 
 			{ ( ! isConnected && ! autoConnect ) && (
 				<ConnectLayout />
@@ -55,7 +62,9 @@ const Main = () => {
 			) }
 
 			{ ( isConnected && hasApplication && hasDashboardLoaded ) && (
-				<ConnectedLayout />
+				<ConnectedLayout
+					tab={ tab }
+				/>
 			) }
 
 			<Footer/>

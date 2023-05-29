@@ -13,6 +13,7 @@ module.exports = {
 				'success': '#5F9D61',
 				'danger': '#E77777',
 				'info': '#577BF9',
+				'warning': '#ffebeb',
 				'light-blue': '#EEF2FE',
 				'dark-blue': '#3557A6',
 				'purple-gray': '#757296',

@@ -22,12 +22,12 @@ import {
  */
 import APIForm from './APIForm';
 
-const connectClasses = 'optml-connect flex flex-col justify-between max-w-screen-xl mt-12 mb-5 mx-auto p-0 transition-all ease-in-out duration-700 relative bg-white text-gray-700 border-0 rounded-lg shadow-md';
-const connectContainerClasses = 'flex gap-8 p-12 flex-col md:flex-row';
+const connectClasses = 'optml-connect flex flex-col justify-between max-w-screen-xl mt-8 mb-5 mx-auto p-0 transition-all ease-in-out duration-700 relative bg-white text-gray-700 border-0 rounded-lg shadow-md';
+const connectContainerClasses = 'flex gap-8 p-8 flex-col md:flex-row';
 
 const RestError = () => (
 	<div
-		className="bg-danger text-white rounded relative pl-6 pr-10 py-5 mb-0 m-12"
+		className="bg-danger text-white rounded relative px-6 py-5 mb-0 m-12"
 		dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.notice_api_not_working } }
 	/>
 );
