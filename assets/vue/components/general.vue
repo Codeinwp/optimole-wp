@@ -64,6 +64,26 @@
 
         <hr/>
 
+      <div class="field  columns">
+        <label class="label column has-text-grey-dark optml-custom-label-margin">
+          {{ strings.enable_badge_title }}
+
+
+          <p class=" has-text-weight-normal optml-settings-desc-margin" v-html="strings.enable_badge_description"></p>
+        </label>
+
+        <div class="column is-1 ">
+          <toggle-button :class="'has-text-dark'"
+                         v-model="bannerStatus"
+                         :disabled="this.$store.state.loading"
+                         :width="37"
+                         :height="20"
+                         color="#577BF9"></toggle-button>
+        </div>
+      </div>
+
+      <hr/>
+
         <!-- Clear Cache images button -->
         <div class="field  is-fullwidth columns optml-flex-column"  :class="{'is-field-disabled':isReplacerOff }">
             <label class="label column has-text-grey-dark optml-custom-label-margin">
@@ -92,6 +112,8 @@
             </label>
         </div>
 
+
+      <hr/>
 
           <!-- Save changes button -->
           <div class="field  is-fullwidth columns ">
@@ -176,6 +198,15 @@
                     return !(this.site_settings.report_script === 'disabled');
 
                 }
+            },
+            bannerStatus: {
+              set: function (value) {
+                this.showSave = true;
+                this.new_data.banner_frontend = value ? 'enabled' : 'disabled';
+              },
+              get: function () {
+                return !(this.site_settings.banner_frontend === 'disabled');
+              }
             }
         }
     }
