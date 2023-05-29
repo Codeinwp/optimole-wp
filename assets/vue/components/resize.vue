@@ -35,8 +35,54 @@
             </div>
 
         </div>
-        <hr/>
-        <div class="field  columns">
+
+      <hr/>
+      <div class="field  columns">
+        <label class="label column has-text-grey-dark optml-custom-label-margin">
+          {{ strings.enable_limit_dimensions_title }}
+          <p class="optml-settings-desc-margin has-text-weight-normal">
+            {{ strings.enable_limit_dimensions_desc }}
+          </p>
+        </label>
+        <div class="column is-1">
+          <toggle-button :class="'has-text-dark'"
+                         v-model="limitDimensions"
+                         :disabled="this.$store.state.loading"
+                         :width="37"
+                         :height="20"
+                         color="#577BF9"></toggle-button>
+        </div>
+      </div>
+
+      <div v-if="dimensionsOn">
+        <div class="column is-6 ">
+          <div class="columns">
+
+            <div class="field column is-narrow has-addons" style="align-items: center;">
+              <p class="optml-custom-label-margin">
+                {{ strings.width_field }}
+              </p>
+              <input v-model="limitWidth" class="optml-textarea" type="number" min="100" max="10000">
+            </div>
+
+            <div class="field column is-narrow has-addons" style="align-items: center;  margin-bottom: 0.75rem;">
+              <p class="optml-custom-label-margin">
+                {{ strings.height_field }}
+              </p>
+              <input v-model="limitHeight" class="optml-textarea" type="number" min="100" max="10000">
+            </div>
+
+          </div>
+        </div>
+
+        <p class="has-text-weight-normal optml-restore-notice-background" style="padding: 2%;">
+          {{ strings.enable_limit_dimensions_notice }}
+        </p>
+      </div>
+
+      <hr/>
+
+      <div class="field  columns">
 
           <div class="columns"  style="width: 100%;margin-left: 3px;">
           <div class="optml-fill-container">
@@ -144,6 +190,7 @@
                 all_strings: optimoleDashboardApp.strings,
                 size_width: '',
                 size_height: '',
+                dimensionsOn: optimoleDashboardApp.site_settings.limit_dimensions === 'enabled',
                 crop: false,
                 showSave: false,
                 new_data:{},
@@ -238,7 +285,35 @@
                 get: function () {
                     return !(this.site_settings.retina_images === 'disabled');
                 }
-            }
+            },
+            limitDimensions: {
+              set: function (value) {
+                this.showSave = true;
+                this.dimensionsOn = value;
+                this.new_data.limit_dimensions = value ? 'enabled' : 'disabled';
+              },
+              get: function () {
+                return !(this.site_settings.limit_dimensions === 'disabled');
+              }
+            },
+            limitHeight: {
+              set: function (value) {
+                this.showSave = true;
+                this.new_data.limit_height = value;
+              },
+              get: function () {
+                return this.site_settings.limit_height;
+              }
+            },
+            limitWidth: {
+              set: function (value) {
+                this.showSave = true;
+                this.new_data.limit_width = value;
+              },
+              get: function () {
+                return this.site_settings.limit_width;
+              }
+            },
         }
     }
 </script>
