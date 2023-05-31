@@ -1,12 +1,3 @@
-<template>
-	<!--Connecting-->
-	<transition name="fade" mode="out-in">
-					<div class="is-tab" v-if=" tab === 'settings'">
-							<options></options>
-					</div>
-	</transition>
-</template>
-
 <script>
 	import Options from "./options.vue";
 	import Watermarks from "./watermarks.vue";

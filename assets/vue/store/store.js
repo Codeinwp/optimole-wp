@@ -18,7 +18,6 @@ const store = new Vuex.Store(
 			errorMedia: false,
 			checkedOffloadConflicts: false,
 			offloadConflicts: [],
-			site_settings: optimoleDashboardApp.site_settings,
 			sample_rate: {},
 			watermarks: [],
 			pushedImagesProgress : 0,

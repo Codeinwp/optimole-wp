@@ -3,6 +3,8 @@
  */
 import classnames from "classnames";
 
+import { rotateRight } from "@wordpress/icons";
+
 /**
  * WordPress dependencies.
  */
@@ -20,8 +22,6 @@ import {
 	useEffect,
 	useState
 } from "@wordpress/element";
-
-import { rotateRight } from "@wordpress/icons";
 
 /**
  * Internal dependencies.
@@ -151,9 +151,9 @@ const Header = ({
 						<li
 							key={ value }
 							className={ classnames(
-								'cursor-pointer text-purple-gray font-bold text-lg m-0 py-2 px-3 transition-colors duration-200 ease-in-out',
+								'cursor-pointer text-purple-gray font-bold text-lg m-0 py-2 px-3 transition-colors duration-200 ease-in-out border-0 border-b-4 border-b-white border-solid',
 								{
-									'text-black border-0 border-b-4 border-b-info border-solid': tab === value,
+									'text-black !border-b-info': tab === value,
 								}
 							) }
 							onClick={ () => setTab( value ) }

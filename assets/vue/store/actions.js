@@ -44,56 +44,6 @@ const selectOptimoleDomain = function ( {commit, state}, data ) {
 	);
 }
 
-const clearCache = function ( {commit, state}, data ) {
-	commit( 'toggleLoading', true );
-	return Vue.http(
-		{
-			url: optimoleDashboardApp.routes['clear_cache_request'],
-			method: 'POST',
-			body: {
-				'type': data.type,
-			},
-			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			emulateJSON: true,
-			responseType: 'json'
-		}
-	).then(
-		function ( response ) {
-			if ( response.body.code === '200' ) {
-				console.log( '%c New cache token generated.', 'color: #59B278' );
-			} else {
-				console.log( '%c Could not generate cache token.', 'color: #E7602A' );
-			}
-			commit( 'toggleLoading', false );
-
-		}
-	);
-};
-
-const saveSettings = function ( {commit, state}, data ) {
-	commit( 'toggleLoading', true );
-	return Vue.http(
-		{
-			url: optimoleDashboardApp.routes['update_option'],
-			method: 'POST',
-			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			emulateJSON: true,
-			body: {
-				'settings': data.settings
-			},
-			responseType: 'json'
-		}
-	).then(
-		function ( response ) {
-			if ( response.body.code === 'success' ) {
-				  commit( 'updateSettings', response.body.data );
-			}
-			commit( 'toggleLoading', false );
-
-		}
-	);
-};
-
 const sampleRate = function ( {commit, state}, data ) {
 
 	data.component.loading_images = true;
@@ -117,43 +67,6 @@ const sampleRate = function ( {commit, state}, data ) {
 				  commit( 'updateSampleRate', response.body.data );
 			}
 		}
-	);
-};
-
-const retrieveOptimizedImages = function ( {commit, state}, data ) {
-	let self = this;
-
-	setTimeout(
-		function () {
-			if ( self.state.optimizedImages.length > 0 ) {
-				  console.log( '%c Images already exsist.', 'color: #59B278' );
-				  return false;
-			}
-			Vue.http(
-				{
-					url: optimoleDashboardApp.routes['poll_optimized_images'],
-					method: 'GET',
-					emulateJSON: true,
-					headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-					responseType: 'json',
-					timeout: 10000
-				}
-			).then(
-				function ( response ) {
-					if ( response.body.code === 'success' ) {
-						commit( 'updateOptimizedImages', response );
-						console.log( '%c Images Fetched.', 'color: #59B278' );
-					} else {
-						console.log( '%c No images available.', 'color: #E7602A' );
-					}
-				}
-			)
-				.catch( err => {
-					console.log( 'Error while polling images', err );
-				} );
-
-		},
-		data.waitTime
 	);
 };
 
@@ -432,13 +345,10 @@ const callSync = function ( {commit, state}, data ) {
 };
 
 export default {
-	clearCache,
 	selectOptimoleDomain,
 	removeWatermark,
-	retrieveOptimizedImages,
 	retrieveWatermarks,
 	sampleRate,
-	saveSettings,
 	callSync,
 	getOffloadConflicts
 };

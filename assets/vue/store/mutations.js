@@ -20,11 +20,6 @@ const toggleCheckedOffloadConflicts = ( state, data ) => {
 const updateSampleRate = ( state, data ) => {
 	state.sample_rate = data;
 };
-const updateSettings = ( state, data ) => {
-	for ( var setting in data ) {
-		state.site_settings[setting] = data[setting];
-	}
-};
 
 const updateWatermark = ( state, data ) => {
 
@@ -57,7 +52,6 @@ const updateOffloadConflicts = ( state, data ) => {
 };
 export default {
 	updateSampleRate,
-	updateSettings,
 	updateWatermark,
 	updatePushedImagesProgress,
 	totalNumberOfImages,

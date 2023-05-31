@@ -22,6 +22,7 @@ const DEFAULT_STATE = {
 	showDisconnect: false,
 	conflicts: [],
 	optimizedImages: [],
+	siteSettings: optimoleDashboardApp.site_settings,
 };
 
 const actions = {
@@ -119,6 +120,12 @@ const actions = {
 		return {
 			type: 'SET_OPTIMIZED_IMAGES',
 			optimizedImages,
+		};
+	},
+	setSiteSettings( siteSettings ) {
+		return {
+			type: 'SET_SITE_SETTINGS',
+			siteSettings,
 		};
 	},
 	registerAccount( data, callback = () => {} ) {
@@ -266,7 +273,6 @@ const actions = {
 			} )
 			.catch( error => {
 				console.log( 'Error while crawling images', error );
-
 				return error.data;
 			});
 		}
@@ -387,6 +393,58 @@ const actions = {
 				return error.data;
 			});
 		}
+	},
+	saveSettings( settings ) {
+		return ( { dispatch } ) => {
+			dispatch.setIsLoading( true );
+
+			apiFetch( {
+				path: optimoleDashboardApp.routes['update_option'],
+				method: 'POST',
+				data: {
+					settings
+				},
+			} )
+			.then( response => {
+				dispatch.setIsLoading( false );
+
+				if ( response.code === 'success' ) {
+					dispatch.setSiteSettings( response.data );
+					console.log( '%c Settings Saved.', 'color: #59B278' );
+				}
+			} )
+			.catch( error => {
+				dispatch.setIsLoading( false );
+
+				console.log( 'Error while saving settings', error );
+				return error.data;
+			});
+		}
+	},
+	clearCache( type ) {
+		return ( { dispatch } ) => {
+			dispatch.setIsLoading( true );
+
+			apiFetch( {
+				path: optimoleDashboardApp.routes['clear_cache_request'],
+				method: 'POST',
+				data: {
+					type
+				},
+				parse: false,
+			} )
+			.then( response => {
+				dispatch.setIsLoading( false );
+
+				if ( response.status >= 200 && response.status < 300 ) {
+					console.log( '%c New cache token generated.', 'color: #59B278' );
+					return;
+				} else {
+					console.log( '%c Could not generate cache token.', 'color: #E7602A' );
+					return;
+				}
+			} );
+		}
 	}
 };
 
@@ -484,6 +542,17 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				...state,
 				optimizedImages: action.optimizedImages,
 			};
+		case 'SET_SITE_SETTINGS':
+			let siteSettings = state.siteSettings;
+
+			for ( let setting in action.siteSettings ) {
+				siteSettings[setting] = action.siteSettings[setting];
+			}
+
+			return {
+				...state,
+				siteSettings,
+			};
 		default:
 			return state;
 	}
@@ -537,6 +606,13 @@ const selectors = {
 	},
 	getOptimizedImages( state ) {
 		return state.optimizedImages;
+	},
+	getSiteSettings( state, setting = undefined ) {
+		if ( setting ) {
+			return undefined !== state.siteSettings[setting] ? state.siteSettings[setting] : undefined;
+		}
+
+		return state.siteSettings;
 	}
 };
 

@@ -112,6 +112,29 @@ $grayish-blue: #f6f6fa;
 				content: 'asd';
 			}
 		}
+
+		.components-toggle-control {
+			.components-base-control__field > .components-flex {
+				flex-direction: row-reverse;
+			}
+
+			label {
+				font-weight: 700;
+				font-size: 1rem;
+			}
+		}
+
+		.components-base-control {
+			.components-base-control__label {
+				font-weight: 700;
+				font-size: 1rem;
+				text-transform: none;
+			}
+		}
+
+		.is-disabled {
+			opacity: 0.5;
+		}
 	}
 
 	.optml-header__dropdown {
