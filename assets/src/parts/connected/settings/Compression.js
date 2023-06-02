@@ -2,7 +2,9 @@
  * External dependencies.
  */
 import classnames from "classnames";
+
 import ReactCompareImage from 'react-compare-image';
+
 import { rotateRight } from "@wordpress/icons";
 
 /**

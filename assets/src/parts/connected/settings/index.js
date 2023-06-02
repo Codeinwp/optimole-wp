@@ -16,6 +16,9 @@ import { useState } from "@wordpress/element";
 import Menu from "./Menu";
 import General from "./General";
 import Compression from "./Compression";
+import Resize from "./Resize";
+import Lazyload from "./Lazyload";
+import Exclusions from "./Exclusions";
 
 const Settings = () => {
 	const {
@@ -83,6 +86,30 @@ const Settings = () => {
 						showSample={ showSample }
 						isSampleLoading={ isSampleLoading }
 						setIsSampleLoading={ setIsSampleLoading }
+					/>
+				) }
+
+				{ tab === 'resize' && (
+					<Resize
+						settings={ settings }
+						setSettings={ setSettings }
+						setCanSave={ setCanSave }
+					/>
+				) }
+
+				{ tab === 'lazyload' && (
+					<Lazyload
+						settings={ settings }
+						setSettings={ setSettings }
+						setCanSave={ setCanSave }
+					/>
+				) }
+
+				{ tab === 'exclusions' && (
+					<Exclusions
+						settings={ settings }
+						setSettings={ setSettings }
+						setCanSave={ setCanSave }
 					/>
 				) }
 

@@ -3,6 +3,8 @@
  */
 import apiFetch from '@wordpress/api-fetch';
 
+import { addQueryArgs } from '@wordpress/url';
+
 import { createReduxStore, register } from '@wordpress/data';
 
 const DEFAULT_STATE = {
@@ -461,12 +463,14 @@ const actions = {
 	sampleRate( data, callback = () => {} ) {
 		return ( { dispatch } ) => {
 			apiFetch( {
-				path: optimoleDashboardApp.routes['get_sample_rate'],
+				path: addQueryArgs(
+					optimoleDashboardApp.routes['get_sample_rate'],
+					{
+						quality: data.quality,
+						force: data?.force || 'no',
+					}
+					),
 				method: 'POST',
-				data: {
-					quality: data.quality,
-					force: data?.force || 'no',
-				},
 			} )
 			.then( response => {
 				if ( response.code === 'success' ) {

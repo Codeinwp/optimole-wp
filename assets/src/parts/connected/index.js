@@ -77,5 +77,7 @@ const ConnectedLayout = ({
 
 export default ConnectedLayout;
 
-// Todo: Show upgrade based on should_show_upgrade
-// Todo: Add Help Layout
+// TODO: Show upgrade based on should_show_upgrade
+// TODO: Add Help Layout
+// TODO: Responsiveness Testing
+// TODO: Add Autoconnect

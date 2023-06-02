@@ -21,6 +21,7 @@ module.exports = {
 				'light-black': '#626262',
 				'opaque-black': '#0000006E',
 				'stale-yellow': '#FFF0C9',
+				'disabled': '#6786F4',
 			},
 			fontFamily: {
 				'serif': [ '-apple-system', 'BlinkMacSystemFont', 'sans-serif' ],

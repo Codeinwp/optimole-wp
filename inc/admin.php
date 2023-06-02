@@ -973,6 +973,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'filter_operator_matches'           => __( 'matches', 'optimole-wp' ),
 				'filter_operator_is'                => __( 'is', 'optimole-wp' ),
 				'filter_url'                        => __( 'Page URL', 'optimole-wp' ),
+				'filter_helper'                     => __( 'For homepage use `home` keyword.', 'optimole-wp' ),
 				'gif_replacer_desc'                 => __( 'Automatically convert GIF images to Video files(MP4 and WebM)', 'optimole-wp' ),
 				'height_field'                      => __( 'Height', 'optimole-wp' ),
 				'add_image_size_button'             => __( 'Add size', 'optimole-wp' ),
