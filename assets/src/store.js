@@ -23,6 +23,7 @@ const DEFAULT_STATE = {
 	conflicts: [],
 	optimizedImages: [],
 	siteSettings: optimoleDashboardApp.site_settings,
+	sampleRate: {},
 };
 
 const actions = {
@@ -126,6 +127,12 @@ const actions = {
 		return {
 			type: 'SET_SITE_SETTINGS',
 			siteSettings,
+		};
+	},
+	setSampleRate( sampleRate ) {
+		return {
+			type: 'SET_SAMPLE_RATE',
+			sampleRate,
 		};
 	},
 	registerAccount( data, callback = () => {} ) {
@@ -368,7 +375,12 @@ const actions = {
 			const optimizedImages = select.getOptimizedImages();
 
 			if ( optimizedImages.length > 0 ) {
-				console.log( '%c Images already exsist.', 'color: #59B278' );
+				console.log( '%c Images already exist.', 'color: #59B278' );
+
+				if ( callback ) {
+					callback();
+				}
+
 				return false;
 			}
 
@@ -442,6 +454,27 @@ const actions = {
 				} else {
 					console.log( '%c Could not generate cache token.', 'color: #E7602A' );
 					return;
+				}
+			} );
+		}
+	},
+	sampleRate( data, callback = () => {} ) {
+		return ( { dispatch } ) => {
+			apiFetch( {
+				path: optimoleDashboardApp.routes['get_sample_rate'],
+				method: 'POST',
+				data: {
+					quality: data.quality,
+					force: data?.force || 'no',
+				},
+			} )
+			.then( response => {
+				if ( response.code === 'success' ) {
+					dispatch.setSampleRate( response.data );
+				}
+
+				if ( callback ) {
+					callback( response );
 				}
 			} );
 		}
@@ -553,6 +586,11 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				...state,
 				siteSettings,
 			};
+		case 'SET_SAMPLE_RATE':
+			return {
+				...state,
+				sampleRate: action.sampleRate,
+			};
 		default:
 			return state;
 	}
@@ -613,7 +651,10 @@ const selectors = {
 		}
 
 		return state.siteSettings;
-	}
+	},
+	getSampleRate( state ) {
+		return state.sampleRate;
+	},
 };
 
 const store = createReduxStore( 'optimole', {

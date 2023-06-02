@@ -17,9 +17,6 @@ const toggleActionError = ( state, data ) => {
 const toggleCheckedOffloadConflicts = ( state, data ) => {
 	state.checkedOffloadConflicts = data;
 };
-const updateSampleRate = ( state, data ) => {
-	state.sample_rate = data;
-};
 
 const updateWatermark = ( state, data ) => {
 
@@ -51,7 +48,6 @@ const updateOffloadConflicts = ( state, data ) => {
 	state.offloadConflicts = data.body.data;
 };
 export default {
-	updateSampleRate,
 	updateWatermark,
 	updatePushedImagesProgress,
 	totalNumberOfImages,

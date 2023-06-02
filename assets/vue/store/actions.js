@@ -44,32 +44,6 @@ const selectOptimoleDomain = function ( {commit, state}, data ) {
 	);
 }
 
-const sampleRate = function ( {commit, state}, data ) {
-
-	data.component.loading_images = true;
-	return Vue.http(
-		{
-			url: optimoleDashboardApp.routes['get_sample_rate'],
-			method: 'POST',
-			emulateJSON: true,
-			headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-			params: {
-				'quality': data.quality,
-				'force': data.force
-			},
-			responseType: 'json'
-		}
-	).then(
-		function ( response ) {
-
-			data.component.loading_images = false;
-			if ( response.body.code === 'success' ) {
-				  commit( 'updateSampleRate', response.body.data );
-			}
-		}
-	);
-};
-
 const retrieveWatermarks = function ( {commit, state}, data ) {
 
 	commit( 'toggleLoading', true );
@@ -348,7 +322,6 @@ export default {
 	selectOptimoleDomain,
 	removeWatermark,
 	retrieveWatermarks,
-	sampleRate,
 	callSync,
 	getOffloadConflicts
 };

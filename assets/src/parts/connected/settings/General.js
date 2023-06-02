@@ -17,31 +17,20 @@ import {
 	useSelect
 } from "@wordpress/data";
 
-import { useState } from "@wordpress/element";
-
-const General = () => {
-	const {
-		getSettings,
-		isLoading
-	} = useSelect( select => {
-		const {
-			getSiteSettings,
-			isLoading
-		} = select( 'optimole' );
+const General = ({
+	settings,
+	setSettings,
+	setCanSave,
+}) => {
+	const { isLoading } = useSelect( select => {
+		const { isLoading } = select( 'optimole' );
 
 		return {
-			getSettings: getSiteSettings,
 			isLoading: isLoading(),
 		};
 	} );
 
-	const {
-		clearCache,
-		saveSettings
-	} = useDispatch( 'optimole' );
-
-	const [ settings, setSettings ] = useState( getSettings() );
-	const [ canSave, setCanSave ] = useState( false );
+	const { clearCache } = useDispatch( 'optimole' );
 
 	const isReplacerEnabled = settings[ 'image_replacer' ] !== 'disabled';
 	const isLazyloadEnabled = settings[ 'lazyload' ] !== 'disabled';
@@ -122,7 +111,7 @@ const General = () => {
 						{ optimoleDashboardApp.strings.options_strings.clear_cache_images }
 					</Button>
 
-					{/* { isAssetsEnabled && ( */}
+					{ isAssetsEnabled && (
 						<Button
 							variant="default"
 							isBusy={ isLoading }
@@ -132,7 +121,7 @@ const General = () => {
 						>
 							{ optimoleDashboardApp.strings.options_strings.clear_cache_assets }
 						</Button>
-					{/* ) } */}
+					) }
 				</div>
 			</BaseControl>
 
@@ -141,18 +130,6 @@ const General = () => {
 					className="m-0"
 					dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.clear_cache_notice } }
 				/>
-			</div>
-
-			<div className="flex justify-start mt-8">
-				<Button
-					variant="primary"
-					isBusy={ isLoading }
-					disabled={ ! canSave }
-					className="optml__button flex w-full justify-center rounded font-bold min-h-40 basis-1/5"
-					onClick={ () => saveSettings( settings ) }
-				>
-					{ optimoleDashboardApp.strings.options_strings.save_changes }
-				</Button>
 			</div>
 		</>
 	);

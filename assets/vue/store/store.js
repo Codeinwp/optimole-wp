@@ -18,7 +18,6 @@ const store = new Vuex.Store(
 			errorMedia: false,
 			checkedOffloadConflicts: false,
 			offloadConflicts: [],
-			sample_rate: {},
 			watermarks: [],
 			pushedImagesProgress : 0,
 			totalNumberOfImages : 1,
