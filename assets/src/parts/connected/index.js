@@ -17,6 +17,7 @@ import {
 import Dashboard from "./dashboard";
 import Conflicts from "./conflicts";
 import Settings from "./settings";
+import Help from "./help";
 import Sidebar from "./Sidebar";
 
 const ConnectedLayout = ({
@@ -68,6 +69,8 @@ const ConnectedLayout = ({
 				{ ( tab === 'conflicts' && showConflicts ) && <Conflicts /> }
 
 				{ tab === 'settings' && <Settings /> }
+
+				{ tab === 'help' && <Help /> }
 			</div>
 
 			<Sidebar/>
@@ -78,6 +81,6 @@ const ConnectedLayout = ({
 export default ConnectedLayout;
 
 // TODO: Show upgrade based on should_show_upgrade
-// TODO: Add Help Layout
 // TODO: Responsiveness Testing
 // TODO: Add Autoconnect
+// TODO: Improve Footer

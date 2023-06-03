@@ -125,11 +125,13 @@ $disabled: #6786F4;
 			}
 		}
 
-		.components-base-control {
-			.components-base-control__label {
-				font-weight: 700;
-				font-size: 1rem;
-				text-transform: none;
+		.optml-settings {
+			.components-base-control {
+				.components-base-control__label {
+					font-weight: 700;
+					font-size: 1rem;
+					text-transform: none;
+				}
 			}
 		}
 
@@ -140,6 +142,7 @@ $disabled: #6786F4;
 
 	.optml-header__dropdown {
 		padding: 16px 8px 16px 24px;
+		margin: 0;
 
 		&__popover {
 			.components-popover__content {

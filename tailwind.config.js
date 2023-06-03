@@ -31,6 +31,7 @@ module.exports = {
 			},
 			maxWidth: {
 				'64': '64px',
+				'screen-xl': 'min( 1280px, 90%)'
 			},
 			minHeight: {
 				'40': '40px',

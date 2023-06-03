@@ -63,7 +63,7 @@ const Settings = () => {
 	};
 
 	return (
-		<div className="flex bg-white p-8 border-0 rounded-lg shadow-md gap-8">
+		<div className="optml-settings flex bg-white p-8 border-0 rounded-lg shadow-md gap-8">
 			<Menu
 				tab={ tab }
 				setTab={ setTab }

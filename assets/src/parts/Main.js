@@ -50,7 +50,10 @@ const Main = () => {
 			/>
 
 			{ ( ! isConnected && ! autoConnect ) && (
-				<ConnectLayout />
+				<>
+					<ConnectLayout />
+					<Footer/>
+				</>
 			) }
 
 			{ ( ( isConnected || autoConnect ) && ! hasDashboardLoaded ) && (
@@ -66,8 +69,6 @@ const Main = () => {
 					tab={ tab }
 				/>
 			) }
-
-			<Footer/>
 		</>
 	);
 };
