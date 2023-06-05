@@ -1009,7 +1009,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'size_title'                        => __( 'Resize large images original source.', 'optimole-wp' ),
 				'select_site'                       => __( 'Select a website', 'optimole-wp' ),
 				'cloud_site_title'                  => __( 'Show images only from these sites: ', 'optimole-wp' ),
-				'cloud_site_desc'                   => __( 'Only the images from the selected sites will be displayed on this site.', 'optimole-wp' ),
+				'cloud_site_desc'                   => __( 'Only the images from the selected sites will be displayed on this site. Defaults to all.', 'optimole-wp' ),
 				'toggle_ab_item'                    => __( 'Admin bar status', 'optimole-wp' ),
 				'toggle_lazyload'                   => __( 'Scale images & Lazy load', 'optimole-wp' ),
 				'toggle_scale'                      => __( 'Scale Images', 'optimole-wp' ),

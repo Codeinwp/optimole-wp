@@ -19,7 +19,8 @@ const reasons = [
 const Sidebar = () => {
 	const {
 		name,
-		domain
+		domain,
+		plan
 	} = useSelect( select => {
 		const { getUserData } = select( 'optimole' );
 
@@ -32,7 +33,8 @@ const Sidebar = () => {
 
 		return {
 			name: user?.display_name,
-			domain
+			domain,
+			plan: user?.plan
 		};
 	} );
 
@@ -67,36 +69,38 @@ const Sidebar = () => {
 				/>
 			</div>
 
-			<div
-				className="bg-info flex flex-col text-white border-0 rounded-lg shadow-md p-8 bg-promo bg-no-repeat"
-				style={ {
-					backgroundImage: `url( ${ optimoleDashboardApp.assets_url }/img/logo2.png )`
-				} }
-			>
-				<h3 className="mt-0 text-white text-lg">{ optimoleDashboardApp.strings.upgrade.title_long }</h3>
-
-				<ul>
-					{ reasons.map( ( reason, index ) => (
-						<li
-							key={ index }
-							className="flex items-center gap-2"
-						>
-							<Icon icon="yes-alt" className="text-white" />
-							<span className="text-white font-normal text-base">{ reason }</span>
-						</li>
-					) ) }
-				</ul>
-
-
-				<Button
-					variant="link"
-					className="optml__button flex w-full justify-center font-bold min-h-40 !no-underline !text-white !bg-opaque-black !rounded"
-					href="https://optimole.com/pricing"
-					target="_blank"
+			{ plan === 'free' && (
+				<div
+					className="bg-info flex flex-col text-white border-0 rounded-lg shadow-md p-8 bg-promo bg-no-repeat"
+					style={ {
+						backgroundImage: `url( ${ optimoleDashboardApp.assets_url }/img/logo2.png )`
+					} }
 				>
-					{ optimoleDashboardApp.strings.upgrade.cta }
-				</Button>
-			</div>
+					<h3 className="mt-0 text-white text-lg">{ optimoleDashboardApp.strings.upgrade.title_long }</h3>
+
+					<ul>
+						{ reasons.map( ( reason, index ) => (
+							<li
+								key={ index }
+								className="flex items-center gap-2"
+							>
+								<Icon icon="yes-alt" className="text-white" />
+								<span className="text-white font-normal text-base">{ reason }</span>
+							</li>
+						) ) }
+					</ul>
+
+
+					<Button
+						variant="link"
+						className="optml__button flex w-full justify-center font-bold min-h-40 !no-underline !text-white !bg-opaque-black !rounded"
+						href="https://optimole.com/pricing"
+						target="_blank"
+					>
+						{ optimoleDashboardApp.strings.upgrade.cta }
+					</Button>
+				</div>
+			) }
 		</div>
 	);
 }

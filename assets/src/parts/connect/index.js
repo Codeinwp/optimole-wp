@@ -37,33 +37,57 @@ const ConnectLayout = () => {
 	const [ method, setMethod ] = useState( 'email' );
 	const [ errors, setErrors ] = useState( {} );
 
-	const { registerAccount } = useDispatch( 'optimole' );
+	const {
+		registerAccount,
+		setAutoConnect
+	} = useDispatch( 'optimole' );
 
 	const {
-		autoConnectError,
+		autoConnect,
 		hasRestError,
 		isConnecting
 	} = useSelect( select => {
 		const {
-			getAutoConnectError,
+			getAutoConnect,
 			hasRestError,
 			isConnecting
 		} = select( 'optimole' );
 
 		return {
-			autoConnectError: getAutoConnectError(),
+			autoConnect: getAutoConnect(),
 			hasRestError: hasRestError(),
 			isConnecting: isConnecting(),
 		};
 	} );
 
 	useEffect( () => {
-		if ( autoConnectError ) {
-			setErrors( {
-				'error_autoconnect': autoConnectError
-			} );
+		if ( 'no' !== autoConnect ) {
+			registerAccount(
+				{
+					email: autoConnect,
+					auto_connect: true,
+				},
+				response => {
+					setAutoConnect( 'no' );
+
+					if ( response.code === 'email_registered') {
+						setErrors( {
+							'email_registered': response.message
+						} );
+						return;
+					}
+	
+					if ( response.code !== 'success')  {
+						if ( response.message ) {
+							setErrors( {
+								'error_autoconnect': response.message
+							} );
+						}
+					}
+				}
+			);
 		}
-	}, [ autoConnectError ] );
+	}, [] );
 
 	const onConnect = () => {
 		setErrors( {} );

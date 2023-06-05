@@ -150,15 +150,16 @@ const Dashboard = () => {
 							</span>
 						</div>
 
-
-						<Button
-							variant="default"
-							className="optml__button rounded font-bold min-h-40"
-							href="https://optimole.com/pricing"
-							target="_blank"
-						>
-							{ optimoleDashboardApp.strings.upgrade.title }
-						</Button>
+						{ userData.plan === 'free' && (
+							<Button
+								variant="default"
+								className="optml__button rounded font-bold min-h-40"
+								href="https://optimole.com/pricing"
+								target="_blank"
+							>
+								{ optimoleDashboardApp.strings.upgrade.title }
+							</Button>
+						) }
 					</div>
 
 					<div>

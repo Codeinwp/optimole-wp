@@ -8,8 +8,7 @@ import { addQueryArgs } from '@wordpress/url';
 import { createReduxStore, register } from '@wordpress/data';
 
 const DEFAULT_STATE = {
-	autoConnect: optimoleDashboardApp.auto_connect === 'yes',
-	autoConnectError: '',
+	autoConnect: optimoleDashboardApp.auto_connect,
 	isConnected: optimoleDashboardApp.connection_status === 'yes',
 	isConnecting: false,
 	isLoading: false,
@@ -26,6 +25,14 @@ const DEFAULT_STATE = {
 	optimizedImages: [],
 	siteSettings: optimoleDashboardApp.site_settings,
 	sampleRate: {},
+	pushedImagesProgress : 0,
+	totalNumberOfImages : 1,
+	offloadLibraryLink : false,
+	rollbackLibraryLink: false,
+	loadingRollback: false,
+	loadingSync: false,
+	queryArgs : [],
+	errorMedia: false,
 };
 
 const actions = {
@@ -33,12 +40,6 @@ const actions = {
 		return {
 			type: 'SET_AUTO_CONNECT',
 			autoConnect,
-		};
-	},
-	setAutoConnectError( autoConnectError ) {
-		return {
-			type: 'SET_AUTO_CONNECT_ERROR',
-			autoConnectError,
 		};
 	},
 	setAPIKey( apiKey ) {
@@ -137,6 +138,54 @@ const actions = {
 			sampleRate,
 		};
 	},
+	setPushedImagesProgress( pushedImagesProgress ) {
+		return {
+			type: 'SET_PUSHED_IMAGES_PROGRESS',
+			pushedImagesProgress,
+		};
+	},
+	setTotalNumberOfImages( totalNumberOfImages ) {
+		return {
+			type: 'SET_TOTAL_NUMBER_OF_IMAGES',
+			totalNumberOfImages,
+		};
+	},
+	setOffloadLibraryLink( offloadLibraryLink ) {
+		return {
+			type: 'SET_OFFLOAD_LIBRARY_LINK',
+			offloadLibraryLink,
+		};
+	},
+	setRollbackLibraryLink( rollbackLibraryLink ) {
+		return {
+			type: 'SET_ROLLBACK_LIBRARY_LINK',
+			rollbackLibraryLink,
+		};
+	},
+	setLoadingRollback( loadingRollback ) {
+		return {
+			type: 'SET_LOADING_ROLLBACK',
+			loadingRollback,
+		};
+	},
+	setLoadingSync( loadingSync ) {
+		return {
+			type: 'SET_LOADING_SYNC',
+			loadingSync,
+		};
+	},
+	setQueryArgs( queryArgs ) {
+		return {
+			type: 'SET_QUERY_ARGS',
+			queryArgs,
+		};
+	},
+	setErrorMedia( errorMedia ) {
+		return {
+			type: 'SET_ERROR_MEDIA',
+			errorMedia,
+		};
+	},
 	registerAccount( data, callback = () => {} ) {
 		return ( { dispatch } ) => {
 			dispatch.setIsConnecting( true );
@@ -161,9 +210,8 @@ const actions = {
 					dispatch.setAPIKey( response.data.api_key );
 					dispatch.setUserData( response.data );
 					dispatch.setAvailableApps( response.data );
+					dispatch.sendOnboardingImages();
 				}
-
-				dispatch.sendOnboardingImages();
 
 				if ( callback ) {
 					callback( response );
@@ -482,20 +530,45 @@ const actions = {
 				}
 			} );
 		}
+	},
+	callSync( data ) {
+		return ( { dispatch, select } ) => {
+			dispatch.setPushedImagesProgress( 'init' );
+			const queryArgs = select.getQueryArgs();
+
+			if ( data.action === 'offload_images' ) {
+				if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
+					dispatch.setOffloadLibraryLink( false );
+				}
+
+				dispatch.setLoadingSync( true );
+			}
+
+			if ( data.action === 'rollback_images' ) {
+
+				if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
+					dispatch.setRollbackLibraryLink( false );
+				}
+
+				dispatch.setLoadingRollback( true );
+			}
+
+			// getNumberOfImages( data, commit, 0 );
+		}
 	}
 };
 
 const reducer = ( state = DEFAULT_STATE, action ) => {
 	switch ( action.type ) {
+		case 'SET_AUTO_CONNECT':
+			return {
+				...state,
+				autoConnect: action.autoConnect,
+			};
 		case 'SET_HAS_REST_ERROR':
 			return {
 				...state,
 				hasRestError: action.hasRestError,
-			};
-		case 'SET_AUTO_CONNECT_ERROR':
-			return {
-				...state,
-				autoConnectError: action.autoConnectError,
 			};
 		case 'SET_API_KEY':
 			return {
@@ -595,6 +668,60 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				...state,
 				sampleRate: action.sampleRate,
 			};
+		case 'SET_PUSHED_IMAGES_PROGRESS':
+			let pushedImagesProgress;
+
+			if ( action.pushedImagesProgress === 'finish' ) {
+				pushedImagesProgress = 100;
+			}
+
+			if ( action.pushedImagesProgress === 'init' ) {
+				pushedImagesProgress = 0;
+			}
+
+			if ( action.pushedImagesProgress !== 'init' && state.pushedImagesProgress < 100 ) {
+				pushedImagesProgress += action.pushedImagesProgress / state.totalNumberOfImages * 100;
+			}
+
+			return {
+				...state,
+				pushedImagesProgress,
+			};
+		case 'SET_TOTAL_NUMBER_OF_IMAGES':
+			return {
+				...state,
+				totalNumberOfImages: action.totalNumberOfImages,
+			};
+		case 'SET_OFFLOAD_LIBRARY_LINK':
+			return {
+				...state,
+				offloadLibraryLink: action.offloadLibraryLink,
+			};
+		case 'SET_ROLLBACK_LIBRARY_LINK':
+			return {
+				...state,
+				rollbackLibraryLink: action.rollbackLibraryLink,
+			};
+		case 'SET_LOADING_ROLLBACK':
+			return {
+				...state,
+				loadingRollback: action.loadingRollback,
+			};
+		case 'SET_LOADING_SYNC':
+			return {
+				...state,
+				loadingSync: action.loadingSync,
+			};
+		case 'SET_QUERY_ARGS':
+			return {
+				...state,
+				queryArgs: action.queryArgs,
+			};
+		case 'SET_ERROR_MEDIA':
+			return {
+				...state,
+				errorMedia: action.errorMedia,
+			};
 		default:
 			return state;
 	}
@@ -603,9 +730,6 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 const selectors = {
 	getAutoConnect( state ) {
 		return state.autoConnect;
-	},
-	getAutoConnectError( state ) {
-		return state.autoConnectError;
 	},
 	getAPIKey( state ) {
 		return state.apiKey;
@@ -659,6 +783,30 @@ const selectors = {
 	getSampleRate( state ) {
 		return state.sampleRate;
 	},
+	getPushedImagesProgress( state ) {
+		return state.pushedImagesProgress;
+	},
+	getTotalNumberOfImages( state ) {
+		return state.totalNumberOfImages;
+	},
+	getOffloadLibraryLink( state ) {
+		return state.offloadLibraryLink;
+	},
+	getRollbackLibraryLink( state ) {
+		return state.rollbackLibraryLink;
+	},
+	getLoadingRollback( state ) {
+		return state.loadingRollback;
+	},
+	getLoadingSync( state ) {
+		return state.loadingSync;
+	},
+	getQueryArgs( state ) {
+		return state.queryArgs;
+	},
+	getErrorMedia( state ) {
+		return state.errorMedia;
+	}
 };
 
 const store = createReduxStore( 'optimole', {

@@ -1,19 +1,6 @@
 <script>
-	import Options from "./options.vue";
-	import Watermarks from "./watermarks.vue";
 	module.exports = {
-		name: 'app',
-		computed: {
-			conflictCount() {
-				return this.$store.state.conflicts.count || 0
-			},
-		},
-		components: {
-			Options,
-			Watermarks,
-		},
 		mounted() {
-
 			const urlSearchParams = new URLSearchParams(window.location.search);
 			const params = Object.fromEntries(urlSearchParams.entries());
 			let images = [];
@@ -32,33 +19,6 @@
 				this.$store.state.queryArgs = params;
 				this.changeTab('settings');
 			}
-
-			if ( this.$store.state.autoConnect !== 'no' ) {
-				this.triggerLoading();
-				this.createAndConnect( this.$store.state.autoConnect );
-			}
 		},
-		methods: {
-			createAndConnect: function ( email ) {
-				this.$store.dispatch('registerOptimole', {
-					email: email,
-					autoConnect: true,
-				}).then((response) => {
-					if ( response.code !== 'success' ) {
-						this.$store.state.autoConnect = 'no';
-
-						if ( response.message ) {
-							this.$store.state.autoConnectError = response.message;
-						}
-						return;
-					}
-				})
-			},
-			changeTab: function (value) {
-				this.tab = value;
-			},
-
-		}
-
 	}
 </script>

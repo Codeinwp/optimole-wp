@@ -19,6 +19,7 @@ import Compression from "./Compression";
 import Resize from "./Resize";
 import Lazyload from "./Lazyload";
 import Exclusions from "./Exclusions";
+import OffloadMedia from "./OffloadMedia";
 
 const Settings = () => {
 	const {
@@ -107,6 +108,14 @@ const Settings = () => {
 
 				{ tab === 'exclusions' && (
 					<Exclusions
+						settings={ settings }
+						setSettings={ setSettings }
+						setCanSave={ setCanSave }
+					/>
+				) }
+
+				{ tab === 'offload_media' && (
+					<OffloadMedia
 						settings={ settings }
 						setSettings={ setSettings }
 						setCanSave={ setCanSave }

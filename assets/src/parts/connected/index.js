@@ -79,8 +79,3 @@ const ConnectedLayout = ({
 }
 
 export default ConnectedLayout;
-
-// TODO: Show upgrade based on should_show_upgrade
-// TODO: Responsiveness Testing
-// TODO: Add Autoconnect
-// TODO: Improve Footer

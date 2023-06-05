@@ -13,19 +13,10 @@ const store = new Vuex.Store(
 	{
 		strict: true,
 		state: {
-			loadingRollback: false,
-			loadingSync: false,
-			errorMedia: false,
 			checkedOffloadConflicts: false,
 			offloadConflicts: [],
-			watermarks: [],
-			pushedImagesProgress : 0,
-			totalNumberOfImages : 1,
 			estimatedTime : 0,
 			sumTime : 0,
-			offloadLibraryLink : false,
-			rollbackLibraryLink: false,
-			queryArgs : [],
 		},
 		mutations,
 		actions

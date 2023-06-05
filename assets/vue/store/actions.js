@@ -44,50 +44,6 @@ const selectOptimoleDomain = function ( {commit, state}, data ) {
 	);
 }
 
-const retrieveWatermarks = function ( {commit, state}, data ) {
-
-	commit( 'toggleLoading', true );
-	Vue.http( {
-		url: optimoleDashboardApp.routes['poll_watermarks'],
-		method: 'GET',
-		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		responseType: 'json',
-	} ).then( function ( response ) {
-		commit( 'toggleLoading', false );
-		if( response.status === 200 ) {
-			data.component.watermarkData = [];
-
-			for( let row in response.data.data ) {
-				let tmp = response.data.data[row];
-				let item = {
-					ID: tmp.ID,
-					post_title: tmp.post_title,
-					post_mime_type: tmp.post_mime_type,
-					guid: tmp.post_content || tmp.guid,
-				}
-				data.component.watermarkData.push( item )
-				data.component.noImages = false;
-			}
-		}
-	} );
-};
-
-const removeWatermark = function ( {commit, state}, data ) {
-	let self = this;
-	commit( 'toggleLoading', true );
-	Vue.http( {
-		url: optimoleDashboardApp.routes['remove_watermark'],
-		method: 'POST',
-		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		params: { 'postID': data.postID },
-		responseType: 'json',
-	} ).then( function ( response ) {
-
-		commit( 'toggleLoading', false );
-		retrieveWatermarks( {commit, state}, data );
-	} );
-};
-
 let updateStatus = 'pending';
 let updatePageStatus = 'pending';
 const updateContent =  function ( commit,action, imageIds, postID, batch, consecutiveErrors = 0 ) {
@@ -306,22 +262,9 @@ const getOffloadConflicts = function ( {commit, state} ) {
 
 	} );
 };
-const callSync = function ( {commit, state}, data ) {
-	commit( 'updatePushedImagesProgress', 'init' );
-	if ( data.action === "offload_images" ) {
-		commit( 'toggleLoadingSync', true );
-	}
-	if ( data.action === "rollback_images" ) {
-		commit( 'toggleLoadingRollback', true );
-	}
-	getNumberOfImages( data, commit, 0 );
 
-};
 
 export default {
 	selectOptimoleDomain,
-	removeWatermark,
-	retrieveWatermarks,
-	callSync,
 	getOffloadConflicts
 };

@@ -19,14 +19,12 @@ const Main = () => {
 	const [ tab, setTab ] = useState( 'dashboard' );
 
 	const {
-		autoConnect,
 		showDisconnect,
 		isConnected,
 		hasApplication,
 		hasDashboardLoaded
 	} = useSelect( select => {
 		const {
-			getAutoConnect,
 			showDisconnect,
 			isConnected,
 			hasApplication,
@@ -34,7 +32,6 @@ const Main = () => {
 		} = select( 'optimole' );
 
 		return {
-			autoConnect: getAutoConnect(),
 			showDisconnect: showDisconnect(),
 			isConnected: isConnected(),
 			hasApplication: hasApplication(),
@@ -49,14 +46,14 @@ const Main = () => {
 				setTab={ setTab }
 			/>
 
-			{ ( ! isConnected && ! autoConnect ) && (
+			{ ( ! isConnected ) && (
 				<>
 					<ConnectLayout />
 					<Footer/>
 				</>
 			) }
 
-			{ ( ( isConnected || autoConnect ) && ! hasDashboardLoaded ) && (
+			{ ( isConnected && ! hasDashboardLoaded ) && (
 				<ConnectingLayout />
 			) }
 
