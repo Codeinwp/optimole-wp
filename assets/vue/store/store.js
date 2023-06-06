@@ -15,8 +15,6 @@ const store = new Vuex.Store(
 		state: {
 			checkedOffloadConflicts: false,
 			offloadConflicts: [],
-			estimatedTime : 0,
-			sumTime : 0,
 		},
 		mutations,
 		actions

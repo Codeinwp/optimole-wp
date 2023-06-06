@@ -33,6 +33,10 @@ const DEFAULT_STATE = {
 	loadingSync: false,
 	queryArgs : [],
 	errorMedia: false,
+	updateStatus: 'pending',
+	updatePageStatus: 'pending',
+	estimatedTime : 0,
+	sumTime : 0,
 };
 
 const actions = {
@@ -184,6 +188,40 @@ const actions = {
 		return {
 			type: 'SET_ERROR_MEDIA',
 			errorMedia,
+		};
+	},
+	setUpdateStatus( updateStatus ) {
+		return {
+			type: 'SET_UPDATE_STATUS',
+			updateStatus,
+		};
+	},
+	setUpdatePageStatus( updatePageStatus ) {
+		return {
+			type: 'SET_UPDATE_PAGE_STATUS',
+			updatePageStatus,
+		};
+	},
+	setEstimatedTime( estimatedTime ) {
+		return {
+			type: 'SET_ESTIMATED_TIME',
+			estimatedTime,
+		};
+	},
+	setSumTime( sumTime ) {
+		return {
+			type: 'SET_SUM_TIME',
+			sumTime,
+		};
+	},
+	setTime( data ) {
+		return ( { dispatch, select } ) => {
+			const totalNumberOfImages = select.getTotalNumberOfImages();
+			const sumTime = select.getSumTime() + data.batchTime;
+			const estimatedTime = ( ( sumTime / data.processedBatch ) * ( Math.ceil( totalNumberOfImages / data.batchSize ) - data.processedBatch ) / 60000 ).toFixed( 2 );
+
+			dispatch.setSumTime( sumTime );
+			dispatch.setEstimatedTime( estimatedTime );
 		};
 	},
 	registerAccount( data, callback = () => {} ) {
@@ -534,6 +572,7 @@ const actions = {
 	callSync( data ) {
 		return ( { dispatch, select } ) => {
 			dispatch.setPushedImagesProgress( 'init' );
+
 			const queryArgs = select.getQueryArgs();
 
 			if ( data.action === 'offload_images' ) {
@@ -553,8 +592,316 @@ const actions = {
 				dispatch.setLoadingRollback( true );
 			}
 
-			// getNumberOfImages( data, commit, 0 );
+			dispatch.getNumberOfImages( data );
 		}
+	},
+	getNumberOfImages( data ) {
+		return ( { dispatch } ) => {
+			dispatch.setIsLoading( true );
+
+			apiFetch( {
+				path: optimoleDashboardApp.routes['number_of_images_and_pages'],
+				method: 'POST',
+				data: {
+					action: data.action,
+				},
+				parse: false,
+			} )
+			.then( response => {
+				if ( response.status >= 200 && response.status < 300 ) {
+					return response.json();
+				} else {
+					if ( data.action === 'offload_images' ) {
+						dispatch.setLoadingSync( false );
+					}
+
+					if ( data.action === 'rollback_images' ) {
+						dispatch.setLoadingRollback( false );
+					}
+				}
+			})
+			.then( response => {
+				dispatch.setIsLoading( false );
+
+				if ( ! response ) {
+					return;
+				}
+				dispatch.setTotalNumberOfImages( response.data );
+
+				let batch = 1;
+
+				if ( Math.ceil( response.data / 10 ) <= batch ) {
+					batch = Math.ceil( response.data / 10 );
+				}
+
+				dispatch.pushBatch( {
+					batch,
+					page: 1,
+					action: data.action,
+					processedBatch: 0,
+					images: data.images,
+					unattached: false,
+					consecutiveErrors: 0
+				} );
+			} )
+			.catch( error => {
+				if ( undefined === data.consecutiveErrors ) {
+					data.consecutiveErrors = 0;
+				}
+
+				if ( data.consecutiveErrors < 10 ) {
+					setTimeout( () => {
+						dispatch.getNumberOfImages( {
+							...data,
+							consecutiveErrors: data.consecutiveErrors + 1,
+						} );
+					}, consecutiveErrors * 1000 + 1000 );
+				} else {
+					dispatch.setErrorMedia( data.action );
+					dispatch.setLoadingSync( false );
+					dispatch.setLoadingRollback( false );
+				}
+			} );
+		}
+	},
+	pushBatch( data ) {
+		return ( { dispatch, state } ) => {
+			let time = new Date();
+			let route = 'update_content';
+
+			if ( data.unattached === true ) {
+				if ( 'none' !== data.images && data.images.length === 0 ) {
+					dispatch.setPushedImagesProgress( 'finish' );
+
+					if ( 'offload_images' === data.action ) {
+						dispatch.setLoadingSync( false );
+					} else {
+						dispatch.setLoadingRollback( false );
+					}
+
+					return;
+				}
+
+				route = data.action;
+			}
+
+			apiFetch( {
+				path: optimoleDashboardApp.routes[ route ],
+				method: 'POST',
+				data: {
+					batch: data.batch,
+					page : data.page,
+					job : data.action,
+					images : data.images
+				}
+			} )
+			.then( response => {
+				if ( response.code === 'success' && ( response.data.page > data.page || response.data.found_images > 0 ) ) {				
+					optimoleDashboardApp.nonce = response.data.nonce;
+
+					if ( data.unattached === false && Object.keys( response.data.imagesToUpdate ).length !== 0  ) {
+						for ( let postID of Object.keys( response.data.imagesToUpdate ) ) {
+							let foundImages = response.data.imagesToUpdate[ postID ]
+
+							if ( 'none' !== data.images && data.images.length !== 0 ) {
+								foundImages = foundImages.filter( imageID => {
+									return data.images.includes( imageID );
+								} );
+							}
+
+							dispatch.updateContent( {
+								action: data.action,
+								foundImages,
+								postID,
+								batch: data.batch,
+								consecutiveErrors: 0
+							} );
+
+							let updateStatus = state.getUpdateStatus();
+
+							let interval = setInterval( () => {
+								if ( 'done' === updateStatus || ( 'fail' === updateStatus && 'rollback_images' === data.action ) ) {
+									updateStatus = 'pending';
+
+									dispatch.setPushedImagesProgress( data.batch );
+
+									dispatch.setTime( {
+										batchTime: new Date() - time,
+										batchSize: data.batch,
+										processedBatch: data.processedBatch + 1
+									} );
+
+									dispatch.pushBatch( {
+										batch: data.batch,
+										page: response.data.page,
+										action: data.action,
+										processedBatch: data.processedBatch + 1,
+										images: data.images,
+										unattached: data.unattached,
+										consecutiveErrors: 0
+									} );
+
+									clearInterval( interval );
+								}
+							}, 10000 );
+						}
+					} else {
+						dispatch.setPushedImagesProgress( data.batch );
+
+						dispatch.setTime( {
+							batchTime: new Date() - time,
+							batchSize: data.batch,
+							processedBatch: data.processedBatch + 1
+						} );
+
+						dispatch.pushBatch( {
+							batch: data.batch,
+							page: response.data.page,
+							action: data.action,
+							processedBatch: data.processedBatch + 1,
+							images: data.images,
+							unattached: data.unattached,
+							consecutiveErrors: 0
+						} );
+
+						if ( data.unattached === true && 'none' !== data.images ) {
+							data.images.splice( 0, data.batch );
+						}
+					}
+				} else {
+					if ( data.unattached === false ) {
+						dispatch.pushBatch( {
+							batch: data.batch,
+							page: response.data.page,
+							action: data.action,
+							processedBatch: data.processedBatch + 1,
+							images: data.images,
+							unattached: true,
+							consecutiveErrors: 0
+						} );
+
+						if ( 'none' !== data.images ) {
+							data.images.splice( 0, data.batch );
+						}
+					} else {
+						dispatch.setPushedImagesProgress( 'finish' );
+
+						if ( 'offload_images' === data.action ) {
+							dispatch.setLoadingSync( false );
+						} else {
+							dispatch.setLoadingRollback( false );
+						}
+					}
+				}
+			} )
+			.catch( error => {
+				console.log( error );
+
+				if ( data.consecutiveErrors < 10 ) {
+					setTimeout( () => {
+						pushBatch( commit, batch, page, action, processedBatch,images, unattached, consecutiveErrors + 1 )
+
+						dispatch.pushBatch( {
+							batch: data.batch,
+							page: response.page,
+							action: data.action,
+							processedBatch: data.processedBatch,
+							images: data.images,
+							unattached: data.unattached,
+							consecutiveErrors: data.consecutiveErrors + 1
+						} );
+					}, data.consecutiveErrors * 1000 + 5000 );
+				} else {
+					dispatch.setErrorMedia( data.action );
+					dispatch.setLoadingSync( false );
+					dispatch.setLoadingRollback( false );
+				}
+			} );
+		};
+	},
+	updateContent( data ) {
+		return ( { dispatch, state } ) => {
+			if ( data.imageIds.length === 0 ) {
+				dispatch.setUpdateStatus( 'done' );
+			} else {
+				apiFetch( {
+					path: optimoleDashboardApp.routes[ 'upload_rollback_images' ],
+					method: 'POST',
+					data: {
+						image_ids: data.imageIds,
+						job: data.action,
+					}
+				} )
+				.then( response => {
+					if ( data.imageIds.length > 0 ) {
+						dispatch.updateContent( {
+							action: data.action,
+							imageIds: data.imageIds,
+							postID: data.postID,
+							batch: data.batch,
+							consecutiveErrors: 0
+						} );
+
+						data.imageIds.splice( 0, data.batch );
+					} else {
+						dispatch.updatePage( {
+							postID: data.postID,
+							consecutiveErrors: 0
+						} );
+
+						let interval = setInterval(  () => {
+							const updatePageStatus = state.getUpdatePageStatus();
+							if ( 'done' === updatePageStatus ) {
+								dispatch.setUpdatePageStatus( 'pending' );
+								dispatch.setUpdateStatus( 'done' );
+								clearInterval( interval );
+							}
+						}, 10000 );
+					}
+				} ).catch( error => {
+					if ( data.consecutiveErrors < 10 ) {
+						setTimeout( function () {
+							dispatch.updateContent( {
+								action: data.action,
+								imageIds: data.imageIds,
+								postID: data.postID,
+								batch: data.batch,
+								consecutiveErrors: data.consecutiveErrors + 1
+							} );
+						}, data.consecutiveErrors * 1000 + 5000 );
+					} else {
+						dispatch.setUpdatePageStatus( 'fail' );
+					}
+				} );
+			}
+		};
+	},
+	updatePage( data ) {
+		apiFetch( {
+			path: optimoleDashboardApp.routes[ 'update_page' ],
+			method: 'POST',
+			data: {
+				post_id: data.postID,
+			}
+		} )
+		.then( response => {
+			if ( 'success' === response.code && response.data === true  ) {
+				dispatch.setUpdatePageStatus( 'done' );
+			} else {
+				throw 'failed_update';
+			}
+		} ).catch( error => {
+			if ( data.consecutiveErrors < 10 ) {
+				setTimeout( () => {
+					dispatch.updatePage( {
+						postID: data.postID,
+						consecutiveErrors: data.consecutiveErrors + 1
+					} );
+				}, data.consecutiveErrors * 1000 + 5000 );
+			} else {
+				dispatch.setUpdateStatus( 'fail' );
+			}
+		} );
 	}
 };
 
@@ -722,6 +1069,26 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				...state,
 				errorMedia: action.errorMedia,
 			};
+		case 'SET_UPDATE_STATUS':
+			return {
+				...state,
+				updateStatus: action.updateStatus,
+			};
+		case 'SET_UPDATE_PAGE_STATUS':
+			return {
+				...state,
+				updatePageStatus: action.updatePageStatus,
+			};
+		case 'SET_ESTIMATED_TIME':
+			return {
+				...state,
+				estimatedTime: action.estimatedTime,
+			};
+		case 'SET_SUM_TIME':
+			return {
+				...state,
+				sumTime: action.sumTime,
+			};
 		default:
 			return state;
 	}
@@ -806,6 +1173,18 @@ const selectors = {
 	},
 	getErrorMedia( state ) {
 		return state.errorMedia;
+	},
+	getUpdateStatus( state ) {
+		return state.updateStatus;
+	},
+	getUpdatePageStatus( state ) {
+		return state.updatePageStatus;
+	},
+	getEstimatedTime( state ) {
+		return state.estimatedTime;
+	},
+	getSumTime( state ) {
+		return state.sumTime;
 	}
 };
 

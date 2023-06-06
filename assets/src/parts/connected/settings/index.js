@@ -119,6 +119,7 @@ const Settings = () => {
 						settings={ settings }
 						setSettings={ setSettings }
 						setCanSave={ setCanSave }
+						saveSettings={ saveSettings }
 					/>
 				) }
 

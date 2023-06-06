@@ -31,6 +31,7 @@ const OffloadMedia = ({
 	settings,
 	setSettings,
 	setCanSave,
+	saveSettings
 }) => {
 	const {
 		isLoading,
@@ -97,6 +98,8 @@ const OffloadMedia = ({
 	};
 
 	const onOffloadMedia = () => {
+		saveSettings( settings );
+
 		setErrorMedia( false );
 
 		callSync( {
