@@ -333,6 +333,44 @@ const actions = {
 			});
 		}
 	},
+	selectDomain( data, callback = () => {} ) {
+		return ( { dispatch } ) => {
+			dispatch.setIsConnecting( true );
+			dispatch.setHasRestError( false );
+
+			apiFetch( {
+				path: optimoleDashboardApp.routes['select_application'],
+				method: 'POST',
+				data
+			} )
+			.then( response => {
+				dispatch.setIsConnecting( false );
+				dispatch.setIsLoading( false );
+
+				if ( response.code === 'success' ) {
+					dispatch.setHasValidKey( true );
+					dispatch.setHasApplication( true );
+					dispatch.setAPIKey( response.data.api_key );
+					dispatch.setUserData( response.data );
+					dispatch.setAvailableApps( response.data );
+					console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
+				} else {
+					dispatch.setHasValidKey( false );
+					console.log( '%c Invalid API Key.', 'color: #E7602A' );
+				}
+
+				if ( callback ) {
+					callback( response );
+				}
+			})
+			.catch( error => {
+				dispatch.setIsConnecting( false );
+				dispatch.setHasRestError( true );
+
+				return error.data;
+			});
+		};
+	},
 	disconnectAccount() {
 		return ( { dispatch } ) => {
 			dispatch.setIsLoading( true );

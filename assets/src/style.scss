@@ -233,6 +233,15 @@ $disabled: #6786F4;
 			box-shadow: inset 0 1px 2px rgba(10, 10, 10, 0.1) !important;
 			min-height: 40px;
 		}
+
+		&.has_large_title label.components-input-control__label {
+			color: #363636;
+			display: block;
+			font-size: 1.25rem;
+			text-transform: none;
+			font-weight: 700;
+			margin-bottom: 12px;
+		}
 	}
 
 	&__token {

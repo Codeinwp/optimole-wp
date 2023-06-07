@@ -3,6 +3,7 @@
  */
 import {
 	Button,
+	SelectControl,
 	TextControl
 } from "@wordpress/components";
 
@@ -18,21 +19,35 @@ const APIForm = ({
 }) => {
 	const [ apiKey, setApiKey ] = useState( '' );
 	const [ errors, setErrors ] = useState( {} );
-
-	const { connectAccount } = useDispatch( 'optimole' );
+	const [ selectedApp, setApp ] = useState( 0 );
 
 	const {
+		connectAccount,
+		selectDomain,
+		setShowDisconnect
+	} = useDispatch( 'optimole' );
+
+	const {
+		availableApps,
 		hasValidKey,
-		isConnecting
+		isConnected,
+		isConnecting,
+		isLoading
 	} = useSelect( select => {
 		const {
+			getAvailableApps,
 			hasValidKey,
-			isConnecting
+			isConnected,
+			isConnecting,
+			isLoading
 		} = select( 'optimole' );
 
 		return {
+			availableApps: getAvailableApps(),
 			hasValidKey: hasValidKey(),
+			isConnected: isConnected(),
 			isConnecting: isConnecting(),
+			isLoading: isLoading()
 		};
 	} );
 
@@ -53,6 +68,30 @@ const APIForm = ({
 		);
 	};
 
+	const getActiveApp = () => {
+		if ( availableApps !== null && availableApps !== undefined && availableApps.available_apps !== undefined ) {
+			return availableApps.available_apps[ selectedApp ].key;
+		}
+
+		return '';
+	};
+
+	const onSelectDomain = () => {
+		selectDomain(
+			{
+				api_key: apiKey,
+				application: getActiveApp(),
+			},
+			response => {
+				if ( response.code !== 'success')  {
+					setErrors( {
+						'error_connect': response.data
+					} );
+				}
+			}
+		);
+	};
+
 	return (
 		<div className="text-2 font-bold m-0 text-gray-700">
 			<div className="text-gray-800 font-serif leading-7">{ optimoleDashboardApp.strings.connect_btn }</div>
@@ -61,24 +100,69 @@ const APIForm = ({
 				dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.steps_connect_api_desc } }
 			/>
 
-			<div className="flex gap-8 p-8 items-end bg-light-blue border border-blue-300 rounded-md">
-				<TextControl
-					label={ optimoleDashboardApp.strings.add_api }
-					placeholder={ optimoleDashboardApp.strings.email }
-					value={ apiKey }
-					onChange={ setApiKey }
-					className="optml__input basis-4/5"
-				/>
+			<div className="flex flex-col gap-8 p-8 bg-light-blue border border-blue-300 rounded-md">
+				<div className="flex gap-8 items-end">
+					<TextControl
+						label={ isConnected ? optimoleDashboardApp.strings.your_api_key : optimoleDashboardApp.strings.add_api }
+						placeholder={ optimoleDashboardApp.strings.email }
+						disabled={ isConnected }
+						value={ apiKey }
+						onChange={ setApiKey }
+						className="optml__input basis-4/5"
+					/>
 
-				<Button
-					variant="primary"
-					isBusy={ isConnecting }
-					disabled={ isConnecting }
-					className="optml__button flex w-full justify-center rounded font-bold min-h-40 basis-1/5"
-					onClick={ onConnect }
-				>
-					{ optimoleDashboardApp.strings.connect_btn }
-				</Button>
+					{ isConnected ? (
+						<Button
+							variant="default"
+							isBusy={ isLoading }
+							disabled={ isLoading }
+							className="optml__button flex w-full justify-center rounded font-bold min-h-40 basis-1/5"
+							onClick={ setShowDisconnect }
+						>
+							{ optimoleDashboardApp.strings.disconnect_btn }
+						</Button>
+					) : (
+						<Button
+							variant="primary"
+							isBusy={ isConnecting }
+							disabled={ isConnecting }
+							className="optml__button flex w-full justify-center rounded font-bold min-h-40 basis-1/5"
+							onClick={ onConnect }
+						>
+							{ optimoleDashboardApp.strings.connect_btn }
+						</Button>
+					) }
+				</div>
+
+				{ availableApps && (
+					<div className="flex gap-8 items-end">
+						<div className="basis-4/5">
+							<SelectControl
+								label={ optimoleDashboardApp.strings.select + ' ' + optimoleDashboardApp.strings.your_domain }
+								value={ selectedApp }
+								options={ availableApps.available_apps.map( ( app, index ) => {
+									return {
+										label: app.domain,
+										value: index
+									};
+								} ) }
+								onChange={ setApp }
+								className="optml__select has_large_title"
+								__nextHasNoMarginBottom={ true }
+							/>
+						</div>
+
+						<Button
+							variant="primary"
+							isBusy={ isConnecting }
+							disabled={ isConnecting }
+							className="optml__button flex w-full justify-center rounded font-bold min-h-40 basis-1/5"
+							onClick={ onSelectDomain }
+						>
+							{ optimoleDashboardApp.strings.select }
+						</Button>
+					</div>
+				) }
 			</div>
 
 			{ ! hasValidKey && undefined !== errors['error_connect'] && (

@@ -46,14 +46,14 @@ const Main = () => {
 				setTab={ setTab }
 			/>
 
-			{ ( ! isConnected ) && (
+			{ ( ! ( isConnected && hasApplication ) ) && (
 				<>
 					<ConnectLayout />
 					<Footer/>
 				</>
 			) }
 
-			{ ( isConnected && ! hasDashboardLoaded ) && (
+			{ ( isConnected && hasApplication && ! hasDashboardLoaded ) && (
 				<ConnectingLayout />
 			) }
 
