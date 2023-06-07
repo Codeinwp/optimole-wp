@@ -64,6 +64,7 @@ const Main = () => {
 			{ ( isConnected && hasApplication && hasDashboardLoaded ) && (
 				<ConnectedLayout
 					tab={ tab }
+					setTab={ setTab }
 				/>
 			) }
 		</>

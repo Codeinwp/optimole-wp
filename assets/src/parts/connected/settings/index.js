@@ -21,19 +21,24 @@ import Lazyload from "./Lazyload";
 import Exclusions from "./Exclusions";
 import OffloadMedia from "./OffloadMedia";
 
-const Settings = () => {
+const Settings = ({
+	tab,
+	setTab
+}) => {
 	const {
 		getSettings,
 		isLoading,
 	} = useSelect( select => {
 		const {
 			getSiteSettings,
+			getQueryArgs,
 			isLoading
 		} = select( 'optimole' );
 
 		return {
 			getSettings: getSiteSettings,
-			isLoading: isLoading()
+			isLoading: isLoading(),
+			queryArgs: getQueryArgs()
 		};
 	} );
 
@@ -42,7 +47,6 @@ const Settings = () => {
 		saveSettings
 	} = useDispatch( 'optimole' );
 
-	const [ tab, setTab ] = useState( 'general' );
 	const [ settings, setSettings ] = useState( getSettings() );
 	const [ canSave, setCanSave ] = useState( false );
 	const [ showSample, setShowSample ] = useState( false );
@@ -61,6 +65,11 @@ const Settings = () => {
 		}
 
 		setShowSample( ! showSample )
+	};
+
+	const onSaveSettings = () => {
+		saveSettings( settings );
+		setCanSave( false );
 	};
 
 	return (
@@ -117,9 +126,10 @@ const Settings = () => {
 				{ tab === 'offload_media' && (
 					<OffloadMedia
 						settings={ settings }
+						canSave={ canSave }
 						setSettings={ setSettings }
 						setCanSave={ setCanSave }
-						saveSettings={ saveSettings }
+						onSaveSettings={ onSaveSettings }
 					/>
 				) }
 
@@ -129,7 +139,7 @@ const Settings = () => {
 						isBusy={ isLoading }
 						disabled={ ! canSave }
 						className="optml__button flex w-full justify-center rounded font-bold min-h-40 basis-1/5"
-						onClick={ () => saveSettings( settings ) }
+						onClick={ onSaveSettings }
 					>
 						{ optimoleDashboardApp.strings.options_strings.save_changes }
 					</Button>

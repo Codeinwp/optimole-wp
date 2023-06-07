@@ -21,9 +21,11 @@ import Help from "./help";
 import Sidebar from "./Sidebar";
 
 const ConnectedLayout = ({
-	tab
+	tab,
+	setTab
 }) => {
 	const [ showConflicts, setShowConflicts ] = useState( false );
+	const [ menu, setMenu ] = useState( 'general' );
 
 	const {
 		isConnected,
@@ -33,7 +35,7 @@ const ConnectedLayout = ({
 		const {
 			isConnected,
 			hasApplication,
-			getConflicts
+			getConflicts,
 		} = select( 'optimole' );
 
 		const conflicts = getConflicts();
@@ -45,7 +47,32 @@ const ConnectedLayout = ({
 		};
 	} );
 
-	const { retrieveConflicts } = useDispatch( 'optimole' );
+	const {
+		retrieveConflicts,
+		setQueryArgs
+	} = useDispatch( 'optimole' );
+
+	useEffect( () => {
+		const urlSearchParams = new URLSearchParams( window.location.search );
+		const params = Object.fromEntries( urlSearchParams.entries() );
+		let images = [];
+
+		if ( Object.prototype.hasOwnProperty.call( params, 'optimole_action') ) {
+			for ( let i = 0; i < 20; i++ ) {
+				if ( Object.prototype.hasOwnProperty.call( params, i ) ) {
+					if ( !isNaN( params[i]) ) {
+						images[i] = parseInt( params[i], 10 );
+					}
+				}
+			}
+
+			params.images = images;
+			params.url = window.location.href.split('?')[0] + ( Object.prototype.hasOwnProperty.call( params, 'paged' ) ? '?paged=' + params['paged'] : '' );
+			setQueryArgs( params );
+			setTab( 'settings' );
+			setMenu( 'offload_media' );
+		}
+	}, []);
 
 	useEffect( () => {
 		if ( isConnected && hasApplication ) {
@@ -68,7 +95,12 @@ const ConnectedLayout = ({
 
 				{ ( tab === 'conflicts' && showConflicts ) && <Conflicts /> }
 
-				{ tab === 'settings' && <Settings /> }
+				{ tab === 'settings' && (
+					<Settings
+						tab={ menu }
+						setTab={ setMenu }
+					/>
+				) }
 
 				{ tab === 'help' && <Help /> }
 			</div>

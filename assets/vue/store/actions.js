@@ -44,25 +44,7 @@ const selectOptimoleDomain = function ( {commit, state}, data ) {
 	);
 };
 
-const getOffloadConflicts = function ( {commit, state} ) {
-	Vue.http( {
-		url: optimoleDashboardApp.routes['get_offload_conflicts'],
-		method: 'GET',
-		headers: {'X-WP-Nonce': optimoleDashboardApp.nonce},
-		emulateJSON: true,
-		responseType: 'json',
-	} ).then( function ( response ) {
-		commit( 'toggleCheckedOffloadConflicts', true );
-		if( response.body.data.length !== 0 ) {
-			commit( 'updateOffloadConflicts', response );
-		}
-	} ).catch( function ( err ) {
-
-	} );
-};
-
 
 export default {
-	selectOptimoleDomain,
-	getOffloadConflicts
+	selectOptimoleDomain
 };

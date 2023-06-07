@@ -37,6 +37,8 @@ const DEFAULT_STATE = {
 	updatePageStatus: 'pending',
 	estimatedTime : 0,
 	sumTime : 0,
+	checkedOffloadConflicts: false,
+	offloadConflicts: []
 };
 
 const actions = {
@@ -222,6 +224,18 @@ const actions = {
 
 			dispatch.setSumTime( sumTime );
 			dispatch.setEstimatedTime( estimatedTime );
+		};
+	},
+	setCheckedOffloadConflicts( checkedOffloadConflicts ) {
+		return {
+			type: 'SET_CHECKED_OFFLOAD_CONFLICTS',
+			checkedOffloadConflicts,
+		};
+	},
+	setOffloadConflicts( offloadConflicts ) {
+		return {
+			type: 'SET_OFFLOAD_CONFLICTS',
+			offloadConflicts,
 		};
 	},
 	registerAccount( data, callback = () => {} ) {
@@ -584,7 +598,6 @@ const actions = {
 			}
 
 			if ( data.action === 'rollback_images' ) {
-
 				if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
 					dispatch.setRollbackLibraryLink( false );
 				}
@@ -626,6 +639,7 @@ const actions = {
 				if ( ! response ) {
 					return;
 				}
+
 				dispatch.setTotalNumberOfImages( response.data );
 
 				let batch = 1;
@@ -711,7 +725,7 @@ const actions = {
 
 							dispatch.updateContent( {
 								action: data.action,
-								foundImages,
+								imageIds: foundImages,
 								postID,
 								batch: data.batch,
 								consecutiveErrors: 0
@@ -799,11 +813,9 @@ const actions = {
 
 				if ( data.consecutiveErrors < 10 ) {
 					setTimeout( () => {
-						pushBatch( commit, batch, page, action, processedBatch,images, unattached, consecutiveErrors + 1 )
-
 						dispatch.pushBatch( {
 							batch: data.batch,
-							page: response.page,
+							page : data.page,
 							action: data.action,
 							processedBatch: data.processedBatch,
 							images: data.images,
@@ -877,31 +889,52 @@ const actions = {
 		};
 	},
 	updatePage( data ) {
-		apiFetch( {
-			path: optimoleDashboardApp.routes[ 'update_page' ],
-			method: 'POST',
-			data: {
-				post_id: data.postID,
-			}
-		} )
-		.then( response => {
-			if ( 'success' === response.code && response.data === true  ) {
-				dispatch.setUpdatePageStatus( 'done' );
-			} else {
-				throw 'failed_update';
-			}
-		} ).catch( error => {
-			if ( data.consecutiveErrors < 10 ) {
-				setTimeout( () => {
-					dispatch.updatePage( {
-						postID: data.postID,
-						consecutiveErrors: data.consecutiveErrors + 1
-					} );
-				}, data.consecutiveErrors * 1000 + 5000 );
-			} else {
-				dispatch.setUpdateStatus( 'fail' );
-			}
-		} );
+		return ( { dispatch } ) => {
+			apiFetch( {
+				path: optimoleDashboardApp.routes[ 'update_page' ],
+				method: 'POST',
+				data: {
+					post_id: data.postID,
+				}
+			} )
+			.then( response => {
+				if ( 'success' === response.code && response.data === true  ) {
+					dispatch.setUpdatePageStatus( 'done' );
+				} else {
+					throw 'failed_update';
+				}
+			} ).catch( error => {
+				if ( data.consecutiveErrors < 10 ) {
+					setTimeout( () => {
+						dispatch.updatePage( {
+							postID: data.postID,
+							consecutiveErrors: data.consecutiveErrors + 1
+						} );
+					}, data.consecutiveErrors * 1000 + 5000 );
+				} else {
+					dispatch.setUpdateStatus( 'fail' );
+				}
+			} );
+		};
+	},
+	checkOffloadConflicts( callback = () => {} ) {
+		return ( { dispatch } ) => {
+			apiFetch( {
+				path: optimoleDashboardApp.routes[ 'get_offload_conflicts' ],
+				method: 'GET'
+			} )
+			.then( response => {
+				dispatch.setCheckedOffloadConflicts( true );
+
+				if ( response.data.length !== 0 ) {
+					dispatch.setOffloadConflicts( response.data );
+				}
+
+				if ( callback ) {
+					callback( response );
+				}
+			} );
+		};
 	}
 };
 
@@ -1020,13 +1053,10 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 
 			if ( action.pushedImagesProgress === 'finish' ) {
 				pushedImagesProgress = 100;
-			}
-
-			if ( action.pushedImagesProgress === 'init' ) {
+			} else if ( action.pushedImagesProgress === 'init' ) {
 				pushedImagesProgress = 0;
-			}
-
-			if ( action.pushedImagesProgress !== 'init' && state.pushedImagesProgress < 100 ) {
+			} else if ( state.pushedImagesProgress < 100 ) {
+				pushedImagesProgress = state.pushedImagesProgress;
 				pushedImagesProgress += action.pushedImagesProgress / state.totalNumberOfImages * 100;
 			}
 
@@ -1050,11 +1080,19 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 				rollbackLibraryLink: action.rollbackLibraryLink,
 			};
 		case 'SET_LOADING_ROLLBACK':
+			if ( Object.prototype.hasOwnProperty.call( state.queryArgs, 'optimole_action' ) ) {
+				state.rollbackLibraryLink = ! action.loadingSync;
+			}
+
 			return {
 				...state,
 				loadingRollback: action.loadingRollback,
 			};
 		case 'SET_LOADING_SYNC':
+			if ( Object.prototype.hasOwnProperty.call( state.queryArgs, 'optimole_action' ) ) {
+				state.offloadLibraryLink = ! action.loadingSync;
+			}
+
 			return {
 				...state,
 				loadingSync: action.loadingSync,
@@ -1088,6 +1126,16 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 			return {
 				...state,
 				sumTime: action.sumTime,
+			};
+		case 'SET_CHECKED_OFFLOAD_CONFLICTS':
+			return {
+				...state,
+				checkedOffloadConflicts: action.checkedOffloadConflicts,
+			};
+		case 'SET_OFFLOAD_CONFLICTS':
+			return {
+				...state,
+				offloadConflicts: action.offloadConflicts,
 			};
 		default:
 			return state;
@@ -1185,6 +1233,12 @@ const selectors = {
 	},
 	getSumTime( state ) {
 		return state.sumTime;
+	},
+	getCheckedOffloadConflicts( state ) {
+		return state.checkedOffloadConflicts;
+	},
+	getOffloadConflicts( state ) {
+		return state.offloadConflicts;
 	}
 };
 
