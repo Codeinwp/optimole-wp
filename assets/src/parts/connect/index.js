@@ -178,7 +178,7 @@ const ConnectLayout = () => {
 					<Button
 						variant="primary"
 						isBusy={ isConnecting }
-						disabled={ isConnecting }
+						disabled={ isConnecting || email.length === 0 }
 						className="optml__button flex w-full justify-center rounded font-bold min-h-40"
 						onClick={ onConnect }
 					>

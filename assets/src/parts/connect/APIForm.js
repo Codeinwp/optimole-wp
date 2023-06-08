@@ -125,7 +125,7 @@ const APIForm = ({
 						<Button
 							variant="primary"
 							isBusy={ isConnecting }
-							disabled={ isConnecting }
+							disabled={ isConnecting || apiKey.length === 0 }
 							className="optml__button flex w-full justify-center rounded font-bold min-h-40 basis-1/5"
 							onClick={ onConnect }
 						>

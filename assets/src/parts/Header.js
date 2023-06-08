@@ -108,7 +108,7 @@ const Header = ({
 					{ isConnected ? (
 						<>
 							<DropdownMenu
-								icon={ isLoading ? <Icon icon={ rotateRight } className="animate-spin fill-success" /> : <Icon icon={ connected } /> }
+								icon={ ( isLoading || ( isConnected && hasApplication && ! hasDashboardLoaded ) ) ? <Icon icon={ rotateRight } className="animate-spin fill-success" /> : <Icon icon={ connected } /> }
 								toggleProps={ {
 									className: 'optml-header__dropdown uppercase font-bold text-xs text-success hover:text-success active:text-success focus:text-success mr-3 border border-gray-300 rounded-md border-solid gap-2',
 									iconPosition: 'right',
@@ -116,7 +116,7 @@ const Header = ({
 								popoverProps={ {
 									className: 'optml-header__dropdown__popover',
 								} }
-								text={ optimoleDashboardApp.strings.connected }
+								text={ ( isConnected && hasApplication && ! hasDashboardLoaded ) ? optimoleDashboardApp.strings.connecting : optimoleDashboardApp.strings.connected }
 								controls={ [
 									{
 										title: optimoleDashboardApp.strings.optimole + ' ' + optimoleDashboardApp.strings.dashboard_menu_item,
