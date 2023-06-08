@@ -51,8 +51,8 @@ const ConnectingLayout = () => {
 
 	return (
 		<div className="optml-connecting flex flex-col justify-between max-w-screen-xl mt-8 mb-5 mx-auto p-0 transition-all ease-in-out duration-700 relative bg-white text-gray-700 border-0 rounded-lg shadow-md">
-			<div className="flex flex-col md:flex-row items-center justify-center gap-5 px-0 py-24">
-				<img src={ optimoleDashboardApp.assets_url + 'img/connecting.png' } />
+			<div className="flex flex-col md:flex-row items-center justify-center gap-5 px-8 sm:px-0 py-24">
+				<img className="max-w-full" src={ optimoleDashboardApp.assets_url + 'img/connecting.png' } />
 
 				<div className="text-center md:text-left">
 					<div className="font-bold text-2xl">{ optimoleDashboardApp.strings.account_connecting_title }</div>

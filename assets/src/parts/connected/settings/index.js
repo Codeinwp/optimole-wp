@@ -73,7 +73,7 @@ const Settings = ({
 	};
 
 	return (
-		<div className="optml-settings flex bg-white p-8 border-0 rounded-lg shadow-md gap-8">
+		<div className="optml-settings flex flex-col sm:flex-row bg-white p-8 border-0 rounded-lg shadow-md gap-8">
 			<Menu
 				tab={ tab }
 				setTab={ setTab }
@@ -144,7 +144,7 @@ const Settings = ({
 						{ optimoleDashboardApp.strings.options_strings.save_changes }
 					</Button>
 
-					{ settings[ 'autoquality' ] === 'disabled' && (
+					{ ( settings[ 'autoquality' ] === 'disabled' && tab === 'compression' ) && (
 						<Button
 							variant="default"
 							disabled={ isLoading }

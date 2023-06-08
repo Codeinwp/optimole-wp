@@ -180,7 +180,7 @@ const FilterControl = ({
 				label={ label }
 				help={ filterType === FILTER_TYPES.URL && optimoleDashboardApp.strings.options_strings.filter_helper }
 			>
-				<div className="flex p-6 my-3 bg-light-blue border border-blue-300 rounded-md items-center justify-between gap-8">
+				<div className="flex flex-col md:flex-row p-6 my-3 bg-light-blue border border-blue-300 rounded-md items-center justify-between gap-8">
 					<div className="flex justify-start items-center gap-4">
 						<SelectControl
 							value={ filterType }

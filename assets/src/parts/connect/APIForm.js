@@ -101,7 +101,7 @@ const APIForm = ({
 			/>
 
 			<div className="flex flex-col gap-8 p-8 bg-light-blue border border-blue-300 rounded-md">
-				<div className="flex gap-8 items-end">
+				<div className="flex flex-col sm:flex-row gap-8 items-stretch sm:items-end">
 					<TextControl
 						label={ isConnected ? optimoleDashboardApp.strings.your_api_key : optimoleDashboardApp.strings.add_api }
 						placeholder={ optimoleDashboardApp.strings.email }
@@ -135,7 +135,7 @@ const APIForm = ({
 				</div>
 
 				{ availableApps && (
-					<div className="flex gap-8 items-end">
+					<div className="flex flex-col sm:flex-row gap-8 items-stretch sm:items-end">
 						<div className="basis-4/5">
 							<SelectControl
 								label={ optimoleDashboardApp.strings.select + ' ' + optimoleDashboardApp.strings.your_domain }

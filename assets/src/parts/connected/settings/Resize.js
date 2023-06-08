@@ -125,7 +125,7 @@ const Resize = ({
 				label={ optimoleDashboardApp.strings.options_strings.add_image_size_desc }
 				help={ optimoleDashboardApp.strings.options_strings.image_size_notice }
 			>
-				<div className="flex p-6 bg-light-blue border border-blue-300 rounded-md items-center gap-8">
+				<div className="flex flex-col sm:flex-row p-6 bg-light-blue border border-blue-300 rounded-md items-stretch sm:items-center gap-8">
 					<TextControl
 						label={ optimoleDashboardApp.strings.options_strings.width_field }
 						placeholder={ optimoleDashboardApp.strings.options_strings.width_field }
@@ -134,7 +134,7 @@ const Resize = ({
 						min={ 1 }
 						value={ width }
 						onChange={ setWidth }
-						className="optml__input basis-2/5"
+						className="optml__input sm:basis-2/5"
 					/>
 
 					<TextControl
@@ -145,7 +145,7 @@ const Resize = ({
 						hideLabelFromVision={ true }
 						type="number"
 						min={ 1 }
-						className="optml__input basis-2/5"
+						className="optml__input sm:basis-2/5"
 					/>
 
 					<Button
@@ -163,14 +163,14 @@ const Resize = ({
 			{ imageSizes.length > 0 && (
 				<BaseControl
 					label={ optimoleDashboardApp.strings.options_strings.image_sizes_title }
-					className="py-4"
+					className="pt-4"
 				>
 					{ imageSizes.map( size => (
 						<div
 							key={ size }
 							className="flex p-3 my-3 bg-light-blue border border-blue-300 rounded-md items-center justify-between gap-8"
 						>
-							<div className="flex items-center gap-2">
+							<div className="flex flex-wrap items-center gap-2">
 								<div>
 									<p className="m-0 inline-block" dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.name } }/> { size }
 								</div>
@@ -203,7 +203,7 @@ const Resize = ({
 						type="number"
 						min={ 100 }
 						max={ 10000 }
-						className="basis-1/4"
+						className="basis-1/2 sm:basis-1/4"
 						onChange={ value => updateValue( 'max_width', value ) }
 					/>
 
@@ -214,7 +214,7 @@ const Resize = ({
 						type="number"
 						min={ 100 }
 						max={ 10000 }
-						className="basis-1/4"
+						className="basis-1/2 sm:basis-1/4"
 						onChange={ value => updateValue( 'max_height', value ) }
 					/>
 				</div>

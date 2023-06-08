@@ -77,7 +77,7 @@ const Lazyload = ({
 						value={ settings[ 'skip_lazyload_images' ] }
 						type="number"
 						min={ 0 }
-						className="basis-1/4"
+						className="basis-1/2 md:basis-1/3"
 						onChange={ value => updateValue( 'skip_lazyload_images', value ) }
 					/>
 				</div>
@@ -110,7 +110,7 @@ const Lazyload = ({
 						'is-disabled':  isLoading,
 					}
 				) }
-				onChange={ value => updateOption( 'scale', value ) }
+				onChange={ value => updateOption( 'scale', ! value ) }
 			/>
 
 			<hr className="my-8 border-grayish-blue"/>

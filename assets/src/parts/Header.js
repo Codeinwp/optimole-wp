@@ -93,7 +93,7 @@ const Header = ({
 
 	return (
 		<header className="bg-white shadow-sm px-2.5 py-5 pb-0">
-			<div className="flex justify-between items-center max-w-screen-xl mx-auto my-0 pb-5">
+			<div className="flex flex-col sm:flex-row justify-between items-center max-w-screen-xl mx-auto my-0 pb-5">
 				<div className="items-center flex justify-start cursor-default">
 					<img
 						className="max-width-64 w-16 h-16 mr-3"
@@ -146,7 +146,7 @@ const Header = ({
 			</div>
 
 			{ ( isConnected && hasApplication && hasDashboardLoaded ) && (
-				<ul className="flex gap-8 items-center max-w-screen-xl mx-auto my-0">
+				<ul className="flex gap-8 items-center max-w-screen-xl mx-auto my-0 justify-center sm:justify-normal">
 					{ tabs.filter( tab => ! tab?.isDisabled ).map( ( { label, value } ) => (
 						<li
 							key={ value }
