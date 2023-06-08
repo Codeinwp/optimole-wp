@@ -22,6 +22,8 @@ class Optml_Admin {
 	 */
 	public $settings;
 
+	const NEW_USER_DEFAULTS_UPDATED = 'optml_defaults_updated';
+
 	/**
 	 * Optml_Admin constructor.
 	 */
@@ -37,6 +39,7 @@ class Optml_Admin {
 		if ( $this->settings->is_connected() ) {
 			add_action( 'init', [$this, 'check_domain_change'] );
 		}
+		add_action( 'init', [ $this, 'update_default_settings' ] );
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
 		add_action( 'admin_init', [ $this, 'init_no_script' ] );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
@@ -73,6 +76,23 @@ class Optml_Admin {
 				$this->daily_sync();
 			}
 		}
+	}
+	/**
+	 * Update the limit dimensions setting to enabled if the user is new.
+	 */
+	public function update_default_settings() {
+		if ( get_option( self::NEW_USER_DEFAULTS_UPDATED ) === 'yes' ) {
+			return;
+		}
+
+		if ( $this->settings->is_connected() ) {
+			update_option( self::NEW_USER_DEFAULTS_UPDATED, 'yes' );
+			return;
+		}
+
+		$this->settings->update( 'limit_dimensions', 'enabled' );
+
+		update_option( self::NEW_USER_DEFAULTS_UPDATED, 'yes' );
 	}
 	/**
 	 * Adds Optimole tag to admin bar
@@ -221,7 +241,11 @@ class Optml_Admin {
 		$bgclasses             = empty( $bgclasses ) ? '' : sprintf( '"%s"', implode( '","', (array) $bgclasses ) );
 		$watcher_classes       = empty( $watcher_classes ) ? '' : sprintf( '"%s"', implode( '","', (array) $watcher_classes ) );
 		$default_network       = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
-		$retina_ready          = ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
+		$limit_dimensions      = $this->settings->get( 'limit_dimensions' ) === 'enabled';
+		$limit_width           = $limit_dimensions ? $this->settings->get( 'limit_width' ) : 0;
+		$limit_height          = $limit_dimensions ? $this->settings->get( 'limit_height' ) : 0;
+		$retina_ready          = $limit_dimensions ||
+								 ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
 		$scale_is_disabled     = ( $this->settings->get( 'scale' ) === 'enabled' );
 		$native_lazy_enabled   = ( $this->settings->get( 'native_lazyload' ) === 'enabled' );
 		$output                = sprintf(
@@ -264,7 +288,9 @@ class Optml_Admin {
 								backgroundLazySelectors: "%s",
 								network_optimizations: %s,
 								ignoreDpr: %s,
-								quality: %d
+								quality: %d,
+								maxWidth: %d,
+								maxHeight: %d,
 							}
 						}(window, document));
 					document.addEventListener( "DOMContentLoaded", function() {
@@ -291,7 +317,9 @@ class Optml_Admin {
 			addcslashes( wp_strip_all_tags( $lazyload_bg_selectors ), '"' ),
 			defined( 'OPTML_NETWORK_ON' ) && constant( 'OPTML_NETWORK_ON' ) ? ( OPTML_NETWORK_ON ? 'true' : 'false' ) : ( $default_network ? 'true' : 'false' ),
 			$retina_ready ? 'true' : 'false',
-			$this->settings->get_numeric_quality()
+			$this->settings->get_numeric_quality(),
+			$limit_width,
+			$limit_height
 		);
 		echo $output;
 	}
@@ -952,6 +980,9 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_resize_smart_title'         => __( 'Enable Smart Cropping', 'optimole-wp' ),
 				'enable_retina_desc'                => __( 'Deliver retina ready images to your visitors', 'optimole-wp' ),
 				'enable_retina_title'               => __( 'Enable Retina images', 'optimole-wp' ),
+				'enable_limit_dimensions_desc'      => __( 'This feature allows you to set a maximum width or height for images on your website, automatically resizing larger images to fit within the defined limits while maintaining the original aspect ratio.', 'optimole-wp' ),
+				'enable_limit_dimensions_title'     => __( 'Limit Image Dimensions with max width/height', 'optimole-wp' ),
+				'enable_limit_dimensions_notice'    => __( 'When you enable this feature to define a max width or height for image resizing, please note that DPR (retina) images will be disabled. This is done to ensure consistency in image dimensions across your website. Although this may result in slightly lower image quality for high-resolution displays, it will help maintain uniform image sizes, improving your website\'s overall layout and potentially boosting performance. ', 'optimole-wp' ),
 				'image_sizes_title'                 => __( 'Your cropped image sizes', 'optimole-wp' ),
 				'enabled'                           => __( 'Enabled', 'optimole-wp' ),
 				'exclude_class_desc'                => sprintf( __( '%1$sImage tag%2$s contains class', 'optimole-wp' ), '<strong>', '</strong>' ),
