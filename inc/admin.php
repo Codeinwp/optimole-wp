@@ -883,8 +883,8 @@ If you still want to disconnect click the button below.',
 				'</strong>'
 			),
 			'account_needed_footer'          => __( 'Trusted by more than 100k happy users', 'optimole-wp' ),
-			'account_connecting_title'	     => __( 'Connecting to Optimole', 'optimole-wp' ),
-			'account_connecting_subtitle'	 => __( 'Sit tight while we connect you to the Dashboard', 'optimole-wp' ),
+			'account_connecting_title'       => __( 'Connecting to Optimole', 'optimole-wp' ),
+			'account_connecting_subtitle'    => __( 'Sit tight while we connect you to the Dashboard', 'optimole-wp' ),
 			'notice_just_activated'          => ! $this->settings->is_connected() ?
 				sprintf( __( '%1$sImage optimisation is currently running.%2$s <br/> Your visitors will now view the best image for their device automatically, all served from the Optimole Cloud Service on the fly. You might see for the very first image request being redirected to the original URL while we do the optimization in the background. You can relax, we\'ll take it from here.', 'optimole-wp' ), '<strong>', '</strong>' )
 				: '',
@@ -930,7 +930,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'reason_4'  => __( 'Lots of customizations options.', 'optimole-wp' ),
 				'reason_5'  => __( 'Fully compatible with Optimole.', 'optimole-wp' ),
 			],
-			'metrics'						=> [
+			'metrics'                       => [
 				'metricsTitle1'    => __( 'Images optimized', 'optimole-wp' ),
 				'metricsSubtitle1' => __( 'Since plugin activation', 'optimole-wp' ),
 				'metricsTitle2'    => __( 'Saved file size', 'optimole-wp' ),
@@ -1101,7 +1101,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'feedback_title'              => __( 'Changelog', 'optimole-wp' ),
 				'feedback_desc'               => __( 'Check our changelog to see latest fixes and features implemented.', 'optimole-wp' ),
 				'feedback_cta'                => __( 'View Changelog', 'optimole-wp' ),
-				'account_title' 	          => __( 'Account', 'optimole-wp' ),
+				'account_title'               => __( 'Account', 'optimole-wp' ),
 				'account_item_one'            => __( 'How Optimole counts the visitors?', 'optimole-wp' ),
 				'account_item_two'            => __( 'What happens if I exceed plan limits?', 'optimole-wp' ),
 				'account_item_three'          => __( 'Visits based plan', 'optimole-wp' ),
@@ -1109,10 +1109,10 @@ The root cause might be either a security plugin which blocks this feature or so
 				'image_processing_item_one'   => __( 'Getting Started With Optimole', 'optimole-wp' ),
 				'image_processing_item_two'   => __( 'How Optimole can serve WebP images', 'optimole-wp' ),
 				'image_processing_item_three' => __( 'Adding Watermarks to your images', 'optimole-wp' ),
-				'api_title' 	              => __( 'API', 'optimole-wp' ),
-				'api_item_one' 	              => __( 'Cloud Library Browsing', 'optimole-wp' ),
-				'api_item_two' 	              => __( 'Exclude from Optimizing or Lazy Loading', 'optimole-wp' ),
-				'api_item_three' 	          => __( 'Custom Integration', 'optimole-wp' ),
+				'api_title'                   => __( 'API', 'optimole-wp' ),
+				'api_item_one'                => __( 'Cloud Library Browsing', 'optimole-wp' ),
+				'api_item_two'                => __( 'Exclude from Optimizing or Lazy Loading', 'optimole-wp' ),
+				'api_item_three'              => __( 'Custom Integration', 'optimole-wp' ),
 			],
 			'watermarks'                     => [
 				'image'                    => __( 'Image', 'optimole-wp' ),
@@ -1159,7 +1159,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'loading_latest_images' => __( 'Loading your optimized images...', 'optimole-wp' ),
 				'last'                  => __( 'Last', 'optimole-wp' ),
 				'saved'                 => __( 'Saved', 'optimole-wp' ),
-				'smaller'			    => __( 'smaller', 'optimole-wp' ),
+				'smaller'               => __( 'smaller', 'optimole-wp' ),
 				'optimized_images'      => __( 'optimized images', 'optimole-wp' ),
 				'same_size'             => __( '🙉 We couldn\'t do better, this image is already optimized at maximum. ', 'optimole-wp' ),
 				'small_optimization'    => __( '😬 Not that much, just <strong>{ratio}</strong> smaller.', 'optimole-wp' ),
