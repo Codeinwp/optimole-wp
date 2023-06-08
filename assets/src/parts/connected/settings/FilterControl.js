@@ -80,6 +80,10 @@ const EXT_OPTIONS = [
 		label: '.GIF',
 		value: 'gif'
 	},
+	{
+		label: '.WEBP',
+		value: 'webp'
+	}
 ];
 
 const FilterControl = ({

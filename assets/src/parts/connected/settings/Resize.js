@@ -36,6 +36,7 @@ const Resize = ({
 
 	const isSmartResizeEnabled = settings[ 'resize_smart' ] !== 'disabled';
 	const isRetinaEnabled = settings[ 'retina_images' ] !== 'disabled';
+	const isLimitDimensionsEnabled = settings[ 'limit_dimensions' ] !== 'disabled';
 
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
@@ -118,6 +119,56 @@ const Resize = ({
 				) }
 				onChange={ value => updateOption( 'retina_images', value ) }
 			/>
+
+			<hr className="my-8 border-grayish-blue"/>
+
+			<ToggleControl
+				label={ optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_title }
+				help={ optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_desc }
+				checked={ isLimitDimensionsEnabled }
+				disabled={ isLoading }
+				className={ classnames(
+					{
+						'is-disabled':  isLoading,
+					}
+				) }
+				onChange={ value => updateOption( 'limit_dimensions', value ) }
+			/>
+
+			{ isLimitDimensionsEnabled && (
+				<BaseControl>
+					<div className="flex gap-8">
+						<NumberControl
+							label={ optimoleDashboardApp.strings.options_strings.width_field }
+							labelPosition="side"
+							value={ settings[ 'limit_width' ] }
+							type="number"
+							min={ 100 }
+							max={ 10000 }
+							className="basis-1/2 sm:basis-1/4"
+							onChange={ value => updateValue( 'limit_width', value ) }
+						/>
+
+						<NumberControl
+							label={ optimoleDashboardApp.strings.options_strings.height_field }
+							labelPosition="side"
+							value={ settings[ 'limit_height' ] }
+							type="number"
+							min={ 100 }
+							max={ 10000 }
+							className="basis-1/2 sm:basis-1/4"
+							onChange={ value => updateValue( 'limit_height', value ) }
+						/>
+					</div>
+
+					<div className="flex gap-2 bg-stale-yellow text-gray-800 border border-solid border-yellow-300 rounded relative px-6 py-5 my-5">
+						<p
+							className="m-0"
+							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_notice } }
+						/>
+					</div>
+				</BaseControl>
+			) }
 
 			<hr className="my-8 border-grayish-blue"/>
 
