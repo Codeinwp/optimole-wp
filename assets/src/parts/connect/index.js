@@ -21,6 +21,7 @@ import {
  * Internal dependencies.
  */
 import APIForm from './APIForm';
+import { registerAccount } from '../../utils/api';
 
 const connectClasses = 'optml-connect flex flex-col justify-between max-w-screen-xl mt-8 mb-5 mx-auto p-0 transition-all ease-in-out duration-700 relative bg-white text-gray-700 border-0 rounded-lg shadow-md';
 const connectContainerClasses = 'flex gap-8 p-8 flex-col md:flex-row';
@@ -37,10 +38,7 @@ const ConnectLayout = () => {
 	const [ method, setMethod ] = useState( 'email' );
 	const [ errors, setErrors ] = useState( {} );
 
-	const {
-		registerAccount,
-		setAutoConnect
-	} = useDispatch( 'optimole' );
+	const { setAutoConnect } = useDispatch( 'optimole' );
 
 	const {
 		autoConnect,

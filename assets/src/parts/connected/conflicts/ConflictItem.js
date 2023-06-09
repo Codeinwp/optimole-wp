@@ -10,14 +10,15 @@ import { rotateRight } from '@wordpress/icons';
  */
 import { Button } from "@wordpress/components";
 
-import { useDispatch } from "@wordpress/data";
-
 import { useState } from "@wordpress/element";
+
+/**
+ * Internal dependencies.
+ */
+import { dismissConflict } from '../../../utils/api';
 
 const ConflictItem = ({ conflict }) => {
 	const [ isLoading, setLoading ] = useState( false );
-
-	const { dismissConflict } = useDispatch( 'optimole' );
 
 	const dismiss = () => {
 		setLoading( true );

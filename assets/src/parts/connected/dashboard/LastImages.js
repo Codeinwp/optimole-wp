@@ -6,15 +6,20 @@ import { useElementSize } from "usehooks-ts";
 /**
  * WordPress dependencies.
  */
-import {
-	useDispatch,
-	useSelect
-} from "@wordpress/data";
+import { useSelect } from "@wordpress/data";
 
 import {
 	useEffect,
 	useState
 } from "@wordpress/element";
+
+/**
+ * Internal dependencies.
+ */
+import {
+	retrieveOptimizedImages,
+	requestStatsUpdate,
+} from "../../../utils/api";
 
 const isInitialLoading = optimoleDashboardApp.connection_status !== 'yes';
 
@@ -84,11 +89,6 @@ const LastImages = () => {
 			}, 1000 );
 		}
 	}, [ timer ] );
-
-	const {
-		requestStatsUpdate,
-		retrieveOptimizedImages
-	} = useDispatch( 'optimole' );
 
 	const { images } = useSelect( select => {
 		const { getOptimizedImages } = select( 'optimole' );

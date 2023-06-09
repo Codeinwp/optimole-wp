@@ -19,6 +19,7 @@ import Conflicts from "./conflicts";
 import Settings from "./settings";
 import Help from "./help";
 import Sidebar from "./Sidebar";
+import { retrieveConflicts } from "../../utils/api";
 
 const ConnectedLayout = ({
 	tab,
@@ -47,10 +48,7 @@ const ConnectedLayout = ({
 		};
 	} );
 
-	const {
-		retrieveConflicts,
-		setQueryArgs
-	} = useDispatch( 'optimole' );
+	const { setQueryArgs } = useDispatch( 'optimole' );
 
 	useEffect( () => {
 		const urlSearchParams = new URLSearchParams( window.location.search );
