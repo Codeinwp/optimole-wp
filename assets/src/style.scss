@@ -18,7 +18,14 @@ $disabled: #6786F4;
 	padding-right: 0 !important;
 }
 
+.optml-notice-optin {
+	display: none;
+}
+
 #optimole-app {
+	--wp-admin-theme-color: #577BF9;
+	--wp-components-color-foreground: #577BF9;
+
 	a {
 		text-decoration: none;
 	}
@@ -79,6 +86,10 @@ $disabled: #6786F4;
 		}
 	}
 
+	.components-base-control__help {
+		font-size: 13px;
+	}
+
 	progress[value] {
 		appearance: none;
 		height: 20px;
@@ -116,15 +127,15 @@ $disabled: #6786F4;
 			appearance: none;
 			height: 10px;
 			border: 1px solid rgba(87, 123, 249, 0.36);
-
-			&::after {
-				content: 'asd';
-			}
 		}
 
 		.components-toggle-control {
 			.components-base-control__field > .components-flex {
 				flex-direction: row-reverse;
+			}
+
+			.components-base-control__help {
+				max-width: 90%;
 			}
 
 			label {
@@ -167,6 +178,9 @@ $disabled: #6786F4;
 				}
 
 				.components-dropdown-menu__menu {
+					.components-button:hover {
+						color: #577BF9;
+					}
 					.components-button:last-child:hover {
 						color: #EF686B;
 					}
@@ -270,8 +284,8 @@ $disabled: #6786F4;
 	}
 
 	&__button {
-		color: var(--wp-components-color-accent,var(--wp-admin-theme-color,#007cba));
-		border: 2px solid #007cba;
+		color: #577BF9;
+		border: 2px solid #577BF9;
 
 		&:focus:not(:disabled) {
 			border: none;

@@ -89,6 +89,8 @@ const Header = ({
 		}
 	];
 
+	const isOnboarding = isConnected && hasApplication && ! hasDashboardLoaded;
+
 	return (
 		<header className="bg-white shadow-sm px-2.5 py-5 pb-0">
 			<div className="flex flex-col sm:flex-row justify-between items-center max-w-screen-xl mx-auto my-0 pb-5">
@@ -106,7 +108,7 @@ const Header = ({
 					{ isConnected ? (
 						<>
 							<DropdownMenu
-								icon={ ( isLoading || ( isConnected && hasApplication && ! hasDashboardLoaded ) ) ? <Icon icon={ rotateRight } className="animate-spin fill-success" /> : <Icon icon={ connected } /> }
+								icon={ ( isLoading || isOnboarding ) ? <Icon icon={ rotateRight } className="animate-spin fill-success" /> : <Icon icon={ connected } /> }
 								toggleProps={ {
 									className: 'optml-header__dropdown uppercase font-bold text-xs text-success hover:text-success active:text-success focus:text-success mr-3 border border-gray-300 rounded-md border-solid gap-2',
 									iconPosition: 'right',
@@ -114,19 +116,21 @@ const Header = ({
 								popoverProps={ {
 									className: 'optml-header__dropdown__popover',
 								} }
-								text={ ( isConnected && hasApplication && ! hasDashboardLoaded ) ? optimoleDashboardApp.strings.connecting : optimoleDashboardApp.strings.connected }
+								text={ isOnboarding ? optimoleDashboardApp.strings.connecting : optimoleDashboardApp.strings.connected }
 								controls={ [
 									{
 										title: optimoleDashboardApp.strings.optimole + ' ' + optimoleDashboardApp.strings.dashboard_menu_item,
-										onClick: () => window.open( 'https://dashboard.optimole.com/', '_blank' ),
+										onClick: () => window.open( 'https://dashboard.optimole.com/', '_blank' )
 									},
 									{
 										title: optimoleDashboardApp.strings.refresh_stats_cta,
 										onClick: requestStatsUpdate,
+										isDisabled: isOnboarding
 									},
 									{
 										title: optimoleDashboardApp.strings.disconnect_btn,
 										onClick: () => setShowDisconnect( true ),
+										isDisabled: isOnboarding
 									},
 								] }
 							/>

@@ -135,7 +135,7 @@ const Dashboard = () => {
 			<div
 				className={ classNames(
 					cardClasses,
-					'items-center gap-8',
+					'gap-8 flex-col sm:flex-row items-start sm:items-center',
 				) }
 			>
 				<Icon icon={ quota } />
@@ -150,11 +150,11 @@ const Dashboard = () => {
 							</span>
 						</div>
 
-						{ userData.plan === 'free' && (
+						{ ( visitorsLimitPercent < 70 ) && (
 							<Button
 								variant="default"
 								className="optml__button rounded font-bold min-h-40"
-								href="https://optimole.com/pricing"
+								href="https://dashboard.optimole.com/settings/billing"
 								target="_blank"
 							>
 								{ optimoleDashboardApp.strings.upgrade.title }

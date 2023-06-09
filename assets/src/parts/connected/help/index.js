@@ -118,7 +118,7 @@ const Help = () => {
 									{ card.title }
 								</div>
 
-								<div className="not-italic font-normal text-xs text-gray-800">
+								<div className="not-italic font-normal text-s text-gray-800">
 									{ card.description }
 								</div>
 

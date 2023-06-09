@@ -21,20 +21,21 @@ module.exports = {
 				'light-black': '#626262',
 				'opaque-black': '#0000006E',
 				'stale-yellow': '#FFF0C9',
-				'disabled': '#6786F4',
+				'disabled': '#6786F4'
 			},
 			fontFamily: {
-				'serif': [ '-apple-system', 'BlinkMacSystemFont', 'sans-serif' ],
+				'serif': [ '-apple-system', 'BlinkMacSystemFont', 'sans-serif' ]
 			},
 			fontSize: {
 				'2': '2rem',
+				's': '13px'
 			},
 			maxWidth: {
 				'64': '64px',
 				'screen-xl': 'min( 1280px, 90%)'
 			},
 			minHeight: {
-				'40': '40px',
+				'40': '40px'
 			}
 		},
 	},

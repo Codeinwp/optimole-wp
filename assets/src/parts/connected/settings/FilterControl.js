@@ -160,11 +160,39 @@ const FilterControl = ({
 		setCanSave( true );
 	};
 
-	const hasItems = Object.keys( settings.filters[ type ][ FILTER_TYPES.EXT ]).length > 0
-				|| Object.keys( settings.filters[ type ][ FILTER_TYPES.CLASS ]).length > 0
-				|| Object.keys( settings.filters[ type ][ FILTER_TYPES.URL ]).length > 0
-				|| Object.keys( settings.filters[ type ][ FILTER_TYPES.URL_MATCH ]).length > 0
-				|| Object.keys( settings.filters[ type ][ FILTER_TYPES.FILENAME ]).length > 0;
+	const hasItems = (
+		(
+			Object.keys( settings.filters[type][FILTER_TYPES.EXT] ).length > 0 &&
+			Object.values( settings.filters[type][FILTER_TYPES.EXT] ).some(
+				value => value !== false
+			)
+		) ||
+		(
+			Object.keys( settings.filters[type][FILTER_TYPES.CLASS] ).length > 0 &&
+			Object.values( settings.filters[type][FILTER_TYPES.CLASS] ).some(
+				value => value !== false
+			)
+		) ||
+		(
+			Object.keys( settings.filters[type][FILTER_TYPES.URL] ).length > 0 &&
+			Object.values( settings.filters[type][FILTER_TYPES.URL] ).some(
+				value => value !== false
+			)
+		) ||
+		(
+			Object.keys( settings.filters[type][FILTER_TYPES.URL_MATCH] ).length > 0 &&
+			Object.values( settings.filters[type][FILTER_TYPES.URL_MATCH] ).some(
+				value => value !== false
+			)
+		) ||
+		(
+			Object.keys( settings.filters[type][FILTER_TYPES.FILENAME] ).length > 0 &&
+			Object.values( settings.filters[type][FILTER_TYPES.FILENAME] ).some(
+				value => value !== false
+			)
+		)
+	);
+  
 
 	const removeFilter = ( group, value ) => {
 		const filters = { ...settings.filters };
