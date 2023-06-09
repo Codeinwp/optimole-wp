@@ -27,6 +27,7 @@ import {
  * Internal dependencies.
  */
 import { connected, disconnected } from "../utils/icons";
+import { requestStatsUpdate } from "../utils/api";
 
 const Header = ({
 	tab,
@@ -34,10 +35,7 @@ const Header = ({
 }) => {
 	const [ showConflicts, setShowConflicts ] = useState( false );
 
-	const {
-		requestStatsUpdate,
-		setShowDisconnect
-	} = useDispatch( 'optimole' );
+	const { setShowDisconnect } = useDispatch( 'optimole' );
 
 	const {
 		isConnected,

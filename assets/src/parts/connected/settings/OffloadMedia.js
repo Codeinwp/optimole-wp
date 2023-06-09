@@ -33,6 +33,10 @@ import { addAction } from "@wordpress/hooks";
  * Internal dependencies.
  */
 import { warning } from '../../../utils/icons'
+import {
+	callSync,
+	checkOffloadConflicts
+} from '../../../utils/api';
 
 const maxTime = 100;
 
@@ -83,8 +87,6 @@ const OffloadMedia = ({
 	} );
 
 	const {
-		callSync,
-		checkOffloadConflicts,
 		setErrorMedia,
 		setCheckedOffloadConflicts,
 		setOffloadConflicts

@@ -12,10 +12,12 @@ import {
 	ToggleControl
 } from "@wordpress/components";
 
-import {
-	useDispatch,
-	useSelect
-} from "@wordpress/data";
+import { useSelect } from "@wordpress/data";
+
+/**
+ * Internal dependencies.
+ */
+import { clearCache } from "../../../utils/api";
 
 const General = ({
 	settings,
@@ -29,8 +31,6 @@ const General = ({
 			isLoading: isLoading(),
 		};
 	} );
-
-	const { clearCache } = useDispatch( 'optimole' );
 
 	const isReplacerEnabled = settings[ 'image_replacer' ] !== 'disabled';
 	const isLazyloadEnabled = settings[ 'lazyload' ] !== 'disabled';

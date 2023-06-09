@@ -18,10 +18,12 @@ import {
 	ToggleControl
 } from "@wordpress/components";
 
-import {
-	useDispatch,
-	useSelect
-} from "@wordpress/data";
+import { useSelect } from "@wordpress/data";
+
+/**
+ * Internal dependencies.
+ */
+import { sampleRate } from "../../../utils/api";
 
 const Compression = ({
 	settings,
@@ -45,8 +47,6 @@ const Compression = ({
 			isLoading: isLoading(),
 		};
 	} );
-
-	const { sampleRate } = useDispatch( 'optimole' );
 
 	const isNetworkOptimizationEnabled = settings[ 'network_optimization' ] !== 'disabled';
 	const isCDNEnabled = settings[ 'cdn' ] !== 'disabled';

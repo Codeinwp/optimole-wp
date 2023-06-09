@@ -14,6 +14,14 @@ import {
 
 import { useState } from "@wordpress/element";
 
+/**
+ * Internal dependencies.
+ */
+import {
+	connectAccount,
+	selectDomain
+} from '../../utils/api';
+
 const APIForm = ({
 	setMethod
 }) => {
@@ -21,11 +29,7 @@ const APIForm = ({
 	const [ errors, setErrors ] = useState( {} );
 	const [ selectedApp, setApp ] = useState( 0 );
 
-	const {
-		connectAccount,
-		selectDomain,
-		setShowDisconnect
-	} = useDispatch( 'optimole' );
+	const { setShowDisconnect } = useDispatch( 'optimole' );
 
 	const {
 		availableApps,

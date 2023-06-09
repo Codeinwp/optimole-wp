@@ -11,11 +11,13 @@ import {
 	useSelect
 } from "@wordpress/data";
 
+/**
+ * Internal dependencies.
+ */
+import { disconnectAccount } from '../../utils/api';
+
 const DisconnectLayout = () => {
-	const {
-		disconnectAccount,
-		setShowDisconnect
-	} = useDispatch( 'optimole' );
+	const { setShowDisconnect } = useDispatch( 'optimole' );
 
 	const { isLoading } = useSelect( select => {
 		const { isLoading } = select( 'optimole' );

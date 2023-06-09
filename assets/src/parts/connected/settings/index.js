@@ -3,10 +3,7 @@
  */
 import { Button } from "@wordpress/components";
 
-import {
-	useDispatch,
-	useSelect
-} from "@wordpress/data";
+import { useSelect } from "@wordpress/data";
 
 import { useState } from "@wordpress/element";
 
@@ -20,6 +17,10 @@ import Resize from "./Resize";
 import Lazyload from "./Lazyload";
 import Exclusions from "./Exclusions";
 import OffloadMedia from "./OffloadMedia";
+import {
+	sampleRate,
+	saveSettings
+} from "../../../utils/api";
 
 const Settings = ({
 	tab,
@@ -41,11 +42,6 @@ const Settings = ({
 			queryArgs: getQueryArgs()
 		};
 	} );
-
-	const {
-		sampleRate,
-		saveSettings
-	} = useDispatch( 'optimole' );
 
 	const [ settings, setSettings ] = useState( getSettings() );
 	const [ canSave, setCanSave ] = useState( false );
