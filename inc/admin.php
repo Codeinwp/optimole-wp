@@ -22,6 +22,13 @@ class Optml_Admin {
 	 */
 	public $settings;
 
+	/**
+	 * Hold the plugin conflict object.
+	 *
+	 * @var Optml_Conflicting_Plugins Settings object.
+	 */
+	public $conflicting_plugins;
+
 	const NEW_USER_DEFAULTS_UPDATED = 'optml_defaults_updated';
 
 	/**
@@ -29,11 +36,13 @@ class Optml_Admin {
 	 */
 	public function __construct() {
 		$this->settings = new Optml_Settings();
+		$this->conflicting_plugins = new Optml_Conflicting_Plugins();
 		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
 		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ], PHP_INT_MIN );
 		add_action( 'admin_notices', [ $this, 'add_notice' ] );
 		add_action( 'admin_notices', [ $this, 'add_notice_upgrade' ] );
+		add_action( 'admin_notices', [ $this, 'add_notice_conflicts' ] );
 		add_action( 'optml_daily_sync', [ $this, 'daily_sync' ] );
 
 		if ( $this->settings->is_connected() ) {
@@ -463,18 +472,19 @@ class Optml_Admin {
 	}
 
 	/**
-	 * Adds opt in notice.
+	 * CSS styles for Notice.
 	 */
-	public function add_notice() {
-		if ( ! $this->should_show_notice() ) {
-			return;
-		}
+	public static function notice_styles() {
 		?>
 		<style>
-			.optml-notice-optin {
+			.optml-notice-optin:not(.has-dismiss) {
 				background: url(" <?php echo esc_attr( OPTML_URL . '/assets/img/disconnected.svg' ); ?> ") #fff 100% 0 no-repeat;
 				position: relative;
 				padding: 0;
+			}
+
+			.optml-notice-optin.has-dismiss {
+				position: relative;
 			}
 
 			.optml-notice-optin .content {
@@ -508,6 +518,50 @@ class Optml_Admin {
 				}
 			}
 		</style>
+		<?php
+	}
+
+	/**
+	 * JS for Notice.
+	 */
+	public static function notice_js( $action ) {
+		?>
+		<script>
+			jQuery(document).ready(function($) {
+				// AJAX request to update the option value
+				$( '.optml-notice-optin button.notice-dismiss' ).click(function(e) {
+					e.preventDefault();
+
+					var notice = $(this).closest( '.optml-notice-optin' );
+					var nonce = '<?php echo esc_attr( wp_create_nonce( $action ) ); ?>';
+
+					$.ajax({
+						url: window.ajaxurl,
+						type: 'POST',
+						data: {
+							action: '<?php echo esc_attr( $action ); ?>',
+							nonce
+						},
+						complete() {
+							notice.remove();
+						}
+					});
+				});
+			});
+		</script>
+		<?php
+	}
+
+	/**
+	 * Adds opt in notice.
+	 */
+	public function add_notice() {
+		if ( ! $this->should_show_notice() ) {
+			return;
+		}
+
+		self::notice_styles();
+		?>
 		<div class="notice notice-info optml-notice-optin">
 			<div class="content">
 				<img src="<?php echo OPTML_URL . '/assets/img/logo.svg'; ?>" alt="<?php echo esc_attr__( 'Logo', 'optimole-wp' ); ?>"/>
@@ -525,6 +579,49 @@ class Optml_Admin {
 					</div>
 				</div>
 			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Adds conflicts notice.
+	 */
+	public function add_notice_conflicts() {
+		if ( ! $this->conflicting_plugins->should_show_notice() || ! $this->settings->is_connected() ) {
+			return;
+		}
+
+		$plugins = $this->conflicting_plugins->get_conflicting_plugins();
+		$names   = [];
+
+		foreach ( $plugins as $plugin ) {
+			$plugin_data = get_plugin_data( WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . $plugin );
+			$names[]     = $plugin_data['Name'];
+		}
+
+		$names = implode( ', ', $names );
+
+		self::notice_styles();
+		self::notice_js( 'optml_dismiss_conflict_notice' );
+		?>
+		<div class="notice notice-info optml-notice-optin has-dismiss">
+			<div class="content">
+				<img src="<?php echo OPTML_URL . '/assets/img/logo.svg'; ?>" alt="<?php echo esc_attr__( 'Logo', 'optimole-wp' ); ?>"/>
+
+				<div>
+					<p class="notice-title"><strong><?php echo esc_html__( 'Oops... Multiple image optimization plugins active', 'optimole-wp' ); ?></strong></p>
+					<p class="description"> <?php printf( __( 'We noticed multiple image optimization plugins active on your site, which may cause issues in Optimole. We recommend using only one image optimization plugin on your site for the best results. The following plugins may cause issues in Optimole: %2$s%1$s%3$s.', 'optimole-wp' ), $names, '<strong>', '</strong>' ); ?></p>
+					<div class="actions">
+						<a href="<?php echo esc_url( admin_url( 'plugins.php?optimole_conflicts' ) ); ?>"
+						   class="button button-primary button-hero"><?php _e( 'Manage Plugins', 'optimole-wp' ); ?>
+						</a>
+					</div>
+				</div>
+			</div>
+
+			<button type="button" class="notice-dismiss">
+				<span class="screen-reader-text"><?php _e( 'Dismiss this notice.', 'optimole-wp' ); ?></span>
+			</button>
 		</div>
 		<?php
 	}
