@@ -53,7 +53,7 @@ class Optml_Conflicting_Plugins {
 			// 'plugin-slug' => 'plugin-folder/plugin-file.php'
 		];
 
-		return apply_filters( 'optml_conflicting_plugins', $plugins );
+		return apply_filters( 'optml_conflicting_defined_plugins', $plugins );
 	}
 
 	/**
@@ -67,7 +67,8 @@ class Optml_Conflicting_Plugins {
 		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
 		$conflicting_plugins = $this->defined_plugins();
-		return array_filter( $conflicting_plugins, 'is_plugin_active' );
+		$conflicting_plugins = array_filter( $conflicting_plugins, 'is_plugin_active' );
+		return apply_filters( 'optml_conflicting_active_plugins', $conflicting_plugins );
 	}
 
 	/**
@@ -108,13 +109,38 @@ class Optml_Conflicting_Plugins {
 	 * Checks if there are any conflicting plugins.
 	 *
 	 * @since  3.8.0
-	 * @access private
+	 * @access public
 	 * @return boolean
 	 */
-	private function has_conflicting_plugins() {
+	public function has_conflicting_plugins() {
 		$conflicting_plugins = $this->get_conflicting_plugins();
 
 		return ! empty( $conflicting_plugins );
+	}
+
+	/**
+	 * Dismiss conflicting plugins.
+	 *
+	 * @since  3.8.0
+	 * @access public
+	 */
+	public function dismiss_conflicting_plugins() {
+		$options = get_option( $this->option_main, '{}' );
+		$options = json_decode( $options, true );
+
+		if ( empty( $options ) ) {
+			$options = [];
+		}
+
+		$conflicting_plugins = $this->get_conflicting_plugins();
+
+		foreach ( $conflicting_plugins as $slug => $file ) {
+			$conflicting_plugins[ $slug ] = true;
+		}
+
+		$options = array_merge( $options, $conflicting_plugins );
+
+		update_option( $this->option_main, wp_json_encode( $options ) );
 	}
 
 	/**
@@ -204,22 +230,7 @@ class Optml_Conflicting_Plugins {
 			wp_die();
 		}
 
-		$options = get_option( $this->option_main, '{}' );
-		$options = json_decode( $options, true );
-
-		if ( empty( $options ) ) {
-			$options = [];
-		}
-
-		$conflicting_plugins = $this->get_conflicting_plugins();
-
-		foreach ( $conflicting_plugins as $slug => $file ) {
-			$conflicting_plugins[ $slug ] = true;
-		}
-
-		$options = array_merge( $options, $conflicting_plugins );
-
-		update_option( $this->option_main, wp_json_encode( $options ) );
+		$this->dismiss_conflicting_plugins();
 
 		$response = [
 			'success' => true,
