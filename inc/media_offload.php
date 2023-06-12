@@ -292,10 +292,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		// we replace the updated filename with the deduplicated filename
 		if ( ! empty( self::$current_file_deduplication ) && stripos( self::$current_file_deduplication, $no_ext_file_name ) !== false ) {
 			$file = str_replace( $file_name, self::$current_file_deduplication, $file );
-			// we need to store the lowercase version of the filename we replaced to check when uploading the image if it was deduplicated
+			// we need to store the filename we replaced to check when uploading the image if it was deduplicated
 			self::$last_deduplicated = $file_name;
-			// we also need the original filename before deduplication in order to delete it and upload to our servers
-			// self::$last_deduplicated_original = $file_name;
+
 			self::$current_file_deduplication = false;
 		}
 		if ( OPTML_DEBUG_MEDIA ) {
