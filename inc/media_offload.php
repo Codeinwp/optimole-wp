@@ -351,8 +351,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			// and use it to replace the filename in the guid
 			$no_ext_filename = str_replace( '.' . $ext, '', $filename );
 
+			$no_ext_filename_sanitized = sanitize_title( $no_ext_filename );
+
 			// get the deduplication addition from the database post_name
-			$diff = str_replace( strtolower( $no_ext_filename ), '', $sanitized_post_name );
+			$diff = str_replace( strtolower( $no_ext_filename_sanitized ), '', $sanitized_post_name );
 
 			// create the deduplicated filename
 			$to_replace_with = $no_ext_filename . $diff . '.' . $ext;
