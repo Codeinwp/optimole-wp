@@ -94,10 +94,16 @@ class Optml_Conflicting_Plugins {
 	 *
 	 * @since  3.8.0
 	 * @access private
+	 * @param  boolean $show_dismissed Also show the dismissed plugins.
 	 * @return array
 	 */
-	public function get_conflicting_plugins() {
+	public function get_conflicting_plugins( $show_dismissed = false ) {
 		$conflicting_plugins = $this->get_active_plugins();
+
+		if ( true === $show_dismissed ) {
+			return $conflicting_plugins;
+		}
+
 		$dismissed_conflicts = $this->get_dismissed_notices();
 
 		$conflicting_plugins = array_diff_key( $conflicting_plugins, $dismissed_conflicts );
@@ -190,7 +196,7 @@ class Optml_Conflicting_Plugins {
 			return $plugins;
 		}
 
-		$allowed_plugins = $this->get_conflicting_plugins();
+		$allowed_plugins = $this->get_conflicting_plugins( true );
 
 		$filtered_plugins = [];
 

@@ -45,5 +45,6 @@ class Test_Plugin_Conflicts extends WP_UnitTestCase {
         } );
 
         $this->assertCount( 1, self::$conflicts->get_conflicting_plugins() );
+        $this->assertCount( 3, self::$conflicts->get_conflicting_plugins( true ) );
 	}
 }
