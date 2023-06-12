@@ -254,7 +254,6 @@ const Compression = ({
 											) }
 
 											<progress
-												className="primary"
 												max={ 100 }
 												value={ getCompressionRatio() }
 											/>

@@ -97,11 +97,11 @@ $disabled: #6786F4;
 		width: 100%;
 	}
 
-	.optml-connecting {
-		progress::-webkit-progress-value,
-		progress::-webkit-progress-bar,
-		progress::-moz-progress-bar {
-			background: $success;
+	progress {
+		&::-webkit-progress-value,
+		&::-webkit-progress-bar,
+		&::-moz-progress-bar {
+			background: $info;
 		}
 	}
 
@@ -111,14 +111,6 @@ $disabled: #6786F4;
 			&::-webkit-progress-bar,
 			&::-moz-progress-bar {
 				background: $info;
-			}
-
-			&.primary {
-				&::-webkit-progress-value,
-				&::-webkit-progress-bar,
-				&::-moz-progress-bar {
-					background: $success;
-				}
 			}
 		}
 
