@@ -42,7 +42,14 @@ class Optml_Conflicting_Plugins {
 	 */
 	private function defined_plugins() {
 		$plugins = [
-			'wp-smush'   => 'wp-smushit/wp-smush.php',
+			'wp-smush'     => 'wp-smushit/wp-smush.php',
+			'wp-smush-pro' => 'wp-smush-pro/wp-smush.php',
+			'kraken'       => 'kraken-image-optimizer/kraken.php',
+			'tinypng'      => 'tiny-compress-images/tiny-compress-images.php',
+			'shortpixel'   => 'shortpixel-image-optimiser/wp-shortpixel.php',
+			'ewww'         => 'ewww-image-optimizer/ewww-image-optimizer.php',
+			'ewww-cloud'   => 'ewww-image-optimizer-cloud/ewww-image-optimizer-cloud.php',
+			'imagerecycle' => 'imagerecycle-pdf-image-compression/wp-image-recycle.php',
 			// 'plugin-slug' => 'plugin-folder/plugin-file.php'
 		];
 
