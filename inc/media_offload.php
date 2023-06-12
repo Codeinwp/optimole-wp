@@ -1205,6 +1205,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		// check if the current filename is the last deduplicated filename
 		if ( ! empty( self::$last_deduplicated ) && strpos( $no_ext_filename, str_replace( '.' . $extension, '', self::$last_deduplicated ) ) !== false ) {
+			// replace the file with the original before deduplication to get the path where the image is uploaded
 			$local_file = str_replace( $file_name, self::$last_deduplicated, $local_file );
 			$original_name = self::$last_deduplicated;
 			self::$last_deduplicated = false;
