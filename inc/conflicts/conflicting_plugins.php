@@ -50,6 +50,7 @@ class Optml_Conflicting_Plugins {
 			'ewww'         => 'ewww-image-optimizer/ewww-image-optimizer.php',
 			'ewww-cloud'   => 'ewww-image-optimizer-cloud/ewww-image-optimizer-cloud.php',
 			'imagerecycle' => 'imagerecycle-pdf-image-compression/wp-image-recycle.php',
+			'imagify'      => 'imagify/imagify.php',
 			// 'plugin-slug' => 'plugin-folder/plugin-file.php'
 		];
 
