@@ -335,7 +335,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$filename = wp_basename( $data['guid'] );
 		$ext = $this->get_ext( $filename );
 		// skip if the file is not an image
-		if ( ! isset( Optml_Config::$all_extensions[ $ext ] ) && ! in_array( $ext, ['jpg', 'jpeg', 'jpe'] ) ) {
+		if ( ! isset( Optml_Config::$all_extensions[ $ext ] ) && ! in_array( $ext, ['jpg', 'jpeg', 'jpe'], true ) ) {
 			return $data;
 		}
 
