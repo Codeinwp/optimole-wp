@@ -161,7 +161,7 @@ final class Optml_Manager {
 			return;
 		}
 
-		$string    = __( 'Optimised by Optimole', 'optimole-wp' );
+		$string    = __( 'Optimized by Optimole', 'optimole-wp' );
 		$div_style = [
 			'display'          => 'flex',
 			'position'         => 'fixed',
@@ -176,9 +176,13 @@ final class Optml_Manager {
 			'border'           => '1px solid #E9E9E9',
 			'z-index'          => '9999999999',
 			'border-radius'    => '4px',
+			'text-decoration'  => 'none',
+			'font-family'      => 'Arial, Helvetica, sans-serif',
 		];
 
 		$logo = OPTML_URL . 'assets/img/logo.svg';
+
+		$link = 'https://optimole.com/wordpress/?from=badgeOn';
 
 		$css = '';
 
@@ -186,7 +190,7 @@ final class Optml_Manager {
 			$css .= $key . ':' . $value . ';';
 		}
 
-		$output = '<div style="' . esc_attr( $css ) . '">';
+		$output = '<a style="' . esc_attr( $css ) . '" href="' . esc_url( $link ) . '" rel="nofollow" target="_blank">';
 		$output .= '
 	<svg style="margin-right:6px" width="20" height="20" viewBox="0 0 251 250" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M217.696 99.0926C240.492 152.857 211.284 215.314 153.249 239.999C95.2141 264.683 30.4436 242.239 7.64869 188.474C-15.1462 134.71 14.8767 75.1972 72.9116 50.4991C130.947 25.8007 194.902 45.3142 217.696 99.0926Z" fill="#EDF0FF"/>
