@@ -98,7 +98,7 @@ const OffloadMedia = ({
 
 	const isCloudLibraryEnabled = settings[ 'cloud_images' ] !== 'disabled';
 	const isOffloadMediaEnabled = settings[ 'offload_media' ] !== 'disabled';
-	const whitelistedDomains = settings[ 'whitelist_domains' ] || [];
+	const whitelistedDomains = optimoleDashboardApp.user_data.whitelist || [];
 
 	useEffect( () => {
 		if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {

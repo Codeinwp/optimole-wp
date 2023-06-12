@@ -276,6 +276,13 @@ $disabled: #6786F4;
 
 		>.components-flex {
 			padding: 0 8px;
+			gap: 0 8px;
+
+			>.components-flex-item {
+				min-height: 40px;
+				align-items: center;
+				display: flex;
+			}
 		}
 
 		input[type="text"].components-form-token-field__input {
