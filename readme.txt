@@ -1,4 +1,4 @@
-=== Image optimization & Lazy Load by Optimole ===
+=== Image Optimization by Optimole - Lazy Load, CDN, Convert to WebP & AVIF ===
 Contributors: optimole
 Tags: image optimization, convert webp, responsive images, lazy load, images, optimization, performance, photos, free cdn
 Requires at least: 4.7
