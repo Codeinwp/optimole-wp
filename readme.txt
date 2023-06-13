@@ -1,8 +1,8 @@
-=== Image optimization & Lazy Load by Optimole ===
+=== Image Optimization by Optimole - Lazy Load, CDN, Convert to WebP & AVIF ===
 Contributors: optimole
 Tags: image optimization, convert webp, responsive images, lazy load, images, optimization, performance, photos, free cdn
 Requires at least: 5.5
-Tested up to: 6.1
+Tested up to: 6.2
 Requires PHP: 5.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -94,6 +94,70 @@ Premium users will be able to optimize images starting with more than 25k monthl
 4. Plugin settings
 
 == Changelog ==
+
+#### [Version 3.7.0](https://github.com/Codeinwp/optimole-wp/compare/v3.6.1...v3.7.0) (2023-05-15)
+
+### New Features
+- **Best Format Optimization:** Implemented a system that automatically chooses the optimal image format, based on smallest resulting file size, to enhance site loading speed.
+- **Media Library Folders:** Improved browsing experience in the Media Library by adding the option to organize images into folders.
+- **Metadata Strip Option:** Introduced an option to enable/disable the stripping of metadata (EXIF, IPTC, etc.) from the resulting image, providing users with more control over their content.
+- **Noscript Tag:** Added a new option to disable the noscript tag in settings, providing more flexibility in configuring your site.
+- **Visit Stats by Domain:** Introduced a feature to display visit statistics by domain, aiding in traffic analysis and site optimization.
+- **Background Lazyload:** Added compatibility for background lazyload with both Otter Blocks and the core cover block, improving page load times.
+- **Hide API Key:** For enhanced security, API keys are now hidden by default.
+
+### Improvements
+- **Media Library Stats Formatting:** Improved number formatting for more readable Media Library statistics.
+- **Invoices Redesign:** Enhanced the design of invoices for better readability and user experience.
+- **User Experience on Fresh Installs:** Improved the user experience of the last images section on fresh installs, providing a more intuitive and engaging user interface.
+- **CDN Locations:** Updated the number of CDN locations to 450, offering improved content delivery speeds globally.
+- **Generic Placeholder:** Generic placeholders are now enabled by default.
+- **Video and Iframe Lazyload:** Lazyload is now enabled by default for videos and iframes to improve page load times.
+
+
+### Bug Fixes
+- **AVIF Option Bug:** Fixed an issue where the AVIF option was causing Microsoft Edge to fallback to JPEG/PNG instead of the intended WEBP format.
+- **Divi Blog Archive Pagination:** Resolved a bug that was preventing pagination from working on Divi blog archive templates when Optimole lazyloading was activated.
+- **PHP 8.2 Compatibility:** Fixed compatibility issues with PHP 8.2, ensuring smooth functionality across different PHP environments.
+- **View Sample Image Button:** Fixed the behaviour of the 'View Sample Image' button to work as intended.
+- **3rd Party Plugin Exclusions:** Resolved an issue where images injected by 3rd party plugins were ignoring exclusions in some cases.
+- **Search Bar Refresh:** Fixed an issue where the search bar required a page refresh when displaying no results.
+- **Upgrade Button Behaviour:** Fixed an issue with the behaviour of the 'Upgrade' button in dashboard cards.
+- **Display of Large Image Names:** Fixed a display issue for images with larger names, ensuring all image names are displayed correctly.
+- **Login and Signup Form Validation:** Fixed validation errors on the Login and Signup forms to ensure accurate data entry.
+
+
+
+
+##### [Version 3.6.1](https://github.com/Codeinwp/optimole-wp/compare/v3.6.0...v3.6.1) (2023-04-09)
+
+#### Bug Fixes
+- **Posts Screen Error**: Resolved an issue with the last releases that show an error on the Posts screen.
+
+
+
+
+#### [Version 3.6.0](https://github.com/Codeinwp/optimole-wp/compare/v3.5.7...v3.6.0) (2023-04-06)
+
+#### Improvements
+- **Initial Setup Speed**: Warmed up the cache on connect to speed up the initial setup process, providing a more efficient and seamless user experience.
+- **Iframe Lazyload**: Enhanced the iframe lazyload feature by improving conflict detection mechanisms to avoid issues with other plugins or themes.
+
+#### Bug Fixes
+- **RSS Feed Lazyload**: Resolved an issue where lazyload replacements were not functioning correctly on RSS feeds.
+- **Elementor CSS Image Replacement**: Fixed compatibility issues with newer versions of the Elementor page builder, ensuring proper CSS image replacement.
+- **Bullet Symbol Filenames**: Fixed a bug where images with a bullet symbol in the filename were not being optimized correctly.
+
+#### New Features
+- **SVG Upload Compatibility**: Added support for SVG file uploads when Optimole is installed, allowing users to work with this popular image format.
+- **Central Dashboard Image Upload**: Added the ability to upload images directly to the central dashboard at dashboard.optimole.com for more convenient management.
+- **Export Offloaded Source Images**: Implemented the ability to export source images offloaded to Optimole, giving users more control over their image assets.
+
+#### Updates
+- **Dependencies and WordPress Compatibility**: Updated dependencies and ensured compatibility with the latest tested WordPress version, guaranteeing smooth integration with the platform.
+
+
+
 
 ##### [Version 3.5.7](https://github.com/Codeinwp/optimole-wp/compare/v3.5.6...v3.5.7) (2023-02-23)
 
