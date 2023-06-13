@@ -24,8 +24,6 @@ const DEFAULT_STATE = {
 	loadingSync: false,
 	queryArgs : [],
 	errorMedia: false,
-	updateStatus: 'pending',
-	updatePageStatus: 'pending',
 	estimatedTime : 0,
 	sumTime : 0,
 	checkedOffloadConflicts: false,
@@ -200,16 +198,6 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 			return {
 				...state,
 				errorMedia: action.errorMedia,
-			};
-		case 'SET_UPDATE_STATUS':
-			return {
-				...state,
-				updateStatus: action.updateStatus,
-			};
-		case 'SET_UPDATE_PAGE_STATUS':
-			return {
-				...state,
-				updatePageStatus: action.updatePageStatus,
 			};
 		case 'SET_ESTIMATED_TIME':
 			return {

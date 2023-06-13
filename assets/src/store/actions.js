@@ -149,18 +149,6 @@ const actions = {
 			errorMedia,
 		};
 	},
-	setUpdateStatus( updateStatus ) {
-		return {
-			type: 'SET_UPDATE_STATUS',
-			updateStatus,
-		};
-	},
-	setUpdatePageStatus( updatePageStatus ) {
-		return {
-			type: 'SET_UPDATE_PAGE_STATUS',
-			updatePageStatus,
-		};
-	},
 	setEstimatedTime( estimatedTime ) {
 		return {
 			type: 'SET_ESTIMATED_TIME',

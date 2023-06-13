@@ -28,8 +28,6 @@ const {
 	setSampleRate,
 	setCheckedOffloadConflicts,
 	setOffloadConflicts,
-	setUpdatePageStatus,
-	setUpdateStatus,
 	setPushedImagesProgress,
 	setLoadingSync,
 	setLoadingRollback,
@@ -45,10 +43,11 @@ const {
 	getOptimizedImages,
 	getSumTime,
 	getTotalNumberOfImages,
-	getUpdatePageStatus,
-	getUpdateStatus,
 	getQueryArgs
 } = select( 'optimole' );
+
+let updateStatus = 'pending';
+let updatePageStatus = 'pending';
 
 export const sendOnboardingImages = ( data = {} ) => {
 	data.offset = undefined !== data.offset ? data.offset : 0;
@@ -469,7 +468,10 @@ export const callSync = ( data ) => {
 		setLoadingRollback( true );
 	}
 
-	getNumberOfImages( data );
+	getNumberOfImages( {
+		...data,
+		consecutiveErrors: 0,
+	} );
 };
 
 export const getNumberOfImages = ( data ) => {
@@ -499,7 +501,10 @@ export const getNumberOfImages = ( data ) => {
 	.then( response => {
 		setIsLoading( false );
 
-		if ( ! response ) {
+		if ( ! response.data ) {
+			console.log( '%c No images available.', 'color: #E7602A' );
+			setLoadingSync( false );
+			setLoadingRollback( false );
 			return;
 		}
 
@@ -532,7 +537,7 @@ export const getNumberOfImages = ( data ) => {
 					...data,
 					consecutiveErrors: data.consecutiveErrors + 1,
 				} );
-			}, consecutiveErrors * 1000 + 1000 );
+			}, data.consecutiveErrors * 1000 + 1000 );
 		} else {
 			setErrorMedia( data.action );
 			setLoadingSync( false );
@@ -592,8 +597,6 @@ export const pushBatch = ( data ) => {
 						batch: data.batch,
 						consecutiveErrors: 0
 					} );
-
-					let updateStatus = getUpdateStatus();
 
 					let interval = setInterval( () => {
 						if ( 'done' === updateStatus || ( 'fail' === updateStatus && 'rollback_images' === data.action ) ) {
@@ -695,7 +698,7 @@ export const pushBatch = ( data ) => {
 
 export const updateContent = ( data ) => {
 	if ( data.imageIds.length === 0 ) {
-		setUpdateStatus( 'done' );
+		updateStatus = 'done';
 	} else {
 		apiFetch( {
 			path: optimoleDashboardApp.routes[ 'upload_rollback_images' ],
@@ -722,11 +725,10 @@ export const updateContent = ( data ) => {
 					consecutiveErrors: 0
 				} );
 
-				let interval = setInterval(  () => {
-					const updatePageStatus = getUpdatePageStatus();
+				let interval = setInterval( () => {
 					if ( 'done' === updatePageStatus ) {
-						setUpdatePageStatus( 'pending' );
-						setUpdateStatus( 'done' );
+						updatePageStatus = 'pending';
+						updateStatus = 'done';
 						clearInterval( interval );
 					}
 				}, 10000 );
@@ -743,7 +745,7 @@ export const updateContent = ( data ) => {
 					} );
 				}, data.consecutiveErrors * 1000 + 5000 );
 			} else {
-				setUpdatePageStatus( 'fail' );
+				updatePageStatus = 'fail';
 			}
 		} );
 	}
@@ -759,7 +761,7 @@ const updatePage = ( data ) => {
 	} )
 	.then( response => {
 		if ( 'success' === response.code && response.data === true  ) {
-			setUpdatePageStatus( 'done' );
+			updatePageStatus = 'done';
 		} else {
 			throw 'failed_update';
 		}
@@ -772,7 +774,7 @@ const updatePage = ( data ) => {
 				} );
 			}, data.consecutiveErrors * 1000 + 5000 );
 		} else {
-			setUpdateStatus( 'fail' );
+			updateStatus = 'fail';
 		}
 	} );
 };

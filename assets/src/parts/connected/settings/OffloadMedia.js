@@ -310,8 +310,8 @@ const OffloadMedia = ({
 						<div className="flex my-2 gap-3">
 							<Button
 								variant="default"
-								isBusy={ loadingSync || isLoading }
-								disabled={ loadingSync || isLoading }
+								isBusy={ loadingSync || loadingRollback || isLoading }
+								disabled={ loadingSync || loadingRollback || isLoading }
 								className="optml__button flex justify-center rounded font-bold min-h-40"
 								onClick={ () => onOffloadMedia() }
 							>
