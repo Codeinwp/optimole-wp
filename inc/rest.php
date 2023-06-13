@@ -289,8 +289,8 @@ class Optml_Rest {
 		$settings = new Optml_Settings();
 		$settings->update( 'api_key', $api_key );
 
-		if ( isset( $data['extra_visits'] ) && $data['extra_visits'] === true ) {
-			$settings->update( 'banner_frontend', 'enabled' );
+		if ( isset( $data['extra_visits'] ) ) {
+			$settings->update_frontend_banner_from_remote( $data['extra_visits'] );
 		}
 
 		if ( $data['app_count'] === 1 ) {
@@ -388,8 +388,8 @@ class Optml_Rest {
 			$settings->update( 'service_data', $user_data );
 		}
 
-		if ( isset( $user_data['extra_visits'] ) && $user_data['extra_visits'] === true ) {
-			$settings->update( 'banner_frontend', 'enabled' );
+		if ( isset( $user_data['extra_visits'] ) ) {
+			$settings->update_frontend_banner_from_remote( $user_data['extra_visits'] );
 		}
 
 		return $this->response( $user_data );

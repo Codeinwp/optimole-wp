@@ -381,6 +381,30 @@ class Optml_Settings {
 	}
 
 	/**
+	 * Update frontend banner setting from remote.
+	 *
+	 * @param bool $value Value.
+	 *
+	 * @return bool
+	 */
+	public function update_frontend_banner_from_remote( $value ) {
+		if ( ! $this->is_main_mu_site() ) {
+			return false;
+		}
+
+		$opts                    = $this->options;
+		$opts['banner_frontend'] = $value ? 'enabled' : 'disabled';
+
+		$update = update_option( $this->namespace, $opts, false );
+
+		if ( $update ) {
+			$this->options = $opts;
+		}
+
+		return $update;
+	}
+
+	/**
 	 * Update settings.
 	 *
 	 * @param string $key Settings key.
@@ -392,10 +416,8 @@ class Optml_Settings {
 		if ( ! $this->is_allowed( $key ) ) {
 			return false;
 		}
-		// If we try to update from a website which is not the main OPTML blog, bail.
-		if ( defined( 'OPTIML_ENABLED_MU' ) && constant( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && constant( 'OPTIML_MU_SITE_ID' ) &&
-			 intval( constant( 'OPTIML_MU_SITE_ID' ) ) !== get_current_blog_id()
-		) {
+
+		if ( ! $this->is_main_mu_site() ) {
 			return false;
 		}
 		$opt = $this->options;
@@ -414,6 +436,22 @@ class Optml_Settings {
 			do_action( 'optml_settings_updated' );
 		}
 		return $update;
+	}
+
+	/**
+	 * Check that we're on the main OPTML blog.
+	 *
+	 * @return bool
+	 */
+	private function is_main_mu_site() {
+		// If we try to update from a website which is not the main OPTML blog, bail.
+		if ( defined( 'OPTIML_ENABLED_MU' ) && constant( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && constant( 'OPTIML_MU_SITE_ID' ) &&
+			 intval( constant( 'OPTIML_MU_SITE_ID' ) ) !== get_current_blog_id()
+		) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

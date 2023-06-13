@@ -661,7 +661,7 @@ class Optml_Admin {
 		$this->settings->update( 'service_data', $data );
 
 		if ( isset( $data['extra_visits'] ) ) {
-			$this->settings->update( 'banner_frontend', $data['extra_visits'] === true ? 'enabled' : 'disabled' );
+			$this->settings->update_frontend_banner_from_remote( $data['extra_visits'] );
 		}
 
 		remove_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
