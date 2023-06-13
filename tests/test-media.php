@@ -163,7 +163,7 @@ class Test_Media extends WP_UnitTestCase {
 	public function test_duplicated_image() {
 
 		$content =  wp_get_attachment_image( self::$sample_attachement_upper_case );
-		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:46/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1PQ7p-2.jpg.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content);
+		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:46/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1PQ7p-2.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content);
 	}
 	public function test_page_images_process() {
 
