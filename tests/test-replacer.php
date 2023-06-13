@@ -716,6 +716,31 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertStringNotContainsString('data-opt-src', $replaced_content);
 	}
 
+	public function test_extension_exclusion()
+	{
+		$settings = new Optml_Settings();
+			$settings->update('filters', array(
+				Optml_Settings::FILTER_TYPE_OPTIMIZE => array (
+					Optml_Settings::FILTER_EXT => array (
+						'png' => true,
+						'webp' => true,
+						'jpg' => true,
+					)
+				)));
+		Optml_Url_Replacer::instance()->init();
+		Optml_Tag_Replacer::instance()->init();
+		Optml_Manager::instance()->init();
+		$content = '<div>
+						<img  src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;
+						<img src="http://example.org/wp-content/uploads/2019/09/img.jpg" alt=""/>;
+						<img  src="http://example.org/img.webp" alt=""/>;
+						<img src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;
+					</div>';
+		$replaced_content = Optml_Manager::instance()->process_images_from_content($content);
+		$this->assertEquals( 0, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertStringNotContainsString('data-opt-src', $replaced_content);
+	}
+
 	public function test_strip_metadata() {
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
 		$this->assertStringNotContainsString( '/sm:0/', $replaced_content );

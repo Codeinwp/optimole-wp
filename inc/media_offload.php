@@ -292,10 +292,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		// we replace the updated filename with the deduplicated filename
 		if ( ! empty( self::$current_file_deduplication ) && stripos( self::$current_file_deduplication, $no_ext_file_name ) !== false ) {
 			$file = str_replace( $file_name, self::$current_file_deduplication, $file );
-			// we need to store the lowercase version of the filename we replaced to check when uploading the image if it was deduplicated
-			self::$last_deduplicated = strtolower( $file_name );
-			// we also need the original filename before deduplication in order to delete it and upload to our servers
-			self::$last_deduplicated_original = $file_name;
+			// we need to store the filename we replaced to check when uploading the image if it was deduplicated
+			self::$last_deduplicated = $file_name;
+
 			self::$current_file_deduplication = false;
 		}
 		if ( OPTML_DEBUG_MEDIA ) {
@@ -329,19 +328,36 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', 'data before' );
 			do_action( 'optml_log', $data );
 		}
-		if ( ! empty( $data['guid'] ) ) {
-			$filename = wp_basename( $data['guid'] );
-			$ext = $this->get_ext( $filename );
-			// on some instances (just unit tests) the post name has the extension appended like this : `image-1-jpg`
-			// we remove that as it is redundant for the file name deduplication we are using it
-			$sanitized_post_name = str_replace( '-' . $ext, '', $data['post_name'] );
+		if ( empty( $data['guid'] ) ) {
+			return $data;
 		}
+
+		$filename = wp_basename( $data['guid'] );
+		$ext = $this->get_ext( $filename );
+		// skip if the file is not an image
+		if ( ! isset( Optml_Config::$all_extensions[ $ext ] ) && ! in_array( $ext, ['jpg', 'jpeg', 'jpe'], true ) ) {
+			return $data;
+		}
+
+		// on some instances (just unit tests) the post name has the extension appended like this : `image-1-jpg`
+		// we remove that as it is redundant for the file name deduplication we are using it
+		$sanitized_post_name = str_replace( '-' . $ext, '', $data['post_name'] );
+
 		// with the wp deduplication working the post_title is identical to the post_name
 		// so when they are different it means we need to deduplicate using the post_name
 		if ( ! empty( $data['post_name'] ) && $data['post_title'] !== $sanitized_post_name ) {
 			// we append the extension to the post_name to create a filename
 			// and use it to replace the filename in the guid
-			$to_replace_with = $sanitized_post_name . '.' . $ext;
+			$no_ext_filename = str_replace( '.' . $ext, '', $filename );
+
+			$no_ext_filename_sanitized = sanitize_title( $no_ext_filename );
+
+			// get the deduplication addition from the database post_name
+			$diff = str_replace( strtolower( $no_ext_filename_sanitized ), '', $sanitized_post_name );
+
+			// create the deduplicated filename
+			$to_replace_with = $no_ext_filename . $diff . '.' . $ext;
+
 			$data['guid'] = str_replace( $filename, $to_replace_with, $data['guid'] );
 			// we store the deduplication to be used and add the filter for updating the attached_file meta
 			self::$current_file_deduplication = $to_replace_with;
@@ -1190,8 +1206,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		// check if the current filename is the last deduplicated filename
 		if ( ! empty( self::$last_deduplicated ) && strpos( $no_ext_filename, str_replace( '.' . $extension, '', self::$last_deduplicated ) ) !== false ) {
 			// replace the file with the original before deduplication to get the path where the image is uploaded
-			$local_file = str_replace( $file_name, self::$last_deduplicated_original, $local_file );
-			$original_name = self::$last_deduplicated_original;
+			$local_file = str_replace( $file_name, self::$last_deduplicated, $local_file );
+			$original_name = self::$last_deduplicated;
 			self::$last_deduplicated = false;
 		}
 		if ( OPTML_DEBUG_MEDIA ) {
