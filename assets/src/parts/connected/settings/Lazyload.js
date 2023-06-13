@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import classnames from "classnames";
+import classnames from 'classnames';
 
 /**
  * WordPress dependencies.
@@ -11,29 +11,29 @@ import {
 	BaseControl,
 	TextareaControl,
 	ToggleControl
-} from "@wordpress/components";
+} from '@wordpress/components';
 
-import { useSelect } from "@wordpress/data";
+import { useSelect } from '@wordpress/data';
 
 const Lazyload = ({
 	settings,
 	setSettings,
-	setCanSave,
+	setCanSave
 }) => {
 	const { isLoading } = useSelect( select => {
 		const { isLoading } = select( 'optimole' );
 
 		return {
-			isLoading: isLoading(),
+			isLoading: isLoading()
 		};
-	} );
+	});
 
-	const isLazyloadPlaceholderEnabled = settings[ 'lazyload_placeholder' ] !== 'disabled';
-	const isNativeLazyloadEnabled = settings[ 'native_lazyload' ] !== 'disabled';
-	const isScaleEnabled = settings[ 'scale' ] === 'disabled';
-	const isBGReplacerEnabled = settings[ 'bg_replacer' ] !== 'disabled';
-	const isVideoLazyloadEnabled = settings[ 'video_lazyload' ] !== 'disabled';
-	const isNoScriptEnabled = settings[ 'no_script' ] !== 'disabled';
+	const isLazyloadPlaceholderEnabled = 'disabled' !== settings[ 'lazyload_placeholder' ];
+	const isNativeLazyloadEnabled = 'disabled' !== settings[ 'native_lazyload' ];
+	const isScaleEnabled = 'disabled' === settings.scale;
+	const isBGReplacerEnabled = 'disabled' !== settings[ 'bg_replacer' ];
+	const isVideoLazyloadEnabled = 'disabled' !== settings[ 'video_lazyload' ];
+	const isNoScriptEnabled = 'disabled' !== settings[ 'no_script' ];
 
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
@@ -58,7 +58,7 @@ const Lazyload = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'lazyload_placeholder', value ) }
@@ -92,7 +92,7 @@ const Lazyload = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'native_lazyload', value ) }
@@ -107,7 +107,7 @@ const Lazyload = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'scale', ! value ) }
@@ -122,7 +122,7 @@ const Lazyload = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'bg_replacer', value ) }
@@ -137,7 +137,7 @@ const Lazyload = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'video_lazyload', value ) }
@@ -152,7 +152,7 @@ const Lazyload = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'no_script', value ) }
@@ -166,7 +166,7 @@ const Lazyload = ({
 						label={ optimoleDashboardApp.strings.options_strings.watch_title_lazyload }
 						help={ optimoleDashboardApp.strings.options_strings.watch_desc_lazyload }
 						placeholder="e.g: .image, #item-id, div.with-background-image"
-						value={ settings[ 'watchers' ] }
+						value={ settings.watchers }
 						onChange={ value => updateValue( 'watchers', value ) }
 					/>
 				</>

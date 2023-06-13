@@ -1,33 +1,33 @@
 /**
  * External dependencies.
  */
-import classnames from "classnames";
+import classnames from 'classnames';
 
-import { rotateRight } from "@wordpress/icons";
+import { rotateRight } from '@wordpress/icons';
 
 /**
  * WordPress dependencies.
  */
-import { 
+import {
 	DropdownMenu,
 	Icon
-} from "@wordpress/components";
+} from '@wordpress/components';
 
 import {
 	useDispatch,
 	useSelect
-} from "@wordpress/data";
+} from '@wordpress/data';
 
 import {
 	useEffect,
 	useState
-} from "@wordpress/element";
+} from '@wordpress/element';
 
 /**
  * Internal dependencies.
  */
-import { connected, disconnected } from "../utils/icons";
-import { requestStatsUpdate } from "../utils/api";
+import { connected, disconnected } from '../utils/icons';
+import { requestStatsUpdate } from '../utils/api';
 
 const Header = ({
 	tab,
@@ -42,7 +42,7 @@ const Header = ({
 		isLoading,
 		hasApplication,
 		hasDashboardLoaded,
-		hasConflicts,
+		hasConflicts
 	} = useSelect( select => {
 		const {
 			isConnected,
@@ -59,15 +59,15 @@ const Header = ({
 			isLoading: isLoading(),
 			hasApplication: hasApplication(),
 			hasDashboardLoaded: hasDashboardLoaded(),
-			hasConflicts: conflicts.count > 0 || 0
+			hasConflicts: 0 < conflicts.count || 0
 		};
-	} );
+	});
 
 	useEffect( () => {
 		if ( hasConflicts ) {
 			setShowConflicts( true );
 		}
-	}, [ hasConflicts ] );
+	}, [ hasConflicts ]);
 
 	const tabs = [
 		{
@@ -111,10 +111,10 @@ const Header = ({
 								icon={ ( isLoading || isOnboarding ) ? <Icon icon={ rotateRight } className="animate-spin fill-success" /> : <Icon icon={ connected } /> }
 								toggleProps={ {
 									className: 'optml-header__dropdown uppercase font-bold text-xs text-success hover:text-success active:text-success focus:text-success mr-3 border border-gray-300 rounded-md border-solid gap-2',
-									iconPosition: 'right',
+									iconPosition: 'right'
 								} }
 								popoverProps={ {
-									className: 'optml-header__dropdown__popover',
+									className: 'optml-header__dropdown__popover'
 								} }
 								text={ isOnboarding ? optimoleDashboardApp.strings.connecting : optimoleDashboardApp.strings.connected }
 								controls={ [
@@ -131,7 +131,7 @@ const Header = ({
 										title: optimoleDashboardApp.strings.disconnect_btn,
 										onClick: () => setShowDisconnect( true ),
 										isDisabled: isOnboarding
-									},
+									}
 								] }
 							/>
 						</>
@@ -149,13 +149,13 @@ const Header = ({
 
 			{ ( isConnected && hasApplication && hasDashboardLoaded ) && (
 				<ul className="flex gap-8 items-center max-w-screen-xl mx-auto my-0 justify-center sm:justify-normal">
-					{ tabs.filter( tab => ! tab?.isDisabled ).map( ( { label, value } ) => (
+					{ tabs.filter( tab => ! tab?.isDisabled ).map( ({ label, value }) => (
 						<li
 							key={ value }
 							className={ classnames(
 								'cursor-pointer text-purple-gray font-bold text-lg m-0 py-2 px-3 transition-colors duration-200 ease-in-out border-0 border-b-4 border-b-white border-solid',
 								{
-									'text-black !border-b-info': tab === value,
+									'text-black !border-b-info': tab === value
 								}
 							) }
 							onClick={ () => setTab( value ) }
@@ -166,7 +166,7 @@ const Header = ({
 				</ul>
 			) }
 		</header>
-	)
-}
+	);
+};
 
 export default Header;

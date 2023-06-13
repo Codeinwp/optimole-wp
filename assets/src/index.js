@@ -10,4 +10,4 @@ import './style.scss';
 import './store';
 import App from './parts/Main';
 
-render( <App />, document.getElementById( 'optimole-app' ));
+render( <App />, document.getElementById( 'optimole-app' ) );
