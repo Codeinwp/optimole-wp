@@ -106,8 +106,6 @@ This repository uses conventional [changelog commit](https://github.com/Codeinwp
 
 How to release a new version:
 
-- Clone the master branch
-- Do your changes
 - Send a PR to master and merge it using the following subject message
   - `release: <release short description>` - for patch release
   - `release(minor): <release short description>` - for minor release
