@@ -24,7 +24,7 @@ class Optml_Rest {
 	/**
 	 * Upload conflicts api.
 	 *
-	 * @var string upload_conflicts_api.
+	 * @var array upload_conflicts_api.
 	 */
 	public static $rest_routes = [
 		'service_routes' => ['update_option' => 'POST', 'request_update' => 'GET', 'check_redirects' => 'POST_PUT_PATCH',
@@ -749,7 +749,7 @@ class Optml_Rest {
 
 			if ( $processed_images > 0 ) {
 				$response = wp_remote_get( $value['src'][ rand( 0, $processed_images - 1 ) ], $args );
-				if ( is_array( $response ) && ! is_wp_error( $response ) ) {
+				if ( ! is_wp_error( $response ) && is_array( $response ) ) {
 					$headers     = $response['headers']; // array of http header lines
 					$status_code = $response['response']['code'];
 					if ( $status_code === 301 ) {
@@ -849,7 +849,7 @@ class Optml_Rest {
 	 *
 	 * @param WP_REST_Request $request rest request object.
 	 *
-	 * @return WP_REST_Response
+	 * @return WP_REST_Response|bool
 	 */
 	public function update_page( WP_REST_Request $request ) {
 		if ( empty( $request->get_param( 'post_id' ) ) ) {
@@ -863,7 +863,7 @@ class Optml_Rest {
 	 *
 	 * @param WP_REST_Request $request rest request object.
 	 *
-	 * @return WP_REST_Response
+	 * @return WP_REST_Response|void
 	 */
 	public function upload_rollback_images( WP_REST_Request $request ) {
 		$job = false;

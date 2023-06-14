@@ -99,6 +99,7 @@ abstract class Optml_Resource {
 	 * @return string
 	 */
 	private function get_url_token() {
+		/* @phpstan-ignore-line */
 		$url = strtok( $this->source_url, '?' );
 		return $this->get_token_from_cache( $url, 6 );
 	}

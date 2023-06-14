@@ -28,7 +28,7 @@ class Optml_Cli_Media extends WP_CLI_Command {
 	 *   Template for bulk image processing to avoid duplicate code.
 	 *
 	 * @param string $action The action to perform rollback/offload.
-	 * @return WP_CLI::error If it fails.
+	 * @return mixed WP_CLI::error If it fails.
 	 */
 	private function update_images_template( $action ) {
 		$strings = [
@@ -57,7 +57,7 @@ class Optml_Cli_Media extends WP_CLI_Command {
 			$batch  = $possible_batch;
 		}
 		$total_progress = ceil( $number_of_images / $batch );
-		$progress = \WP_CLI\Utils\make_progress_bar( __( 'Progress bar', 'optimole-wp' ), $total_progress );
+		$progress = \WP_CLI\Utils\make_progress_bar( __( 'Progress bar', 'optimole-wp' ), (int) $total_progress );
 		$tick = 0;
 		$page = 1;
 		while ( $tick < $total_progress ) {

@@ -22,7 +22,7 @@ class Optml_elementor_builder extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_action( 'elementor/frontend/after_enqueue_styles', [$this, 'add_src_filter'], PHP_INT_MIN, 1 );
+		add_filter( 'elementor/frontend/after_enqueue_styles', [$this, 'add_src_filter'], PHP_INT_MIN, 1 );
 
 		add_filter( 'elementor/frontend/builder_content/before_enqueue_css_file', [$this, 'add_src_filter'], PHP_INT_MIN, 1 );
 

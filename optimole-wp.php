@@ -63,7 +63,7 @@ function optml_php_notice() {
 /**
  * Initiate the Optimole plugin.
  *
- * @return Optml_Main Optimole instance.
+ * @return Optml_Main|null Optimole instance.
  */
 function optml() {
 	if ( version_compare( PHP_VERSION, '5.4.0', '<' ) ) {

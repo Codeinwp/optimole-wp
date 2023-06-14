@@ -154,7 +154,7 @@ trait Optml_Normalizer {
 	/**
 	 * Normalize arguments for crop.
 	 *
-	 * @param array $crop_args Crop arguments.
+	 * @param array|bool $crop_args Crop arguments.
 	 *
 	 * @return array
 	 */

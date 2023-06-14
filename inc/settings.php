@@ -140,7 +140,7 @@ class Optml_Settings {
 				$env_key = 'OPTIML_' . strtoupper( $key );
 				if ( defined( $env_key ) && constant( $env_key ) ) {
 					$value = constant( $env_key );
-					if ( $type === 'bool' && ( $value === '' || ! in_array(
+					if ( $type === 'bool' && ( (string) $value === '' || ! in_array(
 						$value,
 						[
 							'on',
@@ -151,7 +151,7 @@ class Optml_Settings {
 						continue;
 					}
 
-					if ( $type === 'int' && ( $value === '' || (int) $value > 100 || (int) $value < 0 ) ) {
+					if ( $type === 'int' && ( (string) $value === '' || (int) $value > 100 || (int) $value < 0 ) ) {
 						continue;
 					}
 					$sanitized_value       = ( $type === 'bool' ) ? ( $value === 'on' ? 'enabled' : 'disabled' ) : (int) $value;

@@ -5,7 +5,7 @@
  *
  * An example of a conflict.
  */
-class Optml_Wprocket extends Optml_abstract_conflict {
+class Optml_Wprocket extends Optml_Abstract_Conflict {
 
 	/**
 	 * Optml_Wprocket constructor.
@@ -34,7 +34,7 @@ class Optml_Wprocket extends Optml_abstract_conflict {
 	 */
 	public function is_conflict_valid() {
 
-		if ( ! is_plugin_active( 'wp-rocket/wp-rocket.php' ) && ! is_plugin_active( 'wp-rocket/wp-rocket.php' ) ) {
+		if ( ! is_plugin_active( 'wp-rocket/wp-rocket.php' ) ) {
 			return false;
 		}
 		if ( ! function_exists( 'get_rocket_option' ) ) {

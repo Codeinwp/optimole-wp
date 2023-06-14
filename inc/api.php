@@ -64,7 +64,7 @@ final class Optml_Api {
 	 *
 	 * @param string $api_key Api key.
 	 *
-	 * @return array|bool
+	 * @return array|bool|WP_Error
 	 */
 	public function connect( $api_key = '' ) {
 		if ( ! empty( $api_key ) ) {
@@ -77,7 +77,7 @@ final class Optml_Api {
 	/**
 	 * Get user data from service.
 	 *
-	 * @return array|bool User data.
+	 * @return array|string|bool|WP_Error User data.
 	 */
 	public function get_user_data( $api_key = '', $application = '' ) {
 		if ( ! empty( $api_key ) ) {
@@ -90,7 +90,7 @@ final class Optml_Api {
 	/**
 	 * Get cache token from service.
 	 *
-	 * @return array|bool User data.
+	 * @return array|bool|WP_Error User data.
 	 */
 	public function get_cache_token( $token = '', $type = '', $api_key = '' ) {
 		if ( ! empty( $api_key ) ) {
@@ -110,11 +110,11 @@ final class Optml_Api {
 	/**
 	 * Request constructor.
 	 *
-	 * @param string $path The request url.
-	 * @param string $method The request method type.
-	 * @param array  $params The request method type.
+	 * @param string       $path The request url.
+	 * @param string       $method The request method type.
+	 * @param array|string $params The request method type.
 	 *
-	 * @return array|boolean Api data.
+	 * @return array|string|boolean|WP_Error Api data.
 	 */
 	private function request( $path, $method = 'GET', $params = [], $extra_headers = [] ) {
 
@@ -124,7 +124,7 @@ final class Optml_Api {
 		if ( ! empty( $this->api_key ) ) {
 			$headers['Authorization'] = 'Bearer ' . $this->api_key;
 		}
-		if ( ! empty( $headers ) && is_array( $headers ) ) {
+		if ( is_array( $headers ) ) {
 			$headers = array_merge( $headers, $extra_headers );
 		}
 		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
@@ -237,7 +237,7 @@ final class Optml_Api {
 	 * @param string $width Original image width.
 	 * @param string $height Original image height.
 	 * @param int    $file_size Original file size.
-	 * @return array
+	 * @return array|WP_Error
 	 */
 	public function call_upload_api( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto', $file_size = 0 ) {
 		$body = [
@@ -303,7 +303,7 @@ final class Optml_Api {
 	 *
 	 * @param string $email User email.
 	 *
-	 * @return array|bool Api response.
+	 * @return array|bool|string|WP_Error Api response.
 	 */
 	public function create_account( $email ) {
 		return $this->request(
@@ -322,7 +322,7 @@ final class Optml_Api {
 	 *
 	 * @param string $api_key the api key.
 	 *
-	 * @return array|bool
+	 * @return array|bool|WP_Error
 	 */
 	public function get_optimized_images( $api_key = '' ) {
 		if ( ! empty( $api_key ) ) {
@@ -342,7 +342,7 @@ final class Optml_Api {
 	 *
 	 * @param string $api_key The API key.
 	 *
-	 * @return array|bool
+	 * @return array|bool|WP_Error
 	 */
 	public function get_watermarks( $api_key = '' ) {
 		if ( ! empty( $api_key ) ) {
@@ -358,7 +358,7 @@ final class Optml_Api {
 	 * @param integer $post_id The watermark post ID.
 	 * @param string  $api_key The API key.
 	 *
-	 * @return array|bool
+	 * @return array|bool|WP_Error
 	 */
 	public function remove_watermark( $post_id, $api_key = '' ) {
 		if ( ! empty( $api_key ) ) {

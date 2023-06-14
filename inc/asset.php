@@ -32,14 +32,14 @@ class Optml_Asset extends Optml_Resource {
 	/**
 	 * CSS minify
 	 *
-	 * @var string
+	 * @var int
 	 */
 	protected $minify_css = 1;
 
 	/**
 	 * JS minify
 	 *
-	 * @var string
+	 * @var int
 	 */
 	protected $minify_js = 0;
 

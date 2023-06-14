@@ -11,9 +11,9 @@ abstract class Optml_App_Replacer {
 	/**
 	 * Filters used for lazyload.
 	 *
-	 * @var null Lazyload filters.
+	 * @var array Lazyload filters.
 	 */
-	protected static $filters = null;
+	protected static $filters = [];
 	/**
 	 * Holds an array of image sizes.
 	 *
@@ -31,25 +31,25 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @var array
 	 */
-	protected static $possible_src_attributes = null;
+	protected static $possible_src_attributes = [];
 	/**
 	 * Holds possible tag replace flags where we should ignore our optimization.
 	 *
 	 * @var array
 	 */
-	protected static $ignore_tag_strings = null;
+	protected static $ignore_tag_strings = [];
 	/**
 	 * Holds possible lazyload flags where we should ignore our lazyload.
 	 *
 	 * @var array
 	 */
-	protected static $ignore_lazyload_strings = null;
+	protected static $ignore_lazyload_strings = [];
 	/**
 	 * Holds flags that should ignore the data-opt-tag format.
 	 *
 	 * @var array
 	 */
-	protected static $ignore_data_opt_attribute = null;
+	protected static $ignore_data_opt_attribute = [];
 	/**
 	 * Settings handler.
 	 *
@@ -71,7 +71,7 @@ abstract class Optml_App_Replacer {
 	/**
 	 * Defines if the dimensions should be limited when images are served.
 	 *
-	 * @var int
+	 * @var bool
 	 */
 	protected $limit_dimensions_enabled = false;
 	/**
@@ -101,7 +101,7 @@ abstract class Optml_App_Replacer {
 	/**
 	 * A cached version of `wp_upload_dir`
 	 *
-	 * @var null
+	 * @var null|array
 	 */
 	protected $upload_resource = null;
 
@@ -137,7 +137,7 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @var bool Domains.
 	 */
-	protected $is_allowed_site = [];
+	protected $is_allowed_site = false;
 
 	/**
 	 * Holds the most recent value for the cache buster, updated to hold only for images if active_cache_buster_assets is defined.
@@ -166,11 +166,6 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function possible_src_attributes() {
-
-		if ( ! empty( self::$possible_src_attributes ) && is_array( self::$possible_src_attributes ) ) {
-			return self::$possible_src_attributes;
-		}
-
 		self::$possible_src_attributes = apply_filters( 'optml_possible_src_attributes', [] );
 
 		return self::$possible_src_attributes;
@@ -182,11 +177,6 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function possible_lazyload_flags() {
-
-		if ( ! empty( self::$ignore_lazyload_strings ) && is_array( self::$ignore_lazyload_strings ) ) {
-			return self::$ignore_lazyload_strings;
-		}
-
 		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', [ 'skip-lazy', 'data-skip-lazy' ] );
 
 		return array_merge( self::$possible_src_attributes, [ '<noscript' ] );
@@ -197,11 +187,6 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function possible_tag_flags() {
-
-		if ( ! empty( self::$ignore_tag_strings ) && is_array( self::$ignore_tag_strings ) ) {
-			return self::$ignore_tag_strings;
-		}
-
 		self::$ignore_tag_strings = apply_filters( 'optml_skip_optimizations_css_classes', [ 'skip-optimization' ] );
 
 		return  self::$ignore_tag_strings;
@@ -212,11 +197,6 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function possible_data_ignore_flags() {
-
-		if ( ! empty( self::$ignore_data_opt_attribute ) && is_array( self::$ignore_data_opt_attribute ) ) {
-			return self::$ignore_data_opt_attribute;
-		}
-
 		self::$ignore_data_opt_attribute = apply_filters( 'optml_ignore_data_opt_flag', [] );
 
 		return self::$ignore_data_opt_attribute;
@@ -228,10 +208,6 @@ abstract class Optml_App_Replacer {
 	 * @return array Size mapping.
 	 */
 	protected static function size_to_crop() {
-		if ( ! empty( self::$size_to_crop ) && is_array( self::$size_to_crop ) ) {
-			return self::$size_to_crop;
-		}
-
 		foreach ( self::image_sizes() as $size_data ) {
 			if ( isset( self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] ) && isset( $size_data['enlarge'] ) ) {
 				continue;
@@ -249,14 +225,15 @@ abstract class Optml_App_Replacer {
 	/**
 	 * Set possible custom size.
 	 *
-	 * @param null $width Width value.
-	 * @param null $height Height Value.
-	 * @param null $crop Croping.
+	 * @param int        $width Width value.
+	 * @param int        $height Height Value.
+	 * @param bool|array $crop Croping.
 	 */
 	public static function add_size( $width = null, $height = null, $crop = null ) {
-		if ( empty( $width ) || empty( $height ) ) {
+		if ( is_null( $width ) || is_null( $height ) ) {
 			return;
 		}
+
 		self::$custom_size_buffer[ 'cmole' . $width . $height ] = [
 			'width'   => (int) $width,
 			'height'  => (int) $height,
@@ -274,11 +251,6 @@ abstract class Optml_App_Replacer {
 	 * @global $wp_additional_image_sizes
 	 */
 	protected static function image_sizes() {
-
-		if ( ! empty( self::$image_sizes ) && is_array( self::$image_sizes ) ) {
-			return self::$image_sizes;
-		}
-
 		global $_wp_additional_image_sizes;
 
 		// Populate an array matching the data structure of $_wp_additional_image_sizes so we have a consistent structure for image sizes
@@ -329,7 +301,7 @@ abstract class Optml_App_Replacer {
 			self::$image_sizes
 		);
 
-		return is_array( self::$image_sizes ) ? self::$image_sizes : [];
+		return self::$image_sizes;
 	}
 
 	/**
@@ -358,7 +330,7 @@ abstract class Optml_App_Replacer {
 				return $strings;
 			},
 			10,
-			2
+			1
 		);
 		add_filter(
 			'optml_skip_optimizations_css_classes',
@@ -369,7 +341,7 @@ abstract class Optml_App_Replacer {
 				return $strings;
 			},
 			10,
-			2
+			1
 		);
 	}
 
@@ -471,7 +443,7 @@ abstract class Optml_App_Replacer {
 	/**
 	 * Method to expose upload resource property.
 	 *
-	 * @return null
+	 * @return null|array
 	 */
 	public function get_upload_resource() {
 		return $this->upload_resource;
@@ -615,11 +587,11 @@ abstract class Optml_App_Replacer {
 	/**
 	 * Get the optimized urls for the wp media modal.
 	 *
-	 * @param string $url Original url.
-	 * @param string $table_id The cloud id of the image.
-	 * @param string $width Image width.
-	 * @param string $height Image height.
-	 * @param array  $resize Optml crop array.
+	 * @param string     $url Original url.
+	 * @param string     $table_id The cloud id of the image.
+	 * @param int|string $width Image width.
+	 * @param int|string $height Image height.
+	 * @param array      $resize Optml crop array.
 	 * @return string The optimized url.
 	 */
 	public function get_media_optimized_url( $url, $table_id, $width = 'auto', $height = 'auto', $resize = [] ) {

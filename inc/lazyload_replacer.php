@@ -37,7 +37,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	/**
 	 * Cached object instance.
 	 *
-	 * @var Optml_Tag_Replacer
+	 * @var Optml_Lazyload_Replacer
 	 */
 	protected static $instance = null;
 	/**
@@ -51,49 +51,44 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 *
 	 * @var array Lazyload background classes.
 	 */
-	private static $lazyload_background_classes = null;
+	private static $lazyload_background_classes = [];
 	/**
 	 * Selectors used for background lazyload.
 	 *
 	 * @var array Lazyload background CSS selectors.
 	 */
-	private static $background_lazyload_selectors = null;
+	private static $background_lazyload_selectors = [];
 	/**
 	 * Holds flags which remove noscript tag bundle causing issues on render, i.e slider plugins.
 	 *
 	 * @var array Noscript flags.
 	 */
-	private static $ignore_no_script_flags = null;
+	private static $ignore_no_script_flags = [];
 	/**
 	 * Holds possible iframe lazyload flags where we should ignore our lazyload.
 	 *
 	 * @var array
 	 */
-	protected static $iframe_lazyload_flags = null;
+	protected static $iframe_lazyload_flags = [];
 	/**
 	 * Holds classes responsabile for watching lazyload behaviour.
 	 *
 	 * @var array Lazyload classes.
 	 */
-	private static $lazyload_watcher_classes = null;
+	private static $lazyload_watcher_classes = [];
 	/**
 	 * Should we use the generic placeholder?
 	 *
 	 * @var bool Lazyload placeholder flag.
 	 */
 	private static $is_lazyload_placeholder = false;
-	/**
-	 * Holds flags which remove noscript tag bundle causing issues on render, i.e slider plugins.
-	 *
-	 * @var array Noscript flags.
-	 */
 
 	/**
 	 * Class instance method.
 	 *
 	 * @codeCoverageIgnore
 	 * @static
-	 * @return Optml_Tag_Replacer
+	 * @return Optml_Lazyload_Replacer
 	 * @since  1.0.0
 	 * @access public
 	 */
@@ -112,13 +107,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array Lazyload selectors.
 	 */
 	public static function get_background_lazyload_selectors() {
-
-		if ( ! empty( self::$background_lazyload_selectors ) && is_array( self::$background_lazyload_selectors ) ) {
-			return self::$background_lazyload_selectors;
-		}
 		if ( self::instance()->settings->get( 'bg_replacer' ) === 'disabled' ) {
-			self::$background_lazyload_selectors = [];
-
 			return self::$background_lazyload_selectors;
 		}
 		$default_watchers = [
@@ -151,11 +140,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_lazyload_bg_classes() {
-
-		if ( ! empty( self::$lazyload_background_classes ) && is_array( self::$lazyload_background_classes ) ) {
-			return self::$lazyload_background_classes;
-		}
-
 		self::$lazyload_background_classes = apply_filters( 'optml_lazyload_bg_classes', [] );
 
 		return self::$lazyload_background_classes;
@@ -179,11 +163,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_watcher_lz_classes() {
-
-		if ( ! empty( self::$lazyload_watcher_classes ) && is_array( self::$lazyload_watcher_classes ) ) {
-			return self::$lazyload_watcher_classes;
-		}
-
 		self::$lazyload_watcher_classes = apply_filters( 'optml_watcher_lz_classes', [] );
 
 		return self::$lazyload_watcher_classes;
@@ -385,7 +364,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			Optml_Config::$image_extensions
 		);
 
-		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+		if ( empty( $type['ext'] ) ) {
 			return false;
 		}
 
@@ -422,8 +401,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	/**
 	 * Get SVG markup with specific width/height.
 	 *
-	 * @param int         $width Markup Width.
-	 * @param int         $height Markup Height.
+	 * @param int|string  $width Markup Width.
+	 * @param int|string  $height Markup Height.
 	 * @param string|null $url Original URL.
 	 *
 	 * @return string SVG code.
@@ -502,11 +481,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_ignore_noscript_flags() {
-
-		if ( ! empty( self::$ignore_no_script_flags ) && is_array( self::$ignore_no_script_flags ) ) {
-			return self::$ignore_no_script_flags;
-		}
-
 		self::$ignore_no_script_flags = apply_filters( 'optml_ignore_noscript_on', [] );
 
 		return self::$ignore_no_script_flags;
@@ -517,11 +491,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_iframe_lazyload_flags() {
-
-		if ( ! empty( self::$iframe_lazyload_flags ) && is_array( self::$iframe_lazyload_flags ) ) {
-			return self::$iframe_lazyload_flags;
-		}
-
 		self::$iframe_lazyload_flags = self::possible_lazyload_flags();
 		self::$iframe_lazyload_flags = array_merge( self::$iframe_lazyload_flags, apply_filters( 'optml_iframe_lazyload_flags', [ 'gform_ajax_frame', '<noscript', 'recaptcha', '-src' ] ) );
 

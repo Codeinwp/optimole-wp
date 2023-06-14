@@ -29,7 +29,7 @@ class Optml_Admin {
 	 */
 	public function __construct() {
 		$this->settings = new Optml_Settings();
-		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
+		add_filter( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
 		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ], PHP_INT_MIN );
 		add_action( 'admin_notices', [ $this, 'add_notice' ] );
@@ -440,7 +440,7 @@ class Optml_Admin {
 		if ( get_option( 'optml_notice_hide_upg', 'no' ) === 'yes' ) {
 			return false;
 		}
-		if ( isset( $current_screen->base ) && $current_screen->base !== 'upload' ) {
+		if ( $current_screen->base !== 'upload' ) {
 			return false;
 		}
 		$service_data = $this->settings->get( 'service_data' );
