@@ -5,14 +5,14 @@ import {
 	Button,
 	SelectControl,
 	TextControl
-} from "@wordpress/components";
+} from '@wordpress/components';
 
 import {
 	useDispatch,
 	useSelect
-} from "@wordpress/data";
+} from '@wordpress/data';
 
-import { useState } from "@wordpress/element";
+import { useState } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -26,7 +26,7 @@ const APIForm = ({
 	setMethod
 }) => {
 	const [ apiKey, setApiKey ] = useState( '' );
-	const [ errors, setErrors ] = useState( {} );
+	const [ errors, setErrors ] = useState({});
 	const [ selectedApp, setApp ] = useState( 0 );
 
 	const { setShowDisconnect } = useDispatch( 'optimole' );
@@ -53,27 +53,28 @@ const APIForm = ({
 			isConnecting: isConnecting(),
 			isLoading: isLoading()
 		};
-	} );
+	});
 
 	const onConnect = () => {
-		setErrors( {} );
+		setErrors({});
 
 		connectAccount(
 			{
-				api_key: apiKey,
+				// eslint-disable-next-line camelcase
+				api_key: apiKey
 			},
 			response => {
-				if ( response.code !== 'success')  {
-					setErrors( {
+				if ( 'success' !== response.code )  {
+					setErrors({
 						'error_connect': response.data
-					} );
+					});
 				}
 			}
 		);
 	};
 
 	const getActiveApp = () => {
-		if ( availableApps !== null && availableApps !== undefined && availableApps.available_apps !== undefined ) {
+		if ( null !== availableApps && availableApps !== undefined && availableApps.available_apps !== undefined ) {
 			return availableApps.available_apps[ selectedApp ].key;
 		}
 
@@ -83,14 +84,15 @@ const APIForm = ({
 	const onSelectDomain = () => {
 		selectDomain(
 			{
+				// eslint-disable-next-line camelcase
 				api_key: apiKey,
-				application: getActiveApp(),
+				application: getActiveApp()
 			},
 			response => {
-				if ( response.code !== 'success')  {
-					setErrors( {
+				if ( 'success' !== response.code )  {
+					setErrors({
 						'error_connect': response.data
-					} );
+					});
 				}
 			}
 		);
@@ -129,7 +131,7 @@ const APIForm = ({
 						<Button
 							variant="primary"
 							isBusy={ isConnecting }
-							disabled={ isConnecting || apiKey.length === 0 }
+							disabled={ isConnecting || 0 === apiKey.length }
 							className="optml__button flex w-full justify-center rounded font-bold min-h-40 basis-1/5"
 							onClick={ onConnect }
 						>
@@ -149,7 +151,7 @@ const APIForm = ({
 										label: app.domain,
 										value: index
 									};
-								} ) }
+								}) }
 								onChange={ setApp }
 								className="optml__select has_large_title"
 								__nextHasNoMarginBottom={ true }

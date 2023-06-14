@@ -4,12 +4,12 @@
 import {
 	Button,
 	Modal
-} from "@wordpress/components";
+} from '@wordpress/components';
 
 import {
 	useDispatch,
 	useSelect
-} from "@wordpress/data";
+} from '@wordpress/data';
 
 /**
  * Internal dependencies.
@@ -23,9 +23,9 @@ const DisconnectLayout = () => {
 		const { isLoading } = select( 'optimole' );
 
 		return {
-			isLoading: isLoading(),
+			isLoading: isLoading()
 		};
-	} );
+	});
 
 	return (
 		<Modal

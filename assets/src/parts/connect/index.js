@@ -5,17 +5,17 @@ import {
 	Button,
 	Icon,
 	TextControl
-} from "@wordpress/components";
+} from '@wordpress/components';
 
 import {
 	useDispatch,
 	useSelect
-} from "@wordpress/data";
+} from '@wordpress/data';
 
 import {
 	useEffect,
 	useState
-} from "@wordpress/element";
+} from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -36,7 +36,7 @@ const RestError = () => (
 const ConnectLayout = () => {
 	const [ email, setEmail ] = useState( optimoleDashboardApp.current_user.email );
 	const [ method, setMethod ] = useState( 'email' );
-	const [ errors, setErrors ] = useState( {} );
+	const [ errors, setErrors ] = useState({});
 
 	const { setAutoConnect } = useDispatch( 'optimole' );
 
@@ -54,58 +54,59 @@ const ConnectLayout = () => {
 		return {
 			autoConnect: getAutoConnect(),
 			hasRestError: hasRestError(),
-			isConnecting: isConnecting(),
+			isConnecting: isConnecting()
 		};
-	} );
+	});
 
 	useEffect( () => {
 		if ( 'no' !== autoConnect ) {
 			registerAccount(
 				{
 					email: autoConnect,
-					auto_connect: true,
+					// eslint-disable-next-line camelcase
+					auto_connect: true
 				},
 				response => {
 					setAutoConnect( 'no' );
 
-					if ( response.code === 'email_registered') {
-						setErrors( {
+					if ( 'email_registered' === response.code ) {
+						setErrors({
 							'email_registered': response.message
-						} );
+						});
 						return;
 					}
-	
-					if ( response.code !== 'success')  {
+
+					if ( 'success' !== response.code )  {
 						if ( response.message ) {
-							setErrors( {
+							setErrors({
 								'error_autoconnect': response.message
-							} );
+							});
 						}
 					}
 				}
 			);
 		}
-	}, [] );
+	}, []);
 
 	const onConnect = () => {
-		setErrors( {} );
+		setErrors({});
 
 		registerAccount(
 			{
 				email
 			},
 			response => {
-				if ( response.code === 'email_registered') {
-					setErrors( {
+				if ( 'email_registered' === response.code ) {
+					setErrors({
 						'email_registered': response.message
-					} );
+					});
 					return;
 				}
 
-				if ( response.code !== 'success')  {
-					setErrors( {
+				if ( 'success' !== response.code )  {
+					setErrors({
 						'error_register': optimoleDashboardApp.strings.error_register
-					} );
+					});
 				}
 			}
 		);
@@ -163,7 +164,7 @@ const ConnectLayout = () => {
 						className="optml__input"
 					/>
 
-					{ Object.keys( errors ).length > 0 && Object.keys( errors ).map( key => {
+					{ 0 < Object.keys( errors ).length && Object.keys( errors ).map( key => {
 						return (
 							<p
 								key={ key }
@@ -171,12 +172,12 @@ const ConnectLayout = () => {
 								dangerouslySetInnerHTML={ { __html: errors[ key ] } }
 							/>
 						);
-					} ) || <br/> }
+					}) || <br/> }
 
 					<Button
 						variant="primary"
 						isBusy={ isConnecting }
-						disabled={ isConnecting || email.length === 0 }
+						disabled={ isConnecting || 0 === email.length }
 						className="optml__button flex w-full justify-center rounded font-bold min-h-40"
 						onClick={ onConnect }
 					>

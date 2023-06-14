@@ -2,14 +2,14 @@
 /**
  * Internal dependencies.
  */
-import FilterControl from "./FilterControl";
+import FilterControl from './FilterControl';
 
 const Exclusions = ({
 	settings,
 	setSettings,
-	setCanSave,
+	setCanSave
 }) => {
-	const isLazyloadEnabled = settings[ 'lazyload' ] !== 'disabled';
+	const isLazyloadEnabled = 'disabled' !== settings.lazyload;
 
 	return (
 		<>
