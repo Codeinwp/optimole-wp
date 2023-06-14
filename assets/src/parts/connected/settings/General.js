@@ -36,6 +36,7 @@ const General = ({
 	const isLazyloadEnabled = settings[ 'lazyload' ] !== 'disabled';
 	const isReportEnabled = settings[ 'report_script' ] !== 'disabled';
 	const isAssetsEnabled = settings[ 'cdn' ] !== 'disabled';
+	const isBannerEnabled = settings[ 'banner_frontend'] !== 'disabled';
 
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
@@ -87,6 +88,21 @@ const General = ({
 					}
 				) }
 				onChange={ value => updateOption( 'report_script', value ) }
+			/>
+
+			<hr className="my-8 border-grayish-blue"/>
+
+			<ToggleControl
+				label={ optimoleDashboardApp.strings.options_strings.enable_badge_title }
+				help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_badge_description } } /> }
+				checked={ isBannerEnabled }
+				disabled={ isLoading }
+				className={ classnames(
+					{
+						'is-disabled': isLoading,
+					}
+				) }
+				onChange={ value => updateOption( 'banner_frontend', value ) }
 			/>
 
 			<hr className="my-8 border-grayish-blue"/>
