@@ -135,6 +135,16 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 			...state,
 			siteSettings
 		};
+	case 'SET_EXTRA_VISITS': {
+		let { siteSettings } = state;
+
+		siteSettings['banner_frontend'] = action.extraVisitsStatus ? 'enabled' : 'disabled';
+
+		return {
+			...state,
+			siteSettings
+		};
+	}
 	case 'SET_SAMPLE_RATE':
 		return {
 			...state,

@@ -32,11 +32,11 @@ const General = ({
 		};
 	});
 
-	const isReplacerEnabled = settings[ 'image_replacer' ] !== 'disabled';
-	const isLazyloadEnabled = settings[ 'lazyload' ] !== 'disabled';
-	const isReportEnabled = settings[ 'report_script' ] !== 'disabled';
-	const isAssetsEnabled = settings[ 'cdn' ] !== 'disabled';
-	const isBannerEnabled = settings[ 'banner_frontend'] !== 'disabled';
+	const isReplacerEnabled = 'disabled' !== settings[ 'image_replacer' ];
+	const isLazyloadEnabled = 'disabled' !== settings.lazyload;
+	const isReportEnabled = 'disabled' !== settings[ 'report_script' ];
+	const isAssetsEnabled = 'disabled' !== settings.cdn;
+	const isBannerEnabled = 'disabled' !== settings[ 'banner_frontend'];
 
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
@@ -99,7 +99,7 @@ const General = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled': isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'banner_frontend', value ) }

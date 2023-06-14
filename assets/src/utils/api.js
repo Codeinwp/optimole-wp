@@ -36,7 +36,8 @@ const {
 	setOffloadLibraryLink,
 	setRollbackLibraryLink,
 	setSumTime,
-	setEstimatedTime
+	setEstimatedTime,
+	setExtraVisits
 } = dispatch( 'optimole' );
 
 const {
@@ -254,6 +255,10 @@ export const requestStatsUpdate = () => {
 			}
 
 			setUserData( response.data );
+
+			if ( response?.data?.extra_visits !== undefined ) {
+				setExtraVisits( response.data.extra_visits );
+			}
 
 			if ( 'disconnected' === response.code ) {
 				setIsConnected( false );
