@@ -27,7 +27,7 @@ const Sidebar = () => {
 		const user = getUserData();
 
 		let domain = user?.cdn_key + '.i.optimole.com';
-		if ( user?.domain !== undefined && user?.domain !== '' ) {
+		if ( user?.domain !== undefined && '' !== user?.domain ) {
 			domain = user?.domain;
 		}
 
@@ -36,7 +36,7 @@ const Sidebar = () => {
 			domain,
 			plan: user?.plan
 		};
-	} );
+	});
 
 	return (
 		<div
@@ -69,7 +69,7 @@ const Sidebar = () => {
 				/>
 			</div>
 
-			{ plan === 'free' && (
+			{ 'free' === plan && (
 				<div
 					className="bg-info flex flex-col text-white border-0 rounded-lg shadow-md p-8 bg-promo bg-no-repeat"
 					style={ {
@@ -103,6 +103,6 @@ const Sidebar = () => {
 			) }
 		</div>
 	);
-}
+};
 
 export default Sidebar;

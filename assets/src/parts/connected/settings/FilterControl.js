@@ -7,11 +7,11 @@ import {
 	Button,
 	SelectControl,
 	TextControl
-} from "@wordpress/components";
+} from '@wordpress/components';
 
-import { useSelect } from "@wordpress/data";
+import { useSelect } from '@wordpress/data';
 
-import { useState } from "@wordpress/element";
+import { useState } from '@wordpress/element';
 
 const FILTER_TYPES = {
 	EXT: 'extension',
@@ -91,15 +91,15 @@ const FilterControl = ({
 	type,
 	settings,
 	setSettings,
-	setCanSave,
+	setCanSave
 }) => {
 	const { isLoading } = useSelect( select => {
 		const { isLoading } = select( 'optimole' );
 
 		return {
-			isLoading: isLoading(),
+			isLoading: isLoading()
 		};
-	} );
+	});
 
 	const [ filterType, setFilterType ] = useState( FILTER_TYPES.FILENAME );
 	const [ filterOperator, setFilterOperator ] = useState( optimoleDashboardApp.strings.options_strings.filter_operator_contains );
@@ -127,31 +127,31 @@ const FilterControl = ({
 	};
 
 	const addFilter = () => {
-		if ( filterValue.length < 3 ) {
+		if ( 3 > filterValue.length ) {
 			return;
 		}
 
 		const filters = { ...settings.filters };
 		let selectedFilterType = filterType;
 
-		if ( filterType === FILTER_TYPES.URL && filterMatchType === 'matches' ) {
+		if ( filterType === FILTER_TYPES.URL && 'matches' === filterMatchType ) {
 			selectedFilterType = FILTER_TYPES.URL_MATCH;
 		}
 
-		if ( ! filters[ type ] || 'object' !== typeof filters[ type ] ) {
+		if ( ! filters[ type ] || 'object' !== typeof filters[ type ]) {
 			filters[ type ] = {};
 		}
 
-		if ( ! filters[ type ][ selectedFilterType ] || Array.isArray( filters[ type ][ selectedFilterType ] ) ) {
+		if ( ! filters[ type ][ selectedFilterType ] || Array.isArray( filters[ type ][ selectedFilterType ]) ) {
 			filters[ type ][ selectedFilterType ] = {};
 		}
 
 		filters[ type ][ selectedFilterType ][ filterValue ] = true;
 
-		setSettings( {
+		setSettings({
 			...settings,
 			filters
-		} );
+		});
 
 		if ( filterType !== FILTER_TYPES.EXT ) {
 			setFilterValue( '' );
@@ -162,46 +162,46 @@ const FilterControl = ({
 
 	const hasItems = (
 		(
-			Object.keys( settings.filters[type][FILTER_TYPES.EXT] ).length > 0 &&
-			Object.values( settings.filters[type][FILTER_TYPES.EXT] ).some(
-				value => value !== false
+			0 < Object.keys( settings.filters[type][FILTER_TYPES.EXT]).length &&
+			Object.values( settings.filters[type][FILTER_TYPES.EXT]).some(
+				value => false !== value
 			)
 		) ||
 		(
-			Object.keys( settings.filters[type][FILTER_TYPES.CLASS] ).length > 0 &&
-			Object.values( settings.filters[type][FILTER_TYPES.CLASS] ).some(
-				value => value !== false
+			0 < Object.keys( settings.filters[type][FILTER_TYPES.CLASS]).length &&
+			Object.values( settings.filters[type][FILTER_TYPES.CLASS]).some(
+				value => false !== value
 			)
 		) ||
 		(
-			Object.keys( settings.filters[type][FILTER_TYPES.URL] ).length > 0 &&
-			Object.values( settings.filters[type][FILTER_TYPES.URL] ).some(
-				value => value !== false
+			0 < Object.keys( settings.filters[type][FILTER_TYPES.URL]).length &&
+			Object.values( settings.filters[type][FILTER_TYPES.URL]).some(
+				value => false !== value
 			)
 		) ||
 		(
-			Object.keys( settings.filters[type][FILTER_TYPES.URL_MATCH] ).length > 0 &&
-			Object.values( settings.filters[type][FILTER_TYPES.URL_MATCH] ).some(
-				value => value !== false
+			0 < Object.keys( settings.filters[type][FILTER_TYPES.URL_MATCH]).length &&
+			Object.values( settings.filters[type][FILTER_TYPES.URL_MATCH]).some(
+				value => false !== value
 			)
 		) ||
 		(
-			Object.keys( settings.filters[type][FILTER_TYPES.FILENAME] ).length > 0 &&
-			Object.values( settings.filters[type][FILTER_TYPES.FILENAME] ).some(
-				value => value !== false
+			0 < Object.keys( settings.filters[type][FILTER_TYPES.FILENAME]).length &&
+			Object.values( settings.filters[type][FILTER_TYPES.FILENAME]).some(
+				value => false !== value
 			)
 		)
 	);
-  
+
 
 	const removeFilter = ( group, value ) => {
 		const filters = { ...settings.filters };
 		filters[ type ][ group ][ value ] = false;
 
-		setSettings( {
+		setSettings({
 			...settings,
 			filters
-		} );
+		});
 
 		setCanSave( true );
 	};
@@ -254,7 +254,7 @@ const FilterControl = ({
 						) : (
 							<TextControl
 								value={ filterValue }
-								placeholder={ filterMatchType === 'matches' ? 'path' : 'word' }
+								placeholder={ 'matches' === filterMatchType ? 'path' : 'word' }
 								onChange={ setFilterValue }
 								className="optml__input"
 							/>
@@ -279,7 +279,7 @@ const FilterControl = ({
 					className="py-4"
 				>
 					{ FILTER_VIEW.map( filter => {
-						return Object.keys( settings.filters[ type ][ filter.value ] ).filter( i => false !== settings.filters[ type ][ filter.value ][ i ] ).map( i => (
+						return Object.keys( settings.filters[ type ][ filter.value ]).filter( i => false !== settings.filters[ type ][ filter.value ][ i ]).map( i => (
 							<div
 								key={ i }
 								className="flex p-3 my-3 bg-light-blue border border-blue-300 rounded-md items-center justify-between gap-8"
@@ -297,7 +297,7 @@ const FilterControl = ({
 								/>
 							</div>
 						) );
-					} ) }
+					}) }
 				</BaseControl>
 			) }
 		</>

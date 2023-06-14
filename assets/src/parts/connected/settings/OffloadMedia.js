@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import classnames from "classnames";
+import classnames from 'classnames';
 
 import { rotateRight } from '@wordpress/icons';
 
@@ -15,24 +15,24 @@ import {
 	Icon,
 	SelectControl,
 	ToggleControl
-} from "@wordpress/components";
+} from '@wordpress/components';
 
 import {
 	useDispatch,
 	useSelect
-} from "@wordpress/data";
+} from '@wordpress/data';
 
 import {
 	useEffect,
 	useState
-} from "@wordpress/element";
+} from '@wordpress/element';
 
-import { addAction } from "@wordpress/hooks";
+import { addAction } from '@wordpress/hooks';
 
 /**
  * Internal dependencies.
  */
-import { warning } from '../../../utils/icons'
+import { warning } from '../../../utils/icons';
 import {
 	callSync,
 	checkOffloadConflicts
@@ -69,7 +69,7 @@ const OffloadMedia = ({
 			getPushedImagesProgress,
 			getRollbackLibraryLink,
 			getQueryArgs,
-			isLoading,
+			isLoading
 		} = select( 'optimole' );
 
 		return {
@@ -82,9 +82,9 @@ const OffloadMedia = ({
 			loadingRollback: getLoadingRollback(),
 			pushedImageProgress: getPushedImagesProgress(),
 			rollbackLibraryLink: getRollbackLibraryLink(),
-			queryArgs: getQueryArgs(),
+			queryArgs: getQueryArgs()
 		};
-	} );
+	});
 
 	const {
 		setErrorMedia,
@@ -96,17 +96,17 @@ const OffloadMedia = ({
 	const [ showOffloadDisabled, setShowOffloadDisabled ] = useState( false );
 	const [ showOffloadEnabled, setShowOffloadEnabled ] = useState( false );
 
-	const isCloudLibraryEnabled = settings[ 'cloud_images' ] !== 'disabled';
-	const isOffloadMediaEnabled = settings[ 'offload_media' ] !== 'disabled';
+	const isCloudLibraryEnabled = 'disabled' !== settings[ 'cloud_images' ];
+	const isOffloadMediaEnabled = 'disabled' !== settings[ 'offload_media' ];
 	const whitelistedDomains = optimoleDashboardApp.user_data.whitelist || [];
 
 	useEffect( () => {
 		if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
-			if ( queryArgs.optimole_action === 'offload_images' ) {
+			if ( 'offload_images' === queryArgs.optimole_action ) {
 				onOffloadMedia( queryArgs.images );
 			}
 
-			if ( queryArgs.optimole_action === 'rollback_images' ) {
+			if ( 'rollback_images' === queryArgs.optimole_action ) {
 				onRollbackdMedia( queryArgs.images );
 			}
 		}
@@ -125,7 +125,7 @@ const OffloadMedia = ({
 		}
 
 		setShowOffloadDisabled( false );
-	}, [ canSave ] );
+	}, [ canSave ]);
 
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
@@ -141,12 +141,12 @@ const OffloadMedia = ({
 
 		const data = { ...settings };
 
-		if ( value.length === 0 ) {
+		if ( 0 === value.length ) {
 			sites.all = true;
 		} else {
 			value.forEach( ( site ) => {
 				sites[ site ] = true;
-			} );
+			});
 		}
 
 		data[ 'cloud_sites' ] = sites;
@@ -159,8 +159,8 @@ const OffloadMedia = ({
 		data[ 'offload_media' ] = value ? 'enabled' : 'disabled';
 		setSettings( data );
 
-		setShowOffloadDisabled( optimoleDashboardApp.site_settings[ 'offload_media' ] === 'enabled' && ! value );
-		setShowOffloadEnabled( optimoleDashboardApp.site_settings[ 'offload_media' ] === 'disabled' && !! value );
+		setShowOffloadDisabled( 'enabled' === optimoleDashboardApp.site_settings[ 'offload_media' ] && ! value );
+		setShowOffloadEnabled( 'disabled' === optimoleDashboardApp.site_settings[ 'offload_media' ] && !! value );
 	};
 
 	const onOffloadMedia = ( imageIds = 'none' ) => {
@@ -168,26 +168,26 @@ const OffloadMedia = ({
 
 		setErrorMedia( false );
 
-		callSync( {
+		callSync({
 			action: 'offload_images',
 			images: imageIds
-		} );
+		});
 	};
 
 	const onRollbackdMedia = ( imageIds = 'none' ) => {
 		setCheckedOffloadConflicts( false );
-		setOffloadConflicts( [] );
+		setOffloadConflicts([]);
 
 		checkOffloadConflicts( response => {
-			if ( response.data.length === 0 ) {
+			if ( 0 === response.data.length ) {
 				setErrorMedia( false );
 
-				callSync( {
+				callSync({
 					action: 'rollback_images',
 					images: imageIds
-				} );
+				});
 			}
-		} );
+		});
 	};
 
 	addAction(
@@ -207,7 +207,7 @@ const OffloadMedia = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'cloud_images', value ) }
@@ -223,7 +223,7 @@ const OffloadMedia = ({
 					>
 						<div className="optml__token__base flex p-6 bg-light-blue border border-blue-300 rounded-md items-center gap-8">
 							<FormTokenField
-								value={ Object.keys( settings['cloud_sites']).filter( site => site !== 'all' ).map( site => site ) || []}
+								value={ Object.keys( settings['cloud_sites']).filter( site => 'all' !== site ).map( site => site ) || []}
 								suggestions={ whitelistedDomains }
 								onChange={ updateSites }
 								__experimentalExpandOnFocus={ true }
@@ -244,7 +244,7 @@ const OffloadMedia = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ onChangeOffload }
@@ -263,7 +263,7 @@ const OffloadMedia = ({
 				<div className="flex flex-col gap-2 bg-stale-yellow text-gray-800 border border-solid border-yellow-300 rounded relative px-6 py-5 mb-5">
 					<div className="flex gap-2 items-center">
 						<Icon
-							icon={ warning } 
+							icon={ warning }
 							size={ 16 }
 						/>
 
@@ -297,13 +297,13 @@ const OffloadMedia = ({
 			{ isOffloadMediaEnabled && (
 				<>
 					<hr className="my-8 border-grayish-blue"/>
-		
+
 					<BaseControl
 						label={ optimoleDashboardApp.strings.options_strings.sync_title }
 						help={ optimoleDashboardApp.strings.options_strings.sync_desc }
 						className={ classnames(
 							{
-								'is-disabled':  isLoading,
+								'is-disabled': isLoading
 							}
 						) }
 					>
@@ -334,7 +334,7 @@ const OffloadMedia = ({
 								max={ maxTime }
 							/>
 
-							{ estimatedTime === 0 ? (
+							{ 0 === estimatedTime ? (
 								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
 							) : (
 								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.estimated_time } <b>{ estimatedTime } { optimoleDashboardApp.strings.options_strings.minutes }</b></p>
@@ -350,7 +350,7 @@ const OffloadMedia = ({
 						<div className="flex flex-col gap-2 bg-warning text-danger border border-solid border-danger rounded relative px-6 py-5 mb-5">
 							<div className="flex items-center gap-2">
 								<Icon
-									icon={ warning } 
+									icon={ warning }
 									size={ 16 }
 								/>
 
@@ -366,13 +366,13 @@ const OffloadMedia = ({
 			{ ( isOffloadMediaEnabled || loadingRollback ) && (
 				<>
 					<hr className="my-8 border-grayish-blue"/>
-		
+
 					<BaseControl
 						label={ optimoleDashboardApp.strings.options_strings.rollback_title }
 						help={ optimoleDashboardApp.strings.options_strings.rollback_desc }
 						className={ classnames(
 							{
-								'is-disabled':  isLoading,
+								'is-disabled': isLoading
 							}
 						) }
 					>
@@ -403,7 +403,7 @@ const OffloadMedia = ({
 								max={ maxTime }
 							/>
 
-							{ estimatedTime === 0 ? (
+							{ 0 === estimatedTime ? (
 								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
 							) : (
 								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.estimated_time } <b>{ estimatedTime } { optimoleDashboardApp.strings.options_strings.minutes }</b></p>
@@ -431,7 +431,7 @@ const OffloadMedia = ({
 								isBusy={ isLoading }
 								disabled={ isLoading }
 								className="optml__button flex justify-center rounded font-bold min-h-40"
-								onClick={ () => setOffloadConflicts( [] ) }
+								onClick={ () => setOffloadConflicts([]) }
 							>
 								{ optimoleDashboardApp.strings.conflicts.conflict_close }
 							</Button>
@@ -446,7 +446,7 @@ const OffloadMedia = ({
 						<div className="flex flex-col gap-2 bg-warning text-danger border border-solid border-danger rounded relative px-6 py-5 mb-5">
 							<div className="flex items-center gap-2">
 								<Icon
-									icon={ warning } 
+									icon={ warning }
 									size={ 16 }
 								/>
 

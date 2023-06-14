@@ -1,16 +1,16 @@
 /**
  * External dependencies.
  */
-import classnames from "classnames";
+import classnames from 'classnames';
 
 import { rotateRight } from '@wordpress/icons';
 
 /**
  * WordPress dependencies.
  */
-import { Button } from "@wordpress/components";
+import { Button } from '@wordpress/components';
 
-import { useState } from "@wordpress/element";
+import { useState } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -36,9 +36,9 @@ const ConflictItem = ({ conflict }) => {
 			className={ classnames(
 				'flex gap-2 text-white rounded relative px-6 py-5 mb-5',
 				{
-					'bg-danger': conflict.severity === 'high',
-					'bg-info': conflict.severity === 'medium',
-					'bg-success': conflict.severity !== 'high' && conflict.severity !== 'medium',
+					'bg-danger': 'high' === conflict.severity,
+					'bg-info': 'medium' === conflict.severity,
+					'bg-success': 'high' !== conflict.severity && 'medium' !== conflict.severity
 				}
 			) }
 		>
@@ -54,7 +54,7 @@ const ConflictItem = ({ conflict }) => {
 				className={ classnames(
 					'text-white hover:text-white',
 					{
-						'animate-spin': isLoading,
+						'animate-spin': isLoading
 					}
 				) }
 				onClick={ dismiss }

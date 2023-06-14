@@ -2,175 +2,175 @@ const actions = {
 	setAutoConnect( autoConnect ) {
 		return {
 			type: 'SET_AUTO_CONNECT',
-			autoConnect,
+			autoConnect
 		};
 	},
 	setAPIKey( apiKey ) {
 		return {
 			type: 'SET_API_KEY',
-			apiKey,
+			apiKey
 		};
 	},
 	setAvailableApps( availableApps ) {
 		return {
 			type: 'SET_AVAILABLE_APPS',
-			availableApps,
+			availableApps
 		};
 	},
 	setIsConnected( isConnected ) {
 		return {
 			type: 'SET_IS_CONNECTED',
-			isConnected,
+			isConnected
 		};
 	},
 	setIsConnecting( isConnecting ) {
 		return {
 			type: 'SET_IS_CONNECTING',
-			isConnecting,
+			isConnecting
 		};
 	},
 	setIsLoading( isLoading ) {
 		return {
 			type: 'SET_IS_LOADING',
-			isLoading,
+			isLoading
 		};
 	},
 	sethasDashboardLoaded( hasDashboardLoaded ) {
 		return {
 			type: 'SET_HAS_DASHBOARD_LOADED',
-			hasDashboardLoaded,
+			hasDashboardLoaded
 		};
 	},
 	setHasRestError( hasRestError ) {
 		return {
 			type: 'SET_HAS_REST_ERROR',
-			hasRestError,
+			hasRestError
 		};
 	},
 	setHasValidKey( hasValidKey ) {
 		return {
 			type: 'SET_HAS_VALID_KEY',
-			hasValidKey,
+			hasValidKey
 		};
 	},
 	setHasApplication( hasApplication ) {
 		return {
 			type: 'SET_HAS_APPLICATION',
-			hasApplication,
+			hasApplication
 		};
 	},
 	setUserData( data ) {
 		return {
 			type: 'SET_USER_DATA',
-			data,
+			data
 		};
 	},
 	setUserStatus( status ) {
 		return {
 			type: 'SET_USER_STATUS',
-			status,
+			status
 		};
 	},
 	setShowDisconnect( showDisconnect ) {
 		return {
 			type: 'SET_SHOW_DISCONNECT',
-			showDisconnect,
+			showDisconnect
 		};
 	},
 	setConflicts( conflicts ) {
 		return {
 			type: 'SET_CONFLICTS',
-			conflicts,
+			conflicts
 		};
 	},
 	setOptimizedImages( optimizedImages ) {
 		return {
 			type: 'SET_OPTIMIZED_IMAGES',
-			optimizedImages,
+			optimizedImages
 		};
 	},
 	setSiteSettings( siteSettings ) {
 		return {
 			type: 'SET_SITE_SETTINGS',
-			siteSettings,
+			siteSettings
 		};
 	},
 	setSampleRate( sampleRate ) {
 		return {
 			type: 'SET_SAMPLE_RATE',
-			sampleRate,
+			sampleRate
 		};
 	},
 	setPushedImagesProgress( pushedImagesProgress ) {
 		return {
 			type: 'SET_PUSHED_IMAGES_PROGRESS',
-			pushedImagesProgress,
+			pushedImagesProgress
 		};
 	},
 	setTotalNumberOfImages( totalNumberOfImages ) {
 		return {
 			type: 'SET_TOTAL_NUMBER_OF_IMAGES',
-			totalNumberOfImages,
+			totalNumberOfImages
 		};
 	},
 	setOffloadLibraryLink( offloadLibraryLink ) {
 		return {
 			type: 'SET_OFFLOAD_LIBRARY_LINK',
-			offloadLibraryLink,
+			offloadLibraryLink
 		};
 	},
 	setRollbackLibraryLink( rollbackLibraryLink ) {
 		return {
 			type: 'SET_ROLLBACK_LIBRARY_LINK',
-			rollbackLibraryLink,
+			rollbackLibraryLink
 		};
 	},
 	setLoadingRollback( loadingRollback ) {
 		return {
 			type: 'SET_LOADING_ROLLBACK',
-			loadingRollback,
+			loadingRollback
 		};
 	},
 	setLoadingSync( loadingSync ) {
 		return {
 			type: 'SET_LOADING_SYNC',
-			loadingSync,
+			loadingSync
 		};
 	},
 	setQueryArgs( queryArgs ) {
 		return {
 			type: 'SET_QUERY_ARGS',
-			queryArgs,
+			queryArgs
 		};
 	},
 	setErrorMedia( errorMedia ) {
 		return {
 			type: 'SET_ERROR_MEDIA',
-			errorMedia,
+			errorMedia
 		};
 	},
 	setEstimatedTime( estimatedTime ) {
 		return {
 			type: 'SET_ESTIMATED_TIME',
-			estimatedTime,
+			estimatedTime
 		};
 	},
 	setSumTime( sumTime ) {
 		return {
 			type: 'SET_SUM_TIME',
-			sumTime,
+			sumTime
 		};
 	},
 	setCheckedOffloadConflicts( checkedOffloadConflicts ) {
 		return {
 			type: 'SET_CHECKED_OFFLOAD_CONFLICTS',
-			checkedOffloadConflicts,
+			checkedOffloadConflicts
 		};
 	},
 	setOffloadConflicts( offloadConflicts ) {
 		return {
 			type: 'SET_OFFLOAD_CONFLICTS',
-			offloadConflicts,
+			offloadConflicts
 		};
 	}
 };

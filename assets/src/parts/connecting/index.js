@@ -6,7 +6,7 @@ import { useDispatch } from '@wordpress/data';
 import {
 	useEffect,
 	useState
-} from "@wordpress/element";
+} from '@wordpress/element';
 
 const progressMessages = [
 	optimoleDashboardApp.strings.options_strings.connect_step_0,
@@ -25,11 +25,11 @@ const ConnectingLayout = () => {
 
 	useEffect( () => {
 		if ( timer <= maxTime ) {
-			setTimeout(() => {
+			setTimeout( () => {
 				updateProgress();
 			}, 1000 );
 		}
-	}, [ timer ] );
+	}, [ timer ]);
 
 	const updateProgress = () => {
 		setTimer( timer + 1 );
