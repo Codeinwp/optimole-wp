@@ -62,7 +62,7 @@ Before you submit your Pull Request (PR) consider the following guidelines:
 1. Make your changes in a new git branch:
 
      ```shell
-     git checkout -b my-fix-branch master
+     git checkout -b my-fix-branch development
      ```
 
 1. Create your patch, **including appropriate test cases**. 
@@ -78,14 +78,14 @@ Before you submit your Pull Request (PR) consider the following guidelines:
     git push origin my-fix-branch
     ```
 
-1. In GitHub, send a pull request to `optimole-wp:master`.
+1. In GitHub, send a pull request to `optimole-wp:development`.
 * If we suggest changes then:
   * Make the required updates.
   * Re-run the PHPunit test suites to ensure tests are still passing and coding standard is followed.
   * Rebase your branch and force push to your GitHub repository (this will update your Pull Request):
 
     ```shell
-    git rebase master -i
+    git rebase development -i
     git push -f
     ```
 
@@ -98,7 +98,7 @@ That's it! Thank you for your contribution!
 - Ensure you use LF line endings in your code editor. Use [EditorConfig](http://editorconfig.org/) if your editor supports it so that indentation, line endings and other settings are auto configured.
 - When committing, reference your issue number (#1234) and follow the [commit message conventions](#commit) .
 - Ensure that your code is compatible with PHP 5.4+.
-- Push the changes to your fork and submit a pull request on the master branch of the `optimole-wp` repository.
+- Push the changes to your fork and submit a pull request on the development branch of the `optimole-wp` repository.
 
 ## Releasing
 
@@ -122,8 +122,6 @@ add the pull request to the planning project and move it to `ready to test`(same
 
 ### How to release a new version:
 
-- Clone the master branch
-- Do your changes
 - Send a PR to master and merge it using the following subject message
   - `release: <release short description>` - for patch release
   - `release(minor): <release short description>` - for minor release
