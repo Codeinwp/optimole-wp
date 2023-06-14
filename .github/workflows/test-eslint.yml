@@ -1,0 +1,29 @@
+name: ESLint
+
+on:
+  pull_request:
+    types: [opened, synchronize, ready_for_review]
+    branches-ignore:
+      - 'update_dependencies'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
+  cancel-in-progress: true
+jobs:
+  run:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    name: ESLint
+    steps:
+      - uses: actions/checkout@master
+        with:
+          persist-credentials: false
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - name: Lint js files
+        run: |
+          npm install -g npm
+          npm ci
+          npm run lint

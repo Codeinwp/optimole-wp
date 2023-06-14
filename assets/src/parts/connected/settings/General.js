@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import classnames from "classnames";
+import classnames from 'classnames';
 
 /**
  * WordPress dependencies.
@@ -10,27 +10,27 @@ import {
 	BaseControl,
 	Button,
 	ToggleControl
-} from "@wordpress/components";
+} from '@wordpress/components';
 
-import { useSelect } from "@wordpress/data";
+import { useSelect } from '@wordpress/data';
 
 /**
  * Internal dependencies.
  */
-import { clearCache } from "../../../utils/api";
+import { clearCache } from '../../../utils/api';
 
 const General = ({
 	settings,
 	setSettings,
-	setCanSave,
+	setCanSave
 }) => {
 	const { isLoading } = useSelect( select => {
 		const { isLoading } = select( 'optimole' );
 
 		return {
-			isLoading: isLoading(),
+			isLoading: isLoading()
 		};
-	} );
+	});
 
 	const isReplacerEnabled = settings[ 'image_replacer' ] !== 'disabled';
 	const isLazyloadEnabled = settings[ 'lazyload' ] !== 'disabled';
@@ -54,7 +54,7 @@ const General = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'image_replacer', value ) }
@@ -69,7 +69,7 @@ const General = ({
 				disabled={ ! isReplacerEnabled || isLoading }
 				className={ classnames(
 					{
-						'is-disabled': ! isReplacerEnabled || isLoading,
+						'is-disabled': ! isReplacerEnabled || isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'lazyload', value ) }
@@ -84,7 +84,7 @@ const General = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'report_script', value ) }
@@ -112,7 +112,7 @@ const General = ({
 				help={ optimoleDashboardApp.strings.options_strings.cache_desc }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading || ! isReplacerEnabled,
+						'is-disabled': isLoading || ! isReplacerEnabled
 					}
 				) }
 			>

@@ -78,12 +78,6 @@ const selectors = {
 	getErrorMedia( state ) {
 		return state.errorMedia;
 	},
-	getUpdateStatus( state ) {
-		return state.updateStatus;
-	},
-	getUpdatePageStatus( state ) {
-		return state.updatePageStatus;
-	},
 	getEstimatedTime( state ) {
 		return state.estimatedTime;
 	},

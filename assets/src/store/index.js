@@ -9,14 +9,14 @@ if ( undefined !== wp.data.createReduxStore ) {
 	const store = wp.data.createReduxStore( 'optimole', {
 		reducer,
 		actions,
-		selectors,
-	} );
-	
+		selectors
+	});
+
 	wp.data.register( store );
 } else {
 	wp.data.registerStore( 'optimole', {
 		reducer,
 		actions,
-		selectors,
-	} );
+		selectors
+	});
 }
