@@ -95,6 +95,12 @@ const actions = {
 			siteSettings
 		};
 	},
+	setExtraVisits( extraVisitsStatus ) {
+		return {
+			type: 'SET_EXTRA_VISITS',
+			extraVisitsStatus
+		};
+	},
 	setSampleRate( sampleRate ) {
 		return {
 			type: 'SET_SAMPLE_RATE',

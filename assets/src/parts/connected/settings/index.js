@@ -5,7 +5,7 @@ import { Button } from '@wordpress/components';
 
 import { useSelect } from '@wordpress/data';
 
-import { useState } from '@wordpress/element';
+import { useState, useEffect } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -28,16 +28,19 @@ const Settings = ({
 }) => {
 	const {
 		getSettings,
-		isLoading
+		isLoading,
+		extraVisits
 	} = useSelect( select => {
 		const {
 			getSiteSettings,
 			getQueryArgs,
-			isLoading
+			isLoading,
+			extraVisits
 		} = select( 'optimole' );
 
 		return {
 			getSettings: getSiteSettings,
+			extraVisits: getSiteSettings( 'banner_frontend' ),
 			isLoading: isLoading(),
 			queryArgs: getQueryArgs()
 		};
@@ -47,6 +50,13 @@ const Settings = ({
 	const [ canSave, setCanSave ] = useState( false );
 	const [ showSample, setShowSample ] = useState( false );
 	const [ isSampleLoading, setIsSampleLoading ] = useState( false );
+
+	useEffect( () => {
+		setSettings({
+			...settings,
+			banner_frontend: extraVisits
+		});
+	}, [ extraVisits ]);
 
 	const loadSample = () => {
 		if ( ! showSample ) {

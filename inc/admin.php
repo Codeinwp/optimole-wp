@@ -756,6 +756,11 @@ class Optml_Admin {
 
 		add_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
 		$this->settings->update( 'service_data', $data );
+
+		if ( isset( $data['extra_visits'] ) ) {
+			$this->settings->update_frontend_banner_from_remote( $data['extra_visits'] );
+		}
+
 		remove_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
 
 	}
@@ -1080,6 +1085,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_limit_dimensions_desc'      => __( 'This feature allows you to set a maximum width or height for images on your website, automatically resizing larger images to fit within the defined limits while maintaining the original aspect ratio.', 'optimole-wp' ),
 				'enable_limit_dimensions_title'     => __( 'Limit Image Dimensions with max width/height', 'optimole-wp' ),
 				'enable_limit_dimensions_notice'    => __( 'When you enable this feature to define a max width or height for image resizing, please note that DPR (retina) images will be disabled. This is done to ensure consistency in image dimensions across your website. Although this may result in slightly lower image quality for high-resolution displays, it will help maintain uniform image sizes, improving your website\'s overall layout and potentially boosting performance. ', 'optimole-wp' ),
+				'enable_badge_title'                => __( 'Enable Optimole badge', 'optimole-wp' ),
+				'enable_badge_description'          => sprintf( __( 'Get 20.000 more visits for free by enabling the Optimole badge on your websites. %1$sMore details here%2$s.', 'optimole-wp' ), '<a target=”_blank” href="#">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
 				'image_sizes_title'                 => __( 'Your cropped image sizes', 'optimole-wp' ),
 				'enabled'                           => __( 'Enabled', 'optimole-wp' ),
 				'exclude_class_desc'                => sprintf( __( '%1$sImage tag%2$s contains class', 'optimole-wp' ), '<strong>', '</strong>' ),

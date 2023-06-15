@@ -13,6 +13,7 @@
 	},
 	"ignorePatterns": [ "node_modules", "assets/js"  ],
 	"rules": {
+		"camelcase" : "off",
 		"indent": [
 			"error",
 			"tab"
