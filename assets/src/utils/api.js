@@ -353,9 +353,8 @@ export const retrieveOptimizedImages = ( callback = () => {}) => {
 		});
 };
 
-export const saveSettings = ( settings ) => {
+export const saveSettings = ( settings, refreshStats = false ) => {
 	setIsLoading( true );
-
 	apiFetch({
 		path: optimoleDashboardApp.routes['update_option'],
 		method: 'POST',
@@ -370,6 +369,11 @@ export const saveSettings = ( settings ) => {
 				setSiteSettings( response.data );
 				console.log( '%c Settings Saved.', 'color: #59B278' );
 			}
+		}).then( () => {
+			if ( ! refreshStats ) {
+				return;
+			}
+			requestStatsUpdate();
 		})
 		.catch( error => {
 			setIsLoading( false );

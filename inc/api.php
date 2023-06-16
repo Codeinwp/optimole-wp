@@ -95,12 +95,12 @@ final class Optml_Api {
 	 *
 	 * @return array|bool|string
 	 */
-	public function update_extra_visits( $api_key = '', $status = 'enabled' ) {
+	public function update_extra_visits( $api_key = '', $status = 'enabled', $application = '' ) {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
 
-		return $this->request( '/optml/v2/account/extra_visits', 'POST', [ 'extra_visits' => $status ] );
+		return $this->request( '/optml/v2/account/extra_visits', 'POST', [ 'extra_visits' => $status, 'application' => $application ] );
 	}
 
 	/**

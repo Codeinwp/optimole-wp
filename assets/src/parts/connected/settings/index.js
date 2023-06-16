@@ -27,7 +27,7 @@ const Settings = ({
 	setTab
 }) => {
 	const {
-		getSettings,
+		siteSettings,
 		isLoading,
 		extraVisits
 	} = useSelect( select => {
@@ -38,15 +38,17 @@ const Settings = ({
 			extraVisits
 		} = select( 'optimole' );
 
+		const siteSettings = getSiteSettings();
+
 		return {
-			getSettings: getSiteSettings,
-			extraVisits: getSiteSettings( 'banner_frontend' ),
+			siteSettings,
+			extraVisits: siteSettings['banner_frontend'],
 			isLoading: isLoading(),
 			queryArgs: getQueryArgs()
 		};
 	});
 
-	const [ settings, setSettings ] = useState( getSettings() );
+	const [ settings, setSettings ] = useState( siteSettings );
 	const [ canSave, setCanSave ] = useState( false );
 	const [ showSample, setShowSample ] = useState( false );
 	const [ isSampleLoading, setIsSampleLoading ] = useState( false );
@@ -74,7 +76,8 @@ const Settings = ({
 	};
 
 	const onSaveSettings = () => {
-		saveSettings( settings );
+		saveSettings( settings, siteSettings['banner_frontend'] !== settings['banner_frontend']);
+
 		setCanSave( false );
 	};
 
