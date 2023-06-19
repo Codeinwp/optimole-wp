@@ -1,7 +1,7 @@
 # Image optimization & Lazy Load by Optimole #
 **Contributors:** [optimole](https://profiles.wordpress.org/optimole)  
 **Tags:** image optimization, convert webp, responsive images, lazy load, images, optimization, performance, photos  
-**Requires at least:** 4.7  
+**Requires at least:** 5.5  
 **Tested up to:** 5.3  
 **Requires PHP:** 5.4  
 **License:** GPLv3  

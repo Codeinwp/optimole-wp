@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 16
       - name: Get Composer Cache Directory
         id: composer-cache
         run: |
@@ -62,7 +62,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 16
       - uses: cypress-io/github-action@v2
         with:
           env: host=testing.optimole.com

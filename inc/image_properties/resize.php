@@ -167,12 +167,12 @@ class Optml_Resize extends Optml_Property_Type {
 
 		$resize .= sprintf( '/g:%s', $this->gravity );
 
-		if ( $this->enlarge ) {
-			$resize .= '/el:1';
-		}
-
 		if ( $this->gravity === self::GRAVITY_FOCUS_POINT ) {
 			$resize .= sprintf( ':%s:%s', $this->focus_point_x, $this->focus_point_y );
+		}
+
+		if ( $this->enlarge ) {
+			$resize .= '/el:1';
 		}
 
 		return $resize;

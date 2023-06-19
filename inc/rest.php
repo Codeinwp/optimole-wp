@@ -288,6 +288,11 @@ class Optml_Rest {
 		}
 		$settings = new Optml_Settings();
 		$settings->update( 'api_key', $api_key );
+
+		if ( isset( $data['extra_visits'] ) ) {
+			$settings->update_frontend_banner_from_remote( $data['extra_visits'] );
+		}
+
 		if ( $data['app_count'] === 1 ) {
 			return $this->select_application( $original_request );
 		}
@@ -383,6 +388,10 @@ class Optml_Rest {
 			$settings->update( 'service_data', $user_data );
 		}
 
+		if ( isset( $user_data['extra_visits'] ) ) {
+			$settings->update_frontend_banner_from_remote( $user_data['extra_visits'] );
+		}
+
 		return $this->response( $user_data );
 	}
 
@@ -448,7 +457,7 @@ class Optml_Rest {
 			'post_type'              => 'attachment',
 			'post_mime_type'         => 'image',
 			'post_status'            => 'inherit',
-			'posts_per_page'         => 50,
+			'posts_per_page'         => 100,
 			'offset'                 => $offset,
 			'fields'                 => 'ids',
 			'no_found_rows'          => true,
@@ -488,8 +497,8 @@ class Optml_Rest {
 		$api = new Optml_Api();
 		$api->call_onboard_api( $image_urls );
 
-		// Check if image_url array has at least 50 items, if not, we have reached the end of the images
-		return $this->response( count( $image_urls ) < 50 ? true : false );
+		// Check if image_url array has at least 100 items, if not, we have reached the end of the images
+		return $this->response( count( $image_urls ) < 100 ? true : false );
 	}
 
 	/**

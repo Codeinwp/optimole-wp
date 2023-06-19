@@ -18,6 +18,12 @@ class Test_Replacer extends WP_UnitTestCase {
 	const IMG_TAGS_WITH_SRCSET_RELATIVE = '<img class="alignnone size-full wp-image-26" src="/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp.jpg" alt="" width="1450" height="740" srcset="/wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp.jpg 1450w, /wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-300x153.jpg 300w, /wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-768x392.jpg 768w, /wp-content/uploads/2019/01/september-2018-wordpress-news-w-codeinwp-1024x523.jpg 1024w" sizes="(max-width: 1450px) 100vw, 1450px"> ';
 	const IMG_TAGS_PNG = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.png" width="2000" height="1200" alt="Test" /></div></div>';
 	const IMG_TAGS_GIF = '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.gif" width="2000" height="1200" alt="Test" /></div></div>';
+	const IMG_TAGS_LIMIT_DIMENSIONS = [
+		'portrait' => '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="3000" alt="Test"/></div>',
+		'landscape' => '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="3000" height="2000" alt="Test"/></div>',
+		'equal' => '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="1920" height="1080" alt="Test"/></div>',
+		'small' => '<div id="wp-custom-header" class="wp-custom-header"><img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="150" height="150" alt="Test"/></div>',
+	];
 	const DECODED_UNICODE2 = "/wp-content/uploads/2018/05//umlau1ts_image_a\u0308o\u0308u\u0308.";
 	const DECODED_UNICODE = "/wp-content/uploads/2018/05/umlau1ts_image_äöü";
 	const NOROMAL_URL = "/wp-content/themes/test/assets/images/header";
@@ -169,7 +175,23 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	}
 
+	public function test_resize () {
+		$resize = new Optml_Resize([
+			'enlarge' => true,
+			'gravity' => [
+				0.5, 0,
+			],
+			'type' => 'fill',
+		]);
+
+		$this->assertEquals( 'rt:fill/g:fp:0.5:0/el:1', $resize->toString() );
+
+	}
 	public function test_image_tags() {
+		$settings = new Optml_Settings();
+		$settings->update( 'limit_dimensions', 'disabled' );
+
+		Optml_Url_Replacer::instance()->init();
 
 		$found_images = Optml_Manager::parse_images_from_html( self::IMG_TAGS );
 
@@ -200,6 +222,61 @@ class Test_Replacer extends WP_UnitTestCase {
 		$replaced_content = Optml_Manager::instance()->replace_content( self::IMG_URLS );
 
 		$this->assertEquals( 27, substr_count( $replaced_content, 'i.optimole.com' ) );
+	}
+
+	public function test_limit_dimensions_default() {
+		$settings = new Optml_Settings();
+		$settings->update( 'limit_dimensions', 'enabled' );
+
+		Optml_Url_Replacer::instance()->init();
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['portrait'] );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '/w:720/', $replaced_content );
+		$this->assertStringContainsString( '/h:1080/', $replaced_content );
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['landscape'] );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '/w:1620/', $replaced_content );
+		$this->assertStringContainsString( '/h:1080/', $replaced_content );
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['equal'] );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '/w:1920/', $replaced_content );
+		$this->assertStringContainsString( '/h:1080/', $replaced_content );
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['small'] );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '/w:150/', $replaced_content );
+		$this->assertStringContainsString( '/h:150/', $replaced_content );
+	}
+
+	public function test_limit_dimensions_custom() {
+		$settings = new Optml_Settings();
+		$settings->update( 'limit_dimensions', 'enabled' );
+		$settings->update( 'limit_height', 600 );
+		$settings->update( 'limit_width', 800 );
+		Optml_Url_Replacer::instance()->init();
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['portrait'] );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '/w:400/', $replaced_content );
+		$this->assertStringContainsString( '/h:600/', $replaced_content );
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['landscape'] );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '/w:800/', $replaced_content );
+		$this->assertStringContainsString( '/h:533/', $replaced_content );
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['equal'] );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '/w:800/', $replaced_content );
+		$this->assertStringContainsString( '/h:450/', $replaced_content );
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['small'] );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '/w:150/', $replaced_content );
+		$this->assertStringContainsString( '/h:150/', $replaced_content );
 	}
 
 	public function test_assets_url() {
@@ -633,6 +710,31 @@ class Test_Replacer extends WP_UnitTestCase {
 						<img class="test whatever" src="http://example.org/wp-content/uploads/2019/09/img.jpg" alt=""/>;
 						<img class="testing something class" src="http://example.org/img.png" alt=""/>;
 						<img class="none" src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;
+					</div>';
+		$replaced_content = Optml_Manager::instance()->process_images_from_content($content);
+		$this->assertEquals( 0, substr_count( $replaced_content, 'i.optimole.com' ) );
+		$this->assertStringNotContainsString('data-opt-src', $replaced_content);
+	}
+
+	public function test_extension_exclusion()
+	{
+		$settings = new Optml_Settings();
+			$settings->update('filters', array(
+				Optml_Settings::FILTER_TYPE_OPTIMIZE => array (
+					Optml_Settings::FILTER_EXT => array (
+						'png' => true,
+						'webp' => true,
+						'jpg' => true,
+					)
+				)));
+		Optml_Url_Replacer::instance()->init();
+		Optml_Tag_Replacer::instance()->init();
+		Optml_Manager::instance()->init();
+		$content = '<div>
+						<img  src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;
+						<img src="http://example.org/wp-content/uploads/2019/09/img.jpg" alt=""/>;
+						<img  src="http://example.org/img.webp" alt=""/>;
+						<img src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt=""/>;
 					</div>';
 		$replaced_content = Optml_Manager::instance()->process_images_from_content($content);
 		$this->assertEquals( 0, substr_count( $replaced_content, 'i.optimole.com' ) );
