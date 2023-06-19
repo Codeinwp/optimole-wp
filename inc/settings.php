@@ -423,8 +423,10 @@ class Optml_Settings {
 		$opt = $this->options;
 
 		if ( $key === 'banner_frontend' ) {
-			$api      = new Optml_Api();
-			$response = $api->update_extra_visits( $opt['api_key'], $value );
+			$api          = new Optml_Api();
+			$service_data = $this->get( 'service_data' );
+			$application  = isset( $service_data['cdn_key'] ) ? $service_data['cdn_key'] : '';
+			$response     = $api->update_extra_visits( $opt['api_key'], $value, $application );
 		}
 
 		$opt[ $key ] = $value;
