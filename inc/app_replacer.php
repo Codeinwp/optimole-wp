@@ -166,6 +166,10 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function possible_src_attributes() {
+		if ( ! empty( self::$possible_src_attributes ) ) {
+			return self::$possible_src_attributes;
+		}
+
 		self::$possible_src_attributes = apply_filters( 'optml_possible_src_attributes', [] );
 
 		return self::$possible_src_attributes;
@@ -177,6 +181,10 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function possible_lazyload_flags() {
+		if ( ! empty( self::$ignore_lazyload_strings ) ) {
+			return self::$ignore_lazyload_strings;
+		}
+
 		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', [ 'skip-lazy', 'data-skip-lazy' ] );
 
 		return array_merge( self::$possible_src_attributes, [ '<noscript' ] );
@@ -187,6 +195,10 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function possible_tag_flags() {
+		if ( ! empty( self::$ignore_tag_strings ) ) {
+			return self::$ignore_tag_strings;
+		}
+
 		self::$ignore_tag_strings = apply_filters( 'optml_skip_optimizations_css_classes', [ 'skip-optimization' ] );
 
 		return  self::$ignore_tag_strings;
@@ -197,6 +209,10 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function possible_data_ignore_flags() {
+		if ( ! empty( self::$ignore_data_opt_attribute ) ) {
+			return self::$ignore_data_opt_attribute;
+		}
+
 		self::$ignore_data_opt_attribute = apply_filters( 'optml_ignore_data_opt_flag', [] );
 
 		return self::$ignore_data_opt_attribute;
@@ -208,6 +224,10 @@ abstract class Optml_App_Replacer {
 	 * @return array Size mapping.
 	 */
 	protected static function size_to_crop() {
+		if ( ! empty( self::$size_to_crop ) ) {
+			return self::$size_to_crop;
+		}
+
 		foreach ( self::image_sizes() as $size_data ) {
 			if ( isset( self::$size_to_crop[ $size_data['width'] . $size_data['height'] ] ) && isset( $size_data['enlarge'] ) ) {
 				continue;
@@ -251,6 +271,10 @@ abstract class Optml_App_Replacer {
 	 * @global $wp_additional_image_sizes
 	 */
 	protected static function image_sizes() {
+		if ( ! empty( self::$image_sizes ) ) {
+			return self::$image_sizes;
+		}
+
 		global $_wp_additional_image_sizes;
 
 		// Populate an array matching the data structure of $_wp_additional_image_sizes so we have a consistent structure for image sizes

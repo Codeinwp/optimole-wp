@@ -107,7 +107,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array Lazyload selectors.
 	 */
 	public static function get_background_lazyload_selectors() {
+		if ( ! empty( self::$background_lazyload_selectors ) ) {
+			return self::$background_lazyload_selectors;
+		}
+
 		if ( self::instance()->settings->get( 'bg_replacer' ) === 'disabled' ) {
+			self::$background_lazyload_selectors = [];
 			return self::$background_lazyload_selectors;
 		}
 		$default_watchers = [
@@ -140,6 +145,10 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_lazyload_bg_classes() {
+		if ( ! empty( self::$lazyload_background_classes ) ) {
+			return self::$lazyload_background_classes;
+		}
+
 		self::$lazyload_background_classes = apply_filters( 'optml_lazyload_bg_classes', [] );
 
 		return self::$lazyload_background_classes;
@@ -163,6 +172,10 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_watcher_lz_classes() {
+		if ( ! empty( self::$lazyload_watcher_classes ) ) {
+			return self::$lazyload_watcher_classes;
+		}
+
 		self::$lazyload_watcher_classes = apply_filters( 'optml_watcher_lz_classes', [] );
 
 		return self::$lazyload_watcher_classes;
@@ -481,6 +494,10 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_ignore_noscript_flags() {
+		if ( ! empty( self::$ignore_no_script_flags ) ) {
+			return self::$ignore_no_script_flags;
+		}
+
 		self::$ignore_no_script_flags = apply_filters( 'optml_ignore_noscript_on', [] );
 
 		return self::$ignore_no_script_flags;
@@ -491,6 +508,10 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_iframe_lazyload_flags() {
+		if ( ! empty( self::$iframe_lazyload_flags ) ) {
+			return self::$iframe_lazyload_flags;
+		}
+
 		self::$iframe_lazyload_flags = self::possible_lazyload_flags();
 		self::$iframe_lazyload_flags = array_merge( self::$iframe_lazyload_flags, apply_filters( 'optml_iframe_lazyload_flags', [ 'gform_ajax_frame', '<noscript', 'recaptcha', '-src' ] ) );
 
