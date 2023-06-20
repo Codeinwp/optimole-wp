@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import classnames from "classnames";
+import classnames from 'classnames';
 
 /**
  * WordPress dependencies.
@@ -12,31 +12,31 @@ import {
 	Button,
 	TextControl,
 	ToggleControl
-} from "@wordpress/components";
+} from '@wordpress/components';
 
-import { useSelect } from "@wordpress/data";
+import { useSelect } from '@wordpress/data';
 
-import { useState } from "@wordpress/element";
+import { useState } from '@wordpress/element';
 
 const Resize = ({
 	settings,
 	setSettings,
-	setCanSave,
+	setCanSave
 }) => {
 	const { isLoading } = useSelect( select => {
 		const { isLoading } = select( 'optimole' );
 
 		return {
-			isLoading: isLoading(),
+			isLoading: isLoading()
 		};
-	} );
+	});
 
 	const [ width, setWidth ] = useState( '' );
 	const [ height, setHeight ] = useState( '' );
 
-	const isSmartResizeEnabled = settings[ 'resize_smart' ] !== 'disabled';
-	const isRetinaEnabled = settings[ 'retina_images' ] !== 'disabled';
-	const isLimitDimensionsEnabled = settings[ 'limit_dimensions' ] !== 'disabled';
+	const isSmartResizeEnabled = 'disabled' !== settings[ 'resize_smart' ];
+	const isRetinaEnabled = 'disabled' !== settings[ 'retina_images' ];
+	const isLimitDimensionsEnabled = 'disabled' !== settings[ 'limit_dimensions' ];
 
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
@@ -63,8 +63,8 @@ const Resize = ({
 			...settings[ 'defined_image_sizes' ],
 			[ size ]: {
 				width,
-				height,
-			},
+				height
+			}
 		};
 
 		setCanSave( true );
@@ -79,7 +79,7 @@ const Resize = ({
 	const removeSize = size => {
 		const newSizes = {
 			...settings[ 'defined_image_sizes' ],
-			[ size ]: 'remove',
+			[ size ]: 'remove'
 		};
 
 		setCanSave( true );
@@ -88,7 +88,7 @@ const Resize = ({
 		setSettings( data );
 	};
 
-	const imageSizes = Object.keys( settings[ 'defined_image_sizes' ] ).filter( size => 'object' === typeof settings[ 'defined_image_sizes' ][ size ] );
+	const imageSizes = Object.keys( settings[ 'defined_image_sizes' ]).filter( size => 'object' === typeof settings[ 'defined_image_sizes' ][ size ]);
 
 	return (
 		<>
@@ -99,7 +99,7 @@ const Resize = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'resize_smart', value ) }
@@ -114,7 +114,7 @@ const Resize = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'retina_images', value ) }
@@ -129,7 +129,7 @@ const Resize = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'limit_dimensions', value ) }
@@ -211,7 +211,7 @@ const Resize = ({
 				</div>
 			</BaseControl>
 
-			{ imageSizes.length > 0 && (
+			{ 0 < imageSizes.length && (
 				<BaseControl
 					label={ optimoleDashboardApp.strings.options_strings.image_sizes_title }
 					className="pt-4"
@@ -241,7 +241,7 @@ const Resize = ({
 			) }
 
 			<hr className="my-8 border-grayish-blue"/>
-		
+
 			<BaseControl
 				label={ optimoleDashboardApp.strings.options_strings.size_title }
 				help={ optimoleDashboardApp.strings.options_strings.size_desc }

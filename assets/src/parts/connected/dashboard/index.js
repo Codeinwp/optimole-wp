@@ -1,7 +1,7 @@
 /**
  * External dependencies.
  */
-import classNames from "classnames";
+import classNames from 'classnames';
 
 /**
  * WordPress dependencies.
@@ -9,9 +9,9 @@ import classNames from "classnames";
 import {
 	Button,
 	Icon
-} from "@wordpress/components";
+} from '@wordpress/components';
 
-import { useSelect } from "@wordpress/data";
+import { useSelect } from '@wordpress/data';
 
 /**
  * Internal dependencies.
@@ -23,9 +23,9 @@ import {
 	traffic,
 	quota,
 	warning
-} from "../../../utils/icons";
+} from '../../../utils/icons';
 
-import LastImages from "./LastImages";
+import LastImages from './LastImages';
 
 const cardClasses = 'flex p-6 bg-light-blue border border-blue-300 rounded-md';
 
@@ -53,7 +53,7 @@ const metrics = [
 		description: optimoleDashboardApp.strings.metrics.metricsSubtitle4,
 		value: 'traffic',
 		icon: traffic
-	},
+	}
 ];
 
 const InactiveWarning = () => (
@@ -92,16 +92,16 @@ const Dashboard = () => {
 			userData: getUserData(),
 			userStatus: getUserStatus()
 		};
-	} );
+	});
 
 	const visitorsLimitPercent = ( ( userData.visitors / userData.visitors_limit ) * 100 ).toFixed( 0 );
 
 	const getMetricValue = metric => {
-		if ( undefined !== userData[ metric ] ) {
+		if ( undefined !== userData[ metric ]) {
 			return userData[ metric ];
 		}
 
-		if ( metric === 'saved_size' ) {
+		if ( 'saved_size' === metric ) {
 			return Math.floor( Math.random() * 2500 ) + 500;
 		}
 
@@ -111,15 +111,15 @@ const Dashboard = () => {
 	const formatMetricValue = metric => {
 		const value = getMetricValue( metric );
 
-		if ( metric === 'saved_size' ) {
+		if ( 'saved_size' === metric ) {
 			return ( value / 1000 ).toFixed( 2 ) + 'MB';
 		}
 
-		if ( metric === 'compression_percentage' ) {
+		if ( 'compression_percentage' === metric ) {
 			return value.toFixed( 2 ) + '%';
 		}
 
-		if ( metric === 'traffic' ) {
+		if ( 'traffic' === metric ) {
 			return value.toFixed( 2 ) + 'MB';
 		}
 
@@ -128,14 +128,14 @@ const Dashboard = () => {
 
 	return (
 		<div className="bg-white p-8 border-0 rounded-lg shadow-md">
-			{ ( optimoleDashboardApp.strings.notice_just_activated.length > 0 && userStatus === 'active' ) && <ActivatedNotice/> }
+			{ ( 0 < optimoleDashboardApp.strings.notice_just_activated.length && 'active' === userStatus ) && <ActivatedNotice/> }
 
-			{ userStatus === 'inactive' && <InactiveWarning/> }
+			{ 'inactive' === userStatus && <InactiveWarning/> }
 
 			<div
 				className={ classNames(
 					cardClasses,
-					'gap-8 flex-col sm:flex-row items-start sm:items-center',
+					'gap-8 flex-col sm:flex-row items-start sm:items-center'
 				) }
 			>
 				<Icon icon={ quota } />
@@ -150,7 +150,7 @@ const Dashboard = () => {
 							</span>
 						</div>
 
-						{ ( visitorsLimitPercent < 70 ) && (
+						{ ( 70 > visitorsLimitPercent ) && (
 							<Button
 								variant="default"
 								className="optml__button rounded font-bold min-h-40"
@@ -173,8 +173,8 @@ const Dashboard = () => {
 							className="optml__tooltip"
 							style={ {
 								left: visitorsLimitPercent + '%',
-								marginLeft: visitorsLimitPercent < 15 ? '-15px' : '-20px',
-								display: visitorsLimitPercent > 100 ? 'none' : 'block'
+								marginLeft: 15 > visitorsLimitPercent ? '-15px' : '-20px',
+								display: 100 < visitorsLimitPercent ? 'none' : 'block'
 							} }
 						>
 							<span>{ visitorsLimitPercent }%</span>
@@ -190,7 +190,7 @@ const Dashboard = () => {
 							key={ metric.value }
 							className={ classNames(
 								cardClasses,
-								'basis-1/4 flex-col items-start',
+								'basis-1/4 flex-col items-start'
 							) }
 						>
 							<Icon icon={ metric.icon } />
@@ -210,14 +210,14 @@ const Dashboard = () => {
 							</div>
 						</div>
 					);
-				} ) }
+				}) }
 			</div>
 
-			{ optimoleDashboardApp.remove_latest_images !== 'yes' && (
+			{ 'yes' !== optimoleDashboardApp.remove_latest_images && (
 				<LastImages />
 			) }
 		</div>
 	);
-}
+};
 
 export default Dashboard;

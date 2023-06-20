@@ -1,9 +1,9 @@
 /**
  * WordPress dependencies.
  */
-import { useSelect } from "@wordpress/data";
+import { useSelect } from '@wordpress/data';
 
-import { useState } from "@wordpress/element";
+import { useState } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -11,8 +11,8 @@ import { useState } from "@wordpress/element";
 import Header from './Header';
 import DisconnectLayout from './disconnect';
 import ConnectLayout from './connect';
-import ConnectingLayout from "./connecting";
-import ConnectedLayout from "./connected";
+import ConnectingLayout from './connecting';
+import ConnectedLayout from './connected';
 import Footer from './Footer';
 
 const Main = () => {
@@ -37,7 +37,7 @@ const Main = () => {
 			hasApplication: hasApplication(),
 			hasDashboardLoaded: hasDashboardLoaded()
 		};
-	} );
+	});
 
 	return (
 		<>

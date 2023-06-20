@@ -1,70 +1,83 @@
 /**
  * WordPress dependencies.
  */
-import { Button } from "@wordpress/components";
+import { Button } from '@wordpress/components';
 
-import { useSelect } from "@wordpress/data";
+import { useSelect } from '@wordpress/data';
 
-import { useState } from "@wordpress/element";
+import { useState, useEffect } from '@wordpress/element';
 
 /**
  * Internal dependencies.
  */
-import Menu from "./Menu";
-import General from "./General";
-import Compression from "./Compression";
-import Resize from "./Resize";
-import Lazyload from "./Lazyload";
-import Exclusions from "./Exclusions";
-import OffloadMedia from "./OffloadMedia";
+import Menu from './Menu';
+import General from './General';
+import Compression from './Compression';
+import Resize from './Resize';
+import Lazyload from './Lazyload';
+import Exclusions from './Exclusions';
+import OffloadMedia from './OffloadMedia';
 import {
 	sampleRate,
 	saveSettings
-} from "../../../utils/api";
+} from '../../../utils/api';
 
 const Settings = ({
 	tab,
 	setTab
 }) => {
 	const {
-		getSettings,
+		siteSettings,
 		isLoading,
+		extraVisits
 	} = useSelect( select => {
 		const {
 			getSiteSettings,
 			getQueryArgs,
-			isLoading
+			isLoading,
+			extraVisits
 		} = select( 'optimole' );
 
+		const siteSettings = getSiteSettings();
+
 		return {
-			getSettings: getSiteSettings,
+			siteSettings,
+			extraVisits: siteSettings['banner_frontend'],
 			isLoading: isLoading(),
 			queryArgs: getQueryArgs()
 		};
-	} );
+	});
 
-	const [ settings, setSettings ] = useState( getSettings() );
+	const [ settings, setSettings ] = useState( siteSettings );
 	const [ canSave, setCanSave ] = useState( false );
 	const [ showSample, setShowSample ] = useState( false );
 	const [ isSampleLoading, setIsSampleLoading ] = useState( false );
 
+	useEffect( () => {
+		setSettings({
+			...settings,
+			banner_frontend: extraVisits
+		});
+	}, [ extraVisits ]);
+
 	const loadSample = () => {
 		if ( ! showSample ) {
 			setIsSampleLoading( true );
-	
+
 			sampleRate(
 				{
-					quality: settings[ 'quality' ],
+					quality: settings.quality
 				},
 				() => setIsSampleLoading( false )
 			);
 		}
 
-		setShowSample( ! showSample )
+		setShowSample( ! showSample );
 	};
 
 	const onSaveSettings = () => {
-		saveSettings( settings );
+		saveSettings( settings, siteSettings['banner_frontend'] !== settings['banner_frontend']);
+
 		setCanSave( false );
 	};
 
@@ -76,7 +89,7 @@ const Settings = ({
 			/>
 
 			<div className="basis-4/5">
-				{ tab === 'general' && (
+				{ 'general' === tab && (
 					<General
 						settings={ settings }
 						setSettings={ setSettings }
@@ -84,7 +97,7 @@ const Settings = ({
 					/>
 				) }
 
-				{ tab === 'compression' && (
+				{ 'compression' === tab && (
 					<Compression
 						settings={ settings }
 						setSettings={ setSettings }
@@ -95,7 +108,7 @@ const Settings = ({
 					/>
 				) }
 
-				{ tab === 'resize' && (
+				{ 'resize' === tab && (
 					<Resize
 						settings={ settings }
 						setSettings={ setSettings }
@@ -103,7 +116,7 @@ const Settings = ({
 					/>
 				) }
 
-				{ tab === 'lazyload' && (
+				{ 'lazyload' === tab && (
 					<Lazyload
 						settings={ settings }
 						setSettings={ setSettings }
@@ -111,7 +124,7 @@ const Settings = ({
 					/>
 				) }
 
-				{ tab === 'exclusions' && (
+				{ 'exclusions' === tab && (
 					<Exclusions
 						settings={ settings }
 						setSettings={ setSettings }
@@ -119,7 +132,7 @@ const Settings = ({
 					/>
 				) }
 
-				{ tab === 'offload_media' && (
+				{ 'offload_media' === tab && (
 					<OffloadMedia
 						settings={ settings }
 						canSave={ canSave }
@@ -140,7 +153,7 @@ const Settings = ({
 						{ optimoleDashboardApp.strings.options_strings.save_changes }
 					</Button>
 
-					{ ( settings[ 'autoquality' ] === 'disabled' && tab === 'compression' ) && (
+					{ ( 'disabled' === settings.autoquality && 'compression' === tab ) && (
 						<Button
 							variant="default"
 							disabled={ isLoading }

@@ -22,6 +22,13 @@ class Optml_Admin {
 	 */
 	public $settings;
 
+	/**
+	 * Hold the plugin conflict object.
+	 *
+	 * @var Optml_Conflicting_Plugins Settings object.
+	 */
+	public $conflicting_plugins;
+
 	const NEW_USER_DEFAULTS_UPDATED = 'optml_defaults_updated';
 
 	/**
@@ -34,6 +41,7 @@ class Optml_Admin {
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ], PHP_INT_MIN );
 		add_action( 'admin_notices', [ $this, 'add_notice' ] );
 		add_action( 'admin_notices', [ $this, 'add_notice_upgrade' ] );
+		add_action( 'admin_notices', [ $this, 'add_notice_conflicts' ] );
 		add_action( 'optml_daily_sync', [ $this, 'daily_sync' ] );
 
 		if ( $this->settings->is_connected() ) {
@@ -463,18 +471,19 @@ class Optml_Admin {
 	}
 
 	/**
-	 * Adds opt in notice.
+	 * CSS styles for Notice.
 	 */
-	public function add_notice() {
-		if ( ! $this->should_show_notice() ) {
-			return;
-		}
+	public static function notice_styles() {
 		?>
 		<style>
-			.optml-notice-optin {
+			.optml-notice-optin:not(.has-dismiss) {
 				background: url(" <?php echo esc_attr( OPTML_URL . '/assets/img/disconnected.svg' ); ?> ") #fff 100% 0 no-repeat;
 				position: relative;
 				padding: 0;
+			}
+
+			.optml-notice-optin.has-dismiss {
+				position: relative;
 			}
 
 			.optml-notice-optin .content {
@@ -508,6 +517,50 @@ class Optml_Admin {
 				}
 			}
 		</style>
+		<?php
+	}
+
+	/**
+	 * JS for Notice.
+	 */
+	public static function notice_js( $action ) {
+		?>
+		<script>
+			jQuery(document).ready(function($) {
+				// AJAX request to update the option value
+				$( '.optml-notice-optin button.notice-dismiss' ).click(function(e) {
+					e.preventDefault();
+
+					var notice = $(this).closest( '.optml-notice-optin' );
+					var nonce = '<?php echo esc_attr( wp_create_nonce( $action ) ); ?>';
+
+					$.ajax({
+						url: window.ajaxurl,
+						type: 'POST',
+						data: {
+							action: '<?php echo esc_attr( $action ); ?>',
+							nonce
+						},
+						complete() {
+							notice.remove();
+						}
+					});
+				});
+			});
+		</script>
+		<?php
+	}
+
+	/**
+	 * Adds opt in notice.
+	 */
+	public function add_notice() {
+		if ( ! $this->should_show_notice() ) {
+			return;
+		}
+
+		self::notice_styles();
+		?>
 		<div class="notice notice-info optml-notice-optin">
 			<div class="content">
 				<img src="<?php echo OPTML_URL . '/assets/img/logo.svg'; ?>" alt="<?php echo esc_attr__( 'Logo', 'optimole-wp' ); ?>"/>
@@ -525,6 +578,49 @@ class Optml_Admin {
 					</div>
 				</div>
 			</div>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Adds conflicts notice.
+	 */
+	public function add_notice_conflicts() {
+		if ( $this->settings->is_connected() || ! $this->conflicting_plugins->should_show_notice() ) {
+			return;
+		}
+
+		$plugins = $this->conflicting_plugins->get_conflicting_plugins();
+		$names   = [];
+
+		foreach ( $plugins as $plugin ) {
+			$plugin_data = get_plugin_data( WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . $plugin );
+			$names[]     = $plugin_data['Name'];
+		}
+
+		$names = implode( ', ', $names );
+
+		self::notice_styles();
+		self::notice_js( 'optml_dismiss_conflict_notice' );
+		?>
+		<div class="notice notice-info optml-notice-optin has-dismiss">
+			<div class="content">
+				<img src="<?php echo OPTML_URL . '/assets/img/logo.svg'; ?>" alt="<?php echo esc_attr__( 'Logo', 'optimole-wp' ); ?>"/>
+
+				<div>
+					<p class="notice-title"><strong><?php echo esc_html__( 'Oops... Multiple image optimization plugins active', 'optimole-wp' ); ?></strong></p>
+					<p class="description"> <?php printf( __( 'We noticed multiple image optimization plugins active on your site, which may cause issues in Optimole. We recommend using only one image optimization plugin on your site for the best results. The following plugins may cause issues in Optimole: %2$s%1$s%3$s.', 'optimole-wp' ), $names, '<strong>', '</strong>' ); ?></p>
+					<div class="actions">
+						<a href="<?php echo esc_url( admin_url( 'plugins.php?optimole_conflicts' ) ); ?>"
+						   class="button button-primary button-hero"><?php _e( 'Manage Plugins', 'optimole-wp' ); ?>
+						</a>
+					</div>
+				</div>
+			</div>
+
+			<button type="button" class="notice-dismiss">
+				<span class="screen-reader-text"><?php _e( 'Dismiss this notice.', 'optimole-wp' ); ?></span>
+			</button>
 		</div>
 		<?php
 	}
@@ -659,6 +755,11 @@ class Optml_Admin {
 
 		add_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
 		$this->settings->update( 'service_data', $data );
+
+		if ( isset( $data['extra_visits'] ) ) {
+			$this->settings->update_frontend_banner_from_remote( $data['extra_visits'] );
+		}
+
 		remove_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
 
 	}
@@ -983,6 +1084,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_limit_dimensions_desc'      => __( 'This feature allows you to set a maximum width or height for images on your website, automatically resizing larger images to fit within the defined limits while maintaining the original aspect ratio.', 'optimole-wp' ),
 				'enable_limit_dimensions_title'     => __( 'Limit Image Dimensions with max width/height', 'optimole-wp' ),
 				'enable_limit_dimensions_notice'    => __( 'When you enable this feature to define a max width or height for image resizing, please note that DPR (retina) images will be disabled. This is done to ensure consistency in image dimensions across your website. Although this may result in slightly lower image quality for high-resolution displays, it will help maintain uniform image sizes, improving your website\'s overall layout and potentially boosting performance. ', 'optimole-wp' ),
+				'enable_badge_title'                => __( 'Enable Optimole badge', 'optimole-wp' ),
+				'enable_badge_description'          => sprintf( __( 'Get 20.000 more visits for free by enabling the Optimole badge on your websites. %1$sMore details here%2$s.', 'optimole-wp' ), '<a target=”_blank” href="https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps#settings">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
 				'image_sizes_title'                 => __( 'Your cropped image sizes', 'optimole-wp' ),
 				'enabled'                           => __( 'Enabled', 'optimole-wp' ),
 				'exclude_class_desc'                => sprintf( __( '%1$sImage tag%2$s contains class', 'optimole-wp' ), '<strong>', '</strong>' ),

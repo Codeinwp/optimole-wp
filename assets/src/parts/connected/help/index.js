@@ -21,21 +21,21 @@ const HELP_SECTION = [
 		description: optimoleDashboardApp.strings.help.get_support_desc,
 		cta: optimoleDashboardApp.strings.help.get_support_cta,
 		link: 'https://wordpress.org/support/plugin/optimole-wp/',
-		icon: lifesaver,
+		icon: lifesaver
 	},
 	{
 		title: optimoleDashboardApp.strings.help.feat_request_title,
 		description: optimoleDashboardApp.strings.help.feat_request_desc,
 		cta: optimoleDashboardApp.strings.help.feat_request_cta,
 		link: 'https://github.com/Codeinwp/optimole-wp/discussions',
-		icon: commentContent,
+		icon: commentContent
 	},
 	{
 		title: optimoleDashboardApp.strings.help.feedback_title,
 		description: optimoleDashboardApp.strings.help.feedback_desc,
 		cta: optimoleDashboardApp.strings.help.feedback_cta,
 		link: 'https://wordpress.org/plugins/optimole-wp/#developers',
-		icon: formatListBullets,
+		icon: formatListBullets
 	}
 ];
 
@@ -54,7 +54,7 @@ const DOCS_SECTION = [
 			{
 				label: optimoleDashboardApp.strings.help.account_item_three,
 				value: 'https://docs.optimole.com/article/1133-visitors-based-plan'
-			},
+			}
 		]
 	},
 	{
@@ -126,7 +126,7 @@ const Help = () => {
 							</div>
 						</div>
 					);
-				} ) }
+				}) }
 			</div>
 
 			<hr className="my-8 border-grayish-blue"/>
@@ -159,11 +159,11 @@ const Help = () => {
 											{ item.label }
 										</a>
 									);
-								} ) }
+								}) }
 							</div>
 						</div>
 					);
-				} ) }
+				}) }
 			</div>
 		</div>
 	);

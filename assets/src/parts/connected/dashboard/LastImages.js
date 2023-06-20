@@ -1,42 +1,42 @@
 /**
  * External dependencies.
  */
-import { useElementSize } from "usehooks-ts";
+import { useElementSize } from 'usehooks-ts';
 
 /**
  * WordPress dependencies.
  */
-import { useSelect } from "@wordpress/data";
+import { useSelect } from '@wordpress/data';
 
 import {
 	useEffect,
 	useState
-} from "@wordpress/element";
+} from '@wordpress/element';
 
 /**
  * Internal dependencies.
  */
 import {
 	retrieveOptimizedImages,
-	requestStatsUpdate,
-} from "../../../utils/api";
+	requestStatsUpdate
+} from '../../../utils/api';
 
-const isInitialLoading = optimoleDashboardApp.connection_status !== 'yes';
+const isInitialLoading = 'yes' !== optimoleDashboardApp.connection_status;
 
 const Image = ({
 	src,
 	oldSize,
-	newSize,
+	newSize
 }) => {
-	const [ squareRef, { width } ] = useElementSize();
+	const [ squareRef, { width }] = useElementSize();
 
 	const getSize = () => {
-		let value = ( (1 - newSize / oldSize ) * 100 ).toFixed( 1 );
-		if ( value < 1 ) {
+		let value = ( ( 1 - newSize / oldSize ) * 100 ).toFixed( 1 );
+		if ( 1 > value ) {
 			return '1';
 		}
 
-		if ( value > 100 ) {
+		if ( 100 < value ) {
 			return ( Math.floor( ( value / 10 ) + 10 ) / 10 ).toFixed( 1 ).toString();
 		}
 
@@ -49,7 +49,7 @@ const Image = ({
 				src={ src }
 				className="w-full border border-slate-200 rounded-md border-solid"
 				style={{
-					height: width,
+					height: width
 				} }
 				ref={ squareRef }
 			/>
@@ -59,14 +59,14 @@ const Image = ({
 };
 
 const ImagePlaceholder = () => {
-	const [ squareRef, { width } ] = useElementSize();
+	const [ squareRef, { width }] = useElementSize();
 
 	return (
 		<div className="basis-1/4">
 			<div
 				className="optml__loader w-full rounded-md"
 				style={{
-					height: width,
+					height: width
 				} }
 				ref={ squareRef }
 			/>
@@ -84,22 +84,22 @@ const LastImages = () => {
 
 	useEffect( () => {
 		if ( timer <= maxTime ) {
-			setTimeout(() => {
+			setTimeout( () => {
 				updateProgress();
 			}, 1000 );
 		}
-	}, [ timer ] );
+	}, [ timer ]);
 
 	const { images } = useSelect( select => {
 		const { getOptimizedImages } = select( 'optimole' );
-	
+
 		return {
-			images: getOptimizedImages() || [],
+			images: getOptimizedImages() || []
 		};
-	} );
+	});
 
 	useEffect( () => {
-		if ( images.length >= 8 ) {
+		if ( 8 <= images.length ) {
 			setIsLoaded( true );
 			return;
 		}
@@ -107,9 +107,9 @@ const LastImages = () => {
 		if ( ! isLoaded && ! isInitialLoading ) {
 			retrieveOptimizedImages( () => {
 				setIsLoaded( true );
-			} );
+			});
 		}
-	}, [] );
+	}, []);
 
 	const updateProgress = () => {
 		setTimer( timer + 1 );
@@ -121,7 +121,7 @@ const LastImages = () => {
 				setStep( 0 );
 				setProgress( 0 );
 				requestStatsUpdate();
-			} );
+			});
 			return;
 		}
 
@@ -155,13 +155,13 @@ const LastImages = () => {
 				</>
 			) }
 
-			{ ( isLoaded && images?.length < 4 ) && (
+			{ ( isLoaded && 4 > images?.length ) && (
 				<div className="text-center py-12">
 					<p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.latest_images.no_images_found } } />
 				</div>
 			) }
 
-			{ ( isLoaded && images?.length >= 4 ) && (
+			{ ( isLoaded && 4 <= images?.length ) && (
 				<>
 					<div className="flex justify-between mt-5 gap-5">
 						{ [ ...Array( 4 ) ].map( ( i, key ) => {
@@ -172,10 +172,10 @@ const LastImages = () => {
 									newSize={ images[ key ].new_size_raw }
 								/>
 							);
-						} ) }
+						}) }
 					</div>
 
-					{ images?.length >= 8 && (
+					{ 8 <= images?.length && (
 						<div className="flex justify-between mt-5 gap-5">
 							{ [ ...Array( 4 ) ].map( ( i, key ) => {
 								key = key + 4;
@@ -187,13 +187,13 @@ const LastImages = () => {
 										newSize={ images[ key ].new_size_raw }
 									/>
 								);
-							} ) }
+							}) }
 						</div>
 					) }
 				</>
 			) }
 		</div>
 	);
-}
+};
 
 export default LastImages;

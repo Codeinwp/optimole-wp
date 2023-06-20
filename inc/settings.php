@@ -92,6 +92,7 @@ class Optml_Settings {
 		'strip_metadata'       => 'enabled',
 		'skip_lazyload_images' => 3,
 		'defined_image_sizes'          => [ ],
+		'banner_frontend'      => 'disabled',
 
 	];
 	/**
@@ -250,6 +251,7 @@ class Optml_Settings {
 				case 'native_lazyload':
 				case 'strip_metadata':
 				case 'no_script':
+				case 'banner_frontend':
 					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
 				case 'max_width':
@@ -379,6 +381,30 @@ class Optml_Settings {
 	}
 
 	/**
+	 * Update frontend banner setting from remote.
+	 *
+	 * @param bool $value Value.
+	 *
+	 * @return bool
+	 */
+	public function update_frontend_banner_from_remote( $value ) {
+		if ( ! $this->is_main_mu_site() ) {
+			return false;
+		}
+
+		$opts                    = $this->options;
+		$opts['banner_frontend'] = $value ? 'enabled' : 'disabled';
+
+		$update = update_option( $this->namespace, $opts, false );
+
+		if ( $update ) {
+			$this->options = $opts;
+		}
+
+		return $update;
+	}
+
+	/**
 	 * Update settings.
 	 *
 	 * @param string $key Settings key.
@@ -390,13 +416,19 @@ class Optml_Settings {
 		if ( ! $this->is_allowed( $key ) ) {
 			return false;
 		}
-		// If we try to update from a website which is not the main OPTML blog, bail.
-		if ( defined( 'OPTIML_ENABLED_MU' ) && constant( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && constant( 'OPTIML_MU_SITE_ID' ) &&
-			 intval( constant( 'OPTIML_MU_SITE_ID' ) ) !== get_current_blog_id()
-		) {
+
+		if ( ! $this->is_main_mu_site() ) {
 			return false;
 		}
-		$opt         = $this->options;
+		$opt = $this->options;
+
+		if ( $key === 'banner_frontend' ) {
+			$api          = new Optml_Api();
+			$service_data = $this->get( 'service_data' );
+			$application  = isset( $service_data['cdn_key'] ) ? $service_data['cdn_key'] : '';
+			$response     = $api->update_extra_visits( $opt['api_key'], $value, $application );
+		}
+
 		$opt[ $key ] = $value;
 		$update      = update_option( $this->namespace, $opt, false );
 		if ( $update ) {
@@ -406,6 +438,22 @@ class Optml_Settings {
 			do_action( 'optml_settings_updated' );
 		}
 		return $update;
+	}
+
+	/**
+	 * Check that we're on the main OPTML blog.
+	 *
+	 * @return bool
+	 */
+	private function is_main_mu_site() {
+		// If we try to update from a website which is not the main OPTML blog, bail.
+		if ( defined( 'OPTIML_ENABLED_MU' ) && constant( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && constant( 'OPTIML_MU_SITE_ID' ) &&
+			 intval( constant( 'OPTIML_MU_SITE_ID' ) ) !== get_current_blog_id()
+		) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -456,6 +504,7 @@ class Optml_Settings {
 			'cloud_images'         => $this->get( 'cloud_images' ),
 			'strip_metadata'       => $this->get( 'strip_metadata' ),
 			'whitelist_domains'    => $whitelist,
+			'banner_frontend'      => $this->get( 'banner_frontend' ),
 		];
 	}
 

@@ -1,11 +1,11 @@
 /**
  * External dependencies.
  */
-import classnames from "classnames";
+import classnames from 'classnames';
 
 import ReactCompareImage from 'react-compare-image';
 
-import { rotateRight } from "@wordpress/icons";
+import { rotateRight } from '@wordpress/icons';
 
 /**
  * WordPress dependencies.
@@ -16,14 +16,14 @@ import {
 	Icon,
 	RangeControl,
 	ToggleControl
-} from "@wordpress/components";
+} from '@wordpress/components';
 
-import { useSelect } from "@wordpress/data";
+import { useSelect } from '@wordpress/data';
 
 /**
  * Internal dependencies.
  */
-import { sampleRate } from "../../../utils/api";
+import { sampleRate } from '../../../utils/api';
 
 const Compression = ({
 	settings,
@@ -44,16 +44,16 @@ const Compression = ({
 
 		return {
 			sampleImages: getSampleRate(),
-			isLoading: isLoading(),
+			isLoading: isLoading()
 		};
-	} );
+	});
 
-	const isNetworkOptimizationEnabled = settings[ 'network_optimization' ] !== 'disabled';
-	const isCDNEnabled = settings[ 'cdn' ] !== 'disabled';
-	const isGIFReplacementEnabled = settings[ 'img_to_video' ] !== 'disabled';
-	const isAVIFEnabled = settings[ 'avif' ] !== 'disabled';
-	const isStripMetadataEnabled = settings[ 'strip_metadata' ] !== 'disabled';
-	const isAutoQualityEnabled = settings[ 'autoquality' ] !== 'disabled';
+	const isNetworkOptimizationEnabled = 'disabled' !== settings[ 'network_optimization' ];
+	const isCDNEnabled = 'disabled' !== settings.cdn;
+	const isGIFReplacementEnabled = 'disabled' !== settings[ 'img_to_video' ];
+	const isAVIFEnabled = 'disabled' !== settings.avif;
+	const isStripMetadataEnabled = 'disabled' !== settings[ 'strip_metadata' ];
+	const isAutoQualityEnabled = 'disabled' !== settings.autoquality;
 
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
@@ -67,7 +67,7 @@ const Compression = ({
 
 		sampleRate(
 			{
-				quality: settings[ 'quality' ],
+				quality: settings.quality,
 				force: 'yes'
 			},
 			() => setIsSampleLoading( false )
@@ -75,23 +75,23 @@ const Compression = ({
 	};
 
 	const getQuality = value => {
-		if ( typeof value === 'number' ) {
+		if ( 'number' === typeof value ) {
 			return value;
 		}
 
-		if ( value === 'auto' ) {
+		if ( 'auto' === value ) {
 			return 90;
 		}
 
-		if ( value === 'high_c' ) {
+		if ( 'high_c' === value ) {
 			return 90;
 		}
 
-		if ( value === 'medium_c' ) {
+		if ( 'medium_c' === value ) {
 			return 75;
 		}
 
-		if ( value === 'low_c' ) {
+		if ( 'low_c' === value ) {
 			return 55;
 		}
 
@@ -101,7 +101,7 @@ const Compression = ({
 	const updateQuality = value => {
 		setCanSave( true );
 		const data = { ...settings };
-		data[ 'quality' ] = value;
+		data.quality = value;
 		setSettings( data );
 	};
 
@@ -122,7 +122,7 @@ const Compression = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'network_optimization', value ) }
@@ -137,7 +137,7 @@ const Compression = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'cdn', value ) }
@@ -152,7 +152,7 @@ const Compression = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'img_to_video', value ) }
@@ -167,7 +167,7 @@ const Compression = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'avif', value ) }
@@ -182,7 +182,7 @@ const Compression = ({
 				disabled={ isLoading }
 				className={ classnames(
 					{
-						'is-disabled':  isLoading,
+						'is-disabled': isLoading
 					}
 				) }
 				onChange={ value => updateOption( 'strip_metadata', value ) }
@@ -200,7 +200,7 @@ const Compression = ({
 					disabled={ isLoading }
 					className={ classnames(
 						{
-							'is-disabled':  isLoading,
+							'is-disabled': isLoading
 						}
 					) }
 					onChange={ value => updateOption( 'autoquality', value ) }
@@ -210,7 +210,7 @@ const Compression = ({
 			{ ! isAutoQualityEnabled && (
 				<>
 					<RangeControl
-						value={ getQuality( settings[ 'quality' ] ) }
+						value={ getQuality( settings.quality ) }
 						min={ 50 }
 						max={ 100 }
 						step={ 1 }
@@ -218,15 +218,15 @@ const Compression = ({
 						marks={ [
 							{
 								value: 55,
-								label: optimoleDashboardApp.strings.options_strings.low_q_title,
+								label: optimoleDashboardApp.strings.options_strings.low_q_title
 							},
 							{
 								value: 75,
-								label: optimoleDashboardApp.strings.options_strings.medium_q_title,
+								label: optimoleDashboardApp.strings.options_strings.medium_q_title
 							},
 							{
 								value: 90,
-								label: optimoleDashboardApp.strings.options_strings.high_q_title,
+								label: optimoleDashboardApp.strings.options_strings.high_q_title
 							}
 						] }
 						onChange={ updateQuality }
@@ -245,9 +245,9 @@ const Compression = ({
 								</div>
 							) : (
 								<>
-									{ ( sampleImages.id && sampleImages.original_size > 0 ) && (
+									{ ( sampleImages.id && 0 < sampleImages.original_size ) && (
 										<div>
-											{ getCompressionRatio() > 0 ? (
+											{ 0 < getCompressionRatio() ? (
 												<p className="text-base">{ 100 - getCompressionRatio() }% { optimoleDashboardApp.strings.latest_images.smaller }</p>
 											) : (
 												<p className="text-base">{ optimoleDashboardApp.strings.latest_images.same_size }</p>
@@ -278,7 +278,7 @@ const Compression = ({
 										</div>
 									) }
 
-									{ ( ! ( sampleImages.id && sampleImages.original_size > 0 ) && sampleImages.id < 0 ) && (
+									{ ( ! ( sampleImages.id && 0 < sampleImages.original_size ) && 0 > sampleImages.id ) && (
 										<div className="flex items-center gap-5 text-center">
 											<p className="text-base">{ optimoleDashboardApp.strings.options_strings.no_images_found }</p>
 										</div>

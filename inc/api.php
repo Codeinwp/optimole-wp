@@ -88,6 +88,22 @@ final class Optml_Api {
 	}
 
 	/**
+	 * Toggle the extra visits.
+	 *
+	 * @param string $api_key Api key.
+	 * @param string $status Status of the visits toggle.
+	 *
+	 * @return array|bool|string
+	 */
+	public function update_extra_visits( $api_key = '', $status = 'enabled', $application = '' ) {
+		if ( ! empty( $api_key ) ) {
+			$this->api_key = $api_key;
+		}
+
+		return $this->request( '/optml/v2/account/extra_visits', 'POST', [ 'extra_visits' => $status, 'application' => $application ] );
+	}
+
+	/**
 	 * Get cache token from service.
 	 *
 	 * @return array|bool|WP_Error User data.
