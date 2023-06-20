@@ -36,6 +36,8 @@ class Optml_Admin {
 	 */
 	public function __construct() {
 		$this->settings = new Optml_Settings();
+		$this->conflicting_plugins = new Optml_Conflicting_Plugins();
+
 		add_filter( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
 		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ], PHP_INT_MIN );
