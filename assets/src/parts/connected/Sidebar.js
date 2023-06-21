@@ -9,6 +9,8 @@ import {
 
 import { useSelect } from '@wordpress/data';
 
+import { addQueryArgs } from '@wordpress/url';
+
 const reasons = [
 	optimoleDashboardApp.strings.upgrade.reason_1,
 	optimoleDashboardApp.strings.upgrade.reason_2,
@@ -69,7 +71,7 @@ const Sidebar = () => {
 				/>
 			</div>
 
-			{ 'free' === plan && (
+			{ 'free' === plan ? (
 				<div
 					className="bg-info flex flex-col text-white border-0 rounded-lg shadow-md p-8 bg-promo bg-no-repeat"
 					style={ {
@@ -90,7 +92,6 @@ const Sidebar = () => {
 						) ) }
 					</ul>
 
-
 					<Button
 						variant="link"
 						className="optml__button flex w-full justify-center font-bold min-h-40 !no-underline !text-white !bg-opaque-black !rounded"
@@ -100,6 +101,19 @@ const Sidebar = () => {
 						{ optimoleDashboardApp.strings.upgrade.cta }
 					</Button>
 				</div>
+			) : (
+				<Button
+					variant="default"
+					className="bg-white flex font-bold border-0 rounded-lg shadow-md p-8 text-sm justify-center"
+					href={ addQueryArgs( 'https://optimole.com/contact/', {
+						contact_name: window.optimoleDashboardApp.user_data.display_name,
+						contact_email: optimoleDashboardApp.user_data.user_email,
+						contact_website: optimoleDashboardApp.home_url
+					}) }
+					target="_blank"
+				>
+					{ optimoleDashboardApp.strings.premium_support }
+				</Button>
 			) }
 		</div>
 	);
