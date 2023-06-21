@@ -23,9 +23,9 @@ class Optml_revslider extends Optml_compatibility {
 	 */
 	public function register() {
 
-		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_lazyflag' ], 10, 1 );
-		add_filter( 'optml_ignore_data_opt_flag', [$this, 'add_data_ignore'], 10, 1 );
-		add_filter( 'optml_lazyload_bg_classes', [$this, 'add_bg_class'], 10, 1 );
+		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_lazyflag' ], 10 );
+		add_filter( 'optml_ignore_data_opt_flag', [$this, 'add_data_ignore'], 10 );
+		add_filter( 'optml_lazyload_bg_classes', [$this, 'add_bg_class'], 10 );
 	}
 
 	/**

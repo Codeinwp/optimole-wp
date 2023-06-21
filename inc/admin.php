@@ -213,7 +213,7 @@ class Optml_Admin {
 		add_action( 'wp_enqueue_scripts', [ $this, 'frontend_scripts' ] );
 		add_action( 'wp_head', [ $this, 'inline_bootstrap_script' ] );
 
-		add_filter( 'optml_additional_html_classes', [ $this, 'add_no_js_class_to_html_tag' ], 10, 1 );
+		add_filter( 'optml_additional_html_classes', [ $this, 'add_no_js_class_to_html_tag' ], 10 );
 	}
 
 	/**

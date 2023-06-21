@@ -453,7 +453,7 @@ abstract class Optml_App_Replacer {
 		$this->is_css_minify_on = ( $this->settings->get( 'css_minify' ) === 'enabled' ) ? 1 : 0;
 		$this->is_js_minify_on  = ( $this->settings->get( 'js_minify' ) === 'enabled' ) ? 1 : 0;
 
-		add_filter( 'optml_strip_image_size_from_url', [ $this, 'strip_image_size_from_url' ], 10, 1 );
+		add_filter( 'optml_strip_image_size_from_url', [ $this, 'strip_image_size_from_url' ], 10 );
 		add_filter(
 			'image_resize_dimensions',
 			[ __CLASS__, 'listen_to_sizes' ],
