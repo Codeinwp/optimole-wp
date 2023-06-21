@@ -353,8 +353,7 @@ abstract class Optml_App_Replacer {
 
 				return $strings;
 			},
-			10,
-			1
+			10
 		);
 		add_filter(
 			'optml_skip_optimizations_css_classes',
@@ -364,8 +363,7 @@ abstract class Optml_App_Replacer {
 				}
 				return $strings;
 			},
-			10,
-			1
+			10
 		);
 	}
 

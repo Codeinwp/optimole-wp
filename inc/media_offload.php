@@ -388,7 +388,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Get image size name from width and meta.
 	 *
 	 * @param array  $sizes Image sizes .
-	 * @param string $width Size width.
+	 * @param integer $width Size width.
 	 * @param string $filename Image filename.
 	 *
 	 * @return null|string
