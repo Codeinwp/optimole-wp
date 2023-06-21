@@ -13,7 +13,7 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @var array Lazyload filters.
 	 */
-	protected static $filters = [];
+	protected static $filters = null;
 	/**
 	 * Holds an array of image sizes.
 	 *
@@ -31,25 +31,25 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @var array
 	 */
-	protected static $possible_src_attributes = [];
+	protected static $possible_src_attributes = null;
 	/**
 	 * Holds possible tag replace flags where we should ignore our optimization.
 	 *
 	 * @var array
 	 */
-	protected static $ignore_tag_strings = [];
+	protected static $ignore_tag_strings = null;
 	/**
 	 * Holds possible lazyload flags where we should ignore our lazyload.
 	 *
 	 * @var array
 	 */
-	protected static $ignore_lazyload_strings = [];
+	protected static $ignore_lazyload_strings = null;
 	/**
 	 * Holds flags that should ignore the data-opt-tag format.
 	 *
 	 * @var array
 	 */
-	protected static $ignore_data_opt_attribute = [];
+	protected static $ignore_data_opt_attribute = null;
 	/**
 	 * Settings handler.
 	 *

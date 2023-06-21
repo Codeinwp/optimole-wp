@@ -51,31 +51,31 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 *
 	 * @var array Lazyload background classes.
 	 */
-	private static $lazyload_background_classes = [];
+	private static $lazyload_background_classes = null;
 	/**
 	 * Selectors used for background lazyload.
 	 *
 	 * @var array Lazyload background CSS selectors.
 	 */
-	private static $background_lazyload_selectors = [];
+	private static $background_lazyload_selectors = null;
 	/**
 	 * Holds flags which remove noscript tag bundle causing issues on render, i.e slider plugins.
 	 *
 	 * @var array Noscript flags.
 	 */
-	private static $ignore_no_script_flags = [];
+	private static $ignore_no_script_flags = null;
 	/**
 	 * Holds possible iframe lazyload flags where we should ignore our lazyload.
 	 *
 	 * @var array
 	 */
-	protected static $iframe_lazyload_flags = [];
+	protected static $iframe_lazyload_flags = null;
 	/**
 	 * Holds classes responsabile for watching lazyload behaviour.
 	 *
 	 * @var array Lazyload classes.
 	 */
-	private static $lazyload_watcher_classes = [];
+	private static $lazyload_watcher_classes = null;
 	/**
 	 * Should we use the generic placeholder?
 	 *
