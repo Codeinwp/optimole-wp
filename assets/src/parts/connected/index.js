@@ -19,6 +19,7 @@ import Conflicts from './conflicts';
 import Settings from './settings';
 import Help from './help';
 import Sidebar from './Sidebar';
+import CSAT from './CSAT';
 import { retrieveConflicts } from '../../utils/api';
 
 const ConnectedLayout = ({
@@ -85,26 +86,30 @@ const ConnectedLayout = ({
 	}, [ hasConflicts ]);
 
 	return (
-		<div className="optml-connected max-w-screen-xl flex flex-col lg:flex-row mx-auto gap-5">
-			<div
-				className="flex flex-col justify-between mt-8 mb-5 p-0 transition-all ease-in-out duration-700 relative text-gray-700 basis-9/12"
-			>
-				{ 'dashboard' === tab && <Dashboard /> }
+		<>
+			<div className="optml-connected max-w-screen-xl flex flex-col lg:flex-row mx-auto gap-5">
+				<div
+					className="flex flex-col justify-between mt-8 mb-5 p-0 transition-all ease-in-out duration-700 relative text-gray-700 basis-9/12"
+				>
+					{ 'dashboard' === tab && <Dashboard /> }
 
-				{ ( 'conflicts' === tab && showConflicts ) && <Conflicts /> }
+					{ ( 'conflicts' === tab && showConflicts ) && <Conflicts /> }
 
-				{ 'settings' === tab && (
-					<Settings
-						tab={ menu }
-						setTab={ setMenu }
-					/>
-				) }
+					{ 'settings' === tab && (
+						<Settings
+							tab={ menu }
+							setTab={ setMenu }
+						/>
+					) }
 
-				{ 'help' === tab && <Help /> }
+					{ 'help' === tab && <Help /> }
+				</div>
+
+				<Sidebar/>
 			</div>
 
-			<Sidebar/>
-		</div>
+			<CSAT />
+		</>
 	);
 };
 
