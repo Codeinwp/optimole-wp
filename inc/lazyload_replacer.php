@@ -107,7 +107,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array Lazyload selectors.
 	 */
 	public static function get_background_lazyload_selectors() {
-		if ( ! empty( self::$background_lazyload_selectors ) ) {
+		if ( null !== self::$background_lazyload_selectors ) {
 			return self::$background_lazyload_selectors;
 		}
 
@@ -145,7 +145,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_lazyload_bg_classes() {
-		if ( ! empty( self::$lazyload_background_classes ) ) {
+		if ( null !== self::$lazyload_background_classes ) {
 			return self::$lazyload_background_classes;
 		}
 
@@ -172,7 +172,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_watcher_lz_classes() {
-		if ( ! empty( self::$lazyload_watcher_classes ) ) {
+		if ( null !== self::$lazyload_watcher_classes ) {
 			return self::$lazyload_watcher_classes;
 		}
 
@@ -494,7 +494,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_ignore_noscript_flags() {
-		if ( ! empty( self::$ignore_no_script_flags ) ) {
+		if ( null !== self::$ignore_no_script_flags ) {
 			return self::$ignore_no_script_flags;
 		}
 
@@ -508,7 +508,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_iframe_lazyload_flags() {
-		if ( ! empty( self::$iframe_lazyload_flags ) ) {
+		if ( null !== self::$iframe_lazyload_flags ) {
 			return self::$iframe_lazyload_flags;
 		}
 

@@ -166,7 +166,7 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function possible_src_attributes() {
-		if ( ! empty( self::$possible_src_attributes ) ) {
+		if ( null !== self::$possible_src_attributes ) {
 			return self::$possible_src_attributes;
 		}
 
@@ -181,7 +181,7 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function possible_lazyload_flags() {
-		if ( ! empty( self::$ignore_lazyload_strings ) ) {
+		if ( null !== self::$ignore_lazyload_strings ) {
 			return self::$ignore_lazyload_strings;
 		}
 
@@ -195,7 +195,7 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function possible_tag_flags() {
-		if ( ! empty( self::$ignore_tag_strings ) ) {
+		if ( null !== self::$ignore_tag_strings ) {
 			return self::$ignore_tag_strings;
 		}
 
@@ -209,7 +209,7 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function possible_data_ignore_flags() {
-		if ( ! empty( self::$ignore_data_opt_attribute ) ) {
+		if ( null !== self::$ignore_data_opt_attribute ) {
 			return self::$ignore_data_opt_attribute;
 		}
 
