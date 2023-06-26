@@ -39,7 +39,13 @@ const Header = ({
 	);
 };
 
+window.optimoleCSAT = {
+	hasSubmitted: false,
+	data: {}
+};
+
 const CSAT = ({
+	id,
 	show = false,
 	strings = {},
 	pages = [],
@@ -52,13 +58,34 @@ const CSAT = ({
 	const [ data, setData ] = useState({});
 
 	useEffect( () => {
+		const beforeUnload = () => {
+			if ( ! window.optimoleCSAT.hasSubmitted && window.optimoleCSAT.data?.score ) {
+				localStorage.setItem( `optimole_csat_data_${ id }`, JSON.stringify( window.optimoleCSAT.data ) );
+			}
+		};
+
+		window.addEventListener( 'beforeunload', beforeUnload );
+
+		return () => {
+			window.removeEventListener( 'beforeunload', beforeUnload );
+		};
+	}, []);
+
+	useEffect( () => {
 		if ( show && ! hasDismissed ) {
 			setIsVisible( show );
 		}
 	}, [ show ]);
 
-	const onSubmit = ( dismiss = true ) => {
-		if ( hasSubmitted || ! data?.score ) {
+	useEffect( () => {
+		window.optimoleCSAT = {
+			hasSubmitted,
+			data
+		};
+	}, [ hasSubmitted, data ]);
+
+	const onSubmit = ( dismiss = true, params = data ) => {
+		if ( hasSubmitted || ! params?.score ) {
 			setHasDismissed( true );
 			return null;
 		}
@@ -67,11 +94,11 @@ const CSAT = ({
 			email: optimoleDashboardApp.user_data.user_email,
 			product: 'Optimole',
 			site: optimoleDashboardApp.home_url,
-			...data
+			...params
 		};
 
 		try {
-			fetch( `https://api.themeisle.com/tracking/csat/${ score }`, {
+			fetch( `https://api.themeisle.com/tracking/csat/${ params?.score }`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -94,6 +121,28 @@ const CSAT = ({
 		}
 	};
 
+	const changeData = ( obj, skip = false ) => {
+		setData({
+			...data,
+			...obj
+		});
+
+		if ( skip ) {
+			setCurrentPage( currentPage + 1 );
+		}
+	};
+
+	// If localStorage has data, use it to send the request.
+	useEffect( () => {
+		const localState = localStorage.getItem( `optimole_csat_data_${ id }` );
+
+		if ( localState ) {
+			onSubmit( true, JSON.parse( localState ) );
+
+			localStorage.removeItem( `optimole_csat_data_${ id }` );
+		}
+	}, []);
+
 	const onClose = () => {
 		setIsVisible( false );
 		setHasDismissed( true );
@@ -108,17 +157,6 @@ const CSAT = ({
 	if ( 0 === pages.length ) {
 		return null;
 	}
-
-	const changeData = ( obj, skip = false ) => {
-		setData({
-			...data,
-			...obj
-		});
-
-		if ( skip ) {
-			setCurrentPage( currentPage + 1 );
-		}
-	};
 
 	const canGoForward = currentPage < pages.length;
 

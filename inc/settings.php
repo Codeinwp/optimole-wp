@@ -161,7 +161,7 @@ class Optml_Settings {
 			}
 		}
 
-		add_action( 'init', array( $this, 'register_settings' ) );
+		add_action( 'init', [ $this, 'register_settings' ] );
 	}
 
 	/**
@@ -682,12 +682,12 @@ class Optml_Settings {
 		register_setting(
 			'optml_settings',
 			'optml_csat',
-			array(
+			[
 				'type'              => 'string',
 				'sanitize_callback' => 'sanitize_text_field',
 				'show_in_rest'      => true,
 				'default'           => '{}',
-			)
+			]
 		);
 	}
 }
