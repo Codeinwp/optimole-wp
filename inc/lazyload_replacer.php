@@ -242,6 +242,14 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
 		}
+
+		if ( self::instance()->settings->get( 'native_lazyload' ) === 'enabled' ) {
+			if ( strpos( $new_tag, 'loading=' ) === false ) {
+				$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img loading=\"lazy\"' : '<img loading="lazy"', $new_tag );
+			}
+			return $new_tag;
+		}
+
 		$should_ignore_rescale = ! $this->is_valid_mimetype_from_url( $original_url, [ 'gif' => true, 'svg' => true ] );
 
 		if ( ! self::$is_lazyload_placeholder && ! $should_ignore_rescale ) {
@@ -296,9 +304,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			1
 		);
 		$new_tag = str_replace( 'srcset=', 'old-srcset=', $new_tag );
-		if ( strpos( $new_tag, 'loading=' ) === false && self::instance()->settings->get( 'native_lazyload' ) === 'enabled' ) {
-			$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img loading=\"lazy\"' : '<img loading="lazy"', $new_tag );
-		}
+
 		if ( ! $this->should_add_noscript( $new_tag ) ) {
 			return $new_tag;
 		}
