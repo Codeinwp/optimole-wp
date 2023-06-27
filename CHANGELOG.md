@@ -1,3 +1,8 @@
+##### [Version 3.8.1](https://github.com/Codeinwp/optimole-wp/compare/v3.8.0...v3.8.1) (2023-06-27)
+
+### Bug Fixes
+- **Warning on lower versions of PHP when using Elementor**: Resolved the warning when the plugin was activated, but the service wasnt connected on lower versions of PHP when using Elementor.
+
 #### [Version 3.8.0](https://github.com/Codeinwp/optimole-wp/compare/v3.7.0...v3.8.0) (2023-06-19)
 
 ### New features
