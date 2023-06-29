@@ -15,7 +15,7 @@ class Optml_elementor_builder extends Optml_compatibility {
 	function should_load() {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
-		return Optml_Main::instance()->admin->settings->is_connected() && is_plugin_active( 'elementor/elementor.php' );
+		return is_plugin_active( 'elementor/elementor.php' );
 	}
 
 	/**
