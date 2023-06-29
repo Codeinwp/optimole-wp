@@ -84,6 +84,7 @@ final class Optml_Manager {
 		'elementor_builder_late',
 		'wpml',
 		'otter_blocks',
+		'spectra',
 	];
 	/**
 	 * The current state of the buffer.
