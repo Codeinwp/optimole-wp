@@ -26,35 +26,35 @@ class Optml_spectra extends Optml_compatibility {
 
 	/**
 	 * Optimize the src attribute.
-     * 
-     * @param array $attrs Array of attributes.
-     * @param string $name Name of the block.
-     * 
-     * @return array
+	 *
+	 * @param array  $attrs Array of attributes.
+	 * @param string $name Name of the block.
+	 *
+	 * @return array
 	 */
 	public function optimize_src( $attrs, $name ) {
-        $attrs = $this->iterate_array( $attrs );
+		$attrs = $this->iterate_array( $attrs );
 
 		return $attrs;
 	}
 
-    /**
-     * Iterate through the array and replace the url.
-     *
-     * @param array $attrs Array of attributes.
-     * @return array
-     */
-    public function iterate_array( $attrs ) {
-        foreach ( $attrs as $key => $value ) {
-            if ( is_array( $value ) ) {
-                $attrs[ $key ] = $this->iterate_array( $value );
-            }
+	/**
+	 * Iterate through the array and replace the url.
+	 *
+	 * @param array $attrs Array of attributes.
+	 * @return array
+	 */
+	public function iterate_array( $attrs ) {
+		foreach ( $attrs as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$attrs[ $key ] = $this->iterate_array( $value );
+			}
 
-            if ( is_string( $value ) && preg_match( '/(http|https):\/\/.*\.(?:png|jpg|jpeg|gif|webp)/i', $value ) ) {
-                $attrs[ $key ] = Optml_Main::instance()->manager->url_replacer->build_url( $value );
-            }
-        }
+			if ( is_string( $value ) && preg_match( '/(http|https):\/\/.*\.(?:png|jpg|jpeg|gif|webp)/i', $value ) ) {
+				$attrs[ $key ] = Optml_Main::instance()->manager->url_replacer->build_url( $value );
+			}
+		}
 
-        return $attrs;
-    }
+		return $attrs;
+	}
 }
