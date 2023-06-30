@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "codeinwp/themeisle-sdk",
-            "version": "3.2.41",
+            "version": "3.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeinwp/themeisle-sdk.git",
-                "reference": "25e9a580df8cdbe324d117be112aacd7ad021762"
+                "reference": "efb66935e69935b21ad99b0e55484e611ce4549d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeinwp/themeisle-sdk/zipball/25e9a580df8cdbe324d117be112aacd7ad021762",
-                "reference": "25e9a580df8cdbe324d117be112aacd7ad021762",
+                "url": "https://api.github.com/repos/Codeinwp/themeisle-sdk/zipball/efb66935e69935b21ad99b0e55484e611ce4549d",
+                "reference": "efb66935e69935b21ad99b0e55484e611ce4549d",
                 "shasum": ""
             },
             "require-dev": {
@@ -42,9 +42,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Codeinwp/themeisle-sdk/issues",
-                "source": "https://github.com/Codeinwp/themeisle-sdk/tree/v3.2.41"
+                "source": "https://github.com/Codeinwp/themeisle-sdk/tree/v3.3.1"
             },
-            "time": "2023-05-10T08:11:42+00:00"
+            "time": "2023-06-21T06:55:46+00:00"
         }
     ],
     "packages-dev": [
