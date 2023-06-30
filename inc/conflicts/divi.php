@@ -5,7 +5,7 @@
  *
  * An example of a conflict.
  */
-class Optml_Divi extends Optml_abstract_conflict {
+class Optml_Divi extends Optml_Abstract_Conflict {
 
 	/**
 	 * Optml_Divi constructor.
@@ -41,7 +41,7 @@ class Optml_Divi extends Optml_abstract_conflict {
 				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 			}
 			$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/divi-builder/divi-builder.php' );
-			if ( isset( $plugin_data['Version'] ) && version_compare( $plugin_data['Version'], '4.10.8', '<' ) ) {
+			if ( version_compare( $plugin_data['Version'], '4.10.8', '<' ) ) {
 				$show_message = true;
 			}
 		}

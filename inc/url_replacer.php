@@ -39,14 +39,15 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	/**
 	 * A filter which turns a local url into an optimized CDN image url or an array of image urls.
 	 *
-	 * @param string $url The url which should be replaced.
+	 * @param string|array $url The url which should be replaced.
 	 *
-	 * @return string Replaced url.
+	 * @return string|array Replaced url.
 	 */
 	public function replace_option_url( $url ) {
 		if ( empty( $url ) ) {
 			return $url;
 		}
+
 		// $url might be an array or an json encoded array with urls.
 		if ( is_array( $url ) || filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
 			$array   = $url;
@@ -145,7 +146,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 					$unoptimized_url = $tmp_url[2];
 				}
 			} else {
-				$unoptimized_url = Optml_Media_Offload::get_original_url( $attachment_id[1] );
+				$unoptimized_url = Optml_Media_Offload::get_original_url( (int) $attachment_id[1] );
 			}
 			if ( $unoptimized_url !== false ) {
 				$url = $unoptimized_url;

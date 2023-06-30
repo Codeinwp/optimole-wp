@@ -223,7 +223,6 @@ class Optml_Conflicting_Plugins {
 				'message' => 'Missing nonce or value.',
 			];
 			wp_send_json( $response );
-			wp_die();
 		}
 
 		$nonce = sanitize_text_field( $_POST['nonce'] );
@@ -234,7 +233,6 @@ class Optml_Conflicting_Plugins {
 				'message' => 'Invalid nonce.',
 			];
 			wp_send_json( $response );
-			wp_die();
 		}
 
 		$this->dismiss_conflicting_plugins();
@@ -244,6 +242,5 @@ class Optml_Conflicting_Plugins {
 		];
 
 		wp_send_json( $response );
-		wp_die();
 	}
 }

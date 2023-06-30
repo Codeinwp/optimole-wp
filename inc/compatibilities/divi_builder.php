@@ -47,7 +47,7 @@ class Optml_divi_builder extends Optml_compatibility {
 	/**
 	 * Replace image urls upon divi's static css files creation
 	 *
-	 * @param object $resource ET_Core_PageResource object.
+	 * @param ET_Core_PageResource $resource ET_Core_PageResource object.
 	 * @return void
 	 */
 	public function optimize_divi_static_files( $resource ) {

@@ -37,7 +37,8 @@ class Optml_Admin {
 	public function __construct() {
 		$this->settings = new Optml_Settings();
 		$this->conflicting_plugins = new Optml_Conflicting_Plugins();
-		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
+
+		add_filter( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
 		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ], PHP_INT_MIN );
 		add_action( 'admin_notices', [ $this, 'add_notice' ] );
@@ -215,7 +216,7 @@ class Optml_Admin {
 		add_action( 'wp_enqueue_scripts', [ $this, 'frontend_scripts' ] );
 		add_action( 'wp_head', [ $this, 'inline_bootstrap_script' ] );
 
-		add_filter( 'optml_additional_html_classes', [ $this, 'add_no_js_class_to_html_tag' ], 10, 1 );
+		add_filter( 'optml_additional_html_classes', [ $this, 'add_no_js_class_to_html_tag' ], 10 );
 	}
 
 	/**
@@ -439,7 +440,7 @@ class Optml_Admin {
 		if ( get_option( 'optml_notice_hide_upg', 'no' ) === 'yes' ) {
 			return false;
 		}
-		if ( isset( $current_screen->base ) && $current_screen->base !== 'upload' ) {
+		if ( $current_screen->base !== 'upload' ) {
 			return false;
 		}
 		$service_data = $this->settings->get( 'service_data' );

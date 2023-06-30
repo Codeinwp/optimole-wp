@@ -23,7 +23,7 @@ class Optml_give_wp extends Optml_compatibility {
 	 */
 	public function register() {
 
-		add_filter( 'optml_should_ignore_image_tags', [$this, 'check_givewp_page'], 10, 1 );
+		add_filter( 'optml_should_ignore_image_tags', [$this, 'check_givewp_page'], 10 );
 
 		if ( Optml_Main::instance()->admin->settings->get( 'video_lazyload' ) === 'enabled' ) {
 			add_filter( 'optml_iframe_lazyload_flags', [$this, 'add_ignore_lazyload_iframe'] );

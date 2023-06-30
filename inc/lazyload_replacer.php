@@ -37,7 +37,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	/**
 	 * Cached object instance.
 	 *
-	 * @var Optml_Tag_Replacer
+	 * @var Optml_Lazyload_Replacer
 	 */
 	protected static $instance = null;
 	/**
@@ -82,18 +82,13 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @var bool Lazyload placeholder flag.
 	 */
 	private static $is_lazyload_placeholder = false;
-	/**
-	 * Holds flags which remove noscript tag bundle causing issues on render, i.e slider plugins.
-	 *
-	 * @var array Noscript flags.
-	 */
 
 	/**
 	 * Class instance method.
 	 *
 	 * @codeCoverageIgnore
 	 * @static
-	 * @return Optml_Tag_Replacer
+	 * @return Optml_Lazyload_Replacer
 	 * @since  1.0.0
 	 * @access public
 	 */
@@ -112,13 +107,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array Lazyload selectors.
 	 */
 	public static function get_background_lazyload_selectors() {
-
-		if ( ! empty( self::$background_lazyload_selectors ) && is_array( self::$background_lazyload_selectors ) ) {
+		if ( null !== self::$background_lazyload_selectors ) {
 			return self::$background_lazyload_selectors;
 		}
+
 		if ( self::instance()->settings->get( 'bg_replacer' ) === 'disabled' ) {
 			self::$background_lazyload_selectors = [];
-
 			return self::$background_lazyload_selectors;
 		}
 		$default_watchers = [
@@ -151,8 +145,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_lazyload_bg_classes() {
-
-		if ( ! empty( self::$lazyload_background_classes ) && is_array( self::$lazyload_background_classes ) ) {
+		if ( null !== self::$lazyload_background_classes ) {
 			return self::$lazyload_background_classes;
 		}
 
@@ -179,8 +172,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_watcher_lz_classes() {
-
-		if ( ! empty( self::$lazyload_watcher_classes ) && is_array( self::$lazyload_watcher_classes ) ) {
+		if ( null !== self::$lazyload_watcher_classes ) {
 			return self::$lazyload_watcher_classes;
 		}
 
@@ -391,7 +383,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			Optml_Config::$image_extensions
 		);
 
-		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+		if ( empty( $type['ext'] ) ) {
 			return false;
 		}
 
@@ -428,8 +420,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	/**
 	 * Get SVG markup with specific width/height.
 	 *
-	 * @param int         $width Markup Width.
-	 * @param int         $height Markup Height.
+	 * @param int|string  $width Markup Width.
+	 * @param int|string  $height Markup Height.
 	 * @param string|null $url Original URL.
 	 *
 	 * @return string SVG code.
@@ -508,8 +500,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_ignore_noscript_flags() {
-
-		if ( ! empty( self::$ignore_no_script_flags ) && is_array( self::$ignore_no_script_flags ) ) {
+		if ( null !== self::$ignore_no_script_flags ) {
 			return self::$ignore_no_script_flags;
 		}
 
@@ -523,8 +514,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_iframe_lazyload_flags() {
-
-		if ( ! empty( self::$iframe_lazyload_flags ) && is_array( self::$iframe_lazyload_flags ) ) {
+		if ( null !== self::$iframe_lazyload_flags ) {
 			return self::$iframe_lazyload_flags;
 		}
 

@@ -94,16 +94,6 @@ abstract class Optml_Resource {
 	}
 
 	/**
-	 * Get token for the url.
-	 *
-	 * @return string
-	 */
-	private function get_url_token() {
-		$url = strtok( $this->source_url, '?' );
-		return $this->get_token_from_cache( $url, 6 );
-	}
-
-	/**
 	 * Return a the cache buster, defaults to the url token used previously.
 	 *
 	 * @return string|bool

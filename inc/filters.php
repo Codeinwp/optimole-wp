@@ -75,7 +75,7 @@ final class Optml_Filters {
 	 * @param array  $flags Flags array.
 	 * @param string $ext Extension string.
 	 *
-	 * @return bool Should we do the processing?
+	 * @return bool|string Should we do the processing?
 	 */
 	public static function should_do_extension( $flags, $ext ) {
 		foreach ( $flags as $rule_flag => $status ) {

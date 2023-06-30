@@ -8,7 +8,7 @@ class Optml_Minify extends Optml_Property_Type {
 	/**
 	 * Default minify value.
 	 *
-	 * @var string Minify value.
+	 * @var int Minify value.
 	 */
 	public static $default_minify = 0;
 	/**
