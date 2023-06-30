@@ -206,7 +206,10 @@ class Optml_Admin {
 			add_action( 'wp_before_admin_bar_render', [ $this, 'add_report_menu' ] );
 			add_action( 'wp_enqueue_scripts', [ $this, 'add_diagnosis_script' ] );
 		}
-		if ( ! $this->settings->use_lazyload() ) {
+		if ( ! $this->settings->use_lazyload()
+			|| ( $this->settings->get( 'native_lazyload' ) === 'enabled'
+				&& $this->settings->get( 'video_lazyload' ) === 'disabled'
+				&& $this->settings->get( 'bg_replacer' ) === 'disabled' ) ) {
 			return;
 		}
 		add_action( 'wp_enqueue_scripts', [ $this, 'frontend_scripts' ] );
@@ -302,19 +305,6 @@ class Optml_Admin {
 								maxHeight: %d,
 							}
 						}(window, document));
-					document.addEventListener( "DOMContentLoaded", function() {
-																		
-																		if ( "loading" in HTMLImageElement.prototype && Object.prototype.hasOwnProperty.call( optimoleData, "nativeLazyload" ) && optimoleData.nativeLazyload === true ) {
-																			const images = document.querySelectorAll(\'img[loading="lazy"]\');
-																					images.forEach( function (img) {
-																						if ( !img.dataset.optSrc) {
-																							return;
-																						}
-																						img.src = img.dataset.optSrc;
-																						delete img.dataset.optSrc;
-																					 });
-																		}
-																	} );
 		</script>',
 			Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT,
 			esc_url( $domain ),
@@ -1125,7 +1115,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'low_q_title'                       => __( 'Low', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),
 				'no_images_found'                   => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
-				'native_desc'                       => __( 'Use browser native lazyload if supported, fallback to classic lazyload otherwise. When using browser native lazyload the auto scale feature is disabled', 'optimole-wp' ),
+				'native_desc'                       => __( 'Use browser native lazyload. When using browser native lazyload the auto scale feature is disabled', 'optimole-wp' ),
 				'option_saved'                      => __( 'Option saved.', 'optimole-wp' ),
 				'ml_quality_desc' => 'Optimole ML algorithms will predict the right quality for your image in order to get the smallest possible size with minimum perceived quality losses. Turning this off will allow you to control manually the quality.',
 				'quality_desc'                      => __( 'Lower image quality might not always be perceived by users and would result in a boost of your loading speed by lowering the page size. Try experimenting with the setting, then click the View sample image link to see what option works best for you.', 'optimole-wp' ),

@@ -34,7 +34,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 
 		] );
 		$settings->update( 'lazyload', 'enabled' );
-		$settings->update( 'native_lazyload', 'enabled' );
+		$settings->update( 'native_lazyload', 'disabled' );
 		$settings->update( 'video_lazyload', 'enabled' );
 		$settings->update( 'lazyload_placeholder', 'disabled' );
 		$settings->update( 'no_script', 'enabled' );
@@ -271,11 +271,12 @@ class Test_Lazyload extends WP_UnitTestCase {
 	}
 
 	public function test_width_100() {
+
 		$content = '<img height="100%" src="http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/>';
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
-		$this->assertEquals( '<img decoding=async  loading="lazy" data-opt-src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/f:avif/http://example.org/wp-content/uploads/2018/11/gradient.png"  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:eco/f:avif/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/><noscript><img decoding=async  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/f:avif/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/></noscript>', $replaced_content );
+		$this->assertEquals( '<img decoding=async  data-opt-src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/f:avif/http://example.org/wp-content/uploads/2018/11/gradient.png"  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:eco/f:avif/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/><noscript><img decoding=async  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/f:avif/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/></noscript>', $replaced_content );
 
 	}
 	public function test_check_with_no_script() {
@@ -418,10 +419,14 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 	}
 
 	public function test_should_add_loading () {
+
+		$settings = new Optml_Settings();
+		$settings->update( 'native_lazyload', 'enabled' );
+		Optml_Manager::instance()->init();
+
 		$content          = '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
-		$this->assertStringContainsString( 'data-opt-src', $replaced_content );
 		$this->assertStringContainsString( 'loading="lazy"', $replaced_content );
 	}
 
@@ -436,6 +441,11 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 	}
 
 	public function test_json_should_add_loading () {
+
+		$settings = new Optml_Settings();
+		$settings->update( 'native_lazyload', 'enabled' );
+		Optml_Manager::instance()->init();
+
 		$content          = [ '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>',
 			'<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>',
 			'<img loading="lazy" src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>',
@@ -443,9 +453,8 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		];
 		$replaced_content = Optml_Manager::instance()->replace_content( json_encode($content) );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
-		$this->assertStringContainsString( 'data-opt-src', $replaced_content );
 		$this->assertStringContainsString( 'loading=\"eager\"', $replaced_content );
-		$this->assertEquals(4, substr_count( $replaced_content, 'loading=\"lazy\"' ));
+		$this->assertEquals(3, substr_count( $replaced_content, 'loading=\"lazy\"' ));
 	}
 
 	public function test_lazyload_iframe() {
