@@ -134,7 +134,7 @@ final class Optml_Manager {
 			 *
 			 * @var Optml_compatibility $compatibility Class to register.
 			 */
-			if ( $compatibility->should_load() ) {
+			if ( $compatibility->will_load() ) {
 				if ( $compatibility->should_load_early() ) {
 					$compatibility->register();
 					continue;
