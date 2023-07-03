@@ -40,12 +40,15 @@ jobs:
           npm ci
           composer install --no-dev --prefer-dist --no-progress --no-suggest
       - name: Make build
-        run: |
-          npm run build
+        run: yarn run build
       - name: Create zip
         run: yarn run dist
+      - name: Remove build folder
+        run: rm -rf assets/build
+      - name: Make build
+        run: yarn run build-dev
       - name: Create dev zip
-        run: yarn run dist -- --dev
+        run: yarn run dist --dev
       - name: Retrieve branch name
         id: retrieve-branch-name
         run: echo "::set-output name=branch_name::$(REF=${GITHUB_HEAD_REF:-$GITHUB_REF} && echo ${REF#refs/heads/} | sed 's/\//-/g')"
