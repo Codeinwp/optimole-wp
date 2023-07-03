@@ -23,6 +23,7 @@ rsync -rc --exclude-from ".distignore" "./" "dist/$DIST_FOLDER"
 
 if [ "$1" = "--dev" ]; then
 	cp -f "development.php" "dist/$DIST_FOLDER"
+  echo "require_once OPTML_PATH . '/development.php';" >> "dist/$DIST_FOLDER/optimole-wp.php"
 fi
 
 cd dist
