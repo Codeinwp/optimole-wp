@@ -15,12 +15,15 @@ fi
 
 if [ "$1" = "--dev" ]; then
   DIST_FOLDER="$BUILD_NAME-dev"
-	cp -f "development.php" "dist/$DIST_FOLDER"
 else
   DIST_FOLDER=$BUILD_NAME
 fi
 
 rsync -rc --exclude-from ".distignore" "./" "dist/$DIST_FOLDER"
+
+if [ "$1" = "--dev" ]; then
+	cp -f "development.php" "dist/$DIST_FOLDER"
+fi
 
 cd dist
 zip -r "../artifact/$DIST_FOLDER" "./$DIST_FOLDER/"
