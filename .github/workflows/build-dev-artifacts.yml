@@ -42,8 +42,8 @@ jobs:
       - name: Make build
         run: |
           npm run build
-          - name: Create zip
-            run: yarn run dist
+      - name: Create zip
+        run: yarn run dist
       - name: Create dev zip
         run: yarn run dist -- --dev
       - name: Retrieve branch name
