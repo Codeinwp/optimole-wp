@@ -49,7 +49,7 @@ const CSAT = ({
 	show = false,
 	strings = {},
 	pages = [],
-	onDismiss
+	onDismiss = () => {}
 }) => {
 	const [ isVisibile, setIsVisible ] = useState( false );
 	const [ currentPage, setCurrentPage ] = useState( 0 );
@@ -84,7 +84,7 @@ const CSAT = ({
 		};
 	}, [ hasSubmitted, data ]);
 
-	const onSubmit = ( dismiss = true, params = data ) => {
+	const onSubmit = ( dismiss = false, params = data ) => {
 		if ( hasSubmitted || ! params?.score ) {
 			setHasDismissed( true );
 			return null;
@@ -113,10 +113,10 @@ const CSAT = ({
 
 		setHasSubmitted( true );
 		setCurrentPage( pages.length );
-		setIsVisible( false );
-		setHasDismissed( true );
 
 		if ( dismiss ) {
+			setIsVisible( false );
+			setHasDismissed( true );
 			onDismiss();
 		}
 	};
@@ -146,8 +146,7 @@ const CSAT = ({
 	const onClose = () => {
 		setIsVisible( false );
 		setHasDismissed( true );
-		onSubmit( false );
-		onDismiss();
+		onSubmit();
 	};
 
 	if ( ! isVisibile ) {
@@ -163,7 +162,7 @@ const CSAT = ({
 	const Content = pages[ currentPage ]?.content;
 
 	return (
-		<div className="bg-white fixed right-0 bottom-0 m-12 gap-2 max-w-lg w-full flex flex-col text-gray-700 border-0 rounded-lg shadow-lg z-50">
+		<div className="bg-white fixed left-0 w-auto sm:right-0 sm:left-auto sm:w-full bottom-0 m-12 gap-2 max-w-lg flex flex-col text-gray-700 border-0 rounded-lg shadow-lg z-50">
 
 			{ pages[ currentPage ] && (
 				<>

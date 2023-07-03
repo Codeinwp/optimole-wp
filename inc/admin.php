@@ -1282,7 +1282,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'skip'                 => __( 'Skip', 'optimole-wp' ),
 				'submit'               => __( 'Submit', 'optimole-wp' ),
 				'privacy'              => __( 'What info we collect?', 'optimole-wp' ),
-				'privacy_tootip'       => __( 'We value privacy, that\'s why no IP addresses are collected after you submit the survey.', 'optimole-wp' ),
+				'privacy_tooltip'      => __( 'We value privacy, that\'s why no IP addresses are collected after you submit the survey.', 'optimole-wp' ),
 				'thank_you'            => __( 'Your input is highly appreciated and helps us shape a better experience in Optimole.', 'optimole-wp' ),
 			],
 		];

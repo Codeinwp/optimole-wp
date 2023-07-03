@@ -40,7 +40,7 @@ const CSATList = () => {
 
 		return {
 			hasImages: 0 < getUserData()?.images_number,
-			isFirstSite: 1 === getUserData()?.app_count
+			isFirstSite: 1 === getUserData()?.whitelist?.length
 		};
 	});
 
@@ -117,7 +117,7 @@ const CSATList = () => {
 
 									<div className="flex gap-2">
 										<Button
-											onClick={ props.onSubmit }
+											onClick={ () => props.onSubmit() }
 											className="optml__button basis-full justify-center rounded font-bold min-h-40"
 										>
 											{ optimoleDashboardApp.strings.csat.skip }
@@ -125,7 +125,7 @@ const CSATList = () => {
 
 										<Button
 											variant="primary"
-											onClick={ props.onSubmit }
+											onClick={ () => props.onSubmit() }
 											className="optml__button basis-full justify-center rounded font-bold min-h-40"
 										>
 											{ optimoleDashboardApp.strings.csat.submit }
