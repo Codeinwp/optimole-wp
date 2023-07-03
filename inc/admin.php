@@ -1112,6 +1112,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'image_1_label'                     => __( 'Original', 'optimole-wp' ),
 				'image_2_label'                     => __( 'Optimized', 'optimole-wp' ),
 				'lazyload_desc'                     => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload .', 'optimole-wp' ),
+				'filter_length_error'               => __( 'The filter should be at least 3 characters long.', 'optimole-wp' ),
 				'scale_desc'                        => __( 'When this option is off, we disable the automatic scaling of images on lazyload.', 'optimole-wp' ),
 				'low_q_title'                       => __( 'Low', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),
