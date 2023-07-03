@@ -37,3 +37,9 @@ assets/vue
 .wporg
 .nvmrc
 .github
+cypress.config.js
+.eslintrc
+postcss.config.js
+tailwind.config.js
+phpstan.neon
+development.php

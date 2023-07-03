@@ -20,6 +20,12 @@
       "vendor/codeinwp/themeisle-sdk/load.php"
     ]
   },
+  "autoload-dev": {
+    "files": [
+      "vendor/codeinwp/themeisle-sdk/load.php",
+      "development.php"
+    ]
+  },
   "config": {
     "optimize-autoloader": true,
     "platform": {
