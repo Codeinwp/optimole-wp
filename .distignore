@@ -21,7 +21,6 @@ package.json
 package-lock.json
 composer.json
 composer.lock
-assets/js/bundle.js
 npm-debug.log
 bin
 key.enc
@@ -33,7 +32,7 @@ grunt
 tests
 dist
 artifact
-assets/vue
+assets/src
 .wporg
 .nvmrc
 .github
