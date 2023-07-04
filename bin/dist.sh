@@ -6,15 +6,28 @@ BUILD_NAME=$(node -pe "require('./package.json').name")
 export BUILD_NAME
 
 if [ ! -d "dist" ]; then
-  mkdir "dist"
+	mkdir "dist"
 fi
 
 if [ ! -d "artifact" ]; then
-  mkdir "artifact"
+	mkdir "artifact"
 fi
 
-rsync -rc --exclude-from ".distignore" "./" "dist/$BUILD_NAME"
+if [ "$1" = "--dev" ]; then
+	DIST_FOLDER="$BUILD_NAME-dev"
+else
+	DIST_FOLDER=$BUILD_NAME
+fi
+
+rsync -rc --exclude-from ".distignore" "./" "dist/$DIST_FOLDER"
+
+if [ "$1" = "--dev" ]; then
+	cp -f "development.php" "dist/$DIST_FOLDER"
+	echo "require_once OPTML_PATH . '/development.php';" >> "dist/$DIST_FOLDER/optimole-wp.php"
+fi
 
 cd dist
-zip -r "../artifact/$BUILD_NAME" "./$BUILD_NAME/"
+zip -r "../artifact/$DIST_FOLDER" "./$DIST_FOLDER/"
+
+echo "BUILD GENERATED: $DIST_FOLDER"
 cd -

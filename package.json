@@ -19,6 +19,7 @@
   "scripts": {
     "build": "wp-scripts build assets/src/index.js --output-path=assets/build",
     "dev": "wp-scripts start assets/src/index.js --output-path=assets/build",
+    "build-dev": "NODE_ENV=development wp-scripts build assets/src/index.js --output-path=assets/build",
     "lint": "wp-scripts lint-js assets/src",
     "format": "wp-scripts lint-js assets/src --fix",
     "release": "semantic-release --debug",
