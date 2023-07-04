@@ -85,6 +85,8 @@ const CSAT = ({
 	}, [ hasSubmitted, data ]);
 
 	const onSubmit = ( dismiss = false, params = data ) => {
+		onDismiss();
+
 		if ( hasSubmitted || ! params?.score ) {
 			setHasDismissed( true );
 			return null;
@@ -117,7 +119,6 @@ const CSAT = ({
 		if ( dismiss ) {
 			setIsVisible( false );
 			setHasDismissed( true );
-			onDismiss();
 		}
 	};
 
