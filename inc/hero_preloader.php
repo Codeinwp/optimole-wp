@@ -52,7 +52,7 @@ class Optml_Hero_Preloader {
 		if ( null === self::$instance || ( self::$instance->settings !== null && ( ! self::$instance->settings->is_connected() ) ) ) {
 			self::$instance = new self();
 			self::$instance->settings = new Optml_Settings();
-			if ( self::$instance->settings->is_connected() ) {
+			if ( self::$instance->settings->is_connected() && ! function_exists( 'wp_get_loading_optimization_attributes' ) ) {
 				self::$instance->init();
 			}
 		}
