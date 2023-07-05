@@ -13,6 +13,13 @@
 class Optml_Hero_Preloader {
 
 	/**
+	 * Hold the settings object.
+	 *
+	 * @var Optml_Settings Settings object.
+	 */
+	public $settings;
+
+	/**
 	 * Cached object instance.
 	 *
 	 * @var Optml_Hero_Preloader
@@ -42,9 +49,12 @@ class Optml_Hero_Preloader {
 	 * @access public
 	 */
 	public static function instance() {
-		if ( null === self::$instance ) {
+		if ( null === self::$instance || ( self::$instance->settings !== null && ( ! self::$instance->settings->is_connected() ) ) ) {
 			self::$instance = new self();
-			self::$instance->init();
+			self::$instance->settings = new Optml_Settings();
+			if ( self::$instance->settings->is_connected() ) {
+				self::$instance->init();
+			}
 		}
 
 		return self::$instance;
