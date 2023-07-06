@@ -22,7 +22,7 @@ class Optml_elementor_builder_late extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_action( 'get_post_metadata', [ $this, 'replace_meta' ], PHP_INT_MAX, 4 );
+		add_filter( 'get_post_metadata', [ $this, 'replace_meta' ], PHP_INT_MAX, 4 );
 	}
 	/**
 	 * Replace urls in post meta values.
@@ -38,7 +38,7 @@ class Optml_elementor_builder_late extends Optml_compatibility {
 
 		$meta_needed = '_elementor_data';
 
-		if ( isset( $meta_key ) && $meta_needed === $meta_key ) {
+		if ( ! empty( $meta_key ) && $meta_needed === $meta_key ) {
 			remove_filter( 'get_post_metadata', [ $this, 'replace_meta' ], PHP_INT_MAX );
 
 			$current_meta = get_post_meta( $object_id, $meta_needed, $single );

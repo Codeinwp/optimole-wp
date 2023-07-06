@@ -33,7 +33,7 @@ trait Optml_Validator {
 	public function is_valid_gif( $url ) {
 		$type = wp_check_filetype( $url, [ 'gif' => 'image/gif' ] );
 
-		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+		if ( empty( $type['ext'] ) ) {
 			return false;
 		}
 
@@ -45,12 +45,12 @@ trait Optml_Validator {
 	 *
 	 * @param mixed $url The url to check.
 	 *
-	 * @return bool
+	 * @return bool|string
 	 */
 	public function is_valid_mimetype_from_url( $url, $filters = [] ) {
 		$type = wp_check_filetype( $url, Optml_Config::$all_extensions );
 
-		if ( ! isset( $type['ext'] ) || empty( $type['ext'] ) ) {
+		if ( empty( $type['ext'] ) ) {
 			return false;
 		}
 

@@ -141,7 +141,7 @@ class Optml_Conflict_Manager {
 	 * @return int
 	 */
 	public function get_conflict_count() {
-		if ( empty( $this->watched_conflicts ) || sizeof( $this->watched_conflicts ) === 0 ) {
+		if ( empty( $this->watched_conflicts ) ) {
 			return 0;
 		}
 

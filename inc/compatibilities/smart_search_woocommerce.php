@@ -14,7 +14,7 @@ class Optml_smart_search_woocommerce extends Optml_compatibility {
 	 */
 	function should_load() {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-		return Optml_Main::instance()->admin->settings->is_connected() && is_plugin_active( 'smart-search-for-woocommerce/woocommerce-searchanise.php' );
+		return is_plugin_active( 'smart-search-for-woocommerce/woocommerce-searchanise.php' );
 	}
 
 	/**

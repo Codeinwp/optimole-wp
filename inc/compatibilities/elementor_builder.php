@@ -15,14 +15,14 @@ class Optml_elementor_builder extends Optml_compatibility {
 	function should_load() {
 		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
 
-		return Optml_Main::instance()->admin->settings->is_connected() && is_plugin_active( 'elementor/elementor.php' );
+		return is_plugin_active( 'elementor/elementor.php' );
 	}
 
 	/**
 	 * Register integration details.
 	 */
 	public function register() {
-		add_action( 'elementor/frontend/after_enqueue_styles', [$this, 'add_src_filter'], PHP_INT_MIN, 1 );
+		add_action( 'elementor/frontend/after_enqueue_styles', [$this, 'add_src'], PHP_INT_MIN, 1 );
 
 		add_filter( 'elementor/frontend/builder_content/before_enqueue_css_file', [$this, 'add_src_filter'], PHP_INT_MIN, 1 );
 
@@ -79,6 +79,17 @@ class Optml_elementor_builder extends Optml_compatibility {
 		add_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'], PHP_INT_MAX, 4 );
 
 		return $css;
+	}
+
+	/**
+	 * Add action to add the filter for the image src.
+	 *
+	 * @return void
+	 */
+	public function add_src() {
+		if ( ! has_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'] ) ) {
+			add_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'], PHP_INT_MAX, 4 );
+		}
 	}
 
 	/**

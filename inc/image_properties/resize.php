@@ -93,13 +93,13 @@ class Optml_Resize extends Optml_Property_Type {
 	/**
 	 * Should enlarge.
 	 *
-	 * @var string Enlarge flag
+	 * @var bool Enlarge flag
 	 */
 	private $enlarge = false;
 	/**
 	 * Global default enlarge.
 	 *
-	 * @var string Enlarge flag
+	 * @var bool Enlarge flag
 	 */
 	public static $default_enlarge = false;
 

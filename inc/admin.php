@@ -37,7 +37,8 @@ class Optml_Admin {
 	public function __construct() {
 		$this->settings = new Optml_Settings();
 		$this->conflicting_plugins = new Optml_Conflicting_Plugins();
-		add_action( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
+
+		add_filter( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
 		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ], PHP_INT_MIN );
 		add_action( 'admin_notices', [ $this, 'add_notice' ] );
@@ -206,13 +207,16 @@ class Optml_Admin {
 			add_action( 'wp_before_admin_bar_render', [ $this, 'add_report_menu' ] );
 			add_action( 'wp_enqueue_scripts', [ $this, 'add_diagnosis_script' ] );
 		}
-		if ( ! $this->settings->use_lazyload() ) {
+		if ( ! $this->settings->use_lazyload()
+			|| ( $this->settings->get( 'native_lazyload' ) === 'enabled'
+				&& $this->settings->get( 'video_lazyload' ) === 'disabled'
+				&& $this->settings->get( 'bg_replacer' ) === 'disabled' ) ) {
 			return;
 		}
 		add_action( 'wp_enqueue_scripts', [ $this, 'frontend_scripts' ] );
 		add_action( 'wp_head', [ $this, 'inline_bootstrap_script' ] );
 
-		add_filter( 'optml_additional_html_classes', [ $this, 'add_no_js_class_to_html_tag' ], 10, 1 );
+		add_filter( 'optml_additional_html_classes', [ $this, 'add_no_js_class_to_html_tag' ], 10 );
 	}
 
 	/**
@@ -302,19 +306,6 @@ class Optml_Admin {
 								maxHeight: %d,
 							}
 						}(window, document));
-					document.addEventListener( "DOMContentLoaded", function() {
-																		
-																		if ( "loading" in HTMLImageElement.prototype && Object.prototype.hasOwnProperty.call( optimoleData, "nativeLazyload" ) && optimoleData.nativeLazyload === true ) {
-																			const images = document.querySelectorAll(\'img[loading="lazy"]\');
-																					images.forEach( function (img) {
-																						if ( !img.dataset.optSrc) {
-																							return;
-																						}
-																						img.src = img.dataset.optSrc;
-																						delete img.dataset.optSrc;
-																					 });
-																		}
-																	} );
 		</script>',
 			Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT,
 			esc_url( $domain ),
@@ -449,7 +440,7 @@ class Optml_Admin {
 		if ( get_option( 'optml_notice_hide_upg', 'no' ) === 'yes' ) {
 			return false;
 		}
-		if ( isset( $current_screen->base ) && $current_screen->base !== 'upload' ) {
+		if ( $current_screen->base !== 'upload' ) {
 			return false;
 		}
 		$service_data = $this->settings->get( 'service_data' );
@@ -958,6 +949,7 @@ If you still want to disconnect click the button below.',
 			'private_cdn_url'                => __( 'IMAGES DOMAIN', 'optimole-wp' ),
 			'existing_user'                  => __( 'Existing user?', 'optimole-wp' ),
 			'notification_message_register'  => __( 'We sent you the API Key in the email. Add it below to connect to Optimole.', 'optimole-wp' ),
+			'premium_support'                => __( 'Access our Premium Support', 'optimole-wp' ),
 			'account_needed_title'           => sprintf(
 				__( 'In order to get access to free image optimization service you will need an API key from %s.', 'optimole-wp' ),
 				' <a href="https://dashboard.optimole.com/register" target="_blank">optimole.com</a>'
@@ -1072,7 +1064,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_offload_media_title'        => __( 'Enable offloading images', 'optimole-wp' ),
 				'enable_offload_media_desc'         => __( 'Offload your new images automatically to Optimole Cloud. You will no longer store them on your server and you can restore them back anytime.', 'optimole-wp' ),
 				'enable_cloud_images_title'         => __( 'Enable cloud library browsing', 'optimole-wp' ),
-				'enable_cloud_images_desc'          => sprintf( __( 'Allow access from this site to all images from your Optimole account. %1$s More details here%2$s', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://docs.optimole.com/article/1323-cloud-library-browsing">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
+				'enable_cloud_images_desc'          => sprintf( __( 'Grant permission for this site to access all images stored in your Optimole account. %1$s More details here%2$s', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://docs.optimole.com/article/1323-cloud-library-browsing">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
 				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
@@ -1120,11 +1112,12 @@ The root cause might be either a security plugin which blocks this feature or so
 				'image_1_label'                     => __( 'Original', 'optimole-wp' ),
 				'image_2_label'                     => __( 'Optimized', 'optimole-wp' ),
 				'lazyload_desc'                     => __( 'We will generate images size based on your visitor\'s screen using javascript and render them without blocking the page execution via lazyload .', 'optimole-wp' ),
+				'filter_length_error'               => __( 'The filter should be at least 3 characters long.', 'optimole-wp' ),
 				'scale_desc'                        => __( 'When this option is off, we disable the automatic scaling of images on lazyload.', 'optimole-wp' ),
 				'low_q_title'                       => __( 'Low', 'optimole-wp' ),
 				'medium_q_title'                    => __( 'Medium', 'optimole-wp' ),
 				'no_images_found'                   => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
-				'native_desc'                       => __( 'Use browser native lazyload if supported, fallback to classic lazyload otherwise. When using browser native lazyload the auto scale feature is disabled', 'optimole-wp' ),
+				'native_desc'                       => __( 'Use browser native lazyload. When using browser native lazyload the auto scale feature is disabled', 'optimole-wp' ),
 				'option_saved'                      => __( 'Option saved.', 'optimole-wp' ),
 				'ml_quality_desc' => 'Optimole ML algorithms will predict the right quality for your image in order to get the smallest possible size with minimum perceived quality losses. Turning this off will allow you to control manually the quality.',
 				'quality_desc'                      => __( 'Lower image quality might not always be perceived by users and would result in a boost of your loading speed by lowering the page size. Try experimenting with the setting, then click the View sample image link to see what option works best for you.', 'optimole-wp' ),

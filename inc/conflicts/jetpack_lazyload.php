@@ -5,7 +5,7 @@
  *
  * An example of a conflict.
  */
-class Optml_Jetpack_Lazyload extends Optml_abstract_conflict {
+class Optml_Jetpack_Lazyload extends Optml_Abstract_Conflict {
 
 	/**
 	 * Optml_Jetpack_Lazyload constructor.
@@ -34,7 +34,7 @@ class Optml_Jetpack_Lazyload extends Optml_abstract_conflict {
 	 */
 	public function is_conflict_valid() {
 
-		if ( ! is_plugin_active( 'jetpack/jetpack.php' ) && ! is_plugin_active( 'jetpack/jetpack.php' ) ) {
+		if ( ! is_plugin_active( 'jetpack/jetpack.php' ) ) {
 			return false;
 		}
 		if ( ! class_exists( 'Jetpack', false ) ) {

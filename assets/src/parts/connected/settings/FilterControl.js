@@ -105,6 +105,7 @@ const FilterControl = ({
 	const [ filterOperator, setFilterOperator ] = useState( optimoleDashboardApp.strings.options_strings.filter_operator_contains );
 	const [ filterValue, setFilterValue ] = useState( '' );
 	const [ filterMatchType, setFilterMatchType ] = useState( optimoleDashboardApp.strings.options_strings.filter_operator_contains );
+	const [ lengthError, setLengthError ] = useState( false );
 
 	const changeFilterType = value => {
 		let selectedValue = '';
@@ -122,12 +123,20 @@ const FilterControl = ({
 			setFilterOperator( optimoleDashboardApp.strings.options_strings.filter_operator_contains );
 		}
 
+		setLengthError( false );
 		setFilterValue( selectedValue );
 		setFilterType( value );
 	};
 
+	const updateFilterValue = value => {
+		setFilterValue( value );
+		setLengthError( false );
+	};
+
 	const addFilter = () => {
 		if ( 3 > filterValue.length ) {
+			setLengthError( true );
+
 			return;
 		}
 
@@ -255,7 +264,7 @@ const FilterControl = ({
 							<TextControl
 								value={ filterValue }
 								placeholder={ 'matches' === filterMatchType ? 'path' : 'word' }
-								onChange={ setFilterValue }
+								onChange={ updateFilterValue }
 								className="optml__input"
 							/>
 						) }
@@ -271,6 +280,9 @@ const FilterControl = ({
 						{ optimoleDashboardApp.strings.options_strings.add_filter }
 					</Button>
 				</div>
+				{ lengthError && (
+					<p className="text-red-500 bg-red-100 p-2 rounded-md border border-solid border-red-200">{ optimoleDashboardApp.strings.options_strings.filter_length_error }</p>
+				)}
 			</BaseControl>
 
 			{ hasItems && (

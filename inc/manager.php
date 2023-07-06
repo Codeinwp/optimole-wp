@@ -84,6 +84,7 @@ final class Optml_Manager {
 		'elementor_builder_late',
 		'wpml',
 		'otter_blocks',
+		'spectra',
 	];
 	/**
 	 * The current state of the buffer.
@@ -134,7 +135,7 @@ final class Optml_Manager {
 			 *
 			 * @var Optml_compatibility $compatibility Class to register.
 			 */
-			if ( $compatibility->should_load() ) {
+			if ( $compatibility->will_load() ) {
 				if ( $compatibility->should_load_early() ) {
 					$compatibility->register();
 					continue;
@@ -155,6 +156,10 @@ final class Optml_Manager {
 	 * @return void
 	 */
 	public function banner() {
+		if ( defined( 'REST_REQUEST' ) ) {
+			return;
+		}
+
 		$has_banner = $this->settings->get( 'banner_frontend' ) === 'enabled';
 
 		if ( ! $has_banner ) {

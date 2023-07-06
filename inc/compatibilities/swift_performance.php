@@ -22,7 +22,7 @@ class Optml_swift_performance extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'swift_performance_buffer', [ Optml_Main::instance()->manager, 'replace_content' ], 10, 1 );
+		add_filter( 'swift_performance_buffer', [ Optml_Main::instance()->manager, 'replace_content' ], 10 );
 	}
 }
 

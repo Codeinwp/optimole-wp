@@ -1,0 +1,20 @@
+parameters:
+	level: 5
+	paths:
+		- %currentWorkingDirectory%/optimole-wp.php
+		- %currentWorkingDirectory%/inc
+	bootstrapFiles:
+		- %currentWorkingDirectory%/tests/static-analysis-stubs/optimole-wp.php
+		- %currentWorkingDirectory%/tests/static-analysis-stubs/cli.php
+		- %currentWorkingDirectory%/tests/static-analysis-stubs/divi.php
+		- %currentWorkingDirectory%/tests/static-analysis-stubs/thrive.php
+		- %currentWorkingDirectory%/vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
+		- %currentWorkingDirectory%/vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+		- %currentWorkingDirectory%/vendor/php-stubs/wp-cli-stubs/wp-cli-commands-stubs.php
+		- %currentWorkingDirectory%/vendor/php-stubs/wp-cli-stubs/wp-cli-i18n-stubs.php
+	dynamicConstantNames:
+		- TEST_GROUND
+		- OPTML_DEBUG
+		- OPTML_DEBUG_MEDIA
+includes:
+	- %currentWorkingDirectory%/vendor/szepeviktor/phpstan-wordpress/extension.neon

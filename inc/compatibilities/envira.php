@@ -23,9 +23,9 @@ class Optml_envira extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_lazyflag' ], 10, 2 );
+		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_lazyflag' ], 10 );
 		add_filter( 'optml_parse_resize_from_tag', [ $this, 'check_resize_tag' ], 10, 2 );
-		add_filter( 'envira_gallery_image_src', [ $this, 'revert_src' ], 10, 1 );
+		add_filter( 'envira_gallery_image_src', [ $this, 'revert_src' ], 10 );
 	}
 
 	/**

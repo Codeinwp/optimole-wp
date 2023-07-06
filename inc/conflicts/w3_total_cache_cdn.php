@@ -5,7 +5,7 @@
  *
  * External css/js needs to be added to a list in order to be processed by w3 total cache.
  */
-class Optml_w3_total_cache_cdn extends Optml_abstract_conflict {
+class Optml_w3_total_cache_cdn extends Optml_Abstract_Conflict {
 
 	/**
 	 * Optml_Jetpack_Lazyload constructor.
