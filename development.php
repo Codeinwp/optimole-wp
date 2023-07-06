@@ -5,10 +5,6 @@
  * @package ThemeIsle
  */
 
- if ( ! defined( 'WPINC' ) ) {
-	die;
-}
-
 if ( ! defined( 'ENABLE_OPTIMOLE_WP_DEV' ) ) {
 	define( 'ENABLE_OPTIMOLE_WP_DEV', true );
 }
