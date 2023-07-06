@@ -140,16 +140,16 @@ const OffloadMedia = ({
 		const data = { ...settings };
 
 		if ( 0 === value.length ) {
-			sites.all = true;
+			sites.all = 'true';
 		} else {
 			value.forEach( ( site ) => {
-				sites[ site ] = true;
+				sites[ site ] = 'true';
 			});
 		}
 
 		Object.keys( data[ 'cloud_sites' ]).forEach( ( site ) => {
 			if ( ! Object.prototype.hasOwnProperty.call( sites, site ) ) {
-				sites[ site ] = false;
+				sites[ site ] = 'false';
 			}
 		});
 
@@ -219,7 +219,7 @@ const OffloadMedia = ({
 					>
 						<div className="optml__token__base flex p-6 bg-light-blue border border-blue-300 rounded-md items-center gap-8">
 							<FormTokenField
-								value={ Object.keys( settings['cloud_sites']).filter( site => 'all' !== site && false !== settings['cloud_sites'][ site ]).map( site => site ) || []}
+								value={ Object.keys( settings['cloud_sites']).filter( site => 'all' !== site && 'false' !== settings['cloud_sites'][ site ]).map( site => site ) || []}
 								suggestions={ whitelistedDomains }
 								onChange={ updateSites }
 								__experimentalExpandOnFocus={ true }
