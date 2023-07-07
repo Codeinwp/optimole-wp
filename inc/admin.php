@@ -819,11 +819,11 @@ class Optml_Admin {
 			return;
 		}
 
-		$asset_file = include OPTML_PATH . 'assets/build/index.asset.php';
+		$asset_file = include OPTML_PATH . 'assets/build/dashboard/index.asset.php';
 
 		wp_register_script(
 			OPTML_NAMESPACE . '-admin',
-			OPTML_URL . 'assets/build/index.js',
+			OPTML_URL . 'assets/build/dashboard/index.js',
 			$asset_file['dependencies'],
 			$asset_file['version'],
 			true
@@ -834,7 +834,7 @@ class Optml_Admin {
 
 		wp_enqueue_style(
 			OPTML_NAMESPACE . '-admin',
-			OPTML_URL . 'assets/build/style-index.css',
+			OPTML_URL . 'assets/build/dashboard/style-index.css',
 			[
 				'wp-components',
 			],
