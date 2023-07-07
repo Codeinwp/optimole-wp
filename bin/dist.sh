@@ -22,8 +22,18 @@ fi
 rsync -rc --exclude-from ".distignore" "./" "dist/$DIST_FOLDER"
 
 if [ "$1" = "--dev" ]; then
-	cp -f "development.php" "dist/$DIST_FOLDER"
-	echo "require_once OPTML_PATH . '/development.php';" >> "dist/$DIST_FOLDER/optimole-wp.php"
+    cp -f "development.php" "dist/$DIST_FOLDER"
+    file="dist/$DIST_FOLDER/optimole-wp.php"
+
+    # Necessary for mac os.
+  	if [[ $(uname -s) == 'Darwin' ]]; then
+  		I_FLAG='-i.bak'
+  	else
+  		I_FLAG='-i'
+  	fi
+
+    sed $I_FLAG "s/define( 'OPTML_BASEFILE', __FILE__ );/define( 'OPTML_BASEFILE', __FILE__ );\nrequire_once OPTML_PATH . '\/development.php';/" $file
+
 fi
 
 cd dist

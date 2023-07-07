@@ -156,6 +156,10 @@ final class Optml_Manager {
 	 * @return void
 	 */
 	public function banner() {
+		if ( defined( 'REST_REQUEST' ) ) {
+			return;
+		}
+
 		$has_banner = $this->settings->get( 'banner_frontend' ) === 'enabled';
 
 		if ( ! $has_banner ) {
