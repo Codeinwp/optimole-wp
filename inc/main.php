@@ -51,6 +51,15 @@ final class Optml_Main {
 	public $admin;
 
 	/**
+	 * Holds the Dam class.
+	 *
+	 * @access  public
+	 * @since   4.0
+	 * @var Optml_Dam Dam instance.
+	 */
+	public $dam;
+
+	/**
 	 * Holds the cli class.
 	 *
 	 * @access  public
@@ -88,6 +97,7 @@ final class Optml_Main {
 			self::$_instance->manager = Optml_Manager::instance();
 			self::$_instance->rest    = new Optml_Rest();
 			self::$_instance->admin   = new Optml_Admin();
+            self::$_instance->dam     = new Optml_Dam();
 			self::$_instance->media_offload = Optml_Media_Offload::instance();
 			if ( class_exists( 'WP_CLI' ) ) {
 				self::$_instance->cli = new Optml_Cli();

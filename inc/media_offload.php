@@ -100,15 +100,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
-	 * Enqueue script for generating cloud media tab.
-	 */
-	public function add_cloud_script( $hook ) {
-		if ( $hook === 'post.php' || $hook === 'post-new.php' ) {
-			wp_enqueue_script( 'optimole_media', OPTML_URL . 'assets/js/optimole_media.js' );
-		}
-	}
-
-	/**
 	 * Generate exactly the response format expected by wp media modal.
 	 *
 	 * @param string $url Original url to be optimized.
@@ -236,7 +227,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			if ( self::$instance->settings->get( 'cloud_images' ) === 'enabled' ) {
 				add_action( 'wp_ajax_query-attachments', [self::$instance, 'pull_images'], -2 );
-				add_action( 'admin_enqueue_scripts', [self::$instance, 'add_cloud_script'] );
 			}
 			if ( self::$instance->settings->get( 'offload_media' ) === 'enabled' ) {
 				add_filter( 'image_downsize', [self::$instance, 'generate_filter_downsize_urls'], 10, 3 );
