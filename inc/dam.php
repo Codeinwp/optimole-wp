@@ -18,7 +18,7 @@ class Optml_Dam {
      *
      * @var Optml_Settings Settings object.
      */
-    public $settings;
+    private $settings;
 
     private $dam_endpoint = 'https://dashboard.optimole.com/dam';
 
@@ -159,7 +159,7 @@ class Optml_Dam {
      *
      * @return string
      */
-    private function build_iframe_url() {
+    final public function build_iframe_url() {
         $api_key         = $this->settings->get( 'api_key' );
         $connected_sites = $this->settings->get( 'cloud_sites' );
 
@@ -172,7 +172,7 @@ class Optml_Dam {
             $connected_sites = [];
         } else {
             foreach ( $connected_sites as $site => $status ) {
-                if ( $status !== true ) {
+                if ( $status !== 'true' ) {
                     unset( $connected_sites[ $site ] );
                 }
             }
