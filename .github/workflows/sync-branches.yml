@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - 'master'
+      - 'development'
 jobs:
   sync-branch:
     runs-on: ubuntu-latest
@@ -20,11 +21,11 @@ jobs:
           from_branch: master
           target_branch: development
           github_token: ${{ secrets.BOT_TOKEN }}
-      - name: Merge master -> next
-        if: ${{ steps.retrieve-branch-name.outputs.branch_name == 'master' }}
+      - name: Merge development -> next
+        if: ${{ steps.retrieve-branch-name.outputs.branch_name == 'development' }}
         uses: Codeinwp/merge-branch@master
         with:
           type: now
-          from_branch: master
+          from_branch: development
           target_branch: next
           github_token: ${{ secrets.BOT_TOKEN }}
