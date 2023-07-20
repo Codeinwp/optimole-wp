@@ -183,7 +183,9 @@ class Test_Dam extends WP_UnitTestCase {
 		$this->assertNotEmpty( $third_run );
 		$this->assertNotEquals( $ids, $third_run );
 
-		$this->assertArraySubset( $ids, $third_run );
+		foreach ( $ids as $id ) {
+			$this->assertTrue( in_array( $id, $third_run ) );
+		}
 	}
 
 	/**
