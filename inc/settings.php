@@ -160,6 +160,8 @@ class Optml_Settings {
 				}
 			}
 		}
+
+		add_action( 'init', [ $this, 'register_settings' ] );
 	}
 
 	/**
@@ -671,4 +673,21 @@ class Optml_Settings {
 		return get_option( $this->namespace, false );
 	}
 
+	/**
+	 * Get settings for CSAT.
+	 *
+	 * @return void
+	 */
+	public function register_settings() {
+		register_setting(
+			'optml_settings',
+			'optml_csat',
+			[
+				'type'              => 'string',
+				'sanitize_callback' => 'sanitize_text_field',
+				'show_in_rest'      => true,
+				'default'           => '{}',
+			]
+		);
+	}
 }

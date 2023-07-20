@@ -34,8 +34,7 @@ const Settings = ({
 		const {
 			getSiteSettings,
 			getQueryArgs,
-			isLoading,
-			extraVisits
+			isLoading
 		} = select( 'optimole' );
 
 		const siteSettings = getSiteSettings();
@@ -59,6 +58,16 @@ const Settings = ({
 			banner_frontend: extraVisits
 		});
 	}, [ extraVisits ]);
+
+	useEffect( () => {
+		const visits = localStorage.getItem( 'optimole_settings_visits' );
+
+		if ( 3 < visits ) {
+			return;
+		}
+
+		localStorage.setItem( 'optimole_settings_visits', visits ? parseInt( visits ) + 1 : 1 );
+	}, [ tab ]);
 
 	const loadSample = () => {
 		if ( ! showSample ) {
