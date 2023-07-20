@@ -1,3 +1,40 @@
+##### [Version 3.8.2](https://github.com/Codeinwp/optimole-wp/compare/v3.8.1...v3.8.2) (2023-07-06)
+
+### Bug Fixes
+- **Compatibilities loading**: Ensure service is connected before loading compatibilities, throwing errors in some edge cases.
+- **Widgets screen layout**: Resolved issue with Optimole banner appearing in the admin inside widget iframes.
+- **Cloud library whitelist**: Fixed problem with sites not being removed from the cloud library whitelist.
+
+### Improvements
+- **Add Support Link**: Added a support link for Premium users.
+- **Removed Native Lazyload Fallback**: Native lazyload fallback has been removed.
+- **Add Compatibility for Spectra Blocks**: Introduced compatibility for Spectra Blocks.
+- **Add Error Notice**: Added an error notice when the filter length is not three or more characters.
+
+##### [Version 3.8.1](https://github.com/Codeinwp/optimole-wp/compare/v3.8.0...v3.8.1) (2023-06-27)
+
+### Bug Fixes
+- **Warning on lower versions of PHP when using Elementor**: Resolved the warning when the plugin was activated, but the service wasnt connected on lower versions of PHP when using Elementor.
+
+#### [Version 3.8.0](https://github.com/Codeinwp/optimole-wp/compare/v3.7.0...v3.8.0) (2023-06-19)
+
+### New features
+- **Option for max-width and max-height:** Users can select a maximum width/height for images delivered.
+- **Media Library bulk operations:** Users can now efficiently move multiple images at once within the media library folders.
+- **Additional visits:** Adds an option to enable a banner on all websites connected to the account promoting Optimole, gaining an additional 20,000 visits.
+
+### Improvements
+- **Plugin dashboard UI:** Reworked plugin dashboard to use React and have a more consistent design.
+- **Conflict notice:** Adds a notice to inform users about potential conflicts with other plugins.
+- **Eliminate Redundant Lazyload Resizing:** Skip unnecessary resizing when lazyloading images.
+- **Better search on the service dashboard**: Improved the search functionality to enhance performance and provide faster search results.
+
+### Bug Fixes
+- **WEBP extension exclusion:** Fixed an issue where the WEBP image format couldnt be excluded from lazy-load.
+- **Elementor compatibility:** Fixes an issue where Elementor backgrounds werent lazy-loaded on some newer versions.
+- **Invalid CDN parameters:** Fixes an issue where the image URL might have had invalid values.
+- **Upload file names:** Fixes an issue with the offload functionality, where some files were renamed when uploaded.
+
 #### [Version 3.7.0](https://github.com/Codeinwp/optimole-wp/compare/v3.6.1...v3.7.0) (2023-05-15)
 
 ### New Features
