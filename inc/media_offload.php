@@ -1023,6 +1023,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( $file === false ) {
 			return;
 		}
+
+		// Skip if the image was imported from cloud library.
+		if ( ! empty( get_post_meta( $post_id, Optml_Dam::OM_DAM_IMPORTED_FLAG, true ) ) ) {
+			return;
+		}
+
 		$file = $file['file'];
 		if ( self::is_uploaded_image( $file ) ) {
 

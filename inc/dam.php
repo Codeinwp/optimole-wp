@@ -13,207 +13,659 @@
  * Class Optml_Dam
  */
 class Optml_Dam {
-    /**
-     * Hold the settings object.
-     *
-     * @var Optml_Settings Settings object.
-     */
-    private $settings;
+	use Optml_Normalizer;
 
-    private $dam_endpoint = 'https://dashboard.optimole.com/dam';
+	/**
+	 * Hold the settings object.
+	 *
+	 * @var Optml_Settings Settings object.
+	 */
+	private $settings;
 
-    public function __construct() {
-        $this->settings = Optml_Main::instance()->admin->settings;
+	/**
+	 * The dam endpoint.
+	 *
+	 * @var string
+	 */
+	private $dam_endpoint = 'https://dashboard.optimole.com/dam';
 
-        if ( ! $this->settings->is_connected() ) {
-            return;
-        }
+	const OM_DAM_IMPORTED_FLAG = 'om-dam-imported';
+	const QUERY_CACHE_KEY = 'om-dam-query-cache';
 
-        if ( defined( 'OPTML_DAM_ENDPOINT' ) && constant( 'OPTML_DAM_ENDPOINT' ) ) {
-            $this->dam_endpoint = constant( 'OPTML_DAM_ENDPOINT' );
-        }
+	/**
+	 * Optml_Dam constructor.
+	 */
+	public function __construct() {
+		$this->settings = Optml_Main::instance()->admin->settings;
 
-        add_action( 'admin_menu', [ $this, 'add_menu' ] );
-        add_action( 'print_media_templates', [ $this, 'print_media_template' ] );
-        add_action( 'admin_enqueue_scripts', [ $this, 'add_cloud_script' ] );
-        add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'add_cloud_script' ] );
-    }
+		if ( ! $this->settings->is_connected() ) {
+			return;
+		}
 
-    public function add_menu() {
-        if ( defined( 'OPTIOMLE_HIDE_ADMIN_AREA' ) && OPTIOMLE_HIDE_ADMIN_AREA ) {
-            return;
-        }
-        add_media_page( 'Optimole Assets', 'Optimole Assets', 'manage_options', 'optimole-dam', [
-                $this,
-                'render_dashboard_page'
-        ] );
-    }
+		if ( $this->settings->get( 'cloud_images' ) === 'enabled' ) {
+			add_action( 'admin_menu', [ $this, 'add_menu' ] );
+			add_action( 'print_media_templates', [ $this, 'print_media_template' ] );
+			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_media_scripts' ] );
+			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_page_scripts' ] );
 
-    /**
-     * Add media template to be used in the media library.
-     *
-     * @return void
-     */
-    public function print_media_template() {
-        $iframeSrc = $this->build_iframe_url();
-        $site_url  = get_site_url();
+			// Needed for this to work with elementor.
+			add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'enqueue_media_scripts' ] );
+		}
 
-        ?>
-        <style>
-            .om-dam-wrap {
-                height: 100%;
-            }
+		if ( defined( 'OPTML_DAM_ENDPOINT' ) && constant( 'OPTML_DAM_ENDPOINT' ) ) {
+			$this->dam_endpoint = constant( 'OPTML_DAM_ENDPOINT' );
+		}
 
-            [aria-labelledby=menu-item-optimole] {
-                overflow: hidden;
-            }
+		add_filter( 'wp_get_attachment_image_src', [ $this, 'alter_attachment_image_src' ], 10, 4 );
+		add_filter( 'wp_get_attachment_metadata', [ $this, 'alter_attachment_metadata' ], 10, 2 );
+		add_filter( 'image_downsize', [ $this, 'catch_downsize' ], 10, 3 );
+	}
 
-            #om-dam {
-                width: 100%;
-                height: 100%;
-                border: none;
-                position: relative;
-            }
-        </style>
-        <script type="text/html" id="tmpl-optimole-dam">
-            <style>
-                .media-frame-content {
-                    bottom: 0;
-                }
-                .media-frame-toolbar {
-                    display: none;
-                }
-            </style>
-            <iframe id="om-dam" src="<?php echo( $iframeSrc ); ?>"></iframe>
-        </script>
-        <?php
-    }
+	/**
+	 * Catch image downsize for the DAM imported images.
+	 *
+	 * @param array        $image {
+	 *                 Array of image data.
+	 *
+	 * @type string $0 Image source URL.
+	 * @type int    $1 Image width in pixels.
+	 * @type int    $2 Image height in pixels.
+	 * @type bool   $3 Whether the image is a resized image.
+	 *
+	 * @param int          $id attachment id.
+	 * @param string|int[] $size image size.
+	 *
+	 * @return array $image.
+	 */
+	public function catch_downsize( $image, $id, $size ) {
+		return $this->alter_attachment_image_src( $image, $id, $size, false );
+	}
 
-    /**
-     * Render the dashboard page.
-     *
-     * @return void
-     */
-    public function render_dashboard_page() {
-        $iframeSrc = $this->build_iframe_url();
-        $site_url  = get_site_url();
+	/**
+	 * Insert attachments.
+	 *
+	 * @param array $images Images array.
+	 *
+	 * @return array
+	 */
+	public function insert_attachments( $images ) {
+		$ids = [];
 
-        ?>
-        <style>
-            :root {
-                --om-admin-bar-height: 32px;
-            }
+		$existing = $this->check_existing_attachments( $images );
 
-            @media screen and (max-width: 782px) {
-                :root {
-                    --om-admin-bar-height: 46px;
-                }
-            }
+		foreach ( $images as $image ) {
+			if ( array_key_exists( $image['meta']['resourceS3'], $existing ) ) {
+				$ids[] = $existing[ $image['meta']['resourceS3'] ];
 
-            #om-dam {
-                height: calc(100vh - var(--om-admin-bar-height));
-                width: 100%;
-                border: none;
-                z-index: 1;
-                position: relative;
-            }
+				continue;
+			}
 
-            #wpcontent, #wpbody-content {
-                padding: 0;
-            }
-        </style>
-        <iframe id="om-dam" src="<?php echo( $iframeSrc ); ?>"></iframe>
-        <script>
-            const siteUrl = '<?php echo esc_url( $site_url ); ?>';
-            const iframe = document.getElementById('om-dam');
+			$id = $this->insert_attachment( $image );
 
-            window.addEventListener('message', function (event) {
-                if (!event.data) {
-                    return;
-                }
+			if ( $id === 0 ) {
+				continue;
+			}
+			$ids[] = $id;
+		}
 
-                if (!event.data.type) {
-                    return;
-                }
+		return $ids;
+	}
 
-                if (event.data.type !== 'om-dam') {
-                    return;
-                }
+	/**
+	 * Insert single attachment
+	 *
+	 * @param array $image Image data.
+	 *
+	 * @return int
+	 */
+	private function insert_attachment( $image ) {
+		$filename = basename( $image['url'] );
+		$name     = pathinfo( $filename, PATHINFO_FILENAME );
 
-                if (!event.data.action) {
-                    return;
-                }
+		$args = [
+			'post_title'     => $name,
+			'post_type'      => 'attachment',
+			'post_mime_type' => $image['meta']['mimeType'],
+			'guid'           => $image['url'],
+		];
 
-                if (event.data.action !== 'getUrl') {
-                    return;
-                }
+		$id = wp_insert_attachment( $args );
 
-                iframe.contentWindow.postMessage({siteUrl, type: 'om-dam', context: 'browse'}, '*');
-            });
-        </script>
-        <?php
-    }
+		if ( $id === 0 ) {
+			return $id;
+		}
 
-    /**
-     * Build the iFrame URL.
-     *
-     * @return string
-     */
-    final public function build_iframe_url() {
-        $api_key         = $this->settings->get( 'api_key' );
-        $connected_sites = $this->settings->get( 'cloud_sites' );
+		update_post_meta( $id, self::OM_DAM_IMPORTED_FLAG, $image['meta']['resourceS3'] );
 
-        if ( empty( $api_key ) ) {
-            return '';
-        }
+		$metadata = [];
 
+		$metadata['file']      = '/id:' . $image['meta']['resourceS3'] . '/' . get_home_url() . '/' . $filename;
+		$metadata['mime-type'] = $image['meta']['mimeType'];
 
-        if ( isset( $connected_sites['all'] ) && $connected_sites['all'] === 'true' ) {
-            $connected_sites = [];
-        } else {
-            foreach ( $connected_sites as $site => $status ) {
-                if ( $status !== 'true' ) {
-                    unset( $connected_sites[ $site ] );
-                }
-            }
-        }
+		if ( isset( $image['meta']['filesize'] ) ) {
+			$metadata['filesize'] = $image['meta']['fileSize'];
+		}
 
-        $data = array(
-                'site'  => get_site_url(),
-                'token' => $api_key,
-                'sites' => array_keys( $connected_sites ),
-        );
+		// todo: remove this after we deploy https://github.com/Codeinwp/optimole-service/pull/970
+		if ( isset( $image['meta']['originalWeight'] ) && ! isset( $image['meta']['originalWidth'] ) ) {
+			$image['meta']['originalWidth'] = $image['meta']['originalWeight'];
+		}
+		// todo: remove this after we deploy https://github.com/Codeinwp/optimole-service/pull/970
 
-        $data = json_encode( $data );
-        $data = base64_encode( $data );
+		if ( isset( $image['meta']['originalWidth'] ) && isset( $image['meta']['originalHeight'] ) ) {
+			$metadata['width']  = $image['meta']['originalWidth'];
+			$metadata['height'] = $image['meta']['originalHeight'];
+		}
 
-        return add_query_arg( array(
-                'data' => $data,
-        ), $this->dam_endpoint );
-    }
+		wp_update_attachment_metadata( $id, $metadata );
 
-    /**
-     * Enqueue script for generating cloud media tab.
-     *
-     * @param string $hook The current admin page.
-     */
-    public function add_cloud_script( $hook ) {
-        // TODO: review condition here:
-//        if ( $hook !== 'post.php' && $hook !== 'post-new.php' ) {
-//            return;
-//        }
+		return $id;
+	}
 
-        $asset_file = include OPTML_PATH . 'assets/build/media/index.asset.php';
+	/**
+	 * Catch image downsize for the DAM imported images.
+	 *
+	 * @param array|false  $image {
+	 *     Array of image data.
+	 *
+	 * @type string $0 Image source URL.
+	 * @type int    $1 Image width in pixels.
+	 * @type int    $2 Image height in pixels.
+	 * @type bool   $3 Whether the image is a resized image.
+	 * }
+	 *
+	 * @param int          $attachment_id attachment id.
+	 * @param string|int[] $size image size.
+	 * @param bool         $icon Whether the image should be treated as an icon.
+	 *
+	 * @return array $image.
+	 */
+	public function alter_attachment_image_src( $image, $attachment_id, $size, $icon ) {
+		// Skip if not DAM image.
+		if ( ! $this->is_dam_imported_image( $attachment_id ) ) {
+			return $image;
+		}
 
-        wp_register_script(
-                OPTML_NAMESPACE . '-media-modal',
-                OPTML_URL . 'assets/build/media/index.js',
-                $asset_file['dependencies'],
-                $asset_file['version'],
-                true
-        );
+		$image_url     = wp_get_attachment_url( $attachment_id );
+		$incoming_size = Optml_Media_Offload::parse_dimension_from_optimized_url( $image_url );
+		$width         = $incoming_size[0];
+		$height        = $incoming_size[1];
 
-//        wp_localize_script( OPTML_NAMESPACE . '-media-modal', 'optmlMediaModal', $this->get_localized_vars() );
-        wp_enqueue_script( OPTML_NAMESPACE . '-media-modal' );
-    }
+		// Skip resize in single attachment view on backend.
+		if ( $this->is_attachment_edit_page( $attachment_id ) ) {
+			return [
+				$image_url,
+				$width,
+				$height,
+				false,
+			];
+		}
+
+		// Use the original size if the requested size is full.
+		if ( $size === 'full' ) {
+			$metadata = wp_get_attachment_metadata( $attachment_id );
+
+			return [
+				$image_url,
+				$metadata['width'],
+				$metadata['height'],
+				false,
+			];
+		}
+
+		$crop = false;
+
+		// Size can be int [] containing width and height.
+		if ( is_array( $size ) ) {
+			$width  = $size[0];
+			$height = $size[1];
+		} else {
+			$sizes = $this->get_all_image_sizes();
+
+			if ( ! isset( $sizes[ $size ] ) ) {
+				return [
+					$image_url,
+					$width,
+					$height,
+					false,
+				];
+			}
+
+			$width  = $sizes[ $size ]['width'];
+			$height = $sizes[ $size ]['height'];
+			$crop   = (int) $sizes[ $size ]['crop'];
+		}
+
+		$gravity = 'ce';
+
+		if ( $this->settings->get( 'resize_smart' ) === 'enabled' ) {
+			$gravity = 'sm';
+		}
+
+		// Use the proper replacement for the image size.
+		$replacement = '/w:' . $width . '/h:' . $height . '/g:' . $gravity . '/rt:fill/q:';
+
+		$image_url = preg_replace( '/\/w:(.*)\/h:(.*)\/q:/', $replacement, $image_url );
+
+		return [
+			$image_url,
+			$width,
+			$height,
+			$crop,
+		];
+	}
+
+	/**
+	 * Get all registered image sizes.
+	 *
+	 * @return array
+	 */
+	private function get_all_image_sizes() {
+		$additional_sizes = wp_get_additional_image_sizes();
+		$intermediate     = get_intermediate_image_sizes();
+		$all              = [];
+
+		foreach ( $intermediate as $size ) {
+			if ( isset( $additional_sizes[ $size ] ) ) {
+				$all[ $size ] = [
+					'width'  => $additional_sizes[ $size ]['width'],
+					'height' => $additional_sizes[ $size ]['height'],
+					'crop'   => isset( $additional_sizes[ $size ]['crop'] ) ? $additional_sizes[ $size ]['crop'] : false,
+				];
+			} else {
+				$all[ $size ] = [
+					'width'  => (int) get_option( $size . '_size_w' ),
+					'height' => (int) get_option( $size . '_size_h' ),
+					'crop'   => (bool) get_option( $size . '_crop' ),
+				];
+			}
+
+			if ( ! empty( $additional_sizes[ $size ]['crop'] ) ) {
+				$all[ $size ]['crop'] = $additional_sizes[ $size ]['crop'];
+			} else {
+				$all[ $size ]['crop'] = (bool) get_option( $size . '_crop' );
+			}
+		}
+
+		return $all;
+	}
+
+	/**
+	 * Check if we're in the attachment edit page.
+	 *
+	 * /wp-admin/post.php?post=<id>&action=edit
+	 *
+	 * Send whatever comes from the DAM.
+	 *
+	 * @param int $attachment_id attachment id.
+	 *
+	 * @return bool
+	 */
+	private function is_attachment_edit_page( $attachment_id ) {
+		if ( ! is_admin() ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+
+		if ( ! isset( $screen->base ) ) {
+			return false;
+		}
+
+		if ( $screen->base !== 'post' ) {
+			return false;
+		}
+
+		if ( $screen->post_type !== 'attachment' ) {
+			return false;
+		}
+
+		if ( $screen->id !== 'attachment' ) {
+			return false;
+		}
+
+		if ( ! isset( $_GET['post'] ) ) {
+			return false;
+		}
+
+		if ( (int) sanitize_text_field( $_GET['post'] ) !== $attachment_id ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Alter the attachment metadata.
+	 *
+	 * @param array $metadata attachment metadata.
+	 * @param int   $id attachment ID.
+	 *
+	 * @return array
+	 */
+	public function alter_attachment_metadata( $metadata, $id ) {
+		if ( ! $this->is_dam_imported_image( $id ) ) {
+			return $metadata;
+		}
+
+		$sizes = $this->get_all_image_sizes();
+
+		$post = get_post( $id );
+
+		$sizes_meta = [];
+
+		// SVG files don't have a width/height so we add a dummy one. These are vector images so it doesn't matter.
+		$is_svg = ( $post->post_mime_type === Optml_Config::$image_extensions['svg'] );
+
+		if ( $is_svg ) {
+			$metadata['width']  = 150;
+			$metadata['height'] = 150;
+		}
+
+		foreach ( $sizes as $size => $args ) {
+			$sizes_meta[ $size ] = [
+				'file'      => $metadata['file'],
+				'width'     => $args['width'],
+				'height'    => $args['height'],
+				'mime-type' => $post->post_mime_type,
+			];
+		}
+
+		$metadata['sizes'] = $sizes_meta;
+
+		return $metadata;
+	}
+
+	/**
+	 * Check if the images are already imported.
+	 *
+	 * @param array $images List of images to check.
+	 *
+	 * @return array List of images that are already imported.
+	 */
+	private function check_existing_attachments( $images ) {
+		$already_imported = $this->get_dam_imported_attachments( $images );
+
+		// All DAM imports are already in the DB.
+		if ( count( $already_imported ) === count( $images ) ) {
+			return $already_imported;
+		}
+
+		// Get the remaining images.
+		$remaining = array_filter(
+			$images,
+			function ( $image ) use ( $already_imported ) {
+				return ! array_key_exists( $image['meta']['resourceS3'], $already_imported );
+			}
+		);
+
+		// Offloaded images.
+		if ( $this->settings->get( 'offload_media' ) === 'enabled' ) {
+			$offloaded = $this->get_offloaded_attachments( $remaining );
+
+			$already_imported = array_merge( $already_imported, $offloaded );
+		}
+
+		return $already_imported;
+	}
+
+	/**
+	 * Check if the images are already imported.
+	 *
+	 * @param array $images List of images to check.
+	 *
+	 * @return array
+	 */
+	private function get_dam_imported_attachments( $images ) {
+		global $wpdb;
+
+		$s3_ids = [];
+
+		foreach ( $images as $image ) {
+			$s3_ids[] = esc_sql( strval( $image['meta']['resourceS3'] ) );
+		}
+
+		$meta_values_str = "'" . join( "', '", $s3_ids ) . "'";
+
+		// Select all the posts that have the flag and are in the list of images.
+		$found_attachments = $wpdb->get_results(
+			$wpdb->prepare(
+                // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- This query cannot use interpolation.
+				"SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value IN ( {$meta_values_str} )",
+				self::OM_DAM_IMPORTED_FLAG
+			)
+		);
+
+		if ( empty( $found_attachments ) ) {
+			return [];
+		}
+
+		$map = [];
+
+		// Remap this in a key/value array.
+		// Also ensures that if there are multiple attachments with the same S3 ID, we only get the one.
+		// Shouldn't happen, but just in case.
+		foreach ( $found_attachments as $attachment ) {
+			$map[ $attachment->meta_value ] = (int) $attachment->post_id;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Get the offloaded attachments.
+	 *
+	 * [ S3 ID => Attachment Post ID ]
+	 *
+	 * @param array $images List of images to check.
+	 *
+	 * @return array
+	 */
+	private function get_offloaded_attachments( $images ) {
+		global $wpdb;
+
+		$map = [];
+
+		foreach ( $images as $image ) {
+			$like = '%id:' . $image['meta']['resourceS3'] . '%';
+
+			$found_attachments = $wpdb->get_results(
+				$wpdb->prepare(
+					"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s AND meta_value LIKE %s",
+					'_wp_attachment_metadata',
+					$like
+				)
+			);
+
+			if ( empty( $found_attachments ) ) {
+				return [];
+			}
+
+			$map[ $image['meta']['resourceS3'] ] = (int) $found_attachments[0]->post_id;
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Checks that the attachment is a DAM image.
+	 *
+	 * @param int $post_id The attachment ID.
+	 *
+	 * @return bool
+	 */
+	private function is_dam_imported_image( $post_id ) {
+		$meta = get_post_meta( $post_id, self::OM_DAM_IMPORTED_FLAG, true );
+
+		if ( empty( $meta ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Adds menu item for DAM.
+	 *
+	 * @return void
+	 */
+	public function add_menu() {
+		if ( defined( 'OPTIOMLE_HIDE_ADMIN_AREA' ) && OPTIOMLE_HIDE_ADMIN_AREA ) {
+			return;
+		}
+		add_media_page(
+			'Optimole Assets',
+			'Optimole Assets',
+			'manage_options',
+			'optimole-dam',
+			[
+				$this,
+				'render_dashboard_page',
+			]
+		);
+	}
+
+	/**
+	 * Add media template to be used in the media library.
+	 *
+	 * @return void
+	 */
+	public function print_media_template() {
+		?>
+		<script type="text/html" id="tmpl-optimole-dam">
+			<?php $this->render_dashboard_page(); ?>
+		</script>
+		<?php
+	}
+
+	/**
+	 * Render the dashboard page.
+	 *
+	 * @return void
+	 */
+	public function render_dashboard_page() {
+		?>
+		<iframe id="om-dam" style="display: none;" src="<?php echo( $this->build_iframe_url() ); ?>"></iframe>
+		<div class="om-dam-loader">
+			<img src="<?php echo esc_url( OPTML_URL . 'assets/img/logo.png' ); ?>" alt="Optimole Logo"
+				 class="om-dam-logo">
+			<p><?php echo esc_html__( 'Loading', 'optimole-wp' ); ?>...</p>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Build the iFrame URL.
+	 *
+	 * @return string
+	 */
+	public function build_iframe_url() {
+		$api_key         = $this->settings->get( 'api_key' );
+		$connected_sites = $this->settings->get( 'cloud_sites' );
+
+		if ( empty( $api_key ) ) {
+			return '';
+		}
+
+		if ( isset( $connected_sites['all'] ) && $connected_sites['all'] === 'true' ) {
+			$connected_sites = [];
+		} else {
+			foreach ( $connected_sites as $site => $status ) {
+				if ( $status !== 'true' ) {
+					unset( $connected_sites[ $site ] );
+				}
+			}
+		}
+
+		$data = [
+			'site'  => get_site_url(),
+			'token' => $api_key,
+			'sites' => array_keys( $connected_sites ),
+		];
+
+		$data = json_encode( $data );
+		$data = base64_encode( $data );
+
+		return add_query_arg(
+			[
+				'data' => $data,
+			],
+			$this->dam_endpoint
+		);
+	}
+
+	/**
+	 * Enqueue script for generating cloud media tab.
+	 *
+	 * @return void
+	 */
+	public function enqueue_media_scripts() {
+		$asset_file = include OPTML_PATH . 'assets/build/media/media-modal.asset.php';
+
+		wp_register_script(
+			OPTML_NAMESPACE . '-media-modal',
+			OPTML_URL . 'assets/build/media/media-modal.js',
+			$asset_file['dependencies'],
+			$asset_file['version'],
+			true
+		);
+
+		wp_localize_script( OPTML_NAMESPACE . '-media-modal', 'optmlMediaModal', $this->get_localized_vars() );
+		wp_enqueue_script( OPTML_NAMESPACE . '-media-modal' );
+		wp_enqueue_style( OPTML_NAMESPACE . '-media-modal', OPTML_URL . 'assets/build/media/media-modal.css' );
+	}
+
+	/**
+	 * Enqueue script for generating admin page.
+	 *
+	 * @return void
+	 */
+	public function enqueue_admin_page_scripts() {
+		$screen = get_current_screen();
+
+		if ( $screen->id !== 'media_page_optimole-dam' ) {
+			return;
+		}
+
+		$asset_file = include OPTML_PATH . 'assets/build/media/admin-page.asset.php';
+
+		wp_register_script(
+			OPTML_NAMESPACE . '-admin-page',
+			OPTML_URL . 'assets/build/media/admin-page.js',
+			$asset_file['dependencies'],
+			$asset_file['version'],
+			true
+		);
+
+		wp_localize_script(
+			OPTML_NAMESPACE . '-admin-page',
+			'optmlAdminPage',
+			[
+				'siteUrl' => get_site_url(),
+			]
+		);
+
+		wp_enqueue_script( OPTML_NAMESPACE . '-admin-page' );
+
+		wp_enqueue_style( OPTML_NAMESPACE . '-admin-page', OPTML_URL . 'assets/build/media/admin-page.css' );
+	}
+
+	/**
+	 * Get localized variables for the media modal.
+	 *
+	 * @return array
+	 */
+	private function get_localized_vars() {
+		$routes = array_keys( Optml_Rest::$rest_routes['dam_routes'] );
+
+		foreach ( $routes as $route ) {
+			$routes[ $route ] = OPTML_NAMESPACE . '/v1/' . $route;
+		}
+
+		return [
+			'nonce'  => wp_create_nonce( 'wp_rest' ),
+			'routes' => $routes,
+		];
+	}
+
 }
