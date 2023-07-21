@@ -250,6 +250,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
 				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
 				add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
+				add_action( 'start_processing_images', [self::$instance, 'start_processing_images'], 10, 5 );
 
 				if ( self::$is_legacy_install === null ) {
 					self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) > 1677171600;
@@ -1460,6 +1461,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		do_action( 'optml_updated_post', $post_id );
 		return true;
 	}
+
 	/**
 	 *  Calculate the number of images in media library and the number of posts/pages.
 	 *
@@ -1473,5 +1475,102 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$args = self::get_images_query_args( -1, $action, true );
 		$images = new \WP_Query( $args );
 		return $pages_count + $images->post_count;
+	}
+
+	/**
+	 *  Calculate the number of images in media library and the number of posts/pages.
+	 *
+	 * @param string $action The actions for which to get the number of images.
+	 * @return int Number of images.
+	 */
+	public static function get_image_count( $action, $refresh ) {
+		$args = self::get_images_query_args( -1, $action, true );
+		$images = new \WP_Query( $args );
+
+		$total = Optml_Media_Offload::number_of_images_and_pages( $action );
+		$batch = 5;
+
+		$possible_batch = ceil( $total / 10 );
+
+		if ( $possible_batch < $batch ) {
+			$batch  = $possible_batch;
+		}
+
+		$total = 0 !== $total ? ceil( $total / $batch ) : 0;
+		$step  = 0;
+
+		if ( true === $refresh ) {
+			update_option( 'optml_' . $action . '_status', 0 !== $total );
+		}
+
+		wp_schedule_single_event(
+			time(),
+			'start_processing_images',
+			[
+				'action' => $action,
+				'batch' => $batch,
+				'page' => 1,
+				'total' => $total,
+				'step' => $step
+			]
+		);
+
+		return [
+			'count' => $images->post_count,
+			'status' => false !== get_option( 'optml_' . $action . '_status', false )
+		];
+	}
+
+	/**
+	 * Start Processing Images
+	 * 
+	 * @param string $action The action for which to get the number of images.
+	 * @param int    $batch  The batch of images to process.
+	 * @param int    $page   The page of images to process.
+	 * @param int    $total  The total number of pages.
+	 * 
+	 * @return void
+	 */
+	public function start_processing_images( $action, $batch, $page, $total, $step ) {
+		if ( true !== get_option( 'optml_' . $action . '_status', false ) ) {
+			return;
+		}
+
+		if ( $step >= $total || 0 === $total ) {
+			update_option( 'optml_' . $action . '_status', false );
+			return;
+		}
+
+		$posts_to_update = Optml_Media_Offload::instance()->update_content( $page, $action, $batch );
+		if ( isset( $posts_to_update['page'] ) && $posts_to_update['page'] > $page ) {
+			$page = $posts_to_update['page'];
+			if ( isset( $posts_to_update['imagesToUpdate'] ) && count( $posts_to_update['imagesToUpdate'] ) ) {
+				foreach ( $posts_to_update['imagesToUpdate'] as $post_id => $images ) {
+					if ( $action === 'offload_images' ) {
+						Optml_Media_Offload::instance()->upload_and_update_existing_images( $images );
+					}
+					if ( $action === 'rollback_images' ) {
+						 Optml_Media_Offload::instance()->rollback_and_update_images( $images );
+					}
+					Optml_Media_Offload::instance()->update_page( $post_id );
+				}
+			}
+		} else {
+			$action === 'rollback' ? Optml_Media_Offload::instance()->rollback_images( $batch ) : Optml_Media_Offload::instance()->upload_images( $batch );
+		}
+
+		$step = $step + 1;
+
+		wp_schedule_single_event(
+			time() + 10,
+			'start_processing_images',
+			[
+				'action' => $action,
+				'batch' => $batch,
+				'page' => $page,
+				'total' => $total,
+				'step' => $step
+			]
+		);
 	}
 }

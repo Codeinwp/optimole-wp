@@ -47,40 +47,40 @@ const OffloadMedia = ({
 }) => {
 	const {
 		offloadConflicts,
-		estimatedTime,
 		errorMedia,
 		offloadLibraryLink,
 		isLoading,
 		loadingSync,
 		loadingRollback,
-		pushedImageProgress,
 		rollbackLibraryLink,
-		queryArgs
+		queryArgs,
+		totalNumberOfImages,
+		remainingImages
 	} = useSelect( select => {
 		const {
 			getOffloadConflicts,
-			getEstimatedTime,
 			getErrorMedia,
 			getLoadingSync,
 			getLoadingRollback,
 			getOffloadLibraryLink,
-			getPushedImagesProgress,
 			getRollbackLibraryLink,
+			getTotalNumberOfImages,
+			getRemainingImages,
 			getQueryArgs,
 			isLoading
 		} = select( 'optimole' );
 
 		return {
 			offloadConflicts: getOffloadConflicts(),
-			estimatedTime: getEstimatedTime(),
 			errorMedia: getErrorMedia(),
 			offloadLibraryLink: getOffloadLibraryLink(),
 			isLoading: isLoading(),
 			loadingSync: getLoadingSync(),
 			loadingRollback: getLoadingRollback(),
-			pushedImageProgress: getPushedImagesProgress(),
 			rollbackLibraryLink: getRollbackLibraryLink(),
-			queryArgs: getQueryArgs()
+			queryArgs: getQueryArgs(),
+			totalNumberOfImages: getTotalNumberOfImages(),
+			remainingImages: getRemainingImages()
 		};
 	});
 
@@ -98,17 +98,17 @@ const OffloadMedia = ({
 	const isOffloadMediaEnabled = 'disabled' !== settings[ 'offload_media' ];
 	const whitelistedDomains = optimoleDashboardApp.user_data.whitelist || [];
 
-	useEffect( () => {
-		if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
-			if ( 'offload_images' === queryArgs.optimole_action ) {
-				onOffloadMedia( queryArgs.images );
-			}
+	// useEffect( () => {
+	// 	if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
+	// 		if ( 'offload_images' === queryArgs.optimole_action ) {
+	// 			onOffloadMedia( queryArgs.images );
+	// 		}
 
-			if ( 'rollback_images' === queryArgs.optimole_action ) {
-				onRollbackdMedia( queryArgs.images );
-			}
-		}
-	}, []);
+	// 		if ( 'rollback_images' === queryArgs.optimole_action ) {
+	// 			onRollbackdMedia( queryArgs.images );
+	// 		}
+	// 	}
+	// }, []);
 
 	useEffect( () => {
 		if ( canSave ) {
@@ -169,7 +169,6 @@ const OffloadMedia = ({
 
 	const onOffloadMedia = ( imageIds = 'none' ) => {
 		onSaveSettings();
-
 		setErrorMedia( false );
 
 		callSync({
@@ -326,14 +325,14 @@ const OffloadMedia = ({
 
 							<progress
 								className="mt-2.5 mb-1.5 mx-0"
-								value={ pushedImageProgress }
+								value={ Math.round( ( totalNumberOfImages - remainingImages ) / totalNumberOfImages * maxTime ) }
 								max={ maxTime }
 							/>
 
-							{ 0 === estimatedTime ? (
+							{ 0 === totalNumberOfImages ? (
 								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
 							) : (
-								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.estimated_time } <b>{ estimatedTime } { optimoleDashboardApp.strings.options_strings.minutes }</b></p>
+								<p className="m-0">{ remainingImages } { optimoleDashboardApp.strings.options_strings.out_of } { totalNumberOfImages } { optimoleDashboardApp.strings.options_strings.images_processed }</p>
 							) }
 						</div>
 					) }
@@ -395,14 +394,14 @@ const OffloadMedia = ({
 
 							<progress
 								className="mt-2.5 mb-1.5 mx-0"
-								value={ pushedImageProgress }
+								value={ Math.round( ( totalNumberOfImages - remainingImages ) / totalNumberOfImages * maxTime ) }
 								max={ maxTime }
 							/>
 
-							{ 0 === estimatedTime ? (
+							{ 0 === totalNumberOfImages ? (
 								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
 							) : (
-								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.estimated_time } <b>{ estimatedTime } { optimoleDashboardApp.strings.options_strings.minutes }</b></p>
+								<p className="m-0">{ remainingImages } { optimoleDashboardApp.strings.options_strings.out_of } { totalNumberOfImages } { optimoleDashboardApp.strings.options_strings.images_processed }</p>
 							) }
 						</div>
 					) }

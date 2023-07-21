@@ -107,16 +107,16 @@ const actions = {
 			sampleRate
 		};
 	},
-	setPushedImagesProgress( pushedImagesProgress ) {
-		return {
-			type: 'SET_PUSHED_IMAGES_PROGRESS',
-			pushedImagesProgress
-		};
-	},
 	setTotalNumberOfImages( totalNumberOfImages ) {
 		return {
 			type: 'SET_TOTAL_NUMBER_OF_IMAGES',
 			totalNumberOfImages
+		};
+	},
+	setRemainingImages( remainingImages ) {
+		return {
+			type: 'SET_REMAINING_IMAGES',
+			remainingImages
 		};
 	},
 	setOffloadLibraryLink( offloadLibraryLink ) {
@@ -159,12 +159,6 @@ const actions = {
 		return {
 			type: 'SET_ESTIMATED_TIME',
 			estimatedTime
-		};
-	},
-	setSumTime( sumTime ) {
-		return {
-			type: 'SET_SUM_TIME',
-			sumTime
 		};
 	},
 	setCheckedOffloadConflicts( checkedOffloadConflicts ) {
