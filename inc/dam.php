@@ -30,7 +30,6 @@ class Optml_Dam {
 	private $dam_endpoint = 'https://dashboard.optimole.com/dam';
 
 	const OM_DAM_IMPORTED_FLAG = 'om-dam-imported';
-	const QUERY_CACHE_KEY = 'om-dam-query-cache';
 
 	/**
 	 * Optml_Dam constructor.
