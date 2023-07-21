@@ -64,10 +64,6 @@ class MessageHandler {
 		});
 	}
 
-	bindMessageListener() {
-
-	}
-
 	/**
      * Detach the listeners.
      */
