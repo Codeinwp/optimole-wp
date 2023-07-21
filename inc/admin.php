@@ -878,6 +878,7 @@ class Optml_Admin {
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',
+			'dam_url'                    => admin_url( 'upload.php?page=optimole-dam' ),
 			'connection_status'          => empty( $service_data ) ? 'no' : 'yes',
 			'has_application'            => isset( $service_data['app_count'] ) && $service_data['app_count'] >= 1 ? 'yes' : 'no',
 			'user_status'                => $user_status,
@@ -924,6 +925,7 @@ class Optml_Admin {
 			'account_needed_heading'         => __( 'Sign-up for API key', 'optimole-wp' ),
 			'invalid_key'                    => __( 'Invalid API Key', 'optimole-wp' ),
 			'keep_connected'                 => __( 'Ok, keep me connected', 'optimole-wp' ),
+			'optimole_assets'                => __( 'Optimole Assets', 'optimole-wp' ),
 			'disconnect_title'               => __( 'You are about to disconnect from the Optimole API', 'optimole-wp' ),
 			'disconnect_desc'                => __(
 				'Please note that disconnecting your site from the Optimole API will impact your website performance.
