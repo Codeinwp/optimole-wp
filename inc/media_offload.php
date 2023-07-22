@@ -1484,40 +1484,44 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return int Number of images.
 	 */
 	public static function get_image_count( $action, $refresh ) {
-		$args = self::get_images_query_args( -1, $action, true );
-		$images = new \WP_Query( $args );
+		$option = 'offload_images' === $action ? 'offloading_status' : 'rollback_status';
+		$count = Optml_Media_Offload::number_of_images_and_pages( $action );
+		$in_progress = self::$instance->settings->get( $option ) !== 'disabled';
 
-		$total = Optml_Media_Offload::number_of_images_and_pages( $action );
-		$batch = 5;
+		if ( false === $refresh && false === $in_progress ) {
+			$step  = 0;
+			$batch = 10;
+	
+			$possible_batch = ceil( $count / 10 );
+	
+			if ( $possible_batch < $batch ) {
+				$batch  = $possible_batch;
+			}
+	
+			$total = 0 !== $count ? ceil( $count / $batch ) : 0;
+			$status = 0 !== $total;
+			$in_progress = $status;
 
-		$possible_batch = ceil( $total / 10 );
+			self::$instance->settings->update( $option, $status ? 'enabled' : 'disabled' );
 
-		if ( $possible_batch < $batch ) {
-			$batch  = $possible_batch;
+			if ( true === $status ) {
+				wp_schedule_single_event(
+					time(),
+					'start_processing_images',
+					[
+						'action' => $action,
+						'batch' => $batch,
+						'page' => 1,
+						'total' => $total,
+						'step' => $step
+					]
+				);
+			}
 		}
-
-		$total = 0 !== $total ? ceil( $total / $batch ) : 0;
-		$step  = 0;
-
-		if ( true === $refresh ) {
-			update_option( 'optml_' . $action . '_status', 0 !== $total );
-		}
-
-		wp_schedule_single_event(
-			time(),
-			'start_processing_images',
-			[
-				'action' => $action,
-				'batch' => $batch,
-				'page' => 1,
-				'total' => $total,
-				'step' => $step
-			]
-		);
 
 		return [
-			'count' => $images->post_count,
-			'status' => false !== get_option( 'optml_' . $action . '_status', false )
+			'count' => $count,
+			'status' => $in_progress
 		];
 	}
 
@@ -1532,16 +1536,19 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return void
 	 */
 	public function start_processing_images( $action, $batch, $page, $total, $step ) {
-		if ( true !== get_option( 'optml_' . $action . '_status', false ) ) {
+		$option = 'offload_images' === $action ? 'offloading_status' : 'rollback_status';
+
+		if ( self::$instance->settings->get( $option ) === 'disabled' ) {
 			return;
 		}
 
 		if ( $step >= $total || 0 === $total ) {
-			update_option( 'optml_' . $action . '_status', false );
+			self::$instance->settings->update( $option, 'disabled' );
 			return;
 		}
 
 		$posts_to_update = Optml_Media_Offload::instance()->update_content( $page, $action, $batch );
+
 		if ( isset( $posts_to_update['page'] ) && $posts_to_update['page'] > $page ) {
 			$page = $posts_to_update['page'];
 			if ( isset( $posts_to_update['imagesToUpdate'] ) && count( $posts_to_update['imagesToUpdate'] ) ) {
@@ -1562,7 +1569,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$step = $step + 1;
 
 		wp_schedule_single_event(
-			time() + 10,
+			time(),
 			'start_processing_images',
 			[
 				'action' => $action,

@@ -57,8 +57,8 @@ const selectors = {
 	getTotalNumberOfImages( state ) {
 		return state.totalNumberOfImages;
 	},
-	getRemainingImages( state ) {
-		return state.remainingImages;
+	getProcessedImages( state ) {
+		return state.processedImages;
 	},
 	getOffloadLibraryLink( state ) {
 		return state.offloadLibraryLink;

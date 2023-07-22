@@ -34,8 +34,7 @@ const Settings = ({
 		const {
 			getSiteSettings,
 			getQueryArgs,
-			isLoading,
-			extraVisits
+			isLoading
 		} = select( 'optimole' );
 
 		const siteSettings = getSiteSettings();

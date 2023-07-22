@@ -113,10 +113,10 @@ const actions = {
 			totalNumberOfImages
 		};
 	},
-	setRemainingImages( remainingImages ) {
+	setProcessedImages( processedImages ) {
 		return {
-			type: 'SET_REMAINING_IMAGES',
-			remainingImages
+			type: 'SET_PROCESSED_IMAGES',
+			processedImages
 		};
 	},
 	setOffloadLibraryLink( offloadLibraryLink ) {

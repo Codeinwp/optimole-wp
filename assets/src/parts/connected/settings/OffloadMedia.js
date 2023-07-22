@@ -33,7 +33,8 @@ import {
 import { warning } from '../../../utils/icons';
 import {
 	callSync,
-	checkOffloadConflicts
+	checkOffloadConflicts,
+	saveSettings
 } from '../../../utils/api';
 
 const maxTime = 100;
@@ -55,7 +56,7 @@ const OffloadMedia = ({
 		rollbackLibraryLink,
 		queryArgs,
 		totalNumberOfImages,
-		remainingImages
+		processedImages
 	} = useSelect( select => {
 		const {
 			getOffloadConflicts,
@@ -65,7 +66,7 @@ const OffloadMedia = ({
 			getOffloadLibraryLink,
 			getRollbackLibraryLink,
 			getTotalNumberOfImages,
-			getRemainingImages,
+			getProcessedImages,
 			getQueryArgs,
 			isLoading
 		} = select( 'optimole' );
@@ -80,7 +81,7 @@ const OffloadMedia = ({
 			rollbackLibraryLink: getRollbackLibraryLink(),
 			queryArgs: getQueryArgs(),
 			totalNumberOfImages: getTotalNumberOfImages(),
-			remainingImages: getRemainingImages()
+			processedImages: getProcessedImages()
 		};
 	});
 
@@ -96,6 +97,8 @@ const OffloadMedia = ({
 
 	const isCloudLibraryEnabled = 'disabled' !== settings[ 'cloud_images' ];
 	const isOffloadMediaEnabled = 'disabled' !== settings[ 'offload_media' ];
+	const isOffloadingInProgress = 'disabled' !== settings[ 'offloading_status' ];
+	const isRollbackInProgress = 'disabled' !== settings[ 'rollback_status' ];
 	const whitelistedDomains = optimoleDashboardApp.user_data.whitelist || [];
 
 	// useEffect( () => {
@@ -109,6 +112,22 @@ const OffloadMedia = ({
 	// 		}
 	// 	}
 	// }, []);
+
+	useEffect( () => {
+		if ( isOffloadingInProgress ) {
+			callSync({
+				action: 'offload_images',
+				refresh: true
+			});
+		}
+
+		if ( isRollbackInProgress ) {
+			callSync({
+				action: 'rollback_images',
+				refresh: true
+			});
+		}
+	}, []);
 
 	useEffect( () => {
 		if ( canSave ) {
@@ -296,22 +315,37 @@ const OffloadMedia = ({
 					<BaseControl
 						label={ optimoleDashboardApp.strings.options_strings.sync_title }
 						help={ optimoleDashboardApp.strings.options_strings.sync_desc }
-						className={ classnames(
-							{
-								'is-disabled': isLoading
-							}
-						) }
 					>
 						<div className="flex my-2 gap-3">
 							<Button
 								variant="default"
 								isBusy={ loadingSync || loadingRollback || isLoading }
 								disabled={ loadingSync || loadingRollback || isLoading }
-								className="optml__button flex justify-center rounded font-bold min-h-40"
-								onClick={ () => onOffloadMedia() }
+								className={ classnames(
+									'optml__button flex justify-center rounded font-bold min-h-40',
+									{
+										'is-disabled': isLoading
+									}
+								) }
+								onClick={ onOffloadMedia }
 							>
 								{ optimoleDashboardApp.strings.options_strings.sync_media }
 							</Button>
+
+							{ loadingSync && (
+								<Button
+									variant="default"
+									isDestructive={ true }
+									className="optml__button flex justify-center rounded font-bold min-h-40"
+									onClick={ () => {
+										const options = settings;
+										options.offloading_status = 'disabled';
+										saveSettings( options );
+									} }
+								>
+									{ optimoleDashboardApp.strings.options_strings.stop }
+								</Button>
+							) }
 						</div>
 					</BaseControl>
 
@@ -325,14 +359,14 @@ const OffloadMedia = ({
 
 							<progress
 								className="mt-2.5 mb-1.5 mx-0"
-								value={ Math.round( ( totalNumberOfImages - remainingImages ) / totalNumberOfImages * maxTime ) }
+								value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
 								max={ maxTime }
 							/>
 
 							{ 0 === totalNumberOfImages ? (
 								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
 							) : (
-								<p className="m-0">{ remainingImages } { optimoleDashboardApp.strings.options_strings.out_of } { totalNumberOfImages } { optimoleDashboardApp.strings.options_strings.images_processed }</p>
+								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.images_processing }</p>
 							) }
 						</div>
 					) }
@@ -365,22 +399,37 @@ const OffloadMedia = ({
 					<BaseControl
 						label={ optimoleDashboardApp.strings.options_strings.rollback_title }
 						help={ optimoleDashboardApp.strings.options_strings.rollback_desc }
-						className={ classnames(
-							{
-								'is-disabled': isLoading
-							}
-						) }
 					>
 						<div className="flex my-2 gap-3">
 							<Button
 								variant="default"
 								isBusy={ loadingSync || loadingRollback || isLoading }
 								disabled={ loadingSync || loadingRollback || isLoading || Boolean( offloadConflicts.length ) }
-								className="optml__button flex justify-center rounded font-bold min-h-40"
-								onClick={ () => onRollbackdMedia() }
+								className={ classnames(
+									'optml__button flex justify-center rounded font-bold min-h-40',
+									{
+										'is-disabled': isLoading
+									}
+								) }
+								onClick={ onRollbackdMedia }
 							>
 								{ optimoleDashboardApp.strings.options_strings.rollback_media }
 							</Button>
+
+							{ loadingRollback && (
+								<Button
+									variant="default"
+									isDestructive={ true }
+									className="optml__button flex justify-center rounded font-bold min-h-40"
+									onClick={ () => {
+										const options = settings;
+										options.rollback_status = 'disabled';
+										saveSettings( options );
+									} }
+								>
+									{ optimoleDashboardApp.strings.options_strings.stop }
+								</Button>
+							) }
 						</div>
 					</BaseControl>
 
@@ -394,14 +443,14 @@ const OffloadMedia = ({
 
 							<progress
 								className="mt-2.5 mb-1.5 mx-0"
-								value={ Math.round( ( totalNumberOfImages - remainingImages ) / totalNumberOfImages * maxTime ) }
+								value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
 								max={ maxTime }
 							/>
 
 							{ 0 === totalNumberOfImages ? (
 								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
 							) : (
-								<p className="m-0">{ remainingImages } { optimoleDashboardApp.strings.options_strings.out_of } { totalNumberOfImages } { optimoleDashboardApp.strings.options_strings.images_processed }</p>
+								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.images_processing }</p>
 							) }
 						</div>
 					) }

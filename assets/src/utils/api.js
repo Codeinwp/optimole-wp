@@ -31,7 +31,7 @@ const {
 	setLoadingSync,
 	setLoadingRollback,
 	setTotalNumberOfImages,
-	setRemainingImages,
+	setProcessedImages,
 	setErrorMedia,
 	setOffloadLibraryLink,
 	setRollbackLibraryLink,
@@ -497,7 +497,11 @@ export const callSync = ( data ) => {
 
 			if ( data.refresh ) {
 				let images = getTotalNumberOfImages();
-				setRemainingImages( images - response.data.count );
+				setProcessedImages( 0 !== images ? Math.abs( images - response.data.count ) : 0 );
+
+				if ( 0 !== response.data.count && 0 === images ) {
+					setTotalNumberOfImages( response.data.count );
+				}
 			} else {
 				setTotalNumberOfImages( response.data.count );
 			}

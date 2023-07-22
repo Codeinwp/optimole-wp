@@ -17,7 +17,7 @@ const DEFAULT_STATE = {
 	siteSettings: optimoleDashboardApp.site_settings,
 	sampleRate: {},
 	totalNumberOfImages: 0,
-	remainingImages: 0,
+	processedImages: 0,
 	offloadLibraryLink: false,
 	rollbackLibraryLink: false,
 	loadingRollback: false,
@@ -153,10 +153,10 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 			...state,
 			totalNumberOfImages: action.totalNumberOfImages
 		};
-	case 'SET_REMAINING_IMAGES':
+	case 'SET_PROCESSED_IMAGES':
 		return {
 			...state,
-			remainingImages: action.remainingImages
+			processedImages: action.processedImages
 		};
 	case 'SET_OFFLOAD_LIBRARY_LINK':
 		return {
