@@ -1168,7 +1168,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'images_processing'                 => __( 'We are currently processing your images in the background. Leaving the page won\'t stop the process.', 'optimole-wp' ),
 				'active_exclusions'                 => __( 'Active Exclusions', 'optimole-wp' ),
 				'minutes'                           => __( 'minutes', 'optimole-wp' ),
-				'stop'							    => __( 'Stop', 'optimole-wp' ),
+				'stop'                              => __( 'Stop', 'optimole-wp' ),
 				'rollback_media_progress'           => __( 'Moving images into your media library...', 'optimole-wp' ),
 				'rollback_media_error'              => __( 'An unexpected error occured while pulling the offloaded back to your site', 'optimole-wp' ),
 				'rollback_media_error_desc'         => __( 'You can try again to pull back the rest of the images.', 'optimole-wp' ),

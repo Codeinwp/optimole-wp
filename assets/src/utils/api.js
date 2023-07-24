@@ -462,12 +462,15 @@ export const callSync = ( data ) => {
 
 	setIsLoading( true );
 
+	const images_ids = undefined !== data.images ? data.images : [];
+
 	apiFetch({
 		path: optimoleDashboardApp.routes['number_of_images_and_pages'],
 		method: 'POST',
 		data: {
 			action: data.action,
-			refresh: data.refresh || false
+			refresh: data.refresh || false,
+			images: images_ids
 		},
 		parse: false
 	})
@@ -495,21 +498,27 @@ export const callSync = ( data ) => {
 				return;
 			}
 
+			let images = getTotalNumberOfImages();
+
 			if ( data.refresh ) {
-				let images = getTotalNumberOfImages();
-				setProcessedImages( 0 !== images ? Math.abs( images - response.data.count ) : 0 );
+				if ( 0 === images_ids.length ) {
+					setProcessedImages( 0 !== images ? Math.abs( images - response.data.count ) : 0 );
+				} else {
+					setProcessedImages( 0 !== images ? Math.abs( images - response.data.count ) : 0 );
+				}
 
 				if ( 0 !== response.data.count && 0 === images ) {
-					setTotalNumberOfImages( response.data.count );
+					setTotalNumberOfImages( 0 !== images_ids.length ? images_ids.length : response.data.count );
 				}
 			} else {
-				setTotalNumberOfImages( response.data.count );
+				setTotalNumberOfImages( 0 !== images_ids.length ? images_ids.length : response.data.count );
 			}
 
 			setTimeout( () => {
 				callSync({
 					action: data.action,
-					refresh: true
+					refresh: true,
+					images: images_ids
 				});
 			}, 10000 );
 		})

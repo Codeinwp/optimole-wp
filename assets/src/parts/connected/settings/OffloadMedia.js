@@ -101,17 +101,17 @@ const OffloadMedia = ({
 	const isRollbackInProgress = 'disabled' !== settings[ 'rollback_status' ];
 	const whitelistedDomains = optimoleDashboardApp.user_data.whitelist || [];
 
-	// useEffect( () => {
-	// 	if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
-	// 		if ( 'offload_images' === queryArgs.optimole_action ) {
-	// 			onOffloadMedia( queryArgs.images );
-	// 		}
+	useEffect( () => {
+		if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
+			if ( 'offload_images' === queryArgs.optimole_action ) {
+				onOffloadMedia( queryArgs.images );
+			}
 
-	// 		if ( 'rollback_images' === queryArgs.optimole_action ) {
-	// 			onRollbackdMedia( queryArgs.images );
-	// 		}
-	// 	}
-	// }, []);
+			if ( 'rollback_images' === queryArgs.optimole_action ) {
+				onRollbackdMedia( queryArgs.images );
+			}
+		}
+	}, []);
 
 	useEffect( () => {
 		if ( isOffloadingInProgress ) {
@@ -186,7 +186,7 @@ const OffloadMedia = ({
 		setShowOffloadEnabled( 'disabled' === optimoleDashboardApp.site_settings[ 'offload_media' ] && !! value );
 	};
 
-	const onOffloadMedia = ( imageIds = 'none' ) => {
+	const onOffloadMedia = ( imageIds = []) => {
 		onSaveSettings();
 		setErrorMedia( false );
 
@@ -196,7 +196,7 @@ const OffloadMedia = ({
 		});
 	};
 
-	const onRollbackdMedia = ( imageIds = 'none' ) => {
+	const onRollbackdMedia = ( imageIds = []) => {
 		setCheckedOffloadConflicts( false );
 		setOffloadConflicts([]);
 
@@ -327,7 +327,7 @@ const OffloadMedia = ({
 										'is-disabled': isLoading
 									}
 								) }
-								onClick={ onOffloadMedia }
+								onClick={ () => onOffloadMedia() }
 							>
 								{ optimoleDashboardApp.strings.options_strings.sync_media }
 							</Button>
@@ -411,7 +411,7 @@ const OffloadMedia = ({
 										'is-disabled': isLoading
 									}
 								) }
-								onClick={ onRollbackdMedia }
+								onClick={ () => onRollbackdMedia() }
 							>
 								{ optimoleDashboardApp.strings.options_strings.rollback_media }
 							</Button>

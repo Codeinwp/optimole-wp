@@ -794,6 +794,7 @@ class Optml_Rest {
 	public function number_of_images_and_pages( WP_REST_Request $request ) {
 		$action = 'offload_images';
 		$refresh = false;
+		$images = [];
 
 		if ( ! empty( $request->get_param( 'action' ) ) ) {
 			$action = $request->get_param( 'action' );
@@ -803,7 +804,11 @@ class Optml_Rest {
 			$refresh = $request->get_param( 'refresh' );
 		}
 
-		return $this->response( Optml_Media_Offload::get_image_count( $action, $refresh ) );
+		if ( ! empty( $request->get_param( 'images' ) ) ) {
+			$images = $request->get_param( 'images' );
+		}
+
+		return $this->response( Optml_Media_Offload::get_image_count( $action, $refresh, $images ) );
 	}
 
 	/**

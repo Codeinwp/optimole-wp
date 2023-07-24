@@ -250,7 +250,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
 				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
 				add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
-				add_action( 'start_processing_images', [self::$instance, 'start_processing_images'], 10, 5 );
+				add_action( 'start_processing_images', [self::$instance, 'start_processing_images'], 10, 6 );
 
 				if ( self::$is_legacy_install === null ) {
 					self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) > 1677171600;
@@ -631,9 +631,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param int    $page The current page from the query.
 	 * @param string $job The job name rollback_images/offload_images.
 	 * @param int    $batch How many posts to query on a page.
+	 * @param array  $images The images that need to be updated.
+	 *
 	 * @return array An array containing the page of the query and an array containing the images for every post that need to be updated.
 	 */
-	public function update_content( $page, $job, $batch = 1 ) {
+	public function update_content( $page, $job, $batch = 1, $images = [] ) {
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', ' updating_content ' );
 		}
@@ -656,7 +658,48 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				'update_post_term_cache' => false,
 			]
 		);
+
 		$query_args = self::add_page_meta_query_args( $job, $query_args );
+
+		// if we have images to update we add the meta query to the query args
+		if ( ! empty( $images ) ) {
+			global $wpdb;
+
+			$image_urls = array_map( 'wp_get_attachment_url', $images );
+
+			$image_urls = array_map(
+				function( $url ) {
+					$path_info = pathinfo( $url );
+					$directory = $path_info['dirname'];
+					$filename = $path_info['filename'];
+					return $directory . '/' . $filename;
+				},
+				$image_urls
+			);
+
+			// Sanitize the image URLs for use in the SQL query.
+			$urls = array_map( 'esc_url_raw', $image_urls );
+
+			// Initialize an empty string to hold the query.
+			$query = '';
+
+			// Iterate through the array and add each URL to the query.
+			foreach ( $urls as $index => $url ) {
+				// If it's the first item, we don't need to add OR to the beginning.
+				if ( $index === 0 ) {
+					$query .= $wpdb->prepare( 'post_content LIKE %s', '%' . $wpdb->esc_like( $url ) . '%' );
+				} else {
+					$query .= $wpdb->prepare( ' OR post_content LIKE %s', '%' . $wpdb->esc_like( $url ) . '%' );
+				}
+			}
+
+			// Get the post IDs. PHPCS error is a false positive, we already use prepare.
+			$post_ids = $wpdb->get_col( "SELECT ID FROM $wpdb->posts WHERE $query" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+			// Add to query args.
+			$query_args['post__in'] = $post_ids;
+		}
+
 		$content = new \WP_Query( $query_args );
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', $page );
@@ -1478,42 +1521,58 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
-	 *  Calculate the number of images in media library and the number of posts/pages.
+	 * Calculate the number of images in media library and the number of posts/pages.
 	 *
 	 * @param string $action The actions for which to get the number of images.
-	 * @return int Number of images.
+	 * @param bool   $refresh Whether to refresh the cron or not.
+	 * @param array  $images The images to process.
+	 *
+	 * @return array Image count and Cron status.
 	 */
-	public static function get_image_count( $action, $refresh ) {
+	public static function get_image_count( $action, $refresh, $images = [] ) {
 		$option = 'offload_images' === $action ? 'offloading_status' : 'rollback_status';
 		$count = Optml_Media_Offload::number_of_images_and_pages( $action );
+
 		$in_progress = self::$instance->settings->get( $option ) !== 'disabled';
 
-		if ( false === $refresh && false === $in_progress ) {
+		if ( false === $refresh ) {
 			$step  = 0;
-			$batch = 10;
-	
+			$batch = 50; // Reduce this to 20 if you we have memory issues during testing.
+
 			$possible_batch = ceil( $count / 10 );
-	
+
 			if ( $possible_batch < $batch ) {
 				$batch  = $possible_batch;
 			}
-	
-			$total = 0 !== $count ? ceil( $count / $batch ) : 0;
-			$status = 0 !== $total;
-			$in_progress = $status;
 
-			self::$instance->settings->update( $option, $status ? 'enabled' : 'disabled' );
+			// If batch is less than 10, set it to 10.
+			if ( $batch < 10 ) {
+				$batch = 10;
+			}
 
-			if ( true === $status ) {
+			$total = 0;
+
+			if ( ! empty( $images ) ) {
+				$total = ceil( count( $images ) / $batch );
+			} elseif ( 0 !== $count ) {
+				$total = ceil( $count / $batch );
+			}
+
+			$in_progress = 0 !== $total;
+
+			self::$instance->settings->update( $option, $in_progress ? 'enabled' : 'disabled' );
+
+			if ( true === $in_progress ) {
 				wp_schedule_single_event(
 					time(),
 					'start_processing_images',
 					[
-						'action' => $action,
-						'batch' => $batch,
-						'page' => 1,
-						'total' => $total,
-						'step' => $step
+						$action,
+						$batch,
+						1,
+						$total,
+						$step,
+						$images,
 					]
 				);
 			}
@@ -1521,21 +1580,23 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		return [
 			'count' => $count,
-			'status' => $in_progress
+			'status' => $in_progress,
 		];
 	}
 
 	/**
 	 * Start Processing Images
-	 * 
+	 *
 	 * @param string $action The action for which to get the number of images.
 	 * @param int    $batch  The batch of images to process.
 	 * @param int    $page   The page of images to process.
 	 * @param int    $total  The total number of pages.
-	 * 
+	 * @param int    $step   The current step.
+	 * @param array  $images The images to process.
+	 *
 	 * @return void
 	 */
-	public function start_processing_images( $action, $batch, $page, $total, $step ) {
+	public function start_processing_images( $action, $batch, $page, $total, $step, $images = [] ) {
 		$option = 'offload_images' === $action ? 'offloading_status' : 'rollback_status';
 
 		if ( self::$instance->settings->get( $option ) === 'disabled' ) {
@@ -1547,37 +1608,80 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return;
 		}
 
-		$posts_to_update = Optml_Media_Offload::instance()->update_content( $page, $action, $batch );
+		$image_ids = [];
 
-		if ( isset( $posts_to_update['page'] ) && $posts_to_update['page'] > $page ) {
-			$page = $posts_to_update['page'];
-			if ( isset( $posts_to_update['imagesToUpdate'] ) && count( $posts_to_update['imagesToUpdate'] ) ) {
-				foreach ( $posts_to_update['imagesToUpdate'] as $post_id => $images ) {
-					if ( $action === 'offload_images' ) {
-						Optml_Media_Offload::instance()->upload_and_update_existing_images( $images );
-					}
-					if ( $action === 'rollback_images' ) {
-						 Optml_Media_Offload::instance()->rollback_and_update_images( $images );
-					}
-					Optml_Media_Offload::instance()->update_page( $post_id );
-				}
+		// Check if images are passed and aren't empty.
+		if ( ! empty( $images ) ) {
+			// Check if count of images is more than the batch.
+			if ( count( $images ) > $batch ) {
+				// Get the images for the current batch.
+				$image_ids = array_slice( $images, ( $step * $batch ), $batch );
+			} else {
+				// Get the images for the current batch.
+				$image_ids = array_slice( $images, ( $step * $batch ) );
 			}
-		} else {
-			$action === 'rollback' ? Optml_Media_Offload::instance()->rollback_images( $batch ) : Optml_Media_Offload::instance()->upload_images( $batch );
 		}
 
-		$step = $step + 1;
+		set_time_limit( 0 );
 
-		wp_schedule_single_event(
-			time(),
-			'start_processing_images',
-			[
-				'action' => $action,
-				'batch' => $batch,
-				'page' => $page,
-				'total' => $total,
-				'step' => $step
-			]
-		);
+		try {
+			$posts_to_update = Optml_Media_Offload::instance()->update_content( $page, $action, $batch, $image_ids );
+
+			if ( isset( $posts_to_update['page'] ) && $posts_to_update['page'] > $page ) {
+				$page = $posts_to_update['page'];
+				if ( isset( $posts_to_update['imagesToUpdate'] ) && count( $posts_to_update['imagesToUpdate'] ) ) {
+					foreach ( $posts_to_update['imagesToUpdate'] as $post_id => $images ) {
+						if ( ! empty( $image_ids ) ) {
+							$images = array_intersect( $images, $image_ids );
+						}
+
+						if ( empty( $images ) ) {
+							continue;
+						}
+
+						if ( $action === 'offload_images' ) {
+							Optml_Media_Offload::instance()->upload_and_update_existing_images( $images );
+						}
+						if ( $action === 'rollback_images' ) {
+							Optml_Media_Offload::instance()->rollback_and_update_images( $images );
+						}
+						Optml_Media_Offload::instance()->update_page( $post_id );
+					}
+				}
+			} else {
+				$action === 'rollback_images' ? Optml_Media_Offload::instance()->rollback_images( $batch, $image_ids ) : Optml_Media_Offload::instance()->upload_images( $batch, $image_ids );
+			}
+
+			$step = $step + 1;
+
+			wp_schedule_single_event(
+				time(),
+				'start_processing_images',
+				[
+					$action,
+					$batch,
+					$page,
+					$total,
+					$step,
+					$images,
+				]
+			);
+		} catch ( Exception $e ) {
+			// Reschedule the cron to run again after a delay. Sometimes memory limit is exausted.
+			$delay_in_seconds = 10;
+
+			wp_schedule_single_event(
+				time() + $delay_in_seconds,
+				'start_processing_images',
+				[
+					$action,
+					$batch,
+					$page,
+					$total,
+					$step,
+					$images,
+				]
+			);
+		}
 	}
 }
