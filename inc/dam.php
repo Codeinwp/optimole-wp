@@ -145,12 +145,6 @@ class Optml_Dam {
 			$metadata['filesize'] = $image['meta']['fileSize'];
 		}
 
-		// todo: remove this after we deploy https://github.com/Codeinwp/optimole-service/pull/970
-		if ( isset( $image['meta']['originalWeight'] ) && ! isset( $image['meta']['originalWidth'] ) ) {
-			$image['meta']['originalWidth'] = $image['meta']['originalWeight'];
-		}
-		// todo: remove this after we deploy https://github.com/Codeinwp/optimole-service/pull/970
-
 		if ( isset( $image['meta']['originalWidth'] ) && isset( $image['meta']['originalHeight'] ) ) {
 			$metadata['width']  = $image['meta']['originalWidth'];
 			$metadata['height'] = $image['meta']['originalHeight'];
