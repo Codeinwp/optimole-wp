@@ -59,6 +59,16 @@ const Settings = ({
 		});
 	}, [ extraVisits ]);
 
+	useEffect( () => {
+		const visits = localStorage.getItem( 'optimole_settings_visits' );
+
+		if ( 3 < visits ) {
+			return;
+		}
+
+		localStorage.setItem( 'optimole_settings_visits', visits ? parseInt( visits ) + 1 : 1 );
+	}, [ tab ]);
+
 	const loadSample = () => {
 		if ( ! showSample ) {
 			setIsSampleLoading( true );

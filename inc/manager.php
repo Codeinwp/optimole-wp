@@ -43,6 +43,16 @@ final class Optml_Manager {
 	 * @var Optml_Lazyload_Replacer Replacer instance.
 	 */
 	public $lazyload_replacer;
+
+	/**
+	 * Holds the hero preloader class.
+	 *
+	 * @access  public
+	 * @since   3.9.0
+	 * @var Optml_Hero_Preloader Preloader instance.
+	 */
+	public $hero_preloader;
+
 	/**
 	 * Holds plugin settings.
 	 *
@@ -108,6 +118,7 @@ final class Optml_Manager {
 			self::$instance->url_replacer      = Optml_Url_Replacer::instance();
 			self::$instance->tag_replacer      = Optml_Tag_Replacer::instance();
 			self::$instance->lazyload_replacer = Optml_Lazyload_Replacer::instance();
+			self::$instance->hero_preloader    = Optml_Hero_Preloader::instance();
 
 			add_action( 'after_setup_theme', [ self::$instance, 'init' ] );
 			add_action( 'wp_footer', [ self::$instance, 'banner' ] );

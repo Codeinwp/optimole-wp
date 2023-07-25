@@ -1265,6 +1265,21 @@ The root cause might be either a security plugin which blocks this feature or so
 				'medium_optimization'   => __( '🤓 We are on the right track, <strong>{ratio}</strong> squeezed.', 'optimole-wp' ),
 				'big_optimization'      => __( '❤️❤️❤️ Our moles just nailed it, this one is <strong>{ratio}</strong> smaller.  ', 'optimole-wp' ),
 			],
+			'csat'                           => [
+				'title'                => __( 'Your opinion matters', 'optimole-wp' ),
+				'close'                => __( 'Close', 'optimole-wp' ),
+				'heading_one'          => __( 'How easy did you find to get started using Optimole, on a scale of 1 to 5?', 'optimole-wp' ),
+				'heading_two'          => __( 'Any specific feedback you would like to add?', 'optimole-wp' ),
+				'heading_three'        => __( 'Thank you!', 'optimole-wp' ),
+				'low'                  => __( 'Very Poor', 'optimole-wp' ),
+				'high'                 => __( 'Excellent', 'optimole-wp' ),
+				'feedback_placeholder' => __( 'Add your feedback here (optional)', 'optimole-wp' ),
+				'skip'                 => __( 'Skip', 'optimole-wp' ),
+				'submit'               => __( 'Submit', 'optimole-wp' ),
+				'privacy'              => __( 'What info we collect?', 'optimole-wp' ),
+				'privacy_tooltip'      => __( 'We value privacy, that\'s why no IP addresses are collected after you submit the survey.', 'optimole-wp' ),
+				'thank_you'            => __( 'Your input is highly appreciated and helps us shape a better experience in Optimole.', 'optimole-wp' ),
+			],
 		];
 	}
 
