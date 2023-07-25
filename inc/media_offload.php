@@ -250,7 +250,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
 				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
 				add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
-				add_action( 'start_processing_images', [self::$instance, 'start_processing_images'], 10, 6 );
+				add_action( 'optml_start_processing_images', [self::$instance, 'start_processing_images'], 10, 6 );
 
 				if ( self::$is_legacy_install === null ) {
 					self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) > 1677171600;
@@ -1565,7 +1565,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( true === $in_progress ) {
 				wp_schedule_single_event(
 					time(),
-					'start_processing_images',
+					'optml_start_processing_images',
 					[
 						$action,
 						$batch,
@@ -1656,7 +1656,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			wp_schedule_single_event(
 				time(),
-				'start_processing_images',
+				'optml_start_processing_images',
 				[
 					$action,
 					$batch,
@@ -1672,7 +1672,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			wp_schedule_single_event(
 				time() + $delay_in_seconds,
-				'start_processing_images',
+				'optml_start_processing_images',
 				[
 					$action,
 					$batch,
