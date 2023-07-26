@@ -197,6 +197,11 @@ const ConnectLayout = () => {
 					>
 						{ optimoleDashboardApp.strings.api_exists }
 					</Button>
+
+					<p
+						className="mb-0"
+						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.signup_terms } }
+					/>
 				</div>
 			</div>
 
