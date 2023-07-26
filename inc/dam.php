@@ -577,7 +577,7 @@ class Optml_Dam {
 		];
 
 		$data = json_encode( $data );
-		$data = base64_encode( $data );
+		$data = rtrim( base64_encode( $data ), '=' );
 
 		return add_query_arg(
 			[
