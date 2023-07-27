@@ -1505,12 +1505,15 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param string $action The actions for which to get the number of images.
 	 * @param array  $images Image IDs.
 	 * @param int    $batch Batch count.
+	 * @param int    $page Page number.
 	 */
-	public static function get_posts_by_image_ids( $action, $images = [], $batch = 10 ) {
-		$query_args = [];
+	public static function get_posts_by_image_ids( $action, $images = [], $batch = 10, $page = 1 ) {
+		$transient_key = 'optml_images_' . md5( serialize( $images ) );
+		$transient = get_transient( $transient_key );
 
-		// Add meta_query args based on the action.
-		$query_args = self::add_page_meta_query_args( $action, $query_args );
+		if ( false !== $transient ) {
+			return array_slice( $transient, ( $page - 1 ) * $batch, $batch );
+		}
 
 		global $wpdb;
 
@@ -1542,24 +1545,31 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 		}
 
-		// Append the meta_query conditions to the query.
-		if ( ! empty( $query_args['meta_query'] ) ) {
-			$meta_query = new WP_Meta_Query( $query_args['meta_query'] );
-			$meta_sql = $meta_query->get_sql( 'post', $wpdb->posts, 'ID' );
-			if ( ! empty( $meta_sql['where'] ) ) {
-				$query .= ' AND ' . $meta_sql['where'];
+		// Get all the posts IDs by using LIMIT and offset in a loop.
+		$ids = [];
+		$offset = 0;
+		$limit = $batch;
+
+		while ( true ) {
+			$posts = $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT ID FROM $wpdb->posts WHERE $query LIMIT %d OFFSET %d",
+					$limit,
+					$offset
+				)
+			);
+
+			if ( empty( $posts ) ) {
+				break;
 			}
+
+			$ids = array_merge( $ids, $posts );
+			$offset += $limit;
 		}
 
-		// Get the post IDs with the batch limit.
-		$ids = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT ID FROM $wpdb->posts WHERE $query LIMIT %d",
-				$batch
-			)
-		);
-	
-		return $ids;
+		set_transient( $transient_key, $ids, HOUR_IN_SECONDS );
+
+		return array_slice( $ids, ( $page - 1 ) * $batch, $batch );
 	}
 
 	/**
@@ -1630,6 +1640,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					[
 						$action,
 						$batch,
+						1,
 						$images,
 					]
 				);
@@ -1651,18 +1662,17 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @return void
 	 */
-	public function start_processing_images_by_id( $action, $batch, $image_ids = [] ) {
+	public function start_processing_images_by_id( $action, $batch, $page, $image_ids = [] ) {
 		$option = 'offload_images' === $action ? 'offloading_status' : 'rollback_status';
-		$page = 1;
 
 		if ( self::$instance->settings->get( $option ) === 'disabled' ) {
 			return;
 		}
 
 		set_time_limit( 0 );
-		$page_in = Optml_Media_Offload::get_posts_by_image_ids( $action, $image_ids, $batch );
+		$page_in = Optml_Media_Offload::get_posts_by_image_ids( $action, $image_ids, $batch, $page );
 
-		if ( 0 === count( $image_ids ) && 0 === count( $page_in ) ) {
+		if ( empty( $image_ids ) && empty( $page_in ) ) {
 			self::$instance->settings->update( $option, 'disabled' );
 			return;
 		}
@@ -1671,7 +1681,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( 0 !== count( $page_in ) ) {
 				$posts_to_update = Optml_Media_Offload::instance()->update_content( $page, $action, $batch, $page_in );
 
-				if ( isset( $posts_to_update['page'] ) && $posts_to_update['page'] > $page ) {
+				if ( isset( $posts_to_update['page'] ) ) {
 					if ( isset( $posts_to_update['imagesToUpdate'] ) && count( $posts_to_update['imagesToUpdate'] ) ) {
 						foreach ( $posts_to_update['imagesToUpdate'] as $post_id => $images ) {
 							if ( ! empty( $image_ids ) ) {
@@ -1692,6 +1702,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 						}
 					}
 				}
+
+				$page = $page + 1;
 			} else {
 				// From $image_ids get the number as per $batch and save it in $page_in and update $images with the remaining images.
 				$images = array_slice( $image_ids, 0, $batch );
@@ -1705,6 +1717,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				[
 					$action,
 					$batch,
+					$page,
 					$image_ids,
 				]
 			);
@@ -1718,6 +1731,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				[
 					$action,
 					$batch,
+					$page,
 					$image_ids,
 				]
 			);

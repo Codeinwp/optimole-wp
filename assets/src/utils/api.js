@@ -495,6 +495,18 @@ export const callSync = ( data ) => {
 				setLoadingSync( false );
 				setLoadingRollback( false );
 				setIsLoading( false );
+
+				if ( 'offload_images' === data.action ) {
+					if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
+						setOffloadLibraryLink( true );
+					}
+				}
+
+				if ( 'rollback_images' === data.action ) {
+					if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
+						setRollbackLibraryLink( true );
+					}
+				}
 				return;
 			}
 
