@@ -251,7 +251,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
 				add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
 				add_action( 'optml_start_processing_images', [self::$instance, 'start_processing_images'], 10, 5 );
-				add_action( 'optml_start_processing_images_by_id', [self::$instance, 'start_processing_images_by_id'], 10, 5 );
+				add_action( 'optml_start_processing_images_by_id', [self::$instance, 'start_processing_images_by_id'], 10, 4 );
 
 				if ( self::$is_legacy_install === null ) {
 					self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) > 1677171600;
@@ -1518,7 +1518,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		global $wpdb;
 
 		$image_urls = array_map( 'wp_get_attachment_url', $images );
-	
+
 		$image_urls = array_map(
 			function( $url ) {
 				$path_info = pathinfo( $url );
@@ -1553,7 +1553,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		while ( true ) {
 			$posts = $wpdb->get_col(
 				$wpdb->prepare(
-					"SELECT ID FROM $wpdb->posts WHERE $query LIMIT %d OFFSET %d",
+					"SELECT ID FROM $wpdb->posts WHERE $query LIMIT %d OFFSET %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 					$limit,
 					$offset
 				)
@@ -1609,7 +1609,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( false === $refresh && empty( $images ) ) {
 			$total = ceil( $count / $batch );
 
-			$in_progress = 0 !== $total;
+			$in_progress = 0 !== $count;
 
 			self::$instance->settings->update( $option, $in_progress ? 'enabled' : 'disabled' );
 
@@ -1658,6 +1658,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @param string $action The action for which to get the number of images.
 	 * @param int    $batch  The batch of images to process.
+	 * @param int    $page   The page of images to process.
 	 * @param array  $image_ids The images to process.
 	 *
 	 * @return void
