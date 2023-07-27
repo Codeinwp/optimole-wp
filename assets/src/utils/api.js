@@ -501,17 +501,13 @@ export const callSync = ( data ) => {
 			let images = getTotalNumberOfImages();
 
 			if ( data.refresh ) {
-				if ( 0 === images_ids.length ) {
-					setProcessedImages( 0 !== images ? Math.abs( images - response.data.count ) : 0 );
-				} else {
-					setProcessedImages( 0 !== images ? Math.abs( images - response.data.count ) : 0 );
-				}
+				setProcessedImages( 0 !== images ? Math.abs( images - response.data.count ) : 0 );
 
 				if ( 0 !== response.data.count && 0 === images ) {
-					setTotalNumberOfImages( 0 !== images_ids.length ? images_ids.length : response.data.count );
+					setTotalNumberOfImages( response.data.count );
 				}
 			} else {
-				setTotalNumberOfImages( 0 !== images_ids.length ? images_ids.length : response.data.count );
+				setTotalNumberOfImages( response.data.count );
 			}
 
 			setTimeout( () => {
