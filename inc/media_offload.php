@@ -1508,6 +1508,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param int    $page Page number.
 	 */
 	public static function get_posts_by_image_ids( $action, $images = [], $batch = 10, $page = 1 ) {
+		if ( empty( $images ) ) {
+			return [];
+		}
+
 		$transient_key = 'optml_images_' . md5( serialize( $images ) );
 		$transient = get_transient( $transient_key );
 
