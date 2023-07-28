@@ -58,13 +58,23 @@ class Optml_Dam {
 		add_filter( 'wp_get_attachment_image_src', [ $this, 'alter_attachment_image_src' ], 10, 4 );
 		add_filter( 'wp_get_attachment_metadata', [ $this, 'alter_attachment_metadata' ], 10, 2 );
 		add_filter( 'image_downsize', [ $this, 'catch_downsize' ], 10, 3 );
+		add_filter( 'wp_prepare_attachment_for_js', [$this, 'alter_attachment_for_js'], 10, 3 );
+		add_filter(
+			'elementor/image_size/get_attachment_image_html',
+			[
+				$this,
+				'alter_elementor_image_size',
+			],
+			10,
+			4
+		);
 	}
 
 	/**
 	 * Catch image downsize for the DAM imported images.
 	 *
 	 * @param array        $image {
-	 *                 Array of image data.
+	 *                        Array of image data.
 	 *
 	 * @type string $0 Image source URL.
 	 * @type int    $1 Image width in pixels.
@@ -159,7 +169,7 @@ class Optml_Dam {
 	 * Catch image downsize for the DAM imported images.
 	 *
 	 * @param array|false  $image {
-	 *     Array of image data.
+	 *      Array of image data.
 	 *
 	 * @type string $0 Image source URL.
 	 * @type int    $1 Image width in pixels.
@@ -226,19 +236,17 @@ class Optml_Dam {
 
 			$width  = $sizes[ $size ]['width'];
 			$height = $sizes[ $size ]['height'];
-			$crop   = (int) $sizes[ $size ]['crop'];
+			$crop   = (bool) $sizes[ $size ]['crop'];
 		}
 
-		$gravity = 'ce';
-
-		if ( $this->settings->get( 'resize_smart' ) === 'enabled' ) {
-			$gravity = 'sm';
-		}
-
-		// Use the proper replacement for the image size.
-		$replacement = '/w:' . $width . '/h:' . $height . '/g:' . $gravity . '/rt:fill/q:';
-
-		$image_url = preg_replace( '/\/w:(.*)\/h:(.*)\/q:/', $replacement, $image_url );
+		$image_url = $this->replace_dam_url_args(
+			[
+				'width'  => $width,
+				'height' => $height,
+				'crop'   => $crop,
+			],
+			$image_url
+		);
 
 		return [
 			$image_url,
@@ -661,4 +669,133 @@ class Optml_Dam {
 		];
 	}
 
+	/**
+	 * Alter the image size for the image widget.
+	 *
+	 * @param string $html the attachment image HTML string
+	 * @param array  $settings       Control settings.
+	 * @param string $image_size_key Optional. Settings key for image size.
+	 *                               Default is `image`.
+	 * @param string $image_key      Optional. Settings key for image. Default
+	 *                               is null. If not defined uses image size key
+	 *                               as the image key.
+	 *
+	 * @return string
+	 */
+	public function alter_elementor_image_size( $html, $settings, $image_size_key, $image_key ) {
+		if ( ! isset( $settings['image'] ) ) {
+			return $html;
+		}
+
+		$image = $settings['image'];
+
+		if ( ! isset( $image['id'] ) ) {
+			return $html;
+		}
+
+		if ( ! $this->is_dam_imported_image( $image['id'] ) ) {
+			return $html;
+		}
+
+		if ( ! isset( $settings['image_size'] ) ) {
+			return $html;
+		}
+
+		if ( $settings['image_size'] === 'custom' ) {
+			if ( ! isset( $settings['image_custom_dimension'] ) ) {
+				return $html;
+			}
+
+			$custom_dimensions = $settings['image_custom_dimension'];
+
+			if ( ! isset( $custom_dimensions['width'] ) || ! isset( $custom_dimensions['height'] ) ) {
+				return $html;
+			}
+
+			return $this->replace_dam_url_args( $custom_dimensions, $html );
+		}
+
+		$all_sizes = $this->get_all_image_sizes();
+
+		if ( ! isset( $all_sizes[ $settings['image_size'] ] ) ) {
+			return $html;
+		}
+
+		return $this->replace_dam_url_args( $all_sizes[ $settings['image_size'] ], $html );
+	}
+
+	/**
+	 * Needed as some blocks might use the image sizes.
+	 *
+	 * @param array       $response Array of prepared attachment data. @see wp_prepare_attachment_for_js().
+	 * @param WP_Post     $attachment Attachment object.
+	 * @param array|false $meta Array of attachment meta data, or false if there is none.
+	 *
+	 * @return array
+	 */
+	public function alter_attachment_for_js( $response, $attachment, $meta ) {
+		if ( ! $this->is_dam_imported_image( $attachment->ID ) ) {
+			return $response;
+		}
+
+		$sizes = $this->get_all_image_sizes();
+
+		foreach ( $sizes as $size => $args ) {
+			if ( isset( $response['sizes'][ $size ] ) ) {
+				continue;
+			}
+
+			$args = [
+				'height'      => $args['height'],
+				'width'       => $args['width'],
+				'crop'        => true,
+			];
+
+			$response['sizes'][ $size ] = array_merge(
+				$args,
+				[
+					'url'         => $this->replace_dam_url_args( $args, $response['url'] ),
+					'orientation' => ( $args['height'] > $args['width'] ) ? 'portrait' : 'landscape',
+				]
+			);
+		}
+
+		return $response;
+	}
+
+	/**
+	 * Replace the image size params in DAM URLs inside a string.
+	 *
+	 * @param array  $args   The arguments to replace.
+	 *                       - width: The width of the image.
+	 *                       - height: The height of the image.
+	 *                       - crop: Whether to crop the image.
+	 * @param string $subject The string to replace the arguments in.
+	 *
+	 * @return string
+	 */
+	public function replace_dam_url_args( $args, $subject ) {
+		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'crop' => true] );
+
+		$width = $args['width'];
+		$height = $args['height'];
+		$crop = (bool) $args['crop'];
+
+		$gravity = 'ce';
+
+		if ( $this->settings->get( 'resize_smart' ) === 'enabled' ) {
+			$gravity = 'sm';
+		}
+
+		// Use the proper replacement for the image size.
+		$replacement = '/w:' . $width . '/h:' . $height;
+
+		if ( $crop ) {
+			$replacement .= '/g:' . $gravity . '/rt:fill';
+		}
+
+		$replacement .= '/q:';
+
+		return preg_replace( '/\/w:(.*)\/h:(.*)\/q:/', $replacement, $subject );
+	}
 }
