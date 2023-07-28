@@ -222,6 +222,7 @@ class Optml_Dam {
 		if ( is_array( $size ) ) {
 			$width  = $size[0];
 			$height = $size[1];
+			$crop = true;
 		} else {
 			$sizes = $this->get_all_image_sizes();
 
@@ -364,6 +365,19 @@ class Optml_Dam {
 		}
 
 		foreach ( $sizes as $size => $args ) {
+
+			// check if the image is portrait or landscape using attachment metadata.
+			$is_portrait = $metadata['height'] > $metadata['width'];
+
+			// proportionally set the width/height based on this if image is uncropped.
+			if ( ! (bool) $args['crop'] ) {
+				if ( $is_portrait ) {
+					$args['width'] = $args['height'] * floor( $metadata['width'] / $metadata['height'] );
+				} else {
+					$args['height'] = $args['width'] * floor( $metadata['height'] / $metadata['width'] );
+				}
+			}
+
 			$sizes_meta[ $size ] = [
 				'file'      => $metadata['file'],
 				'width'     => $args['width'],
@@ -775,7 +789,7 @@ class Optml_Dam {
 	 * @return string
 	 */
 	public function replace_dam_url_args( $args, $subject ) {
-		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'crop' => true] );
+		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'crop' => false] );
 
 		$width = $args['width'];
 		$height = $args['height'];
