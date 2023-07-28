@@ -506,15 +506,14 @@ class Optml_Dam {
 		if ( defined( 'OPTIOMLE_HIDE_ADMIN_AREA' ) && OPTIOMLE_HIDE_ADMIN_AREA ) {
 			return;
 		}
-		add_media_page(
-			'Optimole Assets',
-			'Optimole Assets',
+
+		add_submenu_page(
+			'optimole',
+			__( 'Cloud Library', 'optimole-wp' ),
+			__( 'Cloud Library', 'optimole-wp' ),
 			'manage_options',
 			'optimole-dam',
-			[
-				$this,
-				'render_dashboard_page',
-			]
+			[ $this, 'render_dashboard_page' ],
 		);
 	}
 
@@ -616,7 +615,7 @@ class Optml_Dam {
 	public function enqueue_admin_page_scripts() {
 		$screen = get_current_screen();
 
-		if ( $screen->id !== 'media_page_optimole-dam' ) {
+		if ( $screen->id !== 'optimole_page_optimole-dam' ) {
 			return;
 		}
 
