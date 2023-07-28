@@ -8,11 +8,6 @@ class Test_Dam extends WP_UnitTestCase {
 	const TEST_API_KEY = 'testkey';
 
 	/**
-	 * @var \WP_Post[] List of attachments inserted during the test.
-	 */
-	private $inserted_dam_attachments = array();
-
-	/**
 	 * @var int[] List of attachment IDs inserted during the test.
 	 */
 	private $inserted_ids = array();
@@ -77,15 +72,9 @@ class Test_Dam extends WP_UnitTestCase {
 
 	public function setUp(): void {
 		parent::setUp();
-
-		$settings = new Optml_Settings();
-		$settings->update('service_data', [
-			'cdn_key' => 'test123',
-			'cdn_secret' => '12345',
-			'whitelist' => ['example.com'],
-		]);
-
-		$this->add_image_sizes();
+		foreach ( self::IMAGE_SIZES as $slug => $args ) {
+			add_image_size( $slug, $args['width'], $args['height'], $args['crop'] );
+		}
 
 		$plugin         = Optml_Main::instance();
 		$this->dam      = $plugin->dam;
@@ -142,11 +131,10 @@ class Test_Dam extends WP_UnitTestCase {
 			$this->assertEquals( self::MOCK_ATTACHMENTS[ $index ]['url'], $attachment->guid );
 			$this->assertEquals( self::MOCK_ATTACHMENTS[ $index ]['meta']['mimeType'], $attachment->post_mime_type );
 		}
-
 	}
 
 	public function test_insert_duplicates() {
-		$ids = $this->dam->insert_attachments( self::MOCK_ATTACHMENTS );
+		$ids = $this->inserted_ids;
 
 		$this->assertIsArray( $ids );
 		$this->assertNotEmpty( $ids );
@@ -185,7 +173,7 @@ class Test_Dam extends WP_UnitTestCase {
 		$this->assertNotEquals( $ids, $third_run );
 
 		foreach ( $ids as $id ) {
-			$this->assertTrue( in_array( $id, $third_run ) );
+			$this->assertContains( $id, $third_run );
 		}
 	}
 
@@ -220,26 +208,26 @@ class Test_Dam extends WP_UnitTestCase {
 	public function test_alter_attachment_image_src() {
 		foreach ( $this->inserted_ids as $id ) {
 			$result = $this->dam->alter_attachment_image_src( false, $id, 'test_landscape', false );
-			$this->assertContains( 'w:200/h:100/g:ce/rt:fill', $result[0] );
+			$this->assertStringContainsString( 'w:200/h:100/g:ce/rt:fill', $result[0] );
 			$this->assertEquals( 200, $result[1] );
 			$this->assertEquals( 100, $result[2] );
 			$this->assertTrue( $result[3] );
 
 			$result = $this->dam->alter_attachment_image_src( false, $id, 'test_portrait', false );
-			$this->assertContains( 'w:100/h:200/g:ce/rt:fill', $result[0] );
+			$this->assertStringContainsString( 'w:100/h:200/g:ce/rt:fill', $result[0] );
 			$this->assertEquals( 100, $result[1] );
 			$this->assertEquals( 200, $result[2] );
 			$this->assertTrue( $result[3] );
 
 			$result = $this->dam->alter_attachment_image_src( false, $id, 'medium', false );
-			$this->assertContains( 'w:300/h:300/', $result[0] );
-			$this->assertNotContains( 'g:ce/rt:fill', $result[0] );
+			$this->assertStringContainsString( 'w:300/h:300/', $result[0] );
+			$this->assertStringNotContainsString( 'g:ce/rt:fill', $result[0] );
 			$this->assertEquals( 300, $result[1] );
 			$this->assertEquals( 300, $result[2] );
 			$this->assertFalse( $result[3] );
 
 			$result = $this->dam->alter_attachment_image_src( false, $id, [ 50, 20 ], false );
-			$this->assertContains( 'w:50/h:20/g:ce/rt:fill', $result[0] );
+			$this->assertStringContainsString( 'w:50/h:20/g:ce/rt:fill', $result[0] );
 			$this->assertEquals( 50, $result[1] );
 			$this->assertEquals( 20, $result[2] );
 			$this->assertEquals( true, $result[3] );
@@ -270,7 +258,7 @@ class Test_Dam extends WP_UnitTestCase {
 		}
 	}
 
-	public function test_alter_attachment_for_js(  ) {
+	public function test_alter_attachment_for_js() {
 		$mock_response = [
 			'sizes' => [],
 		];
@@ -289,13 +277,13 @@ class Test_Dam extends WP_UnitTestCase {
 			$this->assertEquals( self::IMAGE_SIZES['test_landscape']['width'], $altered['sizes']['test_landscape']['width'] );
 			$this->assertEquals( self::IMAGE_SIZES['test_landscape']['height'], $altered['sizes']['test_landscape']['height'] );
 			$this->assertEquals( self::IMAGE_SIZES['test_landscape']['orientation'], $altered['sizes']['test_landscape']['orientation'] );
-			$this->assertContains( 'w:200/h:100/g:ce/rt:fill', $altered['sizes']['test_landscape']['url'] );
+			$this->assertStringContainsString( 'w:200/h:100/g:ce/rt:fill', $altered['sizes']['test_landscape']['url'] );
 
 			$this->assertArrayHasKey( 'test_portrait', $altered['sizes'] );
 			$this->assertEquals( self::IMAGE_SIZES['test_portrait']['width'], $altered['sizes']['test_portrait']['width'] );
 			$this->assertEquals( self::IMAGE_SIZES['test_portrait']['height'], $altered['sizes']['test_portrait']['height'] );
 			$this->assertEquals( self::IMAGE_SIZES['test_portrait']['orientation'], $altered['sizes']['test_portrait']['orientation'] );
-			$this->assertContains( 'w:100/h:200/g:ce/rt:fill', $altered['sizes']['test_portrait']['url'] );
+			$this->assertStringContainsString( 'w:100/h:200/g:ce/rt:fill', $altered['sizes']['test_portrait']['url'] );
 		}
 	}
 
@@ -319,21 +307,5 @@ class Test_Dam extends WP_UnitTestCase {
 
 	private function insert_mock_attachments() {
 		$this->inserted_ids = $this->dam->insert_attachments( self::MOCK_ATTACHMENTS );
-	}
-
-	private function add_image_sizes() {
-		foreach ( self::IMAGE_SIZES as $slug => $args ) {
-			add_image_size( $slug, $args['width'], $args['height'], $args['crop'] );
-		}
-	}
-
-	private function remove_image_sizes() {
-		foreach ( self::IMAGE_SIZES as $slug => $args ) {
-			remove_image_size( $slug );
-		}
-	}
-
-	public function tear_down() {
-		$this->remove_image_sizes();
 	}
 }
