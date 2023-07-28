@@ -14,7 +14,7 @@ import ConnectLayout from './connect';
 import ConnectingLayout from './connecting';
 import ConnectedLayout from './connected';
 import Footer from './Footer';
-import { toggleSettingsHighlight } from '../utils/helpers';
+import { highlightSidebarLink } from '../utils/helpers';
 
 const Main = () => {
 	const allowedTabs = [ 'dashboard', 'settings', 'help' ];
@@ -59,8 +59,8 @@ const Main = () => {
 		if ( ! isConnected ) {
 			return;
 		}
-		toggleSettingsHighlight( 'settings' === tab );
 		window.location.hash = `#${ tab }`;
+		highlightSidebarLink();
 	}, [ tab ]);
 
 	useEffect( () => {

@@ -945,7 +945,7 @@ class Optml_Admin {
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',
-			'dam_url'                    => admin_url( 'admin.php?page=optimole-dam' ),
+			'dam_url'                    => 'admin.php?page=optimole-dam',
 			'connection_status'          => empty( $service_data ) ? 'no' : 'yes',
 			'has_application'            => isset( $service_data['app_count'] ) && $service_data['app_count'] >= 1 ? 'yes' : 'no',
 			'user_status'                => $user_status,
@@ -962,6 +962,13 @@ class Optml_Admin {
 			'home_url'                   => home_url(),
 			'is_offload_media_available' => $is_offload_media_available,
 			'auto_connect'               => $auto_connect,
+			'submenu_links' => [
+				[
+					'href' => 'admin.php?page=optimole#settings',
+					'text' => __( 'Settings', 'optimole-wp' ),
+					'hash' => '#settings',
+				],
+			],
 		];
 	}
 
