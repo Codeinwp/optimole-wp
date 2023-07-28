@@ -131,11 +131,10 @@ class Test_Dam extends WP_UnitTestCase {
 			$this->assertEquals( self::MOCK_ATTACHMENTS[ $index ]['url'], $attachment->guid );
 			$this->assertEquals( self::MOCK_ATTACHMENTS[ $index ]['meta']['mimeType'], $attachment->post_mime_type );
 		}
-
 	}
 
 	public function test_insert_duplicates() {
-		$ids = $this->dam->insert_attachments( self::MOCK_ATTACHMENTS );
+		$ids = $this->inserted_ids;
 
 		$this->assertIsArray( $ids );
 		$this->assertNotEmpty( $ids );
@@ -174,7 +173,7 @@ class Test_Dam extends WP_UnitTestCase {
 		$this->assertNotEquals( $ids, $third_run );
 
 		foreach ( $ids as $id ) {
-			$this->assertTrue( in_array( $id, $third_run ) );
+			$this->assertContains( $id, $third_run );
 		}
 	}
 
@@ -259,7 +258,7 @@ class Test_Dam extends WP_UnitTestCase {
 		}
 	}
 
-	public function test_alter_attachment_for_js(  ) {
+	public function test_alter_attachment_for_js() {
 		$mock_response = [
 			'sizes' => [],
 		];
