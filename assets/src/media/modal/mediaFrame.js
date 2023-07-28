@@ -112,7 +112,12 @@ const extendFrame = ( frame ) => frame.extend({
 			return;
 		}
 		this.omDamMessageHandler.attachListeners();
-		this.toggleModalClass( true );
+
+		const { content } = this;
+
+		if ( content.mode && 'optimole'  === content.mode() ) {
+			this.toggleModalClass( true );
+		}
 	},
 
 	/**
