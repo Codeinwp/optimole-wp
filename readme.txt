@@ -78,7 +78,7 @@ Optimole loves page builders and has unique tweaks to solve image replacements. 
 Optimole provides free access to a AWS CloudFront CDN with edge locations in more than 200 cities around the globe.
 
 **What About Security?**
-The stripped EXGIF data is not stored on our service. Optimole likes to work behind the scenes, and won't interact with your site's visitors. No data is collected but you can check the [Terms of Service](https://optimole.com/terms/)
+The stripped EXIF data is not stored on our service. Optimole likes to work behind the scenes, and won't interact with your site's visitors. No data is collected but you can check the [Terms of Service](https://optimole.com/terms/)
 
 **Smooth And Clean**
 Optimole can be installed in a few clicks and then left in the back-end to do its job. Not happy with it? Optimole has a clean uninstall and your site will be just as before Optimole was installed.
