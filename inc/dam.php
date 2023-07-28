@@ -672,7 +672,7 @@ class Optml_Dam {
 	/**
 	 * Alter the image size for the image widget.
 	 *
-	 * @param string $html the attachment image HTML string
+	 * @param string $html the attachment image HTML string.
 	 * @param array  $settings       Control settings.
 	 * @param string $image_size_key Optional. Settings key for image size.
 	 *                               Default is `image`.
