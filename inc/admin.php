@@ -41,6 +41,7 @@ class Optml_Admin {
 		add_filter( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
 		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
 		add_action( 'admin_menu', [ $this, 'add_settings_subpage' ], 99 );
+		add_action( 'admin_enqueue_scripts', [ $this, 'menu_icon_style' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ], PHP_INT_MIN );
 		add_action( 'admin_notices', [ $this, 'add_notice' ] );
 		add_action( 'admin_notices', [ $this, 'add_notice_upgrade' ] );
@@ -791,8 +792,6 @@ class Optml_Admin {
 			return;
 		}
 
-		echo '<style>#toplevel_page_optimole img{ max-width:22px;padding-top:6px!important;opacity:.9!important;} #toplevel_page_optimole li.wp-first-item{ display:none }</style>';
-
 		add_menu_page(
 			'Optimole',
 			'Optimole',
@@ -802,6 +801,15 @@ class Optml_Admin {
 			OPTML_URL . 'assets/img/logo.svg',
 			11
 		);
+	}
+
+	/**
+	 * Add menu icon style.
+	 *
+	 * @return void
+	 */
+	public function menu_icon_style() {
+		echo '<style>#toplevel_page_optimole img{ max-width:22px;padding-top:6px!important;opacity:.9!important;} #toplevel_page_optimole li.wp-first-item{ display:none }</style>';
 	}
 
 	/**
