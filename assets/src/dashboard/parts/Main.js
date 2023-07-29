@@ -3,7 +3,7 @@
  */
 import { useSelect } from '@wordpress/data';
 
-import { useState } from '@wordpress/element';
+import { useEffect, useState } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -14,9 +14,24 @@ import ConnectLayout from './connect';
 import ConnectingLayout from './connecting';
 import ConnectedLayout from './connected';
 import Footer from './Footer';
+import { highlightSidebarLink } from '../utils/helpers';
 
 const Main = () => {
-	const [ tab, setTab ] = useState( 'dashboard' );
+	const allowedTabs = [ 'dashboard', 'settings', 'help' ];
+	const hash = window.location.hash.replace( '#', '' );
+	let defaultTab = allowedTabs.includes( hash ) ? hash : 'dashboard';
+
+	const [ tab, setTab ] = useState( defaultTab );
+
+	const switchToSettings = ( e ) => {
+		e.preventDefault();
+		setTab( 'settings' );
+	};
+
+	const switchToDashboard = ( e ) => {
+		e.preventDefault();
+		setTab( 'dashboard' );
+	};
 
 	const {
 		showDisconnect,
@@ -38,6 +53,41 @@ const Main = () => {
 			hasDashboardLoaded: hasDashboardLoaded()
 		};
 	});
+
+
+	useEffect( () => {
+		if ( ! isConnected ) {
+			return;
+		}
+		window.location.hash = `#${ tab }`;
+		highlightSidebarLink();
+	}, [ tab ]);
+
+	useEffect( () => {
+
+		if ( ! isConnected ) {
+			return;
+		}
+
+		const dashLink = document.querySelector( 'a[href*="page=optimole"]' );
+		const settingsLink = document.querySelector( 'a[href*="page=optimole#settings"]' );
+
+		if ( ! dashLink || ! settingsLink ) {
+			return;
+		}
+
+		dashLink.addEventListener( 'click', switchToDashboard );
+		settingsLink.addEventListener( 'click', switchToSettings );
+
+		return () => {
+			if ( ! dashLink || ! settingsLink ) {
+				return;
+			}
+			dashLink.removeEventListener( 'click', switchToDashboard );
+			settingsLink.removeEventListener( 'click', switchToSettings );
+		};
+	}, []);
+
 
 	return (
 		<>
