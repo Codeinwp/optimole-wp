@@ -87,9 +87,9 @@ final class Optml_Main {
 	public static function instance() {
 		if ( null === self::$_instance ) {
 			add_filter( 'themeisle_sdk_products', [ __CLASS__, 'register_sdk' ] );
-            add_filter( 'themeisle_sdk_ran_promos', '__return_true');
-            add_filter( 'optimole-wp_uninstall_feedback_icon', [ __CLASS__, 'change_icon' ] );
-            add_filter( 'optimole_wp_uninstall_feedback_after_css', [ __CLASS__, 'adds_uf_css' ] );
+			add_filter( 'themeisle_sdk_ran_promos', '__return_true' );
+			add_filter( 'optimole-wp_uninstall_feedback_icon', [ __CLASS__, 'change_icon' ] );
+			add_filter( 'optimole_wp_uninstall_feedback_after_css', [ __CLASS__, 'adds_uf_css' ] );
 			add_filter( 'optimole_wp_feedback_review_message', [ __CLASS__, 'change_review_message' ] );
 			add_filter( 'optimole_wp_logger_heading', [ __CLASS__, 'change_review_message' ] );
 			add_filter( 'optml_default_settings', [ __CLASS__, 'change_lazyload_default' ] );
