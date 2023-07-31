@@ -596,11 +596,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! self::is_uploaded_image( $file ) ) {
 			$upload_action_url = add_query_arg(
 				[
-					'action' => 'offload_images',
-					'media[]' => $post->ID,
-					'_wpnonce' => wp_create_nonce( 'bulk-media' ),
+					'page' => 'optimole',
+					'optimole_action' => 'offload_images',
+					'0' => $post->ID,
 				],
-				'upload.php'
+				'admin.php'
 			);
 
 			$actions['offload_images'] = sprintf(
@@ -613,11 +613,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( self::is_uploaded_image( $file ) ) {
 			$rollback_action_url = add_query_arg(
 				[
-					'action' => 'rollback_images',
-					'media[]' => $post->ID,
-					'_wpnonce' => wp_create_nonce( 'bulk-media' ),
+					'page' => 'optimole',
+					'optimole_action' => 'rollback_images',
+					'0' => $post->ID,
 				],
-				'upload.php'
+				'admin.php'
 			);
 			$actions['rollback_images'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
@@ -867,9 +867,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( empty( $image_ids ) ) {
 			return $redirect;
 		}
-		$redirect = remove_query_arg( [ 'optimole_offload_images_succes', 'optimole_offload_images_failed', 'optimole_back_to_media_success', 'optimole_back_to_media_failed', 'optimole_offload_images_extra', 'optimole_rollback_images_extra'  ], $redirect );
-		$image_ids = array_slice( $image_ids, 0, 20, true );
 
+		$image_ids = array_slice( $image_ids, 0, 20, true );
+		$redirect = 'admin.php';
 		$redirect = add_query_arg( 'optimole_action', $doaction, $redirect );
 		$redirect = add_query_arg( 'page', 'optimole', $redirect );
 		$redirect = add_query_arg( $image_ids, $redirect );
