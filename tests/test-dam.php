@@ -264,7 +264,7 @@ class Test_Dam extends WP_UnitTestCase {
 		];
 
 		foreach ( $this->inserted_ids as $id ) {
-			$post = get_post( $id );
+			$post     = get_post( $id );
 			$response = array_merge( $mock_response, [
 				'url' => wp_get_attachment_url( $id ),
 			] );
@@ -284,6 +284,51 @@ class Test_Dam extends WP_UnitTestCase {
 			$this->assertEquals( self::IMAGE_SIZES['test_portrait']['height'], $altered['sizes']['test_portrait']['height'] );
 			$this->assertEquals( self::IMAGE_SIZES['test_portrait']['orientation'], $altered['sizes']['test_portrait']['orientation'] );
 			$this->assertStringContainsString( 'w:100/h:200/g:ce/rt:fill', $altered['sizes']['test_portrait']['url'] );
+		}
+	}
+
+	public function test_alter_image_tag_w_h() {
+		$test_data = self::MOCK_ATTACHMENTS;
+		$other_dimensions = [1920, 1080];
+
+		foreach ( $this->inserted_ids as $idx => $id ) {
+			$current_attachment                  = $test_data[ $idx ];
+
+			// Set these images as thumbnails.
+			$args     = [ 'width' => 150, 'height' => 150, 'crop' => true ];
+			$test_url = $this->dam->replace_dam_url_args( $args, $current_attachment['url'] );
+			$altered_dimensions = $this->dam->alter_img_tag_w_h( $other_dimensions, $test_url, [], $id );
+
+			$this->assertEquals( 150, $altered_dimensions[0] );
+			$this->assertEquals( 150, $altered_dimensions[1] );
+
+			// Test custom image sizes.
+			foreach ( self::IMAGE_SIZES as $size => $image_size_args ) {
+				$args = [
+					'width'  => $image_size_args['width'],
+					'height' => $image_size_args['height'],
+					'crop'   => $image_size_args['crop']
+				];
+
+				$test_url = $this->dam->replace_dam_url_args( $args, $current_attachment['url'] );
+				$altered_dimensions = $this->dam->alter_img_tag_w_h( $other_dimensions, $test_url, [], $id );
+
+				$this->assertEquals( $image_size_args['width'], $altered_dimensions[0] );
+				$this->assertEquals( $image_size_args['height'], $altered_dimensions[1] );
+			}
+
+			// Test a size that doesn't correspond to an image size - should return the original dimensions.
+			$args = [
+				'width'  => 231,
+				'height' => 512,
+				'crop'   => true
+			];
+
+			$test_url = $this->dam->replace_dam_url_args( $args, $current_attachment['url'] );
+			$altered_dimensions = $this->dam->alter_img_tag_w_h( $other_dimensions, $test_url, [], $id );
+
+			$this->assertEquals( $other_dimensions[0], $altered_dimensions[0] );
+			$this->assertEquals( $other_dimensions[1], $altered_dimensions[1] );
 		}
 	}
 

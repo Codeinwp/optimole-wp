@@ -59,6 +59,7 @@ class Optml_Dam {
 		add_filter( 'wp_get_attachment_metadata', [ $this, 'alter_attachment_metadata' ], 10, 2 );
 		add_filter( 'image_downsize', [ $this, 'catch_downsize' ], 10, 3 );
 		add_filter( 'wp_prepare_attachment_for_js', [$this, 'alter_attachment_for_js'], 10, 3 );
+		add_filter( 'wp_image_src_get_dimensions', [$this, 'alter_img_tag_w_h'], 10, 4 );
 		add_filter(
 			'elementor/image_size/get_attachment_image_html',
 			[
@@ -372,9 +373,9 @@ class Optml_Dam {
 			// proportionally set the width/height based on this if image is uncropped.
 			if ( ! (bool) $args['crop'] ) {
 				if ( $is_portrait ) {
-					$args['width'] = $args['height'] * floor( $metadata['width'] / $metadata['height'] );
+					$args['width'] = (int) ( $args['height'] * round( $metadata['width'] / $metadata['height'] ) );
 				} else {
-					$args['height'] = $args['width'] * floor( $metadata['height'] / $metadata['width'] );
+					$args['height'] = (int) ( $args['width'] * round( $metadata['height'] / $metadata['width'] ) );
 				}
 			}
 
@@ -774,6 +775,53 @@ class Optml_Dam {
 		}
 
 		return $response;
+	}
+
+	/**
+	 * We have to short-circuit the logic that adds width and height to the img tag.
+	 * It compares the URL basename, and the `file` param for each image.
+	 * This happens for any image that gets its size set non-explicitly
+	 * e.g. an image block with its size set from the sidebar to `thumbnail`).
+	 *
+	 * Optimole has a single basename for all image resizes in its URL.
+	 *
+	 * @param array|false $dimensions    Array with first element being the width
+	 *                                   and second element being the height, or
+	 *                                   false if dimensions could not be determined.
+	 * @param string      $image_src     The image URL (will be Optimole URL).
+	 * @param array       $image_meta    The image metadata.
+	 * @param int         $attachment_id The image attachment ID. Default 0.
+	 */
+	public function alter_img_tag_w_h( $dimensions, $image_src, $image_meta, $attachment_id ) {
+		if ( ! $this->is_dam_imported_image( $attachment_id ) ) {
+			return $dimensions;
+		}
+
+		// Get the dimensions from the optimized URL.
+		$incoming_size = Optml_Media_Offload::parse_dimension_from_optimized_url( $image_src );
+		$width         = $incoming_size[0];
+		$height        = $incoming_size[1];
+
+		$sizes = $this->get_all_image_sizes();
+
+		// If this is an image size. Return its dimensions.
+		foreach ( $sizes as $size => $args ) {
+			if ( (int) $args['width'] !== (int) $width ) {
+				continue;
+			}
+
+			if ( (int) $args['height'] !== (int) $height ) {
+				continue;
+			}
+
+			return [
+				$args['width'],
+				$args['height'],
+			];
+		}
+
+		// Fall-through with the original dimensions.
+		return $dimensions;
 	}
 
 	/**
