@@ -1650,7 +1650,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return;
 		}
 
-		if ( $step >= $total || 0 === $total ) {
+		if ( $step > $total || 0 === $total ) {
 			self::$instance->settings->update( $option, 'disabled' );
 			return;
 		}
