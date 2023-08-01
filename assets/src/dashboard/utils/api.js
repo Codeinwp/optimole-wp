@@ -9,6 +9,7 @@ import {
 } from '@wordpress/data';
 
 import { addQueryArgs } from '@wordpress/url';
+import { toggleDashboardSidebarSubmenu } from './helpers';
 
 const {
 	setIsConnected,
@@ -99,6 +100,7 @@ export const registerAccount = ( data, callback = () => {}) => {
 				setUserData( response.data );
 				setAvailableApps( response.data );
 				sendOnboardingImages();
+				toggleDashboardSidebarSubmenu( true );
 			}
 
 			if ( callback ) {
@@ -145,6 +147,7 @@ export const connectAccount = ( data, callback = () => {}) => {
 				}
 
 				sendOnboardingImages();
+				toggleDashboardSidebarSubmenu( true );
 
 				console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
 
@@ -187,6 +190,7 @@ export const disconnectAccount = () => {
 				setIsConnected( false );
 				sethasDashboardLoaded( false );
 				setShowDisconnect( false );
+				toggleDashboardSidebarSubmenu( false );
 				console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
 			} else {
 				console.error( response );

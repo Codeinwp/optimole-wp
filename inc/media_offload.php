@@ -100,61 +100,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
-	 * Enqueue script for generating cloud media tab.
-	 */
-	public function add_cloud_script( $hook ) {
-		if ( $hook === 'post.php' || $hook === 'post-new.php' ) {
-			wp_enqueue_script( 'optimole_media', OPTML_URL . 'assets/js/optimole_media.js' );
-		}
-	}
-
-	/**
-	 * Generate exactly the response format expected by wp media modal.
-	 *
-	 * @param string $url Original url to be optimized.
-	 * @param string $resource_id Image id from cloud.
-	 * @param int    $width Image width.
-	 * @param int    $height Image height.
-	 * @return array The format expected for a single image in the media modal.
-	 */
-	private function media_attachment_template( $url, $resource_id, $width, $height, $last_attach ) {
-		$filename = pathinfo( $url, PATHINFO_FILENAME );
-		$optimized_url = $this->get_media_optimized_url( $url, $resource_id, $width, $height );
-		return
-		[
-			'id' => $last_attach + 1 + crc32( $filename ),
-			'title' => $filename,
-			'url' => $optimized_url,
-			'link' => $optimized_url,
-			'alt' => '',
-			'author' => 1,
-			'status' => 'inherit',
-			'menuOrder' => 0,
-			'mime' => 'image/jpeg',
-			'type' => 'image',
-			'subtype' => 'jpeg',
-			'icon' => $optimized_url,
-			'editLink' => $optimized_url,
-			'authorName' => 'Optimole',
-			'height' => $height,
-			'width' => $width,
-			'orientation' => 'landscape',
-			// just adding the thumbnail size for for smooth display inside the modal
-			// this sizes are ignored for everything else no point to define them
-			'sizes' =>
-			[
-				'thumbnail' =>
-				[
-					'height' => '150',
-					'width' => '150',
-					'url' => $this->get_media_optimized_url( $url, $resource_id, 150, 150, $this->to_optml_crop( true ) ),
-					'orientation' => 'landscape',
-				],
-			],
-		];
-	}
-
-	/**
 	 * Get count of all images from db.
 	 *
 	 * @return int Number of all images.
@@ -162,64 +107,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public static function number_of_all_images() {
 		$total_images_by_mime = wp_count_attachments( 'image' );
 		return  array_sum( (array) $total_images_by_mime );
-	}
-	/**
-	 * Parse images from api endpoint response images and send them to wp media modal.
-	 */
-	public function pull_images() {
-		$images_on_page = 40;
-		$last_attach = self::number_of_all_images();
-		if ( ! current_user_can( 'upload_files' ) ) {
-			wp_send_json_error();
-		}
-		if ( isset( $_REQUEST['query'] ) && isset( $_REQUEST['query']['post_mime_type'] ) && $_REQUEST['query']['post_mime_type'][0] === 'optml_cloud' ) {
-			$search = '';
-			if ( isset( $_REQUEST['query']['s'] ) ) {
-				$search = $_REQUEST['query']['s'];
-			}
-			$page = 0;
-			if ( isset( $_REQUEST['query']['paged'] ) ) {
-				$page = $_REQUEST['query']['paged'] - 1;
-			}
-			$images = [];
-			$view_sites = [];
-			$all_sites = false;
-			$filter_sites = $this->settings->get( 'cloud_sites' );
-
-			if ( isset( $filter_sites['all'] ) && $filter_sites['all'] === 'true' ) {
-				$all_sites = true;
-			}
-			if ( ! $all_sites ) {
-				foreach ( $filter_sites as $site => $value ) {
-					if ( $value === 'true' ) {
-						$view_sites[] = $site;
-					}
-				}
-			}
-			$cloud_images = [];
-			$request = new Optml_Api();
-			$decoded_response = $request->get_cloud_images( $page, $view_sites, $search );
-
-			if ( isset( $decoded_response['images'] ) ) {
-				$cloud_images = $decoded_response['images'];
-			}
-
-			foreach ( $cloud_images as $index => $image ) {
-				$width = 'auto';
-				$height = 'auto';
-				if ( ! isset( $image['meta']['originURL'] ) || ! isset( $image['meta']['resourceS3'] ) ) {
-					continue;
-				}
-				if ( isset( $image['meta']['originalHeight'] ) ) {
-					$height = $image['meta']['originalHeight'];
-				}
-				if ( isset( $image['meta']['originalWidth'] ) ) {
-					$width = $image['meta']['originalWidth'];
-				}
-				$images[] = $this->media_attachment_template( $image['meta']['originURL'], $image['meta']['resourceS3'], $width, $height, $last_attach );
-			}
-			wp_send_json_success( $images );
-		}
 	}
 	/**
 	 * Optml_Media_Offload constructor.
@@ -233,10 +120,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			self::$instance->settings = new Optml_Settings();
 			if ( self::$instance->settings->is_connected() ) {
 				self::$instance->init();
-			}
-			if ( self::$instance->settings->get( 'cloud_images' ) === 'enabled' ) {
-				add_action( 'wp_ajax_query-attachments', [self::$instance, 'pull_images'], -2 );
-				add_action( 'admin_enqueue_scripts', [self::$instance, 'add_cloud_script'] );
 			}
 			if ( self::$instance->settings->get( 'offload_media' ) === 'enabled' ) {
 				add_filter( 'image_downsize', [self::$instance, 'generate_filter_downsize_urls'], 10, 3 );
@@ -713,11 +596,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! self::is_uploaded_image( $file ) ) {
 			$upload_action_url = add_query_arg(
 				[
-					'action' => 'offload_images',
-					'media[]' => $post->ID,
-					'_wpnonce' => wp_create_nonce( 'bulk-media' ),
+					'page' => 'optimole',
+					'optimole_action' => 'offload_images',
+					'0' => $post->ID,
 				],
-				'upload.php'
+				'admin.php'
 			);
 
 			$actions['offload_images'] = sprintf(
@@ -730,11 +613,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( self::is_uploaded_image( $file ) ) {
 			$rollback_action_url = add_query_arg(
 				[
-					'action' => 'rollback_images',
-					'media[]' => $post->ID,
-					'_wpnonce' => wp_create_nonce( 'bulk-media' ),
+					'page' => 'optimole',
+					'optimole_action' => 'rollback_images',
+					'0' => $post->ID,
 				],
-				'upload.php'
+				'admin.php'
 			);
 			$actions['rollback_images'] = sprintf(
 				'<a href="%s" aria-label="%s">%s</a>',
@@ -984,9 +867,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( empty( $image_ids ) ) {
 			return $redirect;
 		}
-		$redirect = remove_query_arg( [ 'optimole_offload_images_succes', 'optimole_offload_images_failed', 'optimole_back_to_media_success', 'optimole_back_to_media_failed', 'optimole_offload_images_extra', 'optimole_rollback_images_extra'  ], $redirect );
-		$image_ids = array_slice( $image_ids, 0, 20, true );
 
+		$image_ids = array_slice( $image_ids, 0, 20, true );
+		$redirect = 'admin.php';
 		$redirect = add_query_arg( 'optimole_action', $doaction, $redirect );
 		$redirect = add_query_arg( 'page', 'optimole', $redirect );
 		$redirect = add_query_arg( $image_ids, $redirect );
@@ -1033,6 +916,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( $file === false ) {
 			return;
 		}
+
+		// Skip if the image was imported from cloud library.
+		if ( ! empty( get_post_meta( $post_id, Optml_Dam::OM_DAM_IMPORTED_FLAG, true ) ) ) {
+			return;
+		}
+
 		$file = $file['file'];
 		if ( self::is_uploaded_image( $file ) ) {
 
