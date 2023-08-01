@@ -104,6 +104,10 @@ class Optml_Image extends Optml_Resource {
 			$path = '/sm:' . $params['strip_metadata'] . $path;
 		}
 
+		if ( isset( $params['ignore_avif'] ) && $params['ignore_avif'] === true ) {
+			$path = '/ig:avif' . $path;
+		}
+
 		if ( apply_filters( 'optml_keep_copyright', false ) === true ) {
 			$path = '/keep_copyright:true' . $path;
 		}

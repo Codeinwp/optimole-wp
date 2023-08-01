@@ -84,6 +84,18 @@ class Optml_Rest {
 		'cache_routes' => [
 			'clear_cache_request' => 'POST',
 		],
+		'dam_routes' => [
+			'insert_images' => [
+				'POST',
+				'args' => [
+					'images' => [
+						'type'     => 'array',
+						'required' => true,
+					],
+				],
+				'permission_callback' => 'upload_files',
+			],
+		],
 	];
 
 	/**
@@ -101,8 +113,9 @@ class Optml_Rest {
 	 * @param string $route The route name.
 	 * @param string $method The route access method GET, POST, POST_PUT_PATCH.
 	 * @param array  $args Optional argument to include required args.
+	 * @param string $permission_callback Optional permission callback.
 	 */
-	private function reqister_route( $route, $method = 'GET', $args = [] ) {
+	private function reqister_route( $route, $method = 'GET', $args = [], $permission_callback = 'manage_options' ) {
 		$wp_method_constant = false;
 		if ( $method === 'GET' ) {
 			$wp_method_constant = \WP_REST_Server::READABLE;
@@ -116,8 +129,8 @@ class Optml_Rest {
 		if ( $wp_method_constant !== false ) {
 			$params = [
 				'methods'             => $wp_method_constant,
-				'permission_callback' => function () {
-					return current_user_can( 'manage_options' );
+				'permission_callback' => function () use ( $permission_callback ) {
+					return current_user_can( $permission_callback );
 				},
 				'callback'            => [ $this, $route ],
 			];
@@ -147,6 +160,7 @@ class Optml_Rest {
 		$this->register_conflict_routes();
 		$this->register_cache_routes();
 		$this->register_media_offload_routes();
+		$this->register_dam_routes();
 	}
 
 	/**
@@ -208,6 +222,19 @@ class Optml_Rest {
 	public function register_cache_routes() {
 		foreach ( self::$rest_routes['cache_routes'] as $route => $details ) {
 			$this->reqister_route( $route, $details );
+		}
+	}
+
+	/**
+	 * Register DAM routes.
+	 *
+	 * @return void
+	 */
+	public function register_dam_routes() {
+		foreach ( self::$rest_routes['dam_routes'] as $route => $details ) {
+			$permission = isset( $details['permission_callback'] ) ? $details['permission_callback'] : 'manage_options';
+			$args       = isset( $details['args'] ) ? $details['args'] : [];
+			$this->reqister_route( $route, $details[0], $args, $permission );
 		}
 	}
 
@@ -834,5 +861,24 @@ class Optml_Rest {
 		}
 
 		return $this->response( $active_conflicts );
+	}
+
+	/**
+	 * Insert images request.
+	 *
+	 * @param WP_REST_Request $request insert images rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function insert_images( WP_REST_Request $request ) {
+		$images = $request->get_param( 'images' );
+
+		if ( ! is_array( $images ) || empty( $images ) ) {
+			return $this->response( [ 'error' => 'No images found' ] );
+		}
+
+		$insert = Optml_Main::instance()->dam->insert_attachments( $images );
+
+		return $this->response( $insert );
 	}
 }
