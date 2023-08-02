@@ -29,27 +29,21 @@ const {
 	setSampleRate,
 	setCheckedOffloadConflicts,
 	setOffloadConflicts,
-	setPushedImagesProgress,
 	setLoadingSync,
 	setLoadingRollback,
 	setTotalNumberOfImages,
+	setProcessedImages,
 	setErrorMedia,
 	setOffloadLibraryLink,
 	setRollbackLibraryLink,
-	setSumTime,
-	setEstimatedTime,
 	setExtraVisits
 } = dispatch( 'optimole' );
 
 const {
 	getOptimizedImages,
-	getSumTime,
-	getTotalNumberOfImages,
-	getQueryArgs
+	getQueryArgs,
+	getTotalNumberOfImages
 } = select( 'optimole' );
-
-let updateStatus = 'pending';
-let updatePageStatus = 'pending';
 
 export const sendOnboardingImages = ( data = {}) => {
 	data.offset = undefined !== data.offset ? data.offset : 0;
@@ -451,18 +445,7 @@ export const checkOffloadConflicts = ( callback = () => {}) => {
 		});
 };
 
-export const setTime = ( data ) => {
-	const totalNumberOfImages = getTotalNumberOfImages();
-	const sumTime = getSumTime() + data.batchTime;
-	const estimatedTime = ( ( sumTime / data.processedBatch ) * ( Math.ceil( totalNumberOfImages / data.batchSize ) - data.processedBatch ) / 60000 ).toFixed( 2 );
-
-	setSumTime( sumTime );
-	setEstimatedTime( estimatedTime );
-};
-
 export const callSync = ( data ) => {
-	setPushedImagesProgress( 'init' );
-
 	const queryArgs = getQueryArgs();
 
 	if ( 'offload_images' === data.action ) {
@@ -481,20 +464,17 @@ export const callSync = ( data ) => {
 		setLoadingRollback( true );
 	}
 
-	getNumberOfImages({
-		...data,
-		consecutiveErrors: 0
-	});
-};
-
-export const getNumberOfImages = ( data ) => {
 	setIsLoading( true );
+
+	const images_ids = undefined !== data.images ? data.images : [];
 
 	apiFetch({
 		path: optimoleDashboardApp.routes['number_of_images_and_pages'],
 		method: 'POST',
 		data: {
-			action: data.action
+			action: data.action,
+			refresh: data.refresh || false,
+			images: images_ids
 		},
 		parse: false
 	})
@@ -504,292 +484,59 @@ export const getNumberOfImages = ( data ) => {
 			} else {
 				if ( 'offload_images' === data.action ) {
 					setLoadingSync( false );
+					setIsLoading( false );
 				}
 
 				if ( 'rollback_images' === data.action ) {
 					setLoadingRollback( false );
+					setIsLoading( false );
 				}
 			}
 		})
 		.then( response => {
-			setIsLoading( false );
-
-			if ( ! response.data ) {
+			if ( ! response.data.count || 0 === response.data.count || false === response.data.status ) {
 				console.log( '%c No images available.', 'color: #E7602A' );
 				setLoadingSync( false );
 				setLoadingRollback( false );
+				setIsLoading( false );
+
+				if ( 'offload_images' === data.action ) {
+					if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
+						setOffloadLibraryLink( true );
+					}
+				}
+
+				if ( 'rollback_images' === data.action ) {
+					if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
+						setRollbackLibraryLink( true );
+					}
+				}
 				return;
 			}
 
-			setTotalNumberOfImages( response.data );
+			let images = getTotalNumberOfImages();
 
-			let batch = 1;
+			if ( data.refresh ) {
+				setProcessedImages( 0 !== images ? Math.abs( images - response.data.count ) : 0 );
 
-			if ( Math.ceil( response.data / 10 ) <= batch ) {
-				batch = Math.ceil( response.data / 10 );
+				if ( 0 !== response.data.count && 0 === images ) {
+					setTotalNumberOfImages( response.data.count );
+				}
+			} else {
+				setTotalNumberOfImages( response.data.count );
 			}
 
-			pushBatch({
-				batch,
-				page: 1,
-				action: data.action,
-				processedBatch: 0,
-				images: data.images,
-				unattached: false,
-				consecutiveErrors: 0
-			});
+			setTimeout( () => {
+				callSync({
+					action: data.action,
+					refresh: true,
+					images: images_ids
+				});
+			}, 10000 );
 		})
 		.catch( error => {
-			if ( undefined === data.consecutiveErrors ) {
-				data.consecutiveErrors = 0;
-			}
-
-			if ( 10 > data.consecutiveErrors ) {
-				setTimeout( () => {
-					getNumberOfImages({
-						...data,
-						consecutiveErrors: data.consecutiveErrors + 1
-					});
-				}, data.consecutiveErrors * 1000 + 1000 );
-			} else {
-				setErrorMedia( data.action );
-				setLoadingSync( false );
-				setLoadingRollback( false );
-			}
-		});
-};
-
-export const pushBatch = ( data ) => {
-	let time = new Date();
-	let route = 'update_content';
-
-	if ( true === data.unattached ) {
-		if ( 'none' !== data.images && 0 === data.images.length ) {
-			setPushedImagesProgress( 'finish' );
-
-			if ( 'offload_images' === data.action ) {
-				setLoadingSync( false );
-			} else {
-				setLoadingRollback( false );
-			}
-
-			return;
-		}
-
-		route = data.action;
-	}
-
-	apiFetch({
-		path: optimoleDashboardApp.routes[ route ],
-		method: 'POST',
-		data: {
-			batch: data.batch,
-			page: data.page,
-			job: data.action,
-			images: data.images
-		}
-	})
-		.then( response => {
-			if ( 'success' === response.code && ( response.data.page > data.page || 0 < response.data.found_images ) ) {
-				optimoleDashboardApp.nonce = response.data.nonce;
-
-				if ( false === data.unattached && 0 !== Object.keys( response.data.imagesToUpdate ).length  ) {
-					for ( let postID of Object.keys( response.data.imagesToUpdate ) ) {
-						let foundImages = response.data.imagesToUpdate[ postID ];
-
-						if ( 'none' !== data.images && 0 !== data.images.length ) {
-							foundImages = foundImages.filter( imageID => {
-								return data.images.includes( imageID );
-							});
-						}
-
-						updateContent({
-							action: data.action,
-							imageIds: foundImages,
-							postID,
-							batch: data.batch,
-							consecutiveErrors: 0
-						});
-
-						let interval = setInterval( () => {
-							if ( 'done' === updateStatus || ( 'fail' === updateStatus && 'rollback_images' === data.action ) ) {
-								updateStatus = 'pending';
-
-								setPushedImagesProgress( data.batch );
-
-								setTime({
-									batchTime: new Date() - time,
-									batchSize: data.batch,
-									processedBatch: data.processedBatch + 1
-								});
-
-								pushBatch({
-									batch: data.batch,
-									page: response.data.page,
-									action: data.action,
-									processedBatch: data.processedBatch + 1,
-									images: data.images,
-									unattached: data.unattached,
-									consecutiveErrors: 0
-								});
-
-								clearInterval( interval );
-							}
-						}, 10000 );
-					}
-				} else {
-					setPushedImagesProgress( data.batch );
-
-					setTime({
-						batchTime: new Date() - time,
-						batchSize: data.batch,
-						processedBatch: data.processedBatch + 1
-					});
-
-					pushBatch({
-						batch: data.batch,
-						page: response.data.page,
-						action: data.action,
-						processedBatch: data.processedBatch + 1,
-						images: data.images,
-						unattached: data.unattached,
-						consecutiveErrors: 0
-					});
-
-					if ( true === data.unattached && 'none' !== data.images ) {
-						data.images.splice( 0, data.batch );
-					}
-				}
-			} else {
-				if ( false === data.unattached ) {
-					pushBatch({
-						batch: data.batch,
-						page: response.data.page,
-						action: data.action,
-						processedBatch: data.processedBatch + 1,
-						images: data.images,
-						unattached: true,
-						consecutiveErrors: 0
-					});
-
-					if ( 'none' !== data.images ) {
-						data.images.splice( 0, data.batch );
-					}
-				} else {
-					setPushedImagesProgress( 'finish' );
-
-					if ( 'offload_images' === data.action ) {
-						setLoadingSync( false );
-					} else {
-						setLoadingRollback( false );
-					}
-				}
-			}
-		})
-		.catch( error => {
-			console.log( error );
-
-			if ( 10 > data.consecutiveErrors ) {
-				setTimeout( () => {
-					pushBatch({
-						batch: data.batch,
-						page: data.page,
-						action: data.action,
-						processedBatch: data.processedBatch,
-						images: data.images,
-						unattached: data.unattached,
-						consecutiveErrors: data.consecutiveErrors + 1
-					});
-				}, data.consecutiveErrors * 1000 + 5000 );
-			} else {
-				setErrorMedia( data.action );
-				setLoadingSync( false );
-				setLoadingRollback( false );
-			}
-		});
-};
-
-export const updateContent = ( data ) => {
-	if ( 0 === data.imageIds.length ) {
-		updateStatus = 'done';
-	} else {
-		apiFetch({
-			path: optimoleDashboardApp.routes[ 'upload_rollback_images' ],
-			method: 'POST',
-			data: {
-				// eslint-disable-next-line camelcase
-				image_ids: data.imageIds,
-				job: data.action
-			}
-		})
-			.then( response => {
-				if ( 0 < data.imageIds.length ) {
-					updateContent({
-						action: data.action,
-						imageIds: data.imageIds,
-						postID: data.postID,
-						batch: data.batch,
-						consecutiveErrors: 0
-					});
-
-					data.imageIds.splice( 0, data.batch );
-				} else {
-					updatePage({
-						postID: data.postID,
-						consecutiveErrors: 0
-					});
-
-					let interval = setInterval( () => {
-						if ( 'done' === updatePageStatus ) {
-							updatePageStatus = 'pending';
-							updateStatus = 'done';
-							clearInterval( interval );
-						}
-					}, 10000 );
-				}
-			}).catch( error => {
-				if ( 10 > data.consecutiveErrors ) {
-					setTimeout( function() {
-						updateContent({
-							action: data.action,
-							imageIds: data.imageIds,
-							postID: data.postID,
-							batch: data.batch,
-							consecutiveErrors: data.consecutiveErrors + 1
-						});
-					}, data.consecutiveErrors * 1000 + 5000 );
-				} else {
-					updatePageStatus = 'fail';
-				}
-			});
-	}
-};
-
-const updatePage = ( data ) => {
-	apiFetch({
-		path: optimoleDashboardApp.routes[ 'update_page' ],
-		method: 'POST',
-		data: {
-			// eslint-disable-next-line camelcase
-			post_id: data.postID
-		}
-	})
-		.then( response => {
-			if ( 'success' === response.code && true === response.data  ) {
-				updatePageStatus = 'done';
-			} else {
-				throw 'failed_update';
-			}
-		}).catch( error => {
-			if ( 10 > data.consecutiveErrors ) {
-				setTimeout( () => {
-					updatePage({
-						postID: data.postID,
-						consecutiveErrors: data.consecutiveErrors + 1
-					});
-				}, data.consecutiveErrors * 1000 + 5000 );
-			} else {
-				updateStatus = 'fail';
-			}
+			setErrorMedia( data.action );
+			setLoadingSync( false );
+			setLoadingRollback( false );
 		});
 };

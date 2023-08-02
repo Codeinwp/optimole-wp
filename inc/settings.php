@@ -93,6 +93,8 @@ class Optml_Settings {
 		'skip_lazyload_images' => 3,
 		'defined_image_sizes'          => [ ],
 		'banner_frontend'      => 'disabled',
+		'offloading_status'    => 'disabled',
+		'rollback_status'      => 'disabled',
 
 	];
 	/**
@@ -254,6 +256,8 @@ class Optml_Settings {
 				case 'strip_metadata':
 				case 'no_script':
 				case 'banner_frontend':
+				case 'offloading_status':
+				case 'rollback_status':
 					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
 				case 'max_width':
@@ -507,6 +511,8 @@ class Optml_Settings {
 			'strip_metadata'       => $this->get( 'strip_metadata' ),
 			'whitelist_domains'    => $whitelist,
 			'banner_frontend'      => $this->get( 'banner_frontend' ),
+			'offloading_status'    => $this->get( 'offloading_status' ),
+			'rollback_status'      => $this->get( 'rollback_status' ),
 		];
 	}
 
