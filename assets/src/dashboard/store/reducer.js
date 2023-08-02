@@ -16,16 +16,14 @@ const DEFAULT_STATE = {
 	optimizedImages: [],
 	siteSettings: optimoleDashboardApp.site_settings,
 	sampleRate: {},
-	pushedImagesProgress: 0,
-	totalNumberOfImages: 1,
+	totalNumberOfImages: 0,
+	processedImages: 0,
 	offloadLibraryLink: false,
 	rollbackLibraryLink: false,
 	loadingRollback: false,
 	loadingSync: false,
 	queryArgs: [],
 	errorMedia: false,
-	estimatedTime: 0,
-	sumTime: 0,
 	checkedOffloadConflicts: false,
 	offloadConflicts: []
 };
@@ -150,27 +148,15 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 			...state,
 			sampleRate: action.sampleRate
 		};
-	case 'SET_PUSHED_IMAGES_PROGRESS':
-		let pushedImagesProgress;
-
-		if ( 'finish' === action.pushedImagesProgress ) {
-			pushedImagesProgress = 100;
-		} else if ( 'init' === action.pushedImagesProgress ) {
-			pushedImagesProgress = 0;
-		} else if ( 100 > state.pushedImagesProgress ) {
-			// eslint-disable-next-line prefer-destructuring
-			pushedImagesProgress = state.pushedImagesProgress;
-			pushedImagesProgress += action.pushedImagesProgress / state.totalNumberOfImages * 100;
-		}
-
-		return {
-			...state,
-			pushedImagesProgress
-		};
 	case 'SET_TOTAL_NUMBER_OF_IMAGES':
 		return {
 			...state,
 			totalNumberOfImages: action.totalNumberOfImages
+		};
+	case 'SET_PROCESSED_IMAGES':
+		return {
+			...state,
+			processedImages: action.processedImages
 		};
 	case 'SET_OFFLOAD_LIBRARY_LINK':
 		return {
@@ -209,16 +195,6 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 		return {
 			...state,
 			errorMedia: action.errorMedia
-		};
-	case 'SET_ESTIMATED_TIME':
-		return {
-			...state,
-			estimatedTime: action.estimatedTime
-		};
-	case 'SET_SUM_TIME':
-		return {
-			...state,
-			sumTime: action.sumTime
 		};
 	case 'SET_CHECKED_OFFLOAD_CONFLICTS':
 		return {

@@ -15,6 +15,7 @@ if ( ENABLE_OPTIMOLE_WP_DEV ) {
 		'OPTIML_UPLOAD_API_ROOT' => 'https://generateurls-dev.b.optml.cloud/upload',
 		'OPTIML_ONBOARD_API_ROOT' => 'https://onboard.b.optml.cloud/onboard_api/',
 		'OPTML_BASE_DOMAIN' => 'b.optml.cloud',
+		'OPTML_DAM_ENDPOINT' => 'https://staging-dashboard.optimole.com/dam/',
 	];
 
 	foreach ( $optiml_constants as $key => $value ) {
