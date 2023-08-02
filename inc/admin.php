@@ -1072,7 +1072,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'optimole-wp'
 			),
 			'notice_disabled_account'          => sprintf( __( '%3$sYour account has been disabled due to exceeding quota.%4$s All images are being redirected to the original unoptimized URL. %5$sPlease %1$supgrade%2$s to re-activate the account.', 'optimole-wp' ), '<b><a href="https://optimole.com/pricing">', '</a></b>', '<b>', '</b>', '<br>' ),
-			'dashboard_menu_item'              => __( 'Dashboard', 'optimole-wp' ),
+            'signup_terms'                   => sprintf( __( 'By signing up, you agree to our  %1$sTerms of Service %3$s and  %2$sPrivacy Policy %3$s.', 'optimole-wp' ), '<a href="https://optimole.com/terms/" target="_blank" >', '<a href="https://optimole.com/privacy-policy/" target="_blank">', '</a>' ),
+            'dashboard_menu_item'              => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'               => __( 'Settings', 'optimole-wp' ),
 			'help_menu_item'                   => __( 'Help', 'optimole-wp' ),
 			'settings_exclusions_menu_item'    => __( 'Exclusions', 'optimole-wp' ),
