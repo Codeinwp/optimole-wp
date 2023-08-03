@@ -279,6 +279,28 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertStringContainsString( '/h:150/', $replaced_content );
 	}
 
+	public function test_avif_disabled() {
+		$settings = new Optml_Settings();
+		$settings->update( 'avif', 'disabled' );
+		Optml_Url_Replacer::instance()->init();
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '/ig:avif/', $replaced_content );
+		$this->assertStringNotContainsString( '/f:avif/', $replaced_content );
+	}
+
+	public function test_avif_enabled() {
+		$settings = new Optml_Settings();
+		$settings->update( 'avif', 'enabled' );
+		Optml_Url_Replacer::instance()->init();
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringNotContainsString( '/ig:avif/', $replaced_content );
+		$this->assertStringContainsString( '/f:avif/', $replaced_content );
+	}
+
 	public function test_assets_url() {
 		$replaced_content = Optml_Manager::instance()->process_urls_from_content( self::ASSETS_URL );
 

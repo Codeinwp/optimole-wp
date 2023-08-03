@@ -1,0 +1,35 @@
+:root {
+  --om-admin-bar-height: 32px;
+}
+
+@media screen and (max-width: 782px) {
+  :root {
+    --om-admin-bar-height: 46px;
+  }
+}
+
+#om-dam {
+  height: calc(100vh - var(--om-admin-bar-height));
+  width: 100%;
+  border: none;
+  z-index: 1;
+  position: relative;
+}
+
+#wpcontent, #wpbody-content {
+  padding: 0;
+}
+
+#wpbody-content {
+  background: #F6F6FA;
+}
+
+#wpfooter {
+  display: none;
+}
+
+.om-dam-loader {
+  height: calc(100vh - var(--om-admin-bar-height));
+}
+
+@import './loader';

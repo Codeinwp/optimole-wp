@@ -54,11 +54,11 @@ const selectors = {
 	getSampleRate( state ) {
 		return state.sampleRate;
 	},
-	getPushedImagesProgress( state ) {
-		return state.pushedImagesProgress;
-	},
 	getTotalNumberOfImages( state ) {
 		return state.totalNumberOfImages;
+	},
+	getProcessedImages( state ) {
+		return state.processedImages;
 	},
 	getOffloadLibraryLink( state ) {
 		return state.offloadLibraryLink;
@@ -77,12 +77,6 @@ const selectors = {
 	},
 	getErrorMedia( state ) {
 		return state.errorMedia;
-	},
-	getEstimatedTime( state ) {
-		return state.estimatedTime;
-	},
-	getSumTime( state ) {
-		return state.sumTime;
 	},
 	getCheckedOffloadConflicts( state ) {
 		return state.checkedOffloadConflicts;

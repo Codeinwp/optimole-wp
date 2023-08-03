@@ -1,0 +1,32 @@
+.om-dam-modal {
+  .om-dam-wrap {
+    background: #F6F6FA;
+    height: 100%;
+  }
+
+  .media-toolbar-secondary {
+    display: none;
+  }
+
+  [aria-labelledby=menu-item-optimole] {
+    overflow: hidden;
+  }
+
+  #om-dam, .om-dam-loader {
+    width: 100%;
+    height: 100%;
+    border: none;
+    position: relative;
+  }
+
+  .media-frame-content {
+    bottom: 0;
+  }
+
+  .media-frame-toolbar, .media-toolbar-secondary {
+    bottom: 100px;
+    display: none;
+  }
+
+  @import './loader';
+}
