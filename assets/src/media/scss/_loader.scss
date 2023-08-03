@@ -1,0 +1,32 @@
+.om-dam-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+
+  p {
+    margin-top: 20px;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #333;
+  }
+
+  img {
+    max-width: 150px;
+    animation: animate-opacity 1.5s infinite;
+  }
+}
+
+
+@keyframes animate-opacity {
+  0% {
+    opacity: .75;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: .75;
+  }
+}

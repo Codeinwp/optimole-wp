@@ -33,7 +33,8 @@ import {
 import { warning } from '../../../utils/icons';
 import {
 	callSync,
-	checkOffloadConflicts
+	checkOffloadConflicts,
+	saveSettings
 } from '../../../utils/api';
 
 const maxTime = 100;
@@ -47,40 +48,40 @@ const OffloadMedia = ({
 }) => {
 	const {
 		offloadConflicts,
-		estimatedTime,
 		errorMedia,
 		offloadLibraryLink,
 		isLoading,
 		loadingSync,
 		loadingRollback,
-		pushedImageProgress,
 		rollbackLibraryLink,
-		queryArgs
+		queryArgs,
+		totalNumberOfImages,
+		processedImages
 	} = useSelect( select => {
 		const {
 			getOffloadConflicts,
-			getEstimatedTime,
 			getErrorMedia,
 			getLoadingSync,
 			getLoadingRollback,
 			getOffloadLibraryLink,
-			getPushedImagesProgress,
 			getRollbackLibraryLink,
+			getTotalNumberOfImages,
+			getProcessedImages,
 			getQueryArgs,
 			isLoading
 		} = select( 'optimole' );
 
 		return {
 			offloadConflicts: getOffloadConflicts(),
-			estimatedTime: getEstimatedTime(),
 			errorMedia: getErrorMedia(),
 			offloadLibraryLink: getOffloadLibraryLink(),
 			isLoading: isLoading(),
 			loadingSync: getLoadingSync(),
 			loadingRollback: getLoadingRollback(),
-			pushedImageProgress: getPushedImagesProgress(),
 			rollbackLibraryLink: getRollbackLibraryLink(),
-			queryArgs: getQueryArgs()
+			queryArgs: getQueryArgs(),
+			totalNumberOfImages: getTotalNumberOfImages(),
+			processedImages: getProcessedImages()
 		};
 	});
 
@@ -96,6 +97,8 @@ const OffloadMedia = ({
 
 	const isCloudLibraryEnabled = 'disabled' !== settings[ 'cloud_images' ];
 	const isOffloadMediaEnabled = 'disabled' !== settings[ 'offload_media' ];
+	const isOffloadingInProgress = 'disabled' !== settings[ 'offloading_status' ];
+	const isRollbackInProgress = 'disabled' !== settings[ 'rollback_status' ];
 	const whitelistedDomains = optimoleDashboardApp.user_data.whitelist || [];
 
 	useEffect( () => {
@@ -107,6 +110,22 @@ const OffloadMedia = ({
 			if ( 'rollback_images' === queryArgs.optimole_action ) {
 				onRollbackdMedia( queryArgs.images );
 			}
+		}
+	}, []);
+
+	useEffect( () => {
+		if ( isOffloadingInProgress ) {
+			callSync({
+				action: 'offload_images',
+				refresh: true
+			});
+		}
+
+		if ( isRollbackInProgress ) {
+			callSync({
+				action: 'rollback_images',
+				refresh: true
+			});
 		}
 	}, []);
 
@@ -167,9 +186,8 @@ const OffloadMedia = ({
 		setShowOffloadEnabled( 'disabled' === optimoleDashboardApp.site_settings[ 'offload_media' ] && !! value );
 	};
 
-	const onOffloadMedia = ( imageIds = 'none' ) => {
+	const onOffloadMedia = ( imageIds = []) => {
 		onSaveSettings();
-
 		setErrorMedia( false );
 
 		callSync({
@@ -178,7 +196,7 @@ const OffloadMedia = ({
 		});
 	};
 
-	const onRollbackdMedia = ( imageIds = 'none' ) => {
+	const onRollbackdMedia = ( imageIds = []) => {
 		setCheckedOffloadConflicts( false );
 		setOffloadConflicts([]);
 
@@ -297,22 +315,37 @@ const OffloadMedia = ({
 					<BaseControl
 						label={ optimoleDashboardApp.strings.options_strings.sync_title }
 						help={ optimoleDashboardApp.strings.options_strings.sync_desc }
-						className={ classnames(
-							{
-								'is-disabled': isLoading
-							}
-						) }
 					>
 						<div className="flex my-2 gap-3">
 							<Button
 								variant="default"
 								isBusy={ loadingSync || loadingRollback || isLoading }
 								disabled={ loadingSync || loadingRollback || isLoading }
-								className="optml__button flex justify-center rounded font-bold min-h-40"
+								className={ classnames(
+									'optml__button flex justify-center rounded font-bold min-h-40',
+									{
+										'is-disabled': isLoading
+									}
+								) }
 								onClick={ () => onOffloadMedia() }
 							>
 								{ optimoleDashboardApp.strings.options_strings.sync_media }
 							</Button>
+
+							{ loadingSync && (
+								<Button
+									variant="default"
+									isDestructive={ true }
+									className="optml__button flex justify-center rounded font-bold min-h-40"
+									onClick={ () => {
+										const options = settings;
+										options.offloading_status = 'disabled';
+										saveSettings( options );
+									} }
+								>
+									{ optimoleDashboardApp.strings.options_strings.stop }
+								</Button>
+							) }
 						</div>
 					</BaseControl>
 
@@ -326,14 +359,14 @@ const OffloadMedia = ({
 
 							<progress
 								className="mt-2.5 mb-1.5 mx-0"
-								value={ pushedImageProgress }
+								value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
 								max={ maxTime }
 							/>
 
-							{ 0 === estimatedTime ? (
+							{ 0 === totalNumberOfImages ? (
 								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
 							) : (
-								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.estimated_time } <b>{ estimatedTime } { optimoleDashboardApp.strings.options_strings.minutes }</b></p>
+								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.images_processing }</p>
 							) }
 						</div>
 					) }
@@ -366,22 +399,37 @@ const OffloadMedia = ({
 					<BaseControl
 						label={ optimoleDashboardApp.strings.options_strings.rollback_title }
 						help={ optimoleDashboardApp.strings.options_strings.rollback_desc }
-						className={ classnames(
-							{
-								'is-disabled': isLoading
-							}
-						) }
 					>
 						<div className="flex my-2 gap-3">
 							<Button
 								variant="default"
 								isBusy={ loadingSync || loadingRollback || isLoading }
 								disabled={ loadingSync || loadingRollback || isLoading || Boolean( offloadConflicts.length ) }
-								className="optml__button flex justify-center rounded font-bold min-h-40"
+								className={ classnames(
+									'optml__button flex justify-center rounded font-bold min-h-40',
+									{
+										'is-disabled': isLoading
+									}
+								) }
 								onClick={ () => onRollbackdMedia() }
 							>
 								{ optimoleDashboardApp.strings.options_strings.rollback_media }
 							</Button>
+
+							{ loadingRollback && (
+								<Button
+									variant="default"
+									isDestructive={ true }
+									className="optml__button flex justify-center rounded font-bold min-h-40"
+									onClick={ () => {
+										const options = settings;
+										options.rollback_status = 'disabled';
+										saveSettings( options );
+									} }
+								>
+									{ optimoleDashboardApp.strings.options_strings.stop }
+								</Button>
+							) }
 						</div>
 					</BaseControl>
 
@@ -395,14 +443,14 @@ const OffloadMedia = ({
 
 							<progress
 								className="mt-2.5 mb-1.5 mx-0"
-								value={ pushedImageProgress }
+								value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
 								max={ maxTime }
 							/>
 
-							{ 0 === estimatedTime ? (
+							{ 0 === totalNumberOfImages ? (
 								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
 							) : (
-								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.estimated_time } <b>{ estimatedTime } { optimoleDashboardApp.strings.options_strings.minutes }</b></p>
+								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.images_processing }</p>
 							) }
 						</div>
 					) }

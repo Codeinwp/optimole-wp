@@ -21,6 +21,7 @@ import {
 	sampleRate,
 	saveSettings
 } from '../../../utils/api';
+import { toggleDamSidebarLink } from '../../../utils/helpers';
 
 const Settings = ({
 	tab,
@@ -29,13 +30,13 @@ const Settings = ({
 	const {
 		siteSettings,
 		isLoading,
-		extraVisits
+		extraVisits,
+		damEnabled
 	} = useSelect( select => {
 		const {
 			getSiteSettings,
 			getQueryArgs,
-			isLoading,
-			extraVisits
+			isLoading
 		} = select( 'optimole' );
 
 		const siteSettings = getSiteSettings();
@@ -43,6 +44,7 @@ const Settings = ({
 		return {
 			siteSettings,
 			extraVisits: siteSettings['banner_frontend'],
+			damEnabled: siteSettings['cloud_images'],
 			isLoading: isLoading(),
 			queryArgs: getQueryArgs()
 		};
@@ -59,6 +61,20 @@ const Settings = ({
 			banner_frontend: extraVisits
 		});
 	}, [ extraVisits ]);
+
+	useEffect( () => {
+		toggleDamSidebarLink( 'enabled' === damEnabled );
+	}, [ damEnabled ]);
+
+	useEffect( () => {
+		const visits = localStorage.getItem( 'optimole_settings_visits' );
+
+		if ( 3 < visits ) {
+			return;
+		}
+
+		localStorage.setItem( 'optimole_settings_visits', visits ? parseInt( visits ) + 1 : 1 );
+	}, [ tab ]);
 
 	const loadSample = () => {
 		if ( ! showSample ) {

@@ -51,6 +51,15 @@ final class Optml_Main {
 	public $admin;
 
 	/**
+	 * Holds the Dam class.
+	 *
+	 * @access  public
+	 * @since   4.0
+	 * @var Optml_Dam Dam instance.
+	 */
+	public $dam;
+
+	/**
 	 * Holds the cli class.
 	 *
 	 * @access  public
@@ -78,8 +87,8 @@ final class Optml_Main {
 	public static function instance() {
 		if ( null === self::$_instance ) {
 			add_filter( 'themeisle_sdk_products', [ __CLASS__, 'register_sdk' ] );
-            add_filter( 'themeisle_sdk_ran_promos', '__return_true');
-            add_filter( 'optimole-wp_uninstall_feedback_icon', [ __CLASS__, 'change_icon' ] );
+			add_filter( 'themeisle_sdk_ran_promos', '__return_true' );
+			add_filter( 'optimole-wp_uninstall_feedback_icon', [ __CLASS__, 'change_icon' ] );
 			add_filter( 'optimole_wp_uninstall_feedback_after_css', [ __CLASS__, 'adds_uf_css' ] );
 			add_filter( 'optimole_wp_feedback_review_message', [ __CLASS__, 'change_review_message' ] );
 			add_filter( 'optimole_wp_logger_heading', [ __CLASS__, 'change_review_message' ] );
@@ -89,6 +98,7 @@ final class Optml_Main {
 			self::$_instance->manager = Optml_Manager::instance();
 			self::$_instance->rest    = new Optml_Rest();
 			self::$_instance->admin   = new Optml_Admin();
+			self::$_instance->dam     = new Optml_Dam();
 			self::$_instance->media_offload = Optml_Media_Offload::instance();
 			if ( class_exists( 'WP_CLI' ) ) {
 				self::$_instance->cli = new Optml_Cli();
