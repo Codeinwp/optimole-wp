@@ -75,7 +75,7 @@ Optimole can detect Retina screens and deliver an image with the perfect Digital
 
 If you'd like to keep the most interesting part of an image; then you can enable smart cropping to help keep the image well-sized without losing focus.
 
->**Use Case:** Introducing Lisa, a lifestyle blogger who loves sharing her adventures through captivating visuals. With Optimole's Smart >Cropping, Lisa's images are automatically resized to fit perfectly within her post layouts. Whether it's a breathtaking mountain >landscape or a cosy café scene, Smart Cropping ensures every image tells its story without any hassle. Lisa's blog now shines with >effortlessly framed images that capture every moment beautifully.
+>**Use Case:** Introducing Lisa, a lifestyle blogger who loves sharing her adventures through captivating visuals. With Optimole's Smart Cropping, Lisa's images are automatically resized to fit perfectly within her post layouts. Whether it's a breathtaking mountain landscape or a cosy café scene, Smart Cropping ensures every image tells its story without any hassle. Lisa's blog now shines with effortlessly framed images that capture every moment beautifully.
 
 #### No Content Shifting
 
@@ -85,7 +85,7 @@ The lazy load option defers offscreen images and is perfectly sized for the cont
 
 Who has time for adding watermarks? Optimole will do the hard work for you. Just set it up and pick your preferred location and Optimole will add the watermark to all of your future images.
 
->**Use Case:** Meet John, a passionate photographer with a growing online gallery. Adding watermarks used to be a hassle—until Optimole >stepped in. Now, John can easily add watermarks to any or all of his images with just a few clicks. He can adjust the size, position, and >much more. 
+>**Use Case:** Meet John, a passionate photographer with a growing online gallery. Adding watermarks used to be a hassle—until Optimole stepped in. Now, John can easily add watermarks to any or all of his images with just a few clicks. He can adjust the size, position, and much more. 
 
 #### Downgrade Quality For Slower Connections
 
@@ -99,7 +99,7 @@ Optimole loves page builders and has unique tweaks to solve image replacements. 
 
 Optimole provides free access to an AWS CloudFront CDN with edge locations in more than 450+ cities around the globe.
 
->**Use Case:** Meet Alex, an online store owner reaching customers globally. With Optimole's CDN, his product images are effortlessly >spread across AWS CloudFront's 450+ global edge locations. This means shoppers from Tokyo to New York enjoy super-fast page loads, >ensuring a seamless shopping experience and boosting Alex's business success.
+>**Use Case:** Meet Alex, an online store owner reaching customers globally. With Optimole's CDN, his product images are effortlessly spread across AWS CloudFront's 450+ global edge locations. This means shoppers from Tokyo to New York enjoy super-fast page loads, ensuring a seamless shopping experience and boosting Alex's business success.
 
 ### What About Security?
 
