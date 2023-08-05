@@ -1,6 +1,6 @@
 # Image optimization & Lazy Load by Optimole #
 **Contributors:** [optimole](https://profiles.wordpress.org/optimole)  
-**Tags:** image optimization, convert webp, responsive images, lazy load, images, optimization, performance, photos  
+**Tags:** image optimization, convert webp, image optimizer, lazy load, image, optimization, convert AVIF, resize, free cdn, compress images, optimize images
 **Requires at least:** 5.5  
 **Tested up to:** 6.3  
 **Requires PHP:** 5.4  
@@ -11,75 +11,115 @@ Automatically compress, optimize and serve scaled images along with next-gen Web
 
 ## Description ##
 
-> **What makes Optimole so special?**
->
-> * Smaller images. Same quality
-> * Fully automated; set and forget
-> * Supports all image types
-> * Supports both Retina and WebP images
-> * Serves images from a global CDN for free
-> * Optimizes based on the visitor's actual device (no more guesswork and width estimations)
-> * Full support for page builders like Elementor
-> * Lazy load without jQuery (better)
-> * Fully functional free version (we have paid plans as well)
->
-
 Optimole is the all-in-one solution to all of your image optimization needs. With full automation and a range of evolutionary features, Optimole makes it easy to clean up your heavy images and bloaty pages.
 
-Optimole optimizes your images in real-time with a cloud-based system to speed up your website and deliver high-quality images perfectly sized for every device. With a one-click setup and minimal footprint, you can start improving your site in minutes.
+🤔 Not sure? Test the Magic of Optimole - [Scan your website](https://optimole.com/test-drive/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole) to see how we can help.
+
+Optimole [optimizes](https://www.codeinwp.com/blog/how-to-optimize-images/) your images in real-time with a cloud-based system to [speed up your website](https://optimole.com/website-speed-optimization-and-how-to-speed-up-wordpress/) and deliver high-quality images perfectly sized for every device. With a one-click setup and minimal footprint, you can start improving your site in minutes.
+
+### What makes Optimole so special?
+
+- Smaller images. Same quality
+- Fully automated; [set and forget](https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps)
+- Supports all image types
+- Supports both Retina and WebP images
+- Machine Learning(ML) powered automatic compression
+- AVIF format support for lower image size
+- Cloud image library support
+- Serves images from a global CDN for free
+- Optimizes based on the visitor's actual device (no more guesswork and width estimations)
+- Full support for page builders like Elementor
+- Lazy load without jQuery (better)
+- Fully functional free version (we have paid plans as well)
 
 You'll be free to concentrate on other aspects of your site with Optimole's set and forget image optimization.
 
 So, if you have been looking for one plugin that provides lazy loading with a CDN and perfectly sized images, then Optimole is perfect for you.
 
+### Checkout a quick overview of Optimole plugin
+https://youtu.be/nR9iGNJFxnE
 
-**How does it do all these great things?**
-Optimole's format based optimization is handled in the cloud on a case-by-case basis. Once you have the plugin installed, Optimole will replace all of your image URLs with cloud-based URLs. We don't replace any images on your website, we compress images on the fly.
+### How does it do all these great things?
+
+Optimole's format-based optimization is handled in the cloud on a case-by-case basis. Once you have the plugin installed, Optimole will replace all of your image URLs with cloud-based URLs. We don't replace any images on your website, we compress images on the fly.
+
 When the image is requested, Optimole will apply the specific transformations required by the device and deliver it to your visitors. This means every image is perfectly sized for every device. The final result will be cached for a month to ensure ongoing fast delivery and more site speed.
 
-**How many images can be optimized?**
-With the basic plan, you will be able to optimize unmetered number of images for up to 5k monthly [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All delivered from more than 200+ locations around the globe.
+### How many images can be optimized?
+
+With the basic plan, you will be able to optimize an unmetered number of images for up to 5k monthly [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All are delivered from more than 450+ locations around the globe.
+
 Better yet. The free version is fully functional and includes all of the following great features:
 
-**Format Based Optimization**
-Our cloud-based transformation process means we can optimize images based on the format as well as serve images in next-gen formats. If your visitor is using a WebP capable browser, then Optimole will convert to WebP the image and send it to their device.
+#### Format-Based Optimization
 
-**Image Optimization**
-Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size.
+Our cloud-based transformation process means we can optimize images based on the format as well as serve images in next-gen formats. If your visitor is using a WebP-capable browser, then Optimole will convert to WebP the image and send it to their device. AVIF support included.
 
-**Exact Used Size**
+#### Cloud Library support
+
+Offload your website images directly to Optimole Cloud and save storage space on your server. Cross-share images between all your websites connected to Optimole.
+
+#### Image Optimization
+
+Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size using Machine Learning(ML) powered compression.
+
+#### Exact Used Size
+
 Optimole will use just one image and resize it delivering a responsive image to fit perfectly on your visitors' devices. No more awkward guesses at potential screen widths. Serve scaled images instantly.
 
-**Retina Support**
+#### Retina Support
+
 Optimole can detect Retina screens and deliver an image with the perfect Digital Pixel Ratio (DPR).
 
-**Smart Cropping**
-If you'd like to keep the most interesting part of an image; then you can enable smart cropping to help keep the image well sized without losing focus.
+#### Smart Cropping
 
-**No Content Shifting**
-The lazy load option defer offscreen images and is perfectly sized for the container to provide a seamless viewing experience without any content shifting.
+If you'd like to keep the most interesting part of an image; then you can enable smart cropping to help keep the image well-sized without losing focus.
 
-**Watermarks**
+>**Use Case:** Introducing Lisa, a lifestyle blogger who loves sharing her adventures through captivating visuals. With Optimole's Smart Cropping, Lisa's images are automatically resized to fit perfectly within her post layouts. Whether it's a breathtaking mountain landscape or a cosy café scene, Smart Cropping ensures every image tells its story without any hassle. Lisa's blog now shines with effortlessly framed images that capture every moment beautifully.
+
+#### No Content Shifting
+
+The lazy load option defers offscreen images and is perfectly sized for the container to provide a seamless viewing experience without any content shifting.
+
+#### Watermarks
+
 Who has time for adding watermarks? Optimole will do the hard work for you. Just set it up and pick your preferred location and Optimole will add the watermark to all of your future images.
 
-**Downgrade Quality For Slower Connections**
+>**Use Case:** Meet John, a passionate photographer with a growing online gallery. Adding watermarks used to be a hassle—until Optimole stepped in. Now, John can easily add watermarks to any or all of his images with just a few clicks. He can adjust the size, position, and much more. 
+
+#### Downgrade Quality For Slower Connections
+
 Optimole provides an option to downgrade the image quality when it detects a slower network. Efficiently encode images by making up to 40% smaller with this neat feature to help visitors in a bottleneck.
 
-**Compatibility**
-Optimole loves page builders and has unique tweaks to solve image replacements. It also has full compatibility with the new block editor in WordPress 5.0
+#### Compatibility
 
-**CDN**
-Optimole provides free access to a AWS CloudFront CDN with edge locations in more than 200 cities around the globe.
+Optimole loves page builders and has unique tweaks to solve image replacements. It also has full compatibility with the new block editor since WordPress 5.0
 
-**What About Security?**
-The stripped EXGIF data is not stored on our service. Optimole likes to work behind the scenes, and won't interact with your site's visitors. No data is collected but you can check the [Terms of Service](https://optimole.com/terms/)
+#### CDN
 
-**Smooth And Clean**
-Optimole can be installed in a few clicks and then left in the back-end to do its job. Not happy with it? Optimole has a clean uninstall and your site will be just as before Optimole was installed.
+Optimole provides free access to an AWS CloudFront CDN with edge locations in more than 450+ cities around the globe.
 
-**Go Pro**
-Premium users will be able to optimize images for more than 25k monthly active users. Images in the Premium plan are served from AWS Cloudfront with over 200 locations all over the world.
+>**Use Case:** Meet Alex, an online store owner reaching customers globally. With Optimole's CDN, his product images are effortlessly spread across AWS CloudFront's 450+ global edge locations. This means shoppers from Tokyo to New York enjoy super-fast page loads, ensuring a seamless shopping experience and boosting Alex's business success.
 
+### What About Security?
+
+The stripped EXIF data is not stored on our service. Optimole likes to work behind the scenes, and won't interact with your site's visitors. No data is collected but you can check the [Terms of Service](https://optimole.com/terms/)
+
+### Smooth And Clean
+
+Optimole can be installed in a few clicks and then left in the back end to do its job. Not happy with it? Optimole has a clean uninstall and your site will be just as before Optimole was installed.
+
+### Go Pro 🚀
+
+Premium users will be able to optimize images starting with more than 50k monthly active users. Images in the Premium plan are served from AWS Cloudfront with over 450+ locations all over the world. Explore more features of [Optimole Pro](https://optimole.com/pricing/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole).
+
+### Support 🤝
+
+We're here to help. Feel free to open a new thread on the [Support Forum](https://wordpress.org/support/plugin/optimole-wp/).
+
+### Documentation 📚
+
+Discover how to make the most of Otter Blocks with our detailed and user-friendly [documentation](https://docs.optimole.com/).
 ## Screenshots ##
 
 1. Welcome screen
