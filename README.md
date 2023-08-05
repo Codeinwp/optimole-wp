@@ -1,6 +1,6 @@
-# Image optimization & Lazy Load by Optimole #
+# Image Optimization by Optimole – Lazy Load, CDN, Convert to WebP & AVIF #
 **Contributors:** [optimole](https://profiles.wordpress.org/optimole)  
-**Tags:** image optimization, convert webp, image optimizer, lazy load, image, optimization, convert AVIF, resize, free cdn, compress images, optimize images
+**Tags:** image optimization, convert webp, image optimizer, lazy load, image, optimization, convert AVIF, resize, free cdn, compress images, optimize images  
 **Requires at least:** 5.5  
 **Tested up to:** 6.3  
 **Requires PHP:** 5.4  
