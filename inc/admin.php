@@ -832,7 +832,7 @@ class Optml_Admin {
 			__( 'Settings', 'optimole-wp' ),
 			'manage_options',
 			'optimole#settings',
-			[ $this, 'render_dashboard_page' ],
+			[ $this, 'render_dashboard_page' ]
 		);
 	}
 

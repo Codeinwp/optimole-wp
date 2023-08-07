@@ -536,7 +536,7 @@ class Optml_Dam {
 			__( 'Cloud Library', 'optimole-wp' ),
 			'manage_options',
 			'optimole-dam',
-			[ $this, 'render_dashboard_page' ],
+			[ $this, 'render_dashboard_page' ]
 		);
 	}
 
