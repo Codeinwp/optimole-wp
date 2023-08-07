@@ -1,3 +1,9 @@
+##### [Version 3.9.1](https://github.com/Codeinwp/optimole-wp/compare/v3.9.0...v3.9.1) (2023-08-07)
+
+### Bug Fixes
+- **Fatal error on PHP<7.3**: Fixed fatal error that the plugin was throwing on PHP versions lower than 7.3.
+- **PHP Warning**: Fixed warning when inserting an image with a defined height but no width.
+
 #### [Version 3.9.0](https://github.com/Codeinwp/optimole-wp/compare/v3.8.2...v3.9.0) (2023-08-03)
 
 ### New Features
