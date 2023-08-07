@@ -287,7 +287,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 		}
 		if ( preg_match( '#height=["|\']?([\d%]+)["|\']?#i', $tag, $height_string ) ) {
-			if ( ctype_digit( $width_string[1] ) === true ) {
+			if ( ctype_digit( $height_string[1] ) === true ) {
 				$args['height'] = $height_string[1];
 			}
 		}

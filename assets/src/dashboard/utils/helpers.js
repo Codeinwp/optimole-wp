@@ -65,8 +65,6 @@ const highlightSidebarLink = () => {
 };
 
 const toggleDashboardSidebarSubmenu = ( show = true ) => {
-	console.log( '%c toggleDashboardSidebarSubmenu', 'color: #fff; background: #f00; font-size: 16px; padding: 4px 8px; border-radius: 4px;' );
-
 	const topLevel = document.querySelector( 'li#toplevel_page_optimole' );
 	let existingList = document.querySelector( 'li#toplevel_page_optimole .wp-submenu' );
 

@@ -775,4 +775,27 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertEquals( 27, substr_count( $replaced_content, '/sm:0/' ) );
 	}
 
+	public function test_tag_replacer_process_image_tags_missing_width_height() {
+		$test_data = [
+			[
+				'content' => '<div><img src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt="" height="40"/></div>',
+				'expected' => '/w:auto/h:40/',
+			],
+			[
+				'content' => '<div><img src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt="" width="50"/></div>',
+				'expected' => '/w:50/h:auto/',
+			],
+			[
+				'content' => '<div><img src="http://example.org/wp-content/uploads/2019/09/Screenshot.png" alt="" height="60" width="70"/></div>',
+				'expected' => '/w:70/h:60/',
+			]
+		];
+
+		foreach ( $test_data as $data ) {
+			$images           = Optml_Manager::parse_images_from_html( $data['content'] );
+			$replaced_content = Optml_Tag_Replacer::instance()->process_image_tags( $data['content'], $images );
+
+			$this->assertStringContainsString( $data['expected'], $replaced_content );
+		}
+	}
 }
