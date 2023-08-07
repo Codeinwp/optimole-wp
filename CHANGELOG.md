@@ -1,3 +1,21 @@
+#### [Version 3.9.0](https://github.com/Codeinwp/optimole-wp/compare/v3.8.2...v3.9.0) (2023-08-03)
+
+### New Features
+- **Hero Image Optimization**: Adds fetch priority for hero images to preload them for enhanced performance.
+- **Digital Assets Management (DAM)**: Replaced old media modal integration with a new interface to browse and use the images on your Optimole account.
+- **DAM Elementor Compatibility**: Use images from your Optimole account in Elementor Builder.
+- **DAM Core Editor Integration**: Integrated DAM with the WordPress core editor.
+- **Cloud Library Dashboard**: Added a new Cloud Library page to manage your cloud assets straight from the website dashboard.
+
+### Improvements
+- **Image Offloading & Rollback**: Images offloading & rollback process is now ~50% faster and operates in the background.
+- **Moving Images**: Instant reflection of image movement to folders inside the Dashboard and DAM.
+
+### Bug Fixes
+- **AVIF Disabling Feature**: Fixed issue where serving AVIF format could not be disabled.
+- **Optimole Banner Toggling**: Fixed an issue where toggling the Optimole banner would sometimes not save the setting.
+- **Dashboard Image Uploading**: Fixes issue where certain images could not be uploaded to the Optimole Dashboard;
+
 ##### [Version 3.8.2](https://github.com/Codeinwp/optimole-wp/compare/v3.8.1...v3.8.2) (2023-07-06)
 
 ### Bug Fixes
