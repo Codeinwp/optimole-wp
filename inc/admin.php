@@ -104,6 +104,7 @@ class Optml_Admin {
 		}
 
 		$this->settings->update( 'limit_dimensions', 'enabled' );
+		$this->settings->update( 'lazyload', 'enabled' );
 
 		update_option( self::NEW_USER_DEFAULTS_UPDATED, 'yes' );
 	}
