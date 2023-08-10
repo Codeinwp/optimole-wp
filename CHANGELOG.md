@@ -1,3 +1,9 @@
+##### [Version 3.9.2](https://github.com/Codeinwp/optimole-wp/compare/v3.9.1...v3.9.2) (2023-08-10)
+
+### Bug Fixes
+- **Fatal error**: In some edge-cases, the Hero Preloader feature was throwing a fatal error, trying to access inexistent posts.
+- **Lazyload default status**: Lazyload was off for new users by default when it should have been on.
+
 ##### [Version 3.9.1](https://github.com/Codeinwp/optimole-wp/compare/v3.9.0...v3.9.1) (2023-08-07)
 
 ### Bug Fixes
