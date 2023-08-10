@@ -92,7 +92,6 @@ final class Optml_Main {
 			add_filter( 'optimole_wp_uninstall_feedback_after_css', [ __CLASS__, 'adds_uf_css' ] );
 			add_filter( 'optimole_wp_feedback_review_message', [ __CLASS__, 'change_review_message' ] );
 			add_filter( 'optimole_wp_logger_heading', [ __CLASS__, 'change_review_message' ] );
-			add_filter( 'optml_default_settings', [ __CLASS__, 'change_lazyload_default' ] );
 			add_filter( 'optml_register_conflicts', [ __CLASS__, 'register_conflicts' ] );
 			self::$_instance          = new self();
 			self::$_instance->manager = Optml_Manager::instance();
@@ -134,25 +133,6 @@ final class Optml_Main {
 		);
 
 		return $conflicts_to_register;
-	}
-
-	/**
-	 * Change lazyload default for new users.
-	 *
-	 * @param array $defaults Old defaults.
-	 *
-	 * @return array New defaults.
-	 */
-	public static function change_lazyload_default( $defaults ) {
-		$install_time = get_option( 'optimole_wp_install', 0 );
-
-		if ( $install_time < 1545652321 ) {
-			return $defaults;
-		}
-
-		$defaults['lazyload'] = 'enabled';
-
-		return $defaults;
 	}
 
 	/**
