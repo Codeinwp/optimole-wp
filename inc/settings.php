@@ -696,4 +696,52 @@ class Optml_Settings {
 			]
 		);
 	}
+
+	/**
+	 * Clear cache.
+	 *
+	 * @param string $type Cache type.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function clear_cache( $type = '' ) {
+		$token = $this->get( 'cache_buster' );
+		$token_images = $this->get( 'cache_buster_images' );
+
+		if ( ! empty( $token_images ) ) {
+			$token = $token_images;
+		}
+
+		if ( ! empty( $type ) && $type === 'assets' ) {
+			$token = $this->get( 'cache_buster_assets' );
+		}
+
+		$request  = new Optml_Api();
+		$data     = $request->get_cache_token( $token, $type );
+
+		if ( $data === false || is_wp_error( $data ) || empty( $data ) || ! isset( $data['token'] ) ) {
+			$extra = '';
+
+			if ( is_wp_error( $data ) ) {
+				/**
+				 * Error from api.
+				 *
+				 * @var WP_Error $data Error object.
+				 */
+				$extra = sprintf( __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
+			}
+
+			return new WP_Error( 'optimole_cache_buster_error', __( 'Can not get new token from Optimole service', 'optimole-wp' ) . $extra );
+		}
+
+		if ( ! empty( $type ) && $type === 'assets' ) {
+			set_transient( 'optml_cache_lock_assets', 'yes', 5 * MINUTE_IN_SECONDS );
+			$this->update( 'cache_buster_assets', $data['token'] );
+		} else {
+			set_transient( 'optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS );
+			$this->update( 'cache_buster_images', $data['token'] );
+		}
+
+		return $data['token'];
+	}
 }
