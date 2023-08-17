@@ -280,7 +280,11 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$arguments['strip_metadata'] = '0';
 		}
 
-		if ( $this->settings->get( 'avif' ) === 'disabled' ) {
+		if ( ! apply_filters( 'optml_should_avif_ext', true, $ext, $original_url ) ) {
+			$arguments['ignore_avif'] = true;
+		}
+
+		if ( ! isset( $arguments['ignore_avif'] ) && $this->settings->get( 'avif' ) === 'disabled' ) {
 			$arguments['ignore_avif'] = true;
 		}
 
