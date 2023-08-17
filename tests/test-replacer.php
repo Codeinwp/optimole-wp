@@ -287,7 +287,6 @@ class Test_Replacer extends WP_UnitTestCase {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 		$this->assertStringContainsString( '/ig:avif/', $replaced_content );
-		$this->assertStringNotContainsString( '/f:avif/', $replaced_content );
 	}
 
 	public function test_avif_enabled() {
@@ -298,7 +297,26 @@ class Test_Replacer extends WP_UnitTestCase {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 		$this->assertStringNotContainsString( '/ig:avif/', $replaced_content );
-		$this->assertStringContainsString( '/f:avif/', $replaced_content );
+	}
+
+	public function test_best_format_disabled() {
+		$settings = new Optml_Settings();
+		$settings->update('best_format', 'disabled' );
+		Optml_Url_Replacer::instance()->init();
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringNotContainsString( '/f:best/', $replaced_content );
+	}
+
+	public function test_best_format_enabled() {
+		$settings = new Optml_Settings();
+		$settings->update('best_format', 'enabled' );
+		Optml_Url_Replacer::instance()->init();
+
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringContainsString( '/f:best/', $replaced_content );
 	}
 
 	public function test_assets_url() {
@@ -327,7 +345,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/http://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
 		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:css/q:mauto/m:1/http://example.org/wp-includes/js/hoverintent-js.min.png-random.css', $replaced_content );
 		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/http://example.org/wp-includes/js/assets/whatever.jpg.png.css.js', $replaced_content );
-		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/w:auto/h:auto/q:mauto/f:avif/https://example.org/wp-includes/js/assets/whatever.jpg.jpg', $replaced_content );
+		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/w:auto/h:auto/q:mauto/f:best/https://example.org/wp-includes/js/assets/whatever.jpg.jpg', $replaced_content );
 
 		$settings = new Optml_Settings();
 		$settings->update( 'css_minify', 'disabled' );
