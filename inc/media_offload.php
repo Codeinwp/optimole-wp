@@ -132,7 +132,15 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'media_row_actions', [self::$instance, 'add_inline_media_action'], 10, 2 );
 				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
 				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
-				add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
+
+				// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
+				$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
+				if ( $below_6_0_0 ) {
+					add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert_legacy'], 10, 3 );
+				} else {
+					add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
+				}
+
 				add_action( 'optml_start_processing_images', [self::$instance, 'start_processing_images'], 10, 5 );
 				add_action( 'optml_start_processing_images_by_id', [self::$instance, 'start_processing_images_by_id'], 10, 4 );
 
@@ -191,6 +199,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data as originally passed to wp_insert_post().
 	 * @param bool  $update              Whether this is an existing attachment post being updated.
 	 *
+	 * @see self::insert_legacy() for backwards compatibility with older versions of WordPress < 6.0.0.
+	 *
 	 * @return array
 	 */
 	function insert( $data, $postarr, $unsanitized_postarr, $update ) {
@@ -244,9 +254,18 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		return $data;
 	}
 
-
-
-
+	/**
+	 * Wrapper for the `insert` method for WP versions < 6.0.0.
+	 *
+	 * @param array $data                An array of slashed, sanitized, and processed attachment post data.
+	 * @param array $postarr             An array of slashed and sanitized attachment post data, but not processed.
+	 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data as originally passed to wp_insert_post().
+	 *
+	 * @return array
+	 */
+	function insert_legacy( $data, $postarr, $unsanitized_postarr ) {
+		return $this->insert( $data, $postarr, $unsanitized_postarr, false );
+	}
 
 	/**
 	 * Update offload meta when the page is updated.
