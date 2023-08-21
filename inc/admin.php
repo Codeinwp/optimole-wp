@@ -1121,6 +1121,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'metricsSubtitle4' => __( 'During last month', 'optimole-wp' ),
 			],
 			'options_strings'                  => [
+				'best_format_title' => __( 'Enable Best Format', 'optimole-wp' ),
+				'best_format_desc'  => __( 'Intelligently selects the optimal image format for you. It analyzes image complexity and tries various formats, including AVIF or WebP, to achieve the smallest file size without compromising quality.', 'optimole-wp' ),
 				'add_filter'                        => __( 'Add filter', 'optimole-wp' ),
 				'add_site'                          => __( 'Add site', 'optimole-wp' ),
 				'admin_bar_desc'                    => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),

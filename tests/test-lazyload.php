@@ -266,7 +266,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertNotEquals( $replaced_content, $html );
 		$this->assertStringNotContainsString( 'q:eco/rt:fill/g:ce', $replaced_content );
 		$this->assertStringContainsString( '/rt:fill/g:ce', $replaced_content );
-		$this->assertStringContainsString( '/w:96/h:96/q:eco/f:avif/http://example.org/', $replaced_content );
+		$this->assertStringContainsString( '/w:96/h:96/q:eco/f:best/http://example.org/', $replaced_content );
 
 	}
 
@@ -276,7 +276,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
-		$this->assertEquals( '<img decoding=async  data-opt-src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/f:avif/http://example.org/wp-content/uploads/2018/11/gradient.png"  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:eco/f:avif/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/><noscript><img decoding=async  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/f:avif/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/></noscript>', $replaced_content );
+		$this->assertEquals( '<img decoding=async  data-opt-src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/f:best/http://example.org/wp-content/uploads/2018/11/gradient.png"  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:eco/f:best/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/><noscript><img decoding=async  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/f:best/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/></noscript>', $replaced_content );
 
 	}
 	public function test_check_with_no_script() {

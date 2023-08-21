@@ -95,7 +95,7 @@ class Optml_Settings {
 		'banner_frontend'      => 'disabled',
 		'offloading_status'    => 'disabled',
 		'rollback_status'      => 'disabled',
-
+		'best_format'          => 'enabled',
 	];
 	/**
 	 * Option key.
@@ -258,6 +258,7 @@ class Optml_Settings {
 				case 'banner_frontend':
 				case 'offloading_status':
 				case 'rollback_status':
+				case 'best_format':
 					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
 				case 'max_width':
@@ -513,6 +514,7 @@ class Optml_Settings {
 			'banner_frontend'      => $this->get( 'banner_frontend' ),
 			'offloading_status'    => $this->get( 'offloading_status' ),
 			'rollback_status'      => $this->get( 'rollback_status' ),
+			'best_format'         => $this->get( 'best_format' ),
 		];
 	}
 
@@ -575,6 +577,15 @@ class Optml_Settings {
 	 */
 	public function is_smart_cropping() {
 		return $this->get( 'resize_smart' ) === 'enabled';
+	}
+
+	/**
+	 * Check if best format is enabled.
+	 *
+	 * @return bool
+	 */
+	public function is_best_format() {
+		return $this->get( 'best_format' ) === 'enabled';
 	}
 
 	/**
