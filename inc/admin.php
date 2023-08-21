@@ -15,6 +15,12 @@
  */
 class Optml_Admin {
 	use Optml_Normalizer;
+
+	const IMAGE_DATA_COLLECTED_PAGE = 'optml_pull_image_data_page';
+	const IMAGE_DATA_COLLECTED = 'optml_image_data_collected';
+
+	// TODO: find the right batch size, keeping like this until finishing everything else for easier testing
+	const IMAGE_DATA_COLLECTED_BATCH = 5;
 	/**
 	 * Hold the settings object.
 	 *
@@ -51,6 +57,10 @@ class Optml_Admin {
 
 		if ( $this->settings->is_connected() ) {
 			add_action( 'init', [$this, 'check_domain_change'] );
+			add_action( 'optml_pull_image_data_init', [$this, 'pull_image_data_init'] );
+			add_action( 'optml_pull_image_data', [$this, 'pull_image_data'] );
+			add_filter( 'wp_insert_attachment_data', [$this, 'detect_image_changes'], 10, 4 );
+			add_action( 'init', [ $this, 'schedule_data_enhance_cron' ] );
 		}
 		add_action( 'init', [ $this, 'update_default_settings' ] );
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
@@ -64,7 +74,83 @@ class Optml_Admin {
 			add_filter( 'upload_mimes', [ $this, 'allow_meme_types' ] ); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
 		}
 	}
+	public function schedule_data_enhance_cron() {
+		if ( ! wp_next_scheduled( 'optml_pull_image_data_init' ) ) {
+			wp_schedule_event( time(), 'hourly', 'optml_pull_image_data_init' );
+		}
+	}
 
+	public function pull_image_data() {
+		$current_page = get_option( self::IMAGE_DATA_COLLECTED_PAGE, 1 );
+		// Get all image attachments that are not processed
+		$args = [
+			'post_type' => 'attachment',
+			'post_mime_type' => 'image',
+			'posts_per_page' => self::IMAGE_DATA_COLLECTED_BATCH,
+			'paged' => $current_page,
+			'meta_query' => [
+				'relation' => 'AND',
+				[
+					'key' => self::IMAGE_DATA_COLLECTED,
+					'compare' => 'NOT EXISTS',
+				],
+			],
+		];
+		$attachments = get_posts( $args );
+
+		$image_data = [];
+
+		foreach ( $attachments as $attachment ) {
+			// Get image URL, alt, and title
+			$image_url = wp_get_attachment_url( $attachment->ID );
+			$image_alt = get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true );
+			$image_title = $attachment->post_title;
+
+			$image_data[ $image_url ] = [
+				'alt' => $image_alt,
+				'title' => $image_title,
+			];
+
+			// Mark the image as processed
+			update_post_meta( $attachment->ID, self::IMAGE_DATA_COLLECTED, 'yes' );
+		}
+		$current_page++;
+
+		update_option( self::IMAGE_DATA_COLLECTED_PAGE, $current_page );
+
+		do_action( 'optml_log', $image_data );
+		if ( ! empty( $attachments ) ) {
+            //TODO: add try catch, recheck the loop finishes all once
+			wp_schedule_single_event( time() + 5, 'optml_pull_image_data' );
+		} else {
+			//reset the page
+			update_option( self::IMAGE_DATA_COLLECTED_PAGE, 1 );
+		}
+	}
+
+	public function pull_image_data_init() {
+		if ( ! wp_next_scheduled( 'optml_pull_image_data' ) ) {
+			wp_schedule_single_event( time() + 5, 'optml_pull_image_data' );
+		}
+	}
+
+
+    //TODO: do the same for alt tags
+	public function detect_image_changes( $data, $postarr, $unsanitized_postarr, $update ) {
+
+		// Check if it's an attachment being updated
+		if ($data['post_type'] !== 'attachment') {
+			return $data;
+		}
+		if ( ! isset($postarr['ID'] ) ) {
+			return $data;
+		}
+		if ( isset($postarr['post_title']) && isset($postarr['original_post_title']) && $postarr['post_title'] !== $postarr['original_post_title'] ) {
+			delete_post_meta($postarr['ID'], self::IMAGE_DATA_COLLECTED);
+		}
+
+		return $data;
+	}
 	/**
 	 * Init no_script setup value based on whether the user is connected or not.
 	 */
