@@ -16,7 +16,6 @@
 class Optml_Admin {
 	use Optml_Normalizer;
 
-	const IMAGE_DATA_COLLECTED_PAGE = 'optml_pull_image_data_page';
 	const IMAGE_DATA_COLLECTED = 'optml_image_data_collected';
 
 	// TODO: find the right batch size, keeping like this until finishing everything else for easier testing
@@ -59,7 +58,9 @@ class Optml_Admin {
 			add_action( 'init', [$this, 'check_domain_change'] );
 			add_action( 'optml_pull_image_data_init', [$this, 'pull_image_data_init'] );
 			add_action( 'optml_pull_image_data', [$this, 'pull_image_data'] );
-			add_filter( 'wp_insert_attachment_data', [$this, 'detect_image_changes'], 10, 4 );
+			add_filter( 'wp_insert_attachment_data', [$this, 'detect_image_title_changes'], 10, 4 );
+			add_action( 'updated_post_meta', [$this, 'detect_image_alt_change' ], 10, 4);
+			add_action( 'added_post_meta', [$this,'detect_image_alt_change'], 10, 4 );
 			add_action( 'init', [ $this, 'schedule_data_enhance_cron' ] );
 		}
 		add_action( 'init', [ $this, 'update_default_settings' ] );
@@ -81,13 +82,11 @@ class Optml_Admin {
 	}
 
 	public function pull_image_data() {
-		$current_page = get_option( self::IMAGE_DATA_COLLECTED_PAGE, 1 );
 		// Get all image attachments that are not processed
 		$args = [
 			'post_type' => 'attachment',
 			'post_mime_type' => 'image',
 			'posts_per_page' => self::IMAGE_DATA_COLLECTED_BATCH,
-			'paged' => $current_page,
 			'meta_query' => [
 				'relation' => 'AND',
 				[
@@ -114,17 +113,11 @@ class Optml_Admin {
 			// Mark the image as processed
 			update_post_meta( $attachment->ID, self::IMAGE_DATA_COLLECTED, 'yes' );
 		}
-		$current_page++;
 
-		update_option( self::IMAGE_DATA_COLLECTED_PAGE, $current_page );
 
 		do_action( 'optml_log', $image_data );
 		if ( ! empty( $attachments ) ) {
-            //TODO: add try catch, recheck the loop finishes all once
 			wp_schedule_single_event( time() + 5, 'optml_pull_image_data' );
-		} else {
-			//reset the page
-			update_option( self::IMAGE_DATA_COLLECTED_PAGE, 1 );
 		}
 	}
 
@@ -134,9 +127,15 @@ class Optml_Admin {
 		}
 	}
 
+	public function detect_image_alt_change( $meta_id, $post_id, $meta_key, $meta_value ) {
 
-    //TODO: do the same for alt tags
-	public function detect_image_changes( $data, $postarr, $unsanitized_postarr, $update ) {
+		// Check if the updated metadata is for alt text and it's an attachment
+		if ( $meta_key === '_wp_attachment_image_alt' && get_post_type( $post_id ) === 'attachment' ) {
+			delete_post_meta( $post_id, self::IMAGE_DATA_COLLECTED );
+		}
+	}
+
+	public function detect_image_title_changes( $data, $postarr, $unsanitized_postarr, $update ) {
 
 		// Check if it's an attachment being updated
 		if ($data['post_type'] !== 'attachment') {
