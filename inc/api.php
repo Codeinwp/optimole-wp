@@ -314,6 +314,16 @@ final class Optml_Api {
 		return wp_remote_post( $this->onboard_api_root, $options );
 	}
 
+
+	/**
+	 * Send a list of images with alt/title values to update.
+	 *
+	 * @param array $images List of images.
+	 * @return array
+	 */
+	public function call_data_enrich_api( $images = [] ) {
+		return $this->request( 'optml/v2/media/add_data', 'POST', ['images' => $images, 'key' => Optml_Config::$key] );
+	}
 	/**
 	 * Register user remotely on optimole.com.
 	 *
