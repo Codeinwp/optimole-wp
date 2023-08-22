@@ -189,8 +189,8 @@ class Test_Media extends WP_UnitTestCase {
 		);
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 		$this->assertEquals(  3, substr_count($replaced_content, 'https://my_costum_domain'));
-		$this->assertStringContainsString( '/w:150/h:150/q:75/rt:fill/g:ce/f:avif/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $replaced_content );
-		$this->assertStringContainsString( '/w:150/h:150/q:eco/f:avif/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $replaced_content );
+		$this->assertStringContainsString( '/w:150/h:150/q:75/rt:fill/g:ce/f:best/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $replaced_content );
+		$this->assertStringContainsString( '/w:150/h:150/q:eco/f:best/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1.jpg', $replaced_content );
 	}
 
 	public function test_image_processed() {

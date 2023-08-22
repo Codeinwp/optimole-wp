@@ -271,15 +271,20 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$arguments['format'] = $args['format'];
 		}
 
-		if ( empty( $arguments['format'] ) && $this->settings->get( 'avif' ) === 'enabled' && apply_filters( 'optml_should_avif_ext', true, $ext, $original_url ) ) {
-			$arguments['format'] = 'avif';
+		// If format is not already set, we use best format if it's enabled.
+		if ( ! isset( $arguments['format'] ) && $this->settings->is_best_format() ) {
+			$arguments['format'] = 'best';
 		}
 
 		if ( $this->settings->get( 'strip_metadata' ) === 'disabled' ) {
 			$arguments['strip_metadata'] = '0';
 		}
 
-		if ( $this->settings->get( 'avif' ) === 'disabled' ) {
+		if ( ! apply_filters( 'optml_should_avif_ext', true, $ext, $original_url ) ) {
+			$arguments['ignore_avif'] = true;
+		}
+
+		if ( ! isset( $arguments['ignore_avif'] ) && $this->settings->get( 'avif' ) === 'disabled' ) {
 			$arguments['ignore_avif'] = true;
 		}
 
