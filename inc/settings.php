@@ -95,6 +95,7 @@ class Optml_Settings {
 		'banner_frontend'      => 'disabled',
 		'offloading_status'    => 'disabled',
 		'rollback_status'      => 'disabled',
+		'placeholder_color'    => '',
 
 	];
 	/**
@@ -310,6 +311,7 @@ class Optml_Settings {
 					}
 					break;
 				case 'watchers':
+				case 'placeholder_color':
 					$sanitized_value = sanitize_text_field( $value );
 					break;
 				case 'skip_lazyload_images':
@@ -513,6 +515,7 @@ class Optml_Settings {
 			'banner_frontend'      => $this->get( 'banner_frontend' ),
 			'offloading_status'    => $this->get( 'offloading_status' ),
 			'rollback_status'      => $this->get( 'rollback_status' ),
+			'placeholder_color'   => $this->get( 'placeholder_color' ),
 		];
 	}
 
