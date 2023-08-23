@@ -458,7 +458,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 	}
 
 	public function test_lazyload_iframe() {
-		
+
 		$content = '<figure class="wp-block-embed-youtube wp-block-embed is-type-video is-provider-youtube wp-embed-aspect-16-9 wp-has-aspect-ratio">
 					<div class="wp-block-embed__wrapper">
 					<iframe title="test" width="640" height="360" src="https://www.youtube.com/embed/-HwJNxE7hd8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -508,7 +508,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertStringNotContainsString( 'data-opt-src', $replaced_content_skip );
 	}
 	public function test_lazyload_iframe_noscript_ignore() {
-		
+
 		$content = '<noscript><iframe width="930" height="523" src="http://5c128bbdd3b4.ngrok.io/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
 					</noscript>
 					<noscript><iframe width="930" height="523" src="http://5c128bbdd3b4.ngrok.io/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
@@ -544,5 +544,28 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertStringNotContainsString( 'src="about:blank"', $replaced_content );
 		$this->assertStringNotContainsString( 'data-opt-src', $replaced_content );
 		$this->assertStringNotContainsString( '<noscript>', $replaced_content );
+	}
+
+	public function test_generic_placeholder() {
+		$settings = new Optml_Settings();
+
+		Optml_Manager::instance()->init();
+		$svg = Optml_Manager::instance()->lazyload_replacer->get_svg_for( 1200, 1300, 'http://example.org/testimage.png' );
+		$decoded = urldecode( $svg );
+
+		$this->assertStringContainsString( 'width="1200"', $decoded );
+		$this->assertStringContainsString( 'height="1300"', $decoded );
+		$this->assertStringContainsString( 'fill="transparent"', $decoded );
+
+
+		$settings->update( 'placeholder_color', '#bada55' );
+
+		Optml_Manager::instance()->init();
+		$svg = Optml_Manager::instance()->lazyload_replacer->get_svg_for( '', '', 'http://example.org/testimage.png' );
+		$decoded = urldecode( $svg );
+
+		$this->assertStringContainsString( 'width="100%"', $decoded );
+		$this->assertStringContainsString( 'height="100%"', $decoded );
+		$this->assertStringContainsString( 'fill="#bada55"', $decoded );
 	}
 }

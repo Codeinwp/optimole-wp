@@ -1154,7 +1154,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_cloud_images_title'         => __( 'Enable cloud library browsing', 'optimole-wp' ),
 				'enable_cloud_images_desc'          => sprintf( __( 'Grant permission for this site to access all images stored in your Optimole account. %1$s More details here%2$s', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://docs.optimole.com/article/1323-cloud-library-browsing">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
-				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ),
+				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ) . ' ' . sprintf( __( '%1$sMore details here%2$s.', 'optimole-wp' ), '<a target=”_blank” href="https://docs.optimole.com/article/1192-lazy-load-generic-placeholder">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
 				'enable_network_opt_desc'           => __( 'Optimole provides an option to automatically downgrade the image quality when it detects a slower network.', 'optimole-wp' ),
 				'enable_network_opt_title'          => __( 'Enable network based optimizations', 'optimole-wp' ),
@@ -1273,7 +1273,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'select'                            => __( 'Please select one ...', 'optimole-wp' ),
 				'yes'                               => __( 'Restore images after disabling', 'optimole-wp' ),
 				'no'                                => __( 'Do not restore images after disabling', 'optimole-wp' ),
-
+				'lazyload_placeholder_color'        => __( 'Placeholder Color', 'optimole-wp' ),
+				'clear'                             => __( 'Clear', 'optimole-wp' ),
 			],
 			'help'                             => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),

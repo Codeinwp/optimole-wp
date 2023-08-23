@@ -96,6 +96,7 @@ class Optml_Settings {
 		'offloading_status'    => 'disabled',
 		'rollback_status'      => 'disabled',
 		'best_format'          => 'enabled',
+		'placeholder_color'    => '',
 	];
 	/**
 	 * Option key.
@@ -311,6 +312,7 @@ class Optml_Settings {
 					}
 					break;
 				case 'watchers':
+				case 'placeholder_color':
 					$sanitized_value = sanitize_text_field( $value );
 					break;
 				case 'skip_lazyload_images':
@@ -515,6 +517,7 @@ class Optml_Settings {
 			'offloading_status'    => $this->get( 'offloading_status' ),
 			'rollback_status'      => $this->get( 'rollback_status' ),
 			'best_format'         => $this->get( 'best_format' ),
+			'placeholder_color'   => $this->get( 'placeholder_color' ),
 		];
 	}
 
