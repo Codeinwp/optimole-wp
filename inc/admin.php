@@ -74,12 +74,22 @@ class Optml_Admin {
 			add_filter( 'upload_mimes', [ $this, 'allow_meme_types' ] ); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
 		}
 	}
+	/**
+	 * Schedules the hourly cron that starts the querying for images alt/title attributes
+	 *
+	 * @uses action: init
+	 */
 	public function schedule_data_enhance_cron() {
 		if ( ! wp_next_scheduled( 'optml_pull_image_data_init' ) ) {
 			wp_schedule_event( time(), 'hourly', 'optml_pull_image_data_init' );
 		}
 	}
 
+	/**
+	 * Query the database for images and extract the alt/title to send them to the API
+	 *
+	 * @uses action: optml_pull_image_data
+	 */
 	public function pull_image_data() {
 		// Get all image attachments that are not processed
 		$args = [
@@ -128,12 +138,22 @@ class Optml_Admin {
 		}
 	}
 
+	/**
+	 * Schedule the event to pull image alt/title
+	 *
+	 * @uses action: optml_pull_image_data_init
+	 */
 	public function pull_image_data_init() {
 		if ( ! wp_next_scheduled( 'optml_pull_image_data' ) ) {
 			wp_schedule_single_event( time() + 5, 'optml_pull_image_data' );
 		}
 	}
 
+	/**
+	 * Delete the processed meta from an image when the alt text is changed
+	 *
+	 * @uses action: updated_post_meta, added_post_meta
+	 */
 	public function detect_image_alt_change( $meta_id, $post_id, $meta_key, $meta_value ) {
 
 		// Check if the updated metadata is for alt text and it's an attachment
@@ -141,7 +161,11 @@ class Optml_Admin {
 			delete_post_meta( $post_id, self::IMAGE_DATA_COLLECTED );
 		}
 	}
-
+	/**
+	 * Delete the processed meta from an image when the title is changed
+	 *
+	 * @uses filter: wp_insert_attachment_data
+	 */
 	public function detect_image_title_changes( $data, $postarr, $unsanitized_postarr, $update ) {
 
 		// Check if it's an attachment being updated
