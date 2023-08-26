@@ -401,6 +401,18 @@ class Optml_Rest {
 			);
 
 		}
+
+		if ( $user === 'site_exists' ) {
+			return new WP_REST_Response(
+				[
+					'data'    => null,
+					'message' => sprintf( __( 'Error: This site has been previously registered. You can try again %1$shere%2$s ', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/register" target="_blank"> ', '</a>' ),
+					'code'    => 'site_exists',
+				],
+				200
+			);
+		}
+
 		$user_data = $user['res'];
 
 		$settings = new Optml_Settings();
