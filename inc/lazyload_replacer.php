@@ -261,13 +261,22 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		if ( $this->should_add_data_tag( $full_tag ) ) {
 			$opt_format = ' data-opt-src="%s" ';
+			$custom_class = '';
+
 			if ( $should_ignore_rescale ) {
-				if ( strpos( $new_tag, 'class=' ) === false ) {
-					$opt_format .= ' class="optimole-lazy-only" ';
+				$custom_class .= 'optimole-lazy-only ';
+			}
+			if (strpos($new_tag, 'data-large_image') !== false) {
+				$custom_class .= 'optimole-load-early';
+			}
+
+			if ( ! empty( $custom_class ) ) {
+				if (strpos($new_tag, 'class=') === false) {
+					$opt_format .= ' class="' . $custom_class . '" ';
 				} else {
 					$new_tag = str_replace(
-						( $is_slashed ? 'class=\"' : 'class="' ),
-						( $is_slashed ? 'class=\"optimole-lazy-only ' : 'class="optimole-lazy-only ' ),
+						($is_slashed ? 'class=\"' : 'class="'),
+						($is_slashed ? 'class=\"' . $custom_class . ' ' : 'class="' . $custom_class . ' '),
 						$new_tag
 					);
 				}
