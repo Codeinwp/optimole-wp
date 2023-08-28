@@ -872,13 +872,13 @@ class Optml_Dam {
 			$gravity = Optml_Resize::GRAVITY_SMART;
 		}
 
-        if( $width === 0 ) {
-            $width = 'auto';
-        }
+		if ( $width === 0 ) {
+			$width = 'auto';
+		}
 
-        if( $height === 0 ) {
-            $height = 'auto';
-        }
+		if ( $height === 0 ) {
+			$height = 'auto';
+		}
 
 		// Use the proper replacement for the image size.
 		$replacement = '/w:' . $width . '/h:' . $height;
