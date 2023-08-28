@@ -643,7 +643,7 @@ final class Optml_Manager {
 		$extracted_urls  = array_filter(
 			$extracted_urls,
 			function ( $value ) use ( $slashed_config ) {
-				return strpos( $value, Optml_Config::$service_url ) === false && strpos( $value, $slashed_config ) === false || Optml_Media_Offload::is_not_processed_image( $value );
+				return strpos( $value, Optml_Config::$service_url ) === false && strpos( $value, $slashed_config ) === false || Optml_Media_Offload::is_not_processed_image( $value ) || $this->tag_replacer->url_has_dam_flag( $value );
 			}
 		);
 		$upload_resource = $this->tag_replacer->get_upload_resource();

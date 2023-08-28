@@ -180,11 +180,11 @@ class Test_Dam extends WP_UnitTestCase {
 	public function test_dam_size_gravity_replacer() {
 		$url_map = [
 			'https://cloudUrlTest.test/w:auto/h:auto/q:auto/id:testId/https://test-site.test/9.jpg' => [
-				'expected' => 'https://cloudUrlTest.test/w:150/h:100/q:auto/id:testId/https://test-site.test/9.jpg',
+				'expected' => 'https://cloudUrlTest.test/dam:1/w:150/h:100/q:auto/id:testId/https://test-site.test/9.jpg',
 				'args'     => [ 'width' => 150, 'height' => 100 ]
 			],
 			'https://cloudUrlTest.test/w:auto/h:auto/q:auto/id:testId/directUpload/9.jpg'           => [
-				'expected' => 'https://cloudUrlTest.test/w:365/h:1200/g:ce/rt:fill/q:auto/id:testId/directUpload/9.jpg',
+				'expected' => 'https://cloudUrlTest.test/dam:1/w:365/h:1200/g:ce/rt:fill/q:auto/id:testId/directUpload/9.jpg',
 				'args'     => [ 'width' => 365, 'height' => 1200, 'crop' => true ]
 			],
 		];
@@ -200,7 +200,7 @@ class Test_Dam extends WP_UnitTestCase {
 
 		$url       = 'https://cloudUrlTest.test/w:auto/h:auto/q:auto/id:testId/https://test-site.test/9.jpg';
 		$processed = $this->dam->replace_dam_url_args( [ 'width' => 150, 'height' => 100, 'crop' => true ], $url );
-		$this->assertEquals( 'https://cloudUrlTest.test/w:150/h:100/g:sm/rt:fill/q:auto/id:testId/https://test-site.test/9.jpg', $processed );
+		$this->assertEquals( 'https://cloudUrlTest.test/dam:1/w:150/h:100/g:sm/rt:fill/q:auto/id:testId/https://test-site.test/9.jpg', $processed );
 
 		$this->settings->update( 'resize_smart', 'disabled' );
 	}
@@ -261,6 +261,8 @@ class Test_Dam extends WP_UnitTestCase {
 	public function test_alter_attachment_for_js() {
 		$mock_response = [
 			'sizes' => [],
+			'width' => 1920,
+			'height' => 1080
 		];
 
 		foreach ( $this->inserted_ids as $id ) {

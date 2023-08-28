@@ -24,6 +24,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo4.svg">
 	<img src="http://example.org/wp-content/optimole-wp/assets/img/logo5.gif">
 	 ';
+	const DAM_IMG_TAG = '<img width="100" height="200" src="https://cloudUrlTest.test/dam:1/w:auto/h:auto/q:auto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg">';
 	public function setUp() : void {
 		parent::setUp();
 		$settings = new Optml_Settings();
@@ -567,5 +568,11 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertStringContainsString( 'width="100%"', $decoded );
 		$this->assertStringContainsString( 'height="100%"', $decoded );
 		$this->assertStringContainsString( 'fill="#bada55"', $decoded );
+	}
+
+	public function test_dam_lazyloading() {
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::DAM_IMG_TAG );
+
+		$this->assertStringContainsString( 'data-opt-src="https://cloudUrlTest.test/w:100/h:200/rt:fill/g:ce/f:best/q:mauto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg"', $replaced_content );
 	}
 }
