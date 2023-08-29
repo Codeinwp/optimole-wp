@@ -718,6 +718,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		foreach ( $image_ids as $id ) {
+			// Skip DAM attachment filtering.
+			if ( ! empty( get_post_meta( $id, Optml_Dam::OM_DAM_IMPORTED_FLAG, true ) ) ) {
+				continue;
+			}
 			$current_meta = wp_get_attachment_metadata( $id );
 			if ( ! isset( $current_meta['file'] ) || ! self::is_uploaded_image( $current_meta['file'] ) ) {
 				delete_post_meta( $id, 'optimole_offload' );
@@ -985,6 +989,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! isset( $meta['file'] ) ) {
 			return $url;
 		}
+
+		// Skip DAM attachment filtering.
+		if ( ! empty( get_post_meta( $attachment_id, Optml_Dam::OM_DAM_IMPORTED_FLAG, true ) ) ) {
+			return $url;
+		}
+
 		$file = $meta['file'];
 		if ( self::is_uploaded_image( $file ) ) {
 			$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();

@@ -162,7 +162,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$images['img_url'][ $index ] = $new_src;
 			}
 			if ( ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
-				 false !== strpos( $src, Optml_Config::$service_url ) ||
+				 ( false !== strpos( $src, Optml_Config::$service_url ) && ! $this->url_has_dam_flag( $src ) ) ||
 				 ! $this->can_replace_url( $src ) ||
 				 ! $this->can_replace_tag( $images['img_url'][ $index ], $tag ) ) && ! Optml_Media_Offload::is_not_processed_image( $src )
 			) {

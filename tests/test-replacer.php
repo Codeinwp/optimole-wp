@@ -116,6 +116,9 @@ class Test_Replacer extends WP_UnitTestCase {
 					<img src="https://www.codeinwp.org/wp-content/uploads/2018/05/brands.png">https://www.codeinwp.org/wp-content/uploads/2018/05/brands.png
 				</div>
 			</div>';
+	const DAM_LINKS = '
+		https://cloudUrlTest.test/dam:1/w:auto/h:auto/q:auto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg
+	';
 
 	public static $sample_post;
 	public static $sample_attachement;
@@ -815,5 +818,17 @@ class Test_Replacer extends WP_UnitTestCase {
 
 			$this->assertStringContainsString( $data['expected'], $replaced_content );
 		}
+	}
+
+	public function test_dam_flag_removal() {
+		$this->assertStringContainsString( 'dam:1', self::DAM_LINKS );
+		$this->assertStringNotContainsString('f:best', self::DAM_LINKS);
+		$this->assertStringNotContainsString('q:mauto', self::DAM_LINKS);
+
+		$replaced_content = Optml_Manager::instance()->replace_content( self::DAM_LINKS );
+
+		$this->assertStringNotContainsString('dam:1', $replaced_content);
+		$this->assertStringContainsString('f:best', $replaced_content);
+		$this->assertStringContainsString('q:mauto', $replaced_content);
 	}
 }
