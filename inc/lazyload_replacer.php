@@ -218,6 +218,23 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	}
 
 	/**
+	 * Check if the img tag should be lazyloaded early.
+	 *
+	 * @param $image_tag string The image tag.
+	 * @return bool Whether the image tag should be lazyloaded early or not.
+	 */
+	public function should_lazyload_early( $image_tag ) {
+		$flags = apply_filters( 'optml_lazyload_early_flags', [] );
+
+		foreach ( $flags as $flag ) {
+			if ( strpos( $image_tag, $flag ) !== false ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+	/**
 	 * Replaces the tags with lazyload tags.
 	 *
 	 * @param string $new_tag The new tag.
@@ -266,17 +283,17 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			if ( $should_ignore_rescale ) {
 				$custom_class .= 'optimole-lazy-only ';
 			}
-			if (strpos($new_tag, 'data-large_image') !== false) {
+			if ( $this->should_lazyload_early( $full_tag ) ) {
 				$custom_class .= 'optimole-load-early';
 			}
 
 			if ( ! empty( $custom_class ) ) {
-				if (strpos($new_tag, 'class=') === false) {
+				if ( strpos( $new_tag, 'class=' ) === false ) {
 					$opt_format .= ' class="' . $custom_class . '" ';
 				} else {
 					$new_tag = str_replace(
-						($is_slashed ? 'class=\"' : 'class="'),
-						($is_slashed ? 'class=\"' . $custom_class . ' ' : 'class="' . $custom_class . ' '),
+						( $is_slashed ? 'class=\"' : 'class="' ),
+						( $is_slashed ? 'class=\"' . $custom_class . ' ' : 'class="' . $custom_class . ' ' ),
 						$new_tag
 					);
 				}
