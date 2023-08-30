@@ -220,7 +220,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	/**
 	 * Check if the img tag should be lazyloaded early.
 	 *
-	 * @param $image_tag string The image tag.
+	 * @param string $image_tag The image tag.
 	 * @return bool Whether the image tag should be lazyloaded early or not.
 	 */
 	public function should_lazyload_early( $image_tag ) {
