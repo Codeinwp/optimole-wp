@@ -173,9 +173,8 @@ final class Optml_Api {
 		}
 
 		if ( intval( $response['code'] ) !== 200 ) {
-			if ( $path === 'optml/v2/account/complete_register_remote'
-				&& isset( $response['error'] ) ) {
-				if ( strpos( $response['error'], 'This email address is already registered.' ) !== false ) { ) {
+			if ( $path === 'optml/v2/account/complete_register_remote' && isset( $response['error'] ) ) {
+				if ( strpos( $response['error'], 'This email address is already registered.' ) !== false ) {
 					return 'email_registered';
 				}
 
