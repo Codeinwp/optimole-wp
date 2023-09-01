@@ -921,6 +921,12 @@ class Optml_Dam {
 			return $file;
 		}
 
+		$metadata = wp_get_attachment_metadata( $id );
+
+		if ( isset( $metadata['file'] ) ) {
+			return $metadata['file'];
+		}
+
 		return true;
 	}
 }
