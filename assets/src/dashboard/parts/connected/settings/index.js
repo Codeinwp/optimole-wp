@@ -25,12 +25,15 @@ import { toggleDamSidebarLink } from '../../../utils/helpers';
 
 const Settings = ({
 	tab,
-	setTab
+	setTab,
+	canSave,
+	setCanSave,
+	settings,
+	setSettings
 }) => {
 	const {
 		siteSettings,
 		isLoading,
-		extraVisits,
 		damEnabled
 	} = useSelect( select => {
 		const {
@@ -43,24 +46,14 @@ const Settings = ({
 
 		return {
 			siteSettings,
-			extraVisits: siteSettings['banner_frontend'],
 			damEnabled: siteSettings['cloud_images'],
 			isLoading: isLoading(),
 			queryArgs: getQueryArgs()
 		};
 	});
 
-	const [ settings, setSettings ] = useState( siteSettings );
-	const [ canSave, setCanSave ] = useState( false );
 	const [ showSample, setShowSample ] = useState( false );
 	const [ isSampleLoading, setIsSampleLoading ] = useState( false );
-
-	useEffect( () => {
-		setSettings({
-			...settings,
-			banner_frontend: extraVisits
-		});
-	}, [ extraVisits ]);
 
 	useEffect( () => {
 		toggleDamSidebarLink( 'enabled' === damEnabled );
