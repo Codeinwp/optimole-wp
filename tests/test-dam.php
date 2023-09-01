@@ -177,6 +177,27 @@ class Test_Dam extends WP_UnitTestCase {
 		}
 	}
 
+	public function test_insert_edits() {
+		$ids = $this->inserted_ids;
+
+		$this->assertIsArray( $ids );
+		$this->assertNotEmpty( $ids );
+
+		$edit = self::MOCK_ATTACHMENTS[0];
+		$edit['isEdit'] = true;
+
+		// An edit is inserted regardless if the image is already in the media library.
+		$inserted_edit = $this->dam->insert_attachments( [$edit] );
+		$this->assertIsArray( $inserted_edit );
+		$this->assertNotEmpty( $inserted_edit );
+		$this->assertNotContains( $ids, $inserted_edit );
+
+		// Another edit should be inserted regardless if it's the same image.
+		$another_inserted_edit = $this->dam->insert_attachments( [$edit] );
+		$this->assertNotEquals( $inserted_edit, $another_inserted_edit );
+		$this->assertNotEquals( $inserted_edit[0], $another_inserted_edit[0] );
+	}
+
 	public function test_dam_size_gravity_replacer() {
 		$url_map = [
 			'https://cloudUrlTest.test/w:auto/h:auto/q:auto/id:testId/https://test-site.test/9.jpg' => [
