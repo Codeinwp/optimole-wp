@@ -31,6 +31,7 @@ class Optml_Dam {
 
 	const OM_DAM_IMPORTED_FLAG = 'om-dam-imported';
 	const URL_DAM_FLAG = '/dam:1';
+	const IS_EDIT_FLAG = 'om-dam-edit';
 
 	/**
 	 * Optml_Dam constructor.
@@ -107,7 +108,7 @@ class Optml_Dam {
 		$existing = $this->check_existing_attachments( $images );
 
 		foreach ( $images as $image ) {
-			if ( array_key_exists( $image['meta']['resourceS3'], $existing ) ) {
+			if ( ! isset( $image['isEdit'] ) && array_key_exists( $image['meta']['resourceS3'], $existing ) ) {
 				$ids[] = $existing[ $image['meta']['resourceS3'] ];
 
 				continue;
@@ -149,6 +150,10 @@ class Optml_Dam {
 		}
 
 		update_post_meta( $id, self::OM_DAM_IMPORTED_FLAG, $image['meta']['resourceS3'] );
+
+		if ( isset( $image['isEdit'] ) ) {
+			update_post_meta( $id, self::IS_EDIT_FLAG, true );
+		}
 
 		$metadata = [];
 
@@ -478,6 +483,11 @@ class Optml_Dam {
 		// Also ensures that if there are multiple attachments with the same S3 ID, we only get the one.
 		// Shouldn't happen, but just in case.
 		foreach ( $found_attachments as $attachment ) {
+			// Skip edits.
+			if ( ! empty( get_post_meta( $attachment->post_id, self::OM_DAM_IMPORTED_FLAG, true ) ) ) {
+				continue;
+			}
+
 			$map[ $attachment->meta_value ] = (int) $attachment->post_id;
 		}
 
