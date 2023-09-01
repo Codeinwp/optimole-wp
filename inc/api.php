@@ -173,10 +173,14 @@ final class Optml_Api {
 		}
 
 		if ( intval( $response['code'] ) !== 200 ) {
-			if ( $path === 'optml/v2/account/complete_register_remote'
-				&& isset( $response['error'] )
-				&& strpos( $response['error'], 'This email address is already registered.' ) !== false ) {
-				return 'email_registered';
+			if ( $path === 'optml/v2/account/complete_register_remote' && isset( $response['error'] ) ) {
+				if ( strpos( $response['error'], 'This email address is already registered.' ) !== false ) {
+					return 'email_registered';
+				}
+
+				if ( $response['error'] === 'ERROR: Site already whitelisted.' ) {
+					return 'site_exists';
+				}
 			}
 
 			if ( $path === '/optml/v2/account/details'

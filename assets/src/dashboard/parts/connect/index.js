@@ -78,6 +78,13 @@ const ConnectLayout = () => {
 						return;
 					}
 
+					if ( 'site_exists' === response.code ) {
+						setErrors({
+							'site_exists': response.message
+						});
+						return;
+					}
+
 					if ( 'success' !== response.code )  {
 						if ( response.message ) {
 							setErrors({
@@ -112,6 +119,13 @@ const ConnectLayout = () => {
 				if ( 'email_registered' === response.code ) {
 					setErrors({
 						'email_registered': response.message
+					});
+					return;
+				}
+
+				if ( 'site_exists' === response.code ) {
+					setErrors({
+						'site_exists': response.message
 					});
 					return;
 				}
