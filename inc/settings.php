@@ -95,7 +95,8 @@ class Optml_Settings {
 		'banner_frontend'      => 'disabled',
 		'offloading_status'    => 'disabled',
 		'rollback_status'      => 'disabled',
-
+		'best_format'          => 'enabled',
+		'placeholder_color'    => '',
 	];
 	/**
 	 * Option key.
@@ -258,6 +259,7 @@ class Optml_Settings {
 				case 'banner_frontend':
 				case 'offloading_status':
 				case 'rollback_status':
+				case 'best_format':
 					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
 				case 'max_width':
@@ -310,6 +312,7 @@ class Optml_Settings {
 					}
 					break;
 				case 'watchers':
+				case 'placeholder_color':
 					$sanitized_value = sanitize_text_field( $value );
 					break;
 				case 'skip_lazyload_images':
@@ -513,6 +516,8 @@ class Optml_Settings {
 			'banner_frontend'      => $this->get( 'banner_frontend' ),
 			'offloading_status'    => $this->get( 'offloading_status' ),
 			'rollback_status'      => $this->get( 'rollback_status' ),
+			'best_format'         => $this->get( 'best_format' ),
+			'placeholder_color'   => $this->get( 'placeholder_color' ),
 		];
 	}
 
@@ -575,6 +580,15 @@ class Optml_Settings {
 	 */
 	public function is_smart_cropping() {
 		return $this->get( 'resize_smart' ) === 'enabled';
+	}
+
+	/**
+	 * Check if best format is enabled.
+	 *
+	 * @return bool
+	 */
+	public function is_best_format() {
+		return $this->get( 'best_format' ) === 'enabled';
 	}
 
 	/**
@@ -695,5 +709,53 @@ class Optml_Settings {
 				'default'           => '{}',
 			]
 		);
+	}
+
+	/**
+	 * Clear cache.
+	 *
+	 * @param string $type Cache type.
+	 *
+	 * @return string|WP_Error
+	 */
+	public function clear_cache( $type = '' ) {
+		$token = $this->get( 'cache_buster' );
+		$token_images = $this->get( 'cache_buster_images' );
+
+		if ( ! empty( $token_images ) ) {
+			$token = $token_images;
+		}
+
+		if ( ! empty( $type ) && $type === 'assets' ) {
+			$token = $this->get( 'cache_buster_assets' );
+		}
+
+		$request  = new Optml_Api();
+		$data     = $request->get_cache_token( $token, $type );
+
+		if ( $data === false || is_wp_error( $data ) || empty( $data ) || ! isset( $data['token'] ) ) {
+			$extra = '';
+
+			if ( is_wp_error( $data ) ) {
+				/**
+				 * Error from api.
+				 *
+				 * @var WP_Error $data Error object.
+				 */
+				$extra = sprintf( __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
+			}
+
+			return new WP_Error( 'optimole_cache_buster_error', __( 'Can not get new token from Optimole service', 'optimole-wp' ) . $extra );
+		}
+
+		if ( ! empty( $type ) && $type === 'assets' ) {
+			set_transient( 'optml_cache_lock_assets', 'yes', 5 * MINUTE_IN_SECONDS );
+			$this->update( 'cache_buster_assets', $data['token'] );
+		} else {
+			set_transient( 'optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS );
+			$this->update( 'cache_buster_images', $data['token'] );
+		}
+
+		return $data['token'];
 	}
 }

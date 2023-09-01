@@ -30,6 +30,7 @@ class Optml_Dam {
 	private $dam_endpoint = 'https://dashboard.optimole.com/dam';
 
 	const OM_DAM_IMPORTED_FLAG = 'om-dam-imported';
+	const URL_DAM_FLAG = '/dam:1';
 
 	/**
 	 * Optml_Dam constructor.
@@ -60,6 +61,8 @@ class Optml_Dam {
 		add_filter( 'image_downsize', [ $this, 'catch_downsize' ], 10, 3 );
 		add_filter( 'wp_prepare_attachment_for_js', [$this, 'alter_attachment_for_js'], 10, 3 );
 		add_filter( 'wp_image_src_get_dimensions', [$this, 'alter_img_tag_w_h'], 10, 4 );
+		add_filter( 'get_attached_file', [$this, 'alter_attached_file_response'], 10, 2 );
+
 		add_filter(
 			'elementor/image_size/get_attachment_image_html',
 			[
@@ -208,6 +211,15 @@ class Optml_Dam {
 		// Use the original size if the requested size is full.
 		if ( $size === 'full' ) {
 			$metadata = wp_get_attachment_metadata( $attachment_id );
+
+			$image_url = $this->replace_dam_url_args(
+				[
+					'width'  => $metadata['width'],
+					'height' => $metadata['height'],
+					'crop'   => false,
+				],
+				$image_url
+			);
 
 			return [
 				$image_url,
@@ -363,6 +375,10 @@ class Optml_Dam {
 		if ( $is_svg ) {
 			$metadata['width']  = 150;
 			$metadata['height'] = 150;
+		}
+
+		if ( ! isset( $metadata['height'] ) || ! isset( $metadata['width'] ) ) {
+			return $metadata;
 		}
 
 		foreach ( $sizes as $size => $args ) {
@@ -774,6 +790,14 @@ class Optml_Dam {
 			);
 		}
 
+		$url_args = [
+			'height' => $response['height'],
+			'width'  => $response['width'],
+			'crop'   => false,
+		];
+
+		$response['url'] = $this->replace_dam_url_args( $url_args, $response['url'] );
+
 		return $response;
 	}
 
@@ -836,16 +860,24 @@ class Optml_Dam {
 	 * @return string
 	 */
 	public function replace_dam_url_args( $args, $subject ) {
-		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'crop' => false] );
+		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'crop' => false, 'dam' => true] );
 
 		$width = $args['width'];
 		$height = $args['height'];
 		$crop = (bool) $args['crop'];
 
-		$gravity = 'ce';
+		$gravity = Optml_Resize::GRAVITY_CENTER;
 
 		if ( $this->settings->get( 'resize_smart' ) === 'enabled' ) {
-			$gravity = 'sm';
+			$gravity = Optml_Resize::GRAVITY_SMART;
+		}
+
+		if ( $width === 0 ) {
+			$width = 'auto';
+		}
+
+		if ( $height === 0 ) {
+			$height = 'auto';
 		}
 
 		// Use the proper replacement for the image size.
@@ -857,6 +889,28 @@ class Optml_Dam {
 
 		$replacement .= '/q:';
 
+		if ( $args['dam'] ) {
+			$replacement = self::URL_DAM_FLAG . $replacement;
+		}
+
 		return preg_replace( '/\/w:(.*)\/h:(.*)\/q:/', $replacement, $subject );
+	}
+
+	/**
+	 * Elementor checks if the file exists before requesting a specific image size.
+	 *
+	 * Needed because otherwise there won't be any width/height on the `img` tags, breaking lazyload.
+	 *
+	 * @param string $file The file path.
+	 * @param int    $id The attachment ID.
+	 *
+	 * @return bool|string
+	 */
+	public function alter_attached_file_response( $file, $id ) {
+		if ( ! $this->is_dam_imported_image( $id ) ) {
+			return $file;
+		}
+
+		return true;
 	}
 }
