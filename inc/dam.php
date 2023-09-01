@@ -484,7 +484,7 @@ class Optml_Dam {
 		// Shouldn't happen, but just in case.
 		foreach ( $found_attachments as $attachment ) {
 			// Skip edits.
-			if ( ! empty( get_post_meta( $attachment->post_id, self::OM_DAM_IMPORTED_FLAG, true ) ) ) {
+			if ( ! empty( get_post_meta( $attachment->post_id, self::IS_EDIT_FLAG, true ) ) ) {
 				continue;
 			}
 
