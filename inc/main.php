@@ -93,6 +93,8 @@ final class Optml_Main {
 			add_filter( 'optimole_wp_feedback_review_message', [ __CLASS__, 'change_review_message' ] );
 			add_filter( 'optimole_wp_logger_heading', [ __CLASS__, 'change_review_message' ] );
 			add_filter( 'optml_register_conflicts', [ __CLASS__, 'register_conflicts' ] );
+			add_filter( 'wp_generate_attachment_metadata', [ __CLASS__, 'manage_image_update' ], 10, 2 );
+
 			self::$_instance          = new self();
 			self::$_instance->manager = Optml_Manager::instance();
 			self::$_instance->rest    = new Optml_Rest();
@@ -212,6 +214,58 @@ final class Optml_Main {
 		}
 
 		set_transient( 'optml_fresh_install', true, MINUTE_IN_SECONDS );
+	}
+
+	/**
+	 * Manage image update.
+	 *
+	 * @param array $metadata Image metadata.
+	 * @param int   $attachment_id Attachment ID.
+	 *
+	 * @return array
+	 */
+	public static function manage_image_update( $metadata, $attachment_id ) {
+		if ( ! isset( $metadata['file'] ) ) {
+			return $metadata;
+		}
+
+		// Check if we've already processed this image update.
+		if ( false !== get_transient( 'optml_processed_image_update' . $attachment_id ) ) {
+			return $metadata;
+		}
+
+		$upload_dir = wp_get_upload_dir();
+		$file_path = $upload_dir['basedir'] . '/' . $metadata['file'];
+
+		// Ensure the file exists.
+		if ( ! file_exists( $file_path ) ) {
+			return $metadata;
+		}
+
+		$current_hash = md5_file( $file_path );
+		$previous_hash = get_post_meta( $attachment_id, '_image_file_hash', true );
+
+		// If previous hash is empty, this is a new image. Return early.
+		if ( empty( $previous_hash ) ) {
+			update_post_meta( $attachment_id, '_image_file_hash', $current_hash );
+
+			return $metadata;
+		}
+
+		// If the hashes don't match or there's no previous hash, the image is updated.
+		if ( $current_hash !== $previous_hash ) {
+			update_post_meta( $attachment_id, '_image_file_hash', $current_hash );
+
+			$request = new Optml_Api();
+			$image = wp_get_attachment_url( $attachment_id );
+			$request->create_invalidation([ $image ]);
+		}
+
+		// Set a transient to mark that we've processed this image update. 
+		// Expiring it after a minutes is reasonable.
+		set_transient( 'optml_processed_image_update' . $attachment_id, true, MINUTE_IN_SECONDS );
+
+		return $metadata;
 	}
 
 	/**

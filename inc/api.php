@@ -469,6 +469,40 @@ final class Optml_Api {
 	}
 
 	/**
+	 * Create invalidation request.
+	 * 
+	 * @param array $urls The urls to invalidate.
+	 * 
+	 * @return array|WP_Error
+	 */
+	public function create_invalidation( $urls ) {
+		$settings = new Optml_Settings();
+		$service_data = $settings->get( 'service_data' );
+		$app_key = '';
+		$domains = [];
+
+		if ( isset( $service_data['cdn_key'] ) ) {
+			$app_key = $service_data['cdn_key'];
+		}
+
+		$domains[] = get_home_url();
+
+		if ( empty( $app_key ) ) {
+			return new WP_Error( 'no_app_key', __( 'No app key found.', 'optimole-wp' ) );
+		}
+
+		return $this->request(
+			'/optml/v1/cache/invalidate',
+			'POST',
+			[
+				'URLs' => $urls,
+				'application' => $app_key,
+				'domains' => $domains,
+			]
+		);
+	}
+
+	/**
 	 * Throw error on object clone
 	 *
 	 * The whole idea of the singleton design pattern is that there is a single
