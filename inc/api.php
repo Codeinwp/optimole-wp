@@ -492,7 +492,7 @@ final class Optml_Api {
 		}
 
 		return $this->request(
-			'/optml/v1/cache/invalidate',
+			'/optml/v2/cache/invalidate',
 			'POST',
 			[
 				'URLs' => $urls,
