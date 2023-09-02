@@ -258,10 +258,10 @@ final class Optml_Main {
 
 			$request = new Optml_Api();
 			$image = wp_get_attachment_url( $attachment_id );
-			$request->create_invalidation([ $image ]);
+			$request->create_invalidation( [ $image ] );
 		}
 
-		// Set a transient to mark that we've processed this image update. 
+		// Set a transient to mark that we've processed this image update.
 		// Expiring it after a minutes is reasonable.
 		set_transient( 'optml_processed_image_update' . $attachment_id, true, MINUTE_IN_SECONDS );
 

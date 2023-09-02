@@ -470,9 +470,9 @@ final class Optml_Api {
 
 	/**
 	 * Create invalidation request.
-	 * 
+	 *
 	 * @param array $urls The urls to invalidate.
-	 * 
+	 *
 	 * @return array|WP_Error
 	 */
 	public function create_invalidation( $urls ) {
