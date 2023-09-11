@@ -63,6 +63,9 @@ class Optml_Admin {
 		if ( ! function_exists( 'is_wpcom_vip' ) ) {
 			add_filter( 'upload_mimes', [ $this, 'allow_meme_types' ] ); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
 		}
+
+		add_filter( 'wp_generate_attachment_metadata', [ $this, 'manage_image_update' ], 10, 2 );
+		add_action( 'optml_invalidate_image', [ $this, 'invalidate_image' ], 10, 2 );
 	}
 
 	/**
@@ -1381,5 +1384,98 @@ The root cause might be either a security plugin which blocks this feature or so
 	public function allow_meme_types( $mimes ) {
 		$mimes['svg']  = 'image/svg+xml';
 		return $mimes;
+	}
+
+	/**
+	 * Manage image update.
+	 *
+	 * @param array $metadata Image metadata.
+	 * @param int   $attachment_id Attachment ID.
+	 *
+	 * @return array
+	 */
+	public function manage_image_update( $metadata, $attachment_id ) {
+		if ( ! isset( $metadata['file'] ) ) {
+			return $metadata;
+		}
+
+		// Check if we've already processed this image update.
+		if ( false !== get_transient( 'optml_processed_image_update' . $attachment_id ) ) {
+			return $metadata;
+		}
+
+		$upload_dir = wp_get_upload_dir();
+		$file_path = $upload_dir['basedir'] . '/' . $metadata['file'];
+
+		// Ensure the file exists.
+		if ( ! file_exists( $file_path ) ) {
+			return $metadata;
+		}
+
+		$current_hash = md5_file( $file_path );
+		$previous_hash = get_post_meta( $attachment_id, '_image_file_hash', true );
+
+		// If previous hash is empty, this is a new image. Return early.
+		if ( empty( $previous_hash ) ) {
+			update_post_meta( $attachment_id, '_image_file_hash', $current_hash );
+
+			return $metadata;
+		}
+
+		// If the hashes don't match or there's no previous hash, the image is updated.
+		if ( $current_hash !== $previous_hash ) {
+			update_post_meta( $attachment_id, '_image_file_hash', $current_hash );
+
+			$image = wp_get_attachment_url( $attachment_id );
+
+			// Make an HTTP request to image
+			$time = time();
+			Optml_Url_Replacer::instance()->init();
+			$cdn_url = apply_filters( 'optml_content_url', $image );
+			$cdn_url = add_query_arg( 'ver', $time, $cdn_url );
+
+			$req = wp_remote_get( $cdn_url );
+			// Confirm the request was a 302 redirect
+			if ( 302 !== wp_remote_retrieve_response_code( $req ) ) {
+				do_action( 'optml_log', 'Optimole: Image update failed.' );
+				return $metadata;
+			}
+
+			do_action( 'optml_log', 'Optimole: Image update.' );
+
+			// Setup a cron job to invalidate the image after a 45 seconds gap.
+			wp_schedule_single_event( time() + 45, 'optml_invalidate_image', [ $image, $time ] );
+		}
+
+		// Set a transient to mark that we've processed this image update.
+		// Expiring it after a minutes is reasonable.
+		set_transient( 'optml_processed_image_update' . $attachment_id, true, MINUTE_IN_SECONDS );
+
+		return $metadata;
+	}
+
+	/**
+	 * Invalidate image.
+	 *
+	 * @param string $image Image URL.
+	 * @param int    $time Time.
+	 */
+	public function invalidate_image( $image, $time ) {
+		// Make an HTTP request to $image and confirm the request was a 200.
+		Optml_Url_Replacer::instance()->init();
+		$cdn_url = apply_filters( 'optml_content_url', $image );
+		$cdn_url = add_query_arg( 'ver', $time, $cdn_url );
+
+		$req = wp_remote_get( $cdn_url );
+
+		if ( 200 !== wp_remote_retrieve_response_code( $req ) ) {
+			do_action( 'optml_log', 'Optimole: Image invalidation failed.' );
+			return;
+		}
+
+		do_action( 'optml_log', 'Optimole: Image invalidation.' );
+
+		$request = new Optml_Api();
+		$request->create_invalidation( [ $image ] );
 	}
 }
