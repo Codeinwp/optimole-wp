@@ -1034,7 +1034,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $image;
 		}
 
-		if( $this->is_dam_import( $attachment_id ) ) {
+		if ( $this->is_dam_import( $attachment_id ) ) {
 			return $image;
 		}
 
@@ -1088,7 +1088,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public function generate_image_meta( $meta, $attachment_id ) {
 
-		if( $this->is_dam_import( $attachment_id ) ) {
+		if ( $this->is_dam_import( $attachment_id ) ) {
 			return $meta;
 		}
 

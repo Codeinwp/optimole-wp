@@ -924,13 +924,13 @@ class Optml_Dam {
 		$metadata = wp_get_attachment_metadata( $id );
 
 		if ( isset( $metadata['file'] ) ) {
-            if( $this->is_attachment_edit_page( $id ) ) {
-                $uploads = wp_get_upload_dir();
+			if ( $this->is_attachment_edit_page( $id ) ) {
+				$uploads = wp_get_upload_dir();
 
-                return preg_replace( '/\/id:.*?\//', $uploads['basedir'] . '/', $metadata['file'] );
-            }
+				return preg_replace( '/\/id:.*?\//', $uploads['basedir'] . '/', $metadata['file'] );
+			}
 
-            return $metadata['file'];
+			return $metadata['file'];
 		}
 
 		return true;
