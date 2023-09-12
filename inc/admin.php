@@ -15,6 +15,10 @@
  */
 class Optml_Admin {
 	use Optml_Normalizer;
+
+	const IMAGE_DATA_COLLECTED = 'optml_image_data_collected';
+
+	const IMAGE_DATA_COLLECTED_BATCH = 100;
 	/**
 	 * Hold the settings object.
 	 *
@@ -51,6 +55,12 @@ class Optml_Admin {
 
 		if ( $this->settings->is_connected() ) {
 			add_action( 'init', [$this, 'check_domain_change'] );
+			add_action( 'optml_pull_image_data_init', [$this, 'pull_image_data_init'] );
+			add_action( 'optml_pull_image_data', [$this, 'pull_image_data'] );
+			add_filter( 'wp_insert_attachment_data', [$this, 'detect_image_title_changes'], 10, 4 );
+			add_action( 'updated_post_meta', [$this, 'detect_image_alt_change' ], 10, 4 );
+			add_action( 'added_post_meta', [$this, 'detect_image_alt_change'], 10, 4 );
+			add_action( 'init', [ $this, 'schedule_data_enhance_cron' ] );
 		}
 		add_action( 'init', [ $this, 'update_default_settings' ] );
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
@@ -64,7 +74,113 @@ class Optml_Admin {
 			add_filter( 'upload_mimes', [ $this, 'allow_meme_types' ] ); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
 		}
 	}
+	/**
+	 * Schedules the hourly cron that starts the querying for images alt/title attributes
+	 *
+	 * @uses action: init
+	 */
+	public function schedule_data_enhance_cron() {
+		if ( ! wp_next_scheduled( 'optml_pull_image_data_init' ) ) {
+			wp_schedule_event( time(), 'hourly', 'optml_pull_image_data_init' );
+		}
+	}
 
+	/**
+	 * Query the database for images and extract the alt/title to send them to the API
+	 *
+	 * @uses action: optml_pull_image_data
+	 */
+	public function pull_image_data() {
+		// Get all image attachments that are not processed
+		$args = [
+			'post_type' => 'attachment',
+			'post_mime_type' => 'image',
+			'posts_per_page' => self::IMAGE_DATA_COLLECTED_BATCH,
+			'meta_query' => [
+				'relation' => 'AND',
+				[
+					'key' => self::IMAGE_DATA_COLLECTED,
+					'compare' => 'NOT EXISTS',
+				],
+			],
+		];
+		$attachments = get_posts( $args );
+
+		$image_data = [];
+
+		foreach ( $attachments as $attachment ) {
+			// Get image URL, alt, and title
+			$image_url = wp_get_attachment_url( $attachment->ID );
+			$image_alt = get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true );
+			$image_title = $attachment->post_title;
+			$image_data[ $image_url ] = [];
+
+			if ( ! empty( $image_alt ) ) {
+				$image_data[ $image_url ]['alt'] = $image_alt;
+			}
+			if ( ! empty( $image_title ) ) {
+				$image_data[ $image_url ]['title'] = $image_title;
+			}
+			if ( empty( $image_data[ $image_url ] ) ) {
+				unset( $image_data[ $image_url ] );
+			}
+
+			// Mark the image as processed
+			update_post_meta( $attachment->ID, self::IMAGE_DATA_COLLECTED, 'yes' );
+		}
+
+		if ( ! empty( $image_data ) ) {
+			$api = new Optml_Api();
+			$api->call_data_enrich_api( $image_data );
+		}
+		if ( ! empty( $attachments ) ) {
+			wp_schedule_single_event( time() + 5, 'optml_pull_image_data' );
+		}
+	}
+
+	/**
+	 * Schedule the event to pull image alt/title
+	 *
+	 * @uses action: optml_pull_image_data_init
+	 */
+	public function pull_image_data_init() {
+		if ( ! wp_next_scheduled( 'optml_pull_image_data' ) ) {
+			wp_schedule_single_event( time() + 5, 'optml_pull_image_data' );
+		}
+	}
+
+	/**
+	 * Delete the processed meta from an image when the alt text is changed
+	 *
+	 * @uses action: updated_post_meta, added_post_meta
+	 */
+	public function detect_image_alt_change( $meta_id, $post_id, $meta_key, $meta_value ) {
+
+		// Check if the updated metadata is for alt text and it's an attachment
+		if ( $meta_key === '_wp_attachment_image_alt' && get_post_type( $post_id ) === 'attachment' ) {
+			delete_post_meta( $post_id, self::IMAGE_DATA_COLLECTED );
+		}
+	}
+	/**
+	 * Delete the processed meta from an image when the title is changed
+	 *
+	 * @uses filter: wp_insert_attachment_data
+	 */
+	public function detect_image_title_changes( $data, $postarr, $unsanitized_postarr, $update ) {
+
+		// Check if it's an attachment being updated
+		if ( $data['post_type'] !== 'attachment' ) {
+			return $data;
+		}
+		if ( ! isset( $postarr['ID'] ) ) {
+			return $data;
+		}
+		if ( isset( $postarr['post_title'] ) && isset( $postarr['original_post_title'] ) && $postarr['post_title'] !== $postarr['original_post_title'] ) {
+			delete_post_meta( $postarr['ID'], self::IMAGE_DATA_COLLECTED );
+		}
+
+		return $data;
+	}
 	/**
 	 * Init no_script setup value based on whether the user is connected or not.
 	 */
