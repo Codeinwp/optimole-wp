@@ -951,7 +951,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		// Skip if the image was imported from cloud library.
-		if ( ! empty( get_post_meta( $post_id, Optml_Dam::OM_DAM_IMPORTED_FLAG, true ) ) ) {
+		if ( $this->is_dam_import( $post_id ) ) {
 			return;
 		}
 
@@ -991,7 +991,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		// Skip DAM attachment filtering.
-		if ( ! empty( get_post_meta( $attachment_id, Optml_Dam::OM_DAM_IMPORTED_FLAG, true ) ) ) {
+		if ( $this->is_dam_import( $attachment_id ) ) {
 			return $url;
 		}
 
@@ -1033,6 +1033,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( self::$return_original_url === true ) {
 			return $image;
 		}
+
+		if( $this->is_dam_import( $attachment_id ) ) {
+			return $image;
+		}
+
 		$sizes2crop  = self::size_to_crop();
 		if ( wp_attachment_is( 'video', $attachment_id ) && doing_action( 'wp_insert_post_data' ) ) {
 			return $image;
@@ -1082,6 +1087,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @uses filter:wp_generate_attachment_metadata
 	 */
 	public function generate_image_meta( $meta, $attachment_id ) {
+
+		if( $this->is_dam_import( $attachment_id ) ) {
+			return $meta;
+		}
 
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', 'called generate meta' );
@@ -1735,5 +1744,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				]
 			);
 		}
+	}
+
+	/**
+	 * Check if the attachment is a DAM import.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 *
+	 * @return bool
+	 */
+	private function is_dam_import( $attachment_id ) {
+		return ! empty( get_post_meta( $attachment_id, Optml_Dam::OM_DAM_IMPORTED_FLAG, true ) );
 	}
 }
