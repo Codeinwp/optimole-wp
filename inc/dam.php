@@ -911,6 +911,8 @@ class Optml_Dam {
 	 *
 	 * Needed because otherwise there won't be any width/height on the `img` tags, breaking lazyload.
 	 *
+	 * Also needed because some
+	 *
 	 * @param string $file The file path.
 	 * @param int    $id The attachment ID.
 	 *
@@ -924,13 +926,9 @@ class Optml_Dam {
 		$metadata = wp_get_attachment_metadata( $id );
 
 		if ( isset( $metadata['file'] ) ) {
-			if ( $this->is_attachment_edit_page( $id ) ) {
-				$uploads = wp_get_upload_dir();
+			$uploads = wp_get_upload_dir();
 
-				return preg_replace( '/\/id:.*?\//', $uploads['basedir'] . '/', $metadata['file'] );
-			}
-
-			return $metadata['file'];
+			return $uploads['basedir'] . '/' . $metadata['file'];
 		}
 
 		return true;
