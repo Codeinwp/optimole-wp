@@ -10,10 +10,16 @@ import {
 	__experimentalNumberControl as NumberControl,
 	BaseControl,
 	TextareaControl,
-	ToggleControl
+	ToggleControl,
+	ColorPicker,
+	ColorIndicator,
+	Button,
+	Popover
 } from '@wordpress/components';
 
 import { useSelect } from '@wordpress/data';
+
+import { useState } from '@wordpress/element';
 
 const Lazyload = ({
 	settings,
@@ -34,6 +40,9 @@ const Lazyload = ({
 	const isBGReplacerEnabled = 'disabled' !== settings[ 'bg_replacer' ];
 	const isVideoLazyloadEnabled = 'disabled' !== settings[ 'video_lazyload' ];
 	const isNoScriptEnabled = 'disabled' !== settings[ 'no_script' ];
+	const placeholderColor = settings[ 'placeholder_color' ];
+
+	const [ phPicker, setPhPicker ] = useState( false );
 
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
@@ -49,20 +58,63 @@ const Lazyload = ({
 		setSettings( data );
 	};
 
+	const setColor = ( value ) => {
+		updateValue( 'placeholder_color', value );
+	};
+
 	return (
 		<>
-			<ToggleControl
-				label={ optimoleDashboardApp.strings.options_strings.enable_lazyload_placeholder_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_lazyload_placeholder_desc }
-				checked={ isLazyloadPlaceholderEnabled }
-				disabled={ isLoading }
-				className={ classnames(
-					{
-						'is-disabled': isLoading
-					}
-				) }
-				onChange={ value => updateOption( 'lazyload_placeholder', value ) }
-			/>
+			<BaseControl
+				help={<p dangerouslySetInnerHTML={{ __html: optimoleDashboardApp.strings.options_strings.enable_lazyload_placeholder_desc }}/>}>
+				<ToggleControl
+					label={ optimoleDashboardApp.strings.options_strings.enable_lazyload_placeholder_title }
+					checked={ isLazyloadPlaceholderEnabled }
+					disabled={ isLoading }
+					className={ classnames(
+						{
+							'is-disabled': isLoading
+						}
+					) }
+					onChange={ value => updateOption( 'lazyload_placeholder', value ) }
+				/>
+
+				{isLazyloadPlaceholderEnabled &&
+					<div className="relative inline-block">
+						<Button
+							disabled={isLoading}
+							className="gap-3 my-2 py-3 h-auto rounded text-inherit border-gray-400 border-2 border-solid font-medium"
+							onClick={() => {
+								setPhPicker( ! phPicker );
+							}}
+						>
+							<ColorIndicator colorValue={placeholderColor}/>
+							<span>{optimoleDashboardApp.strings.options_strings.lazyload_placeholder_color}</span>
+						</Button>
+
+						{phPicker &&
+						<Popover
+							placement="bottom"
+							position={'middle center'}
+							variant={'unstyled'}
+							className={'shadow-md border-grayish-blue border border-solid rounded bg-white p-2'}
+							onFocusOutside={() => setPhPicker( false )}
+						>
+							<ColorPicker
+								color={placeholderColor}
+								onChange={setColor}
+								enableAlpha
+								defaultValue=""
+							/>
+							<Button isDestructive={true}
+								className={'w-full text-center flex justify-center' }
+								variant={'secondary'} onClick={() => {
+									setColor( '' );
+								}}>{optimoleDashboardApp.strings.options_strings.clear}</Button>
+						</Popover>
+						}
+					</div>
+				}
+			</BaseControl>
 
 			<hr className="my-8 border-grayish-blue"/>
 

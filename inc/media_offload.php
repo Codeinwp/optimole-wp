@@ -132,7 +132,15 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'media_row_actions', [self::$instance, 'add_inline_media_action'], 10, 2 );
 				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
 				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
-				add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
+
+				// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
+				$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
+				if ( $below_6_0_0 ) {
+					add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert_legacy'], 10, 3 );
+				} else {
+					add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
+				}
+
 				add_action( 'optml_start_processing_images', [self::$instance, 'start_processing_images'], 10, 5 );
 				add_action( 'optml_start_processing_images_by_id', [self::$instance, 'start_processing_images_by_id'], 10, 4 );
 
@@ -191,6 +199,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data as originally passed to wp_insert_post().
 	 * @param bool  $update              Whether this is an existing attachment post being updated.
 	 *
+	 * @see self::insert_legacy() for backwards compatibility with older versions of WordPress < 6.0.0.
+	 *
 	 * @return array
 	 */
 	function insert( $data, $postarr, $unsanitized_postarr, $update ) {
@@ -244,9 +254,18 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		return $data;
 	}
 
-
-
-
+	/**
+	 * Wrapper for the `insert` method for WP versions < 6.0.0.
+	 *
+	 * @param array $data                An array of slashed, sanitized, and processed attachment post data.
+	 * @param array $postarr             An array of slashed and sanitized attachment post data, but not processed.
+	 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data as originally passed to wp_insert_post().
+	 *
+	 * @return array
+	 */
+	function insert_legacy( $data, $postarr, $unsanitized_postarr ) {
+		return $this->insert( $data, $postarr, $unsanitized_postarr, false );
+	}
 
 	/**
 	 * Update offload meta when the page is updated.
@@ -699,6 +718,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		foreach ( $image_ids as $id ) {
+			// Skip DAM attachment filtering.
+			if ( ! empty( get_post_meta( $id, Optml_Dam::OM_DAM_IMPORTED_FLAG, true ) ) ) {
+				continue;
+			}
 			$current_meta = wp_get_attachment_metadata( $id );
 			if ( ! isset( $current_meta['file'] ) || ! self::is_uploaded_image( $current_meta['file'] ) ) {
 				delete_post_meta( $id, 'optimole_offload' );
@@ -928,7 +951,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		// Skip if the image was imported from cloud library.
-		if ( ! empty( get_post_meta( $post_id, Optml_Dam::OM_DAM_IMPORTED_FLAG, true ) ) ) {
+		if ( $this->is_dam_import( $post_id ) ) {
 			return;
 		}
 
@@ -966,6 +989,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! isset( $meta['file'] ) ) {
 			return $url;
 		}
+
+		// Skip DAM attachment filtering.
+		if ( $this->is_dam_import( $attachment_id ) ) {
+			return $url;
+		}
+
 		$file = $meta['file'];
 		if ( self::is_uploaded_image( $file ) ) {
 			$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
@@ -1004,6 +1033,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( self::$return_original_url === true ) {
 			return $image;
 		}
+
+		if ( $this->is_dam_import( $attachment_id ) ) {
+			return $image;
+		}
+
 		$sizes2crop  = self::size_to_crop();
 		if ( wp_attachment_is( 'video', $attachment_id ) && doing_action( 'wp_insert_post_data' ) ) {
 			return $image;
@@ -1053,6 +1087,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @uses filter:wp_generate_attachment_metadata
 	 */
 	public function generate_image_meta( $meta, $attachment_id ) {
+
+		if ( $this->is_dam_import( $attachment_id ) ) {
+			return $meta;
+		}
 
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', 'called generate meta' );
@@ -1706,5 +1744,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				]
 			);
 		}
+	}
+
+	/**
+	 * Check if the attachment is a DAM import.
+	 *
+	 * @param int $attachment_id Attachment ID.
+	 *
+	 * @return bool
+	 */
+	private function is_dam_import( $attachment_id ) {
+		return ! empty( get_post_meta( $attachment_id, Optml_Dam::OM_DAM_IMPORTED_FLAG, true ) );
 	}
 }

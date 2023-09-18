@@ -541,6 +541,10 @@ abstract class Optml_App_Replacer {
 			return false; // @codeCoverageIgnore
 		}
 
+		if ( $this->url_has_dam_flag( $url ) ) {
+			return true;
+		}
+
 		$url_parts = parse_url( $url );
 
 		if ( ! isset( $url_parts['host'] ) ) {
@@ -620,5 +624,16 @@ abstract class Optml_App_Replacer {
 		$optimized_url = ( new Optml_Image( $url, ['width' => $width, 'height' => $height, 'resize' => $resize, 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
 		$optimized_url = str_replace( $url, Optml_Media_Offload::KEYS['not_processed_flag'] . 'media_cloud' . '/' . Optml_Media_Offload::KEYS['uploaded_flag'] . $table_id . '/' . $url, $optimized_url );
 		return $optimized_url;
+	}
+
+	/**
+	 * Test that the url has the dam flag.
+	 *
+	 * @param string $url The image URL to check.
+	 *
+	 * @return bool
+	 */
+	public function url_has_dam_flag( $url ) {
+		return strpos( $url, Optml_Dam::URL_DAM_FLAG ) !== false;
 	}
 }

@@ -55,7 +55,7 @@ class MessageHandler {
 
 		// Wait for the frame to load.
 		this.frame.addEventListener( 'load', () => {
-			document.querySelector( '.om-dam-loader' ).style.display = 'none';
+			document.querySelector( '.om-dam-loader:not([style])' ).style.display = 'none';
 			this.frame.style.display = '';
 			this.frame.classList.add( 'loaded' );
 			window.addEventListener( 'message', self.messageListener );

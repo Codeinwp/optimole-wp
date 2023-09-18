@@ -26,30 +26,38 @@ const ConnectedLayout = ({
 	tab,
 	setTab
 }) => {
-	const [ showConflicts, setShowConflicts ] = useState( false );
-	const [ menu, setMenu ] = useState( 'general' );
-
 	const {
 		isConnected,
 		hasApplication,
-		hasConflicts
+		hasConflicts,
+		siteSettings,
+		extraVisits
 	} = useSelect( select => {
 		const {
 			isConnected,
 			hasApplication,
-			getConflicts
+			getConflicts,
+			getSiteSettings
 		} = select( 'optimole' );
 
 		const conflicts = getConflicts();
+		const siteSettings = getSiteSettings();
 
 		return {
 			isConnected: isConnected(),
 			hasApplication: hasApplication(),
-			hasConflicts: 0 < conflicts.count || 0
+			hasConflicts: 0 < conflicts.count || 0,
+			siteSettings,
+			extraVisits: siteSettings['banner_frontend']
 		};
 	});
 
 	const { setQueryArgs } = useDispatch( 'optimole' );
+
+	const [ showConflicts, setShowConflicts ] = useState( false );
+	const [ menu, setMenu ] = useState( 'general' );
+	const [ canSave, setCanSave ] = useState( false );
+	const [ settings, setSettings ] = useState( siteSettings );
 
 	useEffect( () => {
 		const urlSearchParams = new URLSearchParams( window.location.search );
@@ -85,6 +93,23 @@ const ConnectedLayout = ({
 		}
 	}, [ hasConflicts ]);
 
+	useEffect( () => {
+		setSettings({
+			...settings,
+			banner_frontend: extraVisits
+		});
+	}, [ extraVisits ]);
+
+	useEffect( () => {
+
+		// Confirmation message saying changes might not be saved if user leaves the page.
+		if ( canSave ) {
+			window.onbeforeunload = () => true;
+		} else {
+			window.onbeforeunload = null;
+		}
+	}, [ canSave ]);
+
 	return (
 		<>
 			<div className="optml-connected max-w-screen-xl flex flex-col lg:flex-row mx-auto gap-5">
@@ -99,6 +124,10 @@ const ConnectedLayout = ({
 						<Settings
 							tab={ menu }
 							setTab={ setMenu }
+							canSave={ canSave }
+							setCanSave={ setCanSave }
+							settings={ settings }
+							setSettings={ setSettings }
 						/>
 					) }
 

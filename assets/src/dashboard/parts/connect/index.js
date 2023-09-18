@@ -17,6 +17,8 @@ import {
 	useState
 } from '@wordpress/element';
 
+import { isEmail } from '@wordpress/url';
+
 /**
  * Internal dependencies.
  */
@@ -76,6 +78,13 @@ const ConnectLayout = () => {
 						return;
 					}
 
+					if ( 'site_exists' === response.code ) {
+						setErrors({
+							'site_exists': response.message
+						});
+						return;
+					}
+
 					if ( 'success' !== response.code )  {
 						if ( response.message ) {
 							setErrors({
@@ -88,6 +97,17 @@ const ConnectLayout = () => {
 		}
 	}, []);
 
+	useEffect( () => {
+		if ( 0 === email.length || isEmail( email ) ) {
+
+			// Removing invalid email notice if a valid email is set.
+			if ( errors.invalid_email ) {
+				delete errors.invalid_email;
+				setErrors( errors );
+			}
+		}
+	}, [ email ]);
+
 	const onConnect = () => {
 		setErrors({});
 
@@ -99,6 +119,13 @@ const ConnectLayout = () => {
 				if ( 'email_registered' === response.code ) {
 					setErrors({
 						'email_registered': response.message
+					});
+					return;
+				}
+
+				if ( 'site_exists' === response.code ) {
+					setErrors({
+						'site_exists': response.message
 					});
 					return;
 				}
@@ -162,6 +189,13 @@ const ConnectLayout = () => {
 						value={ email }
 						onChange={ setEmail }
 						className="optml__input"
+						onBlur={ () => {
+							if ( 0 !== email.length && ! isEmail( email ) ) {
+								setErrors({
+									'invalid_email': optimoleDashboardApp.strings.invalid_email
+								});
+							}
+						}}
 					/>
 
 					{ 0 < Object.keys( errors ).length && Object.keys( errors ).map( key => {
@@ -177,7 +211,7 @@ const ConnectLayout = () => {
 					<Button
 						variant="primary"
 						isBusy={ isConnecting }
-						disabled={ isConnecting || 0 === email.length }
+						disabled={ isConnecting || 0 === email.length || ! isEmail( email ) }
 						className="optml__button flex w-full justify-center rounded font-bold min-h-40"
 						onClick={ onConnect }
 					>

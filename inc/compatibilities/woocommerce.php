@@ -23,7 +23,7 @@ class Optml_woocommerce extends Optml_compatibility {
 	 */
 	public function register() {
 		if ( Optml_Main::instance()->admin->settings->use_lazyload() ) {
-			add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_ignore_lazyload' ], PHP_INT_MAX, 1 );
+			add_filter( 'optml_lazyload_early_flags', [ $this, 'add_lazyload_early_flag' ], PHP_INT_MAX, 1 );
 		}
 
 	}
@@ -34,7 +34,7 @@ class Optml_woocommerce extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	public function add_ignore_lazyload( $flags = [] ) {
+	public function add_lazyload_early_flag( $flags = [] ) {
 		$flags[] = 'data-large_image';
 
 		return $flags;
