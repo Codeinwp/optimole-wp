@@ -24,6 +24,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 	<img src="http://example.org/wp-content/plugins/optimole-wp/assets/img/logo4.svg">
 	<img src="http://example.org/wp-content/optimole-wp/assets/img/logo5.gif">
 	 ';
+	const DAM_IMG_TAG = '<img width="100" height="200" src="https://cloudUrlTest.test/dam:1/w:auto/h:auto/q:auto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg">';
 	public function setUp() : void {
 		parent::setUp();
 		$settings = new Optml_Settings();
@@ -266,7 +267,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertNotEquals( $replaced_content, $html );
 		$this->assertStringNotContainsString( 'q:eco/rt:fill/g:ce', $replaced_content );
 		$this->assertStringContainsString( '/rt:fill/g:ce', $replaced_content );
-		$this->assertStringContainsString( '/w:96/h:96/q:eco/f:avif/http://example.org/', $replaced_content );
+		$this->assertStringContainsString( '/w:96/h:96/q:eco/f:best/http://example.org/', $replaced_content );
 
 	}
 
@@ -276,7 +277,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
-		$this->assertEquals( '<img decoding=async  data-opt-src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/f:avif/http://example.org/wp-content/uploads/2018/11/gradient.png"  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:eco/f:avif/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/><noscript><img decoding=async  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/f:avif/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/></noscript>', $replaced_content );
+		$this->assertEquals( '<img decoding=async  data-opt-src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/f:best/http://example.org/wp-content/uploads/2018/11/gradient.png"  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:eco/f:best/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/><noscript><img decoding=async  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/f:best/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/></noscript>', $replaced_content );
 
 	}
 	public function test_check_with_no_script() {
@@ -458,7 +459,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 	}
 
 	public function test_lazyload_iframe() {
-		
+
 		$content = '<figure class="wp-block-embed-youtube wp-block-embed is-type-video is-provider-youtube wp-embed-aspect-16-9 wp-has-aspect-ratio">
 					<div class="wp-block-embed__wrapper">
 					<iframe title="test" width="640" height="360" src="https://www.youtube.com/embed/-HwJNxE7hd8?feature=oembed" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
@@ -508,7 +509,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertStringNotContainsString( 'data-opt-src', $replaced_content_skip );
 	}
 	public function test_lazyload_iframe_noscript_ignore() {
-		
+
 		$content = '<noscript><iframe width="930" height="523" src="http://5c128bbdd3b4.ngrok.io/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
 					</noscript>
 					<noscript><iframe width="930" height="523" src="http://5c128bbdd3b4.ngrok.io/" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen=""></iframe>
@@ -544,5 +545,34 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertStringNotContainsString( 'src="about:blank"', $replaced_content );
 		$this->assertStringNotContainsString( 'data-opt-src', $replaced_content );
 		$this->assertStringNotContainsString( '<noscript>', $replaced_content );
+	}
+
+	public function test_generic_placeholder() {
+		$settings = new Optml_Settings();
+
+		Optml_Manager::instance()->init();
+		$svg = Optml_Manager::instance()->lazyload_replacer->get_svg_for( 1200, 1300, 'http://example.org/testimage.png' );
+		$decoded = urldecode( $svg );
+
+		$this->assertStringContainsString( 'width="1200"', $decoded );
+		$this->assertStringContainsString( 'height="1300"', $decoded );
+		$this->assertStringContainsString( 'fill="transparent"', $decoded );
+
+
+		$settings->update( 'placeholder_color', '#bada55' );
+
+		Optml_Manager::instance()->init();
+		$svg = Optml_Manager::instance()->lazyload_replacer->get_svg_for( '', '', 'http://example.org/testimage.png' );
+		$decoded = urldecode( $svg );
+
+		$this->assertStringContainsString( 'width="100%"', $decoded );
+		$this->assertStringContainsString( 'height="100%"', $decoded );
+		$this->assertStringContainsString( 'fill="#bada55"', $decoded );
+	}
+
+	public function test_dam_lazyloading() {
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::DAM_IMG_TAG );
+
+		$this->assertStringContainsString( 'data-opt-src="https://cloudUrlTest.test/w:100/h:200/rt:fill/g:ce/f:best/q:mauto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg"', $replaced_content );
 	}
 }

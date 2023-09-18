@@ -240,7 +240,7 @@ final class Optml_Manager {
 <path d="M175.074 201.282C173.147 202.888 171.151 204.396 169.055 205.818C167.902 205.283 166.777 204.649 165.737 203.945C165.287 203.649 164.837 203.325 164.415 203.015C161.743 201 159.409 198.619 157.117 196.252C157.004 196.139 156.892 196.026 156.85 195.858C156.807 195.561 157.13 195.266 157.454 195.224C157.792 195.195 158.129 195.308 158.439 195.435C161.996 196.816 165.413 198.619 169.112 199.718C169.534 199.845 169.955 199.957 170.406 200.07C171.966 200.465 173.598 200.352 174.92 201.169C174.948 201.197 175.018 201.226 175.074 201.282Z" fill="#1D445C"/>
 </svg>';
 		$output .= '<span>' . esc_html( $string ) . '</span>';
-		$output .= '</div>';
+		$output .= '</a>';
 
 		echo $output;
 	}
@@ -643,7 +643,7 @@ final class Optml_Manager {
 		$extracted_urls  = array_filter(
 			$extracted_urls,
 			function ( $value ) use ( $slashed_config ) {
-				return strpos( $value, Optml_Config::$service_url ) === false && strpos( $value, $slashed_config ) === false || Optml_Media_Offload::is_not_processed_image( $value );
+				return strpos( $value, Optml_Config::$service_url ) === false && strpos( $value, $slashed_config ) === false || Optml_Media_Offload::is_not_processed_image( $value ) || $this->tag_replacer->url_has_dam_flag( $value );
 			}
 		);
 		$upload_resource = $this->tag_replacer->get_upload_resource();

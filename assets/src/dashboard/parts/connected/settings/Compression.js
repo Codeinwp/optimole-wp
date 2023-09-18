@@ -54,6 +54,7 @@ const Compression = ({
 	const isAVIFEnabled = 'disabled' !== settings.avif;
 	const isStripMetadataEnabled = 'disabled' !== settings[ 'strip_metadata' ];
 	const isAutoQualityEnabled = 'disabled' !== settings.autoquality;
+	const isBestFormatEnabled = 'disabled' !== settings[ 'best_format' ];
 
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
@@ -115,6 +116,22 @@ const Compression = ({
 
 	return (
 		<>
+
+			<ToggleControl
+				label={ optimoleDashboardApp.strings.options_strings.best_format_title }
+				help={ optimoleDashboardApp.strings.options_strings.best_format_desc }
+				checked={ isBestFormatEnabled }
+				disabled={ isLoading }
+				className={ classnames(
+					{
+						'is-disabled': isLoading
+					}
+				) }
+				onChange={ value => updateOption( 'best_format', value ) }
+			/>
+
+			<hr className="my-8 border-grayish-blue"/>
+
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_network_opt_title }
 				help={ optimoleDashboardApp.strings.options_strings.enable_network_opt_desc }

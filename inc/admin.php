@@ -15,6 +15,10 @@
  */
 class Optml_Admin {
 	use Optml_Normalizer;
+
+	const IMAGE_DATA_COLLECTED = 'optml_image_data_collected';
+
+	const IMAGE_DATA_COLLECTED_BATCH = 100;
 	/**
 	 * Hold the settings object.
 	 *
@@ -51,6 +55,12 @@ class Optml_Admin {
 
 		if ( $this->settings->is_connected() ) {
 			add_action( 'init', [$this, 'check_domain_change'] );
+			add_action( 'optml_pull_image_data_init', [$this, 'pull_image_data_init'] );
+			add_action( 'optml_pull_image_data', [$this, 'pull_image_data'] );
+			add_filter( 'wp_insert_attachment_data', [$this, 'detect_image_title_changes'], 10, 4 );
+			add_action( 'updated_post_meta', [$this, 'detect_image_alt_change' ], 10, 4 );
+			add_action( 'added_post_meta', [$this, 'detect_image_alt_change'], 10, 4 );
+			add_action( 'init', [ $this, 'schedule_data_enhance_cron' ] );
 		}
 		add_action( 'init', [ $this, 'update_default_settings' ] );
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
@@ -64,7 +74,113 @@ class Optml_Admin {
 			add_filter( 'upload_mimes', [ $this, 'allow_meme_types' ] ); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
 		}
 	}
+	/**
+	 * Schedules the hourly cron that starts the querying for images alt/title attributes
+	 *
+	 * @uses action: init
+	 */
+	public function schedule_data_enhance_cron() {
+		if ( ! wp_next_scheduled( 'optml_pull_image_data_init' ) ) {
+			wp_schedule_event( time(), 'hourly', 'optml_pull_image_data_init' );
+		}
+	}
 
+	/**
+	 * Query the database for images and extract the alt/title to send them to the API
+	 *
+	 * @uses action: optml_pull_image_data
+	 */
+	public function pull_image_data() {
+		// Get all image attachments that are not processed
+		$args = [
+			'post_type' => 'attachment',
+			'post_mime_type' => 'image',
+			'posts_per_page' => self::IMAGE_DATA_COLLECTED_BATCH,
+			'meta_query' => [
+				'relation' => 'AND',
+				[
+					'key' => self::IMAGE_DATA_COLLECTED,
+					'compare' => 'NOT EXISTS',
+				],
+			],
+		];
+		$attachments = get_posts( $args );
+
+		$image_data = [];
+
+		foreach ( $attachments as $attachment ) {
+			// Get image URL, alt, and title
+			$image_url = wp_get_attachment_url( $attachment->ID );
+			$image_alt = get_post_meta( $attachment->ID, '_wp_attachment_image_alt', true );
+			$image_title = $attachment->post_title;
+			$image_data[ $image_url ] = [];
+
+			if ( ! empty( $image_alt ) ) {
+				$image_data[ $image_url ]['alt'] = $image_alt;
+			}
+			if ( ! empty( $image_title ) ) {
+				$image_data[ $image_url ]['title'] = $image_title;
+			}
+			if ( empty( $image_data[ $image_url ] ) ) {
+				unset( $image_data[ $image_url ] );
+			}
+
+			// Mark the image as processed
+			update_post_meta( $attachment->ID, self::IMAGE_DATA_COLLECTED, 'yes' );
+		}
+
+		if ( ! empty( $image_data ) ) {
+			$api = new Optml_Api();
+			$api->call_data_enrich_api( $image_data );
+		}
+		if ( ! empty( $attachments ) ) {
+			wp_schedule_single_event( time() + 5, 'optml_pull_image_data' );
+		}
+	}
+
+	/**
+	 * Schedule the event to pull image alt/title
+	 *
+	 * @uses action: optml_pull_image_data_init
+	 */
+	public function pull_image_data_init() {
+		if ( ! wp_next_scheduled( 'optml_pull_image_data' ) ) {
+			wp_schedule_single_event( time() + 5, 'optml_pull_image_data' );
+		}
+	}
+
+	/**
+	 * Delete the processed meta from an image when the alt text is changed
+	 *
+	 * @uses action: updated_post_meta, added_post_meta
+	 */
+	public function detect_image_alt_change( $meta_id, $post_id, $meta_key, $meta_value ) {
+
+		// Check if the updated metadata is for alt text and it's an attachment
+		if ( $meta_key === '_wp_attachment_image_alt' && get_post_type( $post_id ) === 'attachment' ) {
+			delete_post_meta( $post_id, self::IMAGE_DATA_COLLECTED );
+		}
+	}
+	/**
+	 * Delete the processed meta from an image when the title is changed
+	 *
+	 * @uses filter: wp_insert_attachment_data
+	 */
+	public function detect_image_title_changes( $data, $postarr, $unsanitized_postarr, $update ) {
+
+		// Check if it's an attachment being updated
+		if ( $data['post_type'] !== 'attachment' ) {
+			return $data;
+		}
+		if ( ! isset( $postarr['ID'] ) ) {
+			return $data;
+		}
+		if ( isset( $postarr['post_title'] ) && isset( $postarr['original_post_title'] ) && $postarr['post_title'] !== $postarr['original_post_title'] ) {
+			delete_post_meta( $postarr['ID'], self::IMAGE_DATA_COLLECTED );
+		}
+
+		return $data;
+	}
 	/**
 	 * Init no_script setup value based on whether the user is connected or not.
 	 */
@@ -1025,6 +1141,7 @@ If you still want to disconnect click the button below.',
 			'back_to_register'                 => __( 'Register account', 'optimole-wp' ),
 			'back_to_connect'                  => __( 'Go to previous step', 'optimole-wp' ),
 			'error_register'                   => sprintf( __( 'Error registering account. You can try again %1$shere%2$s ', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/register" target="_blank"> ', '</a>' ),
+			'invalid_email'                    => __( 'Please use a valid email address.', 'optimole-wp' ),
 			'connected'                        => __( 'CONNECTED', 'optimole-wp' ),
 			'connecting'                       => __( 'CONNECTING', 'optimole-wp' ),
 			'not_connected'                    => __( 'NOT CONNECTED', 'optimole-wp' ),
@@ -1121,6 +1238,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'metricsSubtitle4' => __( 'During last month', 'optimole-wp' ),
 			],
 			'options_strings'                  => [
+				'best_format_title' => __( 'Enable Best Format', 'optimole-wp' ),
+				'best_format_desc'  => __( 'Intelligently selects the optimal image format for you. It analyzes image complexity and tries various formats, including AVIF or WebP, to achieve the smallest file size without compromising quality.', 'optimole-wp' ),
 				'add_filter'                        => __( 'Add filter', 'optimole-wp' ),
 				'add_site'                          => __( 'Add site', 'optimole-wp' ),
 				'admin_bar_desc'                    => __( 'Show in the WordPress admin bar the available quota from Optimole service.', 'optimole-wp' ),
@@ -1152,7 +1271,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_cloud_images_title'         => __( 'Enable cloud library browsing', 'optimole-wp' ),
 				'enable_cloud_images_desc'          => sprintf( __( 'Grant permission for this site to access all images stored in your Optimole account. %1$s More details here%2$s', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://docs.optimole.com/article/1323-cloud-library-browsing">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
 				'enable_image_replace'              => __( 'Enable image replacement', 'optimole-wp' ),
-				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ),
+				'enable_lazyload_placeholder_desc'  => __( 'Enabling this might affect the user experience in some cases, however it will reduce the number of total requests and page weight. Try it out and see how works best for you!', 'optimole-wp' ) . ' ' . sprintf( __( '%1$sMore details here%2$s.', 'optimole-wp' ), '<a target=”_blank” href="https://docs.optimole.com/article/1192-lazy-load-generic-placeholder">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
 				'enable_lazyload_placeholder_title' => __( 'Enable generic lazyload placeholder', 'optimole-wp' ),
 				'enable_network_opt_desc'           => __( 'Optimole provides an option to automatically downgrade the image quality when it detects a slower network.', 'optimole-wp' ),
 				'enable_network_opt_title'          => __( 'Enable network based optimizations', 'optimole-wp' ),
@@ -1164,7 +1283,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_limit_dimensions_title'     => __( 'Limit Image Dimensions with max width/height', 'optimole-wp' ),
 				'enable_limit_dimensions_notice'    => __( 'When you enable this feature to define a max width or height for image resizing, please note that DPR (retina) images will be disabled. This is done to ensure consistency in image dimensions across your website. Although this may result in slightly lower image quality for high-resolution displays, it will help maintain uniform image sizes, improving your website\'s overall layout and potentially boosting performance. ', 'optimole-wp' ),
 				'enable_badge_title'                => __( 'Enable Optimole badge', 'optimole-wp' ),
-				'enable_badge_description'          => sprintf( __( 'Get 20.000 more visits for free by enabling the Optimole badge on your websites. %1$sMore details here%2$s.', 'optimole-wp' ), '<a target=”_blank” href="https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps#settings">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
+				'enable_badge_description'          => sprintf( __( 'Get 20.000 more visits for free by enabling the Optimole badge on your websites. %1$sMore details here%2$s.', 'optimole-wp' ), '<a class="inline-block" target=”_blank” href="https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps#settings">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
 				'image_sizes_title'                 => __( 'Your cropped image sizes', 'optimole-wp' ),
 				'enabled'                           => __( 'Enabled', 'optimole-wp' ),
 				'exclude_class_desc'                => sprintf( __( '%1$sImage tag%2$s contains class', 'optimole-wp' ), '<strong>', '</strong>' ),
@@ -1271,7 +1390,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'select'                            => __( 'Please select one ...', 'optimole-wp' ),
 				'yes'                               => __( 'Restore images after disabling', 'optimole-wp' ),
 				'no'                                => __( 'Do not restore images after disabling', 'optimole-wp' ),
-
+				'lazyload_placeholder_color'        => __( 'Placeholder Color', 'optimole-wp' ),
+				'clear'                             => __( 'Clear', 'optimole-wp' ),
 			],
 			'help'                             => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),

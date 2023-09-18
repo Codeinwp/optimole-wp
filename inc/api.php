@@ -171,12 +171,18 @@ final class Optml_Api {
 		if ( ! isset( $response['code'] ) ) {
 			return false;
 		}
+
 		if ( intval( $response['code'] ) !== 200 ) {
-			if ( $path === 'optml/v2/account/complete_register_remote'
-				&& isset( $response['error'] )
-				&& $response['error'] === 'ERROR: This username is already registered. Please choose another one.' ) {
-				return 'email_registered';
+			if ( $path === 'optml/v2/account/complete_register_remote' && isset( $response['error'] ) ) {
+				if ( strpos( $response['error'], 'This email address is already registered.' ) !== false ) {
+					return 'email_registered';
+				}
+
+				if ( $response['error'] === 'ERROR: Site already whitelisted.' ) {
+					return 'site_exists';
+				}
 			}
+
 			if ( $path === '/optml/v2/account/details'
 				&& isset( $response['code'] ) && $response['code'] === 'not_allowed' ) {
 				return 'disconnect';
@@ -314,6 +320,16 @@ final class Optml_Api {
 		return wp_remote_post( $this->onboard_api_root, $options );
 	}
 
+
+	/**
+	 * Send a list of images with alt/title values to update.
+	 *
+	 * @param array $images List of images.
+	 * @return array
+	 */
+	public function call_data_enrich_api( $images = [] ) {
+		return $this->request( 'optml/v2/media/add_data', 'POST', ['images' => $images, 'key' => Optml_Config::$key] );
+	}
 	/**
 	 * Register user remotely on optimole.com.
 	 *
