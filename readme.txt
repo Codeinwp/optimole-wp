@@ -25,12 +25,18 @@ Optimole [optimizes](https://www.codeinwp.com/blog/how-to-optimize-images/) your
 - Supports both Retina and WebP images
 - Machine Learning(ML) powered automatic compression
 - AVIF format support for lower image size
+- Streamline your media with Optimole's custom DAM (Digital asset Management) solution
 - Cloud image library support
+- Edit images in the cloud library before inserting them into your website
 - Serves images from a global CDN for free
 - Optimizes based on the visitor's actual device (no more guesswork and width estimations)
 - Full support for page builders like Elementor
 - Lazy load without jQuery (better)
-- Fully functional free version (we have paid plans as well)
+- Add a splash of color to your lazy-loading placeholder
+- Hero image optimization for speedier loads
+- Boost wooCommerce gallery performance with Optimole's lazy-loading
+- More file types in the dashboard (video, audio, documents and more)
+- Fully functional free version (we have [paid plans](https://optimole.com/pricing/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole) as well)
 
 You'll be free to concentrate on other aspects of your site with Optimole's set and forget image optimization.
 
@@ -63,6 +69,10 @@ Offload your website images directly to Optimole Cloud and save storage space on
 
 Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size using Machine Learning(ML) powered compression.
 
+### Digital Assets Management (DAM)
+
+Elevate your media management with our custom DAM and utilize images from your Optimole account. The best part? You can now directly incorporate images from your Optimole account into the Elementor Builder. Additionally, we've seamlessly integrated DAM with the WordPress core editor, making image management a breeze. Access your Optimole images effortlessly, wherever you need them.
+
 #### Exact Used Size
 
 Optimole will use just one image and resize it delivering a responsive image to fit perfectly on your visitors' devices. No more awkward guesses at potential screen widths. Serve scaled images instantly.
@@ -76,6 +86,10 @@ Optimole can detect Retina screens and deliver an image with the perfect Digital
 If you'd like to keep the most interesting part of an image; then you can enable smart cropping to help keep the image well-sized without losing focus.
 
 >**Use Case:** Introducing Lisa, a lifestyle blogger who loves sharing her adventures through captivating visuals. With Optimole's Smart Cropping, Lisa's images are automatically resized to fit perfectly within her post layouts. Whether it's a breathtaking mountain landscape or a cosy café scene, Smart Cropping ensures every image tells its story without any hassle. Lisa's blog now shines with effortlessly framed images that capture every moment beautifully.
+
+### Hero Image Optimization
+
+Optimole now goes the extra mile by not just optimizing but also preloading your website’s hero image. This ensures that the most eye-catching element on your page is also the quickest to load, enhancing user experience.
 
 #### No Content Shifting
 
@@ -100,6 +114,14 @@ Optimole loves page builders and has unique tweaks to solve image replacements. 
 Optimole provides free access to an AWS CloudFront CDN with edge locations in more than 450+ cities around the globe.
 
 >**Use Case:** Meet Alex, an online store owner reaching customers globally. With Optimole's CDN, his product images are effortlessly spread across AWS CloudFront's 450+ global edge locations. This means shoppers from Tokyo to New York enjoy super-fast page loads, ensuring a seamless shopping experience and boosting Alex's business success.
+
+### Custom Lazy Load Placeholder Color
+
+Optimole enhances your lazy-loading experience by allowing for customizable placeholder colors. Now your placeholders can be as unique as your website.
+
+### More File Types
+
+No longer confined to just images — Optimole Dashboard now supports uploads for a variety of file types like documents, videos, text, and audio, widening your media capabilities.
 
 ### What About Security?
 
