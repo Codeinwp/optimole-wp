@@ -6,8 +6,8 @@ Cypress.on("uncaught:exception", () => {
   return false;
 });
 
-describe("Check gif page", { browser: 'chrome' }, function () {
-  it("successfully loads", function () {
+describe("Check gif page", { browser: "chrome" }, function () {
+  beforeEach(function () {
     cy.visit("/no-builder/testing-gif-with-video/");
   });
   const nativeLazy = "loading" in HTMLImageElement.prototype;

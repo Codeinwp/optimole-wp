@@ -1,5 +1,5 @@
 describe("Check Divi Background Page", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/divi/");
   });
   //from here
