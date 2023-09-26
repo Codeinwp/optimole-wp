@@ -1,5 +1,5 @@
 describe("Sassy Social Share", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/sassy-social-share/");
   });
   it("click on button", function () {
@@ -8,6 +8,7 @@ describe("Sassy Social Share", function () {
     });
   });
   it("images should not have quality:eco", function () {
+    cy.scrollTo(0, 2500);
     cy.get("img").should(($imgs) => {
       expect($imgs).to.have.length(5);
       expect($imgs.eq(0)).to.have.attr("src").and.to.not.contain("eco");
