@@ -21,6 +21,8 @@ import {
 	requestStatsUpdate
 } from '../../../utils/api';
 
+import ProgressBar from '../../components/ProgressBar';
+
 const isInitialLoading = 'yes' !== optimoleDashboardApp.connection_status;
 
 const Image = ({
@@ -139,7 +141,7 @@ const LastImages = () => {
 			{ ( isInitialLoading && ! isLoaded ) && (
 				<div className="flex items-center flex-col py-2">
 					<p className="font-semibold">{ optimoleDashboardApp.strings.latest_images.loading_latest_images }</p>
-					<progress max={ maxTime } value={ timer } />
+					<ProgressBar max={ maxTime } value={ timer } />
 				</div>
 			) }
 

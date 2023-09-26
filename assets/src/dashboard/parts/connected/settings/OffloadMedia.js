@@ -37,6 +37,8 @@ import {
 	saveSettings
 } from '../../../utils/api';
 
+import ProgressBar from '../../components/ProgressBar';
+
 const maxTime = 100;
 
 const OffloadMedia = ({
@@ -357,7 +359,7 @@ const OffloadMedia = ({
 								<Icon icon={ rotateRight } className="animate-spin fill-dark-blue" />
 							</div>
 
-							<progress
+							<ProgressBar
 								className="mt-2.5 mb-1.5 mx-0"
 								value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
 								max={ maxTime }
@@ -441,7 +443,7 @@ const OffloadMedia = ({
 								<Icon icon={ rotateRight } className="animate-spin fill-dark-blue" />
 							</div>
 
-							<progress
+							<ProgressBar
 								className="mt-2.5 mb-1.5 mx-0"
 								value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
 								max={ maxTime }
