@@ -4,7 +4,7 @@ Cypress.on("uncaught:exception", (err) => {
   }
 });
 describe("Check product page", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/product/test-product/");
   });
   it("Gallery wrapper should have proper data-thumb", function () {
@@ -41,15 +41,18 @@ describe("Check product page", function () {
   });
 });
 describe("Test quick view", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/shop");
     cy.get(".yith-wcqv-button:first").click();
   });
   it("Quick view have optimole images", function () {
-    if (Cypress.isBrowser('firefox')) {
+    if (Cypress.isBrowser("firefox")) {
       this.skip();
     }
-    cy.get("#yith-quick-view-content .woocommerce-product-gallery__wrapper img", { timeout: 75000 })
+    cy.get(
+      "#yith-quick-view-content .woocommerce-product-gallery__wrapper img",
+      { timeout: 75000 }
+    )
       .should("have.attr", "src")
       .and("include", "i.optimole.com");
   });

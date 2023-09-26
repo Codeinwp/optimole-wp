@@ -1,5 +1,5 @@
 describe("Check Elementor Background Page", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/elementor/");
   });
   it("Elementor widgets should have background lazyloaded", function () {
