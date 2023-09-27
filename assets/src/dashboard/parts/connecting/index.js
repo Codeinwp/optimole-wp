@@ -8,6 +8,11 @@ import {
 	useState
 } from '@wordpress/element';
 
+/**
+ * Internal dependencies.
+ */
+import ProgressBar from '../components/ProgressBar';
+
 const progressMessages = [
 	optimoleDashboardApp.strings.options_strings.connect_step_0,
 	optimoleDashboardApp.strings.options_strings.connect_step_1,
@@ -58,10 +63,11 @@ const ConnectingLayout = () => {
 					<div className="font-bold text-2xl">{ optimoleDashboardApp.strings.account_connecting_title }</div>
 					<div className="text-base">{ optimoleDashboardApp.strings.account_connecting_subtitle }</div>
 
-					<progress
-						className="mt-2.5 mb-1.5 mx-0"
+					<ProgressBar
+						className="mt-2.5 mb-1.5 mx-0 h-5 border-gray-200"
 						value={ timer }
 						max={ maxTime }
+						background="#e6e6e6"
 					/>
 
 					<div className="text-xs">{ progressMessages[step] + ' ' + '(' + progress + '%)' }</div>

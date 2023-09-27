@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
 	content: [
-		'./assets/src/**/*.js',
+		'./assets/src/**/*.js'
 	],
 	theme: {
 		extend: {
@@ -21,7 +21,8 @@ module.exports = {
 				'light-black': '#626262',
 				'opaque-black': '#0000006E',
 				'stale-yellow': '#FFF0C9',
-				'disabled': '#6786F4'
+				'disabled': '#6786F4',
+				'light-gray': 'rgba(87, 123, 249, 0.36)'
 			},
 			fontFamily: {
 				'serif': [ '-apple-system', 'BlinkMacSystemFont', 'sans-serif' ]
@@ -37,6 +38,6 @@ module.exports = {
 			minHeight: {
 				'40': '40px'
 			}
-		},
-	},
-}
+		}
+	}
+};
