@@ -272,7 +272,7 @@ const Compression = ({
 
 											<progress
 												max={ 100 }
-												value={ getCompressionRatio() }
+												value={ 100 - getCompressionRatio() }
 											/>
 
 											<hr className="my-4 border-grayish-blue"/>
