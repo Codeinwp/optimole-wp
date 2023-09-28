@@ -9,6 +9,7 @@ import {
 } from '@wordpress/data';
 
 import { addQueryArgs } from '@wordpress/url';
+import { store as noticesStore } from '@wordpress/notices';
 import { toggleDashboardSidebarSubmenu } from './helpers';
 
 const {
@@ -44,6 +45,9 @@ const {
 	getQueryArgs,
 	getTotalNumberOfImages
 } = select( 'optimole' );
+
+const { createNotice } = dispatch( noticesStore );
+
 
 export const sendOnboardingImages = ( data = {}) => {
 	data.offset = undefined !== data.offset ? data.offset : 0;
@@ -365,6 +369,7 @@ export const saveSettings = ( settings, refreshStats = false ) => {
 
 			if ( 'success' === response.code ) {
 				setSiteSettings( response.data );
+				addNotice( optimoleDashboardApp.strings.options_strings.settings_saved );
 				console.log( '%c Settings Saved.', 'color: #59B278' );
 			}
 		}).then( () => {
@@ -375,7 +380,7 @@ export const saveSettings = ( settings, refreshStats = false ) => {
 		})
 		.catch( error => {
 			setIsLoading( false );
-
+			addNotice( optimoleDashboardApp.strings.options_strings.settings_saved_error );
 			console.log( 'Error while saving settings', error );
 			return error.data;
 		});
@@ -396,9 +401,11 @@ export const clearCache = ( type ) => {
 			setIsLoading( false );
 
 			if ( 200 <= response.status && 300 > response.status ) {
+				addNotice( optimoleDashboardApp.strings.options_strings.cache_cleared );
 				console.log( '%c New cache token generated.', 'color: #59B278' );
 				return;
 			} else {
+				addNotice( optimoleDashboardApp.strings.options_strings.cache_cleared_error );
 				console.log( '%c Could not generate cache token.', 'color: #E7602A' );
 				return;
 			}
@@ -540,3 +547,16 @@ export const callSync = ( data ) => {
 			setLoadingRollback( false );
 		});
 };
+
+export const addNotice = ( text )  => {
+	createNotice(
+		'info',
+		text,
+		{
+			isDismissible: true,
+			type: 'snackbar'
+		}
+	);
+};
+
+

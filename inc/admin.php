@@ -1392,6 +1392,10 @@ The root cause might be either a security plugin which blocks this feature or so
 				'no'                                => __( 'Do not restore images after disabling', 'optimole-wp' ),
 				'lazyload_placeholder_color'        => __( 'Placeholder Color', 'optimole-wp' ),
 				'clear'                             => __( 'Clear', 'optimole-wp' ),
+				'settings_saved'                   => __( 'Settings saved', 'optimole-wp' ),
+				'settings_saved_error'             => __( 'Error saving settings. Please reload the page and try again.', 'optimole-wp' ),
+				'cache_cleared'                    => __( 'Cache cleared', 'optimole-wp' ),
+				'cache_cleared_error'              => __( 'Error clearing cache. Please reload the page and try again.', 'optimole-wp' ),
 			],
 			'help'                             => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),
