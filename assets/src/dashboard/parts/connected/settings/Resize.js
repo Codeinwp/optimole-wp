@@ -239,37 +239,6 @@ const Resize = ({
 					) ) }
 				</BaseControl>
 			) }
-
-			<hr className="my-8 border-grayish-blue"/>
-
-			<BaseControl
-				label={ optimoleDashboardApp.strings.options_strings.size_title }
-				help={ optimoleDashboardApp.strings.options_strings.size_desc }
-			>
-				<div className="flex gap-8">
-					<NumberControl
-						label={ optimoleDashboardApp.strings.options_strings.width_field }
-						labelPosition="side"
-						value={ settings[ 'max_width' ] }
-						type="number"
-						min={ 100 }
-						max={ 10000 }
-						className="basis-1/2 sm:basis-1/4"
-						onChange={ value => updateValue( 'max_width', value ) }
-					/>
-
-					<NumberControl
-						label={ optimoleDashboardApp.strings.options_strings.height_field }
-						labelPosition="side"
-						value={ settings[ 'max_height' ] }
-						type="number"
-						min={ 100 }
-						max={ 10000 }
-						className="basis-1/2 sm:basis-1/4"
-						onChange={ value => updateValue( 'max_height', value ) }
-					/>
-				</div>
-			</BaseControl>
 		</>
 	);
 };
