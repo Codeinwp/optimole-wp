@@ -69,7 +69,7 @@ Offload your website images directly to Optimole Cloud and save storage space on
 
 Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size using Machine Learning(ML) powered compression.
 
-### Digital Assets Management (DAM)
+#### Digital Assets Management (DAM)
 
 Elevate your media management with our custom DAM and utilize images from your Optimole account. The best part? You can now directly incorporate images from your Optimole account into the Elementor Builder. Additionally, we've seamlessly integrated DAM with the WordPress core editor, making image management a breeze. Access your Optimole images effortlessly, wherever you need them.
 
@@ -86,10 +86,6 @@ Optimole can detect Retina screens and deliver an image with the perfect Digital
 If you'd like to keep the most interesting part of an image; then you can enable smart cropping to help keep the image well-sized without losing focus.
 
 >**Use Case:** Introducing Lisa, a lifestyle blogger who loves sharing her adventures through captivating visuals. With Optimole's Smart Cropping, Lisa's images are automatically resized to fit perfectly within her post layouts. Whether it's a breathtaking mountain landscape or a cosy café scene, Smart Cropping ensures every image tells its story without any hassle. Lisa's blog now shines with effortlessly framed images that capture every moment beautifully.
-
-### Hero Image Optimization
-
-Optimole now goes the extra mile by not just optimizing but also preloading your website’s hero image. This ensures that the most eye-catching element on your page is also the quickest to load, enhancing user experience.
 
 #### No Content Shifting
 
@@ -115,11 +111,11 @@ Optimole provides free access to an AWS CloudFront CDN with edge locations in mo
 
 >**Use Case:** Meet Alex, an online store owner reaching customers globally. With Optimole's CDN, his product images are effortlessly spread across AWS CloudFront's 450+ global edge locations. This means shoppers from Tokyo to New York enjoy super-fast page loads, ensuring a seamless shopping experience and boosting Alex's business success.
 
-### Custom Lazy Load Placeholder Color
+#### Custom Lazy Load Placeholder Color
 
 Optimole enhances your lazy-loading experience by allowing for customizable placeholder colors. Now your placeholders can be as unique as your website.
 
-### More File Types
+#### More File Types
 
 No longer confined to just images — Optimole Dashboard now supports uploads for a variety of file types like documents, videos, text, and audio, widening your media capabilities.
 
