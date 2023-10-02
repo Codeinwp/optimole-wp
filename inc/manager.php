@@ -296,7 +296,7 @@ final class Optml_Manager {
 			return false; // @codeCoverageIgnore
 		}
 		// Motion.page iFrame & builder
-		if ( (array_key_exists( 'motionpage_iframe', $_GET ) && $_GET['motionpage_iframe'] == 'true') || (array_key_exists( 'page', $_GET ) && $_GET['page'] == 'motionpage') ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+		if ( ( array_key_exists( 'motionpage_iframe', $_GET ) && $_GET['motionpage_iframe'] == 'true' ) || ( array_key_exists( 'page', $_GET ) && $_GET['page'] == 'motionpage' ) ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
 		/**
