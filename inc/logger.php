@@ -45,6 +45,8 @@ class Optml_Logger {
 	/**
 	 * Optml_Logger constructor.
 	 * Initializes the upload directory.
+	 *
+	 * @return void
 	 */
 	private function __construct() {
 		$upload_dir       = wp_upload_dir();
@@ -52,7 +54,7 @@ class Optml_Logger {
 
 		if ( ! file_exists( $this->upload_dir ) ) {
 			if ( false === wp_mkdir_p( $this->upload_dir ) ) {
-				return false;
+				return;
 			}
 		}
 
