@@ -48,7 +48,7 @@ class Test_Logger extends WP_UnitTestCase {
 	 * Test getting the log content.
 	 */
 	public function test_get_log() {
-		$this->assertContains( 'Test offload message', $this->logger->get_log( 'offload' ) );
-		$this->assertContains( 'Test rollback message', $this->logger->get_log( 'rollback' ) );
+		$this->assertStringContainsString( 'Test offload message', $this->logger->get_log( 'offload' ) );
+		$this->assertStringContainsString( 'Test rollback message', $this->logger->get_log( 'rollback' ) );
 	}
 }
