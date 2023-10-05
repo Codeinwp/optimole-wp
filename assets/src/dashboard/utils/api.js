@@ -36,7 +36,8 @@ const {
 	setErrorMedia,
 	setOffloadLibraryLink,
 	setRollbackLibraryLink,
-	setExtraVisits
+	setExtraVisits,
+	setLogs
 } = dispatch( 'optimole' );
 
 const {
@@ -445,6 +446,21 @@ export const checkOffloadConflicts = ( callback = () => {}) => {
 		});
 };
 
+const updateLogs = type => {
+	jQuery.ajax({
+		type: 'POST',
+		url: window.ajaxurl,
+		data: {
+			action: 'optml_fetch_logs',
+			nonce: optimoleDashboardApp.nonce,
+			type
+		},
+		success: response => {
+			setLogs( type, response );
+		}
+	});
+};
+
 export const callSync = ( data ) => {
 	const queryArgs = getQueryArgs();
 
@@ -533,6 +549,9 @@ export const callSync = ( data ) => {
 					images: images_ids
 				});
 			}, 10000 );
+		})
+		.finally( () => {
+			updateLogs( 'offload_images' === data.action ? 'offload' : 'rollback' );
 		})
 		.catch( error => {
 			setErrorMedia( data.action );

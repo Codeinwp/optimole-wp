@@ -30,7 +30,10 @@ import {
 /**
  * Internal dependencies.
  */
+import Logs from './Logs';
+
 import { warning } from '../../../utils/icons';
+
 import {
 	callSync,
 	checkOffloadConflicts,
@@ -350,25 +353,29 @@ const OffloadMedia = ({
 					</BaseControl>
 
 					{ loadingSync && (
-						<div className="flex flex-col p-6 bg-light-blue border border-blue-300 rounded-md">
-							<div className="flex justify-between w-full items-center">
-								<p className="font-bold text-base m-0">{ optimoleDashboardApp.strings.options_strings.sync_media_progress }</p>
+						<>
+							<div className="flex flex-col p-6 bg-light-blue border border-blue-300 rounded-md">
+								<div className="flex justify-between w-full items-center">
+									<p className="font-bold text-base m-0">{ optimoleDashboardApp.strings.options_strings.sync_media_progress }</p>
 
-								<Icon icon={ rotateRight } className="animate-spin fill-dark-blue" />
+									<Icon icon={ rotateRight } className="animate-spin fill-dark-blue" />
+								</div>
+
+								<progress
+									className="mt-2.5 mb-1.5 mx-0"
+									value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
+									max={ maxTime }
+								/>
+
+								{ 0 === totalNumberOfImages ? (
+									<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
+								) : (
+									<p className="m-0">{ optimoleDashboardApp.strings.options_strings.images_processing }</p>
+								) }
 							</div>
 
-							<progress
-								className="mt-2.5 mb-1.5 mx-0"
-								value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
-								max={ maxTime }
-							/>
-
-							{ 0 === totalNumberOfImages ? (
-								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
-							) : (
-								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.images_processing }</p>
-							) }
-						</div>
+							<Logs type="offload" />
+						</>
 					) }
 
 					{ true === offloadLibraryLink && (
@@ -434,25 +441,29 @@ const OffloadMedia = ({
 					</BaseControl>
 
 					{ loadingRollback && (
-						<div className="flex flex-col p-6 bg-light-blue border border-blue-300 rounded-md">
-							<div className="flex justify-between w-full items-center">
-								<p className="font-bold text-base m-0">{ optimoleDashboardApp.strings.options_strings.rollback_media_progress }</p>
+						<>
+							<div className="flex flex-col p-6 bg-light-blue border border-blue-300 rounded-md">
+								<div className="flex justify-between w-full items-center">
+									<p className="font-bold text-base m-0">{ optimoleDashboardApp.strings.options_strings.rollback_media_progress }</p>
 
-								<Icon icon={ rotateRight } className="animate-spin fill-dark-blue" />
+									<Icon icon={ rotateRight } className="animate-spin fill-dark-blue" />
+								</div>
+
+								<progress
+									className="mt-2.5 mb-1.5 mx-0"
+									value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
+									max={ maxTime }
+								/>
+
+								{ 0 === totalNumberOfImages ? (
+									<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
+								) : (
+									<p className="m-0">{ optimoleDashboardApp.strings.options_strings.images_processing }</p>
+								) }
 							</div>
 
-							<progress
-								className="mt-2.5 mb-1.5 mx-0"
-								value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
-								max={ maxTime }
-							/>
-
-							{ 0 === totalNumberOfImages ? (
-								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
-							) : (
-								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.images_processing }</p>
-							) }
-						</div>
+							<Logs type="rollback" />
+						</>
 					) }
 
 					{ Boolean( offloadConflicts.length ) && (
