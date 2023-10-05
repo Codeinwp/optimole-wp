@@ -34,6 +34,7 @@ class Optml_Admin {
 	public $conflicting_plugins;
 
 	const NEW_USER_DEFAULTS_UPDATED = 'optml_defaults_updated';
+	const OLD_USER_ENABLED_LD = 'optml_enabled_limit_dimensions';
 
 	/**
 	 * Optml_Admin constructor.
@@ -63,6 +64,7 @@ class Optml_Admin {
 			add_action( 'init', [ $this, 'schedule_data_enhance_cron' ] );
 		}
 		add_action( 'init', [ $this, 'update_default_settings' ] );
+		add_action( 'init', [ $this, 'update_limit_dimensions' ] );
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
 		add_action( 'admin_init', [ $this, 'init_no_script' ] );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
@@ -223,6 +225,25 @@ class Optml_Admin {
 		$this->settings->update( 'lazyload', 'enabled' );
 
 		update_option( self::NEW_USER_DEFAULTS_UPDATED, 'yes' );
+	}
+	/**
+	 * Enable limit dimensions for old users after removing the Resize option.
+	 *
+	 * @return void
+	 */
+	public function update_limit_dimensions() {
+		if ( get_option( self::OLD_USER_ENABLED_LD ) === 'yes' ) {
+			return;
+		}
+
+		// New users already have this enabled as we changed defaults.
+		if ( ! $this->settings->is_connected() ) {
+			return;
+		}
+
+		$this->settings->update( 'limit_dimensions', 'enabled' );
+
+		update_option( self::OLD_USER_ENABLED_LD, 'yes' );
 	}
 	/**
 	 * Adds Optimole tag to admin bar
@@ -1339,8 +1360,6 @@ The root cause might be either a security plugin which blocks this feature or so
 				'selected_sites_desc'               => __( 'Site: ', 'optimole-wp' ),
 				'selected_all_sites_desc'           => __( 'Currently viewing images from all sites ', 'optimole-wp' ),
 				'select_all_sites_desc'             => __( 'View images from all sites ', 'optimole-wp' ),
-				'size_desc'                         => __( 'We resize all images with sizes greater than the values defined here. Changing this option is not recommended unless large images are not being processed correctly. This does NOT affect the scaling of images on the frontend.', 'optimole-wp' ),
-				'size_title'                        => __( 'Resize large images original source.', 'optimole-wp' ),
 				'select_site'                       => __( 'Select a website', 'optimole-wp' ),
 				'cloud_site_title'                  => __( 'Show images only from these sites: ', 'optimole-wp' ),
 				'cloud_site_desc'                   => __( 'Only the images from the selected sites will be displayed on this site. Defaults to all.', 'optimole-wp' ),
@@ -1395,6 +1414,10 @@ The root cause might be either a security plugin which blocks this feature or so
 				'no'                                => __( 'Do not restore images after disabling', 'optimole-wp' ),
 				'lazyload_placeholder_color'        => __( 'Placeholder Color', 'optimole-wp' ),
 				'clear'                             => __( 'Clear', 'optimole-wp' ),
+				'settings_saved'                   => __( 'Settings saved', 'optimole-wp' ),
+				'settings_saved_error'             => __( 'Error saving settings. Please reload the page and try again.', 'optimole-wp' ),
+				'cache_cleared'                    => __( 'Cache cleared', 'optimole-wp' ),
+				'cache_cleared_error'              => __( 'Error clearing cache. Please reload the page and try again.', 'optimole-wp' ),
 			],
 			'help'                             => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),
@@ -1485,8 +1508,6 @@ The root cause might be either a security plugin which blocks this feature or so
 				'feedback_placeholder' => __( 'Add your feedback here (optional)', 'optimole-wp' ),
 				'skip'                 => __( 'Skip', 'optimole-wp' ),
 				'submit'               => __( 'Submit', 'optimole-wp' ),
-				'privacy'              => __( 'What info we collect?', 'optimole-wp' ),
-				'privacy_tooltip'      => __( 'We value privacy, that\'s why no IP addresses are collected after you submit the survey.', 'optimole-wp' ),
 				'thank_you'            => __( 'Your input is highly appreciated and helps us shape a better experience in Optimole.', 'optimole-wp' ),
 			],
 		];

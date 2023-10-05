@@ -40,6 +40,8 @@ import {
 	saveSettings
 } from '../../../utils/api';
 
+import ProgressBar from '../../components/ProgressBar';
+
 const maxTime = 100;
 
 const OffloadMedia = ({
@@ -376,6 +378,19 @@ const OffloadMedia = ({
 
 							<Logs type="offload" />
 						</>
+
+							<ProgressBar
+								className="mt-2.5 mb-1.5 mx-0"
+								value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
+								max={ maxTime }
+							/>
+
+							{ 0 === totalNumberOfImages ? (
+								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
+							) : (
+								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.images_processing }</p>
+							) }
+						</div>
 					) }
 
 					{ true === offloadLibraryLink && (
@@ -464,6 +479,19 @@ const OffloadMedia = ({
 
 							<Logs type="rollback" />
 						</>
+
+							<ProgressBar
+								className="mt-2.5 mb-1.5 mx-0"
+								value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
+								max={ maxTime }
+							/>
+
+							{ 0 === totalNumberOfImages ? (
+								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
+							) : (
+								<p className="m-0">{ optimoleDashboardApp.strings.options_strings.images_processing }</p>
+							) }
+						</div>
 					) }
 
 					{ Boolean( offloadConflicts.length ) && (

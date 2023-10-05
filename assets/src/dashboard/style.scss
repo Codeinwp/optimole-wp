@@ -25,6 +25,7 @@ $disabled: #6786F4;
 #optimole-app {
 	--wp-admin-theme-color: #577BF9;
 	--wp-components-color-foreground: #577BF9;
+	--optml-progress: #577BF9;
 
 	a {
 		text-decoration: none;
@@ -82,7 +83,7 @@ $disabled: #6786F4;
 
 	.optml-connect {
 		.dashicon {
-			color: #577BF9;
+			color: $info;
 		}
 	}
 
@@ -90,37 +91,7 @@ $disabled: #6786F4;
 		font-size: 13px;
 	}
 
-	progress[value] {
-		appearance: none;
-		height: 20px;
-		border-radius: 6px;
-		width: 100%;
-	}
-
-	progress {
-		&::-webkit-progress-value,
-		&::-webkit-progress-bar,
-		&::-moz-progress-bar {
-			background: $info;
-		}
-	}
-
 	.optml-connected {
-		progress {
-			&::-webkit-progress-value,
-			&::-webkit-progress-bar,
-			&::-moz-progress-bar {
-				background: $info;
-			}
-		}
-
-		progress[value] {
-			background: white;
-			appearance: none;
-			height: 10px;
-			border: 1px solid rgba(87, 123, 249, 0.36);
-		}
-
 		.components-toggle-control {
 			.components-base-control__field > .components-flex {
 				flex-direction: row-reverse;
@@ -171,7 +142,7 @@ $disabled: #6786F4;
 
 				.components-dropdown-menu__menu {
 					.components-button:hover {
-						color: #577BF9;
+						color: $info;
 					}
 					.components-button:last-child:hover {
 						color: #EF686B;
@@ -283,8 +254,8 @@ $disabled: #6786F4;
 	}
 
 	&__button {
-		color: #577BF9;
-		border: 2px solid #577BF9;
+		color: $info;
+		border: 2px solid $info;
 
 		&:focus:not(:disabled) {
 			border: none;
@@ -375,7 +346,7 @@ $disabled: #6786F4;
 			display: inline-flex;
 			justify-content: center;
 			color: white;
-			background: #577BF9;
+			background: $info;
 			padding: 4px 8px;
 			border-radius: 6px;
 
@@ -385,7 +356,7 @@ $disabled: #6786F4;
 				top: -38%;
 				border-width: 5px;
 				border-style: solid;
-				border-color: transparent transparent #577BF9 transparent;
+				border-color: transparent transparent $info transparent;
 			}
 		}
 	}

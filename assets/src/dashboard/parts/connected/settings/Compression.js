@@ -25,6 +25,8 @@ import { useSelect } from '@wordpress/data';
  */
 import { sampleRate } from '../../../utils/api';
 
+import ProgressBar from '../../components/ProgressBar';
+
 const Compression = ({
 	settings,
 	setSettings,
@@ -270,9 +272,9 @@ const Compression = ({
 												<p className="text-base">{ optimoleDashboardApp.strings.latest_images.same_size }</p>
 											) }
 
-											<progress
+											<ProgressBar
 												max={ 100 }
-												value={ getCompressionRatio() }
+												value={ 100 - getCompressionRatio() }
 											/>
 
 											<hr className="my-4 border-grayish-blue"/>

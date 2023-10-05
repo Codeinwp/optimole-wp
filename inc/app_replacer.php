@@ -57,18 +57,6 @@ abstract class Optml_App_Replacer {
 	 */
 	public $settings = null;
 	/**
-	 * Defines which is the maximum width accepted in the optimization process.
-	 *
-	 * @var int
-	 */
-	protected $max_width = 3000;
-	/**
-	 * Defines which is the maximum width accepted in the optimization process.
-	 *
-	 * @var int
-	 */
-	protected $max_height = 3000;
-	/**
 	 * Defines if the dimensions should be limited when images are served.
 	 *
 	 * @var bool
@@ -440,9 +428,6 @@ abstract class Optml_App_Replacer {
 		$this->allowed_sources['i1.wp.com'] = true;
 		$this->allowed_sources['i2.wp.com'] = true;
 		$this->is_allowed_site              = count( array_diff_key( $this->possible_sources, $this->allowed_sources ) ) > 0;
-
-		$this->max_height = $this->settings->get( 'max_height' );
-		$this->max_width  = $this->settings->get( 'max_width' );
 
 		$this->limit_dimensions_enabled = $this->settings->get( 'limit_dimensions' ) === 'enabled';
 		if ( $this->limit_dimensions_enabled ) {
