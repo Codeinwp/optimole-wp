@@ -69,6 +69,12 @@ class Optml_Logger {
 	 * @return bool Returns true on success, false on failure.
 	 */
 	public function add_log( $type, $message ) {
+		if ( ! array_key_exists( $type, $this->log_filenames ) ) {
+			return false;
+		}
+
+		$this->send_log( $type, $message );
+
 		if ( ! $this->has_permission() ) {
 			return false;
 		}
@@ -226,5 +232,18 @@ class Optml_Logger {
 		echo $logs;
 
 		wp_die();
+	}
+
+	/**
+	 * Send logs to Axiom.
+	 *
+	 * @param string $type Type of log (offload/rollback).
+	 * @param string $message Log message.
+
+	 * @return void
+	 */
+	public function send_log( $type, $message ) {
+		$request = new Optml_Api();
+		$request->send_log( $type, $message );
 	}
 }
