@@ -69,7 +69,7 @@ class Optml_Logger {
 	 * @return bool Returns true on success, false on failure.
 	 */
 	public function add_log( $type, $message ) {
-		if ( ! $this->has_permission( $type ) ) {
+		if ( ! $this->has_permission() ) {
 			return false;
 		}
 
@@ -95,6 +95,10 @@ class Optml_Logger {
 	 * @return false|string Returns log data or false on failure.
 	 */
 	public function get_log( $type, $lines = 500, $separator = '' ) {
+		if ( ! array_key_exists( $type, $this->log_filenames ) ) {
+			return false;
+		}
+
 		$file_path = $this->upload_dir . $this->log_filenames[ $type ];
 
 		if ( $this->has_logs( $type ) ) {
@@ -112,6 +116,10 @@ class Optml_Logger {
 	 * @return bool Returns true if log file exists, false otherwise.
 	 */
 	public function has_logs( $type ) {
+		if ( ! array_key_exists( $type, $this->log_filenames ) ) {
+			return false;
+		}
+
 		$file_path = $this->upload_dir . $this->log_filenames[ $type ];
 		return file_exists( $file_path );
 	}
@@ -119,10 +127,9 @@ class Optml_Logger {
 	/**
 	 * Checks for permission to write to log file.
 	 *
-	 * @param string $type Type of log (offload/rollback).
 	 * @return bool Returns true if permission is granted, false otherwise.
 	 */
-	public function has_permission( $type ) {
+	public function has_permission() {
 		return is_writable( $this->upload_dir );
 	}
 
@@ -135,7 +142,7 @@ class Optml_Logger {
 	 * @param string $separator Separator line to start retrieving log entries from.
 	 * @return false|string Returns last n lines from the file or false on failure.
 	 */
-	private function tailCustom( $filepath, $lines = 1, $adaptive = true, $separator ) {
+	private function tailCustom( $filepath, $lines = 1, $adaptive = true, $separator = '' ) {
 		$f = @fopen( $filepath, 'rb' );
 
 		if ( $f === false ) {
@@ -151,6 +158,7 @@ class Optml_Logger {
 		fseek( $f, -1, SEEK_END );
 		$output = '';
 		$read = '';
+		$separator_found = false;
 
 		while ( $buffer > 0 && ftell( $f ) > 0 ) {
 			$seek = min( ftell( $f ), $buffer );
@@ -158,21 +166,28 @@ class Optml_Logger {
 			$output = ( $read = fread( $f, $seek ) ) . $output;
 			fseek( $f, -mb_strlen( $read, '8bit' ), SEEK_CUR );
 
-			if ( strpos( $output, $separator ) !== false ) {
+			if ( ! empty( $separator ) && strpos( $output, $separator ) !== false ) {
+				$separator_found = true;
 				break;
 			}
 
 			$buffer = min( $buffer * 2, 4096 );
 		}
 
-		$pos = strrpos( $output, $separator );
-		if ( $pos !== false ) {
-			$output = substr( $output, $pos + strlen( $separator ) );
+		if ( ! empty( $separator ) && $separator_found ) {
+			$pos = strrpos( $output, $separator );
+			if ( $pos !== false ) {
+				$output = substr( $output, $pos + strlen( $separator ) );
+			}
 		}
 
-		// Extract the desired number of lines after the separator
+		// Extract the desired number of lines
 		$output_lines = explode( "\n", $output );
-		$output = implode( "\n", array_slice( $output_lines, 0, $lines ) );
+		if ( empty( $separator ) || ! $separator_found ) {
+			$output = implode( "\n", array_slice( $output_lines, -$lines ) );  // fetch last n lines
+		} else {
+			$output = implode( "\n", array_slice( $output_lines, 0, $lines ) );  // fetch from separator
+		}
 
 		fclose( $f );
 		return trim( $output );
