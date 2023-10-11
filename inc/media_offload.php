@@ -122,16 +122,26 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				self::$instance->init();
 			}
 			if ( self::$instance->settings->get( 'offload_media' ) === 'enabled' ) {
-				add_filter( 'image_downsize', [self::$instance, 'generate_filter_downsize_urls'], 10, 3 );
-				add_filter( 'wp_generate_attachment_metadata', [self::$instance, 'generate_image_meta'], 10, 2 );
+				/**
+				 * Disabled for now just to avoid conflicts while developing
+				 */
+				// add_filter( 'image_downsize', [self::$instance, 'generate_filter_downsize_urls'], 10, 3 );
+				// add_filter( 'wp_generate_attachment_metadata', [self::$instance, 'generate_image_meta'], 10, 2 );
 				add_filter( 'wp_get_attachment_url', [self::$instance, 'get_image_attachment_url'], -999, 2 );
-				add_filter( 'wp_insert_post_data', [self::$instance, 'filter_uploaded_images'] );
-				add_action( 'delete_attachment', [self::$instance, 'delete_attachment_hook'], 10 );
-				add_filter( 'handle_bulk_actions-upload', [self::$instance, 'bulk_action_handler'], 10, 3 );
-				add_filter( 'bulk_actions-upload', [self::$instance, 'register_bulk_media_actions'] );
-				add_filter( 'media_row_actions', [self::$instance, 'add_inline_media_action'], 10, 2 );
-				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
-				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
+				// add_filter( 'wp_insert_post_data', [self::$instance, 'filter_uploaded_images'] );
+				// add_action( 'delete_attachment', [self::$instance, 'delete_attachment_hook'], 10 );
+				// add_filter( 'handle_bulk_actions-upload', [self::$instance, 'bulk_action_handler'], 10, 3 );
+				// add_filter( 'bulk_actions-upload', [self::$instance, 'register_bulk_media_actions'] );
+				// add_filter( 'media_row_actions', [self::$instance, 'add_inline_media_action'], 10, 2 );
+				// add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
+				// add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
+
+				/**
+				 * Handle Direct Uploads from the Media Library
+				 */
+				add_filter( 'wp_handle_upload_prefilter', [ self::$instance, 'handle_upload_prefilter' ], 10, 1 );
+				add_filter( 'wp_handle_upload', [ self::$instance, 'handle_upload' ], 10, 1 );
+				add_filter( 'intermediate_image_sizes_advanced', [ self::$instance, 'handle_size_generation' ], 10, 2 );
 
 				// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
 				$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
@@ -1755,5 +1765,270 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	private function is_dam_import( $attachment_id ) {
 		return ! empty( get_post_meta( $attachment_id, Optml_Dam::OM_DAM_IMPORTED_FLAG, true ) );
+	}
+
+	/**
+	 * Handle the upload prefilter.
+	 *
+	 * @param array $file The file array.
+	 *
+	 * @return array
+	 */
+	public function handle_upload_prefilter( $file ) {
+		if ( ! in_array( $file['type'], Optml_Config::$image_extensions, true ) ) {
+			return $file;
+		}
+
+		// Construct what the URL would've been had it been uploaded to WordPress
+		$uploads = wp_upload_dir();
+		$filename = wp_unique_filename( $uploads['path'], $file['name'] );
+		$filename = $this->get_unique_filename( $filename ); // In case the file name already exists as wp_unique_filename isn't foolproof when images are offloaded
+		$original_url = $uploads['url'] . '/' . $filename;
+
+		// Generate a signed URL for the file
+		$request = new Optml_Api();
+		$generate_url_response = $request->call_upload_api( $original_url );
+
+		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
+			// update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
+			// This should be moved to handle_size_generation filter
+			return $file;
+		}
+
+		$decoded_response = json_decode( $generate_url_response['body'], true );
+
+		if ( ! isset( $decoded_response['tableId'] ) || ! isset( $decoded_response['uploadUrl'] ) ) {
+			// update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
+			// This should be moved to handle_size_generation filter
+			return $file;
+		}
+
+		$table_id = $decoded_response['tableId'];
+		$upload_signed_url = $decoded_response['uploadUrl'];
+
+		// Ensure the file exists
+		if ( ! file_exists( $file['tmp_name'] ) ) {
+			return $file;
+		}
+
+		$image = file_get_contents( $file['tmp_name'] );
+
+		if ( $image === false ) {
+			// update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
+			// This should be moved to handle_size_generation filter
+			return $file;
+		}
+
+		// Upload the file to the signed URL
+		if ( $upload_signed_url !== 'found_resource' ) {
+			$request = new Optml_Api();
+			$result = $request->upload_image( $upload_signed_url, $file['type'], $image );
+
+			if ( is_wp_error( $result ) || wp_remote_retrieve_response_code( $result ) !== 200 ) {
+				// update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
+				// This should be moved to handle_size_generation filter
+				return $file;
+			}
+
+			$file_size = filesize( $file['tmp_name'] );
+			$size = getimagesize( $file['tmp_name'] );
+
+			if ( $file_size === false ) {
+				$file_size = 0;
+			}
+
+			$request = new Optml_Api();
+			$result_update = $request->call_upload_api(
+				$original_url,
+				'false',
+				$table_id,
+				'success',
+				'false',
+				(string) $size[0],
+				(string) $size[1],
+				$file_size
+			);
+
+			if ( is_wp_error( $result_update ) || wp_remote_retrieve_response_code( $result_update ) !== 200 ) {
+				// update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
+				// This should be moved to handle_size_generation filter
+				return $file;
+			}
+		}
+
+		$url_to_append = $original_url;
+		$url_parts = parse_url( $original_url );
+
+		if ( isset( $url_parts['scheme'] ) && isset( $url_parts['host'] ) ) {
+			$url_to_append = $url_parts['scheme'] . '://' . $url_parts['host'] . '/' . $filename;
+		}
+
+		$optimized_url = $this->get_media_optimized_url( $url_to_append, $table_id );
+
+		$request = new Optml_Api();
+
+		if ( $request->check_optimized_url( $optimized_url ) === false ) {
+			// update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
+			// This should be moved to handle_size_generation filter
+			return $file;
+		}
+
+		add_filter( 'pre_move_uploaded_file', '__return_true' );
+
+		// update_post_meta( $attachment_id, 'optimole_offload', 'true' );
+		// This should be moved to handle_size_generation filter
+
+		// Store the uploaded URL in a global so we can retrieve it in the next filter
+		global $optml_uploaded_url;
+		$optml_uploaded_url = $optimized_url;
+		@unlink( $file['tmp_name'] );
+
+		set_error_handler(
+			function( $errno, $errstr, $errfile, $errline ) {
+				// If the error is from chmod in file.php, don't output it.
+				// We've already offloaded & removed the file, so we don't need to chmod it.
+				if ( strpos( $errstr, 'chmod()' ) !== false && strpos( $errfile, 'file.php' ) !== false ) {
+					  return true;
+				}
+
+				return false;
+			}
+		);
+
+		return $file;
+	}
+
+	/**
+	 * Handle the upload.
+	 *
+	 * @param array $upload The upload array.
+	 *
+	 * @return array
+	 */
+	public function handle_upload( $upload ) {
+		if ( ! in_array( $upload['type'], Optml_Config::$image_extensions, true ) ) {
+			return $upload;
+		}
+
+		global $optml_uploaded_url;
+
+		if ( ! isset( $optml_uploaded_url ) ) {
+			return $upload;
+		}
+
+		// Remove the error handler we set in handle_upload_prefilter
+		restore_error_handler();
+
+		$upload['url'] = $optml_uploaded_url;
+		$filetype = wp_check_filetype( $optml_uploaded_url, null );
+		$upload['type'] = $filetype['type'];
+		$upload['file'] = $optml_uploaded_url;
+
+		add_action(
+			'add_attachment',
+			function( $post_id ) {
+				update_post_meta( $post_id, 'optimole_offload', 'true' );
+			}
+		);
+
+		return $upload;
+	}
+
+	/**
+	 * Handle the size generation.
+	 *
+	 * @param array $sizes The sizes array.
+	 * @param array $metadata The metadata array.
+	 *
+	 * @return array
+	 */
+	public function handle_size_generation( $sizes, $metadata ) {
+		// Check if the file is our offloaded image
+		if ( isset( $metadata['file'] ) && strpos( $metadata['file'], 'optml.cloud' ) !== false ) {
+			return [];
+		}
+		return $sizes;
+	}
+
+	/**
+	 * Generate a unique filename for the current month's uploads.
+	 *
+	 * @param string $filename The desired filename.
+	 * @return string The unique filename.
+	 */
+	public function get_unique_filename( $filename ) {
+		$pathinfo = pathinfo( $filename );
+		$base_name = $pathinfo['filename'];
+		$extension = $pathinfo['extension'];
+
+		// Get all attachments that match the filename pattern
+		$matching_attachments = $this->get_attachments_by_filename_pattern( $base_name );
+
+		$highest_number = 0;
+
+		foreach ( $matching_attachments as $attachment_filename ) {
+			// Extract and determine the highest appended number from filenames
+			// like "image-1.jpg", "image-2.jpg", etc.
+			if ( preg_match( '/-(\d+)\.' . preg_quote( $extension ) . '$/', $attachment_filename, $matches ) ) {
+				$number = (int) $matches[1];
+				if ( $number > $highest_number ) {
+					$highest_number = $number;
+				}
+			}
+		}
+
+		// If there were any matching files, increment the highest number
+		// for the new filename. Otherwise, use the original filename.
+		if ( $highest_number > 0 ) {
+			$new_filename = $base_name . '-' . ( $highest_number + 1 ) . '.' . $extension;
+		} else {
+			$new_filename = $filename;
+		}
+
+		return $new_filename;
+	}
+
+	/**
+	 * Retrieve all attachment filenames in the current month's uploads directory
+	 * that match a given filename pattern.
+	 *
+	 * @param string $base_name The base name of the desired filename.
+	 * @return array List of matching filenames.
+	 */
+	public function get_attachments_by_filename_pattern( $base_name ) {
+		$current_month = gmdate( 'm' );
+		$current_year = gmdate( 'Y' );
+
+		// Setup query arguments to fetch attachments that match the filename pattern
+		$args = [
+			'post_type'      => 'attachment',
+			'post_status'    => 'inherit',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'date_query'     => [ // Ensure the attachment is from the current month
+				[
+					'year'  => $current_year,
+					'month' => $current_month,
+				],
+			],
+			'meta_query'     => [
+				[
+					'key'     => '_wp_attached_file',
+					'value'   => $base_name,
+					'compare' => 'LIKE',
+				],
+			],
+		];
+
+		$query = new WP_Query( $args );
+		$attachments = [];
+
+		// Gather the filenames of the matching attachments
+		foreach ( $query->posts as $attachment_id ) {
+			$file = get_post_meta( $attachment_id, '_wp_attached_file', true );
+			$attachments[] = basename( $file );
+		}
+
+		return $attachments;
 	}
 }
