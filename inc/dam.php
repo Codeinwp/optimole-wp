@@ -13,6 +13,7 @@
  * Class Optml_Dam
  */
 class Optml_Dam {
+	use Optml_Dam_Offload_Utils;
 	use Optml_Normalizer;
 
 	/**
@@ -175,7 +176,7 @@ class Optml_Dam {
 	}
 
 	/**
-	 * Catch image downsize for the DAM imported images.
+	 * Alter attachment image src for DAM imported images.
 	 *
 	 * @param array|false  $image {
 	 *      Array of image data.
@@ -199,7 +200,7 @@ class Optml_Dam {
 		}
 
 		$image_url     = wp_get_attachment_url( $attachment_id );
-		$incoming_size = Optml_Media_Offload::parse_dimension_from_optimized_url( $image_url );
+		$incoming_size = $this->parse_dimension_from_optimized_url( $image_url );
 		$width         = $incoming_size[0];
 		$height        = $incoming_size[1];
 
@@ -273,86 +274,6 @@ class Optml_Dam {
 			$height,
 			$crop,
 		];
-	}
-
-	/**
-	 * Get all registered image sizes.
-	 *
-	 * @return array
-	 */
-	private function get_all_image_sizes() {
-		$additional_sizes = wp_get_additional_image_sizes();
-		$intermediate     = get_intermediate_image_sizes();
-		$all              = [];
-
-		foreach ( $intermediate as $size ) {
-			if ( isset( $additional_sizes[ $size ] ) ) {
-				$all[ $size ] = [
-					'width'  => $additional_sizes[ $size ]['width'],
-					'height' => $additional_sizes[ $size ]['height'],
-					'crop'   => isset( $additional_sizes[ $size ]['crop'] ) ? $additional_sizes[ $size ]['crop'] : false,
-				];
-			} else {
-				$all[ $size ] = [
-					'width'  => (int) get_option( $size . '_size_w' ),
-					'height' => (int) get_option( $size . '_size_h' ),
-					'crop'   => (bool) get_option( $size . '_crop' ),
-				];
-			}
-
-			if ( ! empty( $additional_sizes[ $size ]['crop'] ) ) {
-				$all[ $size ]['crop'] = $additional_sizes[ $size ]['crop'];
-			} else {
-				$all[ $size ]['crop'] = (bool) get_option( $size . '_crop' );
-			}
-		}
-
-		return $all;
-	}
-
-	/**
-	 * Check if we're in the attachment edit page.
-	 *
-	 * /wp-admin/post.php?post=<id>&action=edit
-	 *
-	 * Send whatever comes from the DAM.
-	 *
-	 * @param int $attachment_id attachment id.
-	 *
-	 * @return bool
-	 */
-	private function is_attachment_edit_page( $attachment_id ) {
-		if ( ! is_admin() ) {
-			return false;
-		}
-
-		$screen = get_current_screen();
-
-		if ( ! isset( $screen->base ) ) {
-			return false;
-		}
-
-		if ( $screen->base !== 'post' ) {
-			return false;
-		}
-
-		if ( $screen->post_type !== 'attachment' ) {
-			return false;
-		}
-
-		if ( $screen->id !== 'attachment' ) {
-			return false;
-		}
-
-		if ( ! isset( $_GET['post'] ) ) {
-			return false;
-		}
-
-		if ( (int) sanitize_text_field( $_GET['post'] ) !== $attachment_id ) {
-			return false;
-		}
-
-		return true;
 	}
 
 	/**
@@ -527,23 +448,6 @@ class Optml_Dam {
 		}
 
 		return $map;
-	}
-
-	/**
-	 * Checks that the attachment is a DAM image.
-	 *
-	 * @param int $post_id The attachment ID.
-	 *
-	 * @return bool
-	 */
-	private function is_dam_imported_image( $post_id ) {
-		$meta = get_post_meta( $post_id, self::OM_DAM_IMPORTED_FLAG, true );
-
-		if ( empty( $meta ) ) {
-			return false;
-		}
-
-		return true;
 	}
 
 	/**
@@ -832,7 +736,7 @@ class Optml_Dam {
 		}
 
 		// Get the dimensions from the optimized URL.
-		$incoming_size = Optml_Media_Offload::parse_dimension_from_optimized_url( $image_src );
+		$incoming_size = $this->parse_dimension_from_optimized_url( $image_src );
 		$width         = $incoming_size[0];
 		$height        = $incoming_size[1];
 
