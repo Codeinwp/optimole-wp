@@ -1866,8 +1866,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		add_filter( 'pre_move_uploaded_file', '__return_true' );
 
 		// Store the uploaded URL in a global so we can retrieve it in the next filter
-		global $optml_uploaded_url;
-		$optml_uploaded_url = [
+		global $optml_uploaded_image;
+		$optml_uploaded_image = [
 			'original_url' => $original_url,
 			'optimized_url' => $optimized_url,
 			'table_id' => $table_id,
@@ -1901,23 +1901,23 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $upload;
 		}
 
-		global $optml_uploaded_url;
+		global $optml_uploaded_image;
 
-		if ( ! isset( $optml_uploaded_url ) && ! is_array( $optml_uploaded_url ) ) {
+		if ( ! isset( $optml_uploaded_image ) && ! is_array( $optml_uploaded_image ) ) {
 			return $upload;
 		}
 
-		if ( $optml_uploaded_url['original_url'] !== $upload['url'] ) {
+		if ( $optml_uploaded_image['original_url'] !== $upload['url'] ) {
 			return $upload;
 		}
 
 		// Remove the error handler we set in handle_upload_prefilter
 		restore_error_handler();
 
-		$upload['url'] = $optml_uploaded_url['optimized_url'];
-		$filetype = wp_check_filetype( $optml_uploaded_url['optimized_url'], null );
+		$upload['url'] = $optml_uploaded_image['optimized_url'];
+		$filetype = wp_check_filetype( $optml_uploaded_image['optimized_url'], null );
 		$upload['type'] = $filetype['type'];
-		$upload['file'] = $optml_uploaded_url['optimized_url'];
+		$upload['file'] = $optml_uploaded_image['optimized_url'];
 
 		return $upload;
 	}
@@ -1937,9 +1937,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $data;
 		}
 
-		global $optml_uploaded_url;
+		global $optml_uploaded_image;
 
-		if ( ! isset( $optml_uploaded_url ) && ! is_array( $optml_uploaded_url ) ) {
+		if ( ! isset( $optml_uploaded_image ) && ! is_array( $optml_uploaded_image ) ) {
 			return $data;
 		}
 
@@ -1947,7 +1947,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $data;
 		}
 
-		$data['guid'] = $optml_uploaded_url['original_url'];
+		$data['guid'] = $optml_uploaded_image['original_url'];
 
 		return $data;
 	}
@@ -1958,9 +1958,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param int $id The attachment id.
 	 */
 	public function handle_attachment( $id ) {
-		global $optml_uploaded_url;
+		global $optml_uploaded_image;
 
-		if ( ! isset( $optml_uploaded_url ) && ! is_array( $optml_uploaded_url ) ) {
+		if ( ! isset( $optml_uploaded_image ) && ! is_array( $optml_uploaded_image ) ) {
 			return;
 		}
 
@@ -1977,15 +1977,15 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		// From original_url, remove wp_upload_dir() and get the filename.
-		$filename = str_replace( wp_upload_dir()['baseurl'] . '/', '', $optml_uploaded_url['original_url'] );
+		$filename = str_replace( wp_upload_dir()['baseurl'] . '/', '', $optml_uploaded_image['original_url'] );
 
 		update_post_meta( $id, 'optimole_offload', 'true' );
 		update_post_meta( $id, 'om_image_offloaded', 1 );
 		update_post_meta( $id, '_wp_attached_file', $filename );
 
-		$original_url = $optml_uploaded_url['original_url'];
-		$optimized_url = $optml_uploaded_url['optimized_url'];
-		$table_id = $optml_uploaded_url['table_id'];
+		$original_url = $optml_uploaded_image['original_url'];
+		$optimized_url = $optml_uploaded_image['optimized_url'];
+		$table_id = $optml_uploaded_image['table_id'];
 
 		// Use wp_update_attachment_metadata filter to update the attachment metadata of this image
 		add_filter(
@@ -2019,9 +2019,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public function handle_size_generation( $sizes, $metadata ) {
-		global $optml_uploaded_url;
+		global $optml_uploaded_image;
 
-		if ( isset( $optml_uploaded_url ) && is_array( $optml_uploaded_url ) ) {
+		if ( isset( $optml_uploaded_image ) && is_array( $optml_uploaded_image ) ) {
 			return [];
 		}
 
