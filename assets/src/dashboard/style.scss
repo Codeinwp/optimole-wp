@@ -12,6 +12,7 @@ $dark-blue: #3557A6;
 $purple-gray: #757296;
 $grayish-blue: #f6f6fa;
 $disabled: #6786F4;
+$mango-yellow: #FBBF24;
 
 #wpcontent {
 	padding-left: 0 !important;
@@ -265,6 +266,17 @@ $disabled: #6786F4;
 			color: #fff;
 			border: none;
 			background-color: $info;
+
+			&.bg-mango-yellow {
+				color: #374151;
+				background-color: $mango-yellow;
+
+				&:hover:not(:disabled),
+				&:active:not(:disabled) {
+					color: #374151;
+					background-color: $mango-yellow;
+				}
+			}
 
 			&:hover:not(:disabled),
 			&:active:not(:disabled) {
