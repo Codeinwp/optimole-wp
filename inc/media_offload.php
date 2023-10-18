@@ -142,7 +142,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'wp_handle_upload_prefilter', [ self::$instance, 'handle_upload_prefilter' ], 10, 1 );
 				add_filter( 'wp_handle_upload', [ self::$instance, 'handle_upload' ], 10, 1 );
 				add_filter( 'intermediate_image_sizes_advanced', [ self::$instance, 'handle_size_generation' ], 10, 2 );
-				add_action( 'wp_insert_attachment_data', [ self::$instance, 'handle_attachment_data' ], 10, 4 );
+				add_filter( 'wp_insert_attachment_data', [ self::$instance, 'handle_attachment_data' ], 10, 4 );
 				add_action( 'add_attachment', [ self::$instance, 'handle_attachment' ], 10, 1 );
 
 				// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
@@ -1916,7 +1916,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		restore_error_handler();
 
 		$upload['url'] = $optml_uploaded_url['optimized_url'];
-		$filetype = wp_check_filetype( $optml_uploaded_url['optimized_url'] , null );
+		$filetype = wp_check_filetype( $optml_uploaded_url['optimized_url'], null );
 		$upload['type'] = $filetype['type'];
 		$upload['file'] = $optml_uploaded_url['optimized_url'];
 
@@ -1925,12 +1925,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 	/**
 	 * Handle the attachment data.
-	 * 
+	 *
 	 * @param array $data The attachment data.
 	 * @param array $postarr The post array.
 	 * @param array $unsanitized_postarr The unsanitized post array.
 	 * @param bool  $update Whether to update or not.
-	 * 
+	 *
 	 * @return array
 	 */
 	public function handle_attachment_data( $data, $postarr, $unsanitized_postarr, $update ) {
@@ -1956,7 +1956,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Handle the upload event.
 	 *
-	 * @param array $id The attachment id.
+	 * @param int $id The attachment id.
 	 */
 	public function handle_attachment( $id ) {
 		global $optml_uploaded_url;
@@ -1989,21 +1989,26 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$table_id = $optml_uploaded_url['table_id'];
 
 		// Use wp_update_attachment_metadata filter to update the attachment metadata of this image
-		add_filter( 'wp_update_attachment_metadata', function( $data, $attachment_id ) use( $id, $original_url, $optimized_url, $table_id ) {
-			if ( $attachment_id !== $id ) {
+		add_filter(
+			'wp_update_attachment_metadata',
+			function( $data, $attachment_id ) use ( $id, $original_url, $optimized_url, $table_id ) {
+				if ( $attachment_id !== $id ) {
+					return $data;
+				}
+
+				$url_to_append = $original_url;
+				$url_parts = parse_url( $original_url );
+				$file_name = basename( $optimized_url );
+
+				if ( isset( $url_parts['scheme'] ) && isset( $url_parts['host'] ) ) {
+					$url_to_append = $url_parts['scheme'] . '://' . $url_parts['host'] . '/' . $file_name;
+				}
+				$data['file'] = '/' . self::KEYS['uploaded_flag'] . $table_id . '/' . $url_to_append;
 				return $data;
-			}
-
-			$url_to_append = $original_url;
-			$url_parts = parse_url( $original_url );
-			$file_name = basename( $optimized_url );
-
-			if ( isset( $url_parts['scheme'] ) && isset( $url_parts['host'] ) ) {
-				$url_to_append = $url_parts['scheme'] . '://' . $url_parts['host'] . '/' . $file_name;
-			}
-			$data['file'] = '/' . self::KEYS['uploaded_flag'] . $table_id . '/' . $url_to_append;
-			return $data;
-		}, 10, 2 );
+			},
+			10,
+			2
+		);
 	}
 
 	/**
@@ -2060,7 +2065,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		// If the original filename exists in the list, generate a new filename with a number appended.
 		// If there were any matching files with numbers, increment the highest number
 		// for the new filename. Otherwise, append "-1" to the original filename.
-		if ( $file_exists && $highest_number == 0 ) {
+		if ( $file_exists && $highest_number === 0 ) {
 			$new_filename = $base_name . '-2.' . $extension;
 		} elseif ( $file_exists ) {
 			$new_filename = $base_name . '-' . ( $highest_number + 1 ) . '.' . $extension;
