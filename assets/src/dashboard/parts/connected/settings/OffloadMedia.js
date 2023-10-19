@@ -26,6 +26,8 @@ import {
 	useSelect
 } from '@wordpress/data';
 
+import { useViewportMatch } from '@wordpress/compose';
+
 import {
 	useEffect,
 	useState
@@ -58,11 +60,14 @@ const ConfirmModal = ({
 	onConfirm = () => {},
 	variant = 'default'
 }) => {
+	const isMobileViewport = useViewportMatch( 'small', '<' );
+
 	return (
 		<Modal
 			__experimentalHideHeader={ true }
 			className="optml__modal"
 			onRequestClose={ onRequestClose }
+			isFullScreen={ isMobileViewport }
 		>
 			<Button
 				onClick={ onRequestClose }
