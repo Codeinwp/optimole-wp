@@ -122,9 +122,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				self::$instance->init();
 			}
 			if ( self::$instance->settings->get( 'offload_media' ) === 'enabled' ) {
-				/**
-				 * Disabled for now just to avoid conflicts while developing
-				 */
 				add_filter( 'image_downsize', [self::$instance, 'generate_filter_downsize_urls'], 10, 3 );
 				add_filter( 'wp_get_attachment_url', [self::$instance, 'get_image_attachment_url'], -999, 2 );
 				add_filter( 'wp_insert_post_data', [self::$instance, 'filter_uploaded_images'] );
