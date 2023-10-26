@@ -1434,7 +1434,12 @@ The root cause might be either a security plugin which blocks this feature or so
 			$cdn_url = apply_filters( 'optml_content_url', $image );
 			$cdn_url = add_query_arg( 'ver', $time, $cdn_url );
 
-			$req = wp_remote_get( $cdn_url );
+			$args = array(
+				'redirection' => 0,  // Don't follow any redirects
+			);
+
+			$req = wp_remote_get( $cdn_url, $args );
+
 			// Confirm the request was a 302 redirect
 			if ( 302 !== wp_remote_retrieve_response_code( $req ) ) {
 				do_action( 'optml_log', 'Optimole: Image update failed.' );
