@@ -1434,9 +1434,9 @@ The root cause might be either a security plugin which blocks this feature or so
 			$cdn_url = apply_filters( 'optml_content_url', $image );
 			$cdn_url = add_query_arg( 'ver', $time, $cdn_url );
 
-			$args = array(
+			$args = [
 				'redirection' => 0,  // Don't follow any redirects
-			);
+			];
 
 			$req = wp_remote_get( $cdn_url, $args );
 
