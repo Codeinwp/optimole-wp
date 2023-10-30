@@ -7,7 +7,7 @@
  * @author     Optimole <friends@optimole.com>
  */
 abstract class Optml_App_Replacer {
-
+	use Optml_Dam_Offload_Utils;
 	/**
 	 * Filters used for lazyload.
 	 *
@@ -557,16 +557,23 @@ abstract class Optml_App_Replacer {
 	 * @return string
 	 **/
 	public function strip_image_size_from_url( $url ) {
-
 		if ( apply_filters( 'optml_should_skip_strip_image_size', false, $url ) === true ) {
 			return $url;
 		}
 		if ( preg_match( '#(-\d+x\d+(?:_c)?|(@2x))\.(' . implode( '|', array_keys( Optml_Config::$image_extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
 			$stripped_url = str_replace( $src_parts[1], '', $url );
+
+			// Treat offloaded attachments differently.
+			$id = attachment_url_to_postid( $stripped_url );
+
+			if( $id !== 0 && $this->is_new_offloaded_attachment( $id ) ) {
+				return $stripped_url;
+			}
+
 			// Extracts the file path to the image minus the base url
 			$file_path = substr( $stripped_url, strpos( $stripped_url, $this->upload_resource['url'] ) + $this->upload_resource['url_length'] );
 			if ( file_exists( $this->upload_resource['directory'] . $file_path ) ) {
-				$url = $stripped_url;
+				return $stripped_url;
 			}
 		}
 

@@ -259,7 +259,11 @@ final class Optml_Manager {
 			return true;
 		}
 
-		if ( ( is_admin() && ! self::is_ajax_request() ) || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
+		if( is_customize_preview() && $this->settings->get('offload_media') !== 'enabled' ) {
+			return false;
+		} 
+		
+		if ( ( is_admin() && ! self::is_ajax_request() ) || ! $this->settings->is_connected() || ! $this->settings->is_enabled() ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'preview', $_GET ) && ! empty( $_GET['preview'] ) ) {
@@ -632,7 +636,7 @@ final class Optml_Manager {
 	 *
 	 * @return string Processed html.
 	 */
-	private function do_url_replacement( $html, $extracted_urls ) {
+	public function do_url_replacement( $html, $extracted_urls ) {
 		$extracted_urls = apply_filters( 'optml_extracted_urls', $extracted_urls );
 
 		if ( empty( $extracted_urls ) ) {

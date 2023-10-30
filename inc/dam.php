@@ -289,49 +289,7 @@ class Optml_Dam {
 			return $metadata;
 		}
 
-		$sizes = $this->get_all_image_sizes();
-
-		$post = get_post( $id );
-
-		$sizes_meta = [];
-
-		// SVG files don't have a width/height so we add a dummy one. These are vector images so it doesn't matter.
-		$is_svg = ( $post->post_mime_type === Optml_Config::$image_extensions['svg'] );
-
-		if ( $is_svg ) {
-			$metadata['width']  = 150;
-			$metadata['height'] = 150;
-		}
-
-		if ( ! isset( $metadata['height'] ) || ! isset( $metadata['width'] ) ) {
-			return $metadata;
-		}
-
-		foreach ( $sizes as $size => $args ) {
-
-			// check if the image is portrait or landscape using attachment metadata.
-			$is_portrait = $metadata['height'] > $metadata['width'];
-
-			// proportionally set the width/height based on this if image is uncropped.
-			if ( ! (bool) $args['crop'] ) {
-				if ( $is_portrait ) {
-					$args['width'] = (int) ( $args['height'] * round( $metadata['width'] / $metadata['height'] ) );
-				} else {
-					$args['height'] = (int) ( $args['width'] * round( $metadata['height'] / $metadata['width'] ) );
-				}
-			}
-
-			$sizes_meta[ $size ] = [
-				'file'      => $metadata['file'],
-				'width'     => $args['width'],
-				'height'    => $args['height'],
-				'mime-type' => $post->post_mime_type,
-			];
-		}
-
-		$metadata['sizes'] = $sizes_meta;
-
-		return $metadata;
+        return $this->get_altered_metadata_for_remote_images( $metadata, $id );
 	}
 
 	/**

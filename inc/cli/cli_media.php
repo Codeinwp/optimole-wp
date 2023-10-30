@@ -61,17 +61,14 @@ class Optml_Cli_Media extends WP_CLI_Command {
 		$tick = 0;
 		$page = 1;
 		while ( $tick < $total_progress ) {
-			$posts_to_update = Optml_Media_Offload::instance()->update_content( $page, $number_of_images_for, $batch );
-			if ( isset( $posts_to_update['page'] ) && $posts_to_update['page'] > $page ) {
+			$posts_to_update = $action === 'offload' ? [] : Optml_Media_Offload::instance()->update_content( $page, $number_of_images_for, $batch );
+
+			// Kept for backward compatibility with old offloading mechanism where pages were modified.
+			if ( $action === 'rollback' && isset( $posts_to_update['page'] ) && $posts_to_update['page'] > $page ) {
 				$page = $posts_to_update['page'];
 				if ( isset( $posts_to_update['imagesToUpdate'] ) && count( $posts_to_update['imagesToUpdate'] ) ) {
 					foreach ( $posts_to_update['imagesToUpdate'] as $post_id => $images ) {
-						if ( $number_of_images_for === 'offload_images' ) {
-							Optml_Media_Offload::instance()->upload_and_update_existing_images( $images );
-						}
-						if ( $number_of_images_for === 'rollback_images' ) {
-							 Optml_Media_Offload::instance()->rollback_and_update_images( $images );
-						}
+						Optml_Media_Offload::instance()->rollback_and_update_images( $images );
 						Optml_Media_Offload::instance()->update_page( $post_id );
 					}
 				}

@@ -18,18 +18,26 @@ trait Optml_Dam_Offload_Utils {
 		return true;
 	}
 
-	private function is_offloaded_attachment( $id ) {
-		$meta = get_post_meta( $id, self::OM_OFFLOADED_FLAG, true );
-
-		if ( empty( $meta ) ) {
-			return false;
-		}
-
-		return true;
+	/**
+	 * Checks if the attachment is offloaded using the old method.
+	 *
+	 * @param int $id The attachment ID.
+	 *
+	 * @return bool
+	 */
+	private function is_legacy_offloaded_attachment($id) {
+		return ! $this->is_new_offloaded_attachment( $id ) && ! empty( get_post_meta( $id, Optml_Media_Offload::META_KEYS['offloaded'] ) );
 	}
 
-	private function is_legacy_offloaded_attachment($id) {
-		return ! $this->is_offloaded_attachment( $id ) && ! empty( get_post_meta( $id, Optml_Media_Offload::META_KEYS['offloaded'] ) );
+	/**
+	 * Check if it's a newly offloaded attachment
+	 *
+	 * @param int $id The attachment ID.
+	 *
+	 * @return bool
+	 */
+	private function is_new_offloaded_attachment( $id ) {
+		return ! empty( get_post_meta( $id, Optml_Media_Offload::OM_OFFLOADED_FLAG, true ) );
 	}
 
 	/**
@@ -101,6 +109,10 @@ trait Optml_Dam_Offload_Utils {
 			return false;
 		}
 
+		if( ! function_exists( 'get_current_screen' ) ) {
+			return false;
+		}
+
 		$screen = get_current_screen();
 
 		if ( ! isset( $screen->base ) ) {
@@ -131,25 +143,55 @@ trait Optml_Dam_Offload_Utils {
 	}
 
 	/**
-	 * Is media library list page.
+	 * Used to filter the image metadata. Adds optimized image url for all image sizes.
 	 *
-	 * @return bool
+	 * @param array $metadata The attachment metadata.
+	 * @param int $id The attachment id.
+	 *
+	 * @return mixed
 	 */
-	private function is_media_library_list_admin_page() {
-		if ( ! is_admin() ) {
-			return false;
+	private function get_altered_metadata_for_remote_images( $metadata, $id ) {
+		$sizes = $this->get_all_image_sizes();
+
+		$post = get_post( $id );
+
+		$sizes_meta = [];
+
+		// SVG files don't have a width/height so we add a dummy one. These are vector images so it doesn't matter.
+		$is_svg = ( $post->post_mime_type === Optml_Config::$image_extensions['svg'] );
+
+		if ( $is_svg ) {
+			$metadata['width']  = 150;
+			$metadata['height'] = 150;
 		}
 
-		$screen = get_current_screen();
-
-		if ( ! isset( $screen->base ) ) {
-			return false;
+		if ( ! isset( $metadata['height'] ) || ! isset( $metadata['width'] ) ) {
+			return $metadata;
 		}
 
-		if ( $screen->base !== 'upload' ) {
-			return false;
+		foreach ( $sizes as $size => $args ) {
+			// check if the image is portrait or landscape using attachment metadata.
+			$is_portrait = $metadata['height'] > $metadata['width'];
+
+			// proportionally set the width/height based on this if image is uncropped.
+			if ( ! (bool) $args['crop'] ) {
+				if ( $is_portrait ) {
+					$args['width'] = (int) ( $args['height'] * round( $metadata['width'] / $metadata['height'] ) );
+				} else {
+					$args['height'] = (int) ( $args['width'] * round( $metadata['height'] / $metadata['width'] ) );
+				}
+			}
+
+			$sizes_meta[ $size ] = [
+				'file'      => $metadata['file'],
+				'width'     => $args['width'],
+				'height'    => $args['height'],
+				'mime-type' => $post->post_mime_type,
+			];
 		}
 
-		return true;
+		$metadata['sizes'] = $sizes_meta;
+
+		return $metadata;
 	}
 }

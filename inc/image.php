@@ -235,8 +235,13 @@ class Optml_Image extends Optml_Resource {
 			}
 			$attachment_id = (int) $matches[1];
 		} else {
-			$image_data = Optml_Media_Offload::instance()->get_local_attachement_id_from_url( $this->source_url );
-			$attachment_id = $image_data['attachment_id'];
+			$attachment_id = attachment_url_to_postid($this->source_url);
+
+			if( $attachment_id === 0 && strpos( $this->source_url, 'scaled' ) === false ) {
+			    $extension = pathinfo( $this->source_url, PATHINFO_EXTENSION );
+			    $scaled = str_replace( '.' . $extension, '-scaled.' . $extension , $this->source_url );
+				$attachment_id = attachment_url_to_postid($scaled);
+			}
 		}
 
 		if ( $attachment_id === 0 ) {
