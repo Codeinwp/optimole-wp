@@ -25,7 +25,7 @@ trait Optml_Dam_Offload_Utils {
 	 *
 	 * @return bool
 	 */
-	private function is_legacy_offloaded_attachment($id) {
+	private function is_legacy_offloaded_attachment( $id ) {
 		return ! $this->is_new_offloaded_attachment( $id ) && ! empty( get_post_meta( $id, Optml_Media_Offload::META_KEYS['offloaded'] ) );
 	}
 
@@ -109,7 +109,7 @@ trait Optml_Dam_Offload_Utils {
 			return false;
 		}
 
-		if( ! function_exists( 'get_current_screen' ) ) {
+		if ( ! function_exists( 'get_current_screen' ) ) {
 			return false;
 		}
 
@@ -146,7 +146,7 @@ trait Optml_Dam_Offload_Utils {
 	 * Used to filter the image metadata. Adds optimized image url for all image sizes.
 	 *
 	 * @param array $metadata The attachment metadata.
-	 * @param int $id The attachment id.
+	 * @param int   $id The attachment id.
 	 *
 	 * @return mixed
 	 */

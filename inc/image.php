@@ -235,12 +235,12 @@ class Optml_Image extends Optml_Resource {
 			}
 			$attachment_id = (int) $matches[1];
 		} else {
-			$attachment_id = attachment_url_to_postid($this->source_url);
+			$attachment_id = attachment_url_to_postid( $this->source_url );
 
-			if( $attachment_id === 0 && strpos( $this->source_url, 'scaled' ) === false ) {
-			    $extension = pathinfo( $this->source_url, PATHINFO_EXTENSION );
-			    $scaled = str_replace( '.' . $extension, '-scaled.' . $extension , $this->source_url );
-				$attachment_id = attachment_url_to_postid($scaled);
+			if ( $attachment_id === 0 && strpos( $this->source_url, 'scaled' ) === false ) {
+				$extension = pathinfo( $this->source_url, PATHINFO_EXTENSION );
+				$scaled = str_replace( '.' . $extension, '-scaled.' . $extension, $this->source_url );
+				$attachment_id = attachment_url_to_postid( $scaled );
 			}
 		}
 
@@ -270,7 +270,12 @@ class Optml_Image extends Optml_Resource {
 		return sprintf( '%s%s%s', Optml_Config::$service_url, $path_params, $metadata['file'] );
 	}
 
+	/**
+	 * Check if the URL has an attachment ID.
+	 *
+	 * @return bool
+	 */
 	private function has_attachment_id() {
-		return $this->attachment_id !== null && $this->attachment_id > 0;
+		return $this->attachment_id !== null && $this->attachment_id !== 0;
 	}
 }

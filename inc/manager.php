@@ -259,10 +259,10 @@ final class Optml_Manager {
 			return true;
 		}
 
-		if( is_customize_preview() && $this->settings->get('offload_media') !== 'enabled' ) {
+		if ( is_customize_preview() && $this->settings->get( 'offload_media' ) !== 'enabled' ) {
 			return false;
-		} 
-		
+		}
+
 		if ( ( is_admin() && ! self::is_ajax_request() ) || ! $this->settings->is_connected() || ! $this->settings->is_enabled() ) {
 			return false; // @codeCoverageIgnore
 		}

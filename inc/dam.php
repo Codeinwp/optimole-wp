@@ -289,7 +289,7 @@ class Optml_Dam {
 			return $metadata;
 		}
 
-        return $this->get_altered_metadata_for_remote_images( $metadata, $id );
+		return $this->get_altered_metadata_for_remote_images( $metadata, $id );
 	}
 
 	/**
