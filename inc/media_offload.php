@@ -2104,7 +2104,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		$args = wp_parse_args( $args, $default_args );
 		// If this is not cropped, we constrain the dimensions to the original image.
-		if ( empty( $args['resize'] ) && ! in_array( 'auto', [ $meta['width'], $meta['height'] ], true ) ) {
+		if ( empty( $args['resize'] ) && ! in_array( 'auto', [ $args['width'], $args['height'] ], true ) ) {
 			$dimensions     = wp_constrain_dimensions( $meta['width'], $meta['height'], $args['width'], $args['height'] );
 			$args['width']  = $dimensions[0];
 			$args['height'] = $dimensions[1];
@@ -2321,7 +2321,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$width  = $constrained[0];
 				$height = $constrained[1];
 			}
-			$replace[$url] = $this->maybe_strip_scaled( $replace[$url] );
+			$replace[ $url ] = $this->maybe_strip_scaled( $replace[ $url ] );
 
 			$suffix = sprintf( '-%sx%s.%s', $width, $height, $extension );
 

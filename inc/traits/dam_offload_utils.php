@@ -50,8 +50,8 @@ trait Optml_Dam_Offload_Utils {
 		$intermediate     = get_intermediate_image_sizes();
 		$all              = [];
 
-//		error_log( var_export ( $additional_sizes, true ) );
-//		error_log( var_export ( $intermediate, true ) );
+		// error_log( var_export ( $additional_sizes, true ) );
+		// error_log( var_export ( $intermediate, true ) );
 
 		foreach ( $intermediate as $size ) {
 			if ( isset( $additional_sizes[ $size ] ) ) {
@@ -69,7 +69,8 @@ trait Optml_Dam_Offload_Utils {
 			}
 
 			if ( ! empty( $additional_sizes[ $size ]['crop'] ) ) {
-				$all[ $size ]['crop'] = is_array( $additional_sizes[ $size ]['crop'] ) ? $additional_sizes[ $size ]['crop'] : (bool) $additional_sizes[ $size ]['crop'];;
+				$all[ $size ]['crop'] = is_array( $additional_sizes[ $size ]['crop'] ) ? $additional_sizes[ $size ]['crop'] : (bool) $additional_sizes[ $size ]['crop'];
+
 			} else {
 				$all[ $size ]['crop'] = (bool) get_option( $size . '_crop' );
 			}
