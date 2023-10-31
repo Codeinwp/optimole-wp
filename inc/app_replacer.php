@@ -566,6 +566,12 @@ abstract class Optml_App_Replacer {
 			// Treat offloaded attachments differently.
 			$id = attachment_url_to_postid( $stripped_url );
 
+			if( $id === 0 ) {
+				$scaled_url = $this->get_scaled_url($stripped_url);
+
+				$id = attachment_url_to_postid( $scaled_url );
+			}
+
 			if ( $id !== 0 && $this->is_new_offloaded_attachment( $id ) ) {
 				return $stripped_url;
 			}

@@ -1167,10 +1167,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$url           = self::get_original_url( $attachment_id );
 			$optimized_url = ( new Optml_Image(
 				$url,
-				[ 'width'   => $data['width'],
-														'height' => $data['height'],
-														'resize' => $resize,
-														'quality' => $this->settings->get_numeric_quality(),
+				[
+					'width'   => $data['width'],
+					'height' => $data['height'],
+					'resize' => $resize,
+					'quality' => $this->settings->get_numeric_quality(),
 				],
 				$this->settings->get( 'cache_buster' )
 			) )->get_url();
@@ -1975,7 +1976,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			$width  = $sizes[ $size ]['width'];
 			$height = $sizes[ $size ]['height'];
-			$crop   = (bool) $sizes[ $size ]['crop'];
+			$crop   = is_array( $sizes[ $size ]['crop'] ) ? $sizes[ $size ]['crop'] : (bool) $sizes[ $size ]['crop'];
 		}
 
 		$sizes2crop = self::size_to_crop();
@@ -1993,8 +1994,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 		}
 
-		if ( $crop === true ) {
-			$resize = $this->to_optml_crop( true );
+		if ( $crop !== false ) {
+			$resize = $this->to_optml_crop( $crop );
 		}
 
 		$image_url = $this->get_new_offloaded_attachment_url( $url, $attachment_id, ['width' => $width, 'height' => $height, 'resize' => $resize, 'attachment_id' => $attachment_id] );
@@ -2102,6 +2103,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		];
 
 		$args = wp_parse_args( $args, $default_args );
+		// If this is not cropped, we constrain the dimensions to the original image.
+		if ( empty( $args['resize'] ) && ! in_array( 'auto', [ $meta['width'], $meta['height'] ], true ) ) {
+			$dimensions     = wp_constrain_dimensions( $meta['width'], $meta['height'], $args['width'], $args['height'] );
+			$args['width']  = $dimensions[0];
+			$args['height'] = $dimensions[1];
+		}
 
 		$file = $meta['file'];
 		if ( self::is_uploaded_image( $file ) ) {
@@ -2291,7 +2298,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$extension = $this->get_ext( $url );
 			$metadata  = wp_get_attachment_metadata( $id );
 
-			// This might be a scaled URL using an image size.
+			// Is this the full URL.
 			if ( $metadata['width'] === (int) $size[0] && $metadata['height'] === (int) $size[1] ) {
 				continue;
 			}
@@ -2314,6 +2321,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$width  = $constrained[0];
 				$height = $constrained[1];
 			}
+			$replace[$url] = $this->maybe_strip_scaled( $replace[$url] );
 
 			$suffix = sprintf( '-%sx%s.%s', $width, $height, $extension );
 
@@ -2373,7 +2381,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				'height' => $custom_dimensions['height'],
 				'resize' => $this->to_optml_crop( true ),
 			];
-			$new_url  = $this->get_new_offloaded_attachment_url( $image['id'], $image['id'], $new_args );
+			$new_url  = $this->get_new_offloaded_attachment_url( $image['url'], $image['id'], $new_args );
 
 			return str_replace( $image['url'], $new_url, $html );
 		}
@@ -2393,12 +2401,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		// Needed for rendering beaver builder css properly.
 		add_filter( 'fl_builder_render_css', [self::$instance, 'replace_urls_in_editor_content'], 10, 1 );
-		add_filter( 'content_edit_pre', [self::$instance, 'replace_urls_in_editor_content'], 10, 1 );
 
 		// Filter saved data on insert to use local attachments.
 		add_filter( 'wp_insert_post_data', [ self::$instance, 'filter_saved_data' ], 10, 4 );
 
 		// Filter loaded data in the editors to use local attachments.
+		add_filter( 'content_edit_pre', [self::$instance, 'replace_urls_in_editor_content'], 10, 1 );
 		$types = get_post_types_by_support( 'editor' );
 		foreach ( $types as $type ) {
 			$post_type = get_post_type_object( $type );

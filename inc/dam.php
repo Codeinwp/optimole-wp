@@ -64,8 +64,9 @@ class Optml_Dam {
 		add_filter( 'wp_prepare_attachment_for_js', [$this, 'alter_attachment_for_js'], 10, 3 );
 		add_filter( 'wp_image_src_get_dimensions', [$this, 'alter_img_tag_w_h'], 10, 4 );
 		add_filter( 'get_attached_file', [$this, 'alter_attached_file_response'], 10, 2 );
+        add_filter( 'wp_calculate_image_srcset', [$this, 'disable_dam_images_srcset'], 1, 5 );
 
-		add_filter(
+        add_filter(
 			'elementor/image_size/get_attachment_image_html',
 			[
 				$this,
@@ -795,4 +796,23 @@ class Optml_Dam {
 
 		return true;
 	}
+
+    /**
+     * Alter the srcSet for DAM images.
+     *
+     * @param array $sources Initial source array.
+     * @param array $size_array Requested size.
+     * @param string $image_src Image source URL.
+     * @param array $image_meta Image meta data.
+     * @param int $attachment_id Image attachment ID.
+     *
+     * @return array
+     */
+    public function disable_dam_images_srcset( $sources, $size_array, $image_src, $image_meta, $attachment_id ) {
+        if( ! $this->is_dam_imported_image( $attachment_id ) ) {
+            return $sources;
+        }
+
+        return [];
+    }
 }

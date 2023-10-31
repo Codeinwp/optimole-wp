@@ -50,6 +50,9 @@ trait Optml_Dam_Offload_Utils {
 		$intermediate     = get_intermediate_image_sizes();
 		$all              = [];
 
+//		error_log( var_export ( $additional_sizes, true ) );
+//		error_log( var_export ( $intermediate, true ) );
+
 		foreach ( $intermediate as $size ) {
 			if ( isset( $additional_sizes[ $size ] ) ) {
 				$all[ $size ] = [
@@ -61,12 +64,12 @@ trait Optml_Dam_Offload_Utils {
 				$all[ $size ] = [
 					'width'  => (int) get_option( $size . '_size_w' ),
 					'height' => (int) get_option( $size . '_size_h' ),
-					'crop'   => (bool) get_option( $size . '_crop' ),
+					'crop'   => get_option( $size . '_crop' ),
 				];
 			}
 
 			if ( ! empty( $additional_sizes[ $size ]['crop'] ) ) {
-				$all[ $size ]['crop'] = $additional_sizes[ $size ]['crop'];
+				$all[ $size ]['crop'] = is_array( $additional_sizes[ $size ]['crop'] ) ? $additional_sizes[ $size ]['crop'] : (bool) $additional_sizes[ $size ]['crop'];;
 			} else {
 				$all[ $size ]['crop'] = (bool) get_option( $size . '_crop' );
 			}
@@ -193,5 +196,18 @@ trait Optml_Dam_Offload_Utils {
 		$metadata['sizes'] = $sizes_meta;
 
 		return $metadata;
+	}
+
+	/**
+	 * Get the scaled URL.
+	 *
+	 * @param string $url Original URL.
+	 *
+	 * @return string
+	 */
+	private function get_scaled_url( $url ) {
+		$extension = pathinfo( $url, PATHINFO_EXTENSION );
+
+		return str_replace( '.' . $extension, '-scaled.' . $extension, $url );
 	}
 }
