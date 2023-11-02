@@ -259,7 +259,7 @@ const OffloadMedia = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_offload_media_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_offload_media_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_offload_media_desc } } /> }
 				checked={ isOffloadMediaEnabled }
 				disabled={ isLoading }
 				className={ classnames(
