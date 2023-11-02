@@ -90,7 +90,11 @@ $disabled: #6786F4;
 	.components-base-control__help {
 		font-size: 13px;
 		font-style: normal;
-		color: rgb(117, 117, 117);
+		color: $purple-gray;
+
+		.underline {
+			text-decoration: underline; // This class isn't used in the JS files so Tailwid doesn't pick it up.
+		}
 	}
 
 	.optml-connected {
