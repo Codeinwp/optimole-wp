@@ -237,7 +237,7 @@ class Optml_Image extends Optml_Resource {
 		} else {
 			$attachment_id = attachment_url_to_postid( $this->source_url );
 
-			if ( $attachment_id === 0 && strpos( $this->source_url, 'scaled' ) === false ) {
+			if ( $attachment_id === 0 && strpos( $this->source_url, '-scaled' ) === false ) {
 				$extension = pathinfo( $this->source_url, PATHINFO_EXTENSION );
 				$scaled = str_replace( '.' . $extension, '-scaled.' . $extension, $this->source_url );
 				$attachment_id = attachment_url_to_postid( $scaled );
