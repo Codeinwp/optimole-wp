@@ -1122,8 +1122,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $url;
 		}
 
-		$parsed_size = $this->parse_dimension_from_optimized_url( $url );
-
 		return $this->get_new_offloaded_attachment_url( $url, $attachment_id );
 	}
 
@@ -1469,6 +1467,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					'key'     => self::META_KEYS['offloaded'],
 					'value'   => 'true',
 					'compare' => '=',
+				],
+				[
+					'key' => self::META_KEYS['rollback_error'],
+					'compare' => 'NOT EXISTS',
 				],
 			];
 

@@ -228,12 +228,8 @@ class Optml_Image extends Optml_Resource {
 
 		$attachment_id = 0;
 
-		if ( strpos( $this->source_url, 'process:' ) !== false ) {
-			preg_match( '/process:(\d+)/', $this->source_url, $matches );
-			if ( ! isset( $matches[1] ) ) {
-				return false;
-			}
-			$attachment_id = (int) $matches[1];
+		if ( strpos( $this->source_url, Optml_Media_Offload::KEYS['not_processed_flag'] ) !== false ) {
+			$attachment_id = (int) Optml_Media_Offload::get_attachment_id_from_url( $this->source_url );
 		} else {
 			$attachment_id = attachment_url_to_postid( $this->source_url );
 
