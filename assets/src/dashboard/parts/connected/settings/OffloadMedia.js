@@ -235,8 +235,12 @@ const OffloadMedia = ({
 				<>
 					<BaseControl
 						label={ optimoleDashboardApp.strings.options_strings.cloud_site_title }
-						help={ optimoleDashboardApp.strings.options_strings.cloud_site_desc }
 					>
+						<p
+							className="components-base-control__help mt-0"
+							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.cloud_site_desc } }
+						/>
+
 						<div className="optml__token__base flex p-6 bg-light-blue border border-blue-300 rounded-md items-center gap-8">
 							<FormTokenField
 								value={ Object.keys( settings['cloud_sites']).filter( site => 'all' !== site && 'false' !== settings['cloud_sites'][ site ]).map( site => site ) || []}
@@ -255,7 +259,7 @@ const OffloadMedia = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_offload_media_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_offload_media_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_offload_media_desc } } /> }
 				checked={ isOffloadMediaEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -316,8 +320,12 @@ const OffloadMedia = ({
 
 					<BaseControl
 						label={ optimoleDashboardApp.strings.options_strings.sync_title }
-						help={ optimoleDashboardApp.strings.options_strings.sync_desc }
 					>
+						<p
+							className="components-base-control__help mt-0"
+							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.sync_desc } }
+						/>
+
 						<div className="flex my-2 gap-3">
 							<Button
 								variant="default"
@@ -400,8 +408,12 @@ const OffloadMedia = ({
 
 					<BaseControl
 						label={ optimoleDashboardApp.strings.options_strings.rollback_title }
-						help={ optimoleDashboardApp.strings.options_strings.rollback_desc }
 					>
+						<p
+							className="components-base-control__help mt-0"
+							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.rollback_desc } }
+						/>
+
 						<div className="flex my-2 gap-3">
 							<Button
 								variant="default"
