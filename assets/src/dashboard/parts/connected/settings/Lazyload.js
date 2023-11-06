@@ -171,20 +171,7 @@ const Lazyload = ({
 
 			<hr className="my-8 border-grayish-blue"/>
 
-			<ToggleControl
-				label={ optimoleDashboardApp.strings.options_strings.enable_bg_lazyload_title }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_bg_lazyload_desc } } /> }
-				checked={ isBGReplacerEnabled }
-				disabled={ isLoading }
-				className={ classnames(
-					{
-						'is-disabled': isLoading
-					}
-				) }
-				onChange={ value => updateOption( 'bg_replacer', value ) }
-			/>
 
-			<hr className="my-8 border-grayish-blue"/>
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_video_lazyload_title }
@@ -214,6 +201,19 @@ const Lazyload = ({
 				onChange={ value => updateOption( 'no_script', value ) }
 			/>
 
+			<hr className="my-8 border-grayish-blue"/>
+			<ToggleControl
+				label={ optimoleDashboardApp.strings.options_strings.enable_bg_lazyload_title }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_bg_lazyload_desc } } /> }
+				checked={ isBGReplacerEnabled }
+				disabled={ isLoading }
+				className={ classnames(
+					{
+						'is-disabled': isLoading
+					}
+				) }
+				onChange={ value => updateOption( 'bg_replacer', value ) }
+			/>
 			{ isBGReplacerEnabled && (
 				<>
 					<hr className="my-8 border-grayish-blue"/>
