@@ -53,6 +53,7 @@
     "tailwindcss": "^3.3.2"
   },
   "dependencies": {
+    "@formbricks/js": "^1.1.4",
     "@wordpress/icons": "^9.25.0",
     "classnames": "^2.3.2",
     "react-compare-image": "^3.4.0",

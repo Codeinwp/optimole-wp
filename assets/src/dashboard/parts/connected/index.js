@@ -21,7 +21,21 @@ import Help from './help';
 import Sidebar from './Sidebar';
 import CSAT from './CSAT';
 import { retrieveConflicts } from '../../utils/api';
+import formbricks from '@formbricks/js';
+if ( 'undefined' !== typeof window ) {
+	formbricks.init({
+		environmentId: 'clo8wxwzj44orpm0gjchurujm',
+		apiHost: 'https://app.formbricks.com',
+		debug: true // remove when in production
+	});
+	formbricks.setUserId(optimoleDashboardApp.user_data.id);
+	formbricks.setAttribute("plan", optimoleDashboardApp.user_data.plan);
+	formbricks.setAttribute("connected_websites", optimoleDashboardApp.user_data.whitelist.length);
+	formbricks.setAttribute("traffic", optimoleDashboardApp.user_data.traffic);
+	formbricks.setAttribute("images_number", optimoleDashboardApp.user_data.images_number);
+	formbricks.setAttribute("days_since_install", optimoleDashboardApp.days_since_install);
 
+}
 const ConnectedLayout = ({
 	tab,
 	setTab

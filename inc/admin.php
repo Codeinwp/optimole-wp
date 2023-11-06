@@ -1085,6 +1085,7 @@ class Optml_Admin {
 			],
 			'site_settings'              => $this->settings->get_site_settings(),
 			'home_url'                   => home_url(),
+			'days_since_install' => round( ( time() - get_option( 'optimole_wp_install', 0 ) ) / DAY_IN_SECONDS ),
 			'is_offload_media_available' => $is_offload_media_available,
 			'auto_connect'               => $auto_connect,
 			'submenu_links' => [
