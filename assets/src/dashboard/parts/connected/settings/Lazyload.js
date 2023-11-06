@@ -172,7 +172,6 @@ const Lazyload = ({
 			<hr className="my-8 border-grayish-blue"/>
 
 
-
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_video_lazyload_title }
 				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_video_lazyload_desc } } /> }
