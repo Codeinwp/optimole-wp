@@ -7,6 +7,7 @@
  * @author     Optimole <friends@optimole.com>
  */
 class Optml_Image extends Optml_Resource {
+	use Optml_Dam_Offload_Utils;
 
 	/**
 	 * Watermark for the image.
@@ -231,13 +232,7 @@ class Optml_Image extends Optml_Resource {
 		if ( strpos( $this->source_url, Optml_Media_Offload::KEYS['not_processed_flag'] ) !== false ) {
 			$attachment_id = (int) Optml_Media_Offload::get_attachment_id_from_url( $this->source_url );
 		} else {
-			$attachment_id = attachment_url_to_postid( $this->source_url );
-
-			if ( $attachment_id === 0 && strpos( $this->source_url, '-scaled' ) === false ) {
-				$extension = pathinfo( $this->source_url, PATHINFO_EXTENSION );
-				$scaled = str_replace( '.' . $extension, '-scaled.' . $extension, $this->source_url );
-				$attachment_id = attachment_url_to_postid( $scaled );
-			}
+			$attachment_id = $this->attachment_url_to_post_id( $this->source_url );
 		}
 
 		if ( $attachment_id === 0 ) {

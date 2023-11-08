@@ -80,18 +80,19 @@ trait Optml_Dam_Offload_Utils {
 	 *  Get the dimension from optimized url.
 	 *
 	 * @param string $url The image url.
+	 *
 	 * @return array Contains the width and height values in this order.
 	 */
 	private function parse_dimension_from_optimized_url( $url ) {
-		$catch = [];
+		$catch  = [];
 		$height = 'auto';
-		$width = 'auto';
+		$width  = 'auto';
 		preg_match( '/\/w:(.*)\/h:(.*)\/q:/', $url, $catch );
 		if ( isset( $catch[1] ) && isset( $catch[2] ) ) {
-			$width = $catch[1];
+			$width  = $catch[1];
 			$height = $catch[2];
 		}
-		return [$width, $height];
+		return [ $width, $height ];
 	}
 
 	/**
@@ -207,5 +208,54 @@ trait Optml_Dam_Offload_Utils {
 		$extension = pathinfo( $url, PATHINFO_EXTENSION );
 
 		return str_replace( '.' . $extension, '-scaled.' . $extension, $url );
+	}
+
+	/**
+	 * Get the attachment ID from URL.
+	 *
+	 * @param string $url The attachment URL.
+	 *
+	 * @return int
+	 */
+	private function attachment_url_to_post_id( $url ) {
+		$cached = Optml_Attachment_Cache::get_cached_attachment_id( $url );
+
+		if ( $cached !== false ) {
+			return $cached;
+		}
+
+		$url = $this->strip_image_size( $url );
+
+		$attachment_id = attachment_url_to_postid( $url );
+
+		if ( $attachment_id === 0 ) {
+			$scaled_url = $this->get_scaled_url( $url );
+
+			$attachment_id = attachment_url_to_postid( $scaled_url );
+		}
+
+		if ( $attachment_id === 0 ) {
+			return $attachment_id;
+		}
+
+		Optml_Attachment_Cache::set_cached_attachment_id( $url, $attachment_id );
+
+		return $attachment_id;
+	}
+
+	/**
+	 * Strips the image size from the URL.
+	 *
+	 * @param string $url URL to strip.
+	 *
+	 * @return string
+	 */
+	private function strip_image_size( $url ) {
+		if ( preg_match( '#(-\d+x\d+(?:_c)?|(@2x))\.(' . implode( '|', array_keys( Optml_Config::$image_extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
+			$url = str_replace( $src_parts[1], '', $url );
+		}
+
+		return $url;
+
 	}
 }
