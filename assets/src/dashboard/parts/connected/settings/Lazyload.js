@@ -82,7 +82,7 @@ const Lazyload = ({
 					<div className="relative inline-block">
 						<Button
 							disabled={isLoading}
-							className="gap-3 my-2 py-3 h-auto rounded text-inherit border-gray-400 border-2 border-solid font-medium"
+							className="gap-3 mt-2 py-3 h-auto rounded text-inherit border-gray-400 border-2 border-solid font-medium"
 							onClick={() => {
 								setPhPicker( ! phPicker );
 							}}
