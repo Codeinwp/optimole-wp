@@ -32,8 +32,8 @@ class Test_Logger extends WP_UnitTestCase {
 	 * Test adding a log.
 	 */
 	public function test_add_log() {
-		$this->assertTrue( $this->logger->add_log( 'offload', 'Test offload message' ) );
-		$this->assertTrue( $this->logger->add_log( 'rollback', 'Test rollback message' ) );
+		$this->assertTrue( $this->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Test offload message' ) );
+		$this->assertTrue( $this->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Test rollback message' ) );
 	}
 
 	/**

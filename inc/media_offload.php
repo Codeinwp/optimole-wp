@@ -757,7 +757,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					do_action( 'optml_log', ' error get url' );
 				}
 
-				self::$instance->logger->add_log( 'rollback', 'Image ID: ' . $id . ' has error getting URL.' );
+				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' has error getting URL.' );
 				continue;
 			}
 
@@ -779,7 +779,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					do_action( 'optml_log', ' download_url error ' );
 				}
 
-				self::$instance->logger->add_log( 'rollback', 'Image ID: ' . $id . ' has error getting URL.' );
+				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' has error getting URL.' );
 				continue;
 			}
 
@@ -792,7 +792,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				}
 				update_post_meta( $id, 'optimole_rollback_error', 'true' );
 
-				self::$instance->logger->add_log( 'rollback', 'Image ID: ' . $id . ' has invalid extension.' );
+				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' has invalid extension.' );
 				continue;
 			}
 
@@ -832,7 +832,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				}
 				update_post_meta( $id, 'optimole_rollback_error', 'true' );
 
-				self::$instance->logger->add_log( 'rollback', 'Image ID: ' . $id . ' faced wp_handle_sideload error.' );
+				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' faced wp_handle_sideload error.' );
 				continue;
 			}
 
@@ -889,7 +889,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			$success_back++;
 
-			self::$instance->logger->add_log( 'rollback', 'Image ID: ' . $id . ' has been rollbacked.' );
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' has been rolled back.' );
 
 			$original_url  = self::get_original_url( $id );
 			if ( $original_url === false ) {
@@ -1120,7 +1120,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', $meta );
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 
-			self::$instance->logger->add_log( 'offload', 'Image ID: ' . $attachment_id . ' has invalid meta.' );
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has invalid meta.' );
 			return $meta;
 		}
 		if ( false === Optml_Filters::should_do_image( $meta['file'], self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_FILENAME ] ) ) {
@@ -1134,7 +1134,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', 'error getting original url' );
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 
-			self::$instance->logger->add_log( 'offload', 'Image ID: ' . $attachment_id . ' has invalid original url.' );
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has invalid original url.' );
 			return $meta;
 		}
 
@@ -1167,7 +1167,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', 'missing file' );
 			do_action( 'optml_log', $local_file );
 
-			self::$instance->logger->add_log( 'offload', 'Image ID: ' . $attachment_id . ' has missing file.' );
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has missing file.' );
 			return $meta;
 		}
 
@@ -1176,7 +1176,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', 'invalid extension' );
 			do_action( 'optml_log', $extension );
 
-			self::$instance->logger->add_log( 'offload', 'Image ID: ' . $attachment_id . ' has invalid extension.' );
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has invalid extension.' );
 			return $meta;
 		}
 		if ( false === Optml_Filters::should_do_extension( self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_EXT ], $extension ) ) {
@@ -1196,7 +1196,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 
-			self::$instance->logger->add_log( 'offload', 'Image ID: ' . $attachment_id . ' has invalid signed url.' );
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has invalid signed url.' );
 			return $meta;
 		}
 		$decoded_response = json_decode( $generate_url_response['body'], true );
@@ -1208,7 +1208,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 
-			self::$instance->logger->add_log( 'offload', 'Image ID: ' . $attachment_id . ' has invalid table id or upload url.' );
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has invalid table id or upload url.' );
 			return $meta;
 		}
 		$table_id = $decoded_response['tableId'];
@@ -1223,7 +1223,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', $local_file );
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 
-			self::$instance->logger->add_log( 'offload', 'Image ID: ' . $attachment_id . ' has missing file.' );
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has missing file.' );
 			return $meta;
 		}
 		if ( $upload_signed_url !== 'found_resource' ) {
@@ -1236,7 +1236,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', $result );
 				update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 
-				self::$instance->logger->add_log( 'offload', 'Image ID: ' . $attachment_id . ' has upload error.' );
+				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has upload error.' );
 				return $meta;
 			}
 			$file_size = filesize( $local_file );
@@ -1259,7 +1259,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', $result_update );
 				update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 
-				self::$instance->logger->add_log( 'offload', 'Image ID: ' . $attachment_id . ' has dynamo update error.' );
+				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has dynamo update error.' );
 				return $meta;
 			}
 		}
@@ -1277,7 +1277,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$request->call_upload_api( $original_url, 'true', $table_id );
 			update_post_meta( $attachment_id, 'optimole_offload_error', 'true' );
 
-			self::$instance->logger->add_log( 'offload', 'Image ID: ' . $attachment_id . ' has optimization error.' );
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has optimization error.' );
 			return $meta;
 		}
 		unlink( $local_file );
@@ -1312,7 +1312,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', 'success offload' );
 		}
 
-		self::$instance->logger->add_log( 'offload', 'Image ID: ' . $attachment_id . ' has been offloaded.' );
+		self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has been offloaded.' );
 		$attachment_page_id = wp_get_post_parent_id( $attachment_id );
 
 		if ( $attachment_page_id !== false && $attachment_page_id !== 0 ) {
@@ -1614,8 +1614,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			self::$instance->settings->update( $option, $in_progress ? 'enabled' : 'disabled' );
 
 			$type = 'offload_images' === $action ? 'offload' : 'rollback';
-			self::$instance->logger->add_log( $type, '==========' );
-			self::$instance->logger->add_log( $type, 'Starter with a total count of ' . intval( $count ) . '.' );
+			self::$instance->logger->add_log( $type, Optml_Logger::LOG_SEPARATOR );
+			self::$instance->logger->add_log( $type, 'Started with a total count of ' . intval( $count ) . '.' );
 			self::record_process_meta( $count );
 
 			if ( true === $in_progress ) {
@@ -1639,8 +1639,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			self::$instance->settings->update( $option, $in_progress ? 'enabled' : 'disabled' );
 
 			$type = 'offload_images' === $action ? 'offload' : 'rollback';
-			self::$instance->logger->add_log( $type, '==========' );
-			self::$instance->logger->add_log( $type, 'Starter with a total count of ' . intval( $count ) . '.' );
+			self::$instance->logger->add_log( $type, Optml_Logger::LOG_SEPARATOR );
+			self::$instance->logger->add_log( $type, 'Started with a total count of ' . intval( $count ) . '.' );
 			self::record_process_meta( $count );
 
 			if ( true === $in_progress ) {

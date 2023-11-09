@@ -39,10 +39,10 @@ import {
 import Logs from './Logs';
 
 import {
-    offload,
-    rollback as rollbackIcon,
-    warningAlt,
-    warning
+	offload,
+	rollback as rollbackIcon,
+	warningAlt,
+	warning
 } from '../../../utils/icons';
 
 import {

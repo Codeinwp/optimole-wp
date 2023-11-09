@@ -5,6 +5,11 @@
  */
 class Optml_Logger {
 
+	const LOG_TYPE_OFFLOAD = 'offload';
+	const LOG_TYPE_ROLLBACK = 'rollback';
+
+	const LOG_SEPARATOR = '==========';
+
 	/**
 	 * Upload directory.
 	 *
@@ -18,8 +23,8 @@ class Optml_Logger {
 	 * @var array
 	 */
 	private $log_filenames = [
-		'offload'  => 'offload.log',
-		'rollback' => 'rollback.log',
+		self::LOG_TYPE_OFFLOAD  => 'offload.log',
+		self::LOG_TYPE_ROLLBACK => 'rollback.log',
 	];
 
 	/**
@@ -212,7 +217,7 @@ class Optml_Logger {
 		}
 
 		// Check for necessary parameters
-		if ( ! isset( $_REQUEST['type'] ) || ! in_array( $_REQUEST['type'], ['offload', 'rollback'], true ) ) {
+		if ( ! isset( $_REQUEST['type'] ) || ! in_array( $_REQUEST['type'], array_keys( $this->log_filenames ), true ) ) {
 			wp_die( __( 'Invalid log type', 'optimole-wp' ) );
 		}
 
@@ -226,7 +231,7 @@ class Optml_Logger {
 		$type = $_REQUEST['type'];
 
 		// Fetch the logs
-		$logs = $this->get_log( $type, $lines, '==========' );
+		$logs = $this->get_log( $type, $lines, self::LOG_SEPARATOR );
 
 		// Return the logs
 		echo $logs;
