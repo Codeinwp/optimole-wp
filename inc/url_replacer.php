@@ -8,6 +8,7 @@
  */
 final class Optml_Url_Replacer extends Optml_App_Replacer {
 
+	use Optml_Dam_Offload_Utils;
 	use Optml_Validator;
 	use Optml_Normalizer;
 
@@ -132,7 +133,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			if ( isset( $id_and_filename[0] ) ) {
 				$id_and_filename = $id_and_filename[0];
 			}
-			$sizes = Optml_Media_Offload::parse_dimension_from_optimized_url( $url );
+			$sizes = $this->parse_dimension_from_optimized_url( $url );
 			if ( isset( $sizes[0] ) && $sizes[0] !== false ) {
 				$args['width'] = $sizes[0];
 			}
