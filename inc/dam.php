@@ -46,11 +46,8 @@ class Optml_Dam {
 		if ( $this->settings->get( 'cloud_images' ) === 'enabled' ) {
 			add_action( 'admin_menu', [ $this, 'add_menu' ] );
 			add_action( 'print_media_templates', [ $this, 'print_media_template' ] );
-			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_media_scripts' ] );
+			add_action( 'wp_enqueue_media', [ $this, 'enqueue_media_scripts' ] );
 			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_page_scripts' ] );
-
-			// Needed for this to work with elementor.
-			add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'enqueue_media_scripts' ] );
 		}
 
 		if ( defined( 'OPTML_DAM_ENDPOINT' ) && constant( 'OPTML_DAM_ENDPOINT' ) ) {
