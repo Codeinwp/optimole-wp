@@ -94,7 +94,7 @@ const Resize = ({
 		<>
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_resize_smart_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_resize_smart_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_resize_smart_desc } } /> }
 				checked={ isSmartResizeEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -109,7 +109,7 @@ const Resize = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_retina_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_retina_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_retina_desc } } /> }
 				checked={ isRetinaEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -124,7 +124,7 @@ const Resize = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_desc } } /> }
 				checked={ isLimitDimensionsEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -174,8 +174,12 @@ const Resize = ({
 
 			<BaseControl
 				label={ optimoleDashboardApp.strings.options_strings.add_image_size_desc }
-				help={ optimoleDashboardApp.strings.options_strings.image_size_notice }
 			>
+				<p
+					className="components-base-control__help mt-0"
+					dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.image_size_notice } }
+				/>
+
 				<div className="flex flex-col sm:flex-row p-6 bg-light-blue border border-blue-300 rounded-md items-stretch sm:items-center gap-8">
 					<TextControl
 						label={ optimoleDashboardApp.strings.options_strings.width_field }
