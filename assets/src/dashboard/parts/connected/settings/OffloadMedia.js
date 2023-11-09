@@ -3,7 +3,10 @@
  */
 import classnames from 'classnames';
 
-import { rotateRight } from '@wordpress/icons';
+import {
+	close,
+	rotateRight
+} from '@wordpress/icons';
 
 /**
  * WordPress dependencies.
@@ -14,13 +17,16 @@ import {
 	FormTokenField,
 	Icon,
 	SelectControl,
-	ToggleControl
+	ToggleControl,
+	Modal
 } from '@wordpress/components';
 
 import {
 	useDispatch,
 	useSelect
 } from '@wordpress/data';
+
+import { useViewportMatch } from '@wordpress/compose';
 
 import {
 	useEffect,
@@ -30,7 +36,13 @@ import {
 /**
  * Internal dependencies.
  */
-import { warning } from '../../../utils/icons';
+import {
+	offload,
+	rollback as rollbackIcon,
+	warningAlt,
+	warning
+} from '../../../utils/icons';
+
 import {
 	callSync,
 	checkOffloadConflicts,
@@ -40,6 +52,69 @@ import {
 import ProgressBar from '../../components/ProgressBar';
 
 const maxTime = 100;
+
+const ConfirmModal = ({
+	icon,
+	labels = {},
+	onRequestClose = () => {},
+	onConfirm = () => {},
+	variant = 'default'
+}) => {
+	const isMobileViewport = useViewportMatch( 'small', '<' );
+
+	return (
+		<Modal
+			__experimentalHideHeader={ true }
+			className="optml__modal"
+			onRequestClose={ onRequestClose }
+			isFullScreen={ isMobileViewport }
+		>
+			<Button
+				onClick={ onRequestClose }
+				icon={ close }
+				label={ optimoleDashboardApp.strings.csat.close }
+				className="fixed right-3 top-3 cursor-pointer"
+			/>
+
+			<div className="flex flex-col items-center">
+				<Icon
+					icon={ icon }
+					size={ 24 }
+					className={ classnames(
+						'p-3 rounded-full',
+						{
+							'bg-stale-yellow': 'warning' === variant,
+							'bg-light-blue': 'default' === variant
+						}
+					) }
+				/>
+
+				<h2
+					className="mb-0"
+					dangerouslySetInnerHTML={ { __html: labels.title } }
+				/>
+
+				<p
+					className="text-center mx-0 my-4"
+					dangerouslySetInnerHTML={ { __html: labels.description } }
+				/>
+
+				<Button
+					variant="primary"
+					className={ classnames(
+						'optml__button flex justify-center px-5 py-3 rounded font-bold min-h-40 basis-1/5',
+						{
+							'bg-mango-yellow': 'warning' === variant
+						}
+					) }
+					onClick={ onConfirm }
+				>
+					{ labels.action }
+				</Button>
+			</div>
+		</Modal>
+	);
+};
 
 const OffloadMedia = ({
 	settings,
@@ -94,6 +169,7 @@ const OffloadMedia = ({
 	} = useDispatch( 'optimole' );
 
 	const [ rollback, setRollback ] = useState( 'yes' );
+	const [ modal, setModal ] = useState( false );
 	const [ showOffloadDisabled, setShowOffloadDisabled ] = useState( false );
 	const [ showOffloadEnabled, setShowOffloadEnabled ] = useState( false );
 
@@ -337,24 +413,57 @@ const OffloadMedia = ({
 										'is-disabled': isLoading
 									}
 								) }
-								onClick={ () => onOffloadMedia() }
+								onClick={ () => setModal( 'enableOffloading' ) }
 							>
 								{ optimoleDashboardApp.strings.options_strings.sync_media }
 							</Button>
 
-							{ loadingSync && (
-								<Button
-									variant="default"
-									isDestructive={ true }
-									className="optml__button flex justify-center rounded font-bold min-h-40"
-									onClick={ () => {
-										const options = settings;
-										options.offloading_status = 'disabled';
-										saveSettings( options );
+							{ 'enableOffloading' === modal && (
+								<ConfirmModal
+									icon={ offload }
+									labels={ {
+										title: optimoleDashboardApp.strings.options_strings.offloading_start_title,
+										description: optimoleDashboardApp.strings.options_strings.offloading_start_description,
+										action: optimoleDashboardApp.strings.options_strings.offloading_start_action
 									} }
-								>
-									{ optimoleDashboardApp.strings.options_strings.stop }
-								</Button>
+									onRequestClose={ () => setModal( false ) }
+									onConfirm={ () => {
+										setModal( false );
+										onOffloadMedia();
+									} }
+								/>
+							)}
+
+							{ loadingSync && (
+								<>
+									<Button
+										variant="default"
+										isDestructive={ true }
+										className="optml__button flex justify-center rounded font-bold min-h-40"
+										onClick={ () => setModal( 'disableOffloading' ) }
+									>
+										{ optimoleDashboardApp.strings.options_strings.stop }
+									</Button>
+
+									{ 'disableOffloading' === modal && (
+										<ConfirmModal
+											icon={ warningAlt }
+											labels={ {
+												title: optimoleDashboardApp.strings.options_strings.offloading_stop_title,
+												description: optimoleDashboardApp.strings.options_strings.offloading_stop_description,
+												action: optimoleDashboardApp.strings.options_strings.offloading_stop_action
+											} }
+											onRequestClose={ () => setModal( false ) }
+											onConfirm={ () => {
+												setModal( false );
+												const options = settings;
+												options.offloading_status = 'disabled';
+												saveSettings( options );
+											} }
+											variant="warning"
+										/>
+									)}
+								</>
 							) }
 						</div>
 					</BaseControl>
@@ -425,24 +534,57 @@ const OffloadMedia = ({
 										'is-disabled': isLoading
 									}
 								) }
-								onClick={ () => onRollbackdMedia() }
+								onClick={ () => setModal( 'enableRollback' ) }
 							>
 								{ optimoleDashboardApp.strings.options_strings.rollback_media }
 							</Button>
 
-							{ loadingRollback && (
-								<Button
-									variant="default"
-									isDestructive={ true }
-									className="optml__button flex justify-center rounded font-bold min-h-40"
-									onClick={ () => {
-										const options = settings;
-										options.rollback_status = 'disabled';
-										saveSettings( options );
+							{ 'enableRollback' === modal && (
+								<ConfirmModal
+									icon={ rollbackIcon }
+									labels={ {
+										title: optimoleDashboardApp.strings.options_strings.rollback_start_title,
+										description: optimoleDashboardApp.strings.options_strings.rollback_start_description,
+										action: optimoleDashboardApp.strings.options_strings.rollback_start_action
 									} }
-								>
-									{ optimoleDashboardApp.strings.options_strings.stop }
-								</Button>
+									onRequestClose={ () => setModal( false ) }
+									onConfirm={ () => {
+										setModal( false );
+										onRollbackdMedia();
+									} }
+								/>
+							)}
+
+							{ loadingRollback && (
+								<>
+									<Button
+										variant="default"
+										isDestructive={ true }
+										className="optml__button flex justify-center rounded font-bold min-h-40"
+										onClick={ () => setModal( 'disableRollback' ) }
+									>
+										{ optimoleDashboardApp.strings.options_strings.stop }
+									</Button>
+
+									{ 'disableRollback' === modal && (
+										<ConfirmModal
+											icon={ warningAlt }
+											labels={ {
+												title: optimoleDashboardApp.strings.options_strings.rollback_stop_title,
+												description: optimoleDashboardApp.strings.options_strings.rollback_stop_description,
+												action: optimoleDashboardApp.strings.options_strings.rollback_stop_action
+											} }
+											onRequestClose={ () => setModal( false ) }
+											onConfirm={ () => {
+												setModal( false );
+												const options = settings;
+												options.rollback_status = 'disabled';
+												saveSettings( options );
+											} }
+											variant="warning"
+										/>
+									)}
+								</>
 							) }
 						</div>
 					</BaseControl>
