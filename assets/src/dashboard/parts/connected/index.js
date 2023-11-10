@@ -26,15 +26,31 @@ if ( 'undefined' !== typeof window ) {
 	formbricks.init({
 		environmentId: 'clo8wxwzj44orpm0gjchurujm',
 		apiHost: 'https://app.formbricks.com',
-		debug: true // remove when in production
 	});
-	formbricks.setUserId(optimoleDashboardApp.user_data.id);
-	formbricks.setAttribute("plan", optimoleDashboardApp.user_data.plan);
-	formbricks.setAttribute("connected_websites", optimoleDashboardApp.user_data.whitelist.length);
-	formbricks.setAttribute("traffic", optimoleDashboardApp.user_data.traffic);
-	formbricks.setAttribute("images_number", optimoleDashboardApp.user_data.images_number);
-	formbricks.setAttribute("days_since_install", optimoleDashboardApp.days_since_install);
+	formbricks.setUserId( optimoleDashboardApp.user_data.id );
+	formbricks.setAttribute( 'plan', optimoleDashboardApp.user_data.plan );
+	formbricks.setAttribute( 'status', optimoleDashboardApp.user_data.status );
+	formbricks.setAttribute( 'is_cname_assigned', optimoleDashboardApp.user_data.is_cname_assigned );
+	formbricks.setAttribute( 'connected_websites', optimoleDashboardApp.user_data.whitelist.length );
+	formbricks.setAttribute( 'traffic', convertToCategory( optimoleDashboardApp.user_data.traffic, 500 ) );
+	formbricks.setAttribute( 'images_number', convertToCategory( optimoleDashboardApp.user_data.images_number, 100 ) );
+	formbricks.setAttribute( 'days_since_install', convertToCategory( optimoleDashboardApp.days_since_install )  );
 
+}
+function convertToCategory( number, scale = 1 ) {
+
+	const normalizedNumber = Math.round( number / scale );
+	if ( 0 === normalizedNumber || 1 === normalizedNumber ) {
+		return 0;
+	} else if ( 1 < normalizedNumber && 8 > normalizedNumber ) {
+		return 7;
+	} else if ( 8 <= normalizedNumber && 31 > normalizedNumber ) {
+		return 30;
+	} else if ( 30 < normalizedNumber && 90 > normalizedNumber ) {
+		return 90;
+	} else if ( 90 > normalizedNumber ) {
+		return 91;
+	}
 }
 const ConnectedLayout = ({
 	tab,
