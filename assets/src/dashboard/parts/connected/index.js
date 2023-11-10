@@ -25,7 +25,7 @@ import formbricks from '@formbricks/js';
 if ( 'undefined' !== typeof window ) {
 	formbricks.init({
 		environmentId: 'clo8wxwzj44orpm0gjchurujm',
-		apiHost: 'https://app.formbricks.com',
+		apiHost: 'https://app.formbricks.com'
 	});
 	formbricks.setUserId( optimoleDashboardApp.user_data.id );
 	formbricks.setAttribute( 'plan', optimoleDashboardApp.user_data.plan );
