@@ -126,4 +126,27 @@ class Optml_Cli_Setting extends WP_CLI_Command {
 		return $settings->parse_settings( $new_setting );
 	}
 
+	/**
+	 * Clear cache.
+	 *
+	 * --type=<type>
+	 * : The type of cache to clear. Default is images.
+	 */
+	public function clear_cache( $args, $assoc_args ) {
+		$type = '';
+
+		// If assoc_args has a type key, use that.
+		if ( isset( $assoc_args['type'] ) && $assoc_args['type'] === 'assets' ) {
+			$type = $assoc_args['type'];
+		}
+
+		$settings = new Optml_Settings();
+		$token = $settings->clear_cache( $type );
+
+		if ( is_wp_error( $token ) ) {
+			\WP_CLI::error( $token->get_error_message() );
+		}
+
+		\WP_CLI::success( sprintf( 'Cache type %s cleared', $assoc_args['type'] ) );
+	}
 }

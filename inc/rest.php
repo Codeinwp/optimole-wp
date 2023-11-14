@@ -248,39 +248,13 @@ class Optml_Rest {
 	public function clear_cache_request( WP_REST_Request $request ) {
 		$settings = new Optml_Settings();
 		$type = $request->get_param( 'type' );
-		$token = $settings->get( 'cache_buster' );
-		$token_images = $settings->get( 'cache_buster_images' );
+		$response = $settings->clear_cache( $type );
 
-		if ( ! empty( $token_images ) ) {
-			$token = $token_images;
-		}
-		if ( ! empty( $type ) && $type === 'assets' ) {
-			$token = $settings->get( 'cache_buster_assets' );
-		}
-		$request  = new Optml_Api();
-		$data     = $request->get_cache_token( $token, $type );
-		if ( $data === false || is_wp_error( $data ) || empty( $data ) || ! isset( $data['token'] ) ) {
-			$extra = '';
-			if ( is_wp_error( $data ) ) {
-				/**
-				 * Error from api.
-				 *
-				 * @var WP_Error $data Error object.
-				 */
-				$extra = sprintf( __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
-			}
-			wp_send_json_error( __( 'Can not get new token from Optimole service', 'optimole-wp' ) . $extra );
+		if ( is_wp_error( $response ) ) {
+			wp_send_json_error( $response->get_error_message() );
 		}
 
-		if ( ! empty( $type ) && $type === 'assets' ) {
-			set_transient( 'optml_cache_lock_assets', 'yes', 5 * MINUTE_IN_SECONDS );
-			$settings->update( 'cache_buster_assets', $data['token'] );
-		} else {
-			set_transient( 'optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS );
-			$settings->update( 'cache_buster_images', $data['token'] );
-		}
-
-		return $this->response( $data['token'], '200' );
+		return $this->response( $response, '200' );
 	}
 
 	/**
@@ -401,6 +375,18 @@ class Optml_Rest {
 			);
 
 		}
+
+		if ( $user === 'site_exists' ) {
+			return new WP_REST_Response(
+				[
+					'data'    => null,
+					'message' => sprintf( __( 'Error: This site has been previously registered. You can login to your account from %1$shere%2$s ', 'optimole-wp' ), '<a href="https://dashboard.optimole.com/login" target="_blank"> ', '</a>' ),
+					'code'    => 'site_exists',
+				],
+				200
+			);
+		}
+
 		$user_data = $user['res'];
 
 		$settings = new Optml_Settings();

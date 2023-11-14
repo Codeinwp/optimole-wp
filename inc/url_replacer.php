@@ -8,6 +8,7 @@
  */
 final class Optml_Url_Replacer extends Optml_App_Replacer {
 
+	use Optml_Dam_Offload_Utils;
 	use Optml_Validator;
 	use Optml_Normalizer;
 
@@ -132,7 +133,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			if ( isset( $id_and_filename[0] ) ) {
 				$id_and_filename = $id_and_filename[0];
 			}
-			$sizes = Optml_Media_Offload::parse_dimension_from_optimized_url( $url );
+			$sizes = $this->parse_dimension_from_optimized_url( $url );
 			if ( isset( $sizes[0] ) && $sizes[0] !== false ) {
 				$args['width'] = $sizes[0];
 			}
@@ -152,7 +153,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 				$url = $unoptimized_url;
 			}
 		}
-		if ( strpos( $url, Optml_Config::$service_url ) !== false ) {
+		if ( strpos( $url, Optml_Config::$service_url ) !== false && ! $this->url_has_dam_flag( $url ) ) {
 			return $original_url;
 		}
 
@@ -251,16 +252,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			}
 		}
 
-		if ( $args['width'] > 0 && $args['height'] > 0 ) {
-			list( $args['width'], $args['height'] ) = wp_constrain_dimensions( $args['width'], $args['height'], $this->max_width, $this->max_height );
-		} elseif ( $args['width'] > 0 ) {
-			$args['width'] = $args['width'] > $this->max_width ? $this->max_width : $args['width'];
-		} elseif ( $args['height'] > 0 ) {
-			$args['height'] = $args['height'] > $this->max_height ? $this->max_height : $args['height'];
-		}
 		if ( isset( $args['resize'], $args['resize']['gravity'] ) && $this->settings->is_smart_cropping() ) {
 			$args['resize']['gravity'] = Optml_Resize::GRAVITY_SMART;
 		}
+
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
 
 		$arguments = [
@@ -271,15 +266,20 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$arguments['format'] = $args['format'];
 		}
 
-		if ( empty( $arguments['format'] ) && $this->settings->get( 'avif' ) === 'enabled' && apply_filters( 'optml_should_avif_ext', true, $ext, $original_url ) ) {
-			$arguments['format'] = 'avif';
+		// If format is not already set, we use best format if it's enabled.
+		if ( ! isset( $arguments['format'] ) && $this->settings->is_best_format() ) {
+			$arguments['format'] = 'best';
 		}
 
 		if ( $this->settings->get( 'strip_metadata' ) === 'disabled' ) {
 			$arguments['strip_metadata'] = '0';
 		}
 
-		if ( $this->settings->get( 'avif' ) === 'disabled' ) {
+		if ( ! apply_filters( 'optml_should_avif_ext', true, $ext, $original_url ) ) {
+			$arguments['ignore_avif'] = true;
+		}
+
+		if ( ! isset( $arguments['ignore_avif'] ) && $this->settings->get( 'avif' ) === 'disabled' ) {
 			$arguments['ignore_avif'] = true;
 		}
 

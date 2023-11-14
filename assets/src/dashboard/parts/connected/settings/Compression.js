@@ -25,6 +25,8 @@ import { useSelect } from '@wordpress/data';
  */
 import { sampleRate } from '../../../utils/api';
 
+import ProgressBar from '../../components/ProgressBar';
+
 const Compression = ({
 	settings,
 	setSettings,
@@ -54,6 +56,7 @@ const Compression = ({
 	const isAVIFEnabled = 'disabled' !== settings.avif;
 	const isStripMetadataEnabled = 'disabled' !== settings[ 'strip_metadata' ];
 	const isAutoQualityEnabled = 'disabled' !== settings.autoquality;
+	const isBestFormatEnabled = 'disabled' !== settings[ 'best_format' ];
 
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
@@ -116,8 +119,23 @@ const Compression = ({
 	return (
 		<>
 			<ToggleControl
+				label={ optimoleDashboardApp.strings.options_strings.best_format_title }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.best_format_desc } } /> }
+				checked={ isBestFormatEnabled }
+				disabled={ isLoading }
+				className={ classnames(
+					{
+						'is-disabled': isLoading
+					}
+				) }
+				onChange={ value => updateOption( 'best_format', value ) }
+			/>
+
+			<hr className="my-8 border-grayish-blue"/>
+
+			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_network_opt_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_network_opt_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_network_opt_desc } } /> }
 				checked={ isNetworkOptimizationEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -132,7 +150,7 @@ const Compression = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.toggle_cdn }
-				help={ optimoleDashboardApp.strings.options_strings.cdn_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.cdn_desc } } /> }
 				checked={ isCDNEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -147,7 +165,7 @@ const Compression = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_gif_replace_title }
-				help={ optimoleDashboardApp.strings.options_strings.gif_replacer_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.gif_replacer_desc } } /> }
 				checked={ isGIFReplacementEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -162,7 +180,7 @@ const Compression = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_avif_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_avif_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_avif_desc } } /> }
 				checked={ isAVIFEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -177,7 +195,7 @@ const Compression = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.strip_meta_title }
-				help={ optimoleDashboardApp.strings.options_strings.strip_meta_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.strip_meta_desc } } /> }
 				checked={ isStripMetadataEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -195,7 +213,7 @@ const Compression = ({
 			>
 				<ToggleControl
 					label={ optimoleDashboardApp.strings.options_strings.quality_title }
-					help={ optimoleDashboardApp.strings.options_strings.ml_quality_desc }
+					help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.ml_quality_desc } } /> }
 					checked={ isAutoQualityEnabled }
 					disabled={ isLoading }
 					className={ classnames(
@@ -253,9 +271,9 @@ const Compression = ({
 												<p className="text-base">{ optimoleDashboardApp.strings.latest_images.same_size }</p>
 											) }
 
-											<progress
+											<ProgressBar
 												max={ 100 }
-												value={ getCompressionRatio() }
+												value={ 100 - getCompressionRatio() }
 											/>
 
 											<hr className="my-4 border-grayish-blue"/>

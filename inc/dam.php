@@ -13,6 +13,7 @@
  * Class Optml_Dam
  */
 class Optml_Dam {
+	use Optml_Dam_Offload_Utils;
 	use Optml_Normalizer;
 
 	/**
@@ -30,6 +31,8 @@ class Optml_Dam {
 	private $dam_endpoint = 'https://dashboard.optimole.com/dam';
 
 	const OM_DAM_IMPORTED_FLAG = 'om-dam-imported';
+	const URL_DAM_FLAG = '/dam:1';
+	const IS_EDIT_FLAG = 'om-dam-edit';
 
 	/**
 	 * Optml_Dam constructor.
@@ -44,11 +47,8 @@ class Optml_Dam {
 		if ( $this->settings->get( 'cloud_images' ) === 'enabled' ) {
 			add_action( 'admin_menu', [ $this, 'add_menu' ] );
 			add_action( 'print_media_templates', [ $this, 'print_media_template' ] );
-			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_media_scripts' ] );
+			add_action( 'wp_enqueue_media', [ $this, 'enqueue_media_scripts' ] );
 			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_page_scripts' ] );
-
-			// Needed for this to work with elementor.
-			add_action( 'elementor/editor/after_enqueue_scripts', [ $this, 'enqueue_media_scripts' ] );
 		}
 
 		if ( defined( 'OPTML_DAM_ENDPOINT' ) && constant( 'OPTML_DAM_ENDPOINT' ) ) {
@@ -60,6 +60,9 @@ class Optml_Dam {
 		add_filter( 'image_downsize', [ $this, 'catch_downsize' ], 10, 3 );
 		add_filter( 'wp_prepare_attachment_for_js', [$this, 'alter_attachment_for_js'], 10, 3 );
 		add_filter( 'wp_image_src_get_dimensions', [$this, 'alter_img_tag_w_h'], 10, 4 );
+		add_filter( 'get_attached_file', [$this, 'alter_attached_file_response'], 10, 2 );
+		add_filter( 'wp_calculate_image_srcset', [$this, 'disable_dam_images_srcset'], 1, 5 );
+
 		add_filter(
 			'elementor/image_size/get_attachment_image_html',
 			[
@@ -104,7 +107,7 @@ class Optml_Dam {
 		$existing = $this->check_existing_attachments( $images );
 
 		foreach ( $images as $image ) {
-			if ( array_key_exists( $image['meta']['resourceS3'], $existing ) ) {
+			if ( ! isset( $image['isEdit'] ) && array_key_exists( $image['meta']['resourceS3'], $existing ) ) {
 				$ids[] = $existing[ $image['meta']['resourceS3'] ];
 
 				continue;
@@ -147,6 +150,10 @@ class Optml_Dam {
 
 		update_post_meta( $id, self::OM_DAM_IMPORTED_FLAG, $image['meta']['resourceS3'] );
 
+		if ( isset( $image['isEdit'] ) ) {
+			update_post_meta( $id, self::IS_EDIT_FLAG, true );
+		}
+
 		$metadata = [];
 
 		$metadata['file']      = '/id:' . $image['meta']['resourceS3'] . '/' . get_home_url() . '/' . $filename;
@@ -167,7 +174,7 @@ class Optml_Dam {
 	}
 
 	/**
-	 * Catch image downsize for the DAM imported images.
+	 * Alter attachment image src for DAM imported images.
 	 *
 	 * @param array|false  $image {
 	 *      Array of image data.
@@ -191,7 +198,7 @@ class Optml_Dam {
 		}
 
 		$image_url     = wp_get_attachment_url( $attachment_id );
-		$incoming_size = Optml_Media_Offload::parse_dimension_from_optimized_url( $image_url );
+		$incoming_size = $this->parse_dimension_from_optimized_url( $image_url );
 		$width         = $incoming_size[0];
 		$height        = $incoming_size[1];
 
@@ -208,6 +215,15 @@ class Optml_Dam {
 		// Use the original size if the requested size is full.
 		if ( $size === 'full' ) {
 			$metadata = wp_get_attachment_metadata( $attachment_id );
+
+			$image_url = $this->replace_dam_url_args(
+				[
+					'width'  => $metadata['width'],
+					'height' => $metadata['height'],
+					'crop'   => false,
+				],
+				$image_url
+			);
 
 			return [
 				$image_url,
@@ -259,86 +275,6 @@ class Optml_Dam {
 	}
 
 	/**
-	 * Get all registered image sizes.
-	 *
-	 * @return array
-	 */
-	private function get_all_image_sizes() {
-		$additional_sizes = wp_get_additional_image_sizes();
-		$intermediate     = get_intermediate_image_sizes();
-		$all              = [];
-
-		foreach ( $intermediate as $size ) {
-			if ( isset( $additional_sizes[ $size ] ) ) {
-				$all[ $size ] = [
-					'width'  => $additional_sizes[ $size ]['width'],
-					'height' => $additional_sizes[ $size ]['height'],
-					'crop'   => isset( $additional_sizes[ $size ]['crop'] ) ? $additional_sizes[ $size ]['crop'] : false,
-				];
-			} else {
-				$all[ $size ] = [
-					'width'  => (int) get_option( $size . '_size_w' ),
-					'height' => (int) get_option( $size . '_size_h' ),
-					'crop'   => (bool) get_option( $size . '_crop' ),
-				];
-			}
-
-			if ( ! empty( $additional_sizes[ $size ]['crop'] ) ) {
-				$all[ $size ]['crop'] = $additional_sizes[ $size ]['crop'];
-			} else {
-				$all[ $size ]['crop'] = (bool) get_option( $size . '_crop' );
-			}
-		}
-
-		return $all;
-	}
-
-	/**
-	 * Check if we're in the attachment edit page.
-	 *
-	 * /wp-admin/post.php?post=<id>&action=edit
-	 *
-	 * Send whatever comes from the DAM.
-	 *
-	 * @param int $attachment_id attachment id.
-	 *
-	 * @return bool
-	 */
-	private function is_attachment_edit_page( $attachment_id ) {
-		if ( ! is_admin() ) {
-			return false;
-		}
-
-		$screen = get_current_screen();
-
-		if ( ! isset( $screen->base ) ) {
-			return false;
-		}
-
-		if ( $screen->base !== 'post' ) {
-			return false;
-		}
-
-		if ( $screen->post_type !== 'attachment' ) {
-			return false;
-		}
-
-		if ( $screen->id !== 'attachment' ) {
-			return false;
-		}
-
-		if ( ! isset( $_GET['post'] ) ) {
-			return false;
-		}
-
-		if ( (int) sanitize_text_field( $_GET['post'] ) !== $attachment_id ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
 	 * Alter the attachment metadata.
 	 *
 	 * @param array $metadata attachment metadata.
@@ -351,45 +287,7 @@ class Optml_Dam {
 			return $metadata;
 		}
 
-		$sizes = $this->get_all_image_sizes();
-
-		$post = get_post( $id );
-
-		$sizes_meta = [];
-
-		// SVG files don't have a width/height so we add a dummy one. These are vector images so it doesn't matter.
-		$is_svg = ( $post->post_mime_type === Optml_Config::$image_extensions['svg'] );
-
-		if ( $is_svg ) {
-			$metadata['width']  = 150;
-			$metadata['height'] = 150;
-		}
-
-		foreach ( $sizes as $size => $args ) {
-
-			// check if the image is portrait or landscape using attachment metadata.
-			$is_portrait = $metadata['height'] > $metadata['width'];
-
-			// proportionally set the width/height based on this if image is uncropped.
-			if ( ! (bool) $args['crop'] ) {
-				if ( $is_portrait ) {
-					$args['width'] = (int) ( $args['height'] * round( $metadata['width'] / $metadata['height'] ) );
-				} else {
-					$args['height'] = (int) ( $args['width'] * round( $metadata['height'] / $metadata['width'] ) );
-				}
-			}
-
-			$sizes_meta[ $size ] = [
-				'file'      => $metadata['file'],
-				'width'     => $args['width'],
-				'height'    => $args['height'],
-				'mime-type' => $post->post_mime_type,
-			];
-		}
-
-		$metadata['sizes'] = $sizes_meta;
-
-		return $metadata;
+		return $this->get_altered_metadata_for_remote_images( $metadata, $id );
 	}
 
 	/**
@@ -462,6 +360,11 @@ class Optml_Dam {
 		// Also ensures that if there are multiple attachments with the same S3 ID, we only get the one.
 		// Shouldn't happen, but just in case.
 		foreach ( $found_attachments as $attachment ) {
+			// Skip edits.
+			if ( ! empty( get_post_meta( $attachment->post_id, self::IS_EDIT_FLAG, true ) ) ) {
+				continue;
+			}
+
 			$map[ $attachment->meta_value ] = (int) $attachment->post_id;
 		}
 
@@ -501,23 +404,6 @@ class Optml_Dam {
 		}
 
 		return $map;
-	}
-
-	/**
-	 * Checks that the attachment is a DAM image.
-	 *
-	 * @param int $post_id The attachment ID.
-	 *
-	 * @return bool
-	 */
-	private function is_dam_imported_image( $post_id ) {
-		$meta = get_post_meta( $post_id, self::OM_DAM_IMPORTED_FLAG, true );
-
-		if ( empty( $meta ) ) {
-			return false;
-		}
-
-		return true;
 	}
 
 	/**
@@ -774,6 +660,14 @@ class Optml_Dam {
 			);
 		}
 
+		$url_args = [
+			'height' => $response['height'],
+			'width'  => $response['width'],
+			'crop'   => false,
+		];
+
+		$response['url'] = $this->replace_dam_url_args( $url_args, $response['url'] );
+
 		return $response;
 	}
 
@@ -798,7 +692,7 @@ class Optml_Dam {
 		}
 
 		// Get the dimensions from the optimized URL.
-		$incoming_size = Optml_Media_Offload::parse_dimension_from_optimized_url( $image_src );
+		$incoming_size = $this->parse_dimension_from_optimized_url( $image_src );
 		$width         = $incoming_size[0];
 		$height        = $incoming_size[1];
 
@@ -836,16 +730,24 @@ class Optml_Dam {
 	 * @return string
 	 */
 	public function replace_dam_url_args( $args, $subject ) {
-		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'crop' => false] );
+		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'crop' => false, 'dam' => true] );
 
 		$width = $args['width'];
 		$height = $args['height'];
 		$crop = (bool) $args['crop'];
 
-		$gravity = 'ce';
+		$gravity = Optml_Resize::GRAVITY_CENTER;
 
 		if ( $this->settings->get( 'resize_smart' ) === 'enabled' ) {
-			$gravity = 'sm';
+			$gravity = Optml_Resize::GRAVITY_SMART;
+		}
+
+		if ( $width === 0 ) {
+			$width = 'auto';
+		}
+
+		if ( $height === 0 ) {
+			$height = 'auto';
 		}
 
 		// Use the proper replacement for the image size.
@@ -857,6 +759,57 @@ class Optml_Dam {
 
 		$replacement .= '/q:';
 
+		if ( $args['dam'] ) {
+			$replacement = self::URL_DAM_FLAG . $replacement;
+		}
+
 		return preg_replace( '/\/w:(.*)\/h:(.*)\/q:/', $replacement, $subject );
+	}
+
+	/**
+	 * Elementor checks if the file exists before requesting a specific image size.
+	 *
+	 * Needed because otherwise there won't be any width/height on the `img` tags, breaking lazyload.
+	 *
+	 * Also needed because some
+	 *
+	 * @param string $file The file path.
+	 * @param int    $id The attachment ID.
+	 *
+	 * @return bool|string
+	 */
+	public function alter_attached_file_response( $file, $id ) {
+		if ( ! $this->is_dam_imported_image( $id ) ) {
+			return $file;
+		}
+
+		$metadata = wp_get_attachment_metadata( $id );
+
+		if ( isset( $metadata['file'] ) ) {
+			$uploads = wp_get_upload_dir();
+
+			return $uploads['basedir'] . '/' . $metadata['file'];
+		}
+
+		return true;
+	}
+
+	/**
+	 * Alter the srcSet for DAM images.
+	 *
+	 * @param array  $sources Initial source array.
+	 * @param array  $size_array Requested size.
+	 * @param string $image_src Image source URL.
+	 * @param array  $image_meta Image meta data.
+	 * @param int    $attachment_id Image attachment ID.
+	 *
+	 * @return array
+	 */
+	public function disable_dam_images_srcset( $sources, $size_array, $image_src, $image_meta, $attachment_id ) {
+		if ( ! $this->is_dam_imported_image( $attachment_id ) ) {
+			return $sources;
+		}
+
+		return [];
 	}
 }

@@ -1,5 +1,5 @@
 describe("Check amp page", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/amp-mode/?amp");
   });
 

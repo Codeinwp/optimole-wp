@@ -27,7 +27,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 	const IFRAME_TEMP_COMMENT = '/** optmliframelazyloadplaceholder */';
 
-	const SVG_PLACEHOLDER = 'data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20#width#%20#height#%22%20width%3D%22#width#%22%20height%3D%22#height#%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3C%2Fsvg%3E';
+	const SVG_PLACEHOLDER = 'data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20#width#%20#height#%22%20width%3D%22#width#%22%20height%3D%22#height#%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22#width#%22%20height%3D%22#height#%22%20fill%3D%22#fill#%22%2F%3E%3C%2Fsvg%3E';
 	/**
 	 * If frame lazyload is present on page.
 	 *
@@ -218,6 +218,23 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	}
 
 	/**
+	 * Check if the img tag should be lazyloaded early.
+	 *
+	 * @param string $image_tag The image tag.
+	 * @return bool Whether the image tag should be lazyloaded early or not.
+	 */
+	public function should_lazyload_early( $image_tag ) {
+		$flags = apply_filters( 'optml_lazyload_early_flags', [] );
+
+		foreach ( $flags as $flag ) {
+			if ( strpos( $image_tag, $flag ) !== false ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+	/**
 	 * Replaces the tags with lazyload tags.
 	 *
 	 * @param string $new_tag The new tag.
@@ -261,13 +278,22 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		if ( $this->should_add_data_tag( $full_tag ) ) {
 			$opt_format = ' data-opt-src="%s" ';
+			$custom_class = '';
+
 			if ( $should_ignore_rescale ) {
+				$custom_class .= 'optimole-lazy-only ';
+			}
+			if ( $this->should_lazyload_early( $full_tag ) ) {
+				$custom_class .= 'optimole-load-early';
+			}
+
+			if ( ! empty( $custom_class ) ) {
 				if ( strpos( $new_tag, 'class=' ) === false ) {
-					$opt_format .= ' class="optimole-lazy-only" ';
+					$opt_format .= ' class="' . $custom_class . '" ';
 				} else {
 					$new_tag = str_replace(
 						( $is_slashed ? 'class=\"' : 'class="' ),
-						( $is_slashed ? 'class=\"optimole-lazy-only ' : 'class="optimole-lazy-only ' ),
+						( $is_slashed ? 'class=\"' . $custom_class . ' ' : 'class="' . $custom_class . ' ' ),
 						$new_tag
 					);
 				}
@@ -445,13 +471,19 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		$width  = ! is_numeric( $width ) ? '100%' : $width;
 		$height = ! is_numeric( $height ) ? '100%' : $height;
+		$fill = $this->settings->get( 'placeholder_color' );
+
+		if ( empty( $fill ) ) {
+			$fill = 'transparent';
+		}
 
 		return
 			str_replace(
-				[ '#width#', '#height#' ],
+				[ '#width#', '#height#', '#fill#' ],
 				[
 					$width,
 					$height,
+					urlencode( $fill ),
 				],
 				self::SVG_PLACEHOLDER
 			);

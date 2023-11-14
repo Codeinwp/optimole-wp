@@ -1,5 +1,5 @@
 describe("Check Shortcode ultimate page", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/blog/test/");
   });
   it("Carousel should have proper resize type", function () {

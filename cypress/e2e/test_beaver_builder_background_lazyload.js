@@ -1,5 +1,5 @@
 describe("Check Homepage", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/beaver/");
   });
   it("Beaver column should have background lazyloaded", function () {

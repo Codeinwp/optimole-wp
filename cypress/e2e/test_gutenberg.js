@@ -1,5 +1,5 @@
 describe("Check gutenberg page", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/gutenberg");
   });
   const nativeLazy = "loading" in HTMLImageElement.prototype;

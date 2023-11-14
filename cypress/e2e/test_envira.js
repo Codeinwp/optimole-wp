@@ -1,5 +1,5 @@
 describe("Check envira page", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/envira-test-page/");
   });
   it("Gallery images all attributes replaced properly", function () {

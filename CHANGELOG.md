@@ -1,3 +1,27 @@
+#### [Version 3.10.0](https://github.com/Codeinwp/optimole-wp/compare/v3.9.2...v3.10.0) (2023-09-18)
+
+### New Features
+- **Edit Images in Cloud Library**: Images can now be edited before inserting them into your website.
+- **Lazyload for Optimole Cloud Library Images**: Images imported from the Optimole Cloud Library now support lazy-loading.
+- **Apply Optimization Settings to Cloud Library**: Optimole Cloud Library images now inherit image optimization settings from the plugin.
+- **More File Types in Dashboard**: Support for uploading additional file types like documents, videos, text, audio, etc. in the Optimole Dashboard.
+- **Add CLI Command for Clearing Image Cache**: New command-line interface option to easily clear the image cache.
+- **Best Format Toggle**: Choose to enable or disable automatic best format calculation for images.
+- **Generic Lazy-Loading Placeholder Color**: Added customizable color option for the generic lazy-loading placeholder.
+- **Improve WooCommerce Product Gallery Lazyload**: Enhanced lazyloading functionality for WooCommerce galleries.
+- **Resizing Images in Cloud Library and Dashboard**: Manually resize images by typing dimensions in the editor modal.
+
+### Improvements
+- **Explicit Connection Error Handling**: More detailed error messages for failed plugin connection.
+- **Unsaved Settings Alert**: The plugin settings page now prompts to confirm leaving the page if settings are unsaved.
+- **Better Folder UI/UX in the Dashboard**: Enhanced the user interface and experience for folders on the Optimole Dashboard.
+- **Multi-Image Selection UX**: Improved user experience for selecting multiple images in the Optimole Dashboard.
+
+### Bug Fixes
+- **Backwards Compatibility**: Fixed offload compatibility issues with WordPress versions below 6.0.
+- **Cloud Library Modal Loader not being removed**: In some contexts, the cloud library loader was not disappearing when opening the modal a second time.
+- **Visits Banner markup**: Optimole additional visits banner was interfering with modals on the front end of the website.
+
 ##### [Version 3.9.2](https://github.com/Codeinwp/optimole-wp/compare/v3.9.1...v3.9.2) (2023-08-10)
 
 ### Bug Fixes

@@ -25,6 +25,8 @@ import {
 	warning
 } from '../../../utils/icons';
 
+import ProgressBar from '../../components/ProgressBar';
+
 import LastImages from './LastImages';
 
 const cardClasses = 'flex p-6 bg-light-blue border border-blue-300 rounded-md';
@@ -163,7 +165,7 @@ const Dashboard = () => {
 					</div>
 
 					<div>
-						<progress
+						<ProgressBar
 							className="mt-2.5 mb-3 mx-0"
 							value={ userData.visitors }
 							max={ userData.visitors_limit }

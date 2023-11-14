@@ -15,6 +15,7 @@ import ConnectingLayout from './connecting';
 import ConnectedLayout from './connected';
 import Footer from './Footer';
 import { highlightSidebarLink } from '../utils/helpers';
+import Toasts from './connected/Toasts';
 
 const Main = () => {
 	const allowedTabs = [ 'dashboard', 'settings', 'help' ];
@@ -117,6 +118,8 @@ const Main = () => {
 					setTab={ setTab }
 				/>
 			) }
+
+			<Toasts />
 		</>
 	);
 };
