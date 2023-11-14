@@ -64,10 +64,10 @@ const Lazyload = ({
 
 	return (
 		<>
-			<BaseControl
-				help={<p dangerouslySetInnerHTML={{ __html: optimoleDashboardApp.strings.options_strings.enable_lazyload_placeholder_desc }}/>}>
+			<BaseControl>
 				<ToggleControl
 					label={ optimoleDashboardApp.strings.options_strings.enable_lazyload_placeholder_title }
+					help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_lazyload_placeholder_desc } } /> }
 					checked={ isLazyloadPlaceholderEnabled }
 					disabled={ isLoading }
 					className={ classnames(
@@ -78,11 +78,11 @@ const Lazyload = ({
 					onChange={ value => updateOption( 'lazyload_placeholder', value ) }
 				/>
 
-				{isLazyloadPlaceholderEnabled &&
+				{ isLazyloadPlaceholderEnabled &&
 					<div className="relative inline-block">
 						<Button
 							disabled={isLoading}
-							className="gap-3 my-2 py-3 h-auto rounded text-inherit border-gray-400 border-2 border-solid font-medium"
+							className="gap-3 mt-2 py-3 h-auto rounded text-inherit border-gray-400 border-2 border-solid font-medium"
 							onClick={() => {
 								setPhPicker( ! phPicker );
 							}}
@@ -91,26 +91,26 @@ const Lazyload = ({
 							<span>{optimoleDashboardApp.strings.options_strings.lazyload_placeholder_color}</span>
 						</Button>
 
-						{phPicker &&
-						<Popover
-							placement="bottom"
-							position={'middle center'}
-							variant={'unstyled'}
-							className={'shadow-md border-grayish-blue border border-solid rounded bg-white p-2'}
-							onFocusOutside={() => setPhPicker( false )}
-						>
-							<ColorPicker
-								color={placeholderColor}
-								onChange={setColor}
-								enableAlpha
-								defaultValue=""
-							/>
-							<Button isDestructive={true}
-								className={'w-full text-center flex justify-center' }
-								variant={'secondary'} onClick={() => {
-									setColor( '' );
-								}}>{optimoleDashboardApp.strings.options_strings.clear}</Button>
-						</Popover>
+						{ phPicker &&
+							<Popover
+								placement="bottom"
+								position={'middle center'}
+								variant={'unstyled'}
+								className={'shadow-md border-grayish-blue border border-solid rounded bg-white p-2'}
+								onFocusOutside={() => setPhPicker( false )}
+							>
+								<ColorPicker
+									color={placeholderColor}
+									onChange={setColor}
+									enableAlpha
+									defaultValue=""
+								/>
+								<Button isDestructive={true}
+									className={'w-full text-center flex justify-center' }
+									variant={'secondary'} onClick={() => {
+										setColor( '' );
+									}}>{optimoleDashboardApp.strings.options_strings.clear}</Button>
+							</Popover>
 						}
 					</div>
 				}
@@ -120,8 +120,12 @@ const Lazyload = ({
 
 			<BaseControl
 				label={ optimoleDashboardApp.strings.options_strings.exclude_first_images_title }
-				help={ optimoleDashboardApp.strings.options_strings.exclude_first_images_desc }
 			>
+				<p
+					className="components-base-control__help mt-0"
+					dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.exclude_first_images_desc } }
+				/>
+
 				<div className="flex gap-8">
 					<NumberControl
 						label={ optimoleDashboardApp.strings.options_strings.exclude_first }
@@ -139,7 +143,7 @@ const Lazyload = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.toggle_native }
-				help={ optimoleDashboardApp.strings.options_strings.native_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.native_desc } } /> }
 				checked={ isNativeLazyloadEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -154,7 +158,7 @@ const Lazyload = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.toggle_scale }
-				help={ optimoleDashboardApp.strings.options_strings.scale_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.scale_desc } } /> }
 				checked={ isScaleEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -167,24 +171,10 @@ const Lazyload = ({
 
 			<hr className="my-8 border-grayish-blue"/>
 
-			<ToggleControl
-				label={ optimoleDashboardApp.strings.options_strings.enable_bg_lazyload_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_bg_lazyload_desc }
-				checked={ isBGReplacerEnabled }
-				disabled={ isLoading }
-				className={ classnames(
-					{
-						'is-disabled': isLoading
-					}
-				) }
-				onChange={ value => updateOption( 'bg_replacer', value ) }
-			/>
-
-			<hr className="my-8 border-grayish-blue"/>
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_video_lazyload_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_video_lazyload_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_video_lazyload_desc } } /> }
 				checked={ isVideoLazyloadEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -199,7 +189,7 @@ const Lazyload = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_noscript_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_noscript_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_noscript_desc } } /> }
 				checked={ isNoScriptEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -210,17 +200,39 @@ const Lazyload = ({
 				onChange={ value => updateOption( 'no_script', value ) }
 			/>
 
+			<hr className="my-8 border-grayish-blue"/>
+			<ToggleControl
+				label={ optimoleDashboardApp.strings.options_strings.enable_bg_lazyload_title }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_bg_lazyload_desc } } /> }
+				checked={ isBGReplacerEnabled }
+				disabled={ isLoading }
+				className={ classnames(
+					{
+						'is-disabled': isLoading
+					}
+				) }
+				onChange={ value => updateOption( 'bg_replacer', value ) }
+			/>
 			{ isBGReplacerEnabled && (
 				<>
 					<hr className="my-8 border-grayish-blue"/>
 
-					<TextareaControl
+					<BaseControl
 						label={ optimoleDashboardApp.strings.options_strings.watch_title_lazyload }
-						help={ optimoleDashboardApp.strings.options_strings.watch_desc_lazyload }
-						placeholder="e.g: .image, #item-id, div.with-background-image"
-						value={ settings.watchers }
-						onChange={ value => updateValue( 'watchers', value ) }
-					/>
+						id="optml-css-watchers" // We add this to insure that the label is clickable
+					>
+						<p
+							className="components-base-control__help mt-0"
+							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.watch_desc_lazyload } }
+						/>
+
+						<TextareaControl
+							id="optml-css-watchers"
+							placeholder={ optimoleDashboardApp.strings.options_strings.watch_placeholder_lazyload }
+							value={ settings.watchers }
+							onChange={ value => updateValue( 'watchers', value ) }
+						/>
+					</BaseControl>
 				</>
 			) }
 		</>

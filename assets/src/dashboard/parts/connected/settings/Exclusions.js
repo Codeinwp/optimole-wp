@@ -15,6 +15,7 @@ const Exclusions = ({
 		<>
 			<FilterControl
 				label={ optimoleDashboardApp.strings.options_strings.exclude_title_optimize }
+				help={ optimoleDashboardApp.strings.options_strings.exclude_desc_optimize }
 				type="optimize"
 				settings={ settings }
 				setSettings={ setSettings }
@@ -27,6 +28,7 @@ const Exclusions = ({
 
 					<FilterControl
 						label={ optimoleDashboardApp.strings.options_strings.exclude_title_lazyload }
+						help={ optimoleDashboardApp.strings.options_strings.exclude_desc_lazyload }
 						type="lazyload"
 						settings={ settings }
 						setSettings={ setSettings }

@@ -259,7 +259,11 @@ final class Optml_Manager {
 			return true;
 		}
 
-		if ( ( is_admin() && ! self::is_ajax_request() ) || ! $this->settings->is_connected() || ! $this->settings->is_enabled() || is_customize_preview() ) {
+		if ( is_customize_preview() && $this->settings->get( 'offload_media' ) !== 'enabled' ) {
+			return false;
+		}
+
+		if ( ( is_admin() && ! self::is_ajax_request() ) || ! $this->settings->is_connected() || ! $this->settings->is_enabled() ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'preview', $_GET ) && ! empty( $_GET['preview'] ) ) {
@@ -293,6 +297,10 @@ final class Optml_Manager {
 		}
 		if ( array_key_exists( 'builder', $_GET ) && ! empty( $_GET['builder'] )
 			&& array_key_exists( 'builder_id', $_GET ) && ! empty( $_GET['builder_id'] ) ) {
+			return false; // @codeCoverageIgnore
+		}
+		// Motion.page iFrame & builder
+		if ( ( array_key_exists( 'motionpage_iframe', $_GET ) && $_GET['motionpage_iframe'] == 'true' ) || ( array_key_exists( 'page', $_GET ) && $_GET['page'] == 'motionpage' ) ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
 		/**
@@ -632,7 +640,7 @@ final class Optml_Manager {
 	 *
 	 * @return string Processed html.
 	 */
-	private function do_url_replacement( $html, $extracted_urls ) {
+	public function do_url_replacement( $html, $extracted_urls ) {
 		$extracted_urls = apply_filters( 'optml_extracted_urls', $extracted_urls );
 
 		if ( empty( $extracted_urls ) ) {

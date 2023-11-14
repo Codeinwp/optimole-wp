@@ -25,7 +25,11 @@ const DEFAULT_STATE = {
 	queryArgs: [],
 	errorMedia: false,
 	checkedOffloadConflicts: false,
-	offloadConflicts: []
+	offloadConflicts: [],
+	logs: {
+		offload: '',
+		rollback: ''
+	}
 };
 
 const reducer = ( state = DEFAULT_STATE, action ) => {
@@ -205,6 +209,14 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 		return {
 			...state,
 			offloadConflicts: action.offloadConflicts
+		};
+	case 'SET_LOGS':
+		let { logs } = state;
+		logs[action.logsType] = action.logs;
+
+		return {
+			...state,
+			logs
 		};
 	default:
 		return state;

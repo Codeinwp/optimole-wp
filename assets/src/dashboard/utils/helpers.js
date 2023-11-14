@@ -110,6 +110,5 @@ const toggleDashboardSidebarSubmenu = ( show = true ) => {
 	existingList.style.display = 'block';
 };
 
-window.x = toggleDashboardSidebarSubmenu;
 
 export { toggleDamSidebarLink, highlightSidebarLink, toggleDashboardSidebarSubmenu };

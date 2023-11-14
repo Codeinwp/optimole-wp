@@ -485,6 +485,26 @@ final class Optml_Api {
 	}
 
 	/**
+	 * Send Offloading Logs
+	 *
+	 * @param string $type Type of log (offload/rollback).
+	 * @param string $message Log message.
+	 *
+	 * @return mixed
+	 */
+	public function send_log( $type, $message ) {
+		return $this->request(
+			'optml/v2/logs',
+			'POST',
+			[
+				'type' => $type,
+				'message' => $message,
+				'site' => get_home_url(),
+			]
+		);
+	}
+
+	/**
 	 * Throw error on object clone
 	 *
 	 * The whole idea of the singleton design pattern is that there is a single
