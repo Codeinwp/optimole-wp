@@ -54,34 +54,27 @@ class Test_Rest extends WP_UnitTestCase
 						array (
 							'ignoredUrls' => 1,
 						),
-					'png.pngtree.com' =>
-						array (
-							'src' =>
-								array (
-									0 => 'https://mlynllm40tdp.i.optimole.com/Dda1BC0-8GsrmkKn/w:auto/h:auto/q:eco/https://png.pngtree.com/png-clipart/20190515/original/pngtree-concept-of-attracting-customers-and-clients-to-business-large-group-png-image_3659843.jpg',
-								),
-						),
 					'images.pexels.com' =>
 						array (
 							'src' =>
 								array (
-									0 => 'https://mlynllm40tdp.i.optimole.com/DCrgOXo-2HhtvELK/w:auto/h:auto/q:eco/https://images.pexels.com/photos/4153187/pexels-photo-4153187.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260',
-									1 => 'https://mlynllm40tdp.i.optimole.com/DCrgOXo-Q0w8E10z/w:auto/h:auto/q:eco/https://images.pexels.com/photos/4153629/pexels-photo-4153629.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500',
+									0 => 'https://mlj0r5i75kb0.i.optimole.com/w:auto/h:auto/q:mauto/f:best/https://images.pexels.com/photos/19118634/pexels-photo-19118634/free-photo-of-arhitect-arhitectura-turism-calatorie.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+									1 => 'https://mlj0r5i75kb0.i.optimole.com/w:auto/h:auto/q:mauto/f:best/https://images.pexels.com/photos/13644908/pexels-photo-13644908.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+								),
+						),
+					'odd-octopus-v7m5j.instawp.xyz' =>
+						array (
+							'ignoredUrls' => 2,
+							'src' =>
+								array (
+									0 => 'https://mlj0r5i75kb0.i.optimole.com/w:703/h:1024/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/szm-4-b0o_zO9fkeI-unsplash.jpg',
+									1 => 'https://mlj0r5i75kb0.i.optimole.com/w:1024/h:683/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/wesley-tingey-kVmc07SPm_A-unsplash.jpg',
+									3 => 'https://mlj0r5i75kb0.i.optimole.com/w:724/h:1024/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/simone-hutsch-5oYbG-sEImY-unsplash.jpg'
 								),
 						),
 					'media.gettyimages.com' =>
 						array (
 							'ignoredUrls' => 1,
-						),
-					'3c05b66e.ngrok.io' =>
-						array (
-							'ignoredUrls' => 2,
-							'src' =>
-								array (
-									0 => 'https://mlynllm40tdp.i.optimole.com/k4SdJQQ-KDi_XGaC/w:auto/h:auto/q:eco/http://3c05b66e.ngrok.io/wp-content/uploads/2020/03/download-1-1.jpeg',
-									1 => 'https://mlynllm40tdp.i.optimole.com/k4SdJQQ-l1pEEP6v/w:auto/h:auto/q:eco/http://3c05b66e.ngrok.io/wp-content/uploads/2020/03/download-1.jpeg',
-									2 => 'https://mlynllm40tdp.i.optimole.com/k4SdJQQ-2UxK9Uvh/w:auto/h:auto/q:eco/http://3c05b66e.ngrok.io/wp-content/uploads/2020/03/download.jpeg',
-								),
 						),
 				),
 		);
@@ -107,29 +100,22 @@ class Test_Rest extends WP_UnitTestCase
 		$request_body = array (
 			'images' =>
 				array (
-					'png.pngtree.com' =>
-						array (
-							'src' =>
-								array (
-									0 => 'https://mlynllm40tdp.i.optimole.com/Dda1BC0-8GsrmkKn/w:auto/h:auto/q:eco/https://png.pngtree.com/png-clipart/20190515/original/pngtree-concept-of-attracting-customers-and-clients-to-business-large-group-png-image_3659843.jpg',
-								),
-						),
 					'images.pexels.com' =>
 						array (
 							'src' =>
 								array (
-									0 => 'https://mlynllm40tdp.i.optimole.com/DCrgOXo-2HhtvELK/w:auto/h:auto/q:eco/https://images.pexels.com/photos/4153187/pexels-photo-4153187.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260',
-									1 => 'https://mlynllm40tdp.i.optimole.com/DCrgOXo-Q0w8E10z/w:auto/h:auto/q:eco/https://images.pexels.com/photos/4153629/pexels-photo-4153629.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500',
+									0 => 'https://mlj0r5i75kb0.i.optimole.com/w:auto/h:auto/q:mauto/f:best/https://images.pexels.com/photos/19118634/pexels-photo-19118634/free-photo-of-arhitect-arhitectura-turism-calatorie.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
+									1 => 'https://mlj0r5i75kb0.i.optimole.com/w:auto/h:auto/q:mauto/f:best/https://images.pexels.com/photos/13644908/pexels-photo-13644908.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
 								),
 						),
-					'3c05b66e.ngrok.io' =>
+					'odd-octopus-v7m5j.instawp.xyz' =>
 						array (
 							'ignoredUrls' => 2,
 							'src' =>
 								array (
-									0 => 'https://mlynllm40tdp.i.optimole.com/k4SdJQQ-KDi_XGaC/w:auto/h:auto/q:eco/http://3c05b66e.ngrok.io/wp-content/uploads/2020/03/download-1-1.jpeg',
-									1 => 'https://mlynllm40tdp.i.optimole.com/k4SdJQQ-l1pEEP6v/w:auto/h:auto/q:eco/http://3c05b66e.ngrok.io/wp-content/uploads/2020/03/download-1.jpeg',
-									2 => 'https://mlynllm40tdp.i.optimole.com/k4SdJQQ-2UxK9Uvh/w:auto/h:auto/q:eco/http://3c05b66e.ngrok.io/wp-content/uploads/2020/03/download.jpeg',
+									0 => 'https://mlj0r5i75kb0.i.optimole.com/w:703/h:1024/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/szm-4-b0o_zO9fkeI-unsplash.jpg',
+									1 => 'https://mlj0r5i75kb0.i.optimole.com/w:1024/h:683/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/wesley-tingey-kVmc07SPm_A-unsplash.jpg',
+									3 => 'https://mlj0r5i75kb0.i.optimole.com/w:724/h:1024/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/simone-hutsch-5oYbG-sEImY-unsplash.jpg'
 								),
 						),
 				),
