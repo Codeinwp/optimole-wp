@@ -69,7 +69,7 @@ class Test_Rest extends WP_UnitTestCase
 								array (
 									0 => 'https://mlj0r5i75kb0.i.optimole.com/w:703/h:1024/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/szm-4-b0o_zO9fkeI-unsplash.jpg',
 									1 => 'https://mlj0r5i75kb0.i.optimole.com/w:1024/h:683/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/wesley-tingey-kVmc07SPm_A-unsplash.jpg',
-									3 => 'https://mlj0r5i75kb0.i.optimole.com/w:724/h:1024/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/simone-hutsch-5oYbG-sEImY-unsplash.jpg'
+									2 => 'https://mlj0r5i75kb0.i.optimole.com/w:724/h:1024/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/simone-hutsch-5oYbG-sEImY-unsplash.jpg'
 								),
 						),
 					'media.gettyimages.com' =>
@@ -115,7 +115,7 @@ class Test_Rest extends WP_UnitTestCase
 								array (
 									0 => 'https://mlj0r5i75kb0.i.optimole.com/w:703/h:1024/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/szm-4-b0o_zO9fkeI-unsplash.jpg',
 									1 => 'https://mlj0r5i75kb0.i.optimole.com/w:1024/h:683/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/wesley-tingey-kVmc07SPm_A-unsplash.jpg',
-									3 => 'https://mlj0r5i75kb0.i.optimole.com/w:724/h:1024/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/simone-hutsch-5oYbG-sEImY-unsplash.jpg'
+									2 => 'https://mlj0r5i75kb0.i.optimole.com/w:724/h:1024/q:mauto/f:best/https://odd-octopus-v7m5j.instawp.xyz/wp-content/uploads/2023/11/simone-hutsch-5oYbG-sEImY-unsplash.jpg'
 								),
 						),
 				),
