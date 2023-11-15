@@ -148,6 +148,33 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 
 == Changelog ==
 
+#### [Version 3.11.0](https://github.com/Codeinwp/optimole-wp/compare/v3.10.0...v3.11.0) (2023-11-15)
+
+### New Features
+
+- **Image Optimization for ICO Files**: Added support for optimizing ICO files, ensuring that these can benefit from Optimoles optimization capabilities.
+- **Toast Notifications in Optimole Dashboard**: Introduced a toast notifications system within the Optimole dashboard, informing users when settings are saved.
+- **Offload Images Without Database Replacement**: Images are now offloaded without the need to perform a database replacement, improving the speed of the process and reducing complexity.
+- **Logging for Offloading Process**: Implemented logging for the image offloading process, allowing users to track progress more effectively.
+- **Faster Zip Generation Routine**: Optimized the zip files generation routine from the Optimole Dashboard, making it faster and more efficient. Additionally, split the Zip files per each source website when downloading images, providing a smoother experience.
+- **Motion.page Compatibility**: Addressed compatibility issues to ensure smooth integration with the Motion.page.
+
+### Improvements
+
+- **Remove Redundant Setting**: Removed redundant settings related to resizing large images from the original source, simplifying the user interface.
+- **Review of Settings Descriptions and Documentation**: Reviewed and refined settings descriptions and documentation to make it easier for users to understand what each setting does, and to configure Optimole to their specific needs.
+- **Beaver Builder Compatibility with Cloud Library**: Optimoles Cloud Library is now compatible with Beaver Builder,  allowing users to import and use images from their Optimole account.
+- **Progress Bar Design Consistency**: Refined the design of progress bars for a more consistent and polished user interface.
+
+### Bug Fixes
+
+- **Scheduled Crons Removal During Uninstall**: Fixed an issue where scheduled cron jobs were not being removed when uninstalling Optimole.
+- **Cloud Library in Safari**: Resolved an issue where the Cloud Library was not functioning correctly in Safari.
+- **Guidance on Third-Party Cookies for Cloud Library**: Added instructions on how to allow third-party cookies to ensure seamless functionality of the Cloud Library.
+
+
+
+
 #### [Version 3.10.0](https://github.com/Codeinwp/optimole-wp/compare/v3.9.2...v3.10.0) (2023-09-18)
 
 ### New Features
