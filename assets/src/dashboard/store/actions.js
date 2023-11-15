@@ -172,6 +172,13 @@ const actions = {
 			type: 'SET_OFFLOAD_CONFLICTS',
 			offloadConflicts
 		};
+	},
+	setLogs( logsType, logs ) {
+		return {
+			type: 'SET_LOGS',
+			logsType,
+			logs
+		};
 	}
 };
 

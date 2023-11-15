@@ -83,6 +83,13 @@ const selectors = {
 	},
 	getOffloadConflicts( state ) {
 		return state.offloadConflicts;
+	},
+	getLogs( state, type = undefined ) {
+		if ( type ) {
+			return undefined !== state.logs[type] ? state.logs[type] : undefined;
+		}
+
+		return state.logs;
 	}
 };
 

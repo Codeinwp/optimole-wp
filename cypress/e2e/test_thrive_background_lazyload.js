@@ -1,5 +1,5 @@
 describe("Check Thrive Background Page", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/thrive/");
   });
   it("tve-content-box-background that is in view should have optml-bg-lazyloaded", function () {

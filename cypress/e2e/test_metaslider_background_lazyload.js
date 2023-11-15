@@ -1,5 +1,5 @@
 describe("Check Metaslider Background Page", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/metaslider/");
   });
   it("Slider background images in view should be lazyloaded", function () {

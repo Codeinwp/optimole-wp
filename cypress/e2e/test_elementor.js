@@ -1,5 +1,5 @@
 describe("Elementor Check Homepage", function () {
-  it("successfully loads", function () {
+  beforeEach(function () {
     cy.visit("/");
   });
   const nativeLazy = "loading" in HTMLImageElement.prototype;
