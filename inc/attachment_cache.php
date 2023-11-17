@@ -51,7 +51,7 @@ class Optml_Attachment_Cache {
 		// We try to reduce the cache time when is not found to
 		// avoid caching for situation when this might be temporary.
 		$expiration = $id === 0 ? ( 10 * MINUTE_IN_SECONDS ) : WEEK_IN_SECONDS;
-		return wp_using_ext_object_cache()
+		wp_using_ext_object_cache()
 			? wp_cache_set( $cache_key, $id, self::CACHE_GROUP, $expiration )
 			: set_transient( self::CACHE_GROUP . $cache_key, $id, $expiration );
 
