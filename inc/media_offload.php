@@ -2347,6 +2347,19 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
+	 * Legacy function to be used for WordPress versions under 6.0.0.
+	 *
+	 * @param array $post_data Slashed, sanitized, processed post data.
+	 * @param array $postarr Slashed sanitized post data.
+	 * @param array $unsanitized_postarr Un-sanitized post data.
+	 *
+	 * @return array
+	 */
+	public function legacy_filter_saved_data( $post_data, $postarr, $unsanitized_postarr ) {
+		return $this->filter_saved_data( $post_data, $postarr, $unsanitized_postarr, true );
+	}
+
+	/**
 	 * Filter post content to use local attachments when saving offloaded images.
 	 *
 	 * @param array $post_data Slashed, sanitized, processed post data.
@@ -2495,7 +2508,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		add_filter( 'fl_builder_render_css', [self::$instance, 'replace_urls_in_editor_content'], 10, 1 );
 
 		// Filter saved data on insert to use local attachments.
-		add_filter( 'wp_insert_post_data', [ self::$instance, 'filter_saved_data' ], 10, 4 );
+		// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
+		$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
+		if ( $below_6_0_0 ) {
+			add_filter( 'wp_insert_post_data', [ self::$instance, 'legacy_filter_saved_data' ], 10, 3 );
+		} else {
+			add_filter( 'wp_insert_post_data', [ self::$instance, 'filter_saved_data' ], 10, 4 );
+		}
 
 		// Filter loaded data in the editors to use local attachments.
 		add_filter( 'content_edit_pre', [self::$instance, 'replace_urls_in_editor_content'], 10, 1 );
