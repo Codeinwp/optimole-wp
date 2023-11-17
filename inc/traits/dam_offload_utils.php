@@ -234,10 +234,6 @@ trait Optml_Dam_Offload_Utils {
 			$attachment_id = attachment_url_to_postid( $scaled_url );
 		}
 
-		if ( $attachment_id === 0 ) {
-			return $attachment_id;
-		}
-
 		Optml_Attachment_Cache::set_cached_attachment_id( $url, $attachment_id );
 
 		return $attachment_id;
