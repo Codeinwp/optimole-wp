@@ -143,6 +143,8 @@ class Test_Media extends WP_UnitTestCase {
 		$settings->update( 'no_script', 'enabled' );
 		$settings->update( 'lazyload', 'enabled' );
 		$settings->update( 'offload_media', 'enabled' );
+		// enforce offload during this test
+		Optml_Image::$offload_enabled = true;
 		$settings->update( 'lazyload_placeholder', 'disabled' );
 		$settings->update( 'quality', 90 );
 		$settings->update( 'cdn', 'enabled' );
@@ -150,6 +152,7 @@ class Test_Media extends WP_UnitTestCase {
 		Optml_Tag_Replacer::instance()->init();
 		Optml_Manager::instance()->init();
 		Optml_Media_Offload::instance();
+
 
 		add_filter( 'pre_http_request', array($this,'filter_pre_http_request'), 10, 3 );
 		self::$sample_post        = self::factory()->post->create( [
