@@ -12,9 +12,9 @@ class Optml_Image extends Optml_Resource {
 	/**
 	 * Optimole Settings
 	 *
-	 * @var Optml_Settings
+	 * @var bool | null
 	 */
-	public static $plugin_settings = null;
+	public static $offload_enabled = null;
 	/**
 	 * Watermark for the image.
 	 *
@@ -64,8 +64,8 @@ class Optml_Image extends Optml_Resource {
 	public function __construct( $url = '', $args = [], $cache_buster = '' ) {
 		parent::__construct( $url, $cache_buster );
 
-		if ( self::$plugin_settings === null ) {
-			self::$plugin_settings = new Optml_Settings();
+		if ( self::$offload_enabled === null ) {
+			self::$offload_enabled = ( new Optml_Settings() )->is_offload_enabled();
 		}
 
 		$this->width->set( $args['width'] );
@@ -232,7 +232,7 @@ class Optml_Image extends Optml_Resource {
 	 * @return bool
 	 */
 	private function is_offloaded_url() {
-		if ( ! self::$plugin_settings->is_offload_enabled() ) {
+		if ( ! self::$offload_enabled ) {
 			return false;
 		}
 
