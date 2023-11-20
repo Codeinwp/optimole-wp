@@ -759,6 +759,6 @@ class Optml_Settings {
 	 * @return bool
 	 */
 	public function is_offload_enabled() {
-		return $this->get( 'offload_media' ) === 'enabled';
+		return $this->get( 'offload_media' ) === 'enabled' || $this->get( 'rollback_status' ) !== 'disabled';
 	}
 }
