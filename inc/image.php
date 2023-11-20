@@ -222,7 +222,8 @@ class Optml_Image extends Optml_Resource {
 	 * @return bool
 	 */
 	private function is_offloaded_url() {
-		if ( ! Optml_Main::instance()->admin->settings->is_offload_enabled() ) {
+		$settings = new Optml_Settings();
+		if ( ! $settings->is_offload_enabled() ) {
 			return false;
 		}
 
