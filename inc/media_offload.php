@@ -1511,7 +1511,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					'compare' => '=',
 				],
 				[
-					'key' => self::META_KEYS['rollback_error'],
+					'key'     => self::META_KEYS['rollback_error'],
+					'compare' => 'NOT EXISTS',
+				],
+				[
+					'key'     => Optml_Dam::OM_DAM_IMPORTED_FLAG,
 					'compare' => 'NOT EXISTS',
 				],
 			];
