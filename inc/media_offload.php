@@ -134,6 +134,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 													   || self::$instance->settings->get( 'cloud_images' ) === 'disabled' ) ) ) {
 			self::$instance = new self();
 			self::$instance->settings = new Optml_Settings();
+			self::$instance->logger = Optml_Logger::instance();
+
 			if ( self::$instance->settings->is_connected() ) {
 				self::$instance->init();
 			}
@@ -166,8 +168,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				if ( self::$is_legacy_install === null ) {
 					self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) > 1677171600;
 				}
-
-				self::$instance->logger = Optml_Logger::instance();
 			}
 		}
 		return self::$instance;
