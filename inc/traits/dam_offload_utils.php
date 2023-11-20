@@ -237,7 +237,7 @@ trait Optml_Dam_Offload_Utils {
 
 		$attachment_id = attachment_url_to_postid( $url );
 
-		if ( $attachment_id === 0 && $this->is_scaled_url( $url ) ) {
+		if ( $attachment_id === 0 && ! $this->is_scaled_url( $url ) ) {
 			$scaled_url = $this->get_scaled_url( $url );
 
 			$attachment_id = attachment_url_to_postid( $scaled_url );
