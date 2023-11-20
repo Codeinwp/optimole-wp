@@ -222,6 +222,10 @@ class Optml_Image extends Optml_Resource {
 	 * @return bool
 	 */
 	private function is_offloaded_url() {
+		if ( ! Optml_Main::instance()->admin->settings->is_offload_enabled() ) {
+			return false;
+		}
+
 		// Catch this from URLs that explicitly have the flag when constructing the image.
 		if ( $this->attachment_id !== null && $this->attachment_id > 0 ) {
 			return ! empty( get_post_meta( $this->attachment_id, Optml_Media_Offload::OM_OFFLOADED_FLAG, true ) );

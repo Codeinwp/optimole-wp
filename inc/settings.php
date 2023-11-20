@@ -752,4 +752,13 @@ class Optml_Settings {
 
 		return $data['token'];
 	}
+
+	/**
+	 * Utility to check if offload is enabled.
+	 *
+	 * @return bool
+	 */
+	public function is_offload_enabled() {
+		return $this->get( 'offload_media' ) === 'enabled';
+	}
 }
