@@ -148,6 +148,18 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 
 == Changelog ==
 
+##### [Version 3.11.1](https://github.com/Codeinwp/optimole-wp/compare/v3.11.0...v3.11.1) (2023-11-20)
+
+### Bug Fixes
+
+- **Cache for Offloaded Attachments**: Fixed an issue with caching for offloaded attachments when the object cache extension isnt enabled.
+- **Error on Older WordPress Versions**: Resolved an error occurring on WordPress versions lower than 6.0.0.
+- **Performance Issue on Large Instances**: Fixed a performance issue affecting instances with a large number of images.
+- **Offload Rollback Issue**: Addressed a problem where offloading was trying to rollback Cloud Library images.
+
+
+
+
 #### [Version 3.11.0](https://github.com/Codeinwp/optimole-wp/compare/v3.10.0...v3.11.0) (2023-11-15)
 
 ### New Features
