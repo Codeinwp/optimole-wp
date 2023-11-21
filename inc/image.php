@@ -10,6 +10,12 @@ class Optml_Image extends Optml_Resource {
 	use Optml_Dam_Offload_Utils;
 
 	/**
+	 * Optimole Settings
+	 *
+	 * @var bool | null
+	 */
+	public static $offload_enabled = null;
+	/**
 	 * Watermark for the image.
 	 *
 	 * @var Optml_Watermark Watermark.
@@ -57,6 +63,10 @@ class Optml_Image extends Optml_Resource {
 	 */
 	public function __construct( $url = '', $args = [], $cache_buster = '' ) {
 		parent::__construct( $url, $cache_buster );
+
+		if ( self::$offload_enabled === null ) {
+			self::$offload_enabled = ( new Optml_Settings() )->is_offload_enabled();
+		}
 
 		$this->width->set( $args['width'] );
 		$this->height->set( $args['height'] );
@@ -222,6 +232,10 @@ class Optml_Image extends Optml_Resource {
 	 * @return bool
 	 */
 	private function is_offloaded_url() {
+		if ( ! self::$offload_enabled ) {
+			return false;
+		}
+
 		// Catch this from URLs that explicitly have the flag when constructing the image.
 		if ( $this->attachment_id !== null && $this->attachment_id > 0 ) {
 			return ! empty( get_post_meta( $this->attachment_id, Optml_Media_Offload::OM_OFFLOADED_FLAG, true ) );
