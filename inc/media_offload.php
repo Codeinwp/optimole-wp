@@ -958,6 +958,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				update_post_meta( $id, self::META_KEYS['rollback_error'], 'true' );
 				continue;
 			}
+			update_attached_file( $id, $results['file'] );
+
 			$duplicated_images = apply_filters( 'optml_offload_duplicated_images', [], $id );
 			if ( is_array( $duplicated_images ) && ! empty( $duplicated_images ) ) {
 				foreach ( $duplicated_images as $duplicated_id ) {
