@@ -1028,6 +1028,11 @@ class Optml_Admin {
 			update_option( 'optml_notice_optin', 'yes' );
 		}
 		?>
+			<style >
+				.notice:not(.optml-notice-optin){
+					display: none !important;
+				}
+			</style>
 		<div id="optimole-app"></div>
 		<?php
 	}
