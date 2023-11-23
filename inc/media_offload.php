@@ -914,8 +914,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 
 			// Move the temporary file into the uploads directory.
-			$upload_date = $this->is_new_offloaded_attachment( $id ) ? get_the_date( 'Y/m', $id ) : null;
-			$results = wp_handle_sideload( $file, $overrides, $upload_date );
+			$results = wp_handle_sideload( $file, $overrides, get_the_date( 'Y/m', $id ) );
 			if ( ! empty( $results['error'] ) ) {
 				if ( OPTML_DEBUG_MEDIA ) {
 					do_action( 'optml_log', ' wp_handle_sideload error' );
