@@ -563,11 +563,13 @@ abstract class Optml_App_Replacer {
 		if ( preg_match( '#(-\d+x\d+(?:_c)?|(@2x))\.(' . implode( '|', array_keys( Optml_Config::$image_extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
 			$stripped_url = str_replace( $src_parts[1], '', $url );
 
-			// Treat offloaded attachments differently.
-			$id = $this->attachment_url_to_post_id( $stripped_url );
+			if ( $this->settings->is_offload_enabled() ) {
+				// Treat offloaded attachments differently.
+				$id = $this->attachment_url_to_post_id( $stripped_url );
 
-			if ( $id !== 0 && $this->is_new_offloaded_attachment( $id ) ) {
-				return $stripped_url;
+				if ( $id !== 0 && $this->is_new_offloaded_attachment( $id ) ) {
+					return $stripped_url;
+				}
 			}
 
 			// Extracts the file path to the image minus the base url

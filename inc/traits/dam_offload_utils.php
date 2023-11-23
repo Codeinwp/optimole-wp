@@ -209,7 +209,16 @@ trait Optml_Dam_Offload_Utils {
 
 		return str_replace( '.' . $extension, '-scaled.' . $extension, $url );
 	}
-
+	/**
+	 * Check if the URL is a scaled image.
+	 *
+	 * @param string $url The URL to check.
+	 *
+	 * @return bool
+	 */
+	private function is_scaled_url( $url ) {
+		return strpos( $url, '-scaled.' ) !== false;
+	}
 	/**
 	 * Get the attachment ID from URL.
 	 *
@@ -228,14 +237,10 @@ trait Optml_Dam_Offload_Utils {
 
 		$attachment_id = attachment_url_to_postid( $url );
 
-		if ( $attachment_id === 0 ) {
+		if ( $attachment_id === 0 && ! $this->is_scaled_url( $url ) ) {
 			$scaled_url = $this->get_scaled_url( $url );
 
 			$attachment_id = attachment_url_to_postid( $scaled_url );
-		}
-
-		if ( $attachment_id === 0 ) {
-			return $attachment_id;
 		}
 
 		Optml_Attachment_Cache::set_cached_attachment_id( $url, $attachment_id );

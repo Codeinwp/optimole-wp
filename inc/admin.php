@@ -58,7 +58,15 @@ class Optml_Admin {
 			add_action( 'init', [$this, 'check_domain_change'] );
 			add_action( 'optml_pull_image_data_init', [$this, 'pull_image_data_init'] );
 			add_action( 'optml_pull_image_data', [$this, 'pull_image_data'] );
-			add_filter( 'wp_insert_attachment_data', [$this, 'detect_image_title_changes'], 10, 4 );
+
+			// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
+			$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
+			if ( $below_6_0_0 ) {
+				add_filter( 'wp_insert_attachment_data', [$this, 'legacy_detect_image_title_changes'], 10, 3 );
+			} else {
+				add_filter( 'wp_insert_attachment_data', [$this, 'detect_image_title_changes'], 10, 4 );
+			}
+
 			add_action( 'updated_post_meta', [$this, 'detect_image_alt_change' ], 10, 4 );
 			add_action( 'added_post_meta', [$this, 'detect_image_alt_change'], 10, 4 );
 			add_action( 'init', [ $this, 'schedule_data_enhance_cron' ] );
@@ -182,6 +190,14 @@ class Optml_Admin {
 		}
 
 		return $data;
+	}
+	/**
+	 * Delete the processed meta from an image when the title is changed
+	 *
+	 * @uses filter: wp_insert_attachment_data
+	 */
+	public function legacy_detect_image_title_changes( $data, $postarr, $unsanitized_postarr ) {
+		return $this->detect_image_title_changes( $data, $postarr, $unsanitized_postarr, true );
 	}
 	/**
 	 * Init no_script setup value based on whether the user is connected or not.
@@ -1012,6 +1028,11 @@ class Optml_Admin {
 			update_option( 'optml_notice_optin', 'yes' );
 		}
 		?>
+			<style >
+				.notice:not(.optml-notice-optin){
+					display: none !important;
+				}
+			</style>
 		<div id="optimole-app"></div>
 		<?php
 	}

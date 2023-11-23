@@ -446,6 +446,11 @@ class Optml_Dam {
 	 */
 	public function render_dashboard_page() {
 		?>
+			<style>
+				.notice:not(.optml-notice-optin){
+					display: none !important;
+				}
+			</style>
 		<iframe id="om-dam" style="display: none;" src="<?php echo( $this->build_iframe_url() ); ?>"></iframe>
 		<div class="om-dam-loader">
 			<img src="<?php echo esc_url( OPTML_URL . 'assets/img/logo.png' ); ?>" alt="Optimole Logo"
