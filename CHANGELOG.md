@@ -1,3 +1,9 @@
+##### [Version 3.11.2](https://github.com/Codeinwp/optimole-wp/compare/v3.11.1...v3.11.2) (2023-11-23)
+
+### Bug Fixes
+
+- **Rollback Issue**: Fixed an issue where rolling back images would not point the attachments to the correct uploads folder path.
+
 ##### [Version 3.11.1](https://github.com/Codeinwp/optimole-wp/compare/v3.11.0...v3.11.1) (2023-11-20)
 
 ### Bug Fixes
