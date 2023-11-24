@@ -7,6 +7,12 @@
  */
 class Optml_wpml extends Optml_compatibility {
 
+	/**
+	 * Meta key that WPML sets on the source attachment.
+	 *
+	 * @var string
+	 */
+	private $source_attachment_meta_key = 'wpml_media_processed';
 
 	/**
 	 * Should we load the integration logic.
@@ -22,14 +28,15 @@ class Optml_wpml extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-			add_filter( 'optml_offload_duplicated_images', [ $this, 'wpml_get_duplicates' ], PHP_INT_MAX, 2 );
+		add_filter( 'optml_offload_duplicated_images', [ $this, 'wpml_get_duplicates' ], PHP_INT_MAX, 2 );
+		add_filter( 'optml_ensure_source_attachment_id', [ $this, 'get_source_attachment' ], PHP_INT_MAX );
 	}
 
 	/**
 	 * Ads the duplicated pages/images when offloading.
 	 *
-	 * @param array  $duplicated_attachments The duplicated attachments array.
-	 * @param string $attachment_id The attachment id that is first offloaded.
+	 * @param array        $duplicated_attachments The duplicated attachments array.
+	 * @param string | int $attachment_id The attachment id that is first offloaded.
 	 *
 	 * @return array The images array with the specific bakery images.
 	 */
@@ -48,6 +55,42 @@ class Optml_wpml extends Optml_compatibility {
 		}
 		return $duplicated_attachments;
 	}
+
+	/**
+	 * Get the source attachment ID for the given attachment ID that might be a duplicate.
+	 *
+	 * @param int $attachment_id the attachment ID.
+	 *
+	 * @return int
+	 */
+	public function get_source_attachment( $attachment_id ) {
+		if ( $this->is_source_attachment( $attachment_id ) ) {
+			return $attachment_id;
+		}
+
+		$duplicates = $this->wpml_get_duplicates( [], $attachment_id );
+
+		foreach ( $duplicates as $duplicate_id ) {
+			if ( $this->is_source_attachment( $duplicate_id ) ) {
+
+				return (int) $duplicate_id;
+			}
+		}
+
+		return $attachment_id;
+	}
+
+	/**
+	 * Checks if the given attachment is the source.
+	 *
+	 * @param int $id The attachment ID.
+	 *
+	 * @return bool
+	 */
+	private function is_source_attachment( $id ) {
+		return empty( get_post_meta( (int) $id, $this->source_attachment_meta_key, true ) );
+	}
+
 	/**
 	 * Should we early load the compatibility?
 	 *
