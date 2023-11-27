@@ -6,14 +6,6 @@
  * @reason Wpml duplicates everything so we need to offload/update every image/page attachment.
  */
 class Optml_wpml extends Optml_compatibility {
-
-	/**
-	 * Meta key that WPML sets on the source attachment.
-	 *
-	 * @var string
-	 */
-	private $source_attachment_meta_key = 'wpml_media_processed';
-
 	/**
 	 * Should we load the integration logic.
 	 *
@@ -64,14 +56,14 @@ class Optml_wpml extends Optml_compatibility {
 	 * @return int
 	 */
 	public function get_source_attachment( $attachment_id ) {
-		if ( $this->is_source_attachment( $attachment_id ) ) {
+		if ( $this->is_offload_source( $attachment_id ) ) {
 			return $attachment_id;
 		}
 
 		$duplicates = $this->wpml_get_duplicates( [], $attachment_id );
 
 		foreach ( $duplicates as $duplicate_id ) {
-			if ( $this->is_source_attachment( $duplicate_id ) ) {
+			if ( $this->is_offload_source( $duplicate_id ) ) {
 
 				return (int) $duplicate_id;
 			}
@@ -81,14 +73,16 @@ class Optml_wpml extends Optml_compatibility {
 	}
 
 	/**
-	 * Checks if the given attachment is the source.
+	 * Checks if the given attachment is the source of the initial offload.
+	 * On some instances, it seems that WPML meta is faulty.
+	 * We are sure that the main attachment that has been offloaded has the proper attachment_meta.
 	 *
 	 * @param int $id The attachment ID.
 	 *
 	 * @return bool
 	 */
-	private function is_source_attachment( $id ) {
-		return empty( get_post_meta( (int) $id, $this->source_attachment_meta_key, true ) );
+	private function is_offload_source( $id ) {
+		return ! empty( get_post_meta( (int) $id, Optml_Media_Offload::META_KEYS['offloaded'], true ) );
 	}
 
 	/**
