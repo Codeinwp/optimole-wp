@@ -22,15 +22,16 @@ import Sidebar from './Sidebar';
 import CSAT from './CSAT';
 import { retrieveConflicts } from '../../utils/api';
 import formbricks from '@formbricks/js';
-if ( 'undefined' !== typeof window ) {
+if ( 'undefined' !== typeof window && optimoleDashboardApp.user_data.plan ) {
 	formbricks.init({
 		environmentId: 'clo8wxwzj44orpm0gjchurujm',
-		apiHost: 'https://app.formbricks.com'
+		apiHost: 'https://app.formbricks.com',
+		userId: 'opt_' + ( optimoleDashboardApp.user_data.id  + 74373  ),
+		debug:true
 	});
-	formbricks.setUserId( optimoleDashboardApp.user_data.id );
 	formbricks.setAttribute( 'plan', optimoleDashboardApp.user_data.plan );
 	formbricks.setAttribute( 'status', optimoleDashboardApp.user_data.status );
-	formbricks.setAttribute( 'is_cname_assigned', optimoleDashboardApp.user_data.is_cname_assigned );
+	formbricks.setAttribute( 'cname_assigned', optimoleDashboardApp.user_data.is_cname_assigned || 'no' );
 	formbricks.setAttribute( 'connected_websites', optimoleDashboardApp.user_data.whitelist.length );
 	formbricks.setAttribute( 'traffic', convertToCategory( optimoleDashboardApp.user_data.traffic, 500 ) );
 	formbricks.setAttribute( 'images_number', convertToCategory( optimoleDashboardApp.user_data.images_number, 100 ) );
