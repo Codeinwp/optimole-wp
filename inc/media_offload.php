@@ -1836,7 +1836,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return mixed
 	 */
 	public static function schedule_action( $time, $hook, $args ) {
-		//We use AS if available to avoid issues with WP Cron.
+		// We use AS if available to avoid issues with WP Cron.
 		if ( function_exists( 'as_schedule_single_action' ) ) {
 			return as_schedule_single_action( $time, $hook, $args );
 		} else {
