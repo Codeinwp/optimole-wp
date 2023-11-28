@@ -13,35 +13,41 @@ import {
  */
 import { Icon } from '@wordpress/components';
 
+const { strings } = optimoleDashboardApp;
+
 const menuItems = [
 	{
-		label: optimoleDashboardApp.strings.general_settings_menu_item,
+		label: strings.general_settings_menu_item,
 		value: 'general'
 	},
 	{
-		label: optimoleDashboardApp.strings.advanced_settings_menu_item,
+		label: strings.advanced_settings_menu_item,
 		value: 'compression',
 		children: [
 			{
-				label: optimoleDashboardApp.strings.settings_compression_menu_item,
+				label: strings.settings_compression_menu_item,
 				value: 'compression'
 			},
 			{
-				label: optimoleDashboardApp.strings.settings_resize_menu_item,
+				label: strings.settings_resize_menu_item,
 				value: 'resize'
 			},
 			{
-				label: optimoleDashboardApp.strings.lazyload_settings_menu_item,
+				label: strings.lazyload_settings_menu_item,
 				value: 'lazyload'
 			},
 			{
-				label: optimoleDashboardApp.strings.settings_exclusions_menu_item,
+				label: strings.settings_exclusions_menu_item,
 				value: 'exclusions'
 			}
 		]
 	},
 	{
-		label: optimoleDashboardApp.strings.offload_media_settings_menu_item,
+		label: strings.cloud_library,
+		value: 'cloud_library'
+	},
+	{
+		label: strings.image_storage,
 		value: 'offload_media'
 	}
 ];

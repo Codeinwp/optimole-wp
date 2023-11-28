@@ -1146,6 +1146,7 @@ class Optml_Admin {
 			'invalid_key'                      => __( 'Invalid API Key', 'optimole-wp' ),
 			'keep_connected'                   => __( 'Ok, keep me connected', 'optimole-wp' ),
 			'cloud_library'                    => __( 'Cloud Library', 'optimole-wp' ),
+			'image_storage'                    => __( 'Image Storage', 'optimole-wp' ),
 			'disconnect_title'                 => __( 'You are about to disconnect from the Optimole API', 'optimole-wp' ),
 			'disconnect_desc'                  => __(
 				'Please note that disconnecting your site from the Optimole API will impact your website performance.
@@ -1221,7 +1222,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			'advanced_settings_menu_item'      => __( 'Advanced', 'optimole-wp' ),
 			'general_settings_menu_item'       => __( 'General', 'optimole-wp' ),
 			'lazyload_settings_menu_item'      => __( 'Lazyload', 'optimole-wp' ),
-			'offload_media_settings_menu_item' => __( 'Cloud Integration', 'optimole-wp' ),
+			'cloud_library' => __( 'Cloud Library', 'optimole-wp' ),
 			'watermarks_menu_item'             => __( 'Watermark', 'optimole-wp' ),
 			'conflicts_menu_item'              => __( 'Possible Issues', 'optimole-wp' ),
 			'conflicts'                        => [
