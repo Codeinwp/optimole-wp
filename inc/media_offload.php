@@ -1748,7 +1748,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$option = 'offload_images' === $action ? 'offloading_status' : 'rollback_status';
 		$count = 0;
 		$step  = 0;
-		$batch = 50; // Reduce this to 20 if we have memory issues during testing.
+		$batch = apply_filters( 'optimole_offload_batch', 20 ); // Reduce this to smaller if we have memory issues during testing.
 
 		if ( empty( $images ) ) {
 			$count = Optml_Media_Offload::number_of_images_and_pages( $action );
