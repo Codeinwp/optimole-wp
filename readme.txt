@@ -2,7 +2,7 @@
 Contributors: optimole
 Tags: image optimization, convert webp, image optimizer, lazy load, image, optimization, convert AVIF, resize, free cdn, compress images, optimize images
 Requires at least: 5.5
-Tested up to: 6.3
+Tested up to: 6.4
 Requires PHP: 5.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -69,7 +69,7 @@ Offload your website images directly to Optimole Cloud and save storage space on
 
 Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size using Machine Learning(ML) powered compression.
 
-### Digital Assets Management (DAM)
+#### Digital Assets Management (DAM)
 
 Elevate your media management with our custom DAM and utilize images from your Optimole account. The best part? You can now directly incorporate images from your Optimole account into the Elementor Builder. Additionally, we've seamlessly integrated DAM with the WordPress core editor, making image management a breeze. Access your Optimole images effortlessly, wherever you need them.
 
@@ -86,10 +86,6 @@ Optimole can detect Retina screens and deliver an image with the perfect Digital
 If you'd like to keep the most interesting part of an image; then you can enable smart cropping to help keep the image well-sized without losing focus.
 
 >**Use Case:** Introducing Lisa, a lifestyle blogger who loves sharing her adventures through captivating visuals. With Optimole's Smart Cropping, Lisa's images are automatically resized to fit perfectly within her post layouts. Whether it's a breathtaking mountain landscape or a cosy café scene, Smart Cropping ensures every image tells its story without any hassle. Lisa's blog now shines with effortlessly framed images that capture every moment beautifully.
-
-### Hero Image Optimization
-
-Optimole now goes the extra mile by not just optimizing but also preloading your website’s hero image. This ensures that the most eye-catching element on your page is also the quickest to load, enhancing user experience.
 
 #### No Content Shifting
 
@@ -115,11 +111,11 @@ Optimole provides free access to an AWS CloudFront CDN with edge locations in mo
 
 >**Use Case:** Meet Alex, an online store owner reaching customers globally. With Optimole's CDN, his product images are effortlessly spread across AWS CloudFront's 450+ global edge locations. This means shoppers from Tokyo to New York enjoy super-fast page loads, ensuring a seamless shopping experience and boosting Alex's business success.
 
-### Custom Lazy Load Placeholder Color
+#### Custom Lazy Load Placeholder Color
 
 Optimole enhances your lazy-loading experience by allowing for customizable placeholder colors. Now your placeholders can be as unique as your website.
 
-### More File Types
+#### More File Types
 
 No longer confined to just images — Optimole Dashboard now supports uploads for a variety of file types like documents, videos, text, and audio, widening your media capabilities.
 
@@ -151,6 +147,54 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 4. Plugin settings
 
 == Changelog ==
+
+##### [Version 3.11.2](https://github.com/Codeinwp/optimole-wp/compare/v3.11.1...v3.11.2) (2023-11-23)
+
+### Bug Fixes
+
+- **Rollback Issue**: Fixed an issue where rolling back images would not point the attachments to the correct uploads folder path.
+
+
+
+
+##### [Version 3.11.1](https://github.com/Codeinwp/optimole-wp/compare/v3.11.0...v3.11.1) (2023-11-20)
+
+### Bug Fixes
+
+- **Cache for Offloaded Attachments**: Fixed an issue with caching for offloaded attachments when the object cache extension isnt enabled.
+- **Error on Older WordPress Versions**: Resolved an error occurring on WordPress versions lower than 6.0.0.
+- **Performance Issue on Large Instances**: Fixed a performance issue affecting instances with a large number of images.
+- **Offload Rollback Issue**: Addressed a problem where offloading was trying to rollback Cloud Library images.
+
+
+
+
+#### [Version 3.11.0](https://github.com/Codeinwp/optimole-wp/compare/v3.10.0...v3.11.0) (2023-11-15)
+
+### New Features
+
+- **Image Optimization for ICO Files**: Added support for optimizing ICO files, ensuring that these can benefit from Optimoles optimization capabilities.
+- **Toast Notifications in Optimole Dashboard**: Introduced a toast notifications system within the Optimole dashboard, informing users when settings are saved.
+- **Offload Images Without Database Replacement**: Images are now offloaded without the need to perform a database replacement, improving the speed of the process and reducing complexity.
+- **Logging for Offloading Process**: Implemented logging for the image offloading process, allowing users to track progress more effectively.
+- **Faster Zip Generation Routine**: Optimized the zip files generation routine from the Optimole Dashboard, making it faster and more efficient. Additionally, split the Zip files per each source website when downloading images, providing a smoother experience.
+- **Motion.page Compatibility**: Addressed compatibility issues to ensure smooth integration with the Motion.page.
+
+### Improvements
+
+- **Remove Redundant Setting**: Removed redundant settings related to resizing large images from the original source, simplifying the user interface.
+- **Review of Settings Descriptions and Documentation**: Reviewed and refined settings descriptions and documentation to make it easier for users to understand what each setting does, and to configure Optimole to their specific needs.
+- **Beaver Builder Compatibility with Cloud Library**: Optimoles Cloud Library is now compatible with Beaver Builder,  allowing users to import and use images from their Optimole account.
+- **Progress Bar Design Consistency**: Refined the design of progress bars for a more consistent and polished user interface.
+
+### Bug Fixes
+
+- **Scheduled Crons Removal During Uninstall**: Fixed an issue where scheduled cron jobs were not being removed when uninstalling Optimole.
+- **Cloud Library in Safari**: Resolved an issue where the Cloud Library was not functioning correctly in Safari.
+- **Guidance on Third-Party Cookies for Cloud Library**: Added instructions on how to allow third-party cookies to ensure seamless functionality of the Cloud Library.
+
+
+
 
 #### [Version 3.10.0](https://github.com/Codeinwp/optimole-wp/compare/v3.9.2...v3.10.0) (2023-09-18)
 

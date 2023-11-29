@@ -21,6 +21,7 @@ module.exports = {
 				'light-black': '#626262',
 				'opaque-black': '#0000006E',
 				'stale-yellow': '#FFF0C9',
+				'mango-yellow': '#FBBF24',
 				'disabled': '#6786F4',
 				'light-gray': 'rgba(87, 123, 249, 0.36)'
 			},
@@ -33,7 +34,7 @@ module.exports = {
 			},
 			maxWidth: {
 				'64': '64px',
-				'screen-xl': 'min( 1280px, 90%)'
+				'screen-xl': 'min( 1320px, 90%)'
 			},
 			minHeight: {
 				'40': '40px'

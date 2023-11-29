@@ -7,7 +7,14 @@
  * @author     Optimole <friends@optimole.com>
  */
 class Optml_Image extends Optml_Resource {
+	use Optml_Dam_Offload_Utils;
 
+	/**
+	 * Optimole Settings
+	 *
+	 * @var bool | null
+	 */
+	public static $offload_enabled = null;
 	/**
 	 * Watermark for the image.
 	 *
@@ -39,6 +46,12 @@ class Optml_Image extends Optml_Resource {
 	 */
 	private $resize = null;
 
+	/**
+	 * The attachment id.
+	 *
+	 * @var null | int Attachment id.
+	 */
+	private $attachment_id = null;
 
 	/**
 	 * Optml_Image constructor.
@@ -51,6 +64,10 @@ class Optml_Image extends Optml_Resource {
 	public function __construct( $url = '', $args = [], $cache_buster = '' ) {
 		parent::__construct( $url, $cache_buster );
 
+		if ( self::$offload_enabled === null ) {
+			self::$offload_enabled = ( new Optml_Settings() )->is_offload_enabled();
+		}
+
 		$this->width->set( $args['width'] );
 		$this->height->set( $args['height'] );
 
@@ -60,6 +77,10 @@ class Optml_Image extends Optml_Resource {
 
 		if ( isset( $args['resize'] ) ) {
 			$this->resize->set( $args['resize'] );
+		}
+
+		if ( isset( $args['attachment_id'] ) ) {
+			$this->attachment_id = $args['attachment_id'];
 		}
 	}
 
@@ -85,6 +106,10 @@ class Optml_Image extends Optml_Resource {
 
 		if ( $this->is_dam_url() ) {
 			return $this->get_dam_url( $path_params );
+		}
+
+		if ( $this->is_offloaded_url() ) {
+			return $this->get_offloaded_url( $path_params );
 		}
 
 		$path = $path_params . '/' . $this->source_url;
@@ -183,6 +208,10 @@ class Optml_Image extends Optml_Resource {
 			$path = '/ig:avif' . $path;
 		}
 
+		if ( $this->has_attachment_id() ) {
+			$path = $path . sprintf( '/%s%s', Optml_Media_Offload::KEYS['not_processed_flag'], $this->attachment_id );
+		}
+
 		if ( apply_filters( 'optml_keep_copyright', false ) === true ) {
 			$path = '/keep_copyright:true' . $path;
 		}
@@ -195,5 +224,63 @@ class Optml_Image extends Optml_Resource {
 		}
 
 		return $path;
+	}
+
+	/**
+	 * Check if this URL was offloaded.
+	 *
+	 * @return bool
+	 */
+	private function is_offloaded_url() {
+		if ( ! self::$offload_enabled ) {
+			return false;
+		}
+
+		// Catch this from URLs that explicitly have the flag when constructing the image.
+		if ( $this->attachment_id !== null && $this->attachment_id > 0 ) {
+			return ! empty( get_post_meta( $this->attachment_id, Optml_Media_Offload::OM_OFFLOADED_FLAG, true ) );
+		}
+
+		$attachment_id = 0;
+
+		if ( strpos( $this->source_url, Optml_Media_Offload::KEYS['not_processed_flag'] ) !== false ) {
+			$attachment_id = (int) Optml_Media_Offload::get_attachment_id_from_url( $this->source_url );
+		} else {
+			$attachment_id = $this->attachment_url_to_post_id( $this->source_url );
+		}
+
+		if ( $attachment_id === 0 ) {
+			return false;
+		}
+
+		if ( empty( get_post_meta( $attachment_id, Optml_Media_Offload::OM_OFFLOADED_FLAG, true ) ) ) {
+			return false;
+		}
+
+		$this->attachment_id = (int) $attachment_id;
+
+		return true;
+	}
+
+	/**
+	 * Get offloaded URL.
+	 *
+	 * @param string $path_params Path parameters.
+	 *
+	 * @return string
+	 */
+	private function get_offloaded_url( $path_params ) {
+		$metadata = wp_get_attachment_metadata( $this->attachment_id );
+
+		return sprintf( '%s%s%s', Optml_Config::$service_url, $path_params, $metadata['file'] );
+	}
+
+	/**
+	 * Check if the URL has an attachment ID.
+	 *
+	 * @return bool
+	 */
+	private function has_attachment_id() {
+		return $this->attachment_id !== null && $this->attachment_id !== 0;
 	}
 }

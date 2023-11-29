@@ -50,7 +50,7 @@ const General = ({
 		<>
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_image_replace }
-				help={ optimoleDashboardApp.strings.options_strings.replacer_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.replacer_desc } } /> }
 				checked={ isReplacerEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -65,7 +65,7 @@ const General = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.toggle_lazyload }
-				help={ optimoleDashboardApp.strings.options_strings.lazyload_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.lazyload_desc } } /> }
 				checked={ isLazyloadEnabled }
 				disabled={ ! isReplacerEnabled || isLoading }
 				className={ classnames(
@@ -80,7 +80,7 @@ const General = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_report_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_report_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_report_desc } } /> }
 				checked={ isReportEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -95,7 +95,7 @@ const General = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_badge_title }
-				help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_badge_description } } /> }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_badge_description } } /> }
 				checked={ isBannerEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -110,18 +110,22 @@ const General = ({
 
 			<BaseControl
 				label={ optimoleDashboardApp.strings.options_strings.cache_title }
-				help={ optimoleDashboardApp.strings.options_strings.cache_desc }
 				className={ classnames(
 					{
 						'is-disabled': isLoading || ! isReplacerEnabled
 					}
 				) }
 			>
-				<div className="flex my-2 gap-3">
+				<p
+					className="components-base-control__help m-0"
+					dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.cache_desc } }
+				/>
+
+				<div className="flex my-4 gap-3">
 					<Button
 						variant="default"
 						isBusy={ isLoading }
-						disabled={ isLoading }
+						disabled={ isLoading || ! isReplacerEnabled }
 						className="optml__button flex justify-center rounded font-bold min-h-40"
 						onClick={ () => clearCache() }
 					>
@@ -132,7 +136,7 @@ const General = ({
 						<Button
 							variant="default"
 							isBusy={ isLoading }
-							disabled={ isLoading }
+							disabled={ isLoading || ! isReplacerEnabled }
 							className="optml__button flex justify-center rounded font-bold min-h-40"
 							onClick={ () => clearCache( 'assets' ) }
 						>
