@@ -1782,7 +1782,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			self::record_process_meta( $count );
 
 			if ( true === $in_progress ) {
-				wp_schedule_single_event(
+				self::schedule_action(
 					time(),
 					'optml_start_processing_images',
 					[
@@ -1807,7 +1807,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			self::record_process_meta( $count );
 
 			if ( true === $in_progress ) {
-				wp_schedule_single_event(
+				self::schedule_action(
 					time(),
 					'optml_start_processing_images_by_id',
 					[
@@ -1826,7 +1826,23 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			'action' => $action === 'offload_images' ? 'offload' : 'rollback',
 		];
 	}
-
+	/**
+	 * Schedule an action.
+	 *
+	 * @param int    $time The time to schedule the action.
+	 * @param string $hook The hook to schedule.
+	 * @param array  $args The arguments to pass to the hook.
+	 *
+	 * @return mixed
+	 */
+	public static function schedule_action( $time, $hook, $args ) {
+		// We use AS if available to avoid issues with WP Cron.
+		if ( function_exists( 'as_schedule_single_action' ) ) {
+			return as_schedule_single_action( $time, $hook, $args );
+		} else {
+			return wp_schedule_single_event( $time, $hook, $args );
+		}
+	}
 	/**
 	 * Start Processing Images by IDs
 	 *
@@ -1899,7 +1915,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					Optml_Media_Offload::instance()->upload_images( $batch, $images );
 			}
 
-			wp_schedule_single_event(
+			self::schedule_action(
 				time(),
 				'optml_start_processing_images_by_id',
 				[
@@ -1914,7 +1930,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$delay_in_seconds = 10;
 			self::$instance->logger->add_log( $type, $e->getMessage() );
 
-			wp_schedule_single_event(
+			self::schedule_action(
 				time() + $delay_in_seconds,
 				'optml_start_processing_images_by_id',
 				[
@@ -1974,7 +1990,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			$step = $step + 1;
 
-			wp_schedule_single_event(
+			self::schedule_action(
 				time(),
 				'optml_start_processing_images',
 				[
@@ -1990,7 +2006,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$delay_in_seconds = 10;
 			self::$instance->logger->add_log( $type, $e->getMessage() );
 
-			wp_schedule_single_event(
+			self::schedule_action(
 				time() + $delay_in_seconds,
 				'optml_start_processing_images',
 				[
