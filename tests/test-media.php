@@ -20,6 +20,7 @@ class Test_Media extends WP_UnitTestCase {
 	public static $sample_post;
 	public static $sample_attachement;
 	private static $sample_attachement_upper_case;
+	private static $sample_attachment_scaled;
 
 	/**
 	 * Mock the api calls and remote images requests
@@ -142,6 +143,8 @@ class Test_Media extends WP_UnitTestCase {
 		$settings->update( 'no_script', 'enabled' );
 		$settings->update( 'lazyload', 'enabled' );
 		$settings->update( 'offload_media', 'enabled' );
+		// enforce offload during this test
+		Optml_Image::$offload_enabled = true;
 		$settings->update( 'lazyload_placeholder', 'disabled' );
 		$settings->update( 'quality', 90 );
 		$settings->update( 'cdn', 'enabled' );
@@ -149,6 +152,7 @@ class Test_Media extends WP_UnitTestCase {
 		Optml_Tag_Replacer::instance()->init();
 		Optml_Manager::instance()->init();
 		Optml_Media_Offload::instance();
+
 
 		add_filter( 'pre_http_request', array($this,'filter_pre_http_request'), 10, 3 );
 		self::$sample_post        = self::factory()->post->create( [
@@ -159,6 +163,7 @@ class Test_Media extends WP_UnitTestCase {
 		self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/1.jpg' );
 		self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/1PQ7p.jpg' );
 		self::$sample_attachement_upper_case = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/1PQ7p.jpg' );
+		self::$sample_attachment_scaled = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/3000x3000.jpg' );
 	}
 	public function test_duplicated_image() {
 
@@ -240,9 +245,9 @@ class Test_Media extends WP_UnitTestCase {
 
 		Optml_Media_Offload::instance()->rollback_images( 100 );
 		$this->assertTrue( file_exists( get_attached_file(self::$sample_attachement) ) );
-		
+
 		$image_meta  = wp_get_attachment_metadata( self::$sample_attachement);
-		
+
 		$this->assertStringNotContainsString( 'id:', $image_meta['file'] );
 		$this->assertStringContainsString( '-300x200', $image_meta['sizes']['medium']['file'] );
 		$this->assertStringContainsString( '-150x150', $image_meta['sizes']['thumbnail']['file'] );
@@ -274,4 +279,195 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertTrue( file_exists( get_attached_file(self::$sample_attachement) ) );
 	}
 
+	public function test_maybe_strip_scaled() {
+		$scaled_url = 'https://4d31-93-114-162-196.ngrok-free.app/wp-content/uploads/2023/10/wesley-tingey-NRwAGwJLGH4-unsplash-1-scaled.jpg';
+		$normal_url = 'https://4d31-93-114-162-196.ngrok-free.app/wp-content/uploads/2023/10/wesley-tingey-NRwAGwJLGH4-unsplash-1.jpg';
+
+		$this->assertEquals( Optml_Media_Offload::instance()->maybe_strip_scaled( $scaled_url ), $normal_url );
+		$this->assertEquals( Optml_Media_Offload::instance()->maybe_strip_scaled( $normal_url ), $normal_url );
+	}
+
+	public function test_filter_saved_data() {
+		// Sample Attachment:
+
+		// Full size
+		$content = sprintf( '<img src="%s" />', wp_get_attachment_image_url( self::$sample_attachement, 'full' ) );
+		$this->assertStringContainsString( 'example.i.optimole.com/w:700/h:467', $content );
+		$this->assertStringContainsString( 'process:' . self::$sample_attachement . '/id:', $content );
+
+		$replaced = Optml_Media_Offload::instance()->filter_saved_data( ['post_content' => $content], ['post_status' => 'published' ], [], false );
+		$this->assertStringNotContainsString( 'example.i.optimole.com/w:700/h:467', $replaced['post_content'] );
+		$this->assertStringNotContainsString( 'process:' . self::$sample_attachement . '/id:', $replaced['post_content'] );
+		$this->assertStringContainsString('/wp-content/uploads', $replaced['post_content'] );
+
+		// Medium size
+		$content = sprintf( '<img src="%s" />', wp_get_attachment_image_url( self::$sample_attachement, 'medium' ) );
+		$this->assertStringContainsString( 'example.i.optimole.com/w:300/h:200', $content );
+		$this->assertStringContainsString( 'process:' . self::$sample_attachement . '/id:', $content );
+
+		$replaced = Optml_Media_Offload::instance()->filter_saved_data( ['post_content' => $content], ['post_status' => 'published' ], [], false );
+		$this->assertStringNotContainsString( 'example.i.optimole.com/w:300/h:200', $replaced['post_content'] );
+		$this->assertStringNotContainsString( 'process:' . self::$sample_attachement . '/id:', $replaced['post_content'] );
+		$this->assertStringContainsString('/wp-content/uploads', $replaced['post_content'] );
+		$this->assertStringContainsString('300x200.jpg', $replaced['post_content'] );
+
+		// Scaled attachment:
+		// Full size.
+		$content = sprintf( '<img src="%s" />', wp_get_attachment_image_url( self::$sample_attachment_scaled, 'full' ) );
+		$this->assertStringContainsString( 'example.i.optimole.com/w:2560/h:2560', $content );
+		$this->assertStringContainsString( 'process:' . self::$sample_attachment_scaled . '/id:', $content );
+
+		$replaced = Optml_Media_Offload::instance()->filter_saved_data( ['post_content' => $content], ['post_status' => 'published' ], [], false );
+		$this->assertStringNotContainsString( 'example.i.optimole.com/w:2560/h:2560', $replaced['post_content'] );
+		$this->assertStringNotContainsString( 'process:' . self::$sample_attachment_scaled . '/id:', $replaced['post_content'] );
+		$this->assertStringContainsString('/wp-content/uploads', $replaced['post_content'] );
+		$this->assertStringContainsString('-scaled.jpg', $replaced['post_content'] );
+
+		// Medium size.
+		$content = sprintf( '<img src="%s" />', wp_get_attachment_image_url( self::$sample_attachment_scaled, 'medium' ) );
+		$this->assertStringContainsString( 'example.i.optimole.com/w:300/h:300', $content );
+		$this->assertStringContainsString( 'process:' . self::$sample_attachment_scaled . '/id:', $content );
+
+		$replaced = Optml_Media_Offload::instance()->filter_saved_data( ['post_content' => $content], ['post_status' => 'published' ], [], false );
+		$this->assertStringNotContainsString( 'example.i.optimole.com/w:300/h:300', $replaced['post_content'] );
+		$this->assertStringNotContainsString( 'process:' . self::$sample_attachment_scaled . '/id:', $replaced['post_content'] );
+		$this->assertStringContainsString('/wp-content/uploads', $replaced['post_content'] );
+		$this->assertStringContainsString('300x300.jpg', $replaced['post_content'] );
+	}
+
+	public function test_replace_urls_in_editor_content() {
+		// Sample attachment:
+		$original_url = Optml_Media_Offload::get_original_url( self::$sample_attachement );
+		$extension = pathinfo( $original_url, PATHINFO_EXTENSION );
+		$medium_size_url = str_replace( '.' . $extension, '-300x200.' . $extension, $original_url );
+
+		// Full size.
+		$content_before_replace = sprintf( '<img src="%s" />', $original_url );
+		$replaced_content = Optml_Media_Offload::instance()->replace_urls_in_editor_content( $content_before_replace );
+
+		$this->assertStringNotContainsString( $original_url, $replaced_content );
+
+		$this->assertStringContainsString('wp-content/uploads', $content_before_replace);
+		$this->assertStringNotContainsString( 'wp-content/uploads', $replaced_content );
+
+		$this->assertStringContainsString( 'w:auto/h:auto', $replaced_content );
+		$this->assertStringNotContainsString( 'w:auto/h:auto', $content_before_replace );
+
+		$this->assertStringContainsString( 'process:' . self::$sample_attachement . '/id:', $replaced_content );
+		$this->assertStringNotContainsString( 'process:' . self::$sample_attachement . '/id:', $content_before_replace );
+
+		// Medium size.
+		$content_before_replace = sprintf( '<img src="%s" />', $medium_size_url );
+		$replaced_content = Optml_Media_Offload::instance()->replace_urls_in_editor_content( $content_before_replace );
+
+		$this->assertStringNotContainsString( $original_url, $replaced_content );
+
+		$this->assertStringContainsString('wp-content/uploads', $content_before_replace);
+		$this->assertStringNotContainsString( 'wp-content/uploads', $replaced_content );
+
+		$this->assertStringContainsString( 'w:300/h:200', $replaced_content );
+		$this->assertStringNotContainsString( 'w:300/h:200', $content_before_replace );
+
+		$this->assertStringContainsString( '300x200.jpg', $content_before_replace );
+		$this->assertStringNotContainsString( '300x200.jpg', $replaced_content );
+
+		// Scaled attachment:
+		$original_url = Optml_Media_Offload::get_original_url( self::$sample_attachment_scaled );
+		$extension = pathinfo( $original_url, PATHINFO_EXTENSION );
+
+		$content_before_replace = sprintf( '<img src="%s" />', $original_url );
+		$replaced_content = Optml_Media_Offload::instance()->replace_urls_in_editor_content( $content_before_replace );
+
+		$this->assertStringNotContainsString( $original_url, $replaced_content );
+
+		$this->assertStringContainsString('wp-content/uploads', $content_before_replace);
+		$this->assertStringNotContainsString( 'wp-content/uploads', $replaced_content );
+
+		$this->assertStringContainsString( '-scaled.'.$extension, $content_before_replace );
+		$this->assertStringNotContainsString( '-scaled.'.$extension, $replaced_content );
+
+	}
+
+	public function test_alter_attachment_image_src() {
+		$test_data = [
+			'full' => [
+				'data' => Optml_Media_Offload::instance()->alter_attachment_image_src( [], self::$sample_attachement, 'full', false ),
+				'contains' => [
+					'process:' . self::$sample_attachement . '/id:',
+					'w:700/h:467'
+				]
+			],
+			'medium' =>  [
+				'data' => Optml_Media_Offload::instance()->alter_attachment_image_src( [], self::$sample_attachement, 'medium', false ),
+				'contains' => [
+					'process:' . self::$sample_attachement . '/id:',
+					'w:300/h:200'
+				]
+			],
+			'thumb' => [
+				'data' => Optml_Media_Offload::instance()->alter_attachment_image_src( [], self::$sample_attachement, 'thumbnail', false ),
+				'contains' => [
+					'process:' . self::$sample_attachement . '/id:',
+					'w:150/h:150',
+					'rt:fill'
+				]
+			],
+			'custom' => [
+				'data' => Optml_Media_Offload::instance()->alter_attachment_image_src( [], self::$sample_attachement, [10, 20], false ),
+				'contains' => [
+					'process:' . self::$sample_attachement . '/id:',
+					'w:10/h:20',
+					'rt:fill'
+				]
+			],
+			'scaled-full' => [
+				'data' => Optml_Media_Offload::instance()->alter_attachment_image_src( [], self::$sample_attachment_scaled, 'full', false ),
+				'contains' => [
+					'process:' . self::$sample_attachment_scaled . '/id:',
+					'w:2560/h:2560'
+				],
+				'not_contain' => [
+					'-scaled.jpg'
+				]
+			],
+			'scaled-thumb' => [
+				'data' => Optml_Media_Offload::instance()->alter_attachment_image_src( [], self::$sample_attachment_scaled, 'thumbnail', false ),
+				'contains' => [
+					'process:' . self::$sample_attachment_scaled . '/id:',
+					'w:150/h:150',
+					'rt:fill'
+				],
+				'not_contain' => [
+					'-scaled.jpg'
+				]
+			],
+			'scaled-custom' => [
+				'data' => Optml_Media_Offload::instance()->alter_attachment_image_src( [], self::$sample_attachment_scaled, [10, 20], false ),
+				'contains' => [
+					'process:' . self::$sample_attachment_scaled . '/id:',
+					'w:10/h:20',
+					'rt:fill'
+				],
+				'not_contain' => [
+					'-scaled.jpg'
+				]
+			]
+		];
+
+		foreach ( $test_data as $args ) {
+			$data = $args['data'];
+
+			if( isset( $args['contains'] ) ) {
+				foreach ( $args['contains'] as $string ) {
+					$this->assertStringContainsString( $string, $data[0] );
+				}
+			}
+
+			if( isset( $args['not_contain'] ) ) {
+				foreach ( $args['not_contain'] as $string ) {
+					$this->assertStringNotContainsString( $string, $data[0] );
+				}
+			}
+		}
+	}
 }

@@ -7,7 +7,7 @@
  * @author     Optimole <friends@optimole.com>
  */
 abstract class Optml_App_Replacer {
-
+	use Optml_Dam_Offload_Utils;
 	/**
 	 * Filters used for lazyload.
 	 *
@@ -56,18 +56,6 @@ abstract class Optml_App_Replacer {
 	 * @var Optml_Settings $settings
 	 */
 	public $settings = null;
-	/**
-	 * Defines which is the maximum width accepted in the optimization process.
-	 *
-	 * @var int
-	 */
-	protected $max_width = 3000;
-	/**
-	 * Defines which is the maximum width accepted in the optimization process.
-	 *
-	 * @var int
-	 */
-	protected $max_height = 3000;
 	/**
 	 * Defines if the dimensions should be limited when images are served.
 	 *
@@ -441,9 +429,6 @@ abstract class Optml_App_Replacer {
 		$this->allowed_sources['i2.wp.com'] = true;
 		$this->is_allowed_site              = count( array_diff_key( $this->possible_sources, $this->allowed_sources ) ) > 0;
 
-		$this->max_height = $this->settings->get( 'max_height' );
-		$this->max_width  = $this->settings->get( 'max_width' );
-
 		$this->limit_dimensions_enabled = $this->settings->get( 'limit_dimensions' ) === 'enabled';
 		if ( $this->limit_dimensions_enabled ) {
 			$this->limit_height = $this->settings->get( 'limit_height' );
@@ -572,16 +557,25 @@ abstract class Optml_App_Replacer {
 	 * @return string
 	 **/
 	public function strip_image_size_from_url( $url ) {
-
 		if ( apply_filters( 'optml_should_skip_strip_image_size', false, $url ) === true ) {
 			return $url;
 		}
 		if ( preg_match( '#(-\d+x\d+(?:_c)?|(@2x))\.(' . implode( '|', array_keys( Optml_Config::$image_extensions ) ) . '){1}$#i', $url, $src_parts ) ) {
 			$stripped_url = str_replace( $src_parts[1], '', $url );
+
+			if ( $this->settings->is_offload_enabled() ) {
+				// Treat offloaded attachments differently.
+				$id = $this->attachment_url_to_post_id( $stripped_url );
+
+				if ( $id !== 0 && $this->is_new_offloaded_attachment( $id ) ) {
+					return $stripped_url;
+				}
+			}
+
 			// Extracts the file path to the image minus the base url
 			$file_path = substr( $stripped_url, strpos( $stripped_url, $this->upload_resource['url'] ) + $this->upload_resource['url_length'] );
 			if ( file_exists( $this->upload_resource['directory'] . $file_path ) ) {
-				$url = $stripped_url;
+				return $stripped_url;
 			}
 		}
 

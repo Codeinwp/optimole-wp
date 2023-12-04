@@ -104,17 +104,7 @@ const CSATList = () => {
 									onChange={ feedback => props.changeData({ feedback }) }
 								/>
 
-								<div className="flex justify-between">
-									<Tooltip
-										text={ optimoleDashboardApp.strings.csat.privacy_tooltip }
-									>
-										<div className="flex items-center cursor-pointer text-info">
-											<Icon icon={ info } className="mr-2 fill-info" />
-
-											{ optimoleDashboardApp.strings.csat.privacy }
-										</div>
-									</Tooltip>
-
+								<div className="flex justify-end">
 									<div className="flex gap-2">
 										<Button
 											onClick={ () => props.onSubmit() }

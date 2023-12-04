@@ -88,6 +88,7 @@ const EXT_OPTIONS = [
 
 const FilterControl = ({
 	label,
+	help,
 	type,
 	settings,
 	setSettings,
@@ -221,6 +222,11 @@ const FilterControl = ({
 				label={ label }
 				help={ filterType === FILTER_TYPES.URL && optimoleDashboardApp.strings.options_strings.filter_helper }
 			>
+				<p
+					className="components-base-control__help mt-0"
+					dangerouslySetInnerHTML={ { __html: help } }
+				/>
+
 				<div className="flex flex-col md:flex-row p-6 my-3 bg-light-blue border border-blue-300 rounded-md items-center justify-between gap-8">
 					<div className="flex justify-start items-center gap-4">
 						<SelectControl
@@ -287,7 +293,7 @@ const FilterControl = ({
 
 			{ hasItems && (
 				<BaseControl
-					label={ optimoleDashboardApp.strings.options_strings.active_exclusions }
+					label={ 'optimize' === type ? optimoleDashboardApp.strings.options_strings.active_optimize_exclusions : optimoleDashboardApp.strings.options_strings.active_lazyload_exclusions }
 					className="py-4"
 				>
 					{ FILTER_VIEW.map( filter => {

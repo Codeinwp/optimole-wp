@@ -94,7 +94,7 @@ const Resize = ({
 		<>
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_resize_smart_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_resize_smart_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_resize_smart_desc } } /> }
 				checked={ isSmartResizeEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -109,7 +109,7 @@ const Resize = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_retina_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_retina_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_retina_desc } } /> }
 				checked={ isRetinaEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -124,7 +124,7 @@ const Resize = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_title }
-				help={ optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_desc }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_desc } } /> }
 				checked={ isLimitDimensionsEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -174,8 +174,12 @@ const Resize = ({
 
 			<BaseControl
 				label={ optimoleDashboardApp.strings.options_strings.add_image_size_desc }
-				help={ optimoleDashboardApp.strings.options_strings.image_size_notice }
 			>
+				<p
+					className="components-base-control__help mt-0"
+					dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.image_size_notice } }
+				/>
+
 				<div className="flex flex-col sm:flex-row p-6 bg-light-blue border border-blue-300 rounded-md items-stretch sm:items-center gap-8">
 					<TextControl
 						label={ optimoleDashboardApp.strings.options_strings.width_field }
@@ -239,37 +243,6 @@ const Resize = ({
 					) ) }
 				</BaseControl>
 			) }
-
-			<hr className="my-8 border-grayish-blue"/>
-
-			<BaseControl
-				label={ optimoleDashboardApp.strings.options_strings.size_title }
-				help={ optimoleDashboardApp.strings.options_strings.size_desc }
-			>
-				<div className="flex gap-8">
-					<NumberControl
-						label={ optimoleDashboardApp.strings.options_strings.width_field }
-						labelPosition="side"
-						value={ settings[ 'max_width' ] }
-						type="number"
-						min={ 100 }
-						max={ 10000 }
-						className="basis-1/2 sm:basis-1/4"
-						onChange={ value => updateValue( 'max_width', value ) }
-					/>
-
-					<NumberControl
-						label={ optimoleDashboardApp.strings.options_strings.height_field }
-						labelPosition="side"
-						value={ settings[ 'max_height' ] }
-						type="number"
-						min={ 100 }
-						max={ 10000 }
-						className="basis-1/2 sm:basis-1/4"
-						onChange={ value => updateValue( 'max_height', value ) }
-					/>
-				</div>
-			</BaseControl>
 		</>
 	);
 };

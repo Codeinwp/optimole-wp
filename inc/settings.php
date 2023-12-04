@@ -54,8 +54,6 @@ class Optml_Settings {
 		'cache_buster_assets'  => '',
 		'cache_buster_images'  => '',
 		'cdn'                  => 'disabled',
-		'max_height'           => 1500,
-		'max_width'            => 2000,
 		'admin_bar_item'       => 'enabled',
 		'lazyload'             => 'disabled',
 		'scale'                => 'disabled',
@@ -64,7 +62,7 @@ class Optml_Settings {
 		'bg_replacer'          => 'enabled',
 		'video_lazyload'       => 'enabled',
 		'retina_images'        => 'disabled',
-		'limit_dimensions'     => 'disabled',
+		'limit_dimensions'     => 'enabled',
 		'limit_height'         => 1080,
 		'limit_width'          => 1920,
 		'resize_smart'         => 'disabled',
@@ -262,8 +260,6 @@ class Optml_Settings {
 				case 'best_format':
 					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
-				case 'max_width':
-				case 'max_height':
 				case 'limit_height':
 				case 'limit_width':
 					$sanitized_value = $this->to_bound_integer( $value, 100, 5000 );
@@ -494,8 +490,6 @@ class Optml_Settings {
 			'no_script'            => $this->get( 'no_script' ),
 			'image_replacer'       => $this->get( 'image_replacer' ),
 			'cdn'                  => $this->get( 'cdn' ),
-			'max_width'            => $this->get( 'max_width' ),
-			'max_height'           => $this->get( 'max_height' ),
 			'filters'              => $this->get_filters(),
 			'cloud_sites'          => $this->get( 'cloud_sites' ),
 			'defined_image_sizes'  => $this->get( 'defined_image_sizes' ),
@@ -757,5 +751,14 @@ class Optml_Settings {
 		}
 
 		return $data['token'];
+	}
+
+	/**
+	 * Utility to check if offload is enabled.
+	 *
+	 * @return bool
+	 */
+	public function is_offload_enabled() {
+		return $this->get( 'offload_media' ) === 'enabled' || $this->get( 'rollback_status' ) !== 'disabled';
 	}
 }

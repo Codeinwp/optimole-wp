@@ -72,8 +72,8 @@ final class Optml_Main {
 	 * Optml_Main constructor.
 	 */
 	public function __construct() {
-
 		register_activation_hook( OPTML_BASEFILE, [ $this, 'activate' ] );
+		register_deactivation_hook( OPTML_BASEFILE, [ $this, 'deactivate' ] );
 	}
 
 	/**
@@ -212,6 +212,18 @@ final class Optml_Main {
 		}
 
 		set_transient( 'optml_fresh_install', true, MINUTE_IN_SECONDS );
+	}
+
+	/**
+	 * Deactivate routine actions.
+	 *
+	 * @access public
+	 * @since  3.11.0
+	 */
+	public function deactivate() {
+		// Clear registered cron events.
+		wp_clear_scheduled_hook( 'optml_daily_sync' );
+		wp_clear_scheduled_hook( 'optml_pull_image_data_init' );
 	}
 
 	/**
