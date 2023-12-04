@@ -17,6 +17,7 @@ import {
 import { useSelect } from '@wordpress/data';
 
 import { useState } from '@wordpress/element';
+import Notice from '../../components/Notice';
 
 const Resize = ({
 	settings,
@@ -161,12 +162,8 @@ const Resize = ({
 						/>
 					</div>
 
-					<div className="flex gap-2 bg-stale-yellow text-gray-800 border border-solid border-yellow-300 rounded relative px-6 py-5 my-5">
-						<p
-							className="m-0"
-							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_notice } }
-						/>
-					</div>
+					<Notice disableIcon type='warning' text={optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_notice}/>
+
 				</BaseControl>
 			) }
 
