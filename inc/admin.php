@@ -1129,7 +1129,7 @@ class Optml_Admin {
 			'home_url'                   => home_url(),
 			'is_offload_media_available' => $is_offload_media_available,
 			'auto_connect'               => $auto_connect,
-			'cron_disabled' => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON,
+			'cron_disabled' => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON && ! function_exists( 'as_schedule_single_action' ),
 			'submenu_links' => [
 				[
 					'href' => 'admin.php?page=optimole#settings',
