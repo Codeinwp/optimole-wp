@@ -271,7 +271,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 	};
 
 	return (
-		<div className={'antialiased'}>
+		<div>
 			<h1 className="text-xl font-bold">{options_strings.enable_offload_media_title}</h1>
 			<p dangerouslySetInnerHTML={{ __html: options_strings.enable_offload_media_desc }}/>
 

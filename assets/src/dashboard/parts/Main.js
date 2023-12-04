@@ -91,7 +91,7 @@ const Main = () => {
 
 
 	return (
-		<>
+		<div className="antialiased">
 			<Header
 				tab={ tab }
 				setTab={ setTab }
@@ -120,7 +120,7 @@ const Main = () => {
 			) }
 
 			<Toasts />
-		</>
+		</div>
 	);
 };
 
