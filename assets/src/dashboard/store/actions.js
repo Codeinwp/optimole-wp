@@ -179,6 +179,14 @@ const actions = {
 			logsType,
 			logs
 		};
+	},
+	setShowFinishNotice( nextVal ) {
+		return {
+			type: 'SET_SITE_SETTINGS',
+			siteSettings: {
+				'show_offload_finish_notice': nextVal
+			}
+		};
 	}
 };
 

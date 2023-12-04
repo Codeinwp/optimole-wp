@@ -38,7 +38,8 @@ const {
 	setOffloadLibraryLink,
 	setRollbackLibraryLink,
 	setExtraVisits,
-	setLogs
+	setLogs,
+	setShowFinishNotice
 } = dispatch( 'optimole' );
 
 const {
@@ -525,6 +526,7 @@ export const callSync = ( data ) => {
 				setLoadingSync( false );
 				setLoadingRollback( false );
 				setIsLoading( false );
+				setShowFinishNotice( response.data.action );
 
 				if ( 'offload_images' === data.action ) {
 					if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {

@@ -1129,6 +1129,7 @@ class Optml_Admin {
 			'home_url'                   => home_url(),
 			'is_offload_media_available' => $is_offload_media_available,
 			'auto_connect'               => $auto_connect,
+			'cron_disabled' => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON,
 			'submenu_links' => [
 				[
 					'href' => 'admin.php?page=optimole#settings',
@@ -1407,7 +1408,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'js_minify_desc'                    => __( 'Once Optimole will serve your JS files, it will also minify the files and serve them via CDN.', 'optimole-wp' ),
 				'sync_title'                        => __( 'Offload Existing Images', 'optimole-wp' ),
 				'rollback_title'                    => __( 'Restore Offloaded Images', 'optimole-wp' ),
-				'sync_desc' => __( 'Right now all the new images uploaded to your site are moved automatically to Optimole Cloud. In order to offload the existing ones, please click Sync images and wait for the process to finish. You can rollback anytime.', 'optimole-wp' ),
+				'sync_desc'                         => __( 'Right now all the new images uploaded to your site are moved automatically to Optimole Cloud. In order to offload the existing ones, please click Sync images and wait for the process to finish. You can rollback anytime.', 'optimole-wp' ),
 				'rollback_desc'                     => __( 'Pull all the offloaded images to Optimole Cloud back to your server.', 'optimole-wp' ),
 				'sync_media'                        => __( 'Sync images', 'optimole-wp' ),
 				'rollback_media'                    => __( 'Rollback images', 'optimole-wp' ),
@@ -1435,6 +1436,13 @@ The root cause might be either a security plugin which blocks this feature or so
 				'offload_enable_info_desc'          => sprintf( __( 'You are not required to use the offload functionality for the plugin to work, use it if you want to save on hosting space. %1$s More details%2$s', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://docs.optimole.com/article/1323-cloud-library-browsing">', '<span style="font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>' ),
 				'offload_conflicts_part_1'          => __( 'We have detected the following plugins that conflict with the offload features: ', 'optimole-wp' ),
 				'offload_conflicts_part_2'          => __( 'Please disable those plugins temporarily in order for Optimole to rollback the images to your site.', 'optimole-wp' ),
+				'offloading_success'                => sprintf( __( '%s Your images are now stored in Optimole Cloud.', 'optimole-wp' ), '<strong>' . __( 'Transfer Complete.', 'optimole-wp' ) . '</strong>' ),
+				'rollback_success'                  => sprintf( __( '%s Your images have been restored to your website.', 'optimole-wp' ), '<strong>' . __( 'Transfer Complete.', 'optimole-wp' ) . '</strong>' ),
+				'offloading_radio_legend'           => __( 'Where your images are stored', 'optimole-wp' ),
+				'offload_radio_option_rollback_title'            => __( 'Optimole and WordPress', 'optimole-wp' ),
+				'offload_radio_option_rollback_desc'            => __( 'Images are stored in both the local WordPress media library and Optimole Cloud.', 'optimole-wp' ),
+				'offload_radio_option_offload_title'            => __( 'Optimole only', 'optimole-wp' ),
+				'offload_radio_option_offload_desc'            => __( 'Images are stored only in Optimole Cloud, allowing you to save space on your server. When enabled, any new images you upload in the Media Library will be automatically transferred to Optimole Cloud.', 'optimole-wp' ),
 				'select'                            => __( 'Please select one ...', 'optimole-wp' ),
 				'yes'                               => __( 'Restore images after disabling', 'optimole-wp' ),
 				'no'                                => __( 'Do not restore images after disabling', 'optimole-wp' ),
@@ -1548,6 +1556,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'submit'               => __( 'Submit', 'optimole-wp' ),
 				'thank_you'            => __( 'Your input is highly appreciated and helps us shape a better experience in Optimole.', 'optimole-wp' ),
 			],
+			'cron_error'                                                => sprintf( __( 'It seems that you have the %1$s constant defined as %2$s. The offloading process uses cron events to offload the images in the background. Please remove the constant from your wp-config.php file in order for the offloading process to work.', 'optimole-wp' ), '<code>DISABLE_WP_CRON</code>', '<code>true</code>' ),
+			'cancel'                                                    => __( 'Cancel', 'optimole-wp' ),
 		];
 	}
 

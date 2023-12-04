@@ -38,6 +38,12 @@ module.exports = {
 			},
 			minHeight: {
 				'40': '40px'
+			},
+			outlineWidth: {
+				3: '3px'
+			},
+			outlineOffset: {
+				3: '3px'
 			}
 		}
 	}

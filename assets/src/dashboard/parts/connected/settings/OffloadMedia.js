@@ -1,89 +1,26 @@
 /* global optimoleDashboardApp */
+
 import classnames from 'classnames';
-import { BaseControl, Button, Icon, SelectControl, ToggleControl } from '@wordpress/components';
-import { useDispatch, useSelect } from '@wordpress/data';
 import { useEffect, useState } from '@wordpress/element';
-import {close, rotateRight} from '@wordpress/icons';
+import { useDispatch, useSelect } from '@wordpress/data';
+import { Icon } from '@wordpress/icons';
 
-import { warning } from '../../../utils/icons';
-import ProgressBar from '../../components/ProgressBar';
+import { warning, rollback as rollbackIcon, offload, warningAlt, sync } from '../../../utils/icons';
 import { callSync, checkOffloadConflicts, saveSettings } from '../../../utils/api';
+import Notice from '../../components/Notice';
+import RadioBoxes from '../../components/RadioBoxes';
+import ProgressTile from '../../components/ProgressTile';
+import Modal from '../../components/Modal';
+import Logs from './Logs';
 
-
-const maxTime = 100;
-
-const ConfirmModal = ({
-	icon,
-	labels = {},
-	onRequestClose = () => {},
-	onConfirm = () => {},
-	variant = 'default'
-}) => {
-	const isMobileViewport = useViewportMatch( 'small', '<' );
-
-	return (
-		<Modal
-			__experimentalHideHeader={ true }
-			className="optml__modal"
-			onRequestClose={ onRequestClose }
-			isFullScreen={ isMobileViewport }
-		>
-			<Button
-				onClick={ onRequestClose }
-				icon={ close }
-				label={ optimoleDashboardApp.strings.csat.close }
-				className="fixed right-3 top-3 cursor-pointer"
-			/>
-
-			<div className="flex flex-col items-center">
-				<Icon
-					icon={ icon }
-					size={ 24 }
-					className={ classnames(
-						'p-3 rounded-full',
-						{
-							'bg-stale-yellow': 'warning' === variant,
-							'bg-light-blue': 'default' === variant
-						}
-					) }
-				/>
-
-				<h2
-					className="mb-0"
-					dangerouslySetInnerHTML={ { __html: labels.title } }
-				/>
-
-				<p
-					className="text-center mx-0 my-4"
-					dangerouslySetInnerHTML={ { __html: labels.description } }
-				/>
-
-				<Button
-					variant="primary"
-					className={ classnames(
-						'optml__button flex justify-center px-5 py-3 rounded font-bold min-h-40 basis-1/5',
-						{
-							'bg-mango-yellow': 'warning' === variant
-						}
-					) }
-					onClick={ onConfirm }
-				>
-					{ labels.action }
-				</Button>
-			</div>
-		</Modal>
-	);
-};
-
-const OffloadMedia = ({
-	settings,
-	canSave,
-	setSettings,
-	setCanSave,
-	onSaveSettings
-}) => {
-	const { strings, site_settings } = optimoleDashboardApp;
+const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
+	const { strings, cron_disabled } = optimoleDashboardApp;
 	const { conflicts, options_strings } = strings;
+
+	const MODAL_STATE_OFFLOAD = 'offload';
+	const MODAL_STATE_ROLLBACK = 'rollback';
+	const MODAL_STATE_STOP_OFFLOAD = 'stopOffload';
+	const MODAL_STATE_STOP_ROLLBACK = 'stopRollback';
 
 	const {
 		offloadConflicts,
@@ -95,7 +32,8 @@ const OffloadMedia = ({
 		rollbackLibraryLink,
 		queryArgs,
 		totalNumberOfImages,
-		processedImages
+		processedImages,
+		offloadFinishNotice
 	} = useSelect( select => {
 		const {
 			getOffloadConflicts,
@@ -107,7 +45,8 @@ const OffloadMedia = ({
 			getTotalNumberOfImages,
 			getProcessedImages,
 			getQueryArgs,
-			isLoading
+			isLoading,
+			getSiteSettings
 		} = select( 'optimole' );
 
 		return {
@@ -120,7 +59,8 @@ const OffloadMedia = ({
 			rollbackLibraryLink: getRollbackLibraryLink(),
 			queryArgs: getQueryArgs(),
 			totalNumberOfImages: getTotalNumberOfImages(),
-			processedImages: getProcessedImages()
+			processedImages: getProcessedImages(),
+			offloadFinishNotice: getSiteSettings( 'show_offload_finish_notice' )
 		};
 	}, []);
 
@@ -130,24 +70,22 @@ const OffloadMedia = ({
 		setOffloadConflicts
 	} = useDispatch( 'optimole' );
 
-	const [ rollback, setRollback ] = useState( 'yes' );
-	const [ modal, setModal ] = useState( false );
-	const [ showOffloadDisabled, setShowOffloadDisabled ] = useState( false );
-	const [ showOffloadEnabled, setShowOffloadEnabled ] = useState( false );
+	const [ modal, setModal ] = useState( null );
 
-	const isOffloadMediaEnabled = 'disabled' !== settings[ 'offload_media' ];
-	const isOffloadingInProgress = 'disabled' !== settings[ 'offloading_status' ];
-	const isRollbackInProgress = 'disabled' !== settings[ 'rollback_status' ];
+	const isOffloadingInProgress = 'disabled' !== settings['offloading_status'];
+	const isRollbackInProgress = 'disabled' !== settings['rollback_status'];
 
 	useEffect( () => {
-		if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {
-			if ( 'offload_images' === queryArgs.optimole_action ) {
-				onOffloadMedia( queryArgs.images );
-			}
+		if ( ! queryArgs?.optimole_action || ! queryArgs?.images ) {
+			return;
+		}
 
-			if ( 'rollback_images' === queryArgs.optimole_action ) {
-				onRollbackdMedia( queryArgs.images );
-			}
+		if ( 'offload_images' === queryArgs.optimole_action ) {
+			onOffloadMedia( queryArgs.images );
+		}
+
+		if ( 'rollback_images' === queryArgs.optimole_action ) {
+			onRollbackdMedia( queryArgs.images );
 		}
 	}, []);
 
@@ -167,38 +105,21 @@ const OffloadMedia = ({
 		}
 	}, []);
 
-	useEffect( () => {
-		if ( canSave ) {
-			return;
-		}
-
-		setShowOffloadEnabled( false );
-
-		if ( 'yes' === rollback && showOffloadDisabled ) {
-			onRollbackdMedia();
-			setRollback( 'no' );
-		}
-
-		setShowOffloadDisabled( false );
-	}, [ canSave ]);
-
-	const onChangeOffload = value => {
-		setCanSave( true );
-		const data = { ...settings };
-		data[ 'offload_media' ] = value ? 'enabled' : 'disabled';
-		setSettings( data );
-
-		setShowOffloadDisabled( 'enabled' === site_settings[ 'offload_media' ] && ! value );
-		setShowOffloadEnabled( 'disabled' === site_settings[ 'offload_media' ] && !! value );
-	};
 
 	const onOffloadMedia = ( imageIds = []) => {
-		onSaveSettings();
-		setErrorMedia( false );
+		const nextSettings = { ...settings };
+		nextSettings['show_offload_finish_notice'] = '';
+		nextSettings['offloading_status'] = 'enabled';
+		setSettings( nextSettings );
+		saveSettings( nextSettings, false, true, () => {
+			setErrorMedia( false );
 
-		callSync({
-			action: 'offload_images',
-			images: imageIds
+			callSync({
+				action: 'offload_images',
+				images: imageIds
+			});
+
+			setCanSave( false );
 		});
 	};
 
@@ -208,393 +129,245 @@ const OffloadMedia = ({
 
 		checkOffloadConflicts( response => {
 			if ( 0 === response.data.length ) {
-				setErrorMedia( false );
+				const nextSettings = { ...settings };
+				nextSettings['show_offload_finish_notice'] = '';
+				nextSettings['rollback_status'] = 'enabled';
+				saveSettings( nextSettings, false, true, () => {
+					setErrorMedia( false );
 
-				callSync({
-					action: 'rollback_images',
-					images: imageIds
+					callSync({
+						action: 'rollback_images',
+						images: imageIds
+					});
+
+					setCanSave( false );
 				});
 			}
 		});
 	};
 
+	const radioBoxesOptions = [
+		{
+			title: options_strings.offload_radio_option_rollback_title,
+			description: options_strings.offload_radio_option_rollback_desc,
+			value: 'rollback'
+		},
+		{
+			title: options_strings.offload_radio_option_offload_title,
+			description: options_strings.offload_radio_option_offload_desc,
+			value: 'offload'
+		}
+	];
+
+	const radioBoxValue = 'enabled' === settings['offload_media'] ? 'offload' : 'rollback';
+
+	const updateRadioBoxValue = value => {
+		const offloadEnabled = 'offload' === value;
+		const nextSettings = { ...settings };
+		nextSettings['offload_media'] = offloadEnabled ? 'enabled' : 'disabled';
+		setSettings( nextSettings );
+		setCanSave( true );
+
+		if ( offloadEnabled ) {
+			setModal( MODAL_STATE_OFFLOAD );
+
+			return;
+		}
+
+		setModal( MODAL_STATE_ROLLBACK );
+	};
+
+	const getModalProps = ( type ) => {
+		const props = {
+			[MODAL_STATE_OFFLOAD]: {
+				icon: offload,
+				onConfirm: () => {
+					onOffloadMedia();
+					setModal( null );
+				},
+				labels: {
+					title: options_strings.offloading_start_title,
+					description: options_strings.offloading_start_description,
+					action: options_strings.offloading_start_action
+				}
+			},
+			[MODAL_STATE_ROLLBACK]: {
+				icon: rollbackIcon,
+				onConfirm: () => {
+					onRollbackdMedia();
+					setModal( null );
+				},
+				labels: {
+					title: options_strings.rollback_start_title,
+					description: options_strings.rollback_start_description,
+					action: options_strings.rollback_start_action
+				}
+
+			},
+			[MODAL_STATE_STOP_OFFLOAD]: {
+				variant: 'warning',
+				icon: warningAlt,
+				onConfirm: () => {
+					setModal( null );
+					const options = settings;
+					options.offloading_status = 'disabled';
+					saveSettings( options );
+				},
+				labels: {
+					title: options_strings.offloading_stop_title,
+					description: options_strings.offloading_stop_description,
+					action: options_strings.offloading_stop_action
+				}
+			},
+			[MODAL_STATE_STOP_ROLLBACK]: {
+				variant: 'warning',
+				icon: warningAlt,
+				onConfirm: () => {
+					setModal( null );
+					const options = settings;
+					options.rollback_status = 'disabled';
+					saveSettings( options );
+				},
+				labels: {
+					title: options_strings.rollback_stop_title,
+					description: options_strings.rollback_stop_description,
+					action: options_strings.rollback_stop_action
+				}
+			}
+		};
+
+		return {
+			onRequestClose: () => setModal( null ),
+			...props[type]
+		};
+	};
+
+	const isInProgress = loadingSync || loadingRollback;
+
+	const onCancelProgress = () => {
+		if ( loadingSync ) {
+			setModal( MODAL_STATE_STOP_OFFLOAD );
+		}
+
+		if ( loadingRollback ) {
+			setModal( MODAL_STATE_STOP_ROLLBACK );
+		}
+	};
+
+	const handleForceSync = ( e ) => {
+		e.preventDefault();
+
+		if ( 'offload' === radioBoxValue ) {
+			setModal( MODAL_STATE_OFFLOAD );
+		}
+
+		if ( 'rollback' === radioBoxValue ) {
+			setModal( MODAL_STATE_ROLLBACK );
+		}
+	};
+
+	const dismissFinishNotice = () => {
+		saveSettings({ ...settings, show_offload_finish_notice: '' }, false, true );
+	};
+
 	return (
-		<>
-			<ToggleControl
-				label={ optimoleDashboardApp.strings.options_strings.enable_cloud_images_title }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_cloud_images_desc } } /> }
-				checked={ isCloudLibraryEnabled }
-				disabled={ isLoading }
-				className={ classnames(
-					{
-						'is-disabled': isLoading
-					}
-				) }
-				onChange={ value => updateOption( 'cloud_images', value ) }
-			/>
+		<div className={'antialiased'}>
+			<h1 className="text-xl font-bold">{options_strings.enable_offload_media_title}</h1>
+			<p dangerouslySetInnerHTML={{ __html: options_strings.enable_offload_media_desc }}/>
 
-			<hr className="my-8 border-grayish-blue"/>
+			{offloadFinishNotice && (
+				<Notice
+					title={'offload' === offloadFinishNotice ? options_strings.offloading_success : options_strings.rollback_success }
+					type="primary"
+					onDismiss={dismissFinishNotice}
+				/>
+			)}
 
-			{ isCloudLibraryEnabled && (
+			{cron_disabled && (
+				<Notice type='error' text={strings.cron_error}/>
+			)}
+
+			{! isInProgress &&
+				<RadioBoxes
+					className={classnames({ 'opacity-50 pointer-events-none': isLoading || cron_disabled })}
+					label={options_strings.offloading_radio_legend}
+					options={radioBoxesOptions}
+					value={radioBoxValue}
+					onChange={updateRadioBoxValue}
+				/>}
+
+			{isInProgress && (
 				<>
-					<BaseControl
-						label={ optimoleDashboardApp.strings.options_strings.cloud_site_title }
-					>
-						<p
-							className="components-base-control__help mt-0"
-							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.cloud_site_desc } }
-						/>
-
-						<div className="optml__token__base flex p-6 bg-light-blue border border-blue-300 rounded-md items-center gap-8">
-							<FormTokenField
-								value={ Object.keys( settings['cloud_sites']).filter( site => 'all' !== site && 'false' !== settings['cloud_sites'][ site ]).map( site => site ) || []}
-								suggestions={ whitelistedDomains }
-								onChange={ updateSites }
-								__experimentalExpandOnFocus={ true }
-								__experimentalShowHowTo={ false }
-								__experimentalValidateInput={ newValue => whitelistedDomains.includes( newValue ) }
-								className="optml__token" />
-						</div>
-					</BaseControl>
-
-					<hr className="my-8 border-grayish-blue" />
+					<ProgressTile
+						title={loadingSync ? options_strings.sync_media_progress : options_strings.rollback_media_progress}
+						progress={Math.round( ( processedImages / totalNumberOfImages ) * 100 )}
+						onCancel={onCancelProgress}
+						description={0 === totalNumberOfImages ? options_strings.calculating_estimated_time : options_strings.images_processing}/>
+					<Logs type={loadingSync ? 'offload' : 'rollback'}/>
 				</>
-			) }
+			)}
 
-			<ToggleControl
-				label={ optimoleDashboardApp.strings.options_strings.enable_offload_media_title }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_offload_media_desc } } /> }
-				checked={ isOffloadMediaEnabled }
-				disabled={ isLoading }
-				className={ classnames(
-					{
-						'is-disabled': isLoading
-					}
-				) }
-				onChange={ onChangeOffload }
-			/>
+			{'offload_images' === errorMedia && (
+				<Notice type="error" smallTitle title={options_strings.sync_media_error} text={options_strings.sync_media_error_desc}/>
+			)}
 
-			{ showOffloadEnabled && (
-				<div className="flex gap-2 bg-stale-yellow text-gray-800 border border-solid border-yellow-300 rounded relative px-6 py-5 mb-5">
-					<p
-						className="m-0"
-						dangerouslySetInnerHTML={ { __html: options_strings.offload_enable_info_desc } }
-					/>
-				</div>
-			) }
+			{'rollback_images' === errorMedia && (
+				<Notice type="error" smallTitle title={options_strings.rollback_media_error} text={options_strings.rollback_media_error_desc}/>
+			)}
 
-			{ showOffloadDisabled && (
-				<div className="flex flex-col gap-2 bg-stale-yellow text-gray-800 border border-solid border-yellow-300 rounded relative px-6 py-5 mb-5">
-					<div className="flex gap-2 items-center">
-						<Icon
-							icon={ warning }
-							size={ 16 }
-						/>
+			{ 0 < offloadConflicts.length && (
+				<Notice type="warning" title={options_strings.offload_conflicts_part_1}>
+					<div className="list-disc grid gap-3 mt-2">
+						<ul className="grid gap-1">
+							{offloadConflicts.map( ( conflict ) => (
+								<li key={conflict} className="font-semibold text-base m-0">{conflict}</li>
+							) )}
+						</ul>
 
-						<p className="font-bold text-base m-0">{ options_strings.offload_disable_warning_title }</p>
+						<p className="m-0 text-sm">{options_strings.offload_conflicts_part_2}</p>
+
+						<button
+							disabled={isLoading}
+							className={classnames(
+								{ 'opacity-50 pointer-events-none': isLoading },
+								'justify-self-start font-semibold flex items-center appearance-none border border-info text-info bg-white rounded px-4 py-2 text-sm hover:text-white hover:bg-info cursor-pointer'
+							)}
+							onClick={() => setOffloadConflicts([])}
+						>
+							{conflicts.conflict_close}
+						</button>
 					</div>
+				</Notice>
+			)}
 
-					<p
-						className="m-0"
-						dangerouslySetInnerHTML={ { __html: options_strings.offload_disable_warning_desc } }
-					/>
 
-					<SelectControl
-						value={ rollback }
-						options={ [
-							{
-								label: options_strings.yes,
-								value: 'yes'
-							},
-							{
-								label: options_strings.no,
-								value: 'no'
-							}
-						] }
-						onChange={ setRollback }
-						className="optml__select"
-						__nextHasNoMarginBottom={ true }
-					/>
-				</div>
+			{! isInProgress && (
+				<button
+					onClick={handleForceSync}
+					disabled={isLoading || cron_disabled}
+					className={classnames(
+						{ 'opacity-50 pointer-events-none': isLoading || cron_disabled },
+						'font-semibold flex items-center gap-2 appearance-none border border-info text-info bg-transparent rounded px-4 py-2 ml-auto text-sm hover:text-white hover:bg-info cursor-pointer'
+					)}
+				>
+					<Icon icon={sync} className="w-4 h-4"/>
+					<span>{options_strings.sync_media}</span>
+				</button>
+			)}
+
+			{ modal && (
+				<Modal {...getModalProps( modal )} />
+			)}
+
+			{ offloadLibraryLink && (
+				<p className="m-0">{options_strings.sync_media_link} <a href={queryArgs.url}>{options_strings.here}</a></p>
+			)}
+
+			{ rollbackLibraryLink && (
+				<p className="m-0">{ optimoleDashboardApp.strings.options_strings.rollback_media_link } <a href={ queryArgs.url }>{ optimoleDashboardApp.strings.options_strings.here }</a></p>
 			) }
 
-			{ isOffloadMediaEnabled && (
-				<>
-					<hr className="my-8 border-grayish-blue"/>
-
-					<BaseControl
-						label={ optimoleDashboardApp.strings.options_strings.sync_title }
-					>
-						<p
-							className="components-base-control__help mt-0"
-							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.sync_desc } }
-						/>
-
-						<div className="flex my-2 gap-3">
-							<Button
-								variant="default"
-								isBusy={ loadingSync || loadingRollback || isLoading }
-								disabled={ loadingSync || loadingRollback || isLoading }
-								className={ classnames(
-									'optml__button flex justify-center rounded font-bold min-h-40',
-									{
-										'is-disabled': isLoading
-									}
-								) }
-								onClick={ () => setModal( 'enableOffloading' ) }
-							>
-								{ options_strings.sync_media }
-							</Button>
-
-							{ 'enableOffloading' === modal && (
-								<ConfirmModal
-									icon={ offload }
-									labels={ {
-										title: optimoleDashboardApp.strings.options_strings.offloading_start_title,
-										description: optimoleDashboardApp.strings.options_strings.offloading_start_description,
-										action: optimoleDashboardApp.strings.options_strings.offloading_start_action
-									} }
-									onRequestClose={ () => setModal( false ) }
-									onConfirm={ () => {
-										setModal( false );
-										onOffloadMedia();
-									} }
-								/>
-							)}
-
-							{ loadingSync && (
-								<>
-									<Button
-										variant="default"
-										isDestructive={ true }
-										className="optml__button flex justify-center rounded font-bold min-h-40"
-										onClick={ () => setModal( 'disableOffloading' ) }
-									>
-										{ optimoleDashboardApp.strings.options_strings.stop }
-									</Button>
-
-									{ 'disableOffloading' === modal && (
-										<ConfirmModal
-											icon={ warningAlt }
-											labels={ {
-												title: optimoleDashboardApp.strings.options_strings.offloading_stop_title,
-												description: optimoleDashboardApp.strings.options_strings.offloading_stop_description,
-												action: optimoleDashboardApp.strings.options_strings.offloading_stop_action
-											} }
-											onRequestClose={ () => setModal( false ) }
-											onConfirm={ () => {
-												setModal( false );
-												const options = settings;
-												options.offloading_status = 'disabled';
-												saveSettings( options );
-											} }
-											variant="warning"
-										/>
-									)}
-								</>
-							) }
-						</div>
-					</BaseControl>
-
-					{ loadingSync && (
-						<>
-							<div className="flex flex-col p-6 bg-light-blue border border-blue-300 rounded-md">
-								<div className="flex justify-between w-full items-center">
-									<p className="font-bold text-base m-0">{ optimoleDashboardApp.strings.options_strings.sync_media_progress }</p>
-
-									<Icon icon={ rotateRight } className="animate-spin fill-dark-blue" />
-								</div>
-
-								<ProgressBar
-									className="mt-2.5 mb-1.5 mx-0"
-									value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
-									max={ maxTime }
-								/>
-
-								{ 0 === totalNumberOfImages ? (
-									<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
-								) : (
-									<p className="m-0">{ optimoleDashboardApp.strings.options_strings.images_processing }</p>
-								) }
-							</div>
-
-							<Logs type="offload" />
-						</>
-					) }
-
-					{ true === offloadLibraryLink && (
-						<p className="m-0">{ options_strings.sync_media_link } <a href={ queryArgs.url }>{ options_strings.here }</a></p>
-					) }
-
-					{ 'offload_images' === errorMedia && (
-						<div className="flex flex-col gap-2 bg-warning text-danger border border-solid border-danger rounded relative px-6 py-5 mb-5">
-							<div className="flex items-center gap-2">
-								<Icon
-									icon={ warning }
-									size={ 16 }
-								/>
-
-								<p className="font-bold m-0">{ options_strings.sync_media_error }</p>
-							</div>
-
-							<p className="m-0">{ options_strings.sync_media_error_desc }</p>
-						</div>
-					) }
-				</>
-			) }
-
-			{ ( isOffloadMediaEnabled || loadingRollback ) && (
-				<>
-					<hr className="my-8 border-grayish-blue"/>
-
-					<BaseControl
-						label={ optimoleDashboardApp.strings.options_strings.rollback_title }
-					>
-						<p
-							className="components-base-control__help mt-0"
-							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.rollback_desc } }
-						/>
-
-						<div className="flex my-2 gap-3">
-							<Button
-								variant="default"
-								isBusy={ loadingSync || loadingRollback || isLoading }
-								disabled={ loadingSync || loadingRollback || isLoading || Boolean( offloadConflicts.length ) }
-								className={ classnames(
-									'optml__button flex justify-center rounded font-bold min-h-40',
-									{
-										'is-disabled': isLoading
-									}
-								) }
-								onClick={ () => setModal( 'enableRollback' ) }
-							>
-								{ options_strings.rollback_media }
-							</Button>
-
-							{ 'enableRollback' === modal && (
-								<ConfirmModal
-									icon={ rollbackIcon }
-									labels={ {
-										title: optimoleDashboardApp.strings.options_strings.rollback_start_title,
-										description: optimoleDashboardApp.strings.options_strings.rollback_start_description,
-										action: optimoleDashboardApp.strings.options_strings.rollback_start_action
-									} }
-									onRequestClose={ () => setModal( false ) }
-									onConfirm={ () => {
-										setModal( false );
-										onRollbackdMedia();
-									} }
-								/>
-							)}
-
-							{ loadingRollback && (
-								<>
-									<Button
-										variant="default"
-										isDestructive={ true }
-										className="optml__button flex justify-center rounded font-bold min-h-40"
-										onClick={ () => setModal( 'disableRollback' ) }
-									>
-										{ optimoleDashboardApp.strings.options_strings.stop }
-									</Button>
-
-									{ 'disableRollback' === modal && (
-										<ConfirmModal
-											icon={ warningAlt }
-											labels={ {
-												title: optimoleDashboardApp.strings.options_strings.rollback_stop_title,
-												description: optimoleDashboardApp.strings.options_strings.rollback_stop_description,
-												action: optimoleDashboardApp.strings.options_strings.rollback_stop_action
-											} }
-											onRequestClose={ () => setModal( false ) }
-											onConfirm={ () => {
-												setModal( false );
-												const options = settings;
-												options.rollback_status = 'disabled';
-												saveSettings( options );
-											} }
-											variant="warning"
-										/>
-									)}
-								</>
-							) }
-						</div>
-					</BaseControl>
-
-					{ loadingRollback && (
-						<>
-							<div className="flex flex-col p-6 bg-light-blue border border-blue-300 rounded-md">
-								<div className="flex justify-between w-full items-center">
-									<p className="font-bold text-base m-0">{ optimoleDashboardApp.strings.options_strings.rollback_media_progress }</p>
-
-									<Icon icon={ rotateRight } className="animate-spin fill-dark-blue" />
-								</div>
-
-								<ProgressBar
-									className="mt-2.5 mb-1.5 mx-0"
-									value={ Math.round( ( processedImages / totalNumberOfImages ) * 100 ) }
-									max={ maxTime }
-								/>
-
-								{ 0 === totalNumberOfImages ? (
-									<p className="m-0">{ optimoleDashboardApp.strings.options_strings.calculating_estimated_time }</p>
-								) : (
-									<p className="m-0">{ optimoleDashboardApp.strings.options_strings.images_processing }</p>
-								) }
-							</div>
-
-							<Logs type="rollback" />
-						</>
-					) }
-
-					{ Boolean( offloadConflicts.length ) && (
-						<div className="flex flex-col gap-2 bg-stale-yellow text-gray-800 border border-solid border-yellow-300 rounded relative px-6 py-5 mb-5">
-							<p className="m-0">{ options_strings.offload_conflicts_part_1 }</p>
-
-							{ offloadConflicts.map( ( conflict, index ) => (
-								<p
-									key={ index }
-									className="m-0 font-bold"
-								>
-									{ conflict }
-								</p>
-							) ) }
-
-							<p className="m-0">{ options_strings.offload_conflicts_part_2 }</p>
-
-							<Button
-								variant="default"
-								isBusy={ isLoading }
-								disabled={ isLoading }
-								className="optml__button flex justify-center rounded font-bold min-h-40"
-								onClick={ () => setOffloadConflicts([]) }
-							>
-								{ conflicts.conflict_close }
-							</Button>
-						</div>
-					) }
-
-					{ true === rollbackLibraryLink && (
-						<p className="m-0">{ options_strings.rollback_media_link } <a href={ queryArgs.url }>{ options_strings.here }</a></p>
-					) }
-
-					{ 'rollback_images' === errorMedia && (
-						<div className="flex flex-col gap-2 bg-warning text-danger border border-solid border-danger rounded relative px-6 py-5 mb-5">
-							<div className="flex items-center gap-2">
-								<Icon
-									icon={ warning }
-									size={ 16 }
-								/>
-
-								<p className="font-bold m-0">{ options_strings.rollback_media_error }</p>
-							</div>
-
-							<p className="m-0">{ options_strings.rollback_media_error_desc }</p>
-						</div>
-					) }
-				</>
-			) }
-		</>
+		</div>
 	);
 };
 

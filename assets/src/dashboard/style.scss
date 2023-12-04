@@ -424,8 +424,10 @@ $mango-yellow: #FBBF24;
 			margin-left: -14px;
 		}
 	}
+}
 
-	&__modal {
-		max-width: 600px;
+.om-notice {
+	code {
+		@apply text-xs rounded-sm bg-gray-100/50;
 	}
 }

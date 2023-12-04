@@ -1769,54 +1769,48 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		$in_progress = self::$instance->settings->get( $option ) !== 'disabled';
 
-		if ( false === $refresh && empty( $images ) ) {
-			$total = ceil( $count / $batch );
-
-			$in_progress = 0 !== $count;
-
-			self::$instance->settings->update( $option, $in_progress ? 'enabled' : 'disabled' );
-
-			$type = 'offload_images' === $action ? 'offload' : 'rollback';
-			self::$instance->logger->add_log( $type, Optml_Logger::LOG_SEPARATOR );
-			self::$instance->logger->add_log( $type, 'Started with a total count of ' . intval( $count ) . '.' );
-			self::record_process_meta( $count );
-
-			if ( true === $in_progress ) {
-				self::schedule_action(
-					time(),
-					'optml_start_processing_images',
-					[
-						$action,
-						$batch,
-						1,
-						$total,
-						$step,
-					]
-				);
-			}
+		if ( $count === 0 ) {
+			$in_progress = false;
 		}
 
-		if ( false === $refresh && ! empty( $images ) ) {
-			$in_progress = 0 !== $count;
+		$type = 'offload_images' === $action ? 'offload' : 'rollback';
 
+		if ( false === $refresh ) {
 			self::$instance->settings->update( $option, $in_progress ? 'enabled' : 'disabled' );
-
-			$type = 'offload_images' === $action ? 'offload' : 'rollback';
-			self::$instance->logger->add_log( $type, Optml_Logger::LOG_SEPARATOR );
-			self::$instance->logger->add_log( $type, 'Started with a total count of ' . intval( $count ) . '.' );
 			self::record_process_meta( $count );
 
-			if ( true === $in_progress ) {
-				self::schedule_action(
-					time(),
-					'optml_start_processing_images_by_id',
-					[
-						$action,
-						$batch,
-						1,
-						$images,
-					]
-				);
+			self::$instance->logger->add_log( $type, Optml_Logger::LOG_SEPARATOR );
+			self::$instance->logger->add_log( $type, 'Started with a total count of ' . intval( $count ) . '.' );
+
+			if ( empty( $images ) ) {
+				$total = ceil( $count / $batch );
+
+				if ( true === $in_progress ) {
+					self::schedule_action(
+						time(),
+						'optml_start_processing_images',
+						[
+							$action,
+							$batch,
+							1,
+							$total,
+							$step,
+						]
+					);
+				}
+			} else {
+				if ( true === $in_progress ) {
+					self::schedule_action(
+						time(),
+						'optml_start_processing_images_by_id',
+						[
+							$action,
+							$batch,
+							1,
+							$images,
+						]
+					);
+				}
 			}
 		}
 
@@ -1967,6 +1961,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			self::$instance->logger->add_log( $type, 'Process finished with ' . $meta['count'] . ' items in ' . $meta['time_passed'] . ' minutes.' );
 
 			self::$instance->settings->update( $option, 'disabled' );
+
+			self::$instance->settings->update( 'show_offload_finish_notice', $type );
+
 			return;
 		}
 
