@@ -33,22 +33,20 @@ export default function RadioBoxes({ options, value, onChange, label, disabled =
 						key={buttonValue}
 						className={buttonClasses}
 					>
-						<input
-							type="radio"
-							name="label"
-							value={buttonValue}
-							id={buttonValue}
-							className="!hidden"
-							disabled={disabled}
-						/>
-
 						<RadioDot isActive={isActive} />
 
 						<div className="grid space-y-2">
 							{title && <div className="text-base font-medium text-gray-700">{title}</div>}
 							{description && <div className="text-sm text-gray-500">{description}</div>}
 						</div>
-
+						<input
+							type="radio"
+							name="label"
+							value={buttonValue}
+							id={buttonValue}
+							className="!opacity-0 !w-0 !h-0 !overflow-hidden !absolute !pointer-events-none"
+							disabled={disabled}
+						/>
 					</label>
 				);
 
