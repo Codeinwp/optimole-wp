@@ -356,7 +356,7 @@ export const retrieveOptimizedImages = ( callback = () => {}) => {
 		});
 };
 
-export const saveSettings = ( settings, refreshStats = false ) => {
+export const saveSettings = ( settings, refreshStats = false, skipNotice = false, callback = () => {}) => {
 	setIsLoading( true );
 	apiFetch({
 		path: optimoleDashboardApp.routes['update_option'],
@@ -370,7 +370,9 @@ export const saveSettings = ( settings, refreshStats = false ) => {
 
 			if ( 'success' === response.code ) {
 				setSiteSettings( response.data );
-				addNotice( optimoleDashboardApp.strings.options_strings.settings_saved );
+				if ( ! skipNotice ) {
+					addNotice( optimoleDashboardApp.strings.options_strings.settings_saved );
+				}
 				console.log( '%c Settings Saved.', 'color: #59B278' );
 			}
 		}).then( () => {
@@ -378,8 +380,9 @@ export const saveSettings = ( settings, refreshStats = false ) => {
 				return;
 			}
 			requestStatsUpdate();
-		})
-		.catch( error => {
+		}).then( () => {
+			callback();
+		}).catch( error => {
 			setIsLoading( false );
 			addNotice( optimoleDashboardApp.strings.options_strings.settings_saved_error );
 			console.log( 'Error while saving settings', error );
