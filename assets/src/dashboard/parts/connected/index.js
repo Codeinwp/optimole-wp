@@ -26,8 +26,7 @@ if ( 'undefined' !== typeof window && optimoleDashboardApp.user_data.plan ) {
 	formbricks.init({
 		environmentId: 'clo8wxwzj44orpm0gjchurujm',
 		apiHost: 'https://app.formbricks.com',
-		userId: 'opt_' + ( optimoleDashboardApp.user_data.id ),
-		debug:true
+		userId: 'optml_' + ( optimoleDashboardApp.user_data.id )
 	});
 	formbricks.setAttribute( 'plan', optimoleDashboardApp.user_data.plan );
 	formbricks.setAttribute( 'status', optimoleDashboardApp.user_data.status );
