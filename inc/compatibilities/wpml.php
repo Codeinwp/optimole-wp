@@ -6,8 +6,6 @@
  * @reason Wpml duplicates everything so we need to offload/update every image/page attachment.
  */
 class Optml_wpml extends Optml_compatibility {
-
-
 	/**
 	 * Should we load the integration logic.
 	 *
@@ -22,14 +20,15 @@ class Optml_wpml extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-			add_filter( 'optml_offload_duplicated_images', [ $this, 'wpml_get_duplicates' ], PHP_INT_MAX, 2 );
+		add_filter( 'optml_offload_duplicated_images', [ $this, 'wpml_get_duplicates' ], PHP_INT_MAX, 2 );
+		add_filter( 'optml_ensure_source_attachment_id', [ $this, 'get_source_attachment' ], PHP_INT_MAX );
 	}
 
 	/**
 	 * Ads the duplicated pages/images when offloading.
 	 *
-	 * @param array  $duplicated_attachments The duplicated attachments array.
-	 * @param string $attachment_id The attachment id that is first offloaded.
+	 * @param array        $duplicated_attachments The duplicated attachments array.
+	 * @param string | int $attachment_id The attachment id that is first offloaded.
 	 *
 	 * @return array The images array with the specific bakery images.
 	 */
@@ -48,6 +47,44 @@ class Optml_wpml extends Optml_compatibility {
 		}
 		return $duplicated_attachments;
 	}
+
+	/**
+	 * Get the source attachment ID for the given attachment ID that might be a duplicate.
+	 *
+	 * @param int $attachment_id the attachment ID.
+	 *
+	 * @return int
+	 */
+	public function get_source_attachment( $attachment_id ) {
+		if ( $this->is_offload_source( $attachment_id ) ) {
+			return $attachment_id;
+		}
+
+		$duplicates = $this->wpml_get_duplicates( [], $attachment_id );
+
+		foreach ( $duplicates as $duplicate_id ) {
+			if ( $this->is_offload_source( $duplicate_id ) ) {
+
+				return (int) $duplicate_id;
+			}
+		}
+
+		return $attachment_id;
+	}
+
+	/**
+	 * Checks if the given attachment is the source of the initial offload.
+	 * On some instances, it seems that WPML meta is faulty.
+	 * We are sure that the main attachment that has been offloaded has the proper attachment_meta.
+	 *
+	 * @param int $id The attachment ID.
+	 *
+	 * @return bool
+	 */
+	private function is_offload_source( $id ) {
+		return ! empty( get_post_meta( (int) $id, Optml_Media_Offload::META_KEYS['offloaded'], true ) );
+	}
+
 	/**
 	 * Should we early load the compatibility?
 	 *
