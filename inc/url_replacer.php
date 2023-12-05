@@ -237,7 +237,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		$args['width']  = (int) $args['width'];
 		$args['height'] = (int) $args['height'];
 
-		if ( $this->limit_dimensions_enabled ) {
+		if ( $this->limit_dimensions_enabled && $args['height'] !== 0 && $args['width'] !== 0 ) {
 			if ( $args['width'] > $this->limit_width || $args['height'] > $this->limit_height ) {
 				$scale = min( $this->limit_width / $args['width'], $this->limit_height / $args['height'] );
 
