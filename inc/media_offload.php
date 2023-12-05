@@ -1775,49 +1775,53 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		$type = 'offload_images' === $action ? 'offload' : 'rollback';
 
+
 		if ( false === $refresh ) {
-			self::$instance->settings->update( $option, $in_progress ? 'enabled' : 'disabled' );
 			self::record_process_meta( $count );
 
+			self::$instance->settings->update( $option, $in_progress ? 'enabled' : 'disabled' );
 			self::$instance->logger->add_log( $type, Optml_Logger::LOG_SEPARATOR );
 			self::$instance->logger->add_log( $type, 'Started with a total count of ' . intval( $count ) . '.' );
 
+			if ( $in_progress !== true ) {
+				return [
+					'count'  => $count,
+					'status' => $in_progress,
+					'action' => $type,
+				];
+			}
+
 			if ( empty( $images ) ) {
 				$total = ceil( $count / $batch );
-
-				if ( true === $in_progress ) {
-					self::schedule_action(
-						time(),
-						'optml_start_processing_images',
-						[
-							$action,
-							$batch,
-							1,
-							$total,
-							$step,
-						]
-					);
-				}
+				self::schedule_action(
+					time(),
+					'optml_start_processing_images',
+					[
+						$action,
+						$batch,
+						1,
+						$total,
+						$step,
+					]
+				);
 			} else {
-				if ( true === $in_progress ) {
-					self::schedule_action(
-						time(),
-						'optml_start_processing_images_by_id',
-						[
-							$action,
-							$batch,
-							1,
-							$images,
-						]
-					);
-				}
+				self::schedule_action(
+					time(),
+					'optml_start_processing_images_by_id',
+					[
+						$action,
+						$batch,
+						1,
+						$images,
+					]
+				);
 			}
 		}
 
 		return [
 			'count' => $count,
 			'status' => $in_progress,
-			'action' => $action === 'offload_images' ? 'offload' : 'rollback',
+			'action' => $type,
 		];
 	}
 	/**
