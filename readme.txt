@@ -148,6 +148,21 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 
 == Changelog ==
 
+##### [Version 3.11.3](https://github.com/Codeinwp/optimole-wp/compare/v3.11.2...v3.11.3) (2023-12-05)
+
+### Bug Fixes
+
+- **Division by zero**: Addressed an edge case where a division by zero was happening when resizing images.
+- **WPML Duplicated Attachments**: Resolved an issue where WPML duplicated attachments were not being accounted for as offloaded.
+- **Offload Batch Size**: Lowered the batch size of images processed for offloading/rollback to address timeout issues on some servers.
+
+### Improvements
+
+- **Action Scheduler Integration**: The offloading/rollback process will use Action Scheduler if available.
+
+
+
+
 ##### [Version 3.11.2](https://github.com/Codeinwp/optimole-wp/compare/v3.11.1...v3.11.2) (2023-11-23)
 
 ### Bug Fixes
