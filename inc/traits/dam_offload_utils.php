@@ -26,6 +26,8 @@ trait Optml_Dam_Offload_Utils {
 	 * @return bool
 	 */
 	private function is_legacy_offloaded_attachment( $id ) {
+		$id = apply_filters( 'optml_ensure_source_attachment_id', $id );
+
 		return ! $this->is_new_offloaded_attachment( $id ) && ! empty( get_post_meta( $id, Optml_Media_Offload::META_KEYS['offloaded'] ) );
 	}
 
@@ -37,6 +39,8 @@ trait Optml_Dam_Offload_Utils {
 	 * @return bool
 	 */
 	private function is_new_offloaded_attachment( $id ) {
+		$id = apply_filters( 'optml_ensure_source_attachment_id', $id );
+
 		return ! empty( get_post_meta( $id, Optml_Media_Offload::OM_OFFLOADED_FLAG, true ) );
 	}
 
