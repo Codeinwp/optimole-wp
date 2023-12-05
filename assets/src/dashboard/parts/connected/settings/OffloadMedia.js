@@ -267,9 +267,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 	};
 
 	const dismissFinishNotice = () => {
-		const options = settings;
-		options.show_offload_finish_notice = '';
-		saveSettings( options, false, true  );
+		saveSettings({ show_offload_finish_notice: '' }, false, true  );
 	};
 
 	return (
