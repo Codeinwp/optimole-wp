@@ -1244,7 +1244,6 @@ The root cause might be either a security plugin which blocks this feature or so
 			'advanced_settings_menu_item'      => __( 'Advanced', 'optimole-wp' ),
 			'general_settings_menu_item'       => __( 'General', 'optimole-wp' ),
 			'lazyload_settings_menu_item'      => __( 'Lazyload', 'optimole-wp' ),
-			'cloud_library' => __( 'Cloud Library', 'optimole-wp' ),
 			'watermarks_menu_item'             => __( 'Watermark', 'optimole-wp' ),
 			'conflicts_menu_item'              => __( 'Possible Issues', 'optimole-wp' ),
 			'conflicts'                        => [

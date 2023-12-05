@@ -1775,7 +1775,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		$type = 'offload_images' === $action ? 'offload' : 'rollback';
 
-
 		if ( false === $refresh ) {
 			self::record_process_meta( $count );
 
