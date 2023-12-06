@@ -26,15 +26,17 @@ if ( 'undefined' !== typeof window && optimoleDashboardApp.user_data.plan ) {
 	formbricks.init({
 		environmentId: 'clo8wxwzj44orpm0gjchurujm',
 		apiHost: 'https://app.formbricks.com',
-		userId: 'optml_' + ( optimoleDashboardApp.user_data.id )
+		userId: 'optml_' + ( optimoleDashboardApp.user_data.id ),
+		attributes: {
+			plan: optimoleDashboardApp.user_data.plan,
+			status: optimoleDashboardApp.user_data.status,
+			cname_assigned: optimoleDashboardApp.user_data.is_cname_assigned || 'no',
+			connected_websites: optimoleDashboardApp.user_data.whitelist.length,
+			traffic: convertToCategory( optimoleDashboardApp.user_data.traffic, 500 ),
+			images_number: convertToCategory( optimoleDashboardApp.user_data.images_number, 100 ),
+			days_since_install: convertToCategory( optimoleDashboardApp.days_since_install )
+		}
 	});
-	formbricks.setAttribute( 'plan', optimoleDashboardApp.user_data.plan );
-	formbricks.setAttribute( 'status', optimoleDashboardApp.user_data.status );
-	formbricks.setAttribute( 'cname_assigned', optimoleDashboardApp.user_data.is_cname_assigned || 'no' );
-	formbricks.setAttribute( 'connected_websites', optimoleDashboardApp.user_data.whitelist.length );
-	formbricks.setAttribute( 'traffic', convertToCategory( optimoleDashboardApp.user_data.traffic, 500 ) );
-	formbricks.setAttribute( 'images_number', convertToCategory( optimoleDashboardApp.user_data.images_number, 100 ) );
-	formbricks.setAttribute( 'days_since_install', convertToCategory( optimoleDashboardApp.days_since_install )  );
 
 }
 function convertToCategory( number, scale = 1 ) {
