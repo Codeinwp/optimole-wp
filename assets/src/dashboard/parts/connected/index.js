@@ -21,7 +21,39 @@ import Help from './help';
 import Sidebar from './Sidebar';
 import CSAT from './CSAT';
 import { retrieveConflicts } from '../../utils/api';
+import formbricks from '@formbricks/js';
+if ( 'undefined' !== typeof window && optimoleDashboardApp.user_data.plan ) {
+	formbricks.init({
+		environmentId: 'clo8wxwzj44orpm0gjchurujm',
+		apiHost: 'https://app.formbricks.com',
+		userId: 'optml_' + ( optimoleDashboardApp.user_data.id ),
+		attributes: {
+			plan: optimoleDashboardApp.user_data.plan,
+			status: optimoleDashboardApp.user_data.status,
+			cname_assigned: optimoleDashboardApp.user_data.is_cname_assigned || 'no',
+			connected_websites: optimoleDashboardApp.user_data.whitelist.length,
+			traffic: convertToCategory( optimoleDashboardApp.user_data.traffic, 500 ),
+			images_number: convertToCategory( optimoleDashboardApp.user_data.images_number, 100 ),
+			days_since_install: convertToCategory( optimoleDashboardApp.days_since_install )
+		}
+	});
 
+}
+function convertToCategory( number, scale = 1 ) {
+
+	const normalizedNumber = Math.round( number / scale );
+	if ( 0 === normalizedNumber || 1 === normalizedNumber ) {
+		return 0;
+	} else if ( 1 < normalizedNumber && 8 > normalizedNumber ) {
+		return 7;
+	} else if ( 8 <= normalizedNumber && 31 > normalizedNumber ) {
+		return 30;
+	} else if ( 30 < normalizedNumber && 90 > normalizedNumber ) {
+		return 90;
+	} else if ( 90 > normalizedNumber ) {
+		return 91;
+	}
+}
 const ConnectedLayout = ({
 	tab,
 	setTab
