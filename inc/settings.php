@@ -95,6 +95,7 @@ class Optml_Settings {
 		'rollback_status'      => 'disabled',
 		'best_format'          => 'enabled',
 		'placeholder_color'    => '',
+		'show_offload_finish_notice'   => '',
 	];
 	/**
 	 * Option key.
@@ -269,6 +270,9 @@ class Optml_Settings {
 					break;
 				case 'wm_id':
 					$sanitized_value = intval( $value );
+					break;
+				case 'show_offload_finish_notice':
+					$sanitized_value = $this->to_map_values( $value, [ 'offload', 'rollback' ], '' );
 					break;
 				case 'cache_buster_assets':
 				case 'cache_buster_images':
@@ -512,6 +516,7 @@ class Optml_Settings {
 			'rollback_status'      => $this->get( 'rollback_status' ),
 			'best_format'         => $this->get( 'best_format' ),
 			'placeholder_color'   => $this->get( 'placeholder_color' ),
+			'show_offload_finish_notice' => $this->get( 'show_offload_finish_notice' ),
 		];
 	}
 

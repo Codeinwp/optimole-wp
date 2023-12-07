@@ -1,15 +1,7 @@
-/**
- * WordPress dependencies.
- */
 import { Button } from '@wordpress/components';
-
 import { useSelect } from '@wordpress/data';
-
 import { useState, useEffect } from '@wordpress/element';
 
-/**
- * Internal dependencies.
- */
 import Menu from './Menu';
 import General from './General';
 import Compression from './Compression';
@@ -17,10 +9,8 @@ import Resize from './Resize';
 import Lazyload from './Lazyload';
 import Exclusions from './Exclusions';
 import OffloadMedia from './OffloadMedia';
-import {
-	sampleRate,
-	saveSettings
-} from '../../../utils/api';
+import CloudLibrary from './CloudLibrary';
+import { sampleRate, saveSettings } from '../../../utils/api';
 import { toggleDamSidebarLink } from '../../../utils/helpers';
 
 const Settings = ({
@@ -50,7 +40,7 @@ const Settings = ({
 			isLoading: isLoading(),
 			queryArgs: getQueryArgs()
 		};
-	});
+	}, []);
 
 	const [ showSample, setShowSample ] = useState( false );
 	const [ isSampleLoading, setIsSampleLoading ] = useState( false );
@@ -140,7 +130,15 @@ const Settings = ({
 						setCanSave={ setCanSave }
 					/>
 				) }
-
+				{ 'cloud_library' === tab && (
+					<CloudLibrary
+						settings={ settings }
+						canSave={ canSave }
+						setSettings={ setSettings }
+						setCanSave={ setCanSave }
+						onSaveSettings={ onSaveSettings }
+					/>
+				) }
 				{ 'offload_media' === tab && (
 					<OffloadMedia
 						settings={ settings }
