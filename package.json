@@ -37,10 +37,10 @@
     "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/exec": "^5.0.0",
     "@semantic-release/git": "^9.0.0",
-    "@wordpress/components": "^25.12.0",
-    "@wordpress/data": "^9.16.0",
-    "@wordpress/element": "^5.23.0",
-    "@wordpress/icons": "^9.37.0",
+    "@wordpress/components": "^25.13.0",
+    "@wordpress/data": "^9.17.0",
+    "@wordpress/element": "^5.24.0",
+    "@wordpress/icons": "^9.38.0",
     "@wordpress/scripts": "^22.5.0",
     "conventional-changelog-simple-preset": "^1.0.14",
     "cypress": "^13.2.0",
@@ -58,7 +58,6 @@
   },
   "dependencies": {
     "@formbricks/js": "^1.2.7",
-    "@wordpress/icons": "^9.25.0",
     "classnames": "^2.3.2",
     "react-compare-image": "^3.4.0",
     "usehooks-ts": "^2.9.1"
