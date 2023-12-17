@@ -1223,7 +1223,7 @@ If you still want to disconnect click the button below.',
 				'<strong>',
 				'</strong>'
 			),
-			'account_needed_footer'            => __( 'Trusted by more than 100k happy users', 'optimole-wp' ),
+			'account_needed_footer'            => sprintf( __( 'Trusted by more than %1$s happy users', 'optimole-wp' ), number_format_i18n( 200000, 0 ) ),
 			'account_connecting_title'         => __( 'Connecting to Optimole', 'optimole-wp' ),
 			'account_connecting_subtitle'      => __( 'Sit tight while we connect you to the Dashboard', 'optimole-wp' ),
 			'notice_just_activated'            => ! $this->settings->is_connected() ?

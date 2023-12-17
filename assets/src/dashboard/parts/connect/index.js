@@ -130,6 +130,13 @@ const ConnectLayout = () => {
 					return;
 				}
 
+
+				if ( 'domain_not_accessible' === response.code ) {
+					setErrors({
+						'domain_not_accessible': response.message
+					});
+					return;
+				}
 				if ( 'success' !== response.code )  {
 					setErrors({
 						'error_register': optimoleDashboardApp.strings.error_register

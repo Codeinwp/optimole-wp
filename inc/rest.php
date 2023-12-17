@@ -271,6 +271,9 @@ class Optml_Rest {
 		$data    = $request->connect( $api_key );
 
 		if ( $data === false || is_wp_error( $data ) ) {
+			if ( $data->get_error_code() === 'domain_not_accessible' ) {
+				return $this->response( $data->get_error_message(), 400 );
+			}
 			$extra = '';
 			if ( is_wp_error( $data ) ) {
 				/**
@@ -353,8 +356,17 @@ class Optml_Rest {
 		if ( ! empty( $auto_connect ) && $auto_connect === 'true' ) {
 			delete_option( Optml_Settings::OPTML_USER_EMAIL );
 		}
-
 		if ( $user === false || is_wp_error( $user ) ) {
+			if ( $user->get_error_code() === 'domain_not_accessible' ) {
+				return new WP_REST_Response(
+					[
+						'data'    => null,
+						'message' => $user->get_error_message(),
+						'code'    => 'domain_not_accessible',
+					],
+					200
+				);
+			}
 			return new WP_REST_Response(
 				[
 					'data'    => null,
