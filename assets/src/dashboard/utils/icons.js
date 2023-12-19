@@ -106,6 +106,22 @@ export const warning = (
 	</svg>
 );
 
+export const sync = (
+	<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<path d="M17.25 8.25H21V4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M3 12C3 7.029 7.029 3 12 3C15.63 3 18.751 5.154 20.174 8.25" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M6.75 15.75H3V19.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M21 12C21 16.971 16.971 21 12 21C8.37 21 5.249 18.846 3.826 15.75" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+	</svg>
+);
+
+export const checkmark = (
+	<svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<path d="M35.8621 13.647L22.0095 27.4996L15.085 20.5733" fill="none" stroke="white" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/>
+		<path d="M38.5 22C38.5 31.1135 31.1135 38.5 22 38.5C12.8865 38.5 5.5 31.1135 5.5 22C5.5 12.8865 12.8865 5.5 22 5.5C24.6638 5.5 27.1718 6.14717 29.3993 7.26733" fill="none" stroke="white" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round"/>
+	</svg>
+);
+
 export const offload = (
 	<svg width="20" height="22" viewBox="0 0 20 22" fill="none" xmlns="http://www.w3.org/2000/svg">
 		<path d="M5 15C2.79086 15 1 13.2091 1 11C1 9.09295 2.33457 7.4976 4.12071 7.09695C4.04169 6.74395 4 6.37684 4 6C4 3.23858 6.23858 1 9 1C11.4193 1 13.4373 2.71825 13.9002 5.00098C13.9334 5.00033 13.9666 5 14 5C16.7614 5 19 7.23858 19 10C19 12.419 17.2822 14.4367 15 14.9M13 12L10 9M10 9L7 12M10 9L10 21" stroke="#577BF9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

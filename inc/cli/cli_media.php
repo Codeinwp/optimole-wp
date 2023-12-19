@@ -40,6 +40,7 @@ class Optml_Cli_Media extends WP_CLI_Command {
 				'info' => __( 'Moving all images back to your media library', 'optimole-wp' ),
 				'success' => __( 'All images have been uploaded to your media library', 'optimole-wp' ),
 			],
+			'limit_exceeded' => __( 'You have reached the maximum offloading limit of images. To increase the offload limit and for more information, contact our support.', 'optimole-wp' ),
 		];
 		$settings = new Optml_Settings();
 		if ( $settings->get( 'offload_media' ) === 'disabled' ) {
@@ -51,6 +52,7 @@ class Optml_Cli_Media extends WP_CLI_Command {
 			$number_of_images_for = 'rollback_images';
 		}
 		$number_of_images = Optml_Media_Offload::number_of_images_and_pages( $number_of_images_for );
+		Optml_Media_Offload::record_process_meta( $number_of_images );
 		$batch = 5;
 		$possible_batch = ceil( $number_of_images / 10 );
 		if ( $possible_batch < $batch ) {
@@ -75,6 +77,11 @@ class Optml_Cli_Media extends WP_CLI_Command {
 			} else {
 				$action === 'rollback' ? Optml_Media_Offload::instance()->rollback_images( $batch ) : Optml_Media_Offload::instance()->upload_images( $batch );
 			}
+
+			if ( Optml_Media_Offload::instance()->settings->is_offload_limit_reached() ) {
+				WP_CLI::error( $strings['limit_exceeded'], true );
+			}
+
 			$progress->tick();
 			$tick++;
 		}
