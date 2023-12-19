@@ -18,6 +18,7 @@ import { useSelect } from '@wordpress/data';
  * Internal dependencies.
  */
 import { clearCache } from '../../../utils/api';
+import Notice from '../../components/Notice';
 
 const General = ({
 	settings,
@@ -145,12 +146,7 @@ const General = ({
 				</div>
 			</BaseControl>
 
-			<div className="flex gap-2 bg-stale-yellow text-gray-800 border border-solid border-yellow-300 rounded relative px-6 py-5 mb-5">
-				<p
-					className="m-0"
-					dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.clear_cache_notice } }
-				/>
-			</div>
+			<Notice type='warning' text={optimoleDashboardApp.strings.options_strings.clear_cache_notice} disableIcon/>
 		</>
 	);
 };

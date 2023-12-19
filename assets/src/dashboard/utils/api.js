@@ -38,13 +38,18 @@ const {
 	setOffloadLibraryLink,
 	setRollbackLibraryLink,
 	setExtraVisits,
-	setLogs
+	setLogs,
+	setShowFinishNotice,
+	setOffloadLimitReached,
+	ensureOffloadingRollbackDisabled,
+	setOffloadLimit
 } = dispatch( 'optimole' );
 
 const {
 	getOptimizedImages,
 	getQueryArgs,
-	getTotalNumberOfImages
+	getTotalNumberOfImages,
+	getSiteSettings
 } = select( 'optimole' );
 
 const { createNotice } = dispatch( noticesStore );
@@ -356,7 +361,7 @@ export const retrieveOptimizedImages = ( callback = () => {}) => {
 		});
 };
 
-export const saveSettings = ( settings, refreshStats = false ) => {
+export const saveSettings = ( settings, refreshStats = false, skipNotice = false, callback = () => {}) => {
 	setIsLoading( true );
 	apiFetch({
 		path: optimoleDashboardApp.routes['update_option'],
@@ -370,7 +375,9 @@ export const saveSettings = ( settings, refreshStats = false ) => {
 
 			if ( 'success' === response.code ) {
 				setSiteSettings( response.data );
-				addNotice( optimoleDashboardApp.strings.options_strings.settings_saved );
+				if ( ! skipNotice ) {
+					addNotice( optimoleDashboardApp.strings.options_strings.settings_saved );
+				}
 				console.log( '%c Settings Saved.', 'color: #59B278' );
 			}
 		}).then( () => {
@@ -378,8 +385,9 @@ export const saveSettings = ( settings, refreshStats = false ) => {
 				return;
 			}
 			requestStatsUpdate();
-		})
-		.catch( error => {
+		}).then( () => {
+			callback();
+		}).catch( error => {
 			setIsLoading( false );
 			addNotice( optimoleDashboardApp.strings.options_strings.settings_saved_error );
 			console.log( 'Error while saving settings', error );
@@ -522,6 +530,23 @@ export const callSync = ( data ) => {
 				setLoadingSync( false );
 				setLoadingRollback( false );
 				setIsLoading( false );
+
+				if ( 0 === response.data.count ) {
+					setOffloadLimitReached( 'disabled' );
+					setShowFinishNotice( response.data.action );
+				}
+
+				if ( response.data.reached_limit ) {
+					setOffloadLimitReached( response.data.reached_limit ? 'enabled' : 'disabled' );
+				}
+
+				if ( response.data.offload_limit ) {
+					setOffloadLimit( response.data.offload_limit );
+				}
+
+				ensureOffloadingRollbackDisabled();
+				saveSettings( getSiteSettings(), false );
+
 
 				if ( 'offload_images' === data.action ) {
 					if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {

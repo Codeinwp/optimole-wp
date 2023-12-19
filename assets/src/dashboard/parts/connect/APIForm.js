@@ -172,7 +172,7 @@ const APIForm = ({
 			</div>
 
 			{ ! hasValidKey && undefined !== errors['error_connect'] && (
-				<p className="block text-xs mt-1 text-danger">{ errors['error_connect'] }</p>
+				<p className="block text-xs mt-1 text-danger" dangerouslySetInnerHTML={ { __html: errors['error_connect'] } }></p>
 			) }
 
 			<div className="text-center py-3">
