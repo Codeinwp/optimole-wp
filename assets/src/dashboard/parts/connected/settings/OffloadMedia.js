@@ -33,7 +33,9 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 		queryArgs,
 		totalNumberOfImages,
 		processedImages,
-		offloadFinishNotice
+		offloadFinishNotice,
+		offloadLimitReached,
+		offloadLimit
 	} = useSelect( select => {
 		const {
 			getOffloadConflicts,
@@ -46,7 +48,8 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 			getProcessedImages,
 			getQueryArgs,
 			isLoading,
-			getSiteSettings
+			getSiteSettings,
+			getOffloadLimit
 		} = select( 'optimole' );
 
 		return {
@@ -60,14 +63,18 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 			queryArgs: getQueryArgs(),
 			totalNumberOfImages: getTotalNumberOfImages(),
 			processedImages: getProcessedImages(),
-			offloadFinishNotice: getSiteSettings( 'show_offload_finish_notice' )
+			offloadFinishNotice: getSiteSettings( 'show_offload_finish_notice' ),
+			offloadLimitReached: 'enabled' === getSiteSettings( 'offload_limit_reached' ),
+			offloadLimit: getOffloadLimit()
 		};
 	}, []);
 
 	const {
 		setErrorMedia,
 		setCheckedOffloadConflicts,
-		setOffloadConflicts
+		setOffloadConflicts,
+		setProcessedImages,
+		setOffloadLimitReached
 	} = useDispatch( 'optimole' );
 
 	const [ modal, setModal ] = useState( null );
@@ -113,6 +120,8 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 		setSettings( nextSettings );
 		saveSettings( nextSettings, false, true, () => {
 			setErrorMedia( false );
+			setProcessedImages( 0 );
+			setOffloadLimitReached( false );
 
 			callSync({
 				action: 'offload_images',
@@ -134,6 +143,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 				nextSettings['rollback_status'] = 'enabled';
 				saveSettings( nextSettings, false, true, () => {
 					setErrorMedia( false );
+					setProcessedImages( 0 );
 
 					callSync({
 						action: 'rollback_images',
@@ -355,6 +365,10 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 				</button>
 			)}
 
+			{ ! isInProgress && offloadLimitReached && (
+				<Notice type='warning' text={options_strings.offload_limit_reached.replace( '#offload_limit#', offloadLimit ) }/>
+			)}
+
 			{ modal && (
 				<Modal {...getModalProps( modal )} />
 			)}
@@ -364,7 +378,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 			)}
 
 			{ rollbackLibraryLink && (
-				<p className="m-0">{ optimoleDashboardApp.strings.options_strings.rollback_media_link } <a href={ queryArgs.url }>{ optimoleDashboardApp.strings.options_strings.here }</a></p>
+				<p className="m-0">{ options_strings.rollback_media_link } <a href={ queryArgs.url }>{ optimoleDashboardApp.strings.options_strings.here }</a></p>
 			) }
 
 		</div>

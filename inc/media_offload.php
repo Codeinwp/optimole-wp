@@ -1239,6 +1239,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $meta;
 		}
 
+		if ( self::$instance->settings->is_offload_limit_reached() ) {
+			return $meta;
+		}
+
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', 'called generate meta' );
 		}
@@ -1322,6 +1326,23 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$generate_url_response = $request->call_upload_api( $original_url );
 
 		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
+
+			$decoded_response = json_decode( $generate_url_response['body'], true );
+
+			// Handle limit exceeded
+			if ( isset( $decoded_response['error'] ) && $decoded_response['error'] === 'limit_exceeded' ) {
+				if ( OPTML_DEBUG_MEDIA ) {
+					do_action( 'optml_log', 'limit exceeded error' );
+					do_action( 'optml_log', $decoded_response );
+				}
+
+				self::$instance->settings->update( 'offload_limit', absint( $decoded_response['limit'] ) );
+				self::$instance->settings->update( 'offload_limit_reached', 'enabled' );
+				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Offload stopped: reached asset offload limit.' );
+
+				return $meta;
+			}
+
 			if ( OPTML_DEBUG_MEDIA ) {
 				do_action( 'optml_log', ' call to signed url error' );
 				do_action( 'optml_log', $generate_url_response );
@@ -1332,6 +1353,28 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $meta;
 		}
 		$decoded_response = json_decode( $generate_url_response['body'], true );
+
+		// Update the offload limit if it has changed.
+		if ( isset( $decoded_response['limit'] ) && isset( $decoded_response['count'] ) ) {
+			$remote_limit = absint( $decoded_response['limit'] );
+
+			self::$instance->settings->update( 'offload_limit', $remote_limit );
+
+			$current_run = self::get_process_meta();
+			$remaining = isset( $current_run['remaining'] ) ? absint( $current_run['remaining'] ) : 0;
+
+			if ( $remaining + $decoded_response['count'] >= $remote_limit ) {
+				if ( OPTML_DEBUG_MEDIA ) {
+					do_action( 'optml_log', 'limit exceeded' );
+					do_action( 'optml_log', $decoded_response );
+				}
+
+				self::$instance->settings->update( 'offload_limit_reached', 'enabled' );
+				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Offload stopped: offloading images would exceed limit.' );
+
+				return $meta;
+			}
+		}
 
 		if ( ! isset( $decoded_response['tableId'] ) || ! isset( $decoded_response['uploadUrl'] ) ) {
 			if ( OPTML_DEBUG_MEDIA ) {
@@ -1455,6 +1498,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', 'success offload' );
 		}
 
+		self::decrement_process_meta_remaining();
 		self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has been offloaded.' );
 		$attachment_page_id = wp_get_post_parent_id( $attachment_id );
 
@@ -1548,6 +1592,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return array Number of found images and number of successfully processed images.
 	 */
 	public function upload_images( $batch, $images = [] ) {
+		self::$instance->settings->update( 'offload_limit_reached', 'disabled' );
+
 		if ( empty( $images ) || $images === 'none' ) {
 			$args = self::get_images_or_pages_query_args( $batch, 'offload_images', true );
 			$attachments = new \WP_Query( $args );
@@ -1718,7 +1764,24 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public static function record_process_meta( $count ) {
 		$meta = get_option( 'optml_process_meta', [] );
 		$meta['count'] = $count;
+		$meta['remaining'] = $count;
 		$meta['start_time'] = time();
+		update_option( 'optml_process_meta', $meta );
+	}
+
+	/**
+	 * Update the process meta count.
+	 *
+	 * @return void
+	 */
+	public static function decrement_process_meta_remaining() {
+		$meta = get_option( 'optml_process_meta', [] );
+
+		if ( ! isset( $meta['remaining'] ) ) {
+			return;
+		}
+
+		$meta['remaining'] = $meta['remaining'] - 1;
 		update_option( 'optml_process_meta', $meta );
 	}
 
@@ -1732,6 +1795,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$meta = get_option( 'optml_process_meta', [] );
 		$res['time_passed'] = isset( $meta['start_time'] ) ? ( time() - $meta['start_time'] ) / 60 : 0;
 		$res['count'] = isset( $meta['count'] ) ? $meta['count'] : 0;
+		$res['remaining'] = isset( $meta['remaining'] ) ? $meta['remaining'] : $res['count'];
 		return $res;
 	}
 
@@ -1776,6 +1840,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$type = 'offload_images' === $action ? 'offload' : 'rollback';
 
 		if ( false === $refresh ) {
+			self::$instance->settings->update( 'offload_limit_reached', 'disabled' );
 			self::record_process_meta( $count );
 
 			self::$instance->settings->update( $option, $in_progress ? 'enabled' : 'disabled' );
@@ -1817,11 +1882,25 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 		}
 
-		return [
-			'count' => $count,
-			'status' => $in_progress,
+		$response = [
+			'count'  => $count,
 			'action' => $type,
 		];
+
+		if ( $type === 'offload' ) {
+			$offload_limit_reached = self::$instance->settings->is_offload_limit_reached();
+			if ( $offload_limit_reached ) {
+				$in_progress = false;
+				self::$instance->settings->update( $option, 'disabled' );
+			}
+
+			$response['reached_limit'] = self::$instance->settings->is_offload_limit_reached();
+			$response['offload_limit'] = self::$instance->settings->get( 'offload_limit' );
+		}
+
+		$response['status'] = $in_progress;
+
+		return $response;
 	}
 	/**
 	 * Schedule an action.
@@ -1833,6 +1912,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return mixed
 	 */
 	public static function schedule_action( $time, $hook, $args ) {
+		if ( self::$instance->settings->is_offload_limit_reached() ) {
+			return null;
+		}
+
 		// We use AS if available to avoid issues with WP Cron.
 		if ( function_exists( 'as_schedule_single_action' ) ) {
 			return as_schedule_single_action( $time, $hook, $args );

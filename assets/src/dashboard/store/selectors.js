@@ -84,6 +84,9 @@ const selectors = {
 	getOffloadConflicts( state ) {
 		return state.offloadConflicts;
 	},
+	getOffloadLimit( state ) {
+		return state.offloadLimit;
+	},
 	getLogs( state, type = undefined ) {
 		if ( type ) {
 			return undefined !== state.logs[type] ? state.logs[type] : undefined;

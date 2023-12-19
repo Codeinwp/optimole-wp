@@ -187,6 +187,29 @@ const actions = {
 				'show_offload_finish_notice': nextVal
 			}
 		};
+	},
+	setOffloadLimitReached( nextVal ) {
+		return {
+			type: 'SET_SITE_SETTINGS',
+			siteSettings: {
+				'offload_limit_reached': nextVal
+			}
+		};
+	},
+	ensureOffloadingRollbackDisabled() {
+		return {
+			type: 'SET_SITE_SETTINGS',
+			siteSettings: {
+				'offloading_status': 'disabled',
+				'rollback_status': 'disabled'
+			}
+		};
+	},
+	setOffloadLimit( nextVal ) {
+		return {
+			type: 'SET_OFFLOAD_LIMIT',
+			offloadLimit: nextVal
+		};
 	}
 };
 
