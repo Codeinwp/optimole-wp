@@ -39,13 +39,17 @@ const {
 	setRollbackLibraryLink,
 	setExtraVisits,
 	setLogs,
-	setShowFinishNotice
+	setShowFinishNotice,
+	setOffloadLimitReached,
+	ensureOffloadingRollbackDisabled,
+	setOffloadLimit
 } = dispatch( 'optimole' );
 
 const {
 	getOptimizedImages,
 	getQueryArgs,
-	getTotalNumberOfImages
+	getTotalNumberOfImages,
+	getSiteSettings
 } = select( 'optimole' );
 
 const { createNotice } = dispatch( noticesStore );
@@ -526,7 +530,23 @@ export const callSync = ( data ) => {
 				setLoadingSync( false );
 				setLoadingRollback( false );
 				setIsLoading( false );
-				setShowFinishNotice( response.data.action );
+
+				if ( 0 === response.data.count ) {
+					setOffloadLimitReached( 'disabled' );
+					setShowFinishNotice( response.data.action );
+				}
+
+				if ( response.data.reached_limit ) {
+					setOffloadLimitReached( response.data.reached_limit ? 'enabled' : 'disabled' );
+				}
+
+				if ( response.data.offload_limit ) {
+					setOffloadLimit( response.data.offload_limit );
+				}
+
+				ensureOffloadingRollbackDisabled();
+				saveSettings( getSiteSettings(), false );
+
 
 				if ( 'offload_images' === data.action ) {
 					if ( Object.prototype.hasOwnProperty.call( queryArgs, 'optimole_action' ) ) {

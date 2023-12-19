@@ -1,3 +1,4 @@
+/* global optimoleDashboardApp */
 const DEFAULT_STATE = {
 	autoConnect: optimoleDashboardApp.auto_connect,
 	isConnected: 'yes' === optimoleDashboardApp.connection_status,
@@ -26,6 +27,7 @@ const DEFAULT_STATE = {
 	errorMedia: false,
 	checkedOffloadConflicts: false,
 	offloadConflicts: [],
+	offloadLimit: optimoleDashboardApp.offload_limit || 50000,
 	logs: {
 		offload: '',
 		rollback: ''
@@ -217,6 +219,11 @@ const reducer = ( state = DEFAULT_STATE, action ) => {
 		return {
 			...state,
 			logs
+		};
+	case 'SET_OFFLOAD_LIMIT':
+		return {
+			...state,
+			offloadLimit: action.offloadLimit
 		};
 	default:
 		return state;
