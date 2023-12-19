@@ -35,6 +35,7 @@ class Optml_Admin {
 
 	const NEW_USER_DEFAULTS_UPDATED = 'optml_defaults_updated';
 	const OLD_USER_ENABLED_LD = 'optml_enabled_limit_dimensions';
+	const OLD_USER_ENABLED_CL = 'optml_enabled_cloud_sites';
 
 	/**
 	 * Optml_Admin constructor.
@@ -73,6 +74,7 @@ class Optml_Admin {
 		}
 		add_action( 'init', [ $this, 'update_default_settings' ] );
 		add_action( 'init', [ $this, 'update_limit_dimensions' ] );
+		add_action( 'init', [ $this, 'update_cloud_sites_default' ] );
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
 		add_action( 'admin_init', [ $this, 'init_no_script' ] );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
@@ -261,6 +263,34 @@ class Optml_Admin {
 
 		update_option( self::OLD_USER_ENABLED_LD, 'yes' );
 	}
+
+	/**
+	 * Enable cloud sites and add the current site to the whitelist.
+	 *
+	 * @return void
+	 */
+	public function update_cloud_sites_default() {
+		if ( get_option( self::OLD_USER_ENABLED_CL ) === 'yes' ) {
+			return;
+		}
+
+		if ( ! $this->settings->is_connected() ) {
+			return;
+		}
+
+		// This is already enabled. Don't alter it.
+		if ( $this->settings->get( 'cloud_images' ) === 'enabled' ) {
+			update_option( self::OLD_USER_ENABLED_CL, 'yes' );
+
+			return;
+		}
+
+		$this->settings->update( 'cloud_images', 'enabled' );
+		$this->settings->update( 'cloud_sites', $this->settings->get_cloud_sites_whitelist_default() );
+
+		update_option( self::OLD_USER_ENABLED_CL, 'yes' );
+	}
+
 	/**
 	 * Adds Optimole tag to admin bar
 	 */

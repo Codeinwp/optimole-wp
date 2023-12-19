@@ -128,10 +128,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Optml_Media_Offload constructor.
 	 */
 	public static function instance() {
-		if ( null === self::$instance ||
-			 ( self::$instance->settings !== null && ( ! self::$instance->settings->is_connected()
-													   || self::$instance->settings->get( 'offload_media' ) === 'disabled'
-													   || self::$instance->settings->get( 'cloud_images' ) === 'disabled' ) ) ) {
+		if ( null === self::$instance || self::is_phpunit_test() ) {
 			self::$instance = new self();
 			self::$instance->settings = new Optml_Settings();
 			self::$instance->logger = Optml_Logger::instance();
@@ -2607,5 +2604,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$ext = $this->get_ext( $url );
 
 		return str_replace( '-scaled.' . $ext, '.' . $ext, $url );
+	}
+
+	/**
+	 * Is it a PHPUnit test run.
+	 *
+	 * @return bool
+	 */
+	public static function is_phpunit_test() {
+		return defined( 'OPTML_PHPUNIT_TESTING' ) && OPTML_PHPUNIT_TESTING === true;
 	}
 }

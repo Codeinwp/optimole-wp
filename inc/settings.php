@@ -86,7 +86,7 @@ class Optml_Settings {
 		'autoquality'          => 'enabled',
 		'native_lazyload'      => 'disabled',
 		'offload_media'        => 'disabled',
-		'cloud_images'         => 'disabled',
+		'cloud_images'         => 'enabled',
 		'strip_metadata'       => 'enabled',
 		'skip_lazyload_images' => 3,
 		'defined_image_sizes'          => [ ],
@@ -114,6 +114,7 @@ class Optml_Settings {
 	 * Optml_Settings constructor.
 	 */
 	public function __construct() {
+		$this->default_schema['cloud_sites'] = $this->get_cloud_sites_whitelist_default();
 
 		$this->namespace      = OPTML_NAMESPACE . '_settings';
 		$this->default_schema = apply_filters( 'optml_default_settings', $this->default_schema );
@@ -765,5 +766,22 @@ class Optml_Settings {
 	 */
 	public function is_offload_enabled() {
 		return $this->get( 'offload_media' ) === 'enabled' || $this->get( 'rollback_status' ) !== 'disabled';
+	}
+
+	/**
+	 * Get cloud sites whitelist for current domain only.
+	 *
+	 * @return array
+	 */
+	public function get_cloud_sites_whitelist_default() {
+		$site_url = get_site_url();
+
+		$site_url = preg_replace( '/^https?:\/\//', '', $site_url );
+		$site_url = trim( $site_url, '/' );
+
+		return [
+			'all'     => 'false',
+			$site_url => 'true',
+		];
 	}
 }
