@@ -148,6 +148,23 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 
 == Changelog ==
 
+#### [Version 3.12.0](https://github.com/Codeinwp/optimole-wp/compare/v3.11.3...v3.12.0) (2023-12-19)
+
+### New Features
+- **Handshake Mechanism**: Implemented a handshake mechanism to ensure that the website can use Optimole when connecting.
+- **New Cloud Library UI/UX**: Introduced a new and improved UI and experience for the Cloud Library.
+
+### Enhancements
+
+- **Improved Optimole Dashboard UX**: Enhancements to improve the user experience of the Optimole dashboard.
+- **Cohesive UI on Plugin Dashboard**: Improved the overall UI on the plugin dashboard for a more cohesive look and feel.
+- **Revamped Offloading User Experience**: Revamped the UI/UX for offloading operations, making it more intuitive and user-friendly.
+- **Cloud Library Access by Default**: Enabled Cloud Library access by default for all users, enhancing accessibility to Optimoles features.
+- **Notice for Offloaded Images Limit**: Added a notice if the count of offloaded images exceeds the limit, keeping users informed.
+
+
+
+
 ##### [Version 3.11.3](https://github.com/Codeinwp/optimole-wp/compare/v3.11.2...v3.11.3) (2023-12-05)
 
 ### Bug Fixes
