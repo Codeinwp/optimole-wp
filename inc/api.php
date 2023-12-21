@@ -45,16 +45,16 @@ final class Optml_Api {
 	public function __construct() {
 		$settings      = new Optml_Settings();
 		$this->api_key = $settings->get( 'api_key' );
-		if ( defined( 'OPTIML_API_ROOT' ) && constant( 'OPTIML_API_ROOT' ) ) {
+		if ( defined( 'OPTIML_API_ROOT' ) ) {
 			$this->api_root = constant( 'OPTIML_API_ROOT' );
 		}
-		if ( defined( 'OPTIML_UPLOAD_API_ROOT' ) && constant( 'OPTIML_UPLOAD_API_ROOT' ) ) {
+		if ( defined( 'OPTIML_UPLOAD_API_ROOT' ) ) {
 			$this->upload_api_root = constant( 'OPTIML_UPLOAD_API_ROOT' );
 		}
-		if ( defined( 'OPTIML_ONBOARD_API_ROOT' ) && constant( 'OPTIML_ONBOARD_API_ROOT' ) ) {
+		if ( defined( 'OPTIML_ONBOARD_API_ROOT' ) ) {
 			$this->onboard_api_root = constant( 'OPTIML_ONBOARD_API_ROOT' );
 		}
-		if ( defined( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) && constant( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) ) {
+		if ( defined( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' ) ) {
 			$this->upload_conflicts_api = constant( 'OPTIML_UPLOAD_CONFLICTS_API_ROOT' );
 		}
 	}

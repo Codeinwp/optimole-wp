@@ -51,7 +51,7 @@ class Optml_Dam {
 			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_page_scripts' ] );
 		}
 
-		if ( defined( 'OPTML_DAM_ENDPOINT' ) && constant( 'OPTML_DAM_ENDPOINT' ) ) {
+		if ( defined( 'OPTML_DAM_ENDPOINT' ) ) {
 			$this->dam_endpoint = constant( 'OPTML_DAM_ENDPOINT' );
 		}
 
