@@ -36,11 +36,10 @@
     }
   },
   "require-dev": {
-    "phpmd/phpmd": "^2.6",
     "squizlabs/php_codesniffer": "^3.3",
     "wp-coding-standards/wpcs": "^2.3.0",
     "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
-    "yoast/phpunit-polyfills": "^1.0",
+    "yoast/phpunit-polyfills": "^2.0",
     "phpstan/phpstan": "^1.10",
     "szepeviktor/phpstan-wordpress": "^1.3",
     "php-stubs/wp-cli-stubs": "^2.8"
@@ -48,8 +47,7 @@
   "scripts": {
     "format": "phpcbf --standard=phpcs.xml --report-summary --report-source",
     "phpcs": "phpcs --standard=phpcs.xml --extensions=php -s",
-    "phpmd": "phpmd inc text phpmd.xml",
-    "test": "phpunit --configuration=phpunit.xml",
+    "test": "[ -z \"$WP_TESTS_DIR\" ] || [ -z \"$WP_CORE_DIR\" ] && echo 'Error: Both WP_TESTS_DIR and WP_CORE_DIR must be defined.' && exit 1 || phpunit --configuration=phpunit.xml",
     "lint": "composer run-script phpcs",
     "phpstan": "phpstan analyse --memory-limit 2G",
     "install-wp-tests": "bash bin/install-wp-tests.sh wordpress_test root '' localhost latest"
