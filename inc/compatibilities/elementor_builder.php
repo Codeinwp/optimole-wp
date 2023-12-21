@@ -107,7 +107,10 @@ class Optml_elementor_builder extends Optml_compatibility {
 		if ( ! isset( $image[0] ) ) {
 			return $image;
 		}
-
+		// We can't run the replacer before the setup is done, otherwise it will throw errors.
+		if ( ! did_action( 'optml_replacer_setup' ) ) {
+			return $image;
+		}
 		$image[0] = Optml_Main::instance()->manager->url_replacer->build_url( $image[0] );
 
 		return $image;
