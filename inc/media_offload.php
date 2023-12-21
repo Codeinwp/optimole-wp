@@ -46,6 +46,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	const OM_OFFLOADED_FLAG = 'om_image_offloaded';
 	const POST_OFFLOADED_FLAG = 'optimole_offload_post';
 	const POST_ROLLBACK_FLAG = 'optimole_rollback_post';
+	const RETRYABLE_META_COUNTER = '_optimole_retryable_errors';
 	/**
 	 * Flag used inside wp_get_attachment url filter.
 	 *
@@ -1222,6 +1223,28 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
+	 * Mark an image as having a retryable error.
+	 *
+	 * @param int    $attachment_id The attachment ID.
+	 * @param string $reason The reason for the error.
+	 */
+	public static function mark_retryable_error( $attachment_id, $reason ) {
+		static $allowed_retries = 5;
+
+		$retries = get_post_meta( $attachment_id, self::RETRYABLE_META_COUNTER, true );
+		$retries = empty( $retries ) ? 0 : (int) $retries;
+		if ( $retries >= $allowed_retries ) {
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' ' . $reason . '. Reached the maximum number of retries.' );
+			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
+
+			return;
+		}
+
+		self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' ' . $reason . '. Marked for retry, retries done: ' . $retries );
+
+		update_post_meta( $attachment_id, self::RETRYABLE_META_COUNTER, ( $retries + 1 ) );
+	}
+	/**
 	 * Update image meta with optimized cdn path.
 	 *
 	 * @param array $meta    Meta information of the image.
@@ -1344,11 +1367,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', ' call to signed url error' );
 				do_action( 'optml_log', $generate_url_response );
 			}
-			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
-
-			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has invalid signed url.' );
+			self::mark_retryable_error( $attachment_id, 'Image ID: ' . $attachment_id . ' has invalid signed url.' );
 			return $meta;
 		}
+		// We clear the retry counter if we reach this step. In case we plan to use the retry on other context, we should clear it at after the last retryable step.
+		delete_post_meta( $attachment_id, self::RETRYABLE_META_COUNTER );
 		$decoded_response = json_decode( $generate_url_response['body'], true );
 
 		// Update the offload limit if it has changed.
