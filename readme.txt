@@ -682,8 +682,6 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 - Improve compatibility with Background images lazyload for Elementor
 
 
-
-
 [See all versions.](https://github.com/Codeinwp/optimole-wp/releases)
 == Installation ==
 The following are the steps to install the OptiMole plugin
