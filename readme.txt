@@ -684,18 +684,6 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 
 
 
-##### [Version 2.5.7](https://github.com/Codeinwp/optimole-wp/compare/v2.5.6...v2.5.7) (2020-12-17)
-
-#### Fixes
-* Adds iframe style for lazyloading only when the iframe is used on the current page
-* Improve lazyload CLS web vital
-* Adds compatibility with Smart Search for Woocommerce
-
-#### Features
-* Adds option to set the plugin settings via [wp-config](https://docs.optimole.com/article/1316-setting-plugin-options-via-wp-config)constants  
-* Adds more option to set plugin settings via [wp cli](https://docs.optimole.com/article/1202-plugin-cli-commands)
-
-
 [See all versions.](https://github.com/Codeinwp/optimole-wp/releases)
 == Installation ==
 The following are the steps to install the OptiMole plugin
