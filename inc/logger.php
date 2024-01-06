@@ -184,7 +184,7 @@ class Optml_Logger {
 
 			$buffer = min( $buffer * 2, 4096 );
 		}
-
+		$pos = -1;
 		if ( ! empty( $separator ) && $separator_found ) {
 			$pos = strrpos( $output, $separator );
 			if ( $pos !== false ) {
@@ -197,7 +197,10 @@ class Optml_Logger {
 		if ( empty( $separator ) || ! $separator_found ) {
 			$output = implode( "\n", array_slice( $output_lines, -$lines ) );  // fetch last n lines
 		} else {
-			$output = implode( "\n", array_slice( $output_lines, 0, $lines ) );  // fetch from separator
+			// Calculate the start position for slicing
+			$start_pos = max( $pos + 1, count( $output_lines ) - $lines );
+
+			$output = implode( "\n", array_slice( $output_lines, $start_pos, $lines ) );  // fetch from separator
 		}
 
 		fclose( $f );
