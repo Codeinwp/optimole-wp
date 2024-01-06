@@ -141,10 +141,11 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 
 == Screenshots ==
 
-1. Welcome screen
-2. Connect screen
-3. Plugin dashboard
-4. Plugin settings
+1. Connect API
+2. General Settings
+3. Advance Settings
+4. Cloud Library
+5. Cloud Storage
 
 == Changelog ==
 
