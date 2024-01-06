@@ -26,7 +26,10 @@ final class Optml_Filters {
 		}
 
 		$check_against = [ $_SERVER['REQUEST_URI'] ];
-		if ( isset( $_SERVER['HTTP_REFERER'] ) ) {
+		// This logic is implemented to target ajax requests withing excluded pages.
+		// The ajax request will have the referer set to the page url and is using a POST request.
+		// If is using a GET request, this can be targeted with the availabile excluding rules.
+		if ( isset( $_SERVER['HTTP_REFERER'] ) && $_SERVER['REQUEST_METHOD'] === 'POST' ) {
 			$check_against[] = $_SERVER['HTTP_REFERER'];
 		}
 		foreach ( $check_against as $check ) {
