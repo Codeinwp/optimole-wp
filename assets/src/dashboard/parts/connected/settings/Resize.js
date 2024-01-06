@@ -108,7 +108,7 @@ const Resize = ({
 
 			<hr className="my-8 border-grayish-blue"/>
 
-			<ToggleControl
+			{ 'disabled' !== settings.lazyload && ( <> <ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_retina_title }
 				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_retina_desc } } /> }
 				checked={ isRetinaEnabled }
@@ -119,9 +119,9 @@ const Resize = ({
 					}
 				) }
 				onChange={ value => updateOption( 'retina_images', value ) }
-			/>
+			/> <hr className="my-8 border-grayish-blue"/> </> )
+			}
 
-			<hr className="my-8 border-grayish-blue"/>
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_title }

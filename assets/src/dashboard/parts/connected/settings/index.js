@@ -85,6 +85,7 @@ const Settings = ({
 			<Menu
 				tab={ tab }
 				setTab={ setTab }
+				settings={ settings }
 			/>
 
 			<div className="basis-4/5">
