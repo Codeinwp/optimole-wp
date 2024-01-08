@@ -50,7 +50,7 @@ function convertToCategory( number, scale = 1 ) {
 		return 30;
 	} else if ( 30 < normalizedNumber && 90 > normalizedNumber ) {
 		return 90;
-	} else if ( 90 > normalizedNumber ) {
+	} else if ( 90 < normalizedNumber ) {
 		return 91;
 	}
 }

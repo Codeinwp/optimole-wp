@@ -55,12 +55,16 @@ const menuItems = [
 const SubMenu = ({
 	children,
 	tab,
+	settings,
 	setTab
 }) => {
 	return (
 		<ul className="flex flex-col gap-1 m-0 mt-1">
 			{children.map( item => {
 				const { value, label } = item;
+				if ( 'lazyload' === item.value && 'disabled' === settings.lazyload ) {
+					return;
+				}
 				const classes = classnames(
 					{
 						'bg-light-blue hover:text-purple-gray': tab === value,
@@ -82,6 +86,7 @@ const SubMenu = ({
 
 const Menu = ({
 	tab,
+	settings,
 	setTab
 }) => {
 	return (
@@ -89,6 +94,8 @@ const Menu = ({
 			<ul className="grid m-0 gap-1">
 				{menuItems.map( item => {
 					const isActive = tab === item.value || ( item.children && item.children.some( child => child.value === tab ) );
+
+
 					const buttonClasses = classnames({ '!text-info': isActive }, 'w-full bg-transparent border-0 flex items-center appearance-none not-italic font-semibold text-base text-purple-gray cursor-pointer hover:text-info py-2' );
 					return (
 						<li key={item.value} className='m-0'>
@@ -110,6 +117,7 @@ const Menu = ({
 								<SubMenu
 									children={item.children}
 									tab={tab}
+									settings={settings}
 									setTab={setTab}
 								/>
 							)}
