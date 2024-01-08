@@ -1,4 +1,4 @@
-=== Image Optimization by Optimole - Lazy Load, CDN, Convert to WebP & AVIF ===
+=== Image Optimization by Optimole - Lazy Load, CDN, Convert WebP & AVIF ===
 Contributors: optimole
 Tags: image optimization, convert webp, image optimizer, lazy load, image, optimization, convert AVIF, resize, free cdn, compress images, optimize images
 Requires at least: 5.5
@@ -141,12 +141,27 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 
 == Screenshots ==
 
-1. Welcome screen
-2. Connect screen
-3. Plugin dashboard
-4. Plugin settings
+1. Connect API
+2. General Settings
+3. Advance Settings
+4. Cloud Library
+5. Cloud Storage
 
 == Changelog ==
+
+##### [Version 3.12.1](https://github.com/Codeinwp/optimole-wp/compare/v3.12.0...v3.12.1) (2023-12-21)
+
+### Enhancements
+
+- **Add Retries for Offloading Common Errors**: Implemented a feature to add retries to address common errors in the offloading process.
+
+
+### Fixes
+
+- **Fix Replacement in Elementor**: Resolved an issue where replacement in Elementor was not working in some cases
+
+
+
 
 #### [Version 3.12.0](https://github.com/Codeinwp/optimole-wp/compare/v3.11.3...v3.12.0) (2023-12-19)
 
@@ -666,20 +681,6 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 - Adds Optimole Cloud integration directly in the Media library, allowing you to cross-share images from all the connected sites. 
 ### Fixes 
 - Improve compatibility with Background images lazyload for Elementor
-
-
-
-
-##### [Version 2.5.7](https://github.com/Codeinwp/optimole-wp/compare/v2.5.6...v2.5.7) (2020-12-17)
-
-#### Fixes
-* Adds iframe style for lazyloading only when the iframe is used on the current page
-* Improve lazyload CLS web vital
-* Adds compatibility with Smart Search for Woocommerce
-
-#### Features
-* Adds option to set the plugin settings via [wp-config](https://docs.optimole.com/article/1316-setting-plugin-options-via-wp-config)constants  
-* Adds more option to set plugin settings via [wp cli](https://docs.optimole.com/article/1202-plugin-cli-commands)
 
 
 [See all versions.](https://github.com/Codeinwp/optimole-wp/releases)

@@ -1,3 +1,14 @@
+##### [Version 3.12.1](https://github.com/Codeinwp/optimole-wp/compare/v3.12.0...v3.12.1) (2023-12-21)
+
+### Enhancements
+
+- **Add Retries for Offloading Common Errors**: Implemented a feature to add retries to address common errors in the offloading process.
+
+
+### Fixes
+
+- **Fix Replacement in Elementor**: Resolved an issue where replacement in Elementor was not working in some cases
+
 #### [Version 3.12.0](https://github.com/Codeinwp/optimole-wp/compare/v3.11.3...v3.12.0) (2023-12-19)
 
 ### New Features
