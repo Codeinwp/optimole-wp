@@ -348,7 +348,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/http://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
 		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:css/q:mauto/m:1/http://example.org/wp-includes/js/hoverintent-js.min.png-random.css', $replaced_content );
 		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/http://example.org/wp-includes/js/assets/whatever.jpg.png.css.js', $replaced_content );
-		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/w:auto/h:auto/q:mauto/f:best/https://example.org/wp-includes/js/assets/whatever.jpg.jpg', $replaced_content );
+		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/w:auto/h:auto/q:mauto/ig:avif/https://example.org/wp-includes/js/assets/whatever.jpg.jpg', $replaced_content );
 
 		$settings = new Optml_Settings();
 		$settings->update( 'css_minify', 'disabled' );
@@ -822,13 +822,11 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	public function test_dam_flag_removal() {
 		$this->assertStringContainsString( 'dam:1', self::DAM_LINKS );
-		$this->assertStringNotContainsString('f:best', self::DAM_LINKS);
 		$this->assertStringNotContainsString('q:mauto', self::DAM_LINKS);
 
 		$replaced_content = Optml_Manager::instance()->replace_content( self::DAM_LINKS );
 
 		$this->assertStringNotContainsString('dam:1', $replaced_content);
-		$this->assertStringContainsString('f:best', $replaced_content);
 		$this->assertStringContainsString('q:mauto', $replaced_content);
 	}
 }

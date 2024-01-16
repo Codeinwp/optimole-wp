@@ -241,6 +241,9 @@ class Optml_Admin {
 
 		$this->settings->update( 'limit_dimensions', 'enabled' );
 		$this->settings->update( 'lazyload', 'enabled' );
+		$this->settings->update( 'best_format', 'disabled' );
+		$this->settings->update( 'skip_lazyload_images', '2' );
+		$this->settings->update( 'avif', 'disabled' );
 
 		update_option( self::NEW_USER_DEFAULTS_UPDATED, 'yes' );
 	}
