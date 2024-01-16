@@ -1,3 +1,9 @@
+##### [Version 3.12.3](https://github.com/Codeinwp/optimole-wp/compare/v3.12.2...v3.12.3) (2024-01-16)
+
+### Enhancements
+
+- **Improve default settings**: Ensure default settings for image optimization and lazyloading are optimal.
+
 ##### [Version 3.12.2](https://github.com/Codeinwp/optimole-wp/compare/v3.12.1...v3.12.2) (2024-01-08)
 
 ### Bug Fixes
