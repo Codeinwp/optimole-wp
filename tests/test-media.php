@@ -240,6 +240,8 @@ class Test_Media extends WP_UnitTestCase {
 		$settings = new Optml_Settings();
 		$settings->update( 'quality', 75 );
 		$settings->update( 'autoquality', 'disabled' );
+		$settings->update( 'best_format', 'enabled' );
+		$settings->update( 'avif', 'enabled' );
 		$settings->update( 'service_data', [
 			'cdn_key'    => 'whatever',
 			'cdn_secret' => 'test',
