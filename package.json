@@ -1,6 +1,6 @@
 {
   "name": "optimole-wp",
-  "version": "3.12.1",
+  "version": "3.12.3",
   "description": "Cloud-based image optimization service -  WordPress Integration",
   "repository": {
     "type": "git",
@@ -37,11 +37,11 @@
     "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/exec": "^5.0.0",
     "@semantic-release/git": "^9.0.0",
-    "@wordpress/components": "^25.13.0",
-    "@wordpress/data": "^9.17.0",
-    "@wordpress/element": "^5.24.0",
-    "@wordpress/icons": "^9.38.0",
-    "@wordpress/scripts": "^22.5.0",
+    "@wordpress/components": "^25.14.0",
+    "@wordpress/data": "^9.18.0",
+    "@wordpress/element": "^5.25.0",
+    "@wordpress/icons": "^9.39.0",
+    "@wordpress/scripts": "^26.19.0",
     "conventional-changelog-simple-preset": "^1.0.14",
     "cypress": "^13.6.1",
     "eslint-config-wordpress": "^2.0.0",
@@ -57,7 +57,7 @@
     "tailwindcss": "^3.3.2"
   },
   "dependencies": {
-    "@formbricks/js": "^1.2.7",
+    "@formbricks/js": "^1.4.2",
     "classnames": "^2.3.2",
     "react-compare-image": "^3.4.0",
     "usehooks-ts": "^2.9.1"

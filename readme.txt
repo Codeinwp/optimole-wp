@@ -149,6 +149,30 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 
 == Changelog ==
 
+##### [Version 3.12.3](https://github.com/Codeinwp/optimole-wp/compare/v3.12.2...v3.12.3) (2024-01-16)
+
+### Enhancements
+
+- **Improve default settings**: Ensure default settings for image optimization and lazyloading are optimal.
+
+
+
+
+##### [Version 3.12.2](https://github.com/Codeinwp/optimole-wp/compare/v3.12.1...v3.12.2) (2024-01-08)
+
+### Bug Fixes
+
+- **Optimization Exclusions Fix**: Resolved an issue where some pages were excluded from optimization due to AJAX requests exclusions.
+
+### Enhancements
+
+- **Lazyloading Menu Item**: Ensure that turning off lazyloading now disables the lazyloading settings menu item in the plugin dashboard.
+- **Lazyload Support for Group Blocks**: Added lazyload support for group blocks background for improved performance.
+- **Cap Offloading Log**: Capped offloading log read lines to 10,000 for better performance and manageability.
+
+
+
+
 ##### [Version 3.12.1](https://github.com/Codeinwp/optimole-wp/compare/v3.12.0...v3.12.1) (2023-12-21)
 
 ### Enhancements
