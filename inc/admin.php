@@ -1142,6 +1142,8 @@ class Optml_Admin {
 			}
 		}
 
+		$cron_disabled = apply_filters( 'optml_offload_wp_cron_disabled', defined( 'DISABLE_WP_CRON' ) && constant( 'DISABLE_WP_CRON' ) === true );
+
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',
@@ -1164,7 +1166,7 @@ class Optml_Admin {
 			'days_since_install' => round( ( time() - get_option( 'optimole_wp_install', 0 ) ) / DAY_IN_SECONDS ),
 			'is_offload_media_available' => $is_offload_media_available,
 			'auto_connect'               => $auto_connect,
-			'cron_disabled' => defined( 'DISABLE_WP_CRON' ) && DISABLE_WP_CRON && ! function_exists( 'as_schedule_single_action' ),
+			'cron_disabled' => $cron_disabled && ! function_exists( 'as_schedule_single_action' ),
 			'submenu_links' => [
 				[
 					'href' => 'admin.php?page=optimole#settings',
