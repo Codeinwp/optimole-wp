@@ -149,6 +149,15 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 
 == Changelog ==
 
+##### [Version 3.12.4](https://github.com/Codeinwp/optimole-wp/compare/v3.12.3...v3.12.4) (2024-01-25)
+
+### Enhancements
+
+- **Add Filter for Overriding DISABLE_WP_CRON Check**: Introduced a filter for overriding the DISABLE_WP_CRON check in the context  - optml_offload_wp_cron_disabled.
+
+
+
+
 ##### [Version 3.12.3](https://github.com/Codeinwp/optimole-wp/compare/v3.12.2...v3.12.3) (2024-01-16)
 
 ### Enhancements
