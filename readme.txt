@@ -53,7 +53,7 @@ When the image is requested, Optimole will apply the specific transformations re
 
 ### How many images can be optimized?
 
-With the basic plan, you will be able to optimize an unmetered number of images for up to 5k monthly [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All are delivered from more than 450+ locations around the globe.
+With the basic plan, you will be able to optimize an unmetered number of images for up to 1k monthly [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All are delivered from more than 450+ locations around the globe.
 
 Better yet. The free version is fully functional and includes all of the following great features:
 
