@@ -129,7 +129,7 @@ Optimole can be installed in a few clicks and then left in the back end to do it
 
 ### Go Pro 🚀
 
-Premium users will be able to optimize images starting with more than 50k monthly active users. Images in the Premium plan are served from AWS Cloudfront with over 450+ locations all over the world. Explore more features of [Optimole Pro](https://optimole.com/pricing/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole).
+Premium users will be able to optimize images starting with more than 40k monthly active users. Images in the Premium plan are served from AWS Cloudfront with over 450+ locations all over the world. Explore more features of [Optimole Pro](https://optimole.com/pricing/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole).
 
 ### Support 🤝
 
