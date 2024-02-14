@@ -53,7 +53,7 @@ When the image is requested, Optimole will apply the specific transformations re
 
 ### How many images can be optimized?
 
-With the basic plan, you will be able to optimize an unmetered number of images for up to 5k monthly [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All are delivered from more than 450+ locations around the globe.
+With the basic plan, you will be able to optimize an unmetered number of images for up to 1k monthly [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All are delivered from more than 450+ locations around the globe.
 
 Better yet. The free version is fully functional and includes all of the following great features:
 
@@ -129,7 +129,7 @@ Optimole can be installed in a few clicks and then left in the back end to do it
 
 ### Go Pro 🚀
 
-Premium users will be able to optimize images starting with more than 50k monthly active users. Images in the Premium plan are served from AWS Cloudfront with over 450+ locations all over the world. Explore more features of [Optimole Pro](https://optimole.com/pricing/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole).
+Premium users will be able to optimize images starting with more than 40k monthly active users. Images in the Premium plan are served from AWS Cloudfront with over 450+ locations all over the world. Explore more features of [Optimole Pro](https://optimole.com/pricing/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole).
 
 ### Support 🤝
 
@@ -148,6 +148,15 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 5. Cloud Storage
 
 == Changelog ==
+
+##### [Version 3.12.4](https://github.com/Codeinwp/optimole-wp/compare/v3.12.3...v3.12.4) (2024-01-25)
+
+### Enhancements
+
+- **Add Filter for Overriding DISABLE_WP_CRON Check**: Introduced a filter for overriding the DISABLE_WP_CRON check in the context  - optml_offload_wp_cron_disabled.
+
+
+
 
 ##### [Version 3.12.3](https://github.com/Codeinwp/optimole-wp/compare/v3.12.2...v3.12.3) (2024-01-16)
 
