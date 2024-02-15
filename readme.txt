@@ -149,6 +149,14 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 
 == Changelog ==
 
+##### [Version 3.12.5](https://github.com/Codeinwp/optimole-wp/compare/v3.12.4...v3.12.5) (2024-02-14)
+
+* Update dependencies
+* Harden Security
+
+
+
+
 ##### [Version 3.12.4](https://github.com/Codeinwp/optimole-wp/compare/v3.12.3...v3.12.4) (2024-01-25)
 
 ### Enhancements

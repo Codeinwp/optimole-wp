@@ -600,7 +600,7 @@ class Optml_Admin {
 		<img src='<?php echo OPTML_URL . 'assets/img/upgrade_icon.png'; ?>'>
 	  </div>
 	  <div style="margin-top: 0.7%;">
-			<p style="font-size: 16px !important;"> <?php printf( __( '%1$sIt seems your are close to the 5.0000 visits limit with %3$sOptiMole%4$s for this month.%2$s %5$s For a larger quota you may want to check the upgrade plans. If you exceed the quota we will need to deliver back your original, un-optimized images, which might decrease your site speed performance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
+			<p style="font-size: 16px !important;"> <?php printf( __( '%1$sIt seems you are close to the 1000 visits limit with %3$sOptiMole%4$s for this month.%2$s %5$s For a larger quota you may want to check the upgrade plans. If you exceed the quota we will need to deliver back your original, un-optimized images, which might decrease your site speed performance.', 'optimole-wp' ), '<strong>', '</strong>', '<strong>', '</strong>', '<br/><br/>', '<i>', '</i >', '<strong>', '</strong>' ); ?></p>
 			<p style="margin: 1.5% 0;">
 				<a href="https://optimole.com/pricing" target="_blank" style="border-radius: 4px;padding: 9px 10px;border: 2px solid #FFF;color: white;text-decoration: none;"><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 				</a>
