@@ -591,7 +591,9 @@ class Optml_Admin {
 	 * Show upgrade notice.
 	 */
 	public function add_notice_upgrade() {
-
+		if ( ! $this->should_show_upgrade() ) {
+			return;
+		}
 		?>
 		<div class="notice optml-notice-optin" style="background-color: #577BF9; color:white; border: none !important; display: flex;">
 	  <div style="margin: 1% 2%;">
