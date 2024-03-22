@@ -1,3 +1,9 @@
+##### [Version 3.12.6](https://github.com/Codeinwp/optimole-wp/compare/v3.12.5...v3.12.6) (2024-03-22)
+
+* Corrected inaccuracies in notification text.
+* Compatibility was confirmed with WordPress for version 6.5.
+* Dependencies updated.
+
 ##### [Version 3.12.5](https://github.com/Codeinwp/optimole-wp/compare/v3.12.4...v3.12.5) (2024-02-14)
 
 * Update dependencies
