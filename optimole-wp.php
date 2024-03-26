@@ -55,7 +55,7 @@ function optml_deactivate() {
 function optml_php_notice() {
 	?>
 	<div class="notice notice-error is-dismissible">
-		<?php echo sprintf( __( '%1$s You\'re using a PHP version lower than 5.4! %2$sOptimole%3$s requires at least %4$sPHP 5.4%5$s to function properly. Plugin has been deactivated. %6$sLearn more here%5$s. %7$s', 'optimole-wp' ), '<p>', '<b>', '</b>', '<b>', '</b>', '<a href="https://themeisle.com/blog/upgrade-wordpress-to-php-7/" target="_blank">', '</a>', '</p>' ); ?>
+		<?php echo sprintf( __( '%1$s You\'re using a PHP version lower than 7.4! %2$sOptimole%3$s requires at least %4$sPHP 7.4%5$s to function properly. Plugin has been deactivated. %6$sLearn more here%5$s. %7$s', 'optimole-wp' ), '<p>', '<b>', '</b>', '<b>', '</b>', '<a href="https://themeisle.com/blog/upgrade-wordpress-to-php-7/" target="_blank">', '</a>', '</p>' ); ?>
 	</div>
 	<?php
 }
@@ -66,7 +66,7 @@ function optml_php_notice() {
  * @return Optml_Main|null Optimole instance.
  */
 function optml() {
-	if ( version_compare( PHP_VERSION, '5.4.0', '<' ) ) {
+	if ( version_compare( PHP_VERSION, '7.4.0', '<' ) ) {
 		add_action( 'admin_notices', 'optml_php_notice' );
 		add_action( 'admin_init', 'optml_deactivate' );
 
