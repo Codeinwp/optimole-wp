@@ -276,7 +276,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$this->apply_watermark( $image );
 		}
 
-		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) {
+		if ( ! empty( $args['format'] ) ) {
 			$image->format( (string) $args['format'] );
 		} elseif ( $this->settings->is_best_format() ) {
 			// If format is not already set, we use best format if it's enabled.
