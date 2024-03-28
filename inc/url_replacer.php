@@ -261,25 +261,25 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		}
 
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
-        $image = Optimole::image( apply_filters( 'optml_processed_url', $url ), $this->active_cache_buster );
+		$image = Optimole::image( apply_filters( 'optml_processed_url', $url ), $this->active_cache_buster );
 
-        $image->height( $args['height'] ?? 'auto' );
-        $image->width( $args['width'] ?? 'auto' );
+		$image->height( $args['height'] ?? 'auto' );
+		$image->width( $args['width'] ?? 'auto' );
 
-        $image->quality( $args['quality'] ?? 'mauto' );
+		$image->quality( $args['quality'] ?? 'mauto' );
 
-        if ( ! empty( $args['resize'] ) ) {
-            $this->apply_resize( $image, $args['resize'] );
-        }
+		if ( ! empty( $args['resize'] ) ) {
+			$this->apply_resize( $image, $args['resize'] );
+		}
 
 		if ( apply_filters( 'optml_apply_watermark_for', true, $url ) ) {
-            $this->apply_watermark( $image );
-        }
+			$this->apply_watermark( $image );
+		}
 
 		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) {
 			$image->format( (string) $args['format'] );
-        // If format is not already set, we use best format if it's enabled.
 		} elseif ( $this->settings->is_best_format() ) {
+			// If format is not already set, we use best format if it's enabled.
 			$image->format( 'best' );
 		}
 
@@ -291,12 +291,11 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$image->ignoreAvif();
 		}
 
-        if ( apply_filters( 'optml_keep_copyright', false ) === true ) {
-            $image->keepCopyright();
-        }
+		if ( apply_filters( 'optml_keep_copyright', false ) === true ) {
+			$image->keepCopyright();
+		}
 
-        return $image->getUrl();
-
+		return $image->getUrl();
 	}
 
 	/**
@@ -328,37 +327,37 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'optimole-wp' ), '1.0.0' );
 	}
 
-    /**
-     * Apply resize to image.
-     *
-     * @param Image $image Image object.
-     */
-    private function apply_resize( $image, $resize ) {
-        if ( ! $image instanceof Image || ! is_array( $resize ) || empty( $resize['type'] ) ) {
-            return;
-        }
+	/**
+	 * Apply resize to image.
+	 *
+	 * @param Image $image Image object.
+	 */
+	private function apply_resize( $image, $resize ) {
+		if ( ! $image instanceof Image || ! is_array( $resize ) || empty( $resize['type'] ) ) {
+			return;
+		}
 
-        $image->resize( $resize['type'], $resize['gravity'] ?? Position::CENTER, $resize['enlarge'] ?? false );
-    }
+		$image->resize( $resize['type'], $resize['gravity'] ?? Position::CENTER, $resize['enlarge'] ?? false );
+	}
 
-    /**
-     * Apply watermark to image.
-     *
-     * @param Image $image Image object.
-     */
-    private function apply_watermark( $image ) {
-        $settings = $this->settings->get_site_settings();
+	/**
+	 * Apply watermark to image.
+	 *
+	 * @param Image $image Image object.
+	 */
+	private function apply_watermark( $image ) {
+		$settings = $this->settings->get_site_settings();
 
-        if ( empty( $settings['watermark'] ) || ! $image instanceof Image ) {
-            return;
-        }
+		if ( empty( $settings['watermark'] ) || ! $image instanceof Image ) {
+			return;
+		}
 
-        $watermark = $settings['watermark'];
+		$watermark = $settings['watermark'];
 
-        if ( ! isset( $watermark['id'], $watermark['opacity'], $watermark['position'] ) ) {
-            return;
-        }
+		if ( ! isset( $watermark['id'], $watermark['opacity'], $watermark['position'] ) ) {
+			return;
+		}
 
-        $image->watermark($watermark['id'], $watermark['opacity'], $watermark['position'], $watermark['x_offset'] ?? 0, $watermark['y_offset'] ?? 0, $watermark['scale'] ?? 0);
-    }
+		$image->watermark( $watermark['id'], $watermark['opacity'], $watermark['position'], $watermark['x_offset'] ?? 0, $watermark['y_offset'] ?? 0, $watermark['scale'] ?? 0 );
+	}
 }
