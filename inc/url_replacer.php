@@ -1,5 +1,9 @@
 <?php
 
+use Optimole\Sdk\Optimole;
+use Optimole\Sdk\Resource\Image;
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * The class handles the url replacements.
  *
@@ -257,33 +261,41 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		}
 
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
+        $image = Optimole::image( apply_filters( 'optml_processed_url', $url ), $this->active_cache_buster );
 
-		$arguments = [
-			'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
-		];
+        $image->height( $args['height'] ?? 'auto' );
+        $image->width( $args['width'] ?? 'auto' );
+
+        $image->quality( $args['quality'] ?? 'mauto' );
+
+        if ( ! empty( $args['resize'] ) ) {
+            $this->apply_resize( $image, $args['resize'] );
+        }
+
+		if ( apply_filters( 'optml_apply_watermark_for', true, $url ) ) {
+            $this->apply_watermark( $image );
+        }
 
 		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) {
-			$arguments['format'] = $args['format'];
+			$image->format( (string) $args['format'] );
+        // If format is not already set, we use best format if it's enabled.
+		} elseif ( $this->settings->is_best_format() ) {
+			$image->format( 'best' );
 		}
 
-		// If format is not already set, we use best format if it's enabled.
-		if ( ! isset( $arguments['format'] ) && $this->settings->is_best_format() ) {
-			$arguments['format'] = 'best';
+		if ( $this->settings->get( 'strip_metadata' ) !== 'disabled' ) {
+			$image->stripMetadata();
 		}
 
-		if ( $this->settings->get( 'strip_metadata' ) === 'disabled' ) {
-			$arguments['strip_metadata'] = '0';
+		if ( ! apply_filters( 'optml_should_avif_ext', true, $ext, $original_url ) || $this->settings->get( 'avif' ) === 'disabled' ) {
+			$image->ignoreAvif();
 		}
 
-		if ( ! apply_filters( 'optml_should_avif_ext', true, $ext, $original_url ) ) {
-			$arguments['ignore_avif'] = true;
-		}
+        if ( apply_filters( 'optml_keep_copyright', false ) === true ) {
+            $image->keepCopyright();
+        }
 
-		if ( ! isset( $arguments['ignore_avif'] ) && $this->settings->get( 'avif' ) === 'disabled' ) {
-			$arguments['ignore_avif'] = true;
-		}
-
-		return  ( new Optml_Image( $url, $args, $this->active_cache_buster ) )->get_url( $arguments );
+        return $image->getUrl();
 
 	}
 
@@ -315,4 +327,38 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		// Unserializing instances of the class is forbidden.
 		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'optimole-wp' ), '1.0.0' );
 	}
+
+    /**
+     * Apply resize to image.
+     *
+     * @param Image $image Image object.
+     */
+    private function apply_resize( $image, $resize ) {
+        if ( ! $image instanceof Image || ! is_array( $resize ) || empty( $resize['type'] ) ) {
+            return;
+        }
+
+        $image->resize( $resize['type'], $resize['gravity'] ?? Position::CENTER, $resize['enlarge'] ?? false );
+    }
+
+    /**
+     * Apply watermark to image.
+     *
+     * @param Image $image Image object.
+     */
+    private function apply_watermark( $image ) {
+        $settings = $this->settings->get_site_settings();
+
+        if ( empty( $settings['watermark'] ) || ! $image instanceof Image ) {
+            return;
+        }
+
+        $watermark = $settings['watermark'];
+
+        if ( ! isset( $watermark['id'], $watermark['opacity'], $watermark['position'] ) ) {
+            return;
+        }
+
+        $image->watermark($watermark['id'], $watermark['opacity'], $watermark['position'], $watermark['x_offset'] ?? 0, $watermark['y_offset'] ?? 0, $watermark['scale'] ?? 0);
+    }
 }
