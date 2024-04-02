@@ -354,7 +354,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		$watermark = $settings['watermark'];
 
-		if ( ! isset( $watermark['id'], $watermark['opacity'], $watermark['position'] ) ) {
+		if ( ! isset( $watermark['id'], $watermark['opacity'], $watermark['position'] ) || $watermark['id'] <= 0) {
 			return;
 		}
 
