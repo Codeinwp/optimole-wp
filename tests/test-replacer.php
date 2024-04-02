@@ -826,6 +826,8 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->replace_content( self::DAM_LINKS );
 
+        var_dump($replaced_content);
+
 		$this->assertStringNotContainsString('dam:1', $replaced_content);
 		$this->assertStringContainsString('q:mauto', $replaced_content);
 	}
