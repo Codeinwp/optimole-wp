@@ -47,7 +47,7 @@ class Optml_Admin {
 		add_filter( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
 		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
 		add_action( 'admin_menu', [ $this, 'add_settings_subpage' ], 99 );
-		add_action( 'admin_enqueue_scripts', [ $this, 'menu_icon_style' ] );
+		add_action( 'admin_head', [ $this, 'menu_icon_style' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue' ], PHP_INT_MIN );
 		add_action( 'admin_notices', [ $this, 'add_notice' ] );
 		add_action( 'admin_notices', [ $this, 'add_notice_upgrade' ] );
