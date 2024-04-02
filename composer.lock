@@ -12,12 +12,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeinwp/optimole-php-sdk.git",
-                "reference": "42035ad8854d86c34414eb02b9172cf4a64c3e0d"
+                "reference": "b91728e28f903610a2f5546e8a951a194abf4249"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeinwp/optimole-php-sdk/zipball/42035ad8854d86c34414eb02b9172cf4a64c3e0d",
-                "reference": "42035ad8854d86c34414eb02b9172cf4a64c3e0d",
+                "url": "https://api.github.com/repos/Codeinwp/optimole-php-sdk/zipball/b91728e28f903610a2f5546e8a951a194abf4249",
+                "reference": "b91728e28f903610a2f5546e8a951a194abf4249",
                 "shasum": ""
             },
             "require": {
@@ -51,7 +51,7 @@
                 "issues": "https://github.com/Codeinwp/optimole-sdk/issues",
                 "source": "https://github.com/Codeinwp/optimole-sdk"
             },
-            "time": "2024-04-02T10:16:01+00:00"
+            "time": "2024-04-02T11:12:00+00:00"
         },
         {
             "name": "codeinwp/themeisle-sdk",
