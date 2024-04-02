@@ -283,8 +283,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$image->format( 'best' );
 		}
 
-        if ( $this->settings->get( 'strip_metadata' ) === 'disabled' ) {
-			$image->stripMetadata(false);
+		if ( $this->settings->get( 'strip_metadata' ) === 'disabled' ) {
+			$image->stripMetadata( false );
 		}
 
 		if ( ! apply_filters( 'optml_should_avif_ext', true, $ext, $original_url ) || $this->settings->get( 'avif' ) === 'disabled' ) {
@@ -354,7 +354,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		$watermark = $settings['watermark'];
 
-		if ( ! isset( $watermark['id'], $watermark['opacity'], $watermark['position'] ) || $watermark['id'] <= 0) {
+		if ( ! isset( $watermark['id'], $watermark['opacity'], $watermark['position'] ) || $watermark['id'] <= 0 ) {
 			return;
 		}
 
