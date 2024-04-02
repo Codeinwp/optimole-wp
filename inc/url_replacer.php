@@ -283,8 +283,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$image->format( 'best' );
 		}
 
-		if ( $this->settings->get( 'strip_metadata' ) !== 'disabled' ) {
-			$image->stripMetadata();
+        if ( $this->settings->get( 'strip_metadata' ) === 'disabled' ) {
+			$image->stripMetadata(false);
 		}
 
 		if ( ! apply_filters( 'optml_should_avif_ext', true, $ext, $original_url ) || $this->settings->get( 'avif' ) === 'disabled' ) {
