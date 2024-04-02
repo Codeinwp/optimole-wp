@@ -28,6 +28,14 @@ module.exports = function (grunt) {
 
 			}
 		},
+		readmetxt: {
+			options: {
+				prefix: 'Stable tag:\\s*'
+			},
+			src: [
+				'readme.txt'
+			]
+		},
 		wp_readme_to_markdown: {
 			plugin: {
 				files: {
