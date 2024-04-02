@@ -266,7 +266,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		$image->width( ! empty( $args['width'] ) ? $args['width'] : 'auto' );
 		$image->height( ! empty( $args['height'] ) ? $args['height'] : 'auto' );
 
-		$image->quality( $args['quality'] ?? 'mauto' );
+		$image->quality( $args['quality'] ?? $this->to_accepted_quality( $this->settings->get_quality() ) );
 
 		if ( ! empty( $args['resize'] ) ) {
 			$this->apply_resize( $image, $args['resize'] );
