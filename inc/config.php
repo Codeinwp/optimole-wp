@@ -127,6 +127,6 @@ class Optml_Config {
 			self::$service_url = constant( 'OPTML_CUSTOM_DOMAIN' );
 		}
 
-		Optimole::init( self::$key, [ 'base_domain' => ! empty( $service_settings['domain'] ) ? $service_settings['domain'] : self::$base_domain ] );
+		Optimole::init( self::$key, [ 'domain' => parse_url( self::$service_url, PHP_URL_HOST ) ] );
 	}
 }
