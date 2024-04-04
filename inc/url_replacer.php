@@ -194,7 +194,15 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 				$new_url = str_replace( '/' . $url, $id_and_filename, $new_url );
 			}
 		} else {
-			$new_url = ( new Optml_Asset( $url, $args, $this->active_cache_buster_assets, $this->is_css_minify_on, $this->is_js_minify_on ) )->get_url();
+			$asset = Optimole::asset( $url, $this->active_cache_buster_assets );
+
+			if ( stripos( $url, '.css' ) || stripos( $url, '.js' ) ) {
+				$asset->quality();
+			}
+
+			$asset->minify( ( $this->is_css_minify_on && str_ends_with( strtolower( $url ), '.css' ) ) || ( $this->is_js_minify_on && str_ends_with( strtolower( $url ), '.js' ) ) );
+
+			return $asset->getUrl();
 		}
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
