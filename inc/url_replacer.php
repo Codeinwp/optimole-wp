@@ -339,9 +339,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 * Apply resize to image.
 	 *
 	 * @param Image $image Image object.
+	 * @param mixed $resize Resize arguments.
 	 */
-	private function apply_resize( $image, $resize ) {
-		if ( ! $image instanceof Image || ! is_array( $resize ) || empty( $resize['type'] ) ) {
+	private function apply_resize( Image $image, $resize ) {
+		if ( ! is_array( $resize ) || empty( $resize['type'] ) ) {
 			return;
 		}
 
@@ -353,10 +354,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 *
 	 * @param Image $image Image object.
 	 */
-	private function apply_watermark( $image ) {
+	private function apply_watermark( Image $image ) {
 		$settings = $this->settings->get_site_settings();
 
-		if ( empty( $settings['watermark'] ) || ! $image instanceof Image ) {
+		if ( empty( $settings['watermark'] ) ) {
 			return;
 		}
 
@@ -376,7 +377,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 *
 	 * @return string
 	 */
-	private function get_dam_url( $image ) {
+	private function get_dam_url( Image $image ) {
 		// Remove DAM flag.
 		$url = str_replace( Optml_Dam::URL_DAM_FLAG, '', $image->getSource() );
 
@@ -400,6 +401,6 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 * @return bool
 	 */
 	private function is_dam_url( $url ) {
-		return strpos( $url, Optml_Dam::URL_DAM_FLAG ) !== false;
+		return is_string( $url ) && strpos( $url, Optml_Dam::URL_DAM_FLAG ) !== false;
 	}
 }
