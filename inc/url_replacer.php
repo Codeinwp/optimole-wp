@@ -256,6 +256,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			}
 		}
 
+		if ( empty( $args['quality'] ) ) {
+			$args['quality'] = $this->to_accepted_quality( $this->settings->get_quality() );
+		}
+
 		if ( isset( $args['resize'], $args['resize']['gravity'] ) && $this->settings->is_smart_cropping() ) {
 			$args['resize']['gravity'] = Optml_Resize::GRAVITY_SMART;
 		}
@@ -266,7 +270,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		$image->width( ! empty( $args['width'] ) ? $args['width'] : 'auto' );
 		$image->height( ! empty( $args['height'] ) ? $args['height'] : 'auto' );
 
-		$image->quality( $args['quality'] ?? $this->to_accepted_quality( $this->settings->get_quality() ) );
+		$image->quality( $args['quality'] );
 
 		if ( ! empty( $args['resize'] ) ) {
 			$this->apply_resize( $image, $args['resize'] );
@@ -293,6 +297,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		if ( apply_filters( 'optml_keep_copyright', false ) === true ) {
 			$image->keepCopyright();
+		}
+
+		if ( $this->is_dam_url( $image->getSource() ) ) {
+			return $this->get_dam_url( $image );
 		}
 
 		return $image->getUrl();
@@ -359,5 +367,39 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		}
 
 		$image->watermark( $watermark['id'], $watermark['opacity'], $watermark['position'], $watermark['x_offset'] ?? 0, $watermark['y_offset'] ?? 0, $watermark['scale'] ?? 0 );
+	}
+
+	/**
+	 * Get the DAM image URL.
+	 *
+	 * @param Image $image Image object.
+	 *
+	 * @return string
+	 */
+	private function get_dam_url( $image ) {
+		// Remove DAM flag.
+		$url = str_replace( Optml_Dam::URL_DAM_FLAG, '', $image->getSource() );
+
+		foreach ( $image->getProperties() as $property ) {
+			[ $name, $value ] = explode( ':', $property );
+
+			// Check if the property exists in the URL, if so, replace it with the current property value. Otherwise, add it before the /q: param.
+			$url = strpos( $url, '/' . $name . ':' ) !== false
+				? preg_replace( '/\/' . $name . ':.*?\//', '/' . $name . ':' . $value . '/', $url )
+				: str_replace( '/q:', '/' . $name . ':' . $value . '/q:', $url );
+		}
+
+		return $url;
+	}
+
+	/**
+	 * Check if this contains the DAM flag.
+	 *
+	 * @param string $url The URL to check.
+	 *
+	 * @return bool
+	 */
+	private function is_dam_url( $url ) {
+		return strpos( $url, Optml_Dam::URL_DAM_FLAG ) !== false;
 	}
 }
