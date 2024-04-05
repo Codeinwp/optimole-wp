@@ -6,6 +6,9 @@
  * @author     Optimole <friends@optimole.com>
  */
 
+use Optimole\Sdk\Optimole;
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * Class Optml_Admin
  */
@@ -1183,25 +1186,23 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				return $image;
 			}
 			$url           = self::get_original_url( $attachment_id );
-			$optimized_url = ( new Optml_Image(
-				$url,
-				[
-					'width'   => $data['width'],
-					'height' => $data['height'],
-					'resize' => $resize,
-					'quality' => $this->settings->get_numeric_quality(),
-				],
-				$this->settings->get( 'cache_buster' )
-			) )->get_url();
-			$optimized_url = str_replace( $url, $id_filename[1], $optimized_url );
-			$image         = [
-				$optimized_url,
+			$optimized_image = Optimole::image( $url, $this->settings->get( 'cache_buster' ) )
+				->width( $data['width'] )
+				->height( $data['height'] );
+
+			if ( ! empty( $resize['type'] ) ) {
+				$optimized_image->resize( $resize['type'], $resize['gravity'] ?? Position::CENTER, $resize['enlarge'] ?? false );
+
+			}
+
+			$optimized_image->quality( $this->settings->get_numeric_quality() );
+
+			return [
+				str_replace( $url, $id_filename[1], $optimized_image->getUrl() ),
 				$data['width'],
 				$data['height'],
 				true,
 			];
-
-			return $image;
 		}
 
 		if ( ! $this->is_new_offloaded_attachment( $attachment_id ) ) {
