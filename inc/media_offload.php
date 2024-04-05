@@ -6,9 +6,6 @@
  * @author     Optimole <friends@optimole.com>
  */
 
-use Optimole\Sdk\Optimole;
-use Optimole\Sdk\ValueObject\Position;
-
 /**
  * Class Optml_Admin
  */
@@ -1186,19 +1183,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				return $image;
 			}
 			$url           = self::get_original_url( $attachment_id );
-			$optimized_image = Optimole::image( $url, $this->settings->get( 'cache_buster' ) )
-				->width( $data['width'] )
-				->height( $data['height'] );
-
-			if ( ! empty( $resize['type'] ) ) {
-				$optimized_image->resize( $resize['type'], $resize['gravity'] ?? Position::CENTER, $resize['enlarge'] ?? false );
-
-			}
-
-			$optimized_image->quality( $this->settings->get_numeric_quality() );
 
 			return [
-				str_replace( $url, $id_filename[1], $optimized_image->getUrl() ),
+				str_replace( $url, $id_filename[1], $this->get_optimized_image_url( $url, $data['width'], $data['height'], $resize ) ),
 				$data['width'],
 				$data['height'],
 				true,
