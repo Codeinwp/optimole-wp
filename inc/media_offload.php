@@ -2383,7 +2383,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 
 			// Build the optimized URL.
-			$optimized_url = $this->get_optimized_image_url( self::KEYS['not_processed_flag'] . $attachment_id . '/' . rtrim( $this->get_offloaded_attachment_url( $attachment_id, $url ), '/' ), $width, $height, $resize );
+			$optimized_url = $this->get_optimized_image_url( self::KEYS['not_processed_flag'] . $attachment_id . '/' . ltrim( $this->get_offloaded_attachment_url( $attachment_id, $url ), '/' ), $width, $height, $resize );
 
 			// Drop any image size from the URL.
 			$optimized_url = str_replace( '-' . $width . 'x' . $height, '', $optimized_url );
