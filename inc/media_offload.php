@@ -1114,8 +1114,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			$file = $meta['file'];
 			if ( self::is_uploaded_image( $file ) ) {
-				$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
-				return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $attachment_id . $file, $optimized_url );
+				return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $attachment_id . $file, $this->get_optimized_image_url( $url, 'auto', 'auto' ) );
 			} else {
 				// this is for the users that already offloaded the images before the other fixes
 				$local_file = get_attached_file( $attachment_id );
@@ -1126,8 +1125,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 							if ( ! empty( $id ) ) {
 								$duplicated_meta = wp_get_attachment_metadata( $id );
 								if ( isset( $duplicated_meta['file'] ) && self::is_uploaded_image( $duplicated_meta['file'] ) ) {
-									$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
-									return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $id . $duplicated_meta['file'], $optimized_url );
+									return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $id . $duplicated_meta['file'], $this->get_optimized_image_url( $url, 'auto', 'auto' ) );
 								}
 							}
 						}

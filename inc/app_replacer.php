@@ -636,16 +636,16 @@ abstract class Optml_App_Replacer {
 	 * Get the optimized image url for the image url.
 	 *
 	 * @param string $url    The image URL.
-	 * @param int    $width  The image width.
-	 * @param int    $height The image height.
+	 * @param mixed  $width  The image width.
+	 * @param mixed  $height The image height.
 	 * @param array  $resize The resize properties.
 	 *
 	 * @return string
 	 */
-	protected function get_optimized_image_url( $url, $width, $height, $resize ) {
+	protected function get_optimized_image_url( $url, $width, $height, $resize = [] ) {
 		$optimized_image = Optimole::image( $url, $this->settings->get( 'cache_buster' ) )
-			->width( (int) $width )
-			->height( (int) $height );
+			->width( $width )
+			->height( $height );
 
 		if ( is_array( $resize ) && ! empty( $resize['type'] ) ) {
 			$optimized_image->resize( $resize['type'], $resize['gravity'] ?? Position::CENTER, $resize['enlarge'] ?? false );
