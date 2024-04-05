@@ -231,7 +231,7 @@ class Test_Media extends WP_UnitTestCase {
 	public function test_duplicated_image() {
 
 		$content =  wp_get_attachment_image( self::$sample_attachement_upper_case );
-		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:". self::$sample_attachement_upper_case ."/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1PQ7p-2.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content);
+		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/rt:fill/g:ce/q:mauto/process:". self::$sample_attachement_upper_case ."/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1PQ7p-2.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content);
 	}
 	public function test_page_images_process() {
 		Optml_Tag_Replacer::$lazyload_skipped_images = 4;
@@ -270,10 +270,10 @@ class Test_Media extends WP_UnitTestCase {
 		$my_size_image = wp_get_attachment_image_src(self::$sample_attachement, 'my_size_crop' );
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $my_size_image[0] );
-		$this->assertStringContainsString('/w:200/h:200/q:mauto/rt:fill/g:nowe/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $my_size_image[0]);
+		$this->assertStringContainsString('/w:200/h:200/rt:fill/g:nowe/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $my_size_image[0]);
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $image_thumbnail_size[0] );
-		$this->assertStringContainsString( '/w:150/h:150/q:mauto/rt:fill/g:ce/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $image_thumbnail_size[0] );
+		$this->assertStringContainsString( '/w:150/h:150/rt:fill/g:ce/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $image_thumbnail_size[0] );
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $image_medium_size[0] );
 		$this->assertStringContainsString( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $image_medium_size[0] );
@@ -299,7 +299,7 @@ class Test_Media extends WP_UnitTestCase {
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $image_thumbnail_size[0] );
-		$this->assertStringContainsString( '/w:150/h:150/q:mauto/rt:fill/g:ce/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $image_thumbnail_size[0] );
+		$this->assertStringContainsString( '/w:150/h:150/rt:fill/g:ce/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $image_thumbnail_size[0] );
 
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $image_medium_size[0] );
@@ -333,7 +333,7 @@ class Test_Media extends WP_UnitTestCase {
 	public function test_special_characters_upload() : void {
 		$special_character_attachment = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/special-characters-•⋿∀.jpg' );
 		$content = wp_get_attachment_image( $special_character_attachment );
-		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:". $special_character_attachment ."/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/special-characters-•⋿∀.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content );
+		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/rt:fill/g:ce/q:mauto/process:". $special_character_attachment ."/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/special-characters-•⋿∀.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content );
 	}
 
 	/**

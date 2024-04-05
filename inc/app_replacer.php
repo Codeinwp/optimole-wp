@@ -652,7 +652,7 @@ abstract class Optml_App_Replacer {
 
 		}
 
-		$optimized_image->quality( $this->settings->get_numeric_quality() );
+		$optimized_image->quality( $this->settings->to_accepted_quality( $this->settings->get_quality() ) );
 
 		return $optimized_image->getUrl();
 	}
