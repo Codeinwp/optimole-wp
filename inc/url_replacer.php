@@ -2,6 +2,7 @@
 
 use Optimole\Sdk\Optimole;
 use Optimole\Sdk\Resource\Image;
+use Optimole\Sdk\Resource\ImageProperty\GravityProperty;
 use Optimole\Sdk\ValueObject\Position;
 
 /**
@@ -93,9 +94,6 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		add_filter( 'optml_replace_image', [ $this, 'build_url' ], 10, 2 );
 		parent::init();
 
-		Optml_Quality::$default_quality = $this->to_accepted_quality( $this->settings->get_quality() );
-		Optml_Image::$watermark         = new Optml_Watermark( $this->settings->get_site_settings()['watermark'] );
-		Optml_Resize::$default_enlarge  = apply_filters( 'optml_always_enlarge', false );
 		add_filter( 'optml_content_url', [ $this, 'build_url' ], 1, 2 );
 
 	}
@@ -269,7 +267,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		}
 
 		if ( isset( $args['resize'], $args['resize']['gravity'] ) && $this->settings->is_smart_cropping() ) {
-			$args['resize']['gravity'] = Optml_Resize::GRAVITY_SMART;
+			$args['resize']['gravity'] = GravityProperty::SMART;
 		}
 
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
