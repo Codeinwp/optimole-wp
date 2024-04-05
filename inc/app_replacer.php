@@ -1,5 +1,8 @@
 <?php
 
+use Optimole\Sdk\Optimole;
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * Class Optml_App_Replacer
  *
@@ -615,9 +618,18 @@ abstract class Optml_App_Replacer {
 	 * @return string The optimized url.
 	 */
 	public function get_media_optimized_url( $url, $table_id, $width = 'auto', $height = 'auto', $resize = [] ) {
-		$optimized_url = ( new Optml_Image( $url, ['width' => $width, 'height' => $height, 'resize' => $resize, 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
-		$optimized_url = str_replace( $url, Optml_Media_Offload::KEYS['not_processed_flag'] . 'media_cloud' . '/' . Optml_Media_Offload::KEYS['uploaded_flag'] . $table_id . '/' . $url, $optimized_url );
-		return $optimized_url;
+		$optimized_image = Optimole::image( $url, $this->settings->get( 'cache_buster' ) )
+			->width( $width )
+			->height( $height );
+
+		if ( ! empty( $resize['type'] ) ) {
+			$optimized_image->resize( $resize['type'], $resize['gravity'] ?? Position::CENTER, $resize['enlarge'] ?? false );
+
+		}
+
+		$optimized_image->quality( $this->settings->get_numeric_quality() );
+
+		return str_replace( $url, Optml_Media_Offload::KEYS['not_processed_flag'] . 'media_cloud' . '/' . Optml_Media_Offload::KEYS['uploaded_flag'] . $table_id . '/' . $url, $optimized_image->getUrl() );
 	}
 
 	/**
