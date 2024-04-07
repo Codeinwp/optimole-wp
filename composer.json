@@ -56,6 +56,6 @@
   "require": {
     "php": ">=7.4",
     "codeinwp/themeisle-sdk": "^3.3",
-    "codeinwp/optimole-sdk": "@dev"
+    "codeinwp/optimole-sdk": "^1.0"
   }
 }
