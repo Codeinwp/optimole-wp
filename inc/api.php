@@ -198,7 +198,7 @@ final class Optml_Api {
 
 		if ( intval( $response['code'] ) !== 200 ) {
 			if ( isset( $response['error'] ) && $response['error'] === 'domain_not_accessible' ) {
-				return new WP_Error( 'domain_not_accessible', sprintf( __( 'It seems Optimole is having trouble reaching your website. This issue often occurs if your website is private, local, or protected by a firewall. But don\'t stress – it\'s an easy fix! Ensure your website is live and accessible to the public. If a firewall is in place, just tweak the settings to allow the %1$sOptimole(1.0)%2$s user agent access to your website. %3$sLearn More%4$s', 'optimole-wp' ), '<i>', '</i>', '<a href="https://docs.optimole.com/article/1976-resolving-optimole-access-to-your-website" target="_blank">', '</a>' ) );
+				return new WP_Error( 'domain_not_accessible', sprintf( /* translators: 1 start of the italic tag, 2 is the end of italic tag,  3 is starting anchor tag, 4 is the ending anchor tag. */ __( 'It seems Optimole is having trouble reaching your website. This issue often occurs if your website is private, local, or protected by a firewall. But don\'t stress – it\'s an easy fix! Ensure your website is live and accessible to the public. If a firewall is in place, just tweak the settings to allow the %1$sOptimole(1.0)%2$s user agent access to your website. %3$sLearn More%4$s', 'optimole-wp' ), '<i>', '</i>', '<a href="https://docs.optimole.com/article/1976-resolving-optimole-access-to-your-website" target="_blank">', '</a>' ) );
 			}
 			if ( $path === 'optml/v2/account/complete_register_remote' && isset( $response['error'] ) ) {
 				if ( strpos( $response['error'], 'This email address is already registered.' ) !== false ) {
