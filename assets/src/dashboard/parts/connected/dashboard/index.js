@@ -156,7 +156,7 @@ const Dashboard = () => {
 							<Button
 								variant="default"
 								className="optml__button rounded font-bold min-h-40"
-								href="https://dashboard.optimole.com/settings/billing"
+								href={ optimoleDashboardApp.optimoleDashBilling }
 								target="_blank"
 							>
 								{ optimoleDashboardApp.strings.upgrade.title }

@@ -22,7 +22,9 @@ class Optml_w3_total_cache_cdn extends Optml_Abstract_Conflict {
 	 * @access  public
 	 */
 	public function define_message() {
-		$this->message = sprintf( __( 'It seems your are using W3 Total Cache. %1$s If you are using the css or javascript minify/combine option from  %2$sW3 Total Cache -> Perfomance -> Minify page.%3$s %1$s Add this line: %4$s to Include external files/libraries and check Use regular expressions for file matching checkbox. ', 'optimole-wp' ), '<br/>', '<a target="_blank" href="' . admin_url( 'admin.php?page=w3tc_minify' ) . '">', '</a>', 'https://' . Optml_Main::instance()->admin->settings->get_cdn_url() . '/*' );
+
+		/* translators: 1 is new line tag, 2 is the starting anchor tag, 3 is the ending anchor tag and 4 is the domain name of Optimole */
+		$this->message = sprintf( __( 'It seems your are using W3 Total Cache. %1$s If you are using the CSS or JavaScript minify/combine option from  %2$sW3 Total Cache -> Performance -> Minify page %3$s %1$s add this line: %4$s to Include external files/libraries and check Use regular expressions for file matching checkbox.', 'optimole-wp' ), '<br/>', '<a target="_blank" href="' . admin_url( 'admin.php?page=w3tc_minify' ) . '">', '</a>', 'https://' . Optml_Main::instance()->admin->settings->get_cdn_url() . '/*' );
 	}
 
 	/**
