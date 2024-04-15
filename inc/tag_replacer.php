@@ -331,6 +331,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$new_tag = $is_slashed ? str_replace( 'loading=\"lazy\"', 'loading=\"eager\"', $new_tag ) : str_replace( 'loading="lazy"', 'loading="eager"', $new_tag );
 			}
 		}
+		// If the image is between the first images we add the fetchpriority attribute to improve the LCP.
+		if ( self::$lazyload_skipped_images < Optml_Lazyload_Replacer::get_skip_lazyload_limit() ) {
+			if ( strpos( $new_tag, 'fetchpriority=' ) === false ) {
+				$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img fetchpriority=\"high\"' : '<img fetchpriority="high"', $new_tag );
+			}
+		}
 
 		self::$lazyload_skipped_images ++;
 		return preg_replace( $pattern, $replace, $new_tag );

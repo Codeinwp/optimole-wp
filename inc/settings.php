@@ -758,7 +758,7 @@ class Optml_Settings {
 				 *
 				 * @var WP_Error $data Error object.
 				 */
-				$extra = sprintf( __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
+				$extra = sprintf( /* translators: Error details */ __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
 			}
 
 			return new WP_Error( 'optimole_cache_buster_error', __( 'Can not get new token from Optimole service', 'optimole-wp' ) . $extra );
