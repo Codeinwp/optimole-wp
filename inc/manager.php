@@ -198,7 +198,7 @@ final class Optml_Manager {
 
 		$logo = OPTML_URL . 'assets/img/logo.svg';
 
-		$link = 'https://optimole.com/wordpress/?from=badgeOn';
+		$link = tsdk_translate_link( 'https://optimole.com/wordpress/?from=badgeOn' );
 
 		$css = '';
 

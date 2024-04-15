@@ -120,7 +120,7 @@ const Header = ({
 								controls={ [
 									{
 										title: optimoleDashboardApp.strings.optimole + ' ' + optimoleDashboardApp.strings.dashboard_menu_item,
-										onClick: () => window.open( 'https://dashboard.optimole.com/', '_blank' )
+										onClick: () => window.open( optimoleDashboardApp.optimoleDashHome, '_blank' )
 									},
 									{
 										title: optimoleDashboardApp.strings.refresh_stats_cta,

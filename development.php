@@ -10,7 +10,6 @@ if ( ! empty( getenv( 'WP_TESTS_DIR' ) ) ) {
 if ( ! defined( 'ENABLE_OPTIMOLE_WP_DEV' ) ) {
 	define( 'ENABLE_OPTIMOLE_WP_DEV', true );
 }
-
 if ( ENABLE_OPTIMOLE_WP_DEV ) {
 	$optiml_constants = [
 		'OPTIML_API_ROOT'         => 'https://staging-dashboard.optimole.com/api/',

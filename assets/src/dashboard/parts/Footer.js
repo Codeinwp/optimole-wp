@@ -3,19 +3,19 @@ import { ExternalLink } from '@wordpress/components';
 const footerMenu = [
 	{
 		label: optimoleDashboardApp.strings.optimole + ' ' + optimoleDashboardApp.strings.version,
-		href: 'https://optimole.com/'
+		href: optimoleDashboardApp.optimoleHome
 	},
 	{
 		label: optimoleDashboardApp.strings.terms_menu,
-		href: 'https://optimole.com/terms/'
+		href: optimoleDashboardApp.optimoleHome + 'terms/'
 	},
 	{
 		label: optimoleDashboardApp.strings.privacy_menu,
-		href: 'https://optimole.com/privacy-policy/'
+		href: optimoleDashboardApp.optimoleHome + 'privacy-policy/'
 	},
 	{
 		label: optimoleDashboardApp.strings.testdrive_menu,
-		href: 'https://optimole.com/test-drive?url=' + optimoleDashboardApp.home_url
+		href: optimoleDashboardApp.optimoleHome + 'test-drive?url=' + optimoleDashboardApp.home_url
 	}
 ];
 

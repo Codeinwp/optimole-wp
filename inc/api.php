@@ -174,16 +174,16 @@ final class Optml_Api {
 				$url = add_query_arg( [ $key => $val ], $url );
 			}
 		}
+		$url = tsdk_translate_link( $url, 'query' );
+
 		$args = $this->build_args( $method, $url, $headers, $params );
 
 		$response = wp_remote_request( $url, $args );
-
 		if ( is_wp_error( $response ) ) {
 			return $response;
 		}
 
 		$response = wp_remote_retrieve_body( $response );
-
 		if ( empty( $response ) ) {
 			return false;
 		}
