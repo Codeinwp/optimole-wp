@@ -30,6 +30,7 @@ if ( 'undefined' !== typeof window && optimoleDashboardApp.user_data.plan ) {
 		attributes: {
 			plan: optimoleDashboardApp.user_data.plan,
 			status: optimoleDashboardApp.user_data.status,
+			language: optimoleDashboardApp.language,
 			cname_assigned: optimoleDashboardApp.user_data.is_cname_assigned || 'no',
 			connected_websites: optimoleDashboardApp.user_data.whitelist.length,
 			traffic: convertToCategory( optimoleDashboardApp.user_data.traffic, 500 ),
