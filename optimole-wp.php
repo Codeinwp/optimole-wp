@@ -55,7 +55,22 @@ function optml_deactivate() {
 function optml_php_notice() {
 	?>
 	<div class="notice notice-error is-dismissible">
-		<?php echo sprintf( __( '%1$s You\'re using a PHP version lower than 5.4! %2$sOptimole%3$s requires at least %4$sPHP 5.4%5$s to function properly. Plugin has been deactivated. %6$sLearn more here%5$s. %7$s', 'optimole-wp' ), '<p>', '<b>', '</b>', '<b>', '</b>', '<a href="https://themeisle.com/blog/upgrade-wordpress-to-php-7/" target="_blank">', '</a>', '</p>' ); ?>
+		<?php
+
+		echo sprintf(
+		/* translators: 1 - opening paragraph tag, 2 - PHP Version, 3 - opening bold tag, 4 - closing bold tag, 5 - opening bold tag, 6 - closing bold tag, 7 - opening anchor tag, 8 - closing anchor tag, 9 - closing paragraph tag */
+			__( '%1$s You\'re using a PHP version lower than %2$s! %3$sOptimole%4$s requires at least %5$sPHP %2$s%6$s to function properly. Plugin has been deactivated. %7$sLearn more here%8$s. %9$s', 'optimole-wp' ),
+			'<p>',
+			'5.4',
+			'<b>',
+			'</b>',
+			'<b>',
+			'</b>',
+			'<a href="https://themeisle.com/blog/upgrade-wordpress-to-php-7/" target="_blank">',
+			'</a>',
+			'</p>'
+		);
+		?>
 	</div>
 	<?php
 }

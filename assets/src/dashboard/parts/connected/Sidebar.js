@@ -95,7 +95,7 @@ const Sidebar = () => {
 					<Button
 						variant="link"
 						className="optml__button flex w-full justify-center font-bold min-h-40 !no-underline !text-white !bg-opaque-black !rounded"
-						href="https://optimole.com/pricing"
+						href={ optimoleDashboardApp.optimoleHome +  'pricing' }
 						target="_blank"
 					>
 						{ optimoleDashboardApp.strings.upgrade.cta }
@@ -105,7 +105,7 @@ const Sidebar = () => {
 				<Button
 					variant="default"
 					className="bg-white flex font-bold border-0 rounded-lg shadow-md p-8 text-sm justify-center"
-					href={ addQueryArgs( 'https://optimole.com/contact/', {
+					href={ addQueryArgs( optimoleDashboardApp.optimoleHome + 'contact/', {
 						contact_name: window.optimoleDashboardApp.user_data.display_name,
 						contact_email: optimoleDashboardApp.user_data.user_email,
 						contact_website: optimoleDashboardApp.home_url
