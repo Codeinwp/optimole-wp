@@ -4,7 +4,7 @@ Tags: image optimization, convert webp, image optimizer, lazy load, image, optim
 Requires at least: 5.5
 Tested up to: 6.5
 Requires PHP: 5.4
-Stable tag: 3.12.6
+Stable tag: 3.12.7
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -149,6 +149,16 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 5. Cloud Storage
 
 == Changelog ==
+
+##### [Version 3.12.7](https://github.com/Codeinwp/optimole-wp/compare/v3.12.6...v3.12.7) (2024-04-16)
+
+- Resolved an issue where the admin style was loaded prematurely.
+- Enhanced Largest Contentful Paint (LCP) by prioritizing the loading of initial images that are not affected by lazyload.
+- Improved support for multiple languages and enhanced plugin translations.
+- Remove WP_DISABLE_CRON false positive detection of a not working wp-cron.
+
+
+
 
 ##### [Version 3.12.6](https://github.com/Codeinwp/optimole-wp/compare/v3.12.5...v3.12.6) (2024-03-22)
 
