@@ -1197,8 +1197,15 @@ class Optml_Admin {
 				$routes[ $route ] = OPTML_NAMESPACE . '/v1/' . $route;
 			}
 		}
-
-		$cron_disabled = apply_filters( 'optml_offload_wp_cron_disabled', defined( 'DISABLE_WP_CRON' ) && constant( 'DISABLE_WP_CRON' ) === true );
+		// Disable this for now, we need a better way to detect it.
+		// $cron_disabled = apply_filters( 'optml_offload_wp_cron_disabled', defined( 'DISABLE_WP_CRON' ) && constant( 'DISABLE_WP_CRON' ) === true );
+		$cron_disabled = false;
+		$language = get_user_locale();
+		$available_languages = [
+			'de_DE'        => 'de',
+			'de_DE_formal' => 'de',
+		];
+		$lang_code = isset( $available_languages[ $language ] ) ? 'de' : 'en';
 
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
@@ -1210,6 +1217,7 @@ class Optml_Admin {
 			'available_apps'             => $available_apps,
 			'api_key'                    => $api_key,
 			'routes'                     => $routes,
+			'language'                   => $lang_code,
 			'nonce'                      => wp_create_nonce( 'wp_rest' ),
 			'user_data'                  => $service_data,
 			'remove_latest_images'       => defined( 'OPTML_REMOVE_LATEST_IMAGES' ) && constant( 'OPTML_REMOVE_LATEST_IMAGES' ) ? ( OPTML_REMOVE_LATEST_IMAGES ? 'yes' : 'no' ) : 'no',
