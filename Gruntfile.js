@@ -26,15 +26,15 @@ module.exports = function (grunt) {
 				},
 				src: [ 'optimole-wp.php' ]
 
-			}
-		},
-		readmetxt: {
-			options: {
-				prefix: 'Stable tag:\\s*'
 			},
-			src: [
-				'readme.txt'
-			]
+			readmetxt: {
+				options: {
+					prefix: 'Stable tag:\\s*'
+				},
+				src: [
+					'readme.txt'
+				]
+			},
 		},
 		wp_readme_to_markdown: {
 			plugin: {
