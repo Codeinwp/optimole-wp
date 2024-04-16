@@ -4,7 +4,7 @@ Tags: image optimization, convert webp, image optimizer, lazy load, image, optim
 Requires at least: 5.5
 Tested up to: 6.5
 Requires PHP: 5.4
-Stable tag: 3.12.7
+Stable tag: 3.12.8
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -149,6 +149,13 @@ Discover how to make the most of Otter Blocks with our detailed and user-friendl
 5. Cloud Storage
 
 == Changelog ==
+
+##### [Version 3.12.8](https://github.com/Codeinwp/optimole-wp/compare/v3.12.7...v3.12.8) (2024-04-16)
+
+- Hotfix for a compatibility issue with one of the dependencies affecting a small subset of users.
+
+
+
 
 ##### [Version 3.12.7](https://github.com/Codeinwp/optimole-wp/compare/v3.12.6...v3.12.7) (2024-04-16)
 
