@@ -1,3 +1,7 @@
+##### [Version 3.12.8](https://github.com/Codeinwp/optimole-wp/compare/v3.12.7...v3.12.8) (2024-04-16)
+
+- Hotfix for a compatibility issue with one of the dependencies affecting a small subset of users.
+
 ##### [Version 3.12.7](https://github.com/Codeinwp/optimole-wp/compare/v3.12.6...v3.12.7) (2024-04-16)
 
 - Resolved an issue where the admin style was loaded prematurely.
