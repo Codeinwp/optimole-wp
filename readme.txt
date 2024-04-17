@@ -157,6 +157,14 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 [See changelog for all versions](https://github.com/Codeinwp/optimole-wp/blob/master/CHANGELOG.md).
 
 
+== Installation ==
+The following are the steps to install the OptiMole plugin
+
+1. In your WordPress Administration Panels, click on Add New option under Plugins from the menu.
+Click on upload at the top.
+2. Browse the location and select the OptiMole Plugin and click install now.
+3. Go to Media -> OptiMole and follow in the instructions on how to enable the service.
+
 == Frequently Asked Questions ==
 
 = How many images I can optimize with each plan? =
