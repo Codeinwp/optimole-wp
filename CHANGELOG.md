@@ -1,3 +1,8 @@
+##### [Version 3.12.9](https://github.com/Codeinwp/optimole-wp/compare/v3.12.8...v3.12.9) (2024-04-18)
+
+- Fixed an issue where offload logs failed to load in some cases.
+- Adjusted the conditions for displaying early upgrade notices to prevent premature notifications.
+
 ##### [Version 3.12.8](https://github.com/Codeinwp/optimole-wp/compare/v3.12.7...v3.12.8) (2024-04-16)
 
 - Hotfix for a compatibility issue with one of the dependencies affecting a small subset of users.
