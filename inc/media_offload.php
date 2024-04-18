@@ -35,12 +35,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public $logger;
 
 	const KEYS = [
-		'uploaded_flag'        => 'id:',
-		'not_processed_flag'        => 'process:',
+		'uploaded_flag'      => 'id:',
+		'not_processed_flag' => 'process:',
 	];
 	const META_KEYS = [
-		'offloaded'     => 'optimole_offload',
-		'offload_error' => 'optimole_offload_error',
+		'offloaded'      => 'optimole_offload',
+		'offload_error'  => 'optimole_offload_error',
 		'rollback_error' => 'optimole_rollback_error',
 	];
 	const OM_OFFLOADED_FLAG = 'om_image_offloaded';
@@ -84,6 +84,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @param string $action The action for which the args are needed.
 	 * @param array  $args The initial args without the added meta_query args.
+	 *
 	 * @return array The args with the added meta_query args.
 	 */
 	public static function add_page_meta_query_args( $action, $args ) {
@@ -91,7 +92,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$args['meta_query'] = [
 				'relation' => 'AND',
 				[
-					'key' => self::POST_OFFLOADED_FLAG,
+					'key'     => self::POST_OFFLOADED_FLAG,
 					'compare' => 'NOT EXISTS',
 				],
 			];
@@ -100,18 +101,19 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$args['meta_query'] = [
 				'relation' => 'AND',
 				[
-					'key' => self::POST_ROLLBACK_FLAG,
+					'key'     => self::POST_ROLLBACK_FLAG,
 					'compare' => 'NOT EXISTS',
 				],
 			];
 			if ( self::$is_legacy_install ) {
 				$args['meta_query'][] = [
-					'key' => self::POST_OFFLOADED_FLAG,
-					'value' => 'true',
+					'key'     => self::POST_OFFLOADED_FLAG,
+					'value'   => 'true',
 					'compare' => '=',
 				];
 			}
 		}
+
 		return $args;
 	}
 
@@ -122,7 +124,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public static function number_of_all_images() {
 		$total_images_by_mime = wp_count_attachments( 'image' );
-		return  array_sum( (array) $total_images_by_mime );
+
+		return array_sum( (array) $total_images_by_mime );
 	}
 
 	/**
@@ -130,51 +133,84 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public static function instance() {
 		if ( null === self::$instance || self::is_phpunit_test() ) {
-			self::$instance = new self();
+			self::$instance           = new self();
 			self::$instance->settings = new Optml_Settings();
-			self::$instance->logger = Optml_Logger::instance();
+			self::$instance->logger   = Optml_Logger::instance();
 
 			if ( self::$instance->settings->is_connected() ) {
 				self::$instance->init();
 			}
 			if ( self::$instance->settings->is_offload_enabled() ) {
-				add_filter( 'image_downsize', [self::$instance, 'generate_filter_downsize_urls'], 10, 3 );
-				add_filter( 'wp_generate_attachment_metadata', [self::$instance, 'generate_image_meta'], 10, 2 );
-				add_filter( 'wp_get_attachment_url', [self::$instance, 'get_image_attachment_url'], -999, 2 );
-				add_filter( 'wp_insert_post_data', [self::$instance, 'filter_uploaded_images'] );
+				add_filter( 'image_downsize', [ self::$instance, 'generate_filter_downsize_urls' ], 10, 3 );
+				add_filter( 'wp_generate_attachment_metadata', [ self::$instance, 'generate_image_meta' ], 10, 2 );
+				add_filter( 'wp_get_attachment_url', [ self::$instance, 'get_image_attachment_url' ], - 999, 2 );
+				add_filter( 'wp_insert_post_data', [ self::$instance, 'filter_uploaded_images' ] );
 
 				self::$instance->add_new_actions();
 
-				add_action( 'delete_attachment', [self::$instance, 'delete_attachment_hook'], 10 );
-				add_filter( 'handle_bulk_actions-upload', [self::$instance, 'bulk_action_handler'], 10, 3 );
-				add_filter( 'bulk_actions-upload', [self::$instance, 'register_bulk_media_actions'] );
-				add_filter( 'media_row_actions', [self::$instance, 'add_inline_media_action'], 10, 2 );
-				add_filter( 'wp_calculate_image_srcset', [self::$instance, 'calculate_image_srcset'], 1, 5 );
-				add_action( 'post_updated', [self::$instance, 'update_offload_meta'], 10, 3 );
+				add_action( 'delete_attachment', [ self::$instance, 'delete_attachment_hook' ], 10 );
+				add_filter( 'handle_bulk_actions-upload', [ self::$instance, 'bulk_action_handler' ], 10, 3 );
+				add_filter( 'bulk_actions-upload', [ self::$instance, 'register_bulk_media_actions' ] );
+				add_filter( 'media_row_actions', [ self::$instance, 'add_inline_media_action' ], 10, 2 );
+				add_filter( 'wp_calculate_image_srcset', [ self::$instance, 'calculate_image_srcset' ], 1, 5 );
+				add_action( 'post_updated', [ self::$instance, 'update_offload_meta' ], 10, 3 );
 
 				// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
 				$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
 				if ( $below_6_0_0 ) {
-					add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert_legacy'], 10, 3 );
+					add_filter( 'wp_insert_attachment_data', [ self::$instance, 'insert_legacy' ], 10, 3 );
 				} else {
-					add_filter( 'wp_insert_attachment_data', [self::$instance, 'insert'], 10, 4 );
+					add_filter( 'wp_insert_attachment_data', [ self::$instance, 'insert' ], 10, 4 );
 				}
 
-				add_action( 'optml_start_processing_images', [self::$instance, 'start_processing_images'], 10, 5 );
-				add_action( 'optml_start_processing_images_by_id', [self::$instance, 'start_processing_images_by_id'], 10, 4 );
-
+				add_action( 'optml_start_processing_images', [ self::$instance, 'start_processing_images' ], 10, 5 );
+				add_action(
+					'optml_start_processing_images_by_id',
+					[
+						self::$instance,
+						'start_processing_images_by_id',
+					],
+					10,
+					4
+				);
+				add_action( 'init', [ self::$instance, 'maybe_reschedule' ] );
 				if ( self::$is_legacy_install === null ) {
 					self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) > 1677171600;
 				}
 			}
 		}
+
 		return self::$instance;
+	}
+
+	/**
+	 * Reschedule the transfer cron in case is missing or was lost.
+	 *
+	 * @return void
+	 */
+	function maybe_reschedule() {
+		// If this is in pending, we do nothing.
+		if ( self::is_scheduled( 'optml_start_processing_images' ) ) {
+			return;
+		}
+		// If there is no transfer in progress, we do nothing.
+		if ( self::$instance->settings->get( 'transfer_status' ) === 'disabled' ) {
+			return;
+		}
+		$transfer_type = self::$instance->settings->get( 'transfer_status' );
+		$in_progress   = self::$instance->settings->get( 'rollback_images' === $transfer_type ? 'rollback_status' : 'offloading_status' ) !== 'disabled';
+		// We check if there is an in progress transfer.
+		if ( ! $in_progress ) {
+			return;
+		}
+		self::$instance->logger->add_log( $transfer_type, 'Cron missed, attempt to reschedule.' );
+		self::get_image_count( $transfer_type, true );
 	}
 
 	/**
 	 * Function for `update_attached_file` filter-hook.
 	 *
-	 * @param string $file          Path to the attached file to update.
+	 * @param string $file Path to the attached file to update.
 	 * @param int    $attachment_id Attachment ID.
 	 *
 	 * @return string
@@ -184,8 +220,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', 'called updated attached' );
 		}
-		$info = pathinfo( $file );
-		$file_name = basename( $file );
+		$info             = pathinfo( $file );
+		$file_name        = basename( $file );
 		$no_ext_file_name = basename( $file, '.' . $info['extension'] );
 		// if we have current deduplication set and it contains the filename that is updated
 		// we replace the updated filename with the deduplicated filename
@@ -199,7 +235,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', self::$last_deduplicated );
 		}
-		remove_filter( 'update_attached_file', [self::$instance, 'wp_update_attached_file_filter'], 10 );
+		remove_filter( 'update_attached_file', [ self::$instance, 'wp_update_attached_file_filter' ], 10 );
+
 		return $file;
 	}
 
@@ -212,14 +249,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * For this we will hook `update_attached_file` filter which is called after the data is inserted and there we will make sure we replace the filename
 	 * with the deduplicated one which we stored into `$current_file_deduplication` variable
 	 *
-	 * @param array $data                An array of slashed, sanitized, and processed attachment post data.
-	 * @param array $postarr             An array of slashed and sanitized attachment post data, but not processed.
+	 * @param array $data An array of slashed, sanitized, and processed attachment post data.
+	 * @param array $postarr An array of slashed and sanitized attachment post data, but not processed.
 	 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data as originally passed to wp_insert_post().
-	 * @param bool  $update              Whether this is an existing attachment post being updated.
-	 *
-	 * @see self::insert_legacy() for backwards compatibility with older versions of WordPress < 6.0.0.
+	 * @param bool  $update Whether this is an existing attachment post being updated.
 	 *
 	 * @return array
+	 * @see self::insert_legacy() for backwards compatibility with older versions of WordPress < 6.0.0.
 	 */
 	function insert( $data, $postarr, $unsanitized_postarr, $update ) {
 
@@ -234,9 +270,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		$filename = wp_basename( $data['guid'] );
-		$ext = $this->get_ext( $filename );
+		$ext      = $this->get_ext( $filename );
 		// skip if the file is not an image
-		if ( ! isset( Optml_Config::$all_extensions[ $ext ] ) && ! in_array( $ext, ['jpg', 'jpeg', 'jpe'], true ) ) {
+		if ( ! isset( Optml_Config::$all_extensions[ $ext ] ) && ! in_array( $ext, [ 'jpg', 'jpeg', 'jpe' ], true ) ) {
 			return $data;
 		}
 
@@ -262,7 +298,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$data['guid'] = str_replace( $filename, $to_replace_with, $data['guid'] );
 			// we store the deduplication to be used and add the filter for updating the attached_file meta
 			self::$current_file_deduplication = $to_replace_with;
-			add_filter( 'update_attached_file', [self::$instance, 'wp_update_attached_file_filter'], 10, 2 );
+			add_filter( 'update_attached_file', [ self::$instance, 'wp_update_attached_file_filter' ], 10, 2 );
 		}
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', 'data after' );
@@ -275,8 +311,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Wrapper for the `insert` method for WP versions < 6.0.0.
 	 *
-	 * @param array $data                An array of slashed, sanitized, and processed attachment post data.
-	 * @param array $postarr             An array of slashed and sanitized attachment post data, but not processed.
+	 * @param array $data An array of slashed, sanitized, and processed attachment post data.
+	 * @param array $postarr An array of slashed and sanitized attachment post data, but not processed.
 	 * @param array $unsanitized_postarr An array of slashed yet *unsanitized* and unprocessed attachment post data as originally passed to wp_insert_post().
 	 *
 	 * @return array
@@ -291,9 +327,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param int     $post_ID Updated post id.
 	 * @param WP_Post $post_after Post before the update.
 	 * @param WP_Post $post_before Post after the update.
-	 * @uses action:post_updated
 	 *
 	 * @return void
+	 * @uses action:post_updated
 	 */
 	public function update_offload_meta( $post_ID, $post_after, $post_before ) {
 		if ( self::$offload_update_post === true ) {
@@ -357,6 +393,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 				$sources[ $width ]['url'] = $optimized_url[0];
 			}
+
 			return $sources;
 		}
 
@@ -371,10 +408,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $sources;
 		}
 
-		$requested_ratio     = $requested_width / $requested_height;
+		$requested_ratio = $requested_width / $requested_height;
 
 		$image_sizes = $this->get_all_image_sizes();
-		$crop = false;
+		$crop        = false;
 
 		// Loop through image sizes to make sure we're using the right cropping.
 		foreach ( $image_sizes as $size_name => $args ) {
@@ -433,9 +470,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		// Add the requested size to the srcset.
 		$sources[ $requested_width ] = [
-			'url' => $image_src,
+			'url'        => $image_src,
 			'descriptor' => 'w',
-			'value' => $requested_width,
+			'value'      => $requested_width,
 		];
 
 		return $sources;
@@ -445,6 +482,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Check if the image is stored on our servers or not.
 	 *
 	 * @param string $src Image src or url.
+	 *
 	 * @return bool Whether image is upload or not.
 	 */
 	public static function is_not_processed_image( $src ) {
@@ -455,6 +493,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Check if the image is stored on our servers or not.
 	 *
 	 * @param string $src Image src or url.
+	 *
 	 * @return bool Whether image is upload or not.
 	 */
 	public static function is_uploaded_image( $src ) {
@@ -480,11 +519,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Get attachment id from url
 	 *
-	 * @param string $url  The optimized url .
+	 * @param string $url The optimized url .
+	 *
 	 * @return false|mixed The attachment id .
 	 */
 	public static function get_attachment_id_from_url( $url ) {
 		preg_match( '/\/' . Optml_Media_Offload::KEYS['not_processed_flag'] . '([^\/]*)\//', $url, $attachment_id );
+
 		return isset( $attachment_id[1] ) ? $attachment_id[1] : false;
 	}
 
@@ -492,24 +533,25 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Get attachment id from local url
 	 *
 	 * @param string $url The url to look for.
+	 *
 	 * @return array The attachment id and the size from the url.
 	 */
 	public function get_local_attachement_id_from_url( $url ) {
 
-		$size = 'full';
+		$size       = 'full';
 		$found_size = $this->parse_dimensions_from_filename( $url );
-		$strip_url = $url;
+		$strip_url  = $url;
 		$scaled_url = $url;
 		if ( $found_size[0] !== false && $found_size[1] !== false ) {
-			$size = $found_size;
-			$strip_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
+			$size       = $found_size;
+			$strip_url  = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
 			$scaled_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '-scaled', $url );
 		}
 		$strip_url = $this->add_schema( $strip_url );
 
 		$attachment_id = attachment_url_to_postid( $strip_url );
 		if ( $attachment_id === 0 ) {
-			$scaled_url = $this->add_schema( $scaled_url );
+			$scaled_url    = $this->add_schema( $scaled_url );
 			$attachment_id = attachment_url_to_postid( $scaled_url );
 		}
 
@@ -531,7 +573,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', 'content to update' );
 			do_action( 'optml_log', $content );
 		}
-		$images  = Optml_Manager::instance()->extract_urls_from_content( $content );
+		$images = Optml_Manager::instance()->extract_urls_from_content( $content );
 		if ( ! isset( $images[0] ) ) {
 			return $data;
 		}
@@ -541,8 +583,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		foreach ( $images as $url ) {
 			$is_original_uploaded = self::is_uploaded_image( $url );
-			$attachment_id = false;
-			$size = 'thumbnail';
+			$attachment_id        = false;
+			$size                 = 'thumbnail';
 			if ( $is_original_uploaded ) {
 				$found_size = $this->parse_dimension_from_optimized_url( $url );
 				if ( $found_size[0] !== 'auto' && $found_size[1] !== 'auto' ) {
@@ -550,9 +592,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				}
 				$attachment_id = self::get_attachment_id_from_url( $url );
 			} else {
-				$id_and_size = $this->get_local_attachement_id_from_url( $url );
+				$id_and_size   = $this->get_local_attachement_id_from_url( $url );
 				$attachment_id = $id_and_size['attachment_id'];
-				$size = $id_and_size['size'];
+				$size          = $id_and_size['size'];
 			}
 
 			if ( OPTML_DEBUG_MEDIA ) {
@@ -578,6 +620,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$content = str_replace( $url, $optimized_url[0], $content );
 		}
 		$data['post_content'] = wp_slash( $content );
+
 		return $data;
 	}
 
@@ -586,23 +629,24 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @param string $post_content The content of the post.
 	 * @param string $job The job name.
+	 *
 	 * @return array An array containing the image ids.
 	 */
 	public function get_image_id_from_content( $post_content, $job ) {
-		$content = trim( wp_unslash( $post_content ) );
-		$images  = Optml_Manager::instance()->extract_urls_from_content( $content );
+		$content      = trim( wp_unslash( $post_content ) );
+		$images       = Optml_Manager::instance()->extract_urls_from_content( $content );
 		$found_images = [];
 		if ( isset( $images[0] ) ) {
 			foreach ( $images as $url ) {
 				$is_original_uploaded = self::is_uploaded_image( $url );
-				$attachment_id = false;
+				$attachment_id        = false;
 				if ( $is_original_uploaded ) {
 					if ( $job === 'rollback_images' ) {
 						$attachment_id = self::get_attachment_id_from_url( $url );
 					}
 				} else {
 					if ( $job === 'offload_images' ) {
-						$id_and_size = $this->get_local_attachement_id_from_url( $url );
+						$id_and_size   = $this->get_local_attachement_id_from_url( $url );
 						$attachment_id = $id_and_size['attachment_id'];
 					}
 				}
@@ -612,6 +656,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$found_images[] = intval( $attachment_id );
 			}
 		}
+
 		return apply_filters( 'optml_content_images_to_update', $found_images, $content );
 	}
 
@@ -632,10 +677,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$post_types = array_values(
 			array_filter(
 				get_post_types(),
-				function( $post_type ) {
+				function ( $post_type ) {
 					if ( $post_type === 'attachment' || $post_type === 'revision' ) {
 						return false;
 					}
+
 					return true;
 				}
 			)
@@ -671,10 +717,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$ids = $this->get_image_id_from_content( get_post_field( 'post_content', $content_id ), $job );
 					if ( count( $ids ) > 0 ) {
 						$images_to_update[ $content_id ] = $ids;
-						$duplicated_pages = apply_filters( 'optml_offload_duplicated_images', [], $content_id );
+						$duplicated_pages                = apply_filters( 'optml_offload_duplicated_images', [], $content_id );
 						if ( is_array( $duplicated_pages ) && ! empty( $duplicated_pages ) ) {
 							foreach ( $duplicated_pages as $duplicated_id ) {
-								$duplicated_ids = $this->get_image_id_from_content( get_post_field( 'post_content', $duplicated_id ), $job );
+								$duplicated_ids                     = $this->get_image_id_from_content( get_post_field( 'post_content', $duplicated_id ), $job );
 								$images_to_update[ $duplicated_id ] = $duplicated_ids;
 							}
 						}
@@ -691,8 +737,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 			$page ++;
 		}
-		$result['page'] = $page;
+		$result['page']           = $page;
 		$result['imagesToUpdate'] = $images_to_update;
+
 		return $result;
 	}
 
@@ -700,7 +747,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Add inline action to push to our servers.
 	 *
 	 * @param array    $actions All actions.
-	 * @param \WP_Post $post    The current post image object.
+	 * @param \WP_Post $post The current post image object.
 	 *
 	 * @return array
 	 */
@@ -716,9 +763,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! self::is_uploaded_image( $file ) ) {
 			$upload_action_url = add_query_arg(
 				[
-					'page' => 'optimole',
+					'page'            => 'optimole',
 					'optimole_action' => 'offload_images',
-					'0' => $post->ID,
+					'0'               => $post->ID,
 				],
 				'admin.php'
 			);
@@ -731,11 +778,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			);
 		}
 		if ( self::is_uploaded_image( $file ) ) {
-			$rollback_action_url = add_query_arg(
+			$rollback_action_url        = add_query_arg(
 				[
-					'page' => 'optimole',
+					'page'            => 'optimole',
 					'optimole_action' => 'rollback_images',
-					'0' => $post->ID,
+					'0'               => $post->ID,
 				],
 				'admin.php'
 			);
@@ -746,6 +793,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				esc_html__( 'Restore image to media library', 'optimole-wp' )
 			);
 		}
+
 		return $actions;
 	}
 
@@ -753,6 +801,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Upload images to our servers and update inside pages.
 	 *
 	 * @param array $image_ids The id of the attachments for the selected images.
+	 *
 	 * @return int The number of successfully processed images.
 	 */
 	public function upload_and_update_existing_images( $image_ids ) {
@@ -781,6 +830,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', $success_up );
 			}
 		}
+
 		return $success_up;
 	}
 
@@ -788,12 +838,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Return the original url of an image attachment.
 	 *
 	 * @param integer $post_id Image attachment id.
+	 *
 	 * @return string|bool The original url of the image.
 	 */
 	public static function get_original_url( $post_id ) {
 		self::$return_original_url = true;
-		$original_url = wp_get_attachment_url( $post_id );
+		$original_url              = wp_get_attachment_url( $post_id );
 		self::$return_original_url = false;
+
 		return $original_url;
 	}
 
@@ -801,6 +853,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Bring images back to media library and update inside pages.
 	 *
 	 * @param array $image_ids The id of the attachments for the selected images.
+	 *
 	 * @return int The number of successfully processed images.
 	 */
 	public function rollback_and_update_images( $image_ids ) {
@@ -819,13 +872,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( ! isset( $current_meta['file'] ) || ! self::is_uploaded_image( $current_meta['file'] ) ) {
 				delete_post_meta( $id, self::META_KEYS['offloaded'] );
 				delete_post_meta( $id, self::OM_OFFLOADED_FLAG );
-				$success_back++;
+				$success_back ++;
 				continue;
 			}
 			$table_id = [];
 			// Account for scaled images.
 			$source_file = isset( $current_meta['original_image'] ) ? $current_meta['original_image'] : $current_meta['file']; // @phpstan-ignore-line - this exists for scaled images.
-			$filename = pathinfo( $source_file, PATHINFO_BASENAME );
+			$filename    = pathinfo( $source_file, PATHINFO_BASENAME );
 			preg_match( '/\/' . self::KEYS['uploaded_flag'] . '([^\/]*)\//', $current_meta['file'], $table_id );
 			if ( ! isset( $table_id[1] ) ) {
 				continue;
@@ -835,7 +888,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', ' image cloud id ' );
 				do_action( 'optml_log', $table_id );
 			}
-			$request = new Optml_Api();
+			$request      = new Optml_Api();
 			$get_response = $request->call_upload_api( '', 'false', $table_id, 'false', 'true' );
 
 			if ( is_wp_error( $get_response ) || wp_remote_retrieve_response_code( $get_response ) !== 200 ) {
@@ -858,7 +911,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				continue;
 			}
 			$timeout_seconds = 60;
-			$temp_file = download_url( $get_url, $timeout_seconds );
+			$temp_file       = download_url( $get_url, $timeout_seconds );
 
 			if ( is_wp_error( $temp_file ) ) {
 				update_post_meta( $id, self::META_KEYS['rollback_error'], 'true' );
@@ -894,10 +947,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			$overrides = [
 				// do not expect the default form data from normal uploads
-				'test_form' => false,
+				'test_form'   => false,
 
 				// Setting this to false lets WordPress allow empty files, not recommended.
-				'test_size' => true,
+				'test_size'   => true,
 
 				// A properly uploaded file will pass this test. There should be no reason to override this one.
 				'test_upload' => true,
@@ -976,11 +1029,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					}
 				}
 			}
-			$success_back++;
+			$success_back ++;
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' has been rolled back.' );
 
-			$original_url  = self::get_original_url( $id );
+			$original_url = self::get_original_url( $id );
 			if ( $original_url === false ) {
 				continue;
 			}
@@ -993,15 +1046,17 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', $success_back );
 			}
 		}
+
 		return $success_back;
 	}
 
 	/**
 	 * Handle the bulk actions.
 	 *
-	 * @param string $redirect  The current url from the media library.
-	 * @param string $doaction  The current action selected.
+	 * @param string $redirect The current url from the media library.
+	 * @param string $doaction The current action selected.
 	 * @param array  $image_ids The id of the attachments for the selected images.
+	 *
 	 * @return string The url with the correspondent query args for the executed actions.
 	 */
 	public function bulk_action_handler( $redirect, $doaction, $image_ids ) {
@@ -1011,10 +1066,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		$image_ids = array_slice( $image_ids, 0, 20, true );
-		$redirect = 'admin.php';
-		$redirect = add_query_arg( 'optimole_action', $doaction, $redirect );
-		$redirect = add_query_arg( 'page', 'optimole', $redirect );
-		$redirect = add_query_arg( $image_ids, $redirect );
+		$redirect  = 'admin.php';
+		$redirect  = add_query_arg( 'optimole_action', $doaction, $redirect );
+		$redirect  = add_query_arg( 'page', 'optimole', $redirect );
+		$redirect  = add_query_arg( $image_ids, $redirect );
+
 		return $redirect;
 
 	}
@@ -1022,13 +1078,15 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 *  Register the bulk media actions.
 	 *
-	 *  @param array $bulk_array The existing actions array.
-	 *  @return array The array with the appended actions.
+	 * @param array $bulk_array The existing actions array.
+	 *
+	 * @return array The array with the appended actions.
 	 */
 	public function register_bulk_media_actions( $bulk_array ) {
 
-		$bulk_array['offload_images'] = __( 'Push Image to Optimole', 'optimole-wp' );
+		$bulk_array['offload_images']  = __( 'Push Image to Optimole', 'optimole-wp' );
 		$bulk_array['rollback_images'] = __( 'Restore image to media library', 'optimole-wp' );
+
 		return $bulk_array;
 
 	}
@@ -1041,7 +1099,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param string  $table_id Our cloud id for the image.
 	 */
 	public function delete_attachment_from_server( $original_url, $post_id, $table_id ) {
-		$request = new Optml_Api();
+		$request         = new Optml_Api();
 		$delete_response = $request->call_upload_api( $original_url, 'true', $table_id );
 
 		delete_post_meta( $post_id, self::META_KEYS['offloaded'] );
@@ -1073,7 +1131,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		$file = $file['file'];
 		if ( self::is_uploaded_image( $file ) || $this->is_new_offloaded_attachment( $post_id ) ) {
-			$original_url  = self::get_original_url( $post_id );
+			$original_url = self::get_original_url( $post_id );
 			if ( $original_url === false ) {
 				return;
 			}
@@ -1093,6 +1151,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @param string $url The current url.
 	 * @param int    $attachment_id The attachment image id.
+	 *
 	 * @return string Optimole cdn URL.
 	 * @uses filter:wp_get_attachment_url
 	 */
@@ -1114,7 +1173,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			$file = $meta['file'];
 			if ( self::is_uploaded_image( $file ) ) {
-				$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
+				$optimized_url = ( new Optml_Image(
+					$url,
+					[
+						'width'   => 'auto',
+						'height'  => 'auto',
+						'quality' => $this->settings->get_numeric_quality(),
+					],
+					$this->settings->get( 'cache_buster' )
+				) )->get_url();
+
 				return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $attachment_id . $file, $optimized_url );
 			} else {
 				// this is for the users that already offloaded the images before the other fixes
@@ -1126,7 +1194,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 							if ( ! empty( $id ) ) {
 								$duplicated_meta = wp_get_attachment_metadata( $id );
 								if ( isset( $duplicated_meta['file'] ) && self::is_uploaded_image( $duplicated_meta['file'] ) ) {
-									$optimized_url = ( new Optml_Image( $url, ['width' => 'auto', 'height' => 'auto', 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
+									$optimized_url = ( new Optml_Image(
+										$url,
+										[
+											'width'   => 'auto',
+											'height'  => 'auto',
+											'quality' => $this->settings->get_numeric_quality(),
+										],
+										$this->settings->get( 'cache_buster' )
+									) )->get_url();
+
 									return str_replace( '/' . $url, '/' . self::KEYS['not_processed_flag'] . $id . $duplicated_meta['file'], $optimized_url );
 								}
 							}
@@ -1134,6 +1211,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					}
 				}
 			}
+
 			return $url;
 		}
 
@@ -1147,9 +1225,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Filter the requested image url.
 	 *
-	 * @param bool|array   $image         The previous image value (null).
+	 * @param bool|array   $image The previous image value (null).
 	 * @param int          $attachment_id The ID of the attachment.
-	 * @param string|array $size          Requested size of image. Image size name, or array of width and height values (in that order).
+	 * @param string|array $size Requested size of image. Image size name, or array of width and height values (in that order).
 	 *
 	 * @return bool|array The image sizes and optimized url.
 	 * @uses filter:image_downsize
@@ -1187,8 +1265,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$url,
 				[
 					'width'   => $data['width'],
-					'height' => $data['height'],
-					'resize' => $resize,
+					'height'  => $data['height'],
+					'resize'  => $resize,
 					'quality' => $this->settings->get_numeric_quality(),
 				],
 				$this->settings->get( 'cache_buster' )
@@ -1214,7 +1292,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Get image extension.
 	 *
-	 * @param string $path  Image path.
+	 * @param string $path Image path.
 	 *
 	 * @return string
 	 */
@@ -1244,10 +1322,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		update_post_meta( $attachment_id, self::RETRYABLE_META_COUNTER, ( $retries + 1 ) );
 	}
+
 	/**
 	 * Update image meta with optimized cdn path.
 	 *
-	 * @param array $meta    Meta information of the image.
+	 * @param array $meta Meta information of the image.
 	 * @param int   $attachment_id The image attachment ID.
 	 *
 	 * @return array
@@ -1273,15 +1352,17 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has invalid meta.' );
+
 			return $meta;
 		}
 		// Skip images based on filters.
 		if ( false === Optml_Filters::should_do_image( $meta['file'], self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_FILENAME ] ) ) {
 			do_action( 'optml_log', 'optimization filter' );
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
+
 			return $meta;
 		}
-		$original_url  = self::get_original_url( $attachment_id );
+		$original_url = self::get_original_url( $attachment_id );
 
 		// Could not find original URL.
 		if ( $original_url === false ) {
@@ -1289,6 +1370,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has invalid original url.' );
+
 			return $meta;
 		}
 
@@ -1296,12 +1378,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$original_url = $this->maybe_strip_scaled( $original_url );
 		$local_file   = $this->maybe_strip_scaled( get_attached_file( $attachment_id ) );
 
-		$extension = $this->get_ext( $local_file );
-		$content_type = Optml_Config::$image_extensions [ $extension ];
-		$temp = explode( '/', $local_file );
-		$file_name = end( $temp );
+		$extension       = $this->get_ext( $local_file );
+		$content_type    = Optml_Config::$image_extensions [ $extension ];
+		$temp            = explode( '/', $local_file );
+		$file_name       = end( $temp );
 		$no_ext_filename = str_replace( '.' . $extension, '', $file_name );
-		$original_name = $file_name;
+		$original_name   = $file_name;
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', 'file before replace' );
 			do_action( 'optml_log', $local_file );
@@ -1310,8 +1392,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		// check if the current filename is the last deduplicated filename
 		if ( ! empty( self::$last_deduplicated ) && strpos( $no_ext_filename, str_replace( '.' . $extension, '', self::$last_deduplicated ) ) !== false ) {
 			// replace the file with the original before deduplication to get the path where the image is uploaded
-			$local_file = str_replace( $file_name, self::$last_deduplicated, $local_file );
-			$original_name = self::$last_deduplicated;
+			$local_file              = str_replace( $file_name, self::$last_deduplicated, $local_file );
+			$original_name           = self::$last_deduplicated;
 			self::$last_deduplicated = false;
 		}
 		if ( OPTML_DEBUG_MEDIA ) {
@@ -1324,6 +1406,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', $local_file );
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has missing file.' );
+
 			return $meta;
 		}
 
@@ -1333,16 +1416,18 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', $extension );
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has invalid extension.' );
+
 			return $meta;
 		}
 		if ( false === Optml_Filters::should_do_extension( self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_EXT ], $extension ) ) {
 			do_action( 'optml_log', 'extension filter' );
 			do_action( 'optml_log', $extension );
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
+
 			return $meta;
 		}
 
-		$request = new Optml_Api();
+		$request               = new Optml_Api();
 		$generate_url_response = $request->call_upload_api( $original_url );
 
 		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
@@ -1368,6 +1453,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', $generate_url_response );
 			}
 			self::mark_retryable_error( $attachment_id, 'Image ID: ' . $attachment_id . ' has invalid signed url.' );
+
 			return $meta;
 		}
 		// We clear the retry counter if we reach this step. In case we plan to use the retry on other context, we should clear it at after the last retryable step.
@@ -1381,7 +1467,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			self::$instance->settings->update( 'offload_limit', $remote_limit );
 
 			$current_run = self::get_process_meta();
-			$remaining = isset( $current_run['remaining'] ) ? absint( $current_run['remaining'] ) : 0;
+			$remaining   = isset( $current_run['remaining'] ) ? absint( $current_run['remaining'] ) : 0;
 
 			if ( $remaining + $decoded_response['count'] >= $remote_limit ) {
 				if ( OPTML_DEBUG_MEDIA ) {
@@ -1404,6 +1490,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has invalid table id or upload url.' );
+
 			return $meta;
 		}
 		$table_id = $decoded_response['tableId'];
@@ -1412,19 +1499,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', $table_id );
 		}
 		$upload_signed_url = $decoded_response['uploadUrl'];
-		$image = file_get_contents( $local_file );
+		$image             = file_get_contents( $local_file );
 		if ( $image === false ) {
 			do_action( 'optml_log', 'can not find file' );
 			do_action( 'optml_log', $local_file );
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has missing file.' );
+
 			return $meta;
 		}
 		if ( $upload_signed_url !== 'found_resource' ) {
 
 			$request = new Optml_Api();
-			$result = $request->upload_image( $upload_signed_url, $content_type, $image );
+			$result  = $request->upload_image( $upload_signed_url, $content_type, $image );
 
 			if ( is_wp_error( $result ) || wp_remote_retrieve_response_code( $result ) !== 200 ) {
 				do_action( 'optml_log', 'upload error' );
@@ -1432,13 +1520,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 
 				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has upload error.' );
+
 				return $meta;
 			}
 			$file_size = filesize( $local_file );
 			if ( $file_size === false ) {
 				$file_size = 0;
 			}
-			$request = new Optml_Api();
+			$request       = new Optml_Api();
 			$result_update = $request->call_upload_api(
 				$original_url,
 				'false',
@@ -1455,6 +1544,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 
 				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has dynamo update error.' );
+
 				return $meta;
 			}
 		}
@@ -1465,7 +1555,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$url_to_append = $url_parts['scheme'] . '://' . $url_parts['host'] . '/' . $file_name;
 		}
 		$optimized_url = $this->get_media_optimized_url( $url_to_append, $table_id );
-		$request = new Optml_Api();
+		$request       = new Optml_Api();
 		if ( $request->check_optimized_url( $optimized_url ) === false ) {
 			do_action( 'optml_log', 'optimization error' );
 			do_action( 'optml_log', $optimized_url );
@@ -1473,6 +1563,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has optimization error.' );
+
 			return $meta;
 		}
 		unlink( $local_file );
@@ -1527,6 +1618,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			update_post_meta( $attachment_page_id, self::POST_OFFLOADED_FLAG, 'true' );
 			self::$offload_update_post = false;
 		}
+
 		return $meta;
 	}
 
@@ -1535,6 +1627,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @param int    $batch Number of images to get.
 	 * @param string $action The action for which to get the images.
+	 *
 	 * @return array|false The query options array or false if not passed a valid action.
 	 */
 	public static function get_images_or_pages_query_args( $batch, $action, $get_images = false ) {
@@ -1547,9 +1640,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		];
 
 		if ( $get_images === true ) {
-			$args['post_type'] = 'attachment';
+			$args['post_type']      = 'attachment';
 			$args['post_mime_type'] = 'image';
-			$args['post_status'] = 'inherit';
+			$args['post_status']    = 'inherit';
 
 			// Offload args.
 			if ( $action === 'offload_images' ) {
@@ -1564,6 +1657,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 						'compare' => 'NOT EXISTS',
 					],
 				];
+
 				return $args;
 			}
 
@@ -1609,20 +1703,22 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *  Query the database and upload images to our servers.
 	 *
 	 * @param int $batch Number of images to process in a batch.
+	 *
 	 * @return array Number of found images and number of successfully processed images.
 	 */
 	public function upload_images( $batch, $images = [] ) {
 		self::$instance->settings->update( 'offload_limit_reached', 'disabled' );
 
 		if ( empty( $images ) || $images === 'none' ) {
-			$args = self::get_images_or_pages_query_args( $batch, 'offload_images', true );
+			$args        = self::get_images_or_pages_query_args( $batch, 'offload_images', true );
 			$attachments = new \WP_Query( $args );
-			$ids = $attachments->get_posts();
+			$ids         = $attachments->get_posts();
 		} else {
 			$ids = array_slice( $images, 0, $batch );
 		}
-		$result = [ 'found_images' => count( $ids ) ];
+		$result                    = [ 'found_images' => count( $ids ) ];
 		$result['success_offload'] = $this->upload_and_update_existing_images( $ids );
+
 		return $result;
 	}
 
@@ -1630,18 +1726,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *  Query the database and bring back image to media library.
 	 *
 	 * @param int $batch Number of images to process in a batch.
+	 *
 	 * @return array Number of found images and number of successfully processed images.
 	 */
 	public function rollback_images( $batch, $images = [] ) {
 		if ( empty( $images ) || $images === 'none' ) {
-			$args = self::get_images_or_pages_query_args( $batch, 'rollback_images', true );
+			$args        = self::get_images_or_pages_query_args( $batch, 'rollback_images', true );
 			$attachments = new \WP_Query( $args );
-			$ids = $attachments->get_posts();
+			$ids         = $attachments->get_posts();
 		} else {
 			$ids = array_slice( $images, 0, $batch );
 		}
-		$result = [ 'found_images' => count( $ids ) ];
+		$result                     = [ 'found_images' => count( $ids ) ];
 		$result['success_rollback'] = $this->rollback_and_update_images( $ids );
+
 		return $result;
 	}
 
@@ -1649,16 +1747,18 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Update the post with the given id, the images will be updated by the filters we use.
 	 *
 	 * @param int $post_id The post id to update.
+	 *
 	 * @return bool Whether the update was succesful or not.
 	 */
 	public function update_page( $post_id ) {
 		self::$offload_update_post = true;
-		$post_update = wp_update_post( ['ID' => $post_id] );
+		$post_update               = wp_update_post( [ 'ID' => $post_id ] );
 		self::$offload_update_post = false;
 		if ( $post_update === 0 ) {
 			return false;
 		}
 		do_action( 'optml_updated_post', $post_id );
+
 		return true;
 	}
 
@@ -1666,10 +1766,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *  Calculate the number of images in media library and the number of posts/pages.
 	 *
 	 * @param string $action The actions for which to get the number of images.
+	 *
 	 * @return int Number of images.
 	 */
 	public static function number_of_images_and_pages( $action ) {
-		$images_args = self::get_images_or_pages_query_args( -1, $action, true );
+		$images_args = self::get_images_or_pages_query_args( - 1, $action, true );
 
 		$images = new \WP_Query( $images_args );
 
@@ -1679,8 +1780,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $images->post_count;
 		}
 
-		$pages_args = self::get_images_or_pages_query_args( -1, $action );
-		$pages = new \WP_Query( $pages_args );
+		$pages_args = self::get_images_or_pages_query_args( - 1, $action );
+		$pages      = new \WP_Query( $pages_args );
 
 		return $pages->post_count + $images->post_count;
 	}
@@ -1689,6 +1790,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *  Calculate the number of images in media library and the number of posts/pages by IDs.
 	 *
 	 * @param string $action The actions for which to get the number of images.
+	 *
 	 * @return int Number of images.
 	 */
 	public static function number_of_images_by_ids( $action, $ids ) {
@@ -1713,7 +1815,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		$transient_key = 'optml_images_' . md5( serialize( $images ) );
-		$transient = get_transient( $transient_key );
+		$transient     = get_transient( $transient_key );
 
 		if ( false !== $transient ) {
 			return array_slice( $transient, ( $page - 1 ) * $batch, $batch );
@@ -1722,8 +1824,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		global $wpdb;
 
 		$image_urls = array_map(
-			function( $image_id ) {
-				$meta = wp_get_attachment_metadata( $image_id );
+			function ( $image_id ) {
+				$meta      = wp_get_attachment_metadata( $image_id );
 				$extension = Optml_Media_Offload::instance()->get_ext( $meta['file'] );
 
 				return str_replace( '.' . $extension, '', $meta['file'] );
@@ -1748,9 +1850,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		// Get all the posts IDs by using LIMIT and offset in a loop.
-		$ids = [];
+		$ids    = [];
 		$offset = 0;
-		$limit = $batch;
+		$limit  = $batch;
 
 		while ( true ) {
 			$posts = $wpdb->get_col(
@@ -1765,7 +1867,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				break;
 			}
 
-			$ids = array_merge( $ids, $posts );
+			$ids    = array_merge( $ids, $posts );
 			$offset += $limit;
 		}
 
@@ -1782,9 +1884,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return void
 	 */
 	public static function record_process_meta( $count ) {
-		$meta = get_option( 'optml_process_meta', [] );
-		$meta['count'] = $count;
-		$meta['remaining'] = $count;
+		$meta               = get_option( 'optml_process_meta', [] );
+		$meta['count']      = $count;
+		$meta['remaining']  = $count;
 		$meta['start_time'] = time();
 		update_option( 'optml_process_meta', $meta );
 	}
@@ -1811,11 +1913,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return array
 	 */
 	public static function get_process_meta() {
-		$res = [];
-		$meta = get_option( 'optml_process_meta', [] );
+		$res                = [];
+		$meta               = get_option( 'optml_process_meta', [] );
 		$res['time_passed'] = isset( $meta['start_time'] ) ? ( time() - $meta['start_time'] ) / 60 : 0;
-		$res['count'] = isset( $meta['count'] ) ? $meta['count'] : 0;
-		$res['remaining'] = isset( $meta['remaining'] ) ? $meta['remaining'] : $res['count'];
+		$res['count']       = isset( $meta['count'] ) ? $meta['count'] : 0;
+		$res['remaining']   = isset( $meta['remaining'] ) ? $meta['remaining'] : $res['count'];
+
 		return $res;
 	}
 
@@ -1830,9 +1933,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	public static function get_image_count( $action, $refresh, $images = [] ) {
 		$option = 'offload_images' === $action ? 'offloading_status' : 'rollback_status';
-		$count = 0;
-		$step  = 0;
-		$batch = apply_filters( 'optimole_offload_batch', 20 ); // Reduce this to smaller if we have memory issues during testing.
+		$count  = 0;
+		$step   = 0;
+		$batch  = apply_filters( 'optimole_offload_batch', 20 ); // Reduce this to smaller if we have memory issues during testing.
 
 		if ( empty( $images ) ) {
 			$count = Optml_Media_Offload::number_of_images_and_pages( $action );
@@ -1856,10 +1959,19 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( $count === 0 ) {
 			$in_progress = false;
 		}
-
 		$type = 'offload_images' === $action ? 'offload' : 'rollback';
-
+		// We save the status if this ia multi step transfer.
+		if ( empty( $images ) ) {
+			self::$instance->settings->update( 'transfer_status', $action );
+		}
 		if ( false === $refresh ) {
+			// We check also the alternative action to avoid doing both in the same time and disable the running one.
+			$in_progress_b = self::$instance->settings->get( 'rollback_images' === $action ? 'offloading_status' : 'rollback_status' ) !== 'disabled';
+			// We do this only if there is a mass action in progress, not individual ones.
+			if ( $in_progress_b && empty( $images ) ) {
+				// We stop the oposite action from going any further.
+				self::$instance->settings->update( 'rollback_images' === $action ? 'offloading_status' : 'rollback_status', 'disabled' );
+			}
 			self::$instance->settings->update( 'offload_limit_reached', 'disabled' );
 			self::record_process_meta( $count );
 
@@ -1922,6 +2034,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		return $response;
 	}
+
 	/**
 	 * Schedule an action.
 	 *
@@ -1932,7 +2045,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return mixed
 	 */
 	public static function schedule_action( $time, $hook, $args ) {
-
 		// We use AS if available to avoid issues with WP Cron.
 		if ( function_exists( 'as_schedule_single_action' ) ) {
 			return as_schedule_single_action( $time, $hook, $args );
@@ -1940,12 +2052,28 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return wp_schedule_single_event( $time, $hook, $args );
 		}
 	}
+
+	/**
+	 * Check if an action hook is scheduled.
+	 *
+	 * @param string $hook The hook to check.
+	 *
+	 * @return bool
+	 */
+	public static function is_scheduled( $hook ) {
+		if ( function_exists( 'as_has_scheduled_action' ) ) {
+			return as_has_scheduled_action( $hook );
+		} else {
+			return wp_next_scheduled( $hook ) !== false;
+		}
+	}
+
 	/**
 	 * Start Processing Images by IDs
 	 *
 	 * @param string $action The action for which to get the number of images.
-	 * @param int    $batch  The batch of images to process.
-	 * @param int    $page   The page of images to process.
+	 * @param int    $batch The batch of images to process.
+	 * @param int    $page The page of images to process.
 	 * @param array  $image_ids The images to process.
 	 *
 	 * @return void
@@ -1964,7 +2092,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		// We can be confident that these IDs are already marked as offloaded.
 		$legacy_offloaded = array_filter(
 			$image_ids,
-			function( $id ) {
+			function ( $id ) {
 				return ! $this->is_new_offloaded_attachment( $id );
 			}
 		);
@@ -1977,6 +2105,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			self::$instance->logger->add_log( $type, 'Process finished with ' . $meta['count'] . ' items in ' . $meta['time_passed'] . ' minutes.' );
 
 			self::$instance->settings->update( $option, 'disabled' );
+
 			return;
 		}
 
@@ -2044,10 +2173,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Start Processing Images
 	 *
 	 * @param string $action The action for which to get the number of images.
-	 * @param int    $batch  The batch of images to process.
-	 * @param int    $page   The page of images to process.
-	 * @param int    $total  The total number of pages.
-	 * @param int    $step   The current step.
+	 * @param int    $batch The batch of images to process.
+	 * @param int    $page The page of images to process.
+	 * @param int    $total The total number of pages.
+	 * @param int    $step The current step.
 	 *
 	 * @return void
 	 */
@@ -2124,7 +2253,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Alter attachment image src for offloaded images.
 	 *
 	 * @param array|false  $image {
-	 *      Array of image data.
+	 *       Array of image data.
 	 *
 	 * @type string $0 Image source URL.
 	 * @type int    $1 Image width in pixels.
@@ -2154,8 +2283,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$url,
 				$attachment_id,
 				[
-					'width' => $metadata['width'],
-					'height' => $metadata['height'],
+					'width'         => $metadata['width'],
+					'height'        => $metadata['height'],
 					'attachment_id' => $attachment_id,
 				]
 			);
@@ -2199,7 +2328,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		$resize = apply_filters( 'optml_default_crop', [] );
-		$data = image_get_intermediate_size( $attachment_id, $size );
+		$data   = image_get_intermediate_size( $attachment_id, $size );
 
 		if ( is_array( $data ) && isset( $data['width'] ) && isset( $data['height'] ) ) { // @phpstan-ignore-line - these both exist.
 			if ( isset( $sizes2crop[ $data['width'] . $data['height'] ] ) ) {
@@ -2211,7 +2340,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$resize = $this->to_optml_crop( $crop );
 		}
 
-		$image_url = $this->get_new_offloaded_attachment_url( $url, $attachment_id, ['width' => $width, 'height' => $height, 'resize' => $resize, 'attachment_id' => $attachment_id] );
+		$image_url = $this->get_new_offloaded_attachment_url(
+			$url,
+			$attachment_id,
+			[
+				'width'         => $width,
+				'height'        => $height,
+				'resize'        => $resize,
+				'attachment_id' => $attachment_id,
+			]
+		);
 
 		return [
 			$image_url,
@@ -2290,9 +2428,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param string $url The initial attachment URL.
 	 * @param int    $attachment_id The attachment ID.
 	 * @param array  $args The additional arguments.
-	 *                     - width: The width of the image.
-	 *                     - height: The height of the image.
-	 *                     - crop: Whether to crop the image.
+	 *                      - width: The width of the image.
+	 *                      - height: The height of the image.
+	 *                      - crop: Whether to crop the image.
 	 *
 	 * @return string
 	 */
@@ -2357,13 +2495,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 								$optimized_url = ( new Optml_Image(
 									$url,
 									[
-										'width'   => $args['width'],
-										'height'  => $args['height'],
-										'quality' => $this->settings->get_numeric_quality(),
+										'width'         => $args['width'],
+										'height'        => $args['height'],
+										'quality'       => $this->settings->get_numeric_quality(),
 										'attachment_id' => $attachment_id,
 									],
 									$this->settings->get( 'cache_buster' )
 								) )->get_url();
+
 								return $optimized_url;
 							}
 						}
@@ -2371,6 +2510,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				}
 			}
 		}
+
 		return $url;
 	}
 
@@ -2563,10 +2703,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Alter the image size for the image widget.
 	 *
 	 * @param string $html the attachment image HTML string.
-	 * @param array  $settings       Control settings.
+	 * @param array  $settings Control settings.
 	 * @param string $image_size_key Optional. Settings key for image size.
 	 *                               Default is `image`.
-	 * @param string $image_key      Optional. Settings key for image. Default
+	 * @param string $image_key Optional. Settings key for image. Default
 	 *                               is null. If not defined uses image size key
 	 *                               as the image key.
 	 *
@@ -2626,7 +2766,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		add_filter( 'wp_get_attachment_image_src', [ self::$instance, 'alter_attachment_image_src' ], 10, 4 );
 
 		// Needed for rendering beaver builder css properly.
-		add_filter( 'fl_builder_render_css', [self::$instance, 'replace_urls_in_editor_content'], 10, 1 );
+		add_filter( 'fl_builder_render_css', [ self::$instance, 'replace_urls_in_editor_content' ], 10, 1 );
 
 		// Filter saved data on insert to use local attachments.
 		// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
@@ -2638,7 +2778,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		// Filter loaded data in the editors to use local attachments.
-		add_filter( 'content_edit_pre', [self::$instance, 'replace_urls_in_editor_content'], 10, 1 );
+		add_filter( 'content_edit_pre', [ self::$instance, 'replace_urls_in_editor_content' ], 10, 1 );
 		$types = get_post_types_by_support( 'editor' );
 		foreach ( $types as $type ) {
 			$post_type = get_post_type_object( $type );
@@ -2655,7 +2795,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 		}
 
-		add_filter( 'get_attached_file', [$this, 'alter_attached_file_response'], 10, 2 );
+		add_filter( 'get_attached_file', [ $this, 'alter_attached_file_response' ], 10, 2 );
 		add_filter(
 			'elementor/image_size/get_attachment_image_html',
 			[
