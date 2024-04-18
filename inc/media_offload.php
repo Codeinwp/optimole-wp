@@ -204,7 +204,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return;
 		}
 		self::$instance->logger->add_log( $transfer_type, 'Cron missed, attempt to reschedule.' );
-		self::get_image_count( $transfer_type, true );
+		self::get_image_count( $transfer_type, false );
 	}
 
 	/**
@@ -2063,6 +2063,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public static function is_scheduled( $hook ) {
 		if ( function_exists( 'as_has_scheduled_action' ) ) {
 			return as_has_scheduled_action( $hook );
+		} elseif ( function_exists( 'as_next_scheduled_action' ) ) {
+			// For older versions of AS.
+			return as_next_scheduled_action( $hook ) !== false;
 		} else {
 			return wp_next_scheduled( $hook ) !== false;
 		}
