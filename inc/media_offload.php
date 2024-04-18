@@ -2253,7 +2253,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Alter attachment image src for offloaded images.
 	 *
 	 * @param array|false  $image {
-	 *       Array of image data.
+	 *        Array of image data.
 	 *
 	 * @type string $0 Image source URL.
 	 * @type int    $1 Image width in pixels.
@@ -2428,9 +2428,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param string $url The initial attachment URL.
 	 * @param int    $attachment_id The attachment ID.
 	 * @param array  $args The additional arguments.
-	 *                      - width: The width of the image.
-	 *                      - height: The height of the image.
-	 *                      - crop: Whether to crop the image.
+	 *                       - width: The width of the image.
+	 *                       - height: The height of the image.
+	 *                       - crop: Whether to crop the image.
 	 *
 	 * @return string
 	 */
