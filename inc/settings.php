@@ -86,6 +86,7 @@ class Optml_Settings {
 		'autoquality'          => 'enabled',
 		'native_lazyload'      => 'disabled',
 		'offload_media'        => 'disabled',
+		'transfer_status' => 'disabled',
 		'cloud_images'         => 'enabled',
 		'strip_metadata'       => 'enabled',
 		'skip_lazyload_images' => 3,
@@ -320,6 +321,7 @@ class Optml_Settings {
 					break;
 				case 'watchers':
 				case 'placeholder_color':
+				case 'transfer_status':
 					$sanitized_value = sanitize_text_field( $value );
 					break;
 				case 'skip_lazyload_images':
