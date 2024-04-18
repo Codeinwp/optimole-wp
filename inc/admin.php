@@ -675,7 +675,7 @@ class Optml_Admin {
 		if ( $visitors_limit === 0 ) {
 			return false;
 		}
-		if ( $visitors_left > 2000 ) {
+		if ( $visitors_left > 300 ) {
 			return false;
 		}
 
