@@ -1932,9 +1932,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return mixed
 	 */
 	public static function schedule_action( $time, $hook, $args ) {
-		if ( self::$instance->settings->is_offload_limit_reached() ) {
-			return null;
-		}
 
 		// We use AS if available to avoid issues with WP Cron.
 		if ( function_exists( 'as_schedule_single_action' ) ) {
