@@ -189,6 +189,7 @@ class Optml_Logger {
 			$pos = strrpos( $output, $separator );
 			if ( $pos !== false ) {
 				$output = substr( $output, $pos + strlen( $separator ) );
+				$pos = -1; // we reset the position to start from the beginning of the chunk when slicing.
 			}
 		}
 

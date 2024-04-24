@@ -50,56 +50,57 @@ class Optml_Settings {
 	 * @var array Settings schema.
 	 */
 	private $default_schema = [
-		'api_key'              => '',
-		'service_data'         => '',
-		'cache_buster'         => '',
-		'cache_buster_assets'  => '',
-		'cache_buster_images'  => '',
-		'cdn'                  => 'disabled',
-		'admin_bar_item'       => 'enabled',
-		'lazyload'             => 'disabled',
-		'scale'                => 'disabled',
-		'network_optimization' => 'disabled',
-		'lazyload_placeholder' => 'enabled',
-		'bg_replacer'          => 'enabled',
-		'video_lazyload'       => 'enabled',
-		'retina_images'        => 'disabled',
-		'limit_dimensions'     => 'enabled',
-		'limit_height'         => 1080,
-		'limit_width'          => 1920,
-		'resize_smart'         => 'disabled',
-		'no_script'            => 'disabled',
-		'filters'              => [],
-		'cloud_sites'          => [ 'all' => 'true' ],
-		'watchers'             => '',
-		'quality'              => 'auto',
-		'wm_id'                => - 1,
-		'wm_opacity'           => 1,
-		'wm_position'          => Position::SOUTH_EAST,
-		'wm_x'                 => 0,
-		'wm_y'                 => 0,
-		'wm_scale'             => 0,
-		'image_replacer'       => 'enabled',
-		'img_to_video'         => 'disabled',
-		'css_minify'           => 'enabled',
-		'js_minify'            => 'disabled',
-		'report_script'        => 'disabled',
-		'avif'                 => 'enabled',
-		'autoquality'          => 'enabled',
-		'native_lazyload'      => 'disabled',
-		'offload_media'        => 'disabled',
-		'cloud_images'         => 'enabled',
-		'strip_metadata'       => 'enabled',
-		'skip_lazyload_images' => 3,
-		'defined_image_sizes'          => [ ],
-		'banner_frontend'      => 'disabled',
-		'offloading_status'    => 'disabled',
-		'rollback_status'      => 'disabled',
-		'best_format'          => 'enabled',
-		'offload_limit_reached' => 'disabled',
-		'offload_limit'         => 50000,
-		'placeholder_color'    => '',
-		'show_offload_finish_notice'   => '',
+		'api_key'                    => '',
+		'service_data'               => '',
+		'cache_buster'               => '',
+		'cache_buster_assets'        => '',
+		'cache_buster_images'        => '',
+		'cdn'                        => 'disabled',
+		'admin_bar_item'             => 'enabled',
+		'lazyload'                   => 'disabled',
+		'scale'                      => 'disabled',
+		'network_optimization'       => 'disabled',
+		'lazyload_placeholder'       => 'enabled',
+		'bg_replacer'                => 'enabled',
+		'video_lazyload'             => 'enabled',
+		'retina_images'              => 'disabled',
+		'limit_dimensions'           => 'enabled',
+		'limit_height'               => 1080,
+		'limit_width'                => 1920,
+		'resize_smart'               => 'disabled',
+		'no_script'                  => 'disabled',
+		'filters'                    => [],
+		'cloud_sites'                => [ 'all' => 'true' ],
+		'watchers'                   => '',
+		'quality'                    => 'auto',
+		'wm_id'                      => - 1,
+		'wm_opacity'                 => 1,
+		'wm_position'                => Position::SOUTH_EAST,
+		'wm_x'                       => 0,
+		'wm_y'                       => 0,
+		'wm_scale'                   => 0,
+		'image_replacer'             => 'enabled',
+		'img_to_video'               => 'disabled',
+		'css_minify'                 => 'enabled',
+		'js_minify'                  => 'disabled',
+		'report_script'              => 'disabled',
+		'avif'                       => 'enabled',
+		'autoquality'                => 'enabled',
+		'native_lazyload'            => 'disabled',
+		'offload_media'              => 'disabled',
+		'transfer_status'            => 'disabled',
+		'cloud_images'               => 'enabled',
+		'strip_metadata'             => 'enabled',
+		'skip_lazyload_images'       => 3,
+		'defined_image_sizes'        => [],
+		'banner_frontend'            => 'disabled',
+		'offloading_status'          => 'disabled',
+		'rollback_status'            => 'disabled',
+		'best_format'                => 'enabled',
+		'offload_limit_reached'      => 'disabled',
+		'offload_limit'              => 50000,
+		'placeholder_color'          => '',
+		'show_offload_finish_notice' => '',
 	];
 	/**
 	 * Option key.
@@ -296,7 +297,7 @@ class Optml_Settings {
 					}
 					break;
 				case 'defined_image_sizes':
-					$current_sizes   = $this->get( 'defined_image_sizes' );
+					$current_sizes = $this->get( 'defined_image_sizes' );
 					foreach ( $value as $size_name => $size_value ) {
 						if ( $size_value === 'remove' ) {
 							unset( $current_sizes[ $size_name ] );
@@ -322,6 +323,7 @@ class Optml_Settings {
 					break;
 				case 'watchers':
 				case 'placeholder_color':
+				case 'transfer_status':
 					$sanitized_value = sanitize_text_field( $value );
 					break;
 				case 'skip_lazyload_images':
@@ -455,6 +457,7 @@ class Optml_Settings {
 		if ( apply_filters( 'optml_dont_trigger_settings_updated', false ) === false ) {
 			do_action( 'optml_settings_updated' );
 		}
+
 		return $update;
 	}
 
@@ -487,45 +490,45 @@ class Optml_Settings {
 		}
 
 		return [
-			'quality'              => $this->get_quality(),
-			'admin_bar_item'       => $this->get( 'admin_bar_item' ),
-			'lazyload'             => $this->get( 'lazyload' ),
-			'network_optimization' => $this->get( 'network_optimization' ),
-			'retina_images'        => $this->get( 'retina_images' ),
-			'limit_dimensions'     => $this->get( 'limit_dimensions' ),
-			'limit_height'         => $this->get( 'limit_height' ),
-			'limit_width'          => $this->get( 'limit_width' ),
-			'lazyload_placeholder' => $this->get( 'lazyload_placeholder' ),
-			'skip_lazyload_images' => $this->get( 'skip_lazyload_images' ),
-			'bg_replacer'          => $this->get( 'bg_replacer' ),
-			'video_lazyload'       => $this->get( 'video_lazyload' ),
-			'resize_smart'         => $this->get( 'resize_smart' ),
-			'no_script'            => $this->get( 'no_script' ),
-			'image_replacer'       => $this->get( 'image_replacer' ),
-			'cdn'                  => $this->get( 'cdn' ),
-			'filters'              => $this->get_filters(),
-			'cloud_sites'          => $this->get( 'cloud_sites' ),
-			'defined_image_sizes'  => $this->get( 'defined_image_sizes' ),
-			'watchers'             => $this->get_watchers(),
-			'watermark'            => $this->get_watermark(),
-			'img_to_video'         => $this->get( 'img_to_video' ),
-			'scale'                => $this->get( 'scale' ),
-			'css_minify'           => $this->get( 'css_minify' ),
-			'js_minify'            => $this->get( 'js_minify' ),
-			'native_lazyload'      => $this->get( 'native_lazyload' ),
-			'report_script'        => $this->get( 'report_script' ),
-			'avif'                 => $this->get( 'avif' ),
-			'autoquality'          => $this->get( 'autoquality' ),
-			'offload_media'        => $this->get( 'offload_media' ),
-			'cloud_images'         => $this->get( 'cloud_images' ),
-			'strip_metadata'       => $this->get( 'strip_metadata' ),
-			'whitelist_domains'    => $whitelist,
-			'banner_frontend'      => $this->get( 'banner_frontend' ),
-			'offloading_status'    => $this->get( 'offloading_status' ),
-			'rollback_status'      => $this->get( 'rollback_status' ),
-			'best_format'         => $this->get( 'best_format' ),
-			'offload_limit_reached'         => $this->get( 'offload_limit_reached' ),
-			'placeholder_color'   => $this->get( 'placeholder_color' ),
+			'quality'                    => $this->get_quality(),
+			'admin_bar_item'             => $this->get( 'admin_bar_item' ),
+			'lazyload'                   => $this->get( 'lazyload' ),
+			'network_optimization'       => $this->get( 'network_optimization' ),
+			'retina_images'              => $this->get( 'retina_images' ),
+			'limit_dimensions'           => $this->get( 'limit_dimensions' ),
+			'limit_height'               => $this->get( 'limit_height' ),
+			'limit_width'                => $this->get( 'limit_width' ),
+			'lazyload_placeholder'       => $this->get( 'lazyload_placeholder' ),
+			'skip_lazyload_images'       => $this->get( 'skip_lazyload_images' ),
+			'bg_replacer'                => $this->get( 'bg_replacer' ),
+			'video_lazyload'             => $this->get( 'video_lazyload' ),
+			'resize_smart'               => $this->get( 'resize_smart' ),
+			'no_script'                  => $this->get( 'no_script' ),
+			'image_replacer'             => $this->get( 'image_replacer' ),
+			'cdn'                        => $this->get( 'cdn' ),
+			'filters'                    => $this->get_filters(),
+			'cloud_sites'                => $this->get( 'cloud_sites' ),
+			'defined_image_sizes'        => $this->get( 'defined_image_sizes' ),
+			'watchers'                   => $this->get_watchers(),
+			'watermark'                  => $this->get_watermark(),
+			'img_to_video'               => $this->get( 'img_to_video' ),
+			'scale'                      => $this->get( 'scale' ),
+			'css_minify'                 => $this->get( 'css_minify' ),
+			'js_minify'                  => $this->get( 'js_minify' ),
+			'native_lazyload'            => $this->get( 'native_lazyload' ),
+			'report_script'              => $this->get( 'report_script' ),
+			'avif'                       => $this->get( 'avif' ),
+			'autoquality'                => $this->get( 'autoquality' ),
+			'offload_media'              => $this->get( 'offload_media' ),
+			'cloud_images'               => $this->get( 'cloud_images' ),
+			'strip_metadata'             => $this->get( 'strip_metadata' ),
+			'whitelist_domains'          => $whitelist,
+			'banner_frontend'            => $this->get( 'banner_frontend' ),
+			'offloading_status'          => $this->get( 'offloading_status' ),
+			'rollback_status'            => $this->get( 'rollback_status' ),
+			'best_format'                => $this->get( 'best_format' ),
+			'offload_limit_reached'      => $this->get( 'offload_limit_reached' ),
+			'placeholder_color'          => $this->get( 'placeholder_color' ),
 			'show_offload_finish_notice' => $this->get( 'show_offload_finish_notice' ),
 		];
 	}
@@ -702,6 +705,7 @@ class Optml_Settings {
 
 		return $update;
 	}
+
 	/**
 	 * Get raw settings value.
 	 *
@@ -737,7 +741,7 @@ class Optml_Settings {
 	 * @return string|WP_Error
 	 */
 	public function clear_cache( $type = '' ) {
-		$token = $this->get( 'cache_buster' );
+		$token        = $this->get( 'cache_buster' );
 		$token_images = $this->get( 'cache_buster_images' );
 
 		if ( ! empty( $token_images ) ) {
@@ -748,8 +752,8 @@ class Optml_Settings {
 			$token = $this->get( 'cache_buster_assets' );
 		}
 
-		$request  = new Optml_Api();
-		$data     = $request->get_cache_token( $token, $type );
+		$request = new Optml_Api();
+		$data    = $request->get_cache_token( $token, $type );
 
 		if ( $data === false || is_wp_error( $data ) || empty( $data ) || ! isset( $data['token'] ) ) {
 			$extra = '';
@@ -760,7 +764,7 @@ class Optml_Settings {
 				 *
 				 * @var WP_Error $data Error object.
 				 */
-				$extra = sprintf( __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
+				$extra = sprintf( /* translators: Error details */ __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
 			}
 
 			return new WP_Error( 'optimole_cache_buster_error', __( 'Can not get new token from Optimole service', 'optimole-wp' ) . $extra );

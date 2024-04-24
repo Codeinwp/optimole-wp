@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Image optimization service by Optimole
  * Description:       Complete handling of your website images.
- * Version:           3.12.6
+ * Version:           3.12.10
  * Author:            Optimole
  * Author URI:        https://optimole.com
  * License:           GPL-2.0+
@@ -55,7 +55,22 @@ function optml_deactivate() {
 function optml_php_notice() {
 	?>
 	<div class="notice notice-error is-dismissible">
-		<?php echo sprintf( __( '%1$s You\'re using a PHP version lower than 7.4! %2$sOptimole%3$s requires at least %4$sPHP 7.4%5$s to function properly. Plugin has been deactivated. %6$sLearn more here%5$s. %7$s', 'optimole-wp' ), '<p>', '<b>', '</b>', '<b>', '</b>', '<a href="https://themeisle.com/blog/upgrade-wordpress-to-php-7/" target="_blank">', '</a>', '</p>' ); ?>
+		<?php
+
+		echo sprintf(
+		/* translators: 1 - opening paragraph tag, 2 - PHP Version, 3 - opening bold tag, 4 - closing bold tag, 5 - opening bold tag, 6 - closing bold tag, 7 - opening anchor tag, 8 - closing anchor tag, 9 - closing paragraph tag */
+			__( '%1$s You\'re using a PHP version lower than %2$s! %3$sOptimole%4$s requires at least %5$sPHP %2$s%6$s to function properly. Plugin has been deactivated. %7$sLearn more here%8$s. %9$s', 'optimole-wp' ),
+			'<p>',
+			'7.4',
+			'<b>',
+			'</b>',
+			'<b>',
+			'</b>',
+			'<a href="https://themeisle.com/blog/upgrade-wordpress-to-php-7/" target="_blank">',
+			'</a>',
+			'</p>'
+		);
+		?>
 	</div>
 	<?php
 }
@@ -74,7 +89,7 @@ function optml() {
 	}
 	define( 'OPTML_URL', plugin_dir_url( __FILE__ ) );
 	define( 'OPTML_PATH', plugin_dir_path( __FILE__ ) );
-	define( 'OPTML_VERSION', '3.12.6' );
+	define( 'OPTML_VERSION', '3.12.10' );
 	define( 'OPTML_NAMESPACE', 'optml' );
 	define( 'OPTML_BASEFILE', __FILE__ );
 	// Fallback for old PHP versions when this constant is not defined.

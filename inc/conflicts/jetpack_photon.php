@@ -23,7 +23,7 @@ class Optml_Jetpack_Photon extends Optml_Abstract_Conflict {
 	 * @access  public
 	 */
 	public function define_message() {
-		$this->message = sprintf( __( 'It seems your are using %1$sJetpack%2$s with site accelerator option enabled for images. %3$s To avoid any possible conflicts with Optimole replacement mechanism, you can go to %4$sJetpack -> Perfomance%5$s and turn off the site accelerator option for %6$simages%7$s ', 'optimole-wp' ), '<b>', '</b>', '<br/>', '<a target="_blank" href="' . admin_url( 'admin.php?page=jetpack#/performance' ) . '">', '</a>', '<b>', '</b>' );
+		$this->message = sprintf( /* translators: 1 is the start of the bold tag, 2 is ending bold tag, 3 is new line tag, 4 is anchor tag start, 5 is ending anchor tag, 6 is start of bold tag, 7 is ending bold tag */ __( 'It seems your are using %1$sJetpack%2$s with site accelerator option enabled for images. %3$s To avoid any possible conflicts with Optimole replacement mechanism, you can go to %4$sJetpack -> Perfomance%5$s and turn off the site accelerator option for %6$simages%7$s', 'optimole-wp' ), '<b>', '</b>', '<br/>', '<a target="_blank" href="' . admin_url( 'admin.php?page=jetpack#/performance' ) . '">', '</a>', '<b>', '</b>' );
 	}
 
 	/**

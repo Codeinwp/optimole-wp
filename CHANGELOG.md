@@ -1,3 +1,23 @@
+##### [Version 3.12.10](https://github.com/Codeinwp/optimole-wp/compare/v3.12.9...v3.12.10) (2024-04-19)
+
+- Addressed an issue with offloading/rollback transfers getting stuck by adding a check for scheduled cron jobs. If no cron is scheduled and a transfer is in progress, the cron will be rescheduled.
+
+##### [Version 3.12.9](https://github.com/Codeinwp/optimole-wp/compare/v3.12.8...v3.12.9) (2024-04-18)
+
+- Fixed an issue where offload logs failed to load in some cases.
+- Adjusted the conditions for displaying early upgrade notices to prevent premature notifications.
+
+##### [Version 3.12.8](https://github.com/Codeinwp/optimole-wp/compare/v3.12.7...v3.12.8) (2024-04-16)
+
+- Hotfix for a compatibility issue with one of the dependencies affecting a small subset of users.
+
+##### [Version 3.12.7](https://github.com/Codeinwp/optimole-wp/compare/v3.12.6...v3.12.7) (2024-04-16)
+
+- Resolved an issue where the admin style was loaded prematurely.
+- Enhanced Largest Contentful Paint (LCP) by prioritizing the loading of initial images that are not affected by lazyload.
+- Improved support for multiple languages and enhanced plugin translations.
+- Remove WP_DISABLE_CRON false positive detection of a not working wp-cron.
+
 ##### [Version 3.12.6](https://github.com/Codeinwp/optimole-wp/compare/v3.12.5...v3.12.6) (2024-03-22)
 
 * Corrected inaccuracies in notification text.
