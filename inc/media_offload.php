@@ -2782,21 +2782,23 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		// Filter loaded data in the editors to use local attachments.
 		add_filter( 'content_edit_pre', [ self::$instance, 'replace_urls_in_editor_content' ], 10, 1 );
-		$types = get_post_types_by_support( 'editor' );
-		foreach ( $types as $type ) {
-			$post_type = get_post_type_object( $type );
-			if ( property_exists( $post_type, 'show_in_rest' ) && true === $post_type->show_in_rest ) {
-				add_filter(
-					'rest_prepare_' . $type,
-					[
-						self::$instance,
-						'pre_filter_rest_content',
-					],
-					10,
-					3
-				);
-			}
-		}
+
+		add_action(
+			'init',
+			function() {
+				$types = get_post_types_by_support( 'editor' );
+
+				foreach ( $types as $type ) {
+
+					$post_type = get_post_type_object( $type );
+
+					if ( property_exists( $post_type, 'show_in_rest' ) && true === $post_type->show_in_rest ) {
+						add_filter( 'rest_prepare_' . $type, [ self::$instance, 'pre_filter_rest_content' ], 10, 3 );
+					}
+				}
+			},
+			PHP_INT_MAX
+		);
 
 		add_filter( 'get_attached_file', [ $this, 'alter_attached_file_response' ], 10, 2 );
 		add_filter(
