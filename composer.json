@@ -53,6 +53,8 @@
     "install-wp-tests": "bash bin/install-wp-tests.sh wordpress_test root '' localhost latest"
   },
   "require": {
-    "codeinwp/themeisle-sdk": "^3.3"
+    "php": ">=7.4",
+    "codeinwp/themeisle-sdk": "^3.3",
+    "codeinwp/optimole-sdk": "^1.0"
   }
 }

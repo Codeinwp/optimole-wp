@@ -1,5 +1,7 @@
 <?php
 
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * Class Optml_Settings.
  */
@@ -73,7 +75,7 @@ class Optml_Settings {
 		'quality'                    => 'auto',
 		'wm_id'                      => - 1,
 		'wm_opacity'                 => 1,
-		'wm_position'                => Optml_Resize::GRAVITY_SOUTH_EAST,
+		'wm_position'                => Position::SOUTH_EAST,
 		'wm_x'                       => 0,
 		'wm_y'                       => 0,
 		'wm_scale'                   => 0,
@@ -337,17 +339,17 @@ class Optml_Settings {
 					$sanitized_value = $this->to_map_values(
 						$value,
 						[
-							Optml_Resize::GRAVITY_NORTH,
-							Optml_Resize::GRAVITY_NORTH_EAST,
-							Optml_Resize::GRAVITY_NORTH_WEST,
-							Optml_Resize::GRAVITY_CENTER,
-							Optml_Resize::GRAVITY_EAST,
-							Optml_Resize::GRAVITY_WEST,
-							Optml_Resize::GRAVITY_SOUTH_EAST,
-							Optml_Resize::GRAVITY_SOUTH,
-							Optml_Resize::GRAVITY_SOUTH_WEST,
+							Position::NORTH,
+							Position::NORTH_EAST,
+							Position::NORTH_WEST,
+							Position::CENTER,
+							Position::EAST,
+							Position::WEST,
+							Position::SOUTH_EAST,
+							Position::SOUTH,
+							Position::SOUTH_WEST,
 						],
-						Optml_Resize::GRAVITY_SOUTH_EAST
+						Position::SOUTH_EAST
 					);
 					break;
 				default:

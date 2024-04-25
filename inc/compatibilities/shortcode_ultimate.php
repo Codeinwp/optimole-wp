@@ -1,5 +1,8 @@
 <?php
 
+use Optimole\Sdk\Resource\ImageProperty\ResizeTypeProperty;
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * Class Optml_shortcode_ultimate.
  *
@@ -71,8 +74,8 @@ class Optml_shortcode_ultimate extends Optml_compatibility {
 	 */
 	public function change_default_crop() {
 		return [
-			'type'    => Optml_Resize::RESIZE_FILL,
-			'gravity' => Optml_Resize::GRAVITY_CENTER,
+			'type'    => ResizeTypeProperty::FILL,
+			'gravity' => Position::CENTER,
 		];
 	}
 }
