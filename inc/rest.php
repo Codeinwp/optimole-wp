@@ -7,6 +7,9 @@
  * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
  */
 
+use Optimole\Sdk\Resource\ImageProperty\ResizeTypeProperty;
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * Class Optml_Rest
  *
@@ -607,9 +610,9 @@ class Optml_Rest {
 				140,
 				140,
 				[
-					'type'    => Optml_Resize::RESIZE_FILL,
+					'type'    => ResizeTypeProperty::FILL,
 					'enlarge' => false,
-					'gravity' => Optml_Resize::GRAVITY_CENTER,
+					'gravity' => Position::CENTER,
 				]
 			);
 			unset( $final_images[ $index ]['key'] );

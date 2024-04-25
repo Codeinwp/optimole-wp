@@ -1,5 +1,8 @@
 <?php
 
+use Optimole\Sdk\Optimole;
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * Class Optml_App_Replacer
  *
@@ -615,9 +618,7 @@ abstract class Optml_App_Replacer {
 	 * @return string The optimized url.
 	 */
 	public function get_media_optimized_url( $url, $table_id, $width = 'auto', $height = 'auto', $resize = [] ) {
-		$optimized_url = ( new Optml_Image( $url, ['width' => $width, 'height' => $height, 'resize' => $resize, 'quality' => $this->settings->get_numeric_quality()], $this->settings->get( 'cache_buster' ) ) )->get_url();
-		$optimized_url = str_replace( $url, Optml_Media_Offload::KEYS['not_processed_flag'] . 'media_cloud' . '/' . Optml_Media_Offload::KEYS['uploaded_flag'] . $table_id . '/' . $url, $optimized_url );
-		return $optimized_url;
+		return str_replace( $url, Optml_Media_Offload::KEYS['not_processed_flag'] . 'media_cloud' . '/' . Optml_Media_Offload::KEYS['uploaded_flag'] . $table_id . '/' . $url, $this->get_optimized_image_url( $url, $width, $height, $resize ) );
 	}
 
 	/**
@@ -629,5 +630,30 @@ abstract class Optml_App_Replacer {
 	 */
 	public function url_has_dam_flag( $url ) {
 		return strpos( $url, Optml_Dam::URL_DAM_FLAG ) !== false;
+	}
+
+	/**
+	 * Get the optimized image url for the image url.
+	 *
+	 * @param string $url    The image URL.
+	 * @param mixed  $width  The image width.
+	 * @param mixed  $height The image height.
+	 * @param array  $resize The resize properties.
+	 *
+	 * @return string
+	 */
+	protected function get_optimized_image_url( $url, $width, $height, $resize = [] ) {
+		$optimized_image = Optimole::image( $url, $this->settings->get( 'cache_buster' ) )
+			->width( $width )
+			->height( $height );
+
+		if ( is_array( $resize ) && ! empty( $resize['type'] ) ) {
+			$optimized_image->resize( $resize['type'], $resize['gravity'] ?? Position::CENTER, $resize['enlarge'] ?? false );
+
+		}
+
+		$optimized_image->quality( $this->settings->to_accepted_quality( $this->settings->get_quality() ) );
+
+		return $optimized_image->getUrl();
 	}
 }
