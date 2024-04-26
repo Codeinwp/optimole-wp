@@ -1,5 +1,8 @@
 <?php
 
+use Optimole\Sdk\Resource\ImageProperty\ResizeTypeProperty;
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * Normalization traits.
  *
@@ -167,9 +170,9 @@ trait Optml_Normalizer {
 		}
 		if ( $crop_args === true ) {
 			return [
-				'type'    => Optml_Resize::RESIZE_FILL,
+				'type'    => ResizeTypeProperty::FILL,
 				'enlarge' => $enlarge,
-				'gravity' => Optml_Resize::GRAVITY_CENTER,
+				'gravity' => Position::CENTER,
 			];
 		}
 		if ( $crop_args === false || ! is_array( $crop_args ) || count( $crop_args ) !== 2 ) {
@@ -187,21 +190,21 @@ trait Optml_Normalizer {
 			'bottom' => true,
 		];
 		$allowed_gravities = [
-			'left'         => Optml_Resize::GRAVITY_WEST,
-			'right'        => Optml_Resize::GRAVITY_EAST,
-			'top'          => Optml_Resize::GRAVITY_NORTH,
-			'bottom'       => Optml_Resize::GRAVITY_SOUTH,
-			'lefttop'      => Optml_Resize::GRAVITY_NORTH_WEST,
-			'leftbottom'   => Optml_Resize::GRAVITY_SOUTH_WEST,
-			'righttop'     => Optml_Resize::GRAVITY_NORTH_EAST,
-			'rightbottom'  => Optml_Resize::GRAVITY_SOUTH_EAST,
+			'left'         => Position::WEST,
+			'right'        => Position::EAST,
+			'top'          => Position::NORTH,
+			'bottom'       => Position::SOUTH,
+			'lefttop'      => Position::NORTH_WEST,
+			'leftbottom'   => Position::SOUTH_WEST,
+			'righttop'     => Position::NORTH_EAST,
+			'rightbottom'  => Position::SOUTH_EAST,
 			'centertop'    => [ 0.5, 0 ],
 			'centerbottom' => [ 0.5, 1 ],
 			'leftcenter'   => [ 0, 0.5 ],
 			'rightcenter'  => [ 1, 0.5 ],
 		];
 
-		$gravity    = Optml_Resize::GRAVITY_CENTER;
+		$gravity    = Position::CENTER;
 		$key_search = ( $crop_args[0] === true ? '' :
 				( isset( $allowed_x[ $crop_args[0] ] ) ? $crop_args[0] : '' ) ) .
 					  ( $crop_args[1] === true ? '' :
@@ -212,7 +215,7 @@ trait Optml_Normalizer {
 		}
 
 		return [
-			'type'    => Optml_Resize::RESIZE_FILL,
+			'type'    => ResizeTypeProperty::FILL,
 			'enlarge' => $enlarge,
 			'gravity' => $gravity,
 		];
@@ -227,16 +230,16 @@ trait Optml_Normalizer {
 	 */
 	public function to_optml_watermark( $watermark_args = [] ) {
 		$allowed_gravities = [
-			'left'         => Optml_Resize::GRAVITY_WEST,
-			'right'        => Optml_Resize::GRAVITY_EAST,
-			'top'          => Optml_Resize::GRAVITY_NORTH,
-			'bottom'       => Optml_Resize::GRAVITY_SOUTH,
-			'left_top'     => Optml_Resize::GRAVITY_NORTH_WEST,
-			'left_bottom'  => Optml_Resize::GRAVITY_SOUTH_WEST,
-			'right_top'    => Optml_Resize::GRAVITY_NORTH_EAST,
-			'right_bottom' => Optml_Resize::GRAVITY_SOUTH_EAST,
+			'left'         => Position::WEST,
+			'right'        => Position::EAST,
+			'top'          => Position::NORTH,
+			'bottom'       => Position::SOUTH,
+			'left_top'     => Position::NORTH_WEST,
+			'left_bottom'  => Position::SOUTH_WEST,
+			'right_top'    => Position::NORTH_EAST,
+			'right_bottom' => Position::SOUTH_EAST,
 		];
-		$gravity           = Optml_Resize::GRAVITY_CENTER;
+		$gravity           = Position::CENTER;
 		if ( isset( $watermark_args['position'] ) && array_key_exists( $watermark_args['position'], $allowed_gravities ) ) {
 			$gravity = $allowed_gravities[ $watermark_args['position'] ];
 		}

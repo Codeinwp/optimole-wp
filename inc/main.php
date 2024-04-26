@@ -85,6 +85,11 @@ final class Optml_Main {
 	 * @since 1.0.0
 	 */
 	public static function instance() {
+		$vendor_file = OPTML_PATH . 'vendor/autoload.php';
+		if ( is_readable( $vendor_file ) ) {
+			include_once $vendor_file;
+		}
+
 		if ( null === self::$_instance ) {
 			add_filter( 'themeisle_sdk_products', [ __CLASS__, 'register_sdk' ] );
 			add_filter( 'themeisle_sdk_ran_promos', '__return_true' );
@@ -102,10 +107,6 @@ final class Optml_Main {
 			if ( class_exists( 'WP_CLI' ) ) {
 				self::$_instance->cli = new Optml_Cli();
 			}
-		}
-		$vendor_file = OPTML_PATH . 'vendor/autoload.php';
-		if ( is_readable( $vendor_file ) ) {
-			include_once $vendor_file;
 		}
 
 		return self::$_instance;

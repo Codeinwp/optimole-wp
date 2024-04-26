@@ -8,6 +8,8 @@
  * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
  */
 
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * Class Test_Generic.
  */
@@ -178,18 +180,6 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	}
 
-	public function test_resize () {
-		$resize = new Optml_Resize([
-			'enlarge' => true,
-			'gravity' => [
-				0.5, 0,
-			],
-			'type' => 'fill',
-		]);
-
-		$this->assertEquals( 'rt:fill/g:fp:0.5:0/el:1', $resize->toString() );
-
-	}
 	public function test_image_tags() {
 		$settings = new Optml_Settings();
 		$settings->update( 'limit_dimensions', 'disabled' );
@@ -541,14 +531,14 @@ class Test_Replacer extends WP_UnitTestCase {
 		global $_test_posssible_values_y_sizes;
 		global $_test_posssible_values_x_sizes;
 		$allowed_gravities = array(
-			'left'         => Optml_Resize::GRAVITY_WEST,
-			'right'        => Optml_Resize::GRAVITY_EAST,
-			'top'          => Optml_Resize::GRAVITY_NORTH,
-			'bottom'       => Optml_Resize::GRAVITY_SOUTH,
-			'lefttop'      => Optml_Resize::GRAVITY_NORTH_WEST,
-			'leftbottom'   => Optml_Resize::GRAVITY_SOUTH_WEST,
-			'righttop'     => Optml_Resize::GRAVITY_NORTH_EAST,
-			'rightbottom'  => Optml_Resize::GRAVITY_SOUTH_EAST,
+			'left'         => Position::WEST,
+			'right'        => Position::EAST,
+			'top'          => Position::NORTH,
+			'bottom'       => Position::SOUTH,
+			'lefttop'      => Position::NORTH_WEST,
+			'leftbottom'   => Position::SOUTH_WEST,
+			'righttop'     => Position::NORTH_EAST,
+			'rightbottom'  => Position::SOUTH_EAST,
 			'centertop'    => array( 0.5, 0 ),
 			'centerbottom' => array( 0.5, 1 ),
 			'leftcenter'   => array( 0, 0.5 ),
@@ -564,7 +554,7 @@ class Test_Replacer extends WP_UnitTestCase {
 				$y_value = $y_value === true ? '' : $y_value;
 
 				if ( ! isset( $allowed_gravities[ $x_value . $y_value ] ) ) {
-					$gravity_key = Optml_Resize::GRAVITY_CENTER;
+					$gravity_key = Position::CENTER;
 				} else {
 					$gravity_key = $allowed_gravities[ $x_value . $y_value ];
 				}

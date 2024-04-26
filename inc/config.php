@@ -1,5 +1,7 @@
 <?php
 
+use Optimole\Sdk\Optimole;
+
 /**
  * Class Optml_Config holds configuration for the service.
  *
@@ -124,5 +126,7 @@ class Optml_Config {
 		} elseif ( defined( 'OPTML_CUSTOM_DOMAIN' ) ) {
 			self::$service_url = constant( 'OPTML_CUSTOM_DOMAIN' );
 		}
+
+		Optimole::init( self::$key, [ 'domain' => parse_url( self::$service_url, PHP_URL_HOST ) ] );
 	}
 }
