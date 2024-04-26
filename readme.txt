@@ -43,8 +43,8 @@ You'll be free to concentrate on other aspects of your site with Optimole's set 
 
 So, if you have been looking for one plugin that provides lazy loading with a CDN and perfectly sized images, then Optimole is perfect for you.
 
-### Checkout a quick overview of Optimole plugin
-https://youtu.be/nR9iGNJFxnE
+### Checkout a quick overview of the Optimole plugin
+https://youtu.be/siCm0fhNes0
 
 ### How does it do all these great things?
 
