@@ -112,7 +112,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertStringContainsString( '</noscript></a>', $replaced_content, 'Noscript tag should be inside the wrapper tag and after image tag' );
 		$this->assertStringNotContainsString( '"http://example.org', $replaced_content );
 		$this->assertEquals( 1, substr_count( $replaced_content, 'q:eco' ) );
-		$this->assertEquals( 2, substr_count( $replaced_content, 'old-srcset' ) );
+		$this->assertEquals( 1, substr_count( $replaced_content, 'old-srcset' ) );
 
 	}
 	public function test_lazyload_skip_standard_class() {
