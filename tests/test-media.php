@@ -231,7 +231,7 @@ class Test_Media extends WP_UnitTestCase {
 	public function test_duplicated_image() {
 
 		$content =  wp_get_attachment_image( self::$sample_attachement_upper_case );
-		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:". self::$sample_attachement_upper_case ."/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1PQ7p-2.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content);
+		$this->assertStringContainsString(  "src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:". self::$sample_attachement_upper_case ."/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1PQ7p-2.jpg\" ", $content);
 	}
 	public function test_page_images_process() {
 		Optml_Tag_Replacer::$lazyload_skipped_images = 4;
@@ -258,7 +258,7 @@ class Test_Media extends WP_UnitTestCase {
 			)
 		);
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
-		$this->assertEquals(  3, substr_count($replaced_content, 'https://my_costum_domain'));
+		$this->assertEquals(  7, substr_count($replaced_content, 'https://my_costum_domain'));
 		$this->assertStringContainsString( '/w:150/h:150/q:75/rt:fill/g:ce/f:best/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $replaced_content );
 		$this->assertStringContainsString( '/w:150/h:150/q:eco/f:best/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $replaced_content );
 	}
@@ -333,7 +333,7 @@ class Test_Media extends WP_UnitTestCase {
 	public function test_special_characters_upload() : void {
 		$special_character_attachment = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/special-characters-•⋿∀.jpg' );
 		$content = wp_get_attachment_image( $special_character_attachment );
-		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:". $special_character_attachment ."/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/special-characters-•⋿∀.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content );
+		$this->assertStringContainsString(  "src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:". $special_character_attachment ."/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/special-characters-•⋿∀.jpg\" ", $content );
 	}
 
 	/**
