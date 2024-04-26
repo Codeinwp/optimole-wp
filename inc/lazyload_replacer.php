@@ -196,12 +196,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return;
 		}
 
-		add_filter(
-			'max_srcset_image_width',
-			function () {
-				return 1;
-			}
-		);
 		self::$is_lazyload_placeholder = self::$instance->settings->get( 'lazyload_placeholder' ) === 'enabled';
 
 		add_filter( 'optml_tag_replace', [ $this, 'lazyload_tag_replace' ], 2, 6 );
@@ -322,6 +316,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			$new_tag,
 			1
 		);
+
+		// We remove srcset and sizes attributes since our lazyload does not need them.
+		$pattern = '/\s+(?:srcset|sizes)=("[^"]*"|\'[^\']*\'|\\\\"[^\\\\"]*\\\\")/i';
+		$new_tag = preg_replace( $pattern, '', $new_tag );
+
+		// We keep this for srcset lazyload compatibility that might break our mechanism.
 		$new_tag = str_replace( 'srcset=', 'old-srcset=', $new_tag );
 
 		if ( ! $this->should_add_noscript( $new_tag ) ) {
