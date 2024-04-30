@@ -490,7 +490,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 					$sizes['width']  = $image_resized[6];
 					$sizes['height'] = $image_resized[7];
 				}
-
+				// There are cases when the image meta is missing and image size is non existent, see SVG image handling.
+				if ( ! $sizes['width'] || ! $sizes['height'] ) {
+					break;
+				}
 				list( $sizes['width'], $sizes['height'] ) = image_constrain_size_for_editor( $sizes['width'], $sizes['height'], $size, 'display' );
 
 				$sizes['resize'] = $this->to_optml_crop( $image_args[ $size ]['crop'] );
