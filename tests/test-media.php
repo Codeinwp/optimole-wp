@@ -15,7 +15,7 @@ class Test_Media extends WP_UnitTestCase {
 	const IMG_TAGS = '<!-- wp:image {"id":5,"sizeSlug":"medium"} -->
 <figure class="wp-block-image size-large"><img src="https://example.i.optimole.com/BOxmgcE-_HsxvBf4/w:300/h:200/q:90/id:b19fed3de30366eb76682becf7645c7b/sample-test.jpg" alt="" class="wp-image-1339"/></figure>
 <!-- /wp:image --> ';
-
+	use Optml_Dam_Offload_Utils;
 	public static $files = [
 		'sample-test',
 		'1PQ7p',
@@ -400,7 +400,23 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertStringContainsString('/wp-content/uploads', $replaced['post_content'] );
 		$this->assertStringContainsString('300x300.jpg', $replaced['post_content'] );
 	}
+	public function test_replace_alternative_domain(){
 
+
+		$url = Optml_Media_Offload::get_original_url( self::$sample_attachement );
+		$this->assertEquals( $this->attachment_url_to_post_id( $url ), self::$sample_attachement );
+		$url = str_replace('example.org', 'www.example.org', $url);
+		$this->assertEquals( $this->attachment_url_to_post_id( $url ), self::$sample_attachement );
+
+		$scaled_url = Optml_Media_Offload::get_original_url( self::$sample_attachment_scaled );
+
+		$this->assertEquals( $this->attachment_url_to_post_id( $scaled_url ), self::$sample_attachment_scaled );
+		$scaled_url = str_replace('-scaled','',$scaled_url);
+
+		$this->assertEquals( $this->attachment_url_to_post_id( $scaled_url ), self::$sample_attachment_scaled );
+		$scaled_url = str_replace('example.org', 'www.example.org', $scaled_url);
+		$this->assertEquals( $this->attachment_url_to_post_id( $scaled_url ), self::$sample_attachment_scaled );
+	}
 	public function test_replace_urls_in_editor_content() {
 		// Sample attachment:
 		$original_url = Optml_Media_Offload::get_original_url( self::$sample_attachement );
