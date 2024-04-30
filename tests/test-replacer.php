@@ -124,6 +124,7 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	public static $sample_post;
 	public static $sample_attachement;
+	public static $sample_svg;
 
 	public function setUp(): void {
 
@@ -158,6 +159,7 @@ class Test_Replacer extends WP_UnitTestCase {
 			]
 		);
 		self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/logo.png' );
+		self::$sample_svg = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample.svg' );
 
 	}
 
@@ -180,6 +182,12 @@ class Test_Replacer extends WP_UnitTestCase {
 
 	}
 
+	public function test_image_svg() {
+
+		$attachement_url = wp_get_attachment_image_src( self::$sample_svg, 'thumbnail' );
+		$this->assertStringContainsString( 'w:auto/h:auto', $attachement_url[0] );
+
+	}
 	public function test_image_tags() {
 		$settings = new Optml_Settings();
 		$settings->update( 'limit_dimensions', 'disabled' );
