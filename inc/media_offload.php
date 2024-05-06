@@ -813,7 +813,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		foreach ( $image_ids as $id ) {
 			if ( self::is_uploaded_image( wp_get_attachment_metadata( $id )['file'] ) ) {
 				// if this meta flag below failed at the initial update but the file meta above is updated it will cause an infinite query loop
-				update_post_meta( $id, 'optimole_offload', 'true' );
+				update_post_meta( $id, self::META_KEYS['offloaded'], 'true' );
+				update_post_meta( $id, self::OM_OFFLOADED_FLAG, true );
 				$success_up ++;
 				continue;
 			}
