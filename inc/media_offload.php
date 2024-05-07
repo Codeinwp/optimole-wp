@@ -540,20 +540,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		$size       = 'full';
 		$found_size = $this->parse_dimensions_from_filename( $url );
-		$strip_url  = $url;
-		$scaled_url = $url;
+		$url        = $this->add_schema( $url );
 		if ( $found_size[0] !== false && $found_size[1] !== false ) {
-			$size       = $found_size;
-			$strip_url  = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '', $url );
-			$scaled_url = str_replace( '-' . $found_size[0] . 'x' . $found_size[1], '-scaled', $url );
-		}
-		$strip_url = $this->add_schema( $strip_url );
+			$size = $found_size;
 
-		$attachment_id = attachment_url_to_postid( $strip_url );
-		if ( $attachment_id === 0 ) {
-			$scaled_url    = $this->add_schema( $scaled_url );
-			$attachment_id = attachment_url_to_postid( $scaled_url );
 		}
+		$url           = $this->add_schema( $url );
+		$attachment_id = $this->attachment_url_to_post_id( $url );
 
 		return [ 'attachment_id' => $attachment_id, 'size' => $size ];
 	}
