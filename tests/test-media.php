@@ -418,6 +418,7 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertEquals( $this->attachment_url_to_post_id( $scaled_url ), self::$sample_attachment_scaled );
 	}
 	public function test_replace_urls_in_editor_content() {
+		Optml_Attachment_Cache::reset();
 		// Sample attachment:
 		$original_url = Optml_Media_Offload::get_original_url( self::$sample_attachement );
 		$extension = pathinfo( $original_url, PATHINFO_EXTENSION );
