@@ -274,11 +274,12 @@ class Optml_Rest {
 		$data    = $request->connect( $api_key );
 
 		if ( $data === false || is_wp_error( $data ) ) {
-			if ( $data->get_error_code() === 'domain_not_accessible' ) {
-				return $this->response( $data->get_error_message(), 400 );
-			}
+
 			$extra = '';
 			if ( is_wp_error( $data ) ) {
+				if ( $data->get_error_code() === 'domain_not_accessible' ) {
+					return $this->response( $data->get_error_message(), 400 );
+				}
 				/**
 				 * Error from api.
 				 *
