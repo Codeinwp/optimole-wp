@@ -266,7 +266,8 @@ final class Optml_Manager {
 		if ( ( is_admin() && ! self::is_ajax_request() ) || ! $this->settings->is_connected() || ! $this->settings->is_enabled() ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'preview', $_GET ) && ! empty( $_GET['preview'] ) ) {
+
+		if ( array_key_exists( 'preview', $_GET ) && ! empty( $_GET['preview'] ) && ! $this->settings->is_offload_enabled() ) {
 			return false; // @codeCoverageIgnore
 		}
 
