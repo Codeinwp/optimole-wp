@@ -266,6 +266,12 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			return $this->get_dam_url( $image );
 		}
 
+		$offloaded_id = $this->is_offloaded_url( $image->getSource() );
+
+		if ( $offloaded_id !== 0 ) {
+			return $this->get_offloaded_url( $offloaded_id, $image->getUrl(), $image->getSource() );
+		}
+
 		return $image->getUrl();
 	}
 
@@ -365,5 +371,47 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 */
 	private function is_dam_url( $url ) {
 		return is_string( $url ) && strpos( $url, Optml_Dam::URL_DAM_FLAG ) !== false;
+	}
+
+	/**
+	 * Check if the URL is offloaded.
+	 *
+	 * @param string $source_url The source image URL.
+	 *
+	 * @return int
+	 */
+	private function is_offloaded_url( $source_url ) {
+		$attachment_id = 0;
+
+		if ( strpos( $source_url, Optml_Media_Offload::KEYS['not_processed_flag'] ) !== false ) {
+			$attachment_id = (int) Optml_Media_Offload::get_attachment_id_from_url( $source_url );
+		} else {
+			$attachment_id = $this->attachment_url_to_post_id( $source_url );
+		}
+
+		if ( $attachment_id === 0 ) {
+			return 0;
+		}
+
+		if ( empty( get_post_meta( $attachment_id, Optml_Media_Offload::OM_OFFLOADED_FLAG, true ) ) ) {
+			return 0;
+		}
+
+		return (int) $attachment_id;
+	}
+
+	/**
+	 * Get the offloaded URL for an image.
+	 *
+	 * @param int    $id The attachment ID.
+	 * @param string $optimized_url The optimized image URL.
+	 * @param string $source_url The source image URL.
+	 *
+	 * @return string
+	 */
+	private function get_offloaded_url( $id, $optimized_url, $source_url ) {
+		$suffix   = wp_get_attachment_metadata( $id )['file'];
+
+		return str_replace( $source_url, ltrim( $suffix, '/' ), $optimized_url );
 	}
 }
