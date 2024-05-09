@@ -401,12 +401,11 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertStringContainsString('300x300.jpg', $replaced['post_content'] );
 	}
 	public function test_replace_alternative_domain(){
-
-
-		$url = Optml_Media_Offload::get_original_url( self::$sample_attachement );
-		$this->assertEquals( $this->attachment_url_to_post_id( $url ), self::$sample_attachement );
+		$attachment = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/'.self::$files[0].'.jpg' );
+		$url = Optml_Media_Offload::get_original_url( $attachment );
+		$this->assertEquals( $this->attachment_url_to_post_id( $url ), $attachment );
 		$url = str_replace('example.org', 'www.example.org', $url);
-		$this->assertEquals( $this->attachment_url_to_post_id( $url ), self::$sample_attachement );
+		$this->assertEquals( $this->attachment_url_to_post_id( $url ), $attachment );
 
 		$scaled_url = Optml_Media_Offload::get_original_url( self::$sample_attachment_scaled );
 
