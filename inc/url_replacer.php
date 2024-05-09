@@ -393,7 +393,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			return 0;
 		}
 
-		if ( empty( get_post_meta( $attachment_id, Optml_Media_Offload::OM_OFFLOADED_FLAG, true ) ) ) {
+		if ( ! $this->is_completed_offload( $attachment_id ) ) {
 			return 0;
 		}
 
