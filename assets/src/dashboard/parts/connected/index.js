@@ -21,7 +21,7 @@ import Help from './help';
 import Sidebar from './Sidebar';
 import CSAT from './CSAT';
 import { retrieveConflicts } from '../../utils/api';
-import formbricks from "@formbricks/js/app";
+import formbricks from '@formbricks/js/app';
 if ( 'undefined' !== typeof window && optimoleDashboardApp.user_data.plan ) {
 	formbricks.init({
 		environmentId: 'clo8wxwzj44orpm0gjchurujm',
