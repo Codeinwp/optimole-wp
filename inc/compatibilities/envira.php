@@ -1,5 +1,8 @@
 <?php
 
+use Optimole\Sdk\Resource\ImageProperty\ResizeTypeProperty;
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * Class Optml_shortcode_ultimate.
  *
@@ -56,8 +59,8 @@ class Optml_envira extends Optml_compatibility {
 	function check_resize_tag( $old_resize, $tag ) {
 		if ( preg_match( '/(_c)\.(?:' . implode( '|', array_keys( Optml_Config::$image_extensions ) ) . ')/i', $tag, $match ) ) {
 			return [
-				'type'    => Optml_Resize::RESIZE_FILL,
-				'gravity' => Optml_Resize::GRAVITY_CENTER,
+				'type'    => ResizeTypeProperty::FILL,
+				'gravity' => Position::CENTER,
 			];
 		}
 

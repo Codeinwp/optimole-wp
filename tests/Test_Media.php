@@ -15,7 +15,7 @@ class Test_Media extends WP_UnitTestCase {
 	const IMG_TAGS = '<!-- wp:image {"id":5,"sizeSlug":"medium"} -->
 <figure class="wp-block-image size-large"><img src="https://example.i.optimole.com/BOxmgcE-_HsxvBf4/w:300/h:200/q:90/id:b19fed3de30366eb76682becf7645c7b/sample-test.jpg" alt="" class="wp-image-1339"/></figure>
 <!-- /wp:image --> ';
-
+	use Optml_Dam_Offload_Utils;
 	public static $files = [
 		'sample-test',
 		'1PQ7p',
@@ -148,8 +148,6 @@ class Test_Media extends WP_UnitTestCase {
 		$settings->update( 'no_script', 'enabled' );
 		$settings->update( 'lazyload', 'enabled' );
 		$settings->update( 'offload_media', 'enabled' );
-		// enforce offload during this test
-		Optml_Image::$offload_enabled = true;
 		$settings->update( 'lazyload_placeholder', 'disabled' );
 		$settings->update( 'quality', 90 );
 		$settings->update( 'cdn', 'enabled' );
@@ -231,7 +229,8 @@ class Test_Media extends WP_UnitTestCase {
 	public function test_duplicated_image() {
 
 		$content =  wp_get_attachment_image( self::$sample_attachement_upper_case );
-		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:". self::$sample_attachement_upper_case ."/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1PQ7p-2.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content);
+		$this->assertStringContainsString(  "src=\"https://example.i.optimole.com/w:150/h:150/rt:fill/g:ce/q:mauto/process:". self::$sample_attachement_upper_case ."/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/1PQ7p-2.jpg\" ", $content);
+
 	}
 	public function test_page_images_process() {
 		Optml_Tag_Replacer::$lazyload_skipped_images = 4;
@@ -258,7 +257,7 @@ class Test_Media extends WP_UnitTestCase {
 			)
 		);
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
-		$this->assertEquals(  3, substr_count($replaced_content, 'https://my_costum_domain'));
+		$this->assertEquals(  7, substr_count($replaced_content, 'https://my_costum_domain'));
 		$this->assertStringContainsString( '/w:150/h:150/q:75/rt:fill/g:ce/f:best/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $replaced_content );
 		$this->assertStringContainsString( '/w:150/h:150/q:eco/f:best/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $replaced_content );
 	}
@@ -270,10 +269,10 @@ class Test_Media extends WP_UnitTestCase {
 		$my_size_image = wp_get_attachment_image_src(self::$sample_attachement, 'my_size_crop' );
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $my_size_image[0] );
-		$this->assertStringContainsString('/w:200/h:200/q:mauto/rt:fill/g:nowe/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $my_size_image[0]);
+		$this->assertStringContainsString('/w:200/h:200/rt:fill/g:nowe/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $my_size_image[0]);
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $image_thumbnail_size[0] );
-		$this->assertStringContainsString( '/w:150/h:150/q:mauto/rt:fill/g:ce/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $image_thumbnail_size[0] );
+		$this->assertStringContainsString( '/w:150/h:150/rt:fill/g:ce/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $image_thumbnail_size[0] );
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $image_medium_size[0] );
 		$this->assertStringContainsString( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $image_medium_size[0] );
@@ -299,7 +298,7 @@ class Test_Media extends WP_UnitTestCase {
 		$image_thumbnail_size = wp_get_attachment_image_src(self::$sample_attachement, 'thumbnail');
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $image_thumbnail_size[0] );
-		$this->assertStringContainsString( '/w:150/h:150/q:mauto/rt:fill/g:ce/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $image_thumbnail_size[0] );
+		$this->assertStringContainsString( '/w:150/h:150/rt:fill/g:ce/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $image_thumbnail_size[0] );
 
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $image_medium_size[0] );
@@ -333,7 +332,9 @@ class Test_Media extends WP_UnitTestCase {
 	public function test_special_characters_upload() : void {
 		$special_character_attachment = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/special-characters-•⋿∀.jpg' );
 		$content = wp_get_attachment_image( $special_character_attachment );
-		$this->assertEquals(  "<img width=\"150\" height=\"150\" src=\"https://example.i.optimole.com/w:150/h:150/q:mauto/rt:fill/g:ce/process:". $special_character_attachment ."/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/special-characters-•⋿∀.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" decoding=\"async\" />", $content );
+
+		$this->assertStringContainsString(  "src=\"https://example.i.optimole.com/w:150/h:150/rt:fill/g:ce/q:mauto/process:". $special_character_attachment ."/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/special-characters-•⋿∀.jpg\" ", $content );
+
 	}
 
 	/**
@@ -399,8 +400,24 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertStringContainsString('/wp-content/uploads', $replaced['post_content'] );
 		$this->assertStringContainsString('300x300.jpg', $replaced['post_content'] );
 	}
+	public function test_replace_alternative_domain(){
+		$attachment = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/'.self::$files[0].'.jpg' );
+		$url = Optml_Media_Offload::get_original_url( $attachment );
+		$this->assertEquals( $this->attachment_url_to_post_id( $url ), $attachment );
+		$url = str_replace('example.org', 'www.example.org', $url);
+		$this->assertEquals( $this->attachment_url_to_post_id( $url ), $attachment );
 
+		$scaled_url = Optml_Media_Offload::get_original_url( self::$sample_attachment_scaled );
+
+		$this->assertEquals( $this->attachment_url_to_post_id( $scaled_url ), self::$sample_attachment_scaled );
+		$scaled_url = str_replace('-scaled','',$scaled_url);
+
+		$this->assertEquals( $this->attachment_url_to_post_id( $scaled_url ), self::$sample_attachment_scaled );
+		$scaled_url = str_replace('example.org', 'www.example.org', $scaled_url);
+		$this->assertEquals( $this->attachment_url_to_post_id( $scaled_url ), self::$sample_attachment_scaled );
+	}
 	public function test_replace_urls_in_editor_content() {
+		Optml_Attachment_Cache::reset();
 		// Sample attachment:
 		$original_url = Optml_Media_Offload::get_original_url( self::$sample_attachement );
 		$extension = pathinfo( $original_url, PATHINFO_EXTENSION );

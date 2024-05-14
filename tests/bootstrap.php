@@ -22,6 +22,8 @@ define( 'WP_TESTS_FORCE_KNOWN_BUGS', true );
 define( 'OPTML_PHPUNIT_TESTING', true );
 // Give access to tests_add_filter() function.
 require_once $_tests_dir . '/includes/functions.php';
+
+
 /**
  * Manually load the plugin being tested.
  */

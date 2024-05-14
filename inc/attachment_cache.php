@@ -11,7 +11,12 @@ class Optml_Attachment_Cache {
 	 * @var array
 	 */
 	private static $cache_map = [];
-
+	/**
+	 * Reset the memory cache.
+	 */
+	public static function reset() {
+		self::$cache_map = [];
+	}
 	/**
 	 * Get the cached attachment ID.
 	 *

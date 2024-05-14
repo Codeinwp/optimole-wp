@@ -7,6 +7,9 @@
  * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
  */
 
+use Optimole\Sdk\Resource\ImageProperty\ResizeTypeProperty;
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * Class Optml_Rest
  *
@@ -271,11 +274,12 @@ class Optml_Rest {
 		$data    = $request->connect( $api_key );
 
 		if ( $data === false || is_wp_error( $data ) ) {
-			if ( $data->get_error_code() === 'domain_not_accessible' ) {
-				return $this->response( $data->get_error_message(), 400 );
-			}
+
 			$extra = '';
 			if ( is_wp_error( $data ) ) {
+				if ( $data->get_error_code() === 'domain_not_accessible' ) {
+					return $this->response( $data->get_error_message(), 400 );
+				}
 				/**
 				 * Error from api.
 				 *
@@ -607,9 +611,9 @@ class Optml_Rest {
 				140,
 				140,
 				[
-					'type'    => Optml_Resize::RESIZE_FILL,
+					'type'    => ResizeTypeProperty::FILL,
 					'enlarge' => false,
-					'gravity' => Optml_Resize::GRAVITY_CENTER,
+					'gravity' => Position::CENTER,
 				]
 			);
 			unset( $final_images[ $index ]['key'] );

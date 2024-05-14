@@ -9,6 +9,9 @@
  * @author     Optimole <friends@optimole.com>
  */
 
+use Optimole\Sdk\Resource\ImageProperty\GravityProperty;
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * Class Optml_Dam
  */
@@ -744,10 +747,10 @@ class Optml_Dam {
 		$height = $args['height'];
 		$crop = (bool) $args['crop'];
 
-		$gravity = Optml_Resize::GRAVITY_CENTER;
+		$gravity = Position::CENTER;
 
 		if ( $this->settings->get( 'resize_smart' ) === 'enabled' ) {
-			$gravity = Optml_Resize::GRAVITY_SMART;
+			$gravity = GravityProperty::SMART;
 		}
 
 		if ( $width === 0 ) {

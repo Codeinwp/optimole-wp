@@ -1,5 +1,10 @@
 <?php
 
+use Optimole\Sdk\Optimole;
+use Optimole\Sdk\Resource\Image;
+use Optimole\Sdk\Resource\ImageProperty\GravityProperty;
+use Optimole\Sdk\ValueObject\Position;
+
 /**
  * The class handles the url replacements.
  *
@@ -37,49 +42,6 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		return self::$instance;
 	}
 
-	/**
-	 * A filter which turns a local url into an optimized CDN image url or an array of image urls.
-	 *
-	 * @param string|array $url The url which should be replaced.
-	 *
-	 * @return string|array Replaced url.
-	 */
-	public function replace_option_url( $url ) {
-		if ( empty( $url ) ) {
-			return $url;
-		}
-
-		// $url might be an array or an json encoded array with urls.
-		if ( is_array( $url ) || filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
-			$array   = $url;
-			$encoded = false;
-
-			// it might a json encoded array
-			if ( is_string( $url ) ) {
-				$array   = json_decode( $url, true );
-				$encoded = true;
-			}
-
-			// in case there is an array, apply it recursively.
-			if ( is_array( $array ) ) {
-				foreach ( $array as $index => $value ) {
-					$array[ $index ] = $this->replace_option_url( $value );
-				}
-
-				if ( $encoded ) {
-					return json_encode( $array );
-				}
-
-				return $array;
-			}
-
-			if ( filter_var( $url, FILTER_VALIDATE_URL ) === false ) {
-				return $url;
-			}
-		}
-
-		return apply_filters( 'optml_content_url', $url );
-	}
 
 	/**
 	 * The initialize method.
@@ -89,9 +51,6 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		add_filter( 'optml_replace_image', [ $this, 'build_url' ], 10, 2 );
 		parent::init();
 
-		Optml_Quality::$default_quality = $this->to_accepted_quality( $this->settings->get_quality() );
-		Optml_Image::$watermark         = new Optml_Watermark( $this->settings->get_site_settings()['watermark'] );
-		Optml_Resize::$default_enlarge  = apply_filters( 'optml_always_enlarge', false );
 		add_filter( 'optml_content_url', [ $this, 'build_url' ], 1, 2 );
 
 	}
@@ -190,7 +149,15 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 				$new_url = str_replace( '/' . $url, $id_and_filename, $new_url );
 			}
 		} else {
-			$new_url = ( new Optml_Asset( $url, $args, $this->active_cache_buster_assets, $this->is_css_minify_on, $this->is_js_minify_on ) )->get_url();
+			$asset = Optimole::asset( $url, $this->active_cache_buster_assets );
+
+			if ( stripos( $url, '.css' ) || stripos( $url, '.js' ) ) {
+				$asset->quality();
+			}
+
+			$asset->minify( ( $this->is_css_minify_on && str_ends_with( strtolower( $url ), '.css' ) ) || ( $this->is_js_minify_on && str_ends_with( strtolower( $url ), '.js' ) ) );
+
+			return $asset->getUrl();
 		}
 		return $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 	}
@@ -252,39 +219,60 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			}
 		}
 
+		if ( empty( $args['quality'] ) ) {
+			$args['quality'] = $this->to_accepted_quality( $this->settings->get_quality() );
+		}
+
 		if ( isset( $args['resize'], $args['resize']['gravity'] ) && $this->settings->is_smart_cropping() ) {
-			$args['resize']['gravity'] = Optml_Resize::GRAVITY_SMART;
+			$args['resize']['gravity'] = GravityProperty::SMART;
 		}
 
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
+		$image = Optimole::image( apply_filters( 'optml_processed_url', $url ), $this->active_cache_buster );
 
-		$arguments = [
-			'apply_watermark' => apply_filters( 'optml_apply_watermark_for', true, $url ),
-		];
+		$image->width( ! empty( $args['width'] ) ? $args['width'] : 'auto' );
+		$image->height( ! empty( $args['height'] ) ? $args['height'] : 'auto' );
 
-		if ( isset( $args['format'] ) && ! empty( $args['format'] ) ) {
-			$arguments['format'] = $args['format'];
+		$image->quality( $args['quality'] );
+
+		if ( ! empty( $args['resize'] ) ) {
+			$this->apply_resize( $image, $args['resize'] );
 		}
 
-		// If format is not already set, we use best format if it's enabled.
-		if ( ! isset( $arguments['format'] ) && $this->settings->is_best_format() ) {
-			$arguments['format'] = 'best';
+		if ( apply_filters( 'optml_apply_watermark_for', true, $url ) ) {
+			$this->apply_watermark( $image );
+		}
+
+		if ( ! empty( $args['format'] ) ) {
+			$image->format( (string) $args['format'] );
+		} elseif ( $this->settings->is_best_format() ) {
+			// If format is not already set, we use best format if it's enabled.
+			$image->format( 'best' );
 		}
 
 		if ( $this->settings->get( 'strip_metadata' ) === 'disabled' ) {
-			$arguments['strip_metadata'] = '0';
+			$image->stripMetadata( false );
 		}
 
-		if ( ! apply_filters( 'optml_should_avif_ext', true, $ext, $original_url ) ) {
-			$arguments['ignore_avif'] = true;
+		if ( ! apply_filters( 'optml_should_avif_ext', true, $ext, $original_url ) || $this->settings->get( 'avif' ) === 'disabled' ) {
+			$image->ignoreAvif();
 		}
 
-		if ( ! isset( $arguments['ignore_avif'] ) && $this->settings->get( 'avif' ) === 'disabled' ) {
-			$arguments['ignore_avif'] = true;
+		if ( apply_filters( 'optml_keep_copyright', false ) === true ) {
+			$image->keepCopyright();
 		}
 
-		return  ( new Optml_Image( $url, $args, $this->active_cache_buster ) )->get_url( $arguments );
+		if ( $this->is_dam_url( $image->getSource() ) ) {
+			return $this->get_dam_url( $image );
+		}
 
+		$offloaded_id = $this->is_offloaded_url( $image->getSource() );
+
+		if ( $offloaded_id !== 0 ) {
+			return $this->get_offloaded_url( $offloaded_id, $image->getUrl(), $image->getSource() );
+		}
+
+		return $image->getUrl();
 	}
 
 	/**
@@ -314,5 +302,116 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	public function __wakeup() {
 		// Unserializing instances of the class is forbidden.
 		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'optimole-wp' ), '1.0.0' );
+	}
+
+	/**
+	 * Apply resize to image.
+	 *
+	 * @param Image $image Image object.
+	 * @param mixed $resize Resize arguments.
+	 */
+	private function apply_resize( Image $image, $resize ) {
+		if ( ! is_array( $resize ) || empty( $resize['type'] ) ) {
+			return;
+		}
+
+		$image->resize( $resize['type'], $resize['gravity'] ?? Position::CENTER, $resize['enlarge'] ?? false );
+	}
+
+	/**
+	 * Apply watermark to image.
+	 *
+	 * @param Image $image Image object.
+	 */
+	private function apply_watermark( Image $image ) {
+		$settings = $this->settings->get_site_settings();
+
+		if ( empty( $settings['watermark'] ) ) {
+			return;
+		}
+
+		$watermark = $settings['watermark'];
+
+		if ( ! isset( $watermark['id'], $watermark['opacity'], $watermark['position'] ) || $watermark['id'] <= 0 ) {
+			return;
+		}
+
+		$image->watermark( $watermark['id'], $watermark['opacity'], $watermark['position'], $watermark['x_offset'] ?? 0, $watermark['y_offset'] ?? 0, $watermark['scale'] ?? 0 );
+	}
+
+	/**
+	 * Get the DAM image URL.
+	 *
+	 * @param Image $image Image object.
+	 *
+	 * @return string
+	 */
+	private function get_dam_url( Image $image ) {
+		// Remove DAM flag.
+		$url = str_replace( Optml_Dam::URL_DAM_FLAG, '', $image->getSource() );
+
+		foreach ( $image->getProperties() as $property ) {
+			[ $name, $value ] = explode( ':', $property );
+
+			// Check if the property exists in the URL, if so, replace it with the current property value. Otherwise, add it before the /q: param.
+			$url = strpos( $url, '/' . $name . ':' ) !== false
+				? preg_replace( '/\/' . $name . ':.*?\//', '/' . $name . ':' . $value . '/', $url )
+				: str_replace( '/q:', '/' . $name . ':' . $value . '/q:', $url );
+		}
+
+		return $url;
+	}
+
+	/**
+	 * Check if this contains the DAM flag.
+	 *
+	 * @param string $url The URL to check.
+	 *
+	 * @return bool
+	 */
+	private function is_dam_url( $url ) {
+		return is_string( $url ) && strpos( $url, Optml_Dam::URL_DAM_FLAG ) !== false;
+	}
+
+	/**
+	 * Check if the URL is offloaded.
+	 *
+	 * @param string $source_url The source image URL.
+	 *
+	 * @return int
+	 */
+	private function is_offloaded_url( $source_url ) {
+		$attachment_id = 0;
+
+		if ( strpos( $source_url, Optml_Media_Offload::KEYS['not_processed_flag'] ) !== false ) {
+			$attachment_id = (int) Optml_Media_Offload::get_attachment_id_from_url( $source_url );
+		} else {
+			$attachment_id = $this->attachment_url_to_post_id( $source_url );
+		}
+
+		if ( $attachment_id === 0 ) {
+			return 0;
+		}
+
+		if ( ! $this->is_completed_offload( $attachment_id ) ) {
+			return 0;
+		}
+
+		return (int) $attachment_id;
+	}
+
+	/**
+	 * Get the offloaded URL for an image.
+	 *
+	 * @param int    $id The attachment ID.
+	 * @param string $optimized_url The optimized image URL.
+	 * @param string $source_url The source image URL.
+	 *
+	 * @return string
+	 */
+	private function get_offloaded_url( $id, $optimized_url, $source_url ) {
+		$suffix   = wp_get_attachment_metadata( $id )['file'];
+
+		return str_replace( $source_url, ltrim( $suffix, '/' ), $optimized_url );
 	}
 }
