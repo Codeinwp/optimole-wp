@@ -153,7 +153,7 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 #### [Version 3.13.0](https://github.com/Codeinwp/optimole-wp/compare/v3.12.10...v3.13.0) (2024-05-14)
 
 - Optimole is now fully translated into German! This update makes our service more convenient for our German-speaking customers and helps you support your German-speaking clients more effectively.
-- We now have a PHP SDK available on GitHub: [Optimole PHP SDK](https://github.com/Optimole/optimole-php-sdk). This SDK simplifies the integration of Optimole’s features with any PHP-based website, making the process straightforward and efficient.
+- We now have a PHP SDK available on GitHub: [Optimole PHP SDK](https://github.com/codeinwp/optimole-php-sdk). This SDK simplifies the integration of Optimole’s features with any PHP-based website, making the process straightforward and efficient.
 - You can now associate a billing email to receive invoices. For more details, check out our [documentation](https://docs.optimole.com/article/1992-setting-a-billing-email-for-invoice-delivery).
 - Weve improved Largest Contentful Paint (LCP) by prioritizing the loading of initial images that are not affected by lazy loading.
 - Weve also improved LCP by using the srcset attribute for non-lazyloaded images.
