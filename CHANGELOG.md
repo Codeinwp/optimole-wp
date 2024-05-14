@@ -1,3 +1,14 @@
+#### [Version 3.13.0](https://github.com/Codeinwp/optimole-wp/compare/v3.12.10...v3.13.0) (2024-05-14)
+
+- Optimole is now fully translated into German! This update makes our service more convenient for our German-speaking customers and helps you support your German-speaking clients more effectively.
+- We now have a PHP SDK available on GitHub: [Optimole PHP SDK](https://github.com/Optimole/optimole-php-sdk). This SDK simplifies the integration of Optimole’s features with any PHP-based website, making the process straightforward and efficient.
+- You can now associate a billing email to receive invoices. For more details, check out our [documentation](https://docs.optimole.com/article/1992-setting-a-billing-email-for-invoice-delivery).
+- Weve improved Largest Contentful Paint (LCP) by prioritizing the loading of initial images that are not affected by lazy loading.
+- Weve also improved LCP by using the srcset attribute for non-lazyloaded images.
+- Weve fixed various issues with offload compatibility to ensure all images load properly, making the service more robust.
+- Weve resolved an issue where the offloading process was getting stuck on large websites, making the process smoother and more reliable.
+- Weve improved the handling and sanitization of SVG files.
+
 ##### [Version 3.12.10](https://github.com/Codeinwp/optimole-wp/compare/v3.12.9...v3.12.10) (2024-04-19)
 
 - Addressed an issue with offloading/rollback transfers getting stuck by adding a check for scheduled cron jobs. If no cron is scheduled and a transfer is in progress, the cron will be rescheduled.
