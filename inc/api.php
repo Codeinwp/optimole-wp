@@ -16,12 +16,6 @@ final class Optml_Api {
 	 */
 	private $api_root = 'https://dashboard.optimole.com/api/';
 	/**
-	 * Optimole upload api root url.
-	 *
-	 * @var string Api root.
-	 */
-	private $upload_api_root = 'https://generateurls-prod.i.optimole.com/upload';
-	/**
 	 * Optimole onboard api root url.
 	 *
 	 * @var string Api root.
@@ -47,9 +41,6 @@ final class Optml_Api {
 		$this->api_key = $settings->get( 'api_key' );
 		if ( defined( 'OPTIML_API_ROOT' ) ) {
 			$this->api_root = constant( 'OPTIML_API_ROOT' );
-		}
-		if ( defined( 'OPTIML_UPLOAD_API_ROOT' ) ) {
-			$this->upload_api_root = constant( 'OPTIML_UPLOAD_API_ROOT' );
 		}
 		if ( defined( 'OPTIML_ONBOARD_API_ROOT' ) ) {
 			$this->onboard_api_root = constant( 'OPTIML_ONBOARD_API_ROOT' );
@@ -247,19 +238,6 @@ final class Optml_Api {
 	}
 
 	/**
-	 * Upload image to our servers using the generated signed url.
-	 *
-	 * @param string $upload_url The signed to url to upload the image to.
-	 * @param string $content_type Image mime type, it must match the actual mime type of the image.
-	 * @param string $image Image data from file_get_contents.
-	 * @return mixed
-	 */
-	public function upload_image( $upload_url, $content_type, $image ) {
-		$args = $this->build_args( 'PUT', '', ['content-type' => $content_type], $image );
-		return wp_remote_request( $upload_url, $args );
-	}
-
-	/**
 	 * Check if the optimized url is available.
 	 *
 	 * @param string $url The optimized url to check.
@@ -273,47 +251,6 @@ final class Optml_Api {
 			return false;
 		}
 		return true;
-	}
-
-	/**
-	 * Get options for the signed urls api call.
-	 *
-	 * @param string $original_url Image original url.
-	 * @param string $delete Whether to delete a bucket object or not(ie. generate signed upload url).
-	 * @param string $table_id Remote id used on our servers.
-	 * @param string $update_table False or success.
-	 * @param string $get_url Whether to return a get url or not.
-	 * @param string $width Original image width.
-	 * @param string $height Original image height.
-	 * @param int    $file_size Original file size.
-	 * @return array|WP_Error
-	 */
-	public function call_upload_api( $original_url = '', $delete = 'false', $table_id = '', $update_table = 'false', $get_url = 'false', $width = 'auto', $height = 'auto', $file_size = 0 ) {
-		$body = [
-			'secret' => Optml_Config::$secret,
-			'userKey' => Optml_Config::$key,
-			'originalUrl' => $original_url,
-			'deleteUrl' => $delete,
-			'id' => $table_id,
-			'updateDynamo' => $update_table,
-			'getUrl' => $get_url,
-			'width' => $width,
-			'height' => $height,
-			'originalFileSize' => $file_size,
-		];
-		$body = wp_json_encode( $body );
-
-		$options = [
-			'body'        => $body,
-			'headers'     => [
-				'Content-Type' => 'application/json',
-			],
-			'timeout'     => 60,
-			'blocking'    => true,
-			'sslverify'   => false,
-			'data_format' => 'body',
-		];
-		return wp_remote_post( $this->upload_api_root, $options );
 	}
 
 	/**
