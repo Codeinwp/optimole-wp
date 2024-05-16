@@ -60,6 +60,12 @@ abstract class Optml_App_Replacer {
 	 */
 	public $settings = null;
 	/**
+	 * Cached offloading status.
+	 *
+	 * @var null|bool Offload status.
+	 */
+	public static $offload_enabled = null;
+	/**
 	 * Defines if the dimensions should be limited when images are served.
 	 *
 	 * @var bool
@@ -356,6 +362,9 @@ abstract class Optml_App_Replacer {
 			},
 			10
 		);
+		if ( self::$offload_enabled === null ) {
+			self::$offload_enabled = ( new Optml_Settings() )->is_offload_enabled();
+		}
 	}
 
 

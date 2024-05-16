@@ -383,6 +383,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	private function is_offloaded_url( $source_url ) {
 		$attachment_id = 0;
 
+		if ( ! self::$offload_enabled ) {
+			return 0;
+		}
 		if ( strpos( $source_url, Optml_Media_Offload::KEYS['not_processed_flag'] ) !== false ) {
 			$attachment_id = (int) Optml_Media_Offload::get_attachment_id_from_url( $source_url );
 		} else {
