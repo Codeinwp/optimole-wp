@@ -643,6 +643,8 @@ abstract class Optml_App_Replacer {
 	 * @return string
 	 */
 	protected function get_optimized_image_url( $url, $width, $height, $resize = [] ) {
+		$width  = is_int( $width ) ? $width : 'auto';
+		$height = is_int( $height ) ? $height : 'auto';
 		$optimized_image = Optimole::image( $url, $this->settings->get( 'cache_buster' ) )
 			->width( $width )
 			->height( $height );
