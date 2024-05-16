@@ -1,3 +1,7 @@
+##### [Version 3.13.1](https://github.com/Codeinwp/optimole-wp/compare/v3.13.0...v3.13.1) (2024-05-16)
+
+* Resolved a critical issue that caused a fatal error when the width or height parameters were left empty in certain edge cases.
+
 #### [Version 3.13.0](https://github.com/Codeinwp/optimole-wp/compare/v3.12.10...v3.13.0) (2024-05-14)
 
 - Optimole is now fully translated into German! This update makes our service more convenient for our German-speaking customers and helps you support your German-speaking clients more effectively.
