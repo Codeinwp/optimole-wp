@@ -1,3 +1,7 @@
+##### [Version 3.13.2](https://github.com/Codeinwp/optimole-wp/compare/v3.13.1...v3.13.2) (2024-05-17)
+
+* Addressed an issue that caused slower performance for URLs not using the offloading feature.
+
 ##### [Version 3.13.1](https://github.com/Codeinwp/optimole-wp/compare/v3.13.0...v3.13.1) (2024-05-16)
 
 * Resolved a critical issue that caused a fatal error when the width or height parameters were left empty in certain edge cases.
