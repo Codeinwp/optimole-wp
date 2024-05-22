@@ -214,7 +214,19 @@ final class Optml_Api {
 				&& isset( $response['code'] ) && $response['code'] === 'not_allowed' ) {
 				return 'disconnect';
 			}
-			return false;
+
+			return isset( $response['error'] ) ? new WP_Error(
+				'api_error',
+				wp_kses(
+					$response['error'],
+					[
+						'a' => [
+							'href'   => [],
+							'target' => [],
+						],
+					]
+				)
+			) : false;
 		}
 
 		return $response['data'];
