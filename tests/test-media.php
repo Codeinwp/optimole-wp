@@ -399,6 +399,11 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'process:' . self::$sample_attachment_scaled . '/id:', $replaced['post_content'] );
 		$this->assertStringContainsString('/wp-content/uploads', $replaced['post_content'] );
 		$this->assertStringContainsString('300x300.jpg', $replaced['post_content'] );
+
+		// Skip replacement of attachments without any correspondent.
+		$content  = '<img src="https://example.i.optimole.com/nfYKCuM-pmHIfRg3/w:auto/h:auto/q:auto/process:32/id:8bbc41853bc0770fb1dd34759e1cb1e2/https://optimole.com/PIA23769.JPG" />';
+		$replaced = Optml_Media_Offload::instance()->filter_saved_data( [ 'post_content' => $content ], [ 'post_status' => 'published' ], [], false );
+		$this->assertEquals( $content, $replaced['post_content'] );
 	}
 	public function test_replace_alternative_domain(){
 		$attachment = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/'.self::$files[0].'.jpg' );
