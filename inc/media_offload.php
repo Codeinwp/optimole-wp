@@ -2579,7 +2579,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				continue;
 			}
 
-			$replace[ $url ] = self::get_original_url( $id );
+			$original = self::get_original_url( $id );
+
+			if ( $original === false ) {
+				continue;
+			}
+
+			$replace[ $url ] = $original;
 
 			$size = $this->parse_dimension_from_optimized_url( $url );
 

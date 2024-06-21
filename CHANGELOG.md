@@ -1,3 +1,8 @@
+##### [Version 3.13.3](https://github.com/Codeinwp/optimole-wp/compare/v3.13.2...v3.13.3) (2024-05-24)
+
+* Update dependencies
+* Improve API error handling to display more helpful messages.
+
 ##### [Version 3.13.2](https://github.com/Codeinwp/optimole-wp/compare/v3.13.1...v3.13.2) (2024-05-17)
 
 * Addressed an issue that caused slower performance for URLs not using the offloading feature.
