@@ -127,6 +127,23 @@ class Optml_Config {
 			self::$service_url = constant( 'OPTML_CUSTOM_DOMAIN' );
 		}
 
-		Optimole::init( self::$key, [ 'domain' => parse_url( self::$service_url, PHP_URL_HOST ) ] );
+		$options = [ 'domain' => parse_url( self::$service_url, PHP_URL_HOST ) ];
+
+		if ( defined( 'OPTIML_API_ROOT' ) ) {
+			$options['dashboard_api_url'] = OPTIML_API_ROOT;
+		}
+
+		if ( defined( 'OPTIML_UPLOAD_API_ROOT' ) ) {
+			$options['upload_api_url'] = OPTIML_UPLOAD_API_ROOT;
+		}
+
+		if ( isset( $service_settings['cdn_key'], $service_settings['cdn_secret'] ) ) {
+			$options['upload_api_credentials'] = [
+				'userKey' => $service_settings['cdn_key'],
+				'secret' => $service_settings['cdn_secret'],
+			];
+		}
+
+		Optimole::init( self::$key, $options );
 	}
 }

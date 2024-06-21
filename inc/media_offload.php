@@ -6,6 +6,14 @@
  * @author     Optimole <friends@optimole.com>
  */
 
+use Optimole\Sdk\Exception\InvalidArgumentException;
+use Optimole\Sdk\Exception\InvalidUploadApiResponseException;
+use Optimole\Sdk\Exception\RuntimeException;
+use Optimole\Sdk\Exception\UploadApiException;
+use Optimole\Sdk\Exception\UploadFailedException;
+use Optimole\Sdk\Exception\UploadLimitException;
+use Optimole\Sdk\Optimole;
+
 /**
  * Class Optml_Admin
  */
@@ -869,33 +877,33 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$success_back ++;
 				continue;
 			}
-			$table_id = [];
+
 			// Account for scaled images.
 			$source_file = isset( $current_meta['original_image'] ) ? $current_meta['original_image'] : $current_meta['file']; // @phpstan-ignore-line - this exists for scaled images.
 			$filename    = pathinfo( $source_file, PATHINFO_BASENAME );
-			preg_match( '/\/' . self::KEYS['uploaded_flag'] . '([^\/]*)\//', $current_meta['file'], $table_id );
-			if ( ! isset( $table_id[1] ) ) {
+			$image_id = preg_match( '/\/' . self::KEYS['uploaded_flag'] . '([^\/]*)\//', $current_meta['file'], $matches ) ? $matches[1] : null;
+
+			if ( null === $image_id ) {
 				continue;
 			}
-			$table_id = $table_id[1];
+
 			if ( OPTML_DEBUG_MEDIA ) {
 				do_action( 'optml_log', ' image cloud id ' );
-				do_action( 'optml_log', $table_id );
+				do_action( 'optml_log', $image_id );
 			}
-			$request      = new Optml_Api();
-			$get_response = $request->call_upload_api( '', 'false', $table_id, 'false', 'true' );
 
-			if ( is_wp_error( $get_response ) || wp_remote_retrieve_response_code( $get_response ) !== 200 ) {
+			$image_url = Optimole::offload()->getImageUrl( $image_id );
+
+			if ( null === $image_url ) {
 				update_post_meta( $id, self::META_KEYS['rollback_error'], 'true' );
 				if ( OPTML_DEBUG_MEDIA ) {
 					do_action( 'optml_log', ' error get url' );
 				}
 
 				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' has error getting URL.' );
+
 				continue;
 			}
-
-			$get_url = json_decode( $get_response['body'], true )['getUrl'];
 
 			if ( ! function_exists( 'download_url' ) ) {
 				include_once ABSPATH . 'wp-admin/includes/file.php';
@@ -905,7 +913,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				continue;
 			}
 			$timeout_seconds = 60;
-			$temp_file       = download_url( $get_url, $timeout_seconds );
+			$temp_file       = download_url( $image_url, $timeout_seconds );
 
 			if ( is_wp_error( $temp_file ) ) {
 				update_post_meta( $id, self::META_KEYS['rollback_error'], 'true' );
@@ -1031,7 +1039,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( $original_url === false ) {
 				continue;
 			}
-			$this->delete_attachment_from_server( $original_url, $id, $table_id );
+			$this->delete_attachment_from_server( $original_url, $id, $image_id );
 		}
 
 		if ( $success_back > 0 ) {
@@ -1090,17 +1098,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @param string  $original_url Original url of the image.
 	 * @param integer $post_id Image id inside db.
-	 * @param string  $table_id Our cloud id for the image.
+	 * @param string  $image_id Our cloud id for the image.
 	 */
-	public function delete_attachment_from_server( $original_url, $post_id, $table_id ) {
-		$request         = new Optml_Api();
-		$delete_response = $request->call_upload_api( $original_url, 'true', $table_id );
+	public function delete_attachment_from_server( $original_url, $post_id, $image_id ) {
+		Optimole::offload()->deleteImage( $image_id );
 
 		delete_post_meta( $post_id, self::META_KEYS['offloaded'] );
 		delete_post_meta( $post_id, self::OM_OFFLOADED_FLAG );
-		if ( is_wp_error( $delete_response ) || wp_remote_retrieve_response_code( $delete_response ) !== 200 ) {
-			// should add some routine to retry delete once if delete fails
-		}
 	}
 
 	/**
@@ -1388,149 +1392,130 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $meta;
 		}
 
-		$request               = new Optml_Api();
-		$generate_url_response = $request->call_upload_api( $original_url );
+		$offload_manager = Optimole::offload();
+		$offload_usage = $offload_manager->getUsage();
 
-		if ( is_wp_error( $generate_url_response ) || wp_remote_retrieve_response_code( $generate_url_response ) !== 200 ) {
+		$current_run = self::get_process_meta();
+		$remaining = isset( $current_run['remaining'] ) ? absint( $current_run['remaining'] ) : 0;
 
-			$decoded_response = json_decode( $generate_url_response['body'], true );
-
-			// Handle limit exceeded
-			if ( isset( $decoded_response['error'] ) && $decoded_response['error'] === 'limit_exceeded' ) {
-				if ( OPTML_DEBUG_MEDIA ) {
-					do_action( 'optml_log', 'limit exceeded error' );
-					do_action( 'optml_log', $decoded_response );
-				}
-
-				self::$instance->settings->update( 'offload_limit', absint( $decoded_response['limit'] ) );
-				self::$instance->settings->update( 'offload_limit_reached', 'enabled' );
-				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Offload stopped: reached asset offload limit.' );
-
-				return $meta;
-			}
-
+		if ( $remaining + $offload_usage->getCurrent() >= $offload_usage->getLimit() ) {
 			if ( OPTML_DEBUG_MEDIA ) {
-				do_action( 'optml_log', ' call to signed url error' );
-				do_action( 'optml_log', $generate_url_response );
+				do_action( 'optml_log', 'limit exceeded' );
+				do_action( 'optml_log', $offload_usage );
 			}
-			self::mark_retryable_error( $attachment_id, 'Image ID: ' . $attachment_id . ' has invalid signed url.' );
+
+			self::$instance->settings->update( 'offload_limit_reached', 'enabled' );
+
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Offload stopped: offloading images would exceed limit.' );
 
 			return $meta;
 		}
-		// We clear the retry counter if we reach this step. In case we plan to use the retry on other context, we should clear it at after the last retryable step.
-		delete_post_meta( $attachment_id, self::RETRYABLE_META_COUNTER );
-		$decoded_response = json_decode( $generate_url_response['body'], true );
 
-		// Update the offload limit if it has changed.
-		if ( isset( $decoded_response['limit'] ) && isset( $decoded_response['count'] ) ) {
-			$remote_limit = absint( $decoded_response['limit'] );
+		try {
+			$image_id = $offload_manager->uploadImage( $local_file, $original_url );
 
-			self::$instance->settings->update( 'offload_limit', $remote_limit );
-
-			$current_run = self::get_process_meta();
-			$remaining   = isset( $current_run['remaining'] ) ? absint( $current_run['remaining'] ) : 0;
-
-			if ( $remaining + $decoded_response['count'] >= $remote_limit ) {
-				if ( OPTML_DEBUG_MEDIA ) {
-					do_action( 'optml_log', 'limit exceeded' );
-					do_action( 'optml_log', $decoded_response );
-				}
-
-				self::$instance->settings->update( 'offload_limit_reached', 'enabled' );
-				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Offload stopped: offloading images would exceed limit.' );
-
-				return $meta;
-			}
-		}
-
-		if ( ! isset( $decoded_response['tableId'] ) || ! isset( $decoded_response['uploadUrl'] ) ) {
 			if ( OPTML_DEBUG_MEDIA ) {
-				do_action( 'optml_log', ' missing table id or upload url' );
-				do_action( 'optml_log', $decoded_response );
+				do_action( 'optml_log', 'image id' );
+				do_action( 'optml_log', $image_id );
 			}
+
+			// We clear the retry counter if we reach this point.
+			delete_post_meta( $attachment_id, self::RETRYABLE_META_COUNTER );
+		} catch ( InvalidArgumentException $exception ) {
+			if ( OPTML_DEBUG_MEDIA ) {
+				do_action( 'optml_log', 'invalid argument exception' );
+				do_action( 'optml_log', $exception );
+			}
+
+			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
+
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' file is missing or unreadable.' );
+
+			return $meta;
+		} catch ( InvalidUploadApiResponseException $exception ) {
+			if ( OPTML_DEBUG_MEDIA ) {
+				do_action( 'optml_log', 'missing table id or upload url' );
+				do_action( 'optml_log', $exception );
+			}
+
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has invalid table id or upload url.' );
 
 			return $meta;
-		}
-		$table_id = $decoded_response['tableId'];
-		if ( OPTML_DEBUG_MEDIA ) {
-			do_action( 'optml_log', ' table id' );
-			do_action( 'optml_log', $table_id );
-		}
-		$upload_signed_url = $decoded_response['uploadUrl'];
-		$image             = file_get_contents( $local_file );
-		if ( $image === false ) {
-			do_action( 'optml_log', 'can not find file' );
-			do_action( 'optml_log', $local_file );
+		} catch ( UploadFailedException $exception ) {
+			if ( OPTML_DEBUG_MEDIA ) {
+				do_action( 'optml_log', 'upload error' );
+				do_action( 'optml_log', $exception );
+			}
+
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 
-			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has missing file.' );
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has upload error.' );
+
+			return $meta;
+		} catch ( UploadLimitException $exception ) {
+			if ( OPTML_DEBUG_MEDIA ) {
+				do_action( 'optml_log', 'limit exceeded' );
+				do_action( 'optml_log', $exception );
+			}
+
+			self::$instance->settings->update( 'offload_limit', $exception->getUsage()->getLimit() );
+			self::$instance->settings->update( 'offload_limit_reached', 'enabled' );
+
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Offload stopped: upload limit exceeded' );
+
+			return $meta;
+		} catch ( UploadApiException $exception ) {
+			if ( OPTML_DEBUG_MEDIA ) {
+				do_action( 'optml_log', 'upload api error' );
+				do_action( 'optml_log', $exception );
+			}
+
+			self::mark_retryable_error( $attachment_id, 'Image ID: ' . $attachment_id . ' has an error from upload api:' . $exception->getMessage() );
+
+			return $meta;
+		} catch ( RuntimeException $exception ) {
+			if ( OPTML_DEBUG_MEDIA ) {
+				do_action( 'optml_log', 'runtime exception' );
+				do_action( 'optml_log', $exception );
+			}
+
+			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
+
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has an issue.' );
 
 			return $meta;
 		}
-		if ( $upload_signed_url !== 'found_resource' ) {
 
-			$request = new Optml_Api();
-			$result  = $request->upload_image( $upload_signed_url, $content_type, $image );
-
-			if ( is_wp_error( $result ) || wp_remote_retrieve_response_code( $result ) !== 200 ) {
-				do_action( 'optml_log', 'upload error' );
-				do_action( 'optml_log', $result );
-				update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
-
-				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has upload error.' );
-
-				return $meta;
-			}
-			$file_size = filesize( $local_file );
-			if ( $file_size === false ) {
-				$file_size = 0;
-			}
-			$request       = new Optml_Api();
-			$result_update = $request->call_upload_api(
-				$original_url,
-				'false',
-				$table_id,
-				'success',
-				'false',
-				$meta['width'],
-				$meta['height'],
-				$file_size
-			);
-			if ( is_wp_error( $result_update ) || wp_remote_retrieve_response_code( $result_update ) !== 200 ) {
-				do_action( 'optml_log', 'dynamo update error' );
-				do_action( 'optml_log', $result_update );
-				update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
-
-				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has dynamo update error.' );
-
-				return $meta;
-			}
-		}
 		$url_to_append = $original_url;
 		$url_parts     = parse_url( $original_url );
 
 		if ( isset( $url_parts['scheme'] ) && isset( $url_parts['host'] ) ) {
 			$url_to_append = $url_parts['scheme'] . '://' . $url_parts['host'] . '/' . $file_name;
 		}
-		$optimized_url = $this->get_media_optimized_url( $url_to_append, $table_id );
-		$request       = new Optml_Api();
-		if ( $request->check_optimized_url( $optimized_url ) === false ) {
+
+		$optimized_url = $this->get_media_optimized_url( $url_to_append, $image_id );
+
+		if ( ( new Optml_Api() )->check_optimized_url( $optimized_url ) === false ) {
 			do_action( 'optml_log', 'optimization error' );
 			do_action( 'optml_log', $optimized_url );
-			$request->call_upload_api( $original_url, 'true', $table_id );
+
+			Optimole::offload()->deleteImage( $image_id );
+
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has optimization error.' );
 
 			return $meta;
 		}
+
 		unlink( $local_file );
+
 		update_post_meta( $attachment_id, self::META_KEYS['offloaded'], 'true' );
 		update_post_meta( $attachment_id, self::OM_OFFLOADED_FLAG, true );
-		$meta['file'] = '/' . self::KEYS['uploaded_flag'] . $table_id . '/' . $url_to_append;
+
+		$meta['file'] = '/' . self::KEYS['uploaded_flag'] . $image_id . '/' . $url_to_append;
 
 		if ( isset( $meta['sizes'] ) ) {
 			foreach ( $meta['sizes'] as $key => $value ) {
