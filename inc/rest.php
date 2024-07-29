@@ -371,10 +371,11 @@ class Optml_Rest {
 					200
 				);
 			}
+
 			return new WP_REST_Response(
 				[
 					'data'    => null,
-					'message' => __( 'Error creating account.', 'optimole-wp' ),
+					'message' => __( 'Error creating account.', 'optimole-wp' ) . ' ' . $user->get_error_message(),
 					'code'    => 'error',
 				],
 				200

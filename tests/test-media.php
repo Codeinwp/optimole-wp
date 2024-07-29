@@ -8,6 +8,8 @@
  * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
  */
 
+use WpOrg\Requests\Utility\CaseInsensitiveDictionary;
+
 /**
  * Class Test_Generic.
  */
@@ -34,7 +36,7 @@ class Test_Media extends WP_UnitTestCase {
 		if ( strpos($url, 'example.i.optimole.com' ) !== false ) {
 			return array
 			(
-				'headers' => new Requests_Utility_CaseInsensitiveDictionary (
+				'headers' => new CaseInsensitiveDictionary (
 					array(
 						'content-type' => 'application/json',
 						'content-length' => 1182,
@@ -53,9 +55,9 @@ class Test_Media extends WP_UnitTestCase {
 				'filename' => '',
 			);
 		}
-		if ($url === "https://generateurls-prod.i.optimole.com/upload" ) {
+		if ( $url === "https://generateurls-prod.i.optimole.com/upload" ) {
 
-			$body = '{"uploadUrl":"https://uploadUrl","tableId":"579c7f7707ce87caa65fdf50c238a117" }';
+			$body = '{"uploadUrl":"https://uploadUrl?Content-Type=image/jpeg","tableId":"579c7f7707ce87caa65fdf50c238a117" }';
 
 			if ( strpos($r['body'], '"getUrl":"true"') !== false ) {
 				$body = '{"getUrl": "getUrl"}';
@@ -63,7 +65,7 @@ class Test_Media extends WP_UnitTestCase {
 			
 			return array
 			(
-				'headers' => new Requests_Utility_CaseInsensitiveDictionary (
+				'headers' => new CaseInsensitiveDictionary (
 					array(
 						'content-type' => 'application/json',
 						'content-length' => 1182,
@@ -82,10 +84,10 @@ class Test_Media extends WP_UnitTestCase {
 				'filename' => '',
 			);
 		}
-		if ($url === "https://uploadUrl" ) {
+		if ( str_starts_with( $url, "https://uploadUrl" ) ) {
 			return array
 			(
-				'headers' => new Requests_Utility_CaseInsensitiveDictionary (
+				'headers' => new CaseInsensitiveDictionary (
 					array(
 						'content-type' => 'application/json',
 						'content-length' => 1182,
@@ -104,6 +106,36 @@ class Test_Media extends WP_UnitTestCase {
 				'filename' => '',
 			);
 		}
+		if ( strpos($url, 'dashboard.optimole.com/api/optml/v2/account/details' ) !== false ) {
+			return array
+			(
+				'headers' => new CaseInsensitiveDictionary (
+					array(
+						'content-type' => 'application/json',
+						'content-length' => 1182,
+						'date' => 'Fri, 23 Oct 2020 11:42:49 GMT',
+					)),
+				'body' => json_encode(array(
+					'data' => array(
+						'cdn_key' => 'cdn_key',
+						'cdn_secret' => 'cdn_secret',
+						'offloaded_images' => 50,
+						'offload_limit' => 5000,
+					),
+				)),
+
+				'response' => array
+				(
+					'code' => 200,
+					'message' => 'OK'
+				),
+
+				'cookies' => array
+				(),
+
+				'filename' => '',
+			);
+		}
 		
 		if ($url === "getUrl" ) {
 			//the get url is used by download_url to create a temporary image for wp_handle_sideload
@@ -111,7 +143,7 @@ class Test_Media extends WP_UnitTestCase {
 			copy(OPTML_PATH . 'tests/assets/sample-test.jpg', $r['filename']);
 			return array
 			(
-				'headers' => new Requests_Utility_CaseInsensitiveDictionary (
+				'headers' => new CaseInsensitiveDictionary (
 					array(
 						'content-type' => 'application/json',
 						'content-length' => 1182,
@@ -399,6 +431,11 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'process:' . self::$sample_attachment_scaled . '/id:', $replaced['post_content'] );
 		$this->assertStringContainsString('/wp-content/uploads', $replaced['post_content'] );
 		$this->assertStringContainsString('300x300.jpg', $replaced['post_content'] );
+
+		// Skip replacement of attachments without any correspondent.
+		$content  = '<img src="https://example.i.optimole.com/nfYKCuM-pmHIfRg3/w:auto/h:auto/q:auto/process:32/id:8bbc41853bc0770fb1dd34759e1cb1e2/https://optimole.com/PIA23769.JPG" />';
+		$replaced = Optml_Media_Offload::instance()->filter_saved_data( [ 'post_content' => $content ], [ 'post_status' => 'published' ], [], false );
+		$this->assertEquals( $content, $replaced['post_content'] );
 	}
 	public function test_replace_alternative_domain(){
 		$attachment = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/'.self::$files[0].'.jpg' );

@@ -139,7 +139,7 @@ const ConnectLayout = () => {
 				}
 				if ( 'success' !== response.code )  {
 					setErrors({
-						'error_register': optimoleDashboardApp.strings.error_register
+						'error_register': response.message
 					});
 				}
 			}
