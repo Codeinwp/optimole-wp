@@ -1,3 +1,9 @@
+##### [Version 3.13.4](https://github.com/Codeinwp/optimole-wp/compare/v3.13.3...v3.13.4) (2024-07-29)
+
+* Improve offloading mechanism 
+* Fix offloaded attachments from other sources getting replaced when post is saved even if there is no associated attachment
+* Improve error handling
+
 ##### [Version 3.13.3](https://github.com/Codeinwp/optimole-wp/compare/v3.13.2...v3.13.3) (2024-05-24)
 
 * Update dependencies

@@ -137,11 +137,12 @@ class Optml_Config {
 			$options['upload_api_url'] = OPTIML_UPLOAD_API_ROOT;
 		}
 
-		if ( isset( $service_settings['cdn_key'], $service_settings['cdn_secret'] ) ) {
+		if ( isset( $service_settings['key'], $service_settings['secret'], $service_settings['api_key'] ) ) {
 			$options['upload_api_credentials'] = [
-				'userKey' => $service_settings['cdn_key'],
-				'secret' => $service_settings['cdn_secret'],
+				'userKey' => $service_settings['key'],
+				'secret' => $service_settings['secret'],
 			];
+			$options['dashboard_api_key'] = $service_settings['api_key'];
 		}
 
 		Optimole::init( self::$key, $options );
