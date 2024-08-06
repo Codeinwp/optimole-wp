@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3f14834c9ae74790d83797644f3400bf",
+    "content-hash": "3ea054f633fe74aca4a67ccce6f6f633",
     "packages": [
         {
             "name": "codeinwp/optimole-sdk",
-            "version": "v1.1.0",
+            "version": "v1.2.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeinwp/optimole-php-sdk.git",
-                "reference": "daa581a1e0218c1c73f5caa478e045c442dbd1f6"
+                "reference": "72d96fe1fa89904ff83383e83efe641035346694"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeinwp/optimole-php-sdk/zipball/daa581a1e0218c1c73f5caa478e045c442dbd1f6",
-                "reference": "daa581a1e0218c1c73f5caa478e045c442dbd1f6",
+                "url": "https://api.github.com/repos/Codeinwp/optimole-php-sdk/zipball/72d96fe1fa89904ff83383e83efe641035346694",
+                "reference": "72d96fe1fa89904ff83383e83efe641035346694",
                 "shasum": ""
             },
             "require": {
@@ -60,20 +60,20 @@
                 "issues": "https://github.com/Codeinwp/codeinwp/optimole-php-sdk/issues",
                 "source": "https://github.com/Codeinwp/optimole-php-sdk"
             },
-            "time": "2024-05-23T19:21:04+00:00"
+            "time": "2024-08-06T12:32:29+00:00"
         },
         {
             "name": "codeinwp/themeisle-sdk",
-            "version": "3.3.20",
+            "version": "3.3.27",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeinwp/themeisle-sdk.git",
-                "reference": "d1b92f3ab74f1b3f0afad7e23ddb1c058d66c03c"
+                "reference": "ae9f1aae6e71677db5de1f579b2275be6fc838f4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeinwp/themeisle-sdk/zipball/d1b92f3ab74f1b3f0afad7e23ddb1c058d66c03c",
-                "reference": "d1b92f3ab74f1b3f0afad7e23ddb1c058d66c03c",
+                "url": "https://api.github.com/repos/Codeinwp/themeisle-sdk/zipball/ae9f1aae6e71677db5de1f579b2275be6fc838f4",
+                "reference": "ae9f1aae6e71677db5de1f579b2275be6fc838f4",
                 "shasum": ""
             },
             "require-dev": {
@@ -98,9 +98,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Codeinwp/themeisle-sdk/issues",
-                "source": "https://github.com/Codeinwp/themeisle-sdk/tree/v3.3.20"
+                "source": "https://github.com/Codeinwp/themeisle-sdk/tree/v3.3.27"
             },
-            "time": "2024-04-16T12:27:32+00:00"
+            "time": "2024-07-30T06:16:39+00:00"
         },
         {
             "name": "enshrined/svg-sanitize",
