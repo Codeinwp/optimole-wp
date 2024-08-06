@@ -147,7 +147,7 @@ final class Optml_Api {
 	 *
 	 * @return array|string|boolean|WP_Error Api data.
 	 */
-	private function request( $path, $method = 'GET', $params = [], $extra_headers = [] ) {
+	public function request( $path, $method = 'GET', $params = [], $extra_headers = [] ) {
 
 		$headers = [
 			'Optml-Site' => get_home_url(),

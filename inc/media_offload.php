@@ -1510,7 +1510,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $meta;
 		}
 
-		unlink( $local_file );
+		@unlink( $local_file );
 
 		update_post_meta( $attachment_id, self::META_KEYS['offloaded'], 'true' );
 		update_post_meta( $attachment_id, self::OM_OFFLOADED_FLAG, true );

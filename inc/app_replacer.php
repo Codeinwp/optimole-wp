@@ -404,9 +404,10 @@ abstract class Optml_App_Replacer {
 		}
 		Optml_Config::init(
 			[
-				'key'               => $service_data['cdn_key'],
-				'secret'            => $service_data['cdn_secret'],
-				'domain'            => $domain,
+				'key'     => $service_data['cdn_key'],
+				'secret'  => $service_data['cdn_secret'],
+				'domain'  => $domain,
+				'api_key' => $this->settings->get( 'api_key' ),
 			]
 		);
 
