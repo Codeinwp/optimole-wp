@@ -1,3 +1,7 @@
+##### [Version 3.13.5](https://github.com/Codeinwp/optimole-wp/compare/v3.13.4...v3.13.5) (2024-08-06)
+
+* Fix image offloading process regression
+
 ##### [Version 3.13.4](https://github.com/Codeinwp/optimole-wp/compare/v3.13.3...v3.13.4) (2024-07-29)
 
 * Improve offloading mechanism 

@@ -4,7 +4,7 @@ Tags: image optimization, convert webp, image optimizer, lazy load, image, optim
 Requires at least: 5.5
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 3.13.4
+Stable tag: 3.13.5
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -150,11 +150,9 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 3.13.4](https://github.com/Codeinwp/optimole-wp/compare/v3.13.3...v3.13.4) (2024-07-29)
+##### [Version 3.13.5](https://github.com/Codeinwp/optimole-wp/compare/v3.13.4...v3.13.5) (2024-08-06)
 
-* Improve offloading mechanism 
-* Fix offloaded attachments from other sources getting replaced when post is saved even if there is no associated attachment
-* Improve error handling
+* Fix image offloading process regression
 
 
 
