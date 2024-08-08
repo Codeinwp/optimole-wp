@@ -174,7 +174,7 @@ class Test_Media extends WP_UnitTestCase {
 		$settings->update( 'service_data', [
 			'cdn_key'    => 'example',
 			'cdn_secret' => 'test',
-			'whitelist'  => [ 'example.com', 'example.org' ],
+			'whitelist'  => [ 'example.com', 'example.org','external.com' ],
 
 		] );
 		$settings->update( 'no_script', 'enabled' );
@@ -506,7 +506,15 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( '-scaled.'.$extension, $replaced_content );
 
 	}
+	public function test_replacement_editor_with_external_images(){
+		Optml_Attachment_Cache::reset();
+		$original_url = "https://external.com/image.png" ;
+		$content_before_replace = sprintf( '<img src="%s" />', $original_url);
+		$replaced_content = Optml_Media_Offload::instance()->replace_urls_in_editor_content( $content_before_replace );
 
+		$this->assertStringContainsString( $original_url, $replaced_content );
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+	}
 	public function test_alter_attachment_image_src() {
 		$test_data = [
 			'full' => [
