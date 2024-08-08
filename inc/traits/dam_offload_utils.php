@@ -259,7 +259,7 @@ trait Optml_Dam_Offload_Utils {
 		$cached = Optml_Attachment_Cache::get_cached_attachment_id( $input_url );
 
 		if ( $cached !== false ) {
-			return $cached;
+			return (int) $cached;
 		}
 
 		$url = $this->strip_image_size( $input_url );
