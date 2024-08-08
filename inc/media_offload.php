@@ -2455,6 +2455,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			// No local attachment.
 			if ( $attachment['attachment_id'] === 0 ) {
+				if ( $this->can_replace_url( $url ) ) {
+					$to_replace[ $url ] = $this->get_optimized_image_url( $url, 'auto', 'auto' );
+				}
 				continue;
 			}
 
