@@ -696,7 +696,9 @@ final class Optml_Manager {
 		remove_filter( 'the_content', [ $this, 'process_images_from_content' ], PHP_INT_MAX );
 
 		ob_start(
-			[ &$this, 'replace_content' ]
+			[ &$this, 'replace_content' ],
+			0,
+			PHP_OUTPUT_HANDLER_CLEANABLE
 		);
 	}
 
