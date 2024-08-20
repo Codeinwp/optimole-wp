@@ -21,6 +21,3 @@ if ( ! defined( 'OPTML_DEBUG' ) ) {
 if ( ! defined( 'OPTML_DEBUG_MEDIA' ) ) {
     define( 'OPTML_DEBUG_MEDIA', false );
 }
-
-define( 'WP_PLUGIN_DIR', '/plugins' );
-define( 'WP_CONTENT_DIR', '/wp-content' );
