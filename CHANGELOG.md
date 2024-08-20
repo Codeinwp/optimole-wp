@@ -1,3 +1,9 @@
+##### [Version 3.13.6](https://github.com/Codeinwp/optimole-wp/compare/v3.13.5...v3.13.6) (2024-08-20)
+
+- Support for external image replacement should be added in the editor if the domain is allowed.
+- Close output buffer on shutdown
+- Update dependencies.
+
 ##### [Version 3.13.5](https://github.com/Codeinwp/optimole-wp/compare/v3.13.4...v3.13.5) (2024-08-06)
 
 * Fix image offloading process regression
