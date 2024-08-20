@@ -382,7 +382,7 @@ final class Optml_Manager {
 		);
 		add_action( 'template_redirect', [ $this, 'register_after_setup' ] );
 		add_action( 'rest_api_init', [ $this, 'process_template_redirect_content' ], PHP_INT_MIN );
-
+		add_action( 'shutdown', [ $this, 'close_buffer' ] );
 		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
 			$registered_compatibility->register();
 		}
@@ -696,12 +696,19 @@ final class Optml_Manager {
 		remove_filter( 'the_content', [ $this, 'process_images_from_content' ], PHP_INT_MAX );
 
 		ob_start(
-			[ &$this, 'replace_content' ],
-			0,
-			PHP_OUTPUT_HANDLER_CLEANABLE
+			[ &$this, 'replace_content' ]
 		);
+
 	}
 
+	/**
+	 * Close the buffer and flush the content.
+	 */
+	public function close_buffer() {
+		if ( self::$ob_started && ob_get_length() ) {
+			ob_end_flush();
+		}
+	}
 	/**
 	 * Throw error on object clone
 	 *
