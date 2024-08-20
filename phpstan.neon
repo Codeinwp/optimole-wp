@@ -10,7 +10,6 @@ parameters:
 		- %currentWorkingDirectory%/tests/static-analysis-stubs/thrive.php
 		- %currentWorkingDirectory%/vendor/php-stubs/wordpress-stubs/wordpress-stubs.php
 		- %currentWorkingDirectory%/vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
-		- %currentWorkingDirectory%/vendor/php-stubs/wp-cli-stubs/wp-cli-commands-stubs.php
 		- %currentWorkingDirectory%/vendor/php-stubs/wp-cli-stubs/wp-cli-i18n-stubs.php
 	dynamicConstantNames:
 		- TEST_GROUND
