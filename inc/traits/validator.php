@@ -56,6 +56,4 @@ trait Optml_Validator {
 
 		return Optml_Filters::should_do_extension( $filters, $type['ext'] );
 	}
-
-
 }

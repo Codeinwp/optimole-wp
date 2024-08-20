@@ -13,8 +13,8 @@ class Optml_foogallery extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		return is_plugin_active( 'foogallery/foogallery.php' );
 	}
@@ -34,7 +34,7 @@ class Optml_foogallery extends Optml_compatibility {
 	 *
 	 * @return array New src attributes.
 	 */
-	function add_lazysrc( $attributes = [] ) {
+	public function add_lazysrc( $attributes = [] ) {
 
 		$attributes[] = 'data-src-fg';
 

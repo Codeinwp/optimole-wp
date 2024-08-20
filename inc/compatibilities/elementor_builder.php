@@ -12,8 +12,8 @@ class Optml_elementor_builder extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		return is_plugin_active( 'elementor/elementor.php' );
 	}
@@ -22,11 +22,11 @@ class Optml_elementor_builder extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_action( 'elementor/frontend/after_enqueue_styles', [$this, 'add_src'], PHP_INT_MIN, 1 );
+		add_action( 'elementor/frontend/after_enqueue_styles', [ $this, 'add_src' ], PHP_INT_MIN, 1 );
 
-		add_filter( 'elementor/frontend/builder_content/before_enqueue_css_file', [$this, 'add_src_filter'], PHP_INT_MIN, 1 );
+		add_filter( 'elementor/frontend/builder_content/before_enqueue_css_file', [ $this, 'add_src_filter' ], PHP_INT_MIN, 1 );
 
-		add_filter( 'elementor/frontend/builder_content/before_print_css', [$this, 'remove_src_filter'], PHP_INT_MIN, 1 );
+		add_filter( 'elementor/frontend/builder_content/before_print_css', [ $this, 'remove_src_filter' ], PHP_INT_MIN, 1 );
 
 		add_filter(
 			'optml_lazyload_bg_selectors',
@@ -46,7 +46,6 @@ class Optml_elementor_builder extends Optml_compatibility {
 				}
 			}
 		);
-
 	}
 
 	/**
@@ -58,7 +57,7 @@ class Optml_elementor_builder extends Optml_compatibility {
 	 */
 	public function remove_src_filter( $with_css ) {
 
-		remove_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'], PHP_INT_MAX );
+		remove_filter( 'wp_get_attachment_image_src', [ $this, 'optimize_src' ], PHP_INT_MAX );
 
 		return $with_css;
 	}
@@ -72,11 +71,11 @@ class Optml_elementor_builder extends Optml_compatibility {
 	public function add_src_filter( $css ) {
 
 		// check if the filter was added to avoid duplication
-		if ( has_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'] ) ) {
+		if ( has_filter( 'wp_get_attachment_image_src', [ $this, 'optimize_src' ] ) ) {
 			return $css;
 		}
 
-		add_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'], PHP_INT_MAX, 4 );
+		add_filter( 'wp_get_attachment_image_src', [ $this, 'optimize_src' ], PHP_INT_MAX, 4 );
 
 		return $css;
 	}
@@ -87,8 +86,8 @@ class Optml_elementor_builder extends Optml_compatibility {
 	 * @return void
 	 */
 	public function add_src() {
-		if ( ! has_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'] ) ) {
-			add_filter( 'wp_get_attachment_image_src', [$this, 'optimize_src'], PHP_INT_MAX, 4 );
+		if ( ! has_filter( 'wp_get_attachment_image_src', [ $this, 'optimize_src' ] ) ) {
+			add_filter( 'wp_get_attachment_image_src', [ $this, 'optimize_src' ], PHP_INT_MAX, 4 );
 		}
 	}
 
@@ -114,7 +113,6 @@ class Optml_elementor_builder extends Optml_compatibility {
 		$image[0] = Optml_Main::instance()->manager->url_replacer->build_url( $image[0] );
 
 		return $image;
-
 	}
 	/**
 	 * Should we early load the compatibility?

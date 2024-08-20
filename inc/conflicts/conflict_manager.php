@@ -55,8 +55,8 @@ class Optml_Conflict_Manager {
 	 * @param string $conflict A conflict class name.
 	 */
 	public function watch( $conflict ) {
-		if ( is_subclass_of( new $conflict, 'Optml_Abstract_Conflict' ) ) {
-			array_push( $this->watched_conflicts, new $conflict );
+		if ( is_subclass_of( new $conflict(), 'Optml_Abstract_Conflict' ) ) {
+			array_push( $this->watched_conflicts, new $conflict() );
 		}
 	}
 
@@ -153,7 +153,7 @@ class Optml_Conflict_Manager {
 		 */
 		foreach ( $this->watched_conflicts as $conflict ) {
 			if ( $conflict->is_active( $this->dismissed_conflicts ) ) {
-				$count++;
+				++$count;
 			}
 		}
 		return $count;

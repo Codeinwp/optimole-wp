@@ -13,8 +13,8 @@ class Optml_swift_performance extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		return Optml_Main::instance()->admin->settings->get( 'cdn' ) === 'enabled' && is_plugin_active( 'swift-performance-lite/performance.php' );
 	}
 
@@ -25,4 +25,3 @@ class Optml_swift_performance extends Optml_compatibility {
 		add_filter( 'swift_performance_buffer', [ Optml_Main::instance()->manager, 'replace_content' ], 10 );
 	}
 }
-

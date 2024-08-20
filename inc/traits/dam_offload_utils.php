@@ -308,6 +308,5 @@ trait Optml_Dam_Offload_Utils {
 		}
 
 		return $url;
-
 	}
 }

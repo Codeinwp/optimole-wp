@@ -13,8 +13,8 @@ class Optml_thrive extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		return is_plugin_active( 'thrive-visual-editor/thrive-visual-editor.php' );
 	}
@@ -34,9 +34,8 @@ class Optml_thrive extends Optml_compatibility {
 			}
 		);
 		if ( Optml_Main::instance()->admin->settings->get( 'offload_media' ) === 'enabled' ) {
-			add_action( 'optml_updated_post', [$this, 'update_trive_postmeta'], 1, 1 );
+			add_action( 'optml_updated_post', [ $this, 'update_trive_postmeta' ], 1, 1 );
 		}
-
 	}
 	/**
 	 * Update tve_updated_post meta with the correct status for images: offloaded/rollback.
@@ -47,7 +46,7 @@ class Optml_thrive extends Optml_compatibility {
 
 		$post_meta = tve_get_post_meta( $post_id, 'tve_updated_post' );
 
-		$content = Optml_Media_Offload::instance()->filter_uploaded_images( ['post_content' => $post_meta ] );
+		$content = Optml_Media_Offload::instance()->filter_uploaded_images( [ 'post_content' => $post_meta ] );
 
 		tve_update_post_meta( $post_id, 'tve_updated_post', $content['post_content'] );
 	}
@@ -60,4 +59,3 @@ class Optml_thrive extends Optml_compatibility {
 		return true;
 	}
 }
-

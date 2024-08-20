@@ -52,7 +52,6 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		parent::init();
 
 		add_filter( 'optml_content_url', [ $this, 'build_url' ], 1, 2 );
-
 	}
 
 	/**
@@ -64,7 +63,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 * @return string
 	 */
 	public function build_url(
-		$url, $args = [
+		$url,
+		$args = [
 			'width'  => 'auto',
 			'height' => 'auto',
 		]

@@ -13,7 +13,7 @@ class Optml_divi_builder extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
+	public function should_load() {
 		return (
 			strcmp( wp_get_theme(), 'Divi' ) === 0 ||
 			is_plugin_active( 'divi-builder/divi-builder.php' )
@@ -25,9 +25,9 @@ class Optml_divi_builder extends Optml_compatibility {
 	 */
 	public function register() {
 
-		add_action( 'et_core_static_file_created', [$this, 'optimize_divi_static_files'] );
+		add_action( 'et_core_static_file_created', [ $this, 'optimize_divi_static_files' ] );
 
-		add_action( 'optml_settings_updated', [$this, 'clear_divi_static_files'] );
+		add_action( 'optml_settings_updated', [ $this, 'clear_divi_static_files' ] );
 
 		add_filter(
 			'optml_lazyload_bg_selectors',
@@ -47,17 +47,17 @@ class Optml_divi_builder extends Optml_compatibility {
 	/**
 	 * Replace image urls upon divi's static css files creation
 	 *
-	 * @param ET_Core_PageResource $resource ET_Core_PageResource object.
+	 * @param ET_Core_PageResource $page_resource ET_Core_PageResource object.
 	 * @return void
 	 */
-	public function optimize_divi_static_files( $resource ) {
+	public function optimize_divi_static_files( $page_resource ) {
 		if ( class_exists( 'ET_Core_PageResource' ) && null !== ET_Core_PageResource::$wpfs ) {
-			if ( isset( $resource->path ) ) {
-				$data = $resource->get_data( 'file' );
+			if ( isset( $page_resource->path ) ) {
+				$data = $page_resource->get_data( 'file' );
 
 				if ( ! empty( $data ) ) {
 					$data = Optml_Main::instance()->manager->replace_content( $data );
-					ET_Core_PageResource::$wpfs->put_contents( $resource->path, $data, 0644 );
+					ET_Core_PageResource::$wpfs->put_contents( $page_resource->path, $data, 0644 );
 				}
 			}
 		}

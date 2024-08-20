@@ -506,9 +506,9 @@ class Optml_Admin {
 			add_action( 'wp_enqueue_scripts', [ $this, 'add_diagnosis_script' ] );
 		}
 		if ( ! $this->settings->use_lazyload()
-			 || ( $this->settings->get( 'native_lazyload' ) === 'enabled'
-				  && $this->settings->get( 'video_lazyload' ) === 'disabled'
-				  && $this->settings->get( 'bg_replacer' ) === 'disabled' ) ) {
+			|| ( $this->settings->get( 'native_lazyload' ) === 'enabled'
+					&& $this->settings->get( 'video_lazyload' ) === 'disabled'
+					&& $this->settings->get( 'bg_replacer' ) === 'disabled' ) ) {
 			return;
 		}
 		add_action( 'wp_enqueue_scripts', [ $this, 'frontend_scripts' ] );
@@ -556,7 +556,7 @@ class Optml_Admin {
 		$limit_width           = $limit_dimensions ? $this->settings->get( 'limit_width' ) : 0;
 		$limit_height          = $limit_dimensions ? $this->settings->get( 'limit_height' ) : 0;
 		$retina_ready          = $limit_dimensions ||
-								 ! ( $this->settings->get( 'retina_images' ) === 'enabled' );
+								! ( $this->settings->get( 'retina_images' ) === 'enabled' );
 		$scale_is_disabled     = ( $this->settings->get( 'scale' ) === 'enabled' );
 		$native_lazy_enabled   = ( $this->settings->get( 'native_lazyload' ) === 'enabled' );
 		$output                = sprintf(
@@ -647,7 +647,7 @@ class Optml_Admin {
 	 *
 	 * @return array Altered links.
 	 */
-	function add_action_links( $links ) {
+	public function add_action_links( $links ) {
 		if ( ! is_array( $links ) ) {
 			return $links;
 		}
@@ -704,7 +704,7 @@ class Optml_Admin {
 		}
 		?>
 		<div class="notice optml-notice-optin"
-			 style="background-color: #577BF9; color:white; border: none !important; display: flex;">
+			style="background-color: #577BF9; color:white; border: none !important; display: flex;">
 			<div style="margin: 1% 2%;">
 				<img src='<?php echo OPTML_URL . 'assets/img/upgrade_icon.png'; ?>'>
 			</div>
@@ -725,11 +725,11 @@ class Optml_Admin {
 				</p>
 				<p style="margin: 1.5% 0;">
 					<a href="<?php echo esc_url( tsdk_translate_link( 'https://optimole.com/pricing' ) ); ?>"
-					   target="_blank"
-					   style="border-radius: 4px;padding: 9px 10px;border: 2px solid #FFF;color: white;text-decoration: none;"><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
+						target="_blank"
+						style="border-radius: 4px;padding: 9px 10px;border: 2px solid #FFF;color: white;text-decoration: none;"><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 					</a>
 					<a style="padding: 2%; color: white;"
-					   href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_upg' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I have already done this', 'optimole-wp' ); ?></a>
+						href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_upg' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I have already done this', 'optimole-wp' ); ?></a>
 				</p>
 			</div>
 		</div>
@@ -744,10 +744,10 @@ class Optml_Admin {
 	public function should_show_upgrade() {
 		$current_screen = get_current_screen();
 		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ||
-			 is_network_admin() ||
-			 ! current_user_can( 'manage_options' ) ||
-			 ! $this->settings->is_connected() ||
-			 empty( $current_screen )
+			is_network_admin() ||
+			! current_user_can( 'manage_options' ) ||
+			! $this->settings->is_connected() ||
+			empty( $current_screen )
 		) {
 			return false;
 		}
@@ -870,7 +870,7 @@ class Optml_Admin {
 		<div class="notice notice-info optml-notice-optin">
 			<div class="content">
 				<img src="<?php echo OPTML_URL . '/assets/img/logo.svg'; ?>"
-					 alt="<?php echo esc_attr__( 'Logo', 'optimole-wp' ); ?>"/>
+					alt="<?php echo esc_attr__( 'Logo', 'optimole-wp' ); ?>"/>
 
 				<div>
 					<p class="notice-title"> <?php echo esc_html__( 'Finish setting up!', 'optimole-wp' ); ?></p>
@@ -888,10 +888,10 @@ class Optml_Admin {
 					</p>
 					<div class="actions">
 						<a href="<?php echo esc_url( admin_url( 'admin.php?page=optimole' ) ); ?>"
-						   class="button button-primary button-hero"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?>
+							class="button button-primary button-hero"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?>
 						</a>
 						<a class="button button-secondary button-hero"
-						   href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_optin' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?>
+							href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_optin' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?>
 						</a>
 					</div>
 				</div>
@@ -924,7 +924,7 @@ class Optml_Admin {
 		<div class="notice notice-info optml-notice-optin has-dismiss">
 			<div class="content">
 				<img src="<?php echo OPTML_URL . '/assets/img/logo.svg'; ?>"
-					 alt="<?php echo esc_attr__( 'Logo', 'optimole-wp' ); ?>"/>
+					alt="<?php echo esc_attr__( 'Logo', 'optimole-wp' ); ?>"/>
 
 				<div>
 					<p class="notice-title">
@@ -943,7 +943,7 @@ class Optml_Admin {
 					</p>
 					<div class="actions">
 						<a href="<?php echo esc_url( admin_url( 'plugins.php?optimole_conflicts' ) ); ?>"
-						   class="button button-primary button-hero"><?php _e( 'Manage Plugins', 'optimole-wp' ); ?>
+							class="button button-primary button-hero"><?php _e( 'Manage Plugins', 'optimole-wp' ); ?>
 						</a>
 					</div>
 				</div>
@@ -1006,7 +1006,6 @@ class Optml_Admin {
 								 ';
 			wp_add_inline_script( 'optml-print', $script );
 		}
-
 	}
 
 	/**
@@ -1059,7 +1058,7 @@ class Optml_Admin {
 	/**
 	 * Update daily the quota routine.
 	 */
-	function daily_sync() {
+	public function daily_sync() {
 
 		$api_key      = $this->settings->get( 'api_key' );
 		$service_data = $this->settings->get( 'service_data' );
@@ -1093,7 +1092,6 @@ class Optml_Admin {
 		}
 
 		remove_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
-
 	}
 
 	/**
@@ -1106,7 +1104,7 @@ class Optml_Admin {
 	 */
 	public function add_dns_prefetch( $hints, $relation_type ) {
 		if ( 'dns-prefetch' !== $relation_type &&
-			 'preconnect' !== $relation_type
+			'preconnect' !== $relation_type
 		) {
 			return $hints;
 		}

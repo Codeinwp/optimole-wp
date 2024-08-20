@@ -16,8 +16,8 @@ class Optml_envira extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		return ( is_plugin_active( 'envira-gallery-lite/envira-gallery-lite.php' ) || is_plugin_active( 'envira-gallery/envira-gallery.php' ) );
 	}
@@ -39,7 +39,7 @@ class Optml_envira extends Optml_compatibility {
 	 *
 	 * @return string Original url.
 	 */
-	function revert_src( $image ) {
+	public function revert_src( $image ) {
 		$pos = strpos( $image, '/http' );
 		if ( $pos !== false ) {
 			return ltrim( substr( $image, $pos ), '/' );
@@ -56,7 +56,7 @@ class Optml_envira extends Optml_compatibility {
 	 *
 	 * @return array Resize conf.
 	 */
-	function check_resize_tag( $old_resize, $tag ) {
+	public function check_resize_tag( $old_resize, $tag ) {
 		if ( preg_match( '/(_c)\.(?:' . implode( '|', array_keys( Optml_Config::$image_extensions ) ) . ')/i', $tag, $match ) ) {
 			return [
 				'type'    => ResizeTypeProperty::FILL,
@@ -74,7 +74,7 @@ class Optml_envira extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	function add_lazyflag( $strings = [] ) {
+	public function add_lazyflag( $strings = [] ) {
 
 		$strings[] = 'envira-gallery-image';
 

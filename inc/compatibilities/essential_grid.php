@@ -13,8 +13,8 @@ class Optml_essential_grid extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		return is_plugin_active( 'essential-grid/essential-grid.php' );
 	}
@@ -38,6 +38,4 @@ class Optml_essential_grid extends Optml_compatibility {
 
 		return $classes;
 	}
-
-
 }
