@@ -37,7 +37,7 @@
   },
   "require-dev": {
     "squizlabs/php_codesniffer": "^3.3",
-    "wp-coding-standards/wpcs": "^2.3.0",
+    "wp-coding-standards/wpcs": "^3.1.0",
     "dealerdirect/phpcodesniffer-composer-installer": "^0.7.0",
     "yoast/phpunit-polyfills": "^2.0",
     "phpstan/phpstan": "^1.10",
@@ -56,6 +56,6 @@
     "php": ">=7.4",
     "codeinwp/themeisle-sdk": "^3.3",
     "codeinwp/optimole-sdk": "^1.2",
-    "enshrined/svg-sanitize": "^0.18.0"
+    "enshrined/svg-sanitize": "^0.19.0"
   }
 }

@@ -13,8 +13,8 @@ class Optml_beaver_builder extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		return is_plugin_active( 'bb-plugin/fl-builder.php' ) || is_plugin_active( 'beaver-builder-lite-version/fl-builder.php' );
 	}
@@ -35,5 +35,4 @@ class Optml_beaver_builder extends Optml_compatibility {
 		add_filter( 'fl_builder_render_css', [ Optml_Main::instance()->manager, 'replace_content' ], PHP_INT_MAX, 1 );
 		add_filter( 'fl_builder_render_js', [ Optml_Main::instance()->manager, 'replace_content' ], PHP_INT_MAX, 1 );
 	}
-
 }

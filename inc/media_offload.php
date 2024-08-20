@@ -196,7 +196,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @return void
 	 */
-	function maybe_reschedule() {
+	public function maybe_reschedule() {
 		// If this is in pending, we do nothing.
 		if ( self::is_scheduled( 'optml_start_processing_images' ) ) {
 			return;
@@ -223,7 +223,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @return string
 	 */
-	function wp_update_attached_file_filter( $file, $attachment_id ) {
+	public function wp_update_attached_file_filter( $file, $attachment_id ) {
 
 		if ( OPTML_DEBUG_MEDIA ) {
 			do_action( 'optml_log', 'called updated attached' );
@@ -265,7 +265,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return array
 	 * @see self::insert_legacy() for backwards compatibility with older versions of WordPress < 6.0.0.
 	 */
-	function insert( $data, $postarr, $unsanitized_postarr, $update ) {
+	public function insert( $data, $postarr, $unsanitized_postarr, $update ) {
 
 		// the post name is unique against the database so not affected by removing the files
 		// https://developer.wordpress.org/reference/functions/wp_unique_post_slug/
@@ -325,7 +325,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @return array
 	 */
-	function insert_legacy( $data, $postarr, $unsanitized_postarr ) {
+	public function insert_legacy( $data, $postarr, $unsanitized_postarr ) {
 		return $this->insert( $data, $postarr, $unsanitized_postarr, false );
 	}
 
@@ -736,7 +736,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					}
 				}
 			}
-			$page ++;
+			++$page;
 		}
 		$result['page']           = $page;
 		$result['imagesToUpdate'] = $images_to_update;
@@ -816,13 +816,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				// if this meta flag below failed at the initial update but the file meta above is updated it will cause an infinite query loop
 				update_post_meta( $id, self::META_KEYS['offloaded'], 'true' );
 				update_post_meta( $id, self::OM_OFFLOADED_FLAG, true );
-				$success_up ++;
+				++$success_up;
 				continue;
 			}
 
 			$meta = $this->generate_image_meta( wp_get_attachment_metadata( $id ), $id );
 			if ( isset( $meta['file'] ) && self::is_uploaded_image( $meta['file'] ) ) {
-				$success_up ++;
+				++$success_up;
 				wp_update_attachment_metadata( $id, $meta );
 			}
 		}
@@ -874,7 +874,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( ! isset( $current_meta['file'] ) || ! self::is_uploaded_image( $current_meta['file'] ) ) {
 				delete_post_meta( $id, self::META_KEYS['offloaded'] );
 				delete_post_meta( $id, self::OM_OFFLOADED_FLAG );
-				$success_back ++;
+				++$success_back;
 				continue;
 			}
 
@@ -1031,7 +1031,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					}
 				}
 			}
-			$success_back ++;
+			++$success_back;
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' has been rolled back.' );
 
@@ -1074,7 +1074,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$redirect  = add_query_arg( $image_ids, $redirect );
 
 		return $redirect;
-
 	}
 
 	/**
@@ -1090,7 +1089,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$bulk_array['rollback_images'] = __( 'Restore image to media library', 'optimole-wp' );
 
 		return $bulk_array;
-
 	}
 
 	/**
@@ -2455,6 +2453,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			// No local attachment.
 			if ( $attachment['attachment_id'] === 0 ) {
+				if ( $this->can_replace_url( $url ) ) {
+					$to_replace[ $url ] = $this->get_optimized_image_url( $url, 'auto', 'auto' );
+				}
 				continue;
 			}
 
@@ -2699,7 +2700,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		add_action(
 			'init',
-			function() {
+			function () {
 				$types = get_post_types_by_support( 'editor' );
 
 				foreach ( $types as $type ) {
@@ -2724,7 +2725,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			10,
 			4
 		);
-
 	}
 
 	/**

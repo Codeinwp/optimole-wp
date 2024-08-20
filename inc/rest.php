@@ -30,45 +30,50 @@ class Optml_Rest {
 	 * @var array upload_conflicts_api.
 	 */
 	public static $rest_routes = [
-		'service_routes' => ['update_option' => 'POST', 'request_update' => 'GET', 'check_redirects' => 'POST_PUT_PATCH',
-			'connect' => [ 'POST', 'args'  => [
+		'service_routes' => [
+			'update_option' => 'POST', 'request_update' => 'GET', 'check_redirects' => 'POST_PUT_PATCH',
+				'connect' => [
+		'POST', 'args'  => [
+							'api_key' => [
+								'type'     => 'string',
+								'required' => true,
+							],
+						],
+					],
+				'select_application' => [
+			'POST', 'args'  => [
 						'api_key' => [
 							'type'     => 'string',
 							'required' => true,
 						],
-					],
+						'application' => [
+							'type'     => 'string',
+							'required' => true,
+						],
 				],
-			'select_application' => [ 'POST', 'args'  => [
-					'api_key' => [
-						'type'     => 'string',
-						'required' => true,
-					],
-					'application' => [
-						'type'     => 'string',
-						'required' => true,
-					],
-			],
-			],
-			'register_service' => [ 'POST', 'args' => [
-					'email' => [
-						'type'     => 'string',
-						'required' => true,
-					],
 				],
+				'register_service' => [
+			'POST', 'args' => [
+						'email' => [
+							'type'     => 'string',
+							'required' => true,
+						],
+					],
 
-			],
-			'disconnect' => 'GET',
+				],
+				'disconnect' => 'GET',
 		],
 		'image_routes' => [
 			'poll_optimized_images' => 'GET',
 			'get_sample_rate' => 'POST',
-			'upload_onboard_images' => [ 'POST', 'args'  => [
-					'offset' => [
-						'type'     => 'number',
-						'required' => false,
-						'default'  => 0,
+			'upload_onboard_images' => [
+				'POST', 'args'  => [
+						'offset' => [
+							'type'     => 'number',
+							'required' => false,
+							'default'  => 0,
+						],
 					],
-				],
 			],
 		],
 		'media_cloud_routes' => [
@@ -148,7 +153,6 @@ class Optml_Rest {
 				]
 			);
 		}
-
 	}
 
 	/**
@@ -190,7 +194,6 @@ class Optml_Rest {
 				$this->reqister_route( $route, $details );
 			}
 		}
-
 	}
 	/**
 	 * Method to register media offload specific routes.

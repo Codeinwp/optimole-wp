@@ -29,6 +29,7 @@
         <exclude name="Squiz.Commenting.InlineComment.NotCapital"/>
         <exclude name="Squiz.Commenting.FileComment"/>
         <exclude name="WordPress.PHP.YodaConditions.NotYoda"/>
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax.Found"/>
         <exclude name="Squiz.PHP.DisallowMultipleAssignments"/>
         <exclude name="WordPress.NamingConvention.ValidVariableName.StringNotSnakeCase"/>
         <exclude name="WordPress.NamingConventions.ValidVariableName.NotSnakeCase"/>

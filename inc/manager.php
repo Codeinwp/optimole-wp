@@ -139,7 +139,7 @@ final class Optml_Manager {
 		}
 		foreach ( $this->possible_compatibilities as $compatibility_class ) {
 			$compatibility_class = 'Optml_' . $compatibility_class;
-			$compatibility       = new $compatibility_class;
+			$compatibility       = new $compatibility_class();
 
 			/**
 			 * Check if we should load compatibility.
@@ -271,7 +271,7 @@ final class Optml_Manager {
 			return false; // @codeCoverageIgnore
 		}
 
-		if ( array_key_exists( 'optml_off', $_GET ) && 'true' == $_GET['optml_off'] ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+		if ( array_key_exists( 'optml_off', $_GET ) && 'true' === $_GET['optml_off'] ) {
 			return false; // @codeCoverageIgnore
 		}
 		if ( array_key_exists( 'elementor-preview', $_GET ) && ! empty( $_GET['elementor-preview'] ) ) {
@@ -283,13 +283,13 @@ final class Optml_Manager {
 		if ( array_key_exists( 'et_fb', $_GET ) && ! empty( $_GET['et_fb'] ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] == 'true' ) { // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+		if ( array_key_exists( 'tve', $_GET ) && $_GET['tve'] === 'true' ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] == 'true' || $_GET['trp-edit-translation'] == 'preview' ) ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+		if ( array_key_exists( 'trp-edit-translation', $_GET ) && ( $_GET['trp-edit-translation'] === 'true' || $_GET['trp-edit-translation'] === 'preview' ) ) {
 			return false; // @codeCoverageIgnore
 		}
-		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] == 'edit' ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+		if ( array_key_exists( 'context', $_GET ) && $_GET['context'] === 'edit' ) {
 			return false; // @codeCoverageIgnore
 		}
 		// avada
@@ -301,7 +301,7 @@ final class Optml_Manager {
 			return false; // @codeCoverageIgnore
 		}
 		// Motion.page iFrame & builder
-		if ( ( array_key_exists( 'motionpage_iframe', $_GET ) && $_GET['motionpage_iframe'] == 'true' ) || ( array_key_exists( 'page', $_GET ) && $_GET['page'] == 'motionpage' ) ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+		if ( ( array_key_exists( 'motionpage_iframe', $_GET ) && $_GET['motionpage_iframe'] === 'true' ) || ( array_key_exists( 'page', $_GET ) && $_GET['page'] === 'motionpage' ) ) {  // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
 			return false; // @codeCoverageIgnore
 		}
 		/**
@@ -309,7 +309,7 @@ final class Optml_Manager {
 		 */
 		if (
 			isset( $_SERVER['REQUEST_METHOD'] ) &&
-			$_SERVER['REQUEST_METHOD'] == 'POST' && // phpcs:ignore WordPress.PHP.StrictComparisons.LooseComparison
+			$_SERVER['REQUEST_METHOD'] === 'POST' &&
 			is_user_logged_in()
 			&& ( ! isset( $_GET['quality'] ) || ! current_user_can( 'manage_options' ) )
 		) {
@@ -382,7 +382,7 @@ final class Optml_Manager {
 		);
 		add_action( 'template_redirect', [ $this, 'register_after_setup' ] );
 		add_action( 'rest_api_init', [ $this, 'process_template_redirect_content' ], PHP_INT_MIN );
-
+		add_action( 'shutdown', [ $this, 'close_buffer' ] );
 		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
 			$registered_compatibility->register();
 		}
@@ -454,7 +454,7 @@ final class Optml_Manager {
 			$add_classes = implode( ' ', $additional_html_classes );
 			foreach ( $matches as $match ) {
 				if ( strpos( $match[0], 'class' ) !== false ) {
-					$new_tag = str_replace( [ 'class="', "class='" ], [ 'class="' . $add_classes, "class='" . $add_classes  ], $match[0] );
+					$new_tag = str_replace( [ 'class="', "class='" ], [ 'class="' . $add_classes, "class='" . $add_classes ], $match[0] );
 				} else {
 					$new_tag = str_replace( 'html ', 'html class="' . $add_classes . '" ', $match[0] );
 				}
@@ -586,7 +586,6 @@ final class Optml_Manager {
 			do_action( 'optml_log', $extracted_urls );
 		}
 		return $this->do_url_replacement( $html, $extracted_urls );
-
 	}
 
 	/**
@@ -664,8 +663,8 @@ final class Optml_Manager {
 				$is_relative = strpos(
 					$url,
 					$is_slashed ?
-									   addcslashes( $upload_resource['content_path'], '/' ) :
-									   $upload_resource['content_path']
+										addcslashes( $upload_resource['content_path'], '/' ) :
+										$upload_resource['content_path']
 				) === 0;
 				if ( $is_relative ) {
 					$url = $upload_resource['content_host'] . $url;
@@ -700,6 +699,14 @@ final class Optml_Manager {
 		);
 	}
 
+	/**
+	 * Close the buffer and flush the content.
+	 */
+	public function close_buffer() {
+		if ( self::$ob_started && ob_get_length() ) {
+			ob_end_flush();
+		}
+	}
 	/**
 	 * Throw error on object clone
 	 *

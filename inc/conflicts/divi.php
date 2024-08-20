@@ -38,7 +38,7 @@ class Optml_Divi extends Optml_Abstract_Conflict {
 		$show_message = true;
 		if ( is_plugin_active( 'divi-builder/divi-builder.php' ) ) {
 			if ( ! function_exists( 'get_plugin_data' ) ) {
-				require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+				require_once ABSPATH . 'wp-admin/includes/plugin.php';
 			}
 			$plugin_data = get_plugin_data( WP_PLUGIN_DIR . '/divi-builder/divi-builder.php' );
 			if ( version_compare( $plugin_data['Version'], '4.10.8', '<' ) ) {

@@ -200,8 +200,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		add_filter( 'optml_tag_replace', [ $this, 'lazyload_tag_replace' ], 2, 6 );
 
-		add_filter( 'optml_video_replace', [$this, 'lazyload_video_replace'], 2, 1 );
-
+		add_filter( 'optml_video_replace', [ $this, 'lazyload_video_replace' ], 2, 1 );
 	}
 	/**
 	 * Check if there are lazyloaded iframes.
@@ -478,16 +477,15 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			$fill = 'transparent';
 		}
 
-		return
-			str_replace(
-				[ '#width#', '#height#', '#fill#' ],
-				[
-					$width,
-					$height,
-					urlencode( $fill ),
-				],
-				self::SVG_PLACEHOLDER
-			);
+		return str_replace(
+			[ '#width#', '#height#', '#fill#' ],
+			[
+				$width,
+				$height,
+				urlencode( $fill ),
+			],
+			self::SVG_PLACEHOLDER
+		);
 	}
 
 	/**
@@ -584,5 +582,4 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		// Unserializing instances of the class is forbidden.
 		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'optimole-wp' ), '1.0.0' );
 	}
-
 }

@@ -13,8 +13,8 @@ class Optml_give_wp extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		return Optml_Main::instance()->admin->settings->use_lazyload() && is_plugin_active( 'give/give.php' );
 	}
 
@@ -23,10 +23,10 @@ class Optml_give_wp extends Optml_compatibility {
 	 */
 	public function register() {
 
-		add_filter( 'optml_should_ignore_image_tags', [$this, 'check_givewp_page'], 10 );
+		add_filter( 'optml_should_ignore_image_tags', [ $this, 'check_givewp_page' ], 10 );
 
 		if ( Optml_Main::instance()->admin->settings->get( 'video_lazyload' ) === 'enabled' ) {
-			add_filter( 'optml_iframe_lazyload_flags', [$this, 'add_ignore_lazyload_iframe'] );
+			add_filter( 'optml_iframe_lazyload_flags', [ $this, 'add_ignore_lazyload_iframe' ] );
 		}
 	}
 	/**
@@ -54,6 +54,4 @@ class Optml_give_wp extends Optml_compatibility {
 		$flags[] = 'give-embed-form';
 		return $flags;
 	}
-
 }
-

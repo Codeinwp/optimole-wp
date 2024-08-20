@@ -13,8 +13,8 @@ class Optml_metaslider extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		return is_plugin_active( 'ml-slider/ml-slider.php' ) || is_plugin_active( 'ml-slider-pro/ml-slider-pro.php' );
 	}
@@ -89,5 +89,4 @@ class Optml_metaslider extends Optml_compatibility {
 
 		return $flags;
 	}
-
 }

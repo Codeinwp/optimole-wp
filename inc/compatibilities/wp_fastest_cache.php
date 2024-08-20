@@ -13,8 +13,8 @@ class Optml_wp_fastest_cache extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		return Optml_Main::instance()->admin->settings->get( 'cdn' ) === 'enabled' && is_plugin_active( 'wp-fastest-cache/wpFastestCache.php' );
 	}
 
@@ -25,5 +25,3 @@ class Optml_wp_fastest_cache extends Optml_compatibility {
 		add_filter( 'wpfc_buffer_callback_filter', [ Optml_Main::instance()->manager, 'replace_content' ], 10 );
 	}
 }
-
-

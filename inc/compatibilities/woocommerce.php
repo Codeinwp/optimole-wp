@@ -13,8 +13,8 @@ class Optml_woocommerce extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		return is_plugin_active( 'woocommerce/woocommerce.php' );
 	}
 
@@ -25,7 +25,6 @@ class Optml_woocommerce extends Optml_compatibility {
 		if ( Optml_Main::instance()->admin->settings->use_lazyload() ) {
 			add_filter( 'optml_lazyload_early_flags', [ $this, 'add_lazyload_early_flag' ], PHP_INT_MAX, 1 );
 		}
-
 	}
 	/**
 	 * Add ignore lazyload flag.
@@ -58,7 +57,7 @@ class Optml_woocommerce extends Optml_compatibility {
 		$products = new \WP_Query( $query_args );
 		$ids = $products->get_posts();
 		while ( ! empty( $ids ) ) {
-				$paged++;
+				++$paged;
 				$parents = array_merge( $parents, $ids );
 				$query_args['paged'] = $paged;
 				$products = new \WP_Query( $query_args );

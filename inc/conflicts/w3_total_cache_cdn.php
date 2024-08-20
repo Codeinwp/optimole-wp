@@ -38,4 +38,3 @@ class Optml_w3_total_cache_cdn extends Optml_Abstract_Conflict {
 		return Optml_Main::instance()->admin->settings->get( 'cdn' ) === 'enabled' && is_plugin_active( 'w3-total-cache/w3-total-cache.php' );
 	}
 }
-

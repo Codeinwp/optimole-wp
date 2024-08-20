@@ -12,8 +12,8 @@ class Optml_smart_search_woocommerce extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		return is_plugin_active( 'smart-search-for-woocommerce/woocommerce-searchanise.php' );
 	}
 
@@ -21,7 +21,7 @@ class Optml_smart_search_woocommerce extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'se_get_product_image_post', [$this, 'filter_image_url'], 1, 3 );
+		add_filter( 'se_get_product_image_post', [ $this, 'filter_image_url' ], 1, 3 );
 	}
 
 	/**

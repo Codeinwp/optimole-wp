@@ -12,8 +12,8 @@ class Optml_cache_enabler extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		return is_plugin_active( 'cache-enabler/cache-enabler.php' );
 	}
@@ -32,7 +32,6 @@ class Optml_cache_enabler extends Optml_compatibility {
 				do_action( 'cache_enabler_clear_site_cache' );
 			}
 		);
-
 	}
 
 	/**
@@ -43,5 +42,4 @@ class Optml_cache_enabler extends Optml_compatibility {
 	public function should_load_early() {
 		return true;
 	}
-
 }

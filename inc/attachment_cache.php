@@ -59,7 +59,6 @@ class Optml_Attachment_Cache {
 		wp_using_ext_object_cache()
 			? wp_cache_set( $cache_key, $id, self::CACHE_GROUP, $expiration )
 			: set_transient( self::CACHE_GROUP . $cache_key, $id, $expiration );
-
 	}
 
 	/**

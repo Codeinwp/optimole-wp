@@ -28,8 +28,8 @@ class Optml_shortcode_ultimate extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		return is_plugin_active( 'shortcodes-ultimate/shortcodes-ultimate.php' );
 	}
@@ -50,7 +50,7 @@ class Optml_shortcode_ultimate extends Optml_compatibility {
 	 *
 	 * @return mixed New output.
 	 */
-	function alter_shortcode_output( $output, $tag, $attr ) {
+	public function alter_shortcode_output( $output, $tag, $attr ) {
 
 		if ( ! isset( $this->allowed_tags[ $tag ] ) ) {
 			return $output;

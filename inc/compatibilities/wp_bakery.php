@@ -13,8 +13,8 @@ class Optml_wp_bakery extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		return is_plugin_active( 'js_composer/js_composer.php' ) && Optml_Main::instance()->admin->settings->get( 'offload_media' ) === 'enabled';
 	}
 
