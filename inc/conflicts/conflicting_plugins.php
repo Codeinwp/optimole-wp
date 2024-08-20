@@ -65,7 +65,7 @@ class Optml_Conflicting_Plugins {
 	 * @return array
 	 */
 	private function get_active_plugins() {
-		require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		$conflicting_plugins = $this->defined_plugins();
 		$conflicting_plugins = array_filter( $conflicting_plugins, 'is_plugin_active' );

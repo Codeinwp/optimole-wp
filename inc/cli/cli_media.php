@@ -83,10 +83,9 @@ class Optml_Cli_Media extends WP_CLI_Command {
 			}
 
 			$progress->tick();
-			$tick++;
+			++$tick;
 		}
 		$progress->finish();
 		WP_CLI::line( $strings[ $action ]['success'] );
 	}
 }
-

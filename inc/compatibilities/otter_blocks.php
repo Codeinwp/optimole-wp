@@ -13,8 +13,8 @@ class Optml_otter_blocks extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		return is_plugin_active( 'otter-blocks/otter-blocks.php' );
 	}
@@ -40,5 +40,4 @@ class Optml_otter_blocks extends Optml_compatibility {
 		// Replace the image URL with the optimized one in Otter-generated CSS.
 		add_filter( 'otter_apply_dynamic_image', [ Optml_Main::instance()->manager->url_replacer, 'build_url' ], 99 );
 	}
-
 }

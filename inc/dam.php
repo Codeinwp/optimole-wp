@@ -61,10 +61,10 @@ class Optml_Dam {
 		add_filter( 'wp_get_attachment_image_src', [ $this, 'alter_attachment_image_src' ], 10, 4 );
 		add_filter( 'wp_get_attachment_metadata', [ $this, 'alter_attachment_metadata' ], 10, 2 );
 		add_filter( 'image_downsize', [ $this, 'catch_downsize' ], 10, 3 );
-		add_filter( 'wp_prepare_attachment_for_js', [$this, 'alter_attachment_for_js'], 10, 3 );
-		add_filter( 'wp_image_src_get_dimensions', [$this, 'alter_img_tag_w_h'], 10, 4 );
-		add_filter( 'get_attached_file', [$this, 'alter_attached_file_response'], 10, 2 );
-		add_filter( 'wp_calculate_image_srcset', [$this, 'disable_dam_images_srcset'], 1, 5 );
+		add_filter( 'wp_prepare_attachment_for_js', [ $this, 'alter_attachment_for_js' ], 10, 3 );
+		add_filter( 'wp_image_src_get_dimensions', [ $this, 'alter_img_tag_w_h' ], 10, 4 );
+		add_filter( 'get_attached_file', [ $this, 'alter_attached_file_response' ], 10, 2 );
+		add_filter( 'wp_calculate_image_srcset', [ $this, 'disable_dam_images_srcset' ], 1, 5 );
 
 		add_filter(
 			'elementor/image_size/get_attachment_image_html',
@@ -457,7 +457,7 @@ class Optml_Dam {
 		<iframe id="om-dam" style="display: none;" src="<?php echo( $this->build_iframe_url() ); ?>"></iframe>
 		<div class="om-dam-loader">
 			<img src="<?php echo esc_url( OPTML_URL . 'assets/img/logo.png' ); ?>" alt="Optimole Logo"
-				 class="om-dam-logo">
+				class="om-dam-logo">
 			<p><?php echo esc_html__( 'Loading', 'optimole-wp' ); ?>...</p>
 		</div>
 		<?php
@@ -741,7 +741,7 @@ class Optml_Dam {
 	 * @return string
 	 */
 	public function replace_dam_url_args( $args, $subject ) {
-		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'crop' => false, 'dam' => true] );
+		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'crop' => false, 'dam' => true ] );
 
 		$width = $args['width'];
 		$height = $args['height'];

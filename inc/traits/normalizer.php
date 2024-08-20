@@ -50,12 +50,12 @@ trait Optml_Normalizer {
 	/**
 	 * Strip slashes on unicode encoded strings.
 	 *
-	 * @param string $string Input string.
+	 * @param string $content Input string.
 	 *
 	 * @return string Decoded string.
 	 */
-	public function strip_slashes( $string ) {
-		return html_entity_decode( stripslashes( preg_replace( '/\\\u([\da-fA-F]{4})/', '&#x\1;', $string ) ) );
+	public function strip_slashes( $content ) {
+		return html_entity_decode( stripslashes( preg_replace( '/\\\u([\da-fA-F]{4})/', '&#x\1;', $content ) ) );
 	}
 
 	/**
@@ -76,16 +76,16 @@ trait Optml_Normalizer {
 	 *
 	 * @param mixed $value Value to process.
 	 * @param array $map Associative list from witch to return.
-	 * @param mixed $default Default.
+	 * @param mixed $initial Default.
 	 *
 	 * @return mixed
 	 */
-	public function to_map_values( $value, $map, $default ) {
+	public function to_map_values( $value, $map, $initial ) {
 		if ( in_array( $value, $map, true ) ) {
 			return $value;
 		}
 
-		return $default;
+		return $initial;
 	}
 
 	/**
@@ -207,8 +207,8 @@ trait Optml_Normalizer {
 		$gravity    = Position::CENTER;
 		$key_search = ( $crop_args[0] === true ? '' :
 				( isset( $allowed_x[ $crop_args[0] ] ) ? $crop_args[0] : '' ) ) .
-					  ( $crop_args[1] === true ? '' :
-						  ( isset( $allowed_y[ $crop_args[1] ] ) ? $crop_args[1] : '' ) );
+						( $crop_args[1] === true ? '' :
+							( isset( $allowed_y[ $crop_args[1] ] ) ? $crop_args[1] : '' ) );
 
 		if ( array_key_exists( $key_search, $allowed_gravities ) ) {
 			$gravity = $allowed_gravities[ $key_search ];

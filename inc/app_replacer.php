@@ -11,6 +11,7 @@ use Optimole\Sdk\ValueObject\Position;
  */
 abstract class Optml_App_Replacer {
 	use Optml_Dam_Offload_Utils;
+
 	/**
 	 * Filters used for lazyload.
 	 *
@@ -198,7 +199,7 @@ abstract class Optml_App_Replacer {
 
 		self::$ignore_tag_strings = apply_filters( 'optml_skip_optimizations_css_classes', [ 'skip-optimization' ] );
 
-		return  self::$ignore_tag_strings;
+		return self::$ignore_tag_strings;
 	}
 	/**
 	 * Returns possible data-opt-src ignore flags attributes.
@@ -257,7 +258,6 @@ abstract class Optml_App_Replacer {
 			'enlarge' => true,
 			'crop'    => $crop,
 		];
-
 	}
 
 	/**
@@ -335,7 +335,7 @@ abstract class Optml_App_Replacer {
 		self::$filters = $this->settings->get_filters();
 		add_filter(
 			'optml_should_avif_ext',
-			function( $should_avif, $ext ) {
+			function ( $should_avif, $ext ) {
 				return $ext !== 'svg';
 			},
 			10,
@@ -481,7 +481,7 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @return mixed Original value.
 	 */
-	static function listen_to_sizes( $value, $orig_w, $orig_h, $dest_w, $dest_h, $crop ) {
+	public static function listen_to_sizes( $value, $orig_w, $orig_h, $dest_w, $dest_h, $crop ) {
 		self::add_size( $dest_w, $dest_h, $crop );
 
 		return $value;

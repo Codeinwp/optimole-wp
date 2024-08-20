@@ -13,9 +13,9 @@ class Optml_w3_total_cache extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-		return  is_plugin_active( 'w3-total-cache/w3-total-cache.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
+		return is_plugin_active( 'w3-total-cache/w3-total-cache.php' );
 	}
 
 	/**
@@ -23,7 +23,7 @@ class Optml_w3_total_cache extends Optml_compatibility {
 	 */
 	public function register() {
 		if ( Optml_Main::instance()->admin->settings->get( 'cdn' ) === 'enabled' ) {
-			add_filter( 'w3tc_minify_processed', [Optml_Main::instance()->manager, 'replace_content'], 10 );
+			add_filter( 'w3tc_minify_processed', [ Optml_Main::instance()->manager, 'replace_content' ], 10 );
 		}
 
 		add_action(
@@ -45,4 +45,3 @@ class Optml_w3_total_cache extends Optml_compatibility {
 		return true;
 	}
 }
-

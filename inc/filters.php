@@ -68,7 +68,6 @@ final class Optml_Filters {
 		}
 
 		return true;
-
 	}
 
 	/**

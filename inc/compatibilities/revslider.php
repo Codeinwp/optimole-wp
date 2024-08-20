@@ -12,8 +12,8 @@ class Optml_revslider extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		return is_plugin_active( 'revslider/revslider.php' );
 	}
@@ -24,8 +24,8 @@ class Optml_revslider extends Optml_compatibility {
 	public function register() {
 
 		add_filter( 'optml_possible_lazyload_flags', [ $this, 'add_lazyflag' ], 10 );
-		add_filter( 'optml_ignore_data_opt_flag', [$this, 'add_data_ignore'], 10 );
-		add_filter( 'optml_lazyload_bg_classes', [$this, 'add_bg_class'], 10 );
+		add_filter( 'optml_ignore_data_opt_flag', [ $this, 'add_data_ignore' ], 10 );
+		add_filter( 'optml_lazyload_bg_classes', [ $this, 'add_bg_class' ], 10 );
 	}
 
 	/**
@@ -35,7 +35,7 @@ class Optml_revslider extends Optml_compatibility {
 	 *
 	 * @return array New flags.
 	 */
-	function add_lazyflag( $strings = [] ) {
+	public function add_lazyflag( $strings = [] ) {
 
 		$strings[] = 'rev-slidebg';
 		$strings[] = 'rs-lazyload';
@@ -68,5 +68,4 @@ class Optml_revslider extends Optml_compatibility {
 		$flags[] = 'rs-lazyload';
 		return $flags;
 	}
-
 }

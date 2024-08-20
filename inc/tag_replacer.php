@@ -58,7 +58,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		add_filter( 'image_downsize', [ $this, 'filter_image_downsize' ], PHP_INT_MAX, 3 );
 		add_filter( 'wp_calculate_image_srcset', [ $this, 'filter_srcset_attr' ], PHP_INT_MAX, 5 );
 		add_filter( 'wp_calculate_image_sizes', [ $this, 'filter_sizes_attr' ], 1, 2 );
-
 	}
 	/**
 	 * Called by hook to replace image tags in content.
@@ -89,7 +88,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		$link_mp4 = apply_filters(
 			'optml_content_url',
 			$image_url,
-			['width' => 'auto',
+			[
+				'width' => 'auto',
 				'height' => 'auto',
 				'format' => 'mp4',
 			]
@@ -98,7 +98,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		$link_png = apply_filters(
 			'optml_content_url',
 			$image_url,
-			['width' => 'auto',
+			[
+				'width' => 'auto',
 				'height' => 'auto',
 				'quality' => 'eco',
 			]
@@ -162,9 +163,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$images['img_url'][ $index ] = $new_src;
 			}
 			if ( ( apply_filters( 'optml_ignore_image_link', false, $src ) ||
-				 ( false !== strpos( $src, Optml_Config::$service_url ) && ! $this->url_has_dam_flag( $src ) ) ||
-				 ! $this->can_replace_url( $src ) ||
-				 ! $this->can_replace_tag( $images['img_url'][ $index ], $tag ) ) && ! Optml_Media_Offload::is_not_processed_image( $src )
+				( false !== strpos( $src, Optml_Config::$service_url ) && ! $this->url_has_dam_flag( $src ) ) ||
+				! $this->can_replace_url( $src ) ||
+				! $this->can_replace_tag( $images['img_url'][ $index ], $tag ) ) && ! Optml_Media_Offload::is_not_processed_image( $src )
 			) {
 				continue; // @codeCoverageIgnore
 			}
@@ -338,7 +339,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 		}
 
-		self::$lazyload_skipped_images ++;
+		++self::$lazyload_skipped_images;
 		return preg_replace( $pattern, $replace, $new_tag );
 	}
 
@@ -544,5 +545,4 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		// Unserializing instances of the class is forbidden.
 		_doing_it_wrong( __FUNCTION__, esc_html__( 'Cheatin&#8217; huh?', 'optimole-wp' ), '1.0.0' );
 	}
-
 }

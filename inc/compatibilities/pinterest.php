@@ -17,9 +17,9 @@ class Optml_pinterest extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
+	public function should_load() {
 
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 
 		$load = false;
 		$selectors_array = [];
@@ -81,9 +81,9 @@ class Optml_pinterest extends Optml_compatibility {
 		);
 	}
 	/**
-	 Check if plugin is active.
+	Check if plugin is active.
 
-	 @return bool
+	@return bool
 	 */
 	private function isShareaholic() {
 
@@ -91,7 +91,6 @@ class Optml_pinterest extends Optml_compatibility {
 			return false;
 		}
 		return true;
-
 	}
 	/**
 	 * Check if plugin is active.
@@ -104,7 +103,7 @@ class Optml_pinterest extends Optml_compatibility {
 			return false;
 		}
 		$ss_options = get_option( 'heateor_sss' );
-		$ss_bars = ['vertical_re_providers', 'horizontal_re_providers'];
+		$ss_bars = [ 'vertical_re_providers', 'horizontal_re_providers' ];
 		if ( ! is_array( $ss_options ) ) {
 			return false;
 		}

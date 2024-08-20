@@ -12,8 +12,8 @@ class Optml_wp_rest_cache extends Optml_compatibility {
 	 *
 	 * @return bool Should we load.
 	 */
-	function should_load() {
-		include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+	public function should_load() {
+		include_once ABSPATH . 'wp-admin/includes/plugin.php';
 		return is_plugin_active( 'wp-rest-cache/wp-rest-cache.php' );
 	}
 
@@ -21,7 +21,7 @@ class Optml_wp_rest_cache extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		add_filter( 'rest_pre_echo_response', [$this, 'api_optimization'], 10, 3 );
+		add_filter( 'rest_pre_echo_response', [ $this, 'api_optimization' ], 10, 3 );
 	}
 
 	/**

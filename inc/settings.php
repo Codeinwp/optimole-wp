@@ -134,7 +134,7 @@ class Optml_Settings {
 		if ( defined( 'OPTIML_USE_ENV' ) && constant( 'OPTIML_USE_ENV' ) && $this->to_boolean( constant( 'OPTIML_USE_ENV' ) ) ) {
 
 			if ( defined( 'OPTIML_API_KEY' )
-				 && constant( 'OPTIML_API_KEY' ) !== ''
+				&& constant( 'OPTIML_API_KEY' ) !== ''
 			) {
 				if ( ! $this->is_connected() && ! self::$auto_connect_hooked ) {
 					self::$auto_connect_hooked = true;
@@ -469,7 +469,7 @@ class Optml_Settings {
 	private function is_main_mu_site() {
 		// If we try to update from a website which is not the main OPTML blog, bail.
 		if ( defined( 'OPTIML_ENABLED_MU' ) && constant( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && constant( 'OPTIML_MU_SITE_ID' ) &&
-			 intval( constant( 'OPTIML_MU_SITE_ID' ) ) !== get_current_blog_id()
+			intval( constant( 'OPTIML_MU_SITE_ID' ) ) !== get_current_blog_id()
 		) {
 			return false;
 		}
@@ -566,7 +566,6 @@ class Optml_Settings {
 	public function get_watchers() {
 
 		return $this->get( 'watchers' );
-
 	}
 
 	/**

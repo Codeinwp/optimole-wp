@@ -6,21 +6,21 @@ abstract class Optml_compatibility {
 	/**
 	 * Register compatibility actions/filters.
 	 */
-	abstract function register();
+	abstract public function register();
 
 	/**
 	 * Should we load the compatibility?
 	 *
 	 * @return bool Compatiblity
 	 */
-	abstract function should_load();
+	abstract public function should_load();
 
 	/**
 	 * Will the compatibility be loaded?
 	 *
 	 * @return bool
 	 */
-	public final function will_load() {
+	final public function will_load() {
 		if ( ! Optml_Main::instance()->admin->settings->is_connected() ) {
 			return false;
 		}

@@ -221,7 +221,6 @@ final class Optml_Api {
 		}
 
 		return $response['data'];
-
 	}
 
 	/**
@@ -256,7 +255,7 @@ final class Optml_Api {
 	 * @return bool Whether or not the url is valid.
 	 */
 	public function check_optimized_url( $url ) {
-		$response = wp_remote_get( $url, ['timeout' => 30] );
+		$response = wp_remote_get( $url, [ 'timeout' => 30 ] );
 
 		if ( is_wp_error( $response ) || wp_remote_retrieve_response_code( $response ) !== 200 || ! empty( wp_remote_retrieve_header( $response, 'x-not-found-o' ) ) ) {
 			$this->log_offload_error( $response );
@@ -304,7 +303,7 @@ final class Optml_Api {
 	 * @return array
 	 */
 	public function call_data_enrich_api( $images = [] ) {
-		return $this->request( 'optml/v2/media/add_data', 'POST', ['images' => $images, 'key' => Optml_Config::$key] );
+		return $this->request( 'optml/v2/media/add_data', 'POST', [ 'images' => $images, 'key' => Optml_Config::$key ] );
 	}
 	/**
 	 * Register user remotely on optimole.com.
@@ -343,7 +342,7 @@ final class Optml_Api {
 		if ( isset( $service_data['cdn_key'] ) ) {
 			$app_key = $service_data['cdn_key'];
 		}
-		return $this->request( '/optml/v1/stats/images', 'GET', [], ['application' => $app_key] );
+		return $this->request( '/optml/v1/stats/images', 'GET', [], [ 'application' => $app_key ] );
 	}
 
 	/**
@@ -409,7 +408,7 @@ final class Optml_Api {
 	 */
 	public function get_cloud_images( $page = 0, $domains = [], $search = '' ) {
 
-		$params = ['key' => Optml_Config::$key ];
+		$params = [ 'key' => Optml_Config::$key ];
 		$params['page'] = $page;
 		$params['size'] = 40;
 		if ( $search !== '' ) {
@@ -447,7 +446,7 @@ final class Optml_Api {
 		wp_remote_post(
 			$this->upload_conflicts_api,
 			[
-				'headers' => [         'Content-Type' => 'application/json'                      ],
+				'headers' => [ 'Content-Type' => 'application/json' ],
 				'timeout'     => 15,
 				'blocking'    => true,
 				'sslverify'   => false,
