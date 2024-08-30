@@ -49,13 +49,13 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		parent::init();
 		add_filter( 'optml_content_images_tags', [ $this, 'process_image_tags' ], 1, 2 );
+		add_filter( 'image_downsize', [ $this, 'filter_image_downsize' ], PHP_INT_MAX, 3 );
 
 		if ( $this->settings->use_lazyload() ) {
 			return;
 		}
 
 		add_filter( 'optml_tag_replace', [ $this, 'regular_tag_replace' ], 1, 6 );
-		add_filter( 'image_downsize', [ $this, 'filter_image_downsize' ], PHP_INT_MAX, 3 );
 		add_filter( 'wp_calculate_image_srcset', [ $this, 'filter_srcset_attr' ], PHP_INT_MAX, 5 );
 		add_filter( 'wp_calculate_image_sizes', [ $this, 'filter_sizes_attr' ], 1, 2 );
 	}
