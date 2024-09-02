@@ -24,7 +24,7 @@ class Optml_woocommerce extends Optml_compatibility {
 	public function register() {
 		if ( Optml_Main::instance()->admin->settings->use_lazyload() ) {
 			add_filter( 'optml_lazyload_early_flags', [ $this, 'add_lazyload_early_flag' ], PHP_INT_MAX, 1 );
-			if ( class_exists( '\Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils', false ) && \Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils::is_cart_block_default() ) {
+			if ( class_exists( '\Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils' ) && \Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils::is_cart_block_default() ) {
 				add_filter( 'image_downsize', [ Optml_Tag_Replacer::instance(), 'filter_image_downsize' ], PHP_INT_MAX, 3 );
 			}
 		}
