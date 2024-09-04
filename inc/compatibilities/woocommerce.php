@@ -24,8 +24,8 @@ class Optml_woocommerce extends Optml_compatibility {
 	public function register() {
 		if ( Optml_Main::instance()->admin->settings->use_lazyload() ) {
 			add_filter( 'optml_lazyload_early_flags', [ $this, 'add_lazyload_early_flag' ], PHP_INT_MAX, 1 );
-			if ( class_exists( '\Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils' ) && \Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils::is_cart_block_default() ) {
-				add_filter( 'image_downsize', [ Optml_Tag_Replacer::instance(), 'filter_image_downsize' ], PHP_INT_MAX, 3 );
+			if ( class_exists( '\Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils' ) && \Automattic\WooCommerce\Blocks\Utils\CartCheckoutUtils::is_cart_block_default() && function_exists( 'wc_cart_totals_subtotal_html' ) ) {
+				add_filter( 'image_downsize', [ $this, 'filter_cart_item_image' ], PHP_INT_MAX, 3 );
 			}
 		}
 	}
@@ -79,5 +79,21 @@ class Optml_woocommerce extends Optml_compatibility {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * This filter will replace all the images retrieved via "wp_get_image" type of functions.
+	 *
+	 * @param array        $image The filtered value.
+	 * @param int          $attachment_id The related attachment id.
+	 * @param array|string $size This could be the name of the thumbnail size or an array of custom dimensions.
+	 *
+	 * @return array
+	 */
+	public function filter_cart_item_image( $image, $attachment_id, $size ) {
+		if ( ! is_cart() ) {
+			return $image;
+		}
+		return Optml_Tag_Replacer::instance()->filter_image_downsize( $image, $attachment_id, $size );
 	}
 }
