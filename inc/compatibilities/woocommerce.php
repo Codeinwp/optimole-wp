@@ -91,6 +91,9 @@ class Optml_woocommerce extends Optml_compatibility {
 	 * @return array
 	 */
 	public function filter_cart_item_image( $image, $attachment_id, $size ) {
+		if ( ! function_exists( 'is_cart' ) ) {
+			return $image;
+		}
 		if ( ! is_cart() ) {
 			return $image;
 		}
