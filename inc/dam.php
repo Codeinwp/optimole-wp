@@ -628,11 +628,11 @@ class Optml_Dam {
 
 		$all_sizes = $this->get_all_image_sizes();
 
-		if ( ! isset( $all_sizes[ $settings['image_size'] ] ) ) {
+		if ( ! isset( $all_sizes[ $image_size_key ] ) ) {
 			return $html;
 		}
 
-		return $this->replace_dam_url_args( $all_sizes[ $settings['image_size'] ], $html );
+		return $this->replace_dam_url_args( $all_sizes[ $image_size_key ], $html );
 	}
 
 	/**
