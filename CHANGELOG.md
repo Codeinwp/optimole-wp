@@ -1,3 +1,8 @@
+##### [Version 3.13.7](https://github.com/Codeinwp/optimole-wp/compare/v3.13.6...v3.13.7) (2024-09-11)
+
+- Resolved fatal error occurring with the Image Box widget when using Optimole DAM in Elementor.
+- Improve error reporting in offloading process
+
 ##### [Version 3.13.6](https://github.com/Codeinwp/optimole-wp/compare/v3.13.5...v3.13.6) (2024-08-20)
 
 - Support for external image replacement should be added in the editor if the domain is allowed.
