@@ -921,7 +921,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					do_action( 'optml_log', ' download_url error ' );
 				}
 
-				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' has error getting URL.' );
+				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' has error downloading URL.' );
 				continue;
 			}
 
