@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   phplint:
-    name: Phplint
+    name: PHPCS
     runs-on: ubuntu-latest
     steps:
       - name: Setup PHP version
@@ -32,7 +32,7 @@ jobs:
       - name: Install composer
         run: composer install --prefer-dist --no-progress --no-suggest
       - name: Run PHPCS
-        run: composer run lint
+        run: composer phpcs
   phpunit:
       name: Phpunit
       runs-on: ubuntu-latest
