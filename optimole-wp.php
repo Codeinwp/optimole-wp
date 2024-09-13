@@ -50,7 +50,7 @@ function optml_deactivate() {
 }
 
 /**
- * Shows a notice for sites running PHP less than 5.4.
+ * Shows a notice for sites running PHP less than 7.4.
  */
 function optml_php_notice() {
 	?>
