@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   phplint:
-    name: PHPCS
+    name: PHPCS on PHP 8.0
     runs-on: ubuntu-latest
     steps:
       - name: Setup PHP version
@@ -72,7 +72,7 @@ jobs:
         - name: Run phpunit
           run: phpunit
   phpstan:
-    name: PHPStan
+    name: PHPStan on PHP 8.0
     runs-on: ubuntu-latest
     steps:
       - name: Setup PHP version
