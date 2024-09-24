@@ -4,7 +4,7 @@ Tags: image optimization, convert webp, image optimizer, lazy load, image, optim
 Requires at least: 5.5
 Tested up to: 6.6
 Requires PHP: 7.4
-Stable tag: 3.13.6
+Stable tag: 3.13.7
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -150,11 +150,10 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 3.13.6](https://github.com/Codeinwp/optimole-wp/compare/v3.13.5...v3.13.6) (2024-08-20)
+##### [Version 3.13.7](https://github.com/Codeinwp/optimole-wp/compare/v3.13.6...v3.13.7) (2024-09-11)
 
-- Support for external image replacement should be added in the editor if the domain is allowed.
-- Close output buffer on shutdown
-- Update dependencies.
+- Resolved fatal error occurring with the Image Box widget when using Optimole DAM in Elementor.
+- Improve error reporting in offloading process
 
 
 
