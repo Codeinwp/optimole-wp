@@ -47,7 +47,7 @@ jobs:
         - name: Checkout source code
           uses: actions/checkout@v4
         - name: Install WordPress Test Suite
-          run: bash bin/install-wp-tests.sh wordpress_tests root root 127.0.0.1 latest true
+          run: composer install-wp-tests
         - name: Install Composer dependencies
           run: composer install --prefer-dist --no-progress --no-suggest --no-dev
         - name: Run phpunit
