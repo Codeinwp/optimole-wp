@@ -44,6 +44,8 @@ jobs:
             php-version: ${{ matrix.php-version }}
             extensions: simplexml, mysql
             tools: phpunit-polyfills:1.1
+        - name: Install Subversion
+          run: sudo apt-get update && sudo apt-get install -y subversion
         - name: Checkout source code
           uses: actions/checkout@v4
         - name: Install WordPress Test Suite
