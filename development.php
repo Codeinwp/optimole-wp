@@ -4,7 +4,7 @@
  *
  * @package ThemeIsle
  */
-if ( ! empty( getenv( 'WP_TESTS_DIR' ) ) ) {
+if ( defined( 'PHPUNIT_COMPOSER_INSTALL' ) ) {
 	return;
 }
 
