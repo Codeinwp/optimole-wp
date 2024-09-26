@@ -53,7 +53,7 @@ jobs:
         - name: Install Composer dependencies
           run: composer install --prefer-dist --no-progress --no-suggest --no-dev
         - name: Run phpunit
-          run: phpunit
+          run: composer phpunit
   phpstan:
     name: PHPStan on PHP 8.0
     runs-on: ubuntu-latest

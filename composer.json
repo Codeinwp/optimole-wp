@@ -47,8 +47,8 @@
   "scripts": {
     "format": "phpcbf --standard=phpcs.xml --report-summary --report-source",
     "phpcs": "phpcs --standard=phpcs.xml --extensions=php -s -d memory_limit=-1",
-    "test": "[ -z \"$WP_TESTS_DIR\" ] || [ -z \"$WP_CORE_DIR\" ] && echo 'Error: Both WP_TESTS_DIR and WP_CORE_DIR must be defined.' && exit 1 || phpunit --configuration=phpunit.xml",
     "phpstan": "phpstan analyse --memory-limit=-1",
+    "phpunit": "phpunit --configuration=phpunit.xml",
     "install-wp-tests": "bash bin/install-wp-tests.sh wordpress_tests root root 127.0.0.1 latest true"
   },
   "require": {
