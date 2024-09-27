@@ -73,6 +73,13 @@ tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 // Start up the WP testing environment.
 require $_tests_dir . '/includes/bootstrap.php';
 
+// If PHPUnit is run from the project directory, it loads the themeisle SDK via the composer autoload file at the
+// beginning of the script execution. This is too early because the SDK needs WordPress to be loaded. This code checks
+// if the SDK was actually loaded and forces it to load again if it wasn't loaded properly.
+if ( ! function_exists( 'tsdk_translate_link' ) ) {
+    require __DIR__ . '/../vendor/codeinwp/themeisle-sdk/load.php';
+}
+
 // Activate Optimole plugin
 activate_plugin( 'optimole-wp/optimole-wp.php' );
 
