@@ -51,7 +51,7 @@ jobs:
         - name: Install WordPress Test Suite
           run: composer install-wp-tests
         - name: Install Composer dependencies
-          run: composer install --prefer-dist --no-progress --no-suggest --no-dev
+          run: composer install --prefer-dist --no-progress --no-suggest
         - name: Run phpunit
           run: composer phpunit
   phpstan:
