@@ -44,14 +44,16 @@ jobs:
             php-version: ${{ matrix.php-version }}
             extensions: simplexml, mysql
             tools: phpunit-polyfills:1.1
+        - name: Install Subversion
+          run: sudo apt-get update && sudo apt-get install -y subversion
         - name: Checkout source code
           uses: actions/checkout@v4
         - name: Install WordPress Test Suite
-          run: bash bin/install-wp-tests.sh wordpress_tests root root 127.0.0.1 latest true
+          run: composer install-wp-tests
         - name: Install Composer dependencies
-          run: composer install --prefer-dist --no-progress --no-suggest --no-dev
+          run: composer install --prefer-dist --no-progress --no-suggest
         - name: Run phpunit
-          run: phpunit
+          run: composer phpunit
   phpstan:
     name: PHPStan on PHP 8.0
     runs-on: ubuntu-latest
