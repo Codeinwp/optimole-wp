@@ -64,20 +64,21 @@
         },
         {
             "name": "codeinwp/themeisle-sdk",
-            "version": "3.3.30",
+            "version": "3.3.32",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeinwp/themeisle-sdk.git",
-                "reference": "801a07604a297f02de3067948176f91b4c84bd8a"
+                "reference": "422f55c1d5c99350b849ba63f456aec120400b76"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeinwp/themeisle-sdk/zipball/801a07604a297f02de3067948176f91b4c84bd8a",
-                "reference": "801a07604a297f02de3067948176f91b4c84bd8a",
+                "url": "https://api.github.com/repos/Codeinwp/themeisle-sdk/zipball/422f55c1d5c99350b849ba63f456aec120400b76",
+                "reference": "422f55c1d5c99350b849ba63f456aec120400b76",
                 "shasum": ""
             },
             "require-dev": {
-                "codeinwp/phpcs-ruleset": "dev-main"
+                "codeinwp/phpcs-ruleset": "dev-main",
+                "yoast/phpunit-polyfills": "^2.0"
             },
             "type": "library",
             "notification-url": "https://packagist.org/downloads/",
@@ -98,9 +99,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Codeinwp/themeisle-sdk/issues",
-                "source": "https://github.com/Codeinwp/themeisle-sdk/tree/v3.3.30"
+                "source": "https://github.com/Codeinwp/themeisle-sdk/tree/v3.3.32"
             },
-            "time": "2024-09-10T23:53:07+00:00"
+            "time": "2024-10-16T10:32:45+00:00"
         },
         {
             "name": "enshrined/svg-sanitize",
