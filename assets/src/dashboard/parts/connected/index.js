@@ -32,7 +32,7 @@ if ( 'undefined' !== typeof window && optimoleDashboardApp.user_data.plan ) {
 			status: optimoleDashboardApp.user_data.status,
 			language: optimoleDashboardApp.language,
 			cname_assigned: optimoleDashboardApp.user_data.is_cname_assigned || 'no',
-			connected_websites: optimoleDashboardApp.user_data.whitelist && optimoleDashboardApp.user_data.whitelist.length.toString() ,
+			connected_websites: optimoleDashboardApp.user_data.whitelist && optimoleDashboardApp.user_data.whitelist.length.toString(),
 			traffic: convertToCategory( optimoleDashboardApp.user_data.traffic || 0, 500 ).toString(),
 			images_number: convertToCategory( optimoleDashboardApp.user_data.images_number || 0, 100 ).toString(),
 			days_since_install: convertToCategory( optimoleDashboardApp.days_since_install ).toString()
