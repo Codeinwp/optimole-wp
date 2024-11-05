@@ -543,8 +543,7 @@ class Test_Media extends WP_UnitTestCase {
 				'data' => Optml_Media_Offload::instance()->alter_attachment_image_src( [], self::$sample_attachement, [10, 20], false ),
 				'contains' => [
 					'process:' . self::$sample_attachement . '/id:',
-					'w:10/h:20',
-					'rt:fill'
+					'w:10/h:7'
 				]
 			],
 			'scaled-full' => [
@@ -572,8 +571,7 @@ class Test_Media extends WP_UnitTestCase {
 				'data' => Optml_Media_Offload::instance()->alter_attachment_image_src( [], self::$sample_attachment_scaled, [10, 20], false ),
 				'contains' => [
 					'process:' . self::$sample_attachment_scaled . '/id:',
-					'w:10/h:20',
-					'rt:fill'
+					'w:10/h:10'
 				],
 				'not_contain' => [
 					'-scaled.jpg'

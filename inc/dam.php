@@ -678,7 +678,7 @@ class Optml_Dam {
 		$width         = $incoming_size[0];
 		$height        = $incoming_size[1];
 
-		$sizes = $this->get_all_image_sizes();
+		$sizes = Optml_App_Replacer::image_sizes();
 
 		// If this is an image size. Return its dimensions.
 		foreach ( $sizes as $size => $args ) {
