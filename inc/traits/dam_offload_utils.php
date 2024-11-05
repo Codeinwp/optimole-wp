@@ -1,6 +1,8 @@
 <?php
 
 trait Optml_Dam_Offload_Utils {
+	use Optml_Normalizer;
+
 	/**
 	 * Checks that the attachment is a DAM image.
 	 *
@@ -157,7 +159,6 @@ trait Optml_Dam_Offload_Utils {
 	 * @return mixed
 	 */
 	private function get_altered_metadata_for_remote_images( $metadata, $id ) {
-		$sizes = $this->get_all_image_sizes();
 
 		$post = get_post( $id );
 
@@ -174,24 +175,14 @@ trait Optml_Dam_Offload_Utils {
 		if ( ! isset( $metadata['height'] ) || ! isset( $metadata['width'] ) ) {
 			return $metadata;
 		}
-
+		$sizes = Optml_App_Replacer::image_sizes();
 		foreach ( $sizes as $size => $args ) {
 			// check if the image is portrait or landscape using attachment metadata.
-			$is_portrait = $metadata['height'] > $metadata['width'];
-
-			// proportionally set the width/height based on this if image is uncropped.
-			if ( ! (bool) $args['crop'] ) {
-				if ( $is_portrait ) {
-					$args['width'] = (int) ( $args['height'] * round( $metadata['width'] / $metadata['height'] ) );
-				} else {
-					$args['height'] = (int) ( $args['width'] * round( $metadata['height'] / $metadata['width'] ) );
-				}
-			}
-
+			$dimensions = $this->size_to_dimension( $size, $metadata );
 			$sizes_meta[ $size ] = [
 				'file'      => $metadata['file'],
-				'width'     => $args['width'],
-				'height'    => $args['height'],
+				'width'     => $dimensions['width'],
+				'height'    => $dimensions['height'],
 				'mime-type' => $post->post_mime_type,
 			];
 		}

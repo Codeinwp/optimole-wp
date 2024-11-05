@@ -155,6 +155,62 @@ trait Optml_Normalizer {
 	}
 
 	/**
+	 * Convert image size to dimensions.
+	 *
+	 * This function takes an image size and its metadata, and returns the dimensions
+	 * of the image based on the specified size. It handles different cases such as
+	 * custom sizes, predefined sizes, and full size.
+	 *
+	 * @param mixed $size The size of the image. Can be an array of width and height, a predefined size, or 'full'.
+	 * @param array $image_meta Metadata of the image, including width and height.
+	 *
+	 * @return array The dimensions of the image, including width, height, and optional resize parameters.
+	 */
+	public function size_to_dimension( $size, $image_meta ) {
+		// default size
+		$sizes = [
+			'width'  => isset( $image_meta['width'] ) ? intval( $image_meta['width'] ) : false,
+			'height' => isset( $image_meta['height'] ) ? intval( $image_meta['height'] ) : false,
+		];
+		$image_args = Optml_App_Replacer::image_sizes();
+		switch ( $size ) {
+			case is_array( $size ):
+				$width  = isset( $size[0] ) ? (int) $size[0] : false;
+				$height = isset( $size[1] ) ? (int) $size[1] : false;
+				if ( ! $width || ! $height ) {
+					break;
+				}
+				$image_resized = image_resize_dimensions( $sizes['width'], $sizes['height'], $width, $height );
+				if ( $image_resized ) {
+					$width  = $image_resized[6];
+					$height = $image_resized[7];
+				} else {
+					$width  = $image_meta['width'];
+					$height = $image_meta['height'];
+				}
+				list( $sizes['width'], $sizes['height'] ) = image_constrain_size_for_editor( $width, $height, $size );
+
+				break;
+			case 'full' !== $size && isset( $image_args[ $size ] ):
+				$image_resized = image_resize_dimensions( $sizes['width'], $sizes['height'], $image_args[ $size ]['width'], $image_args[ $size ]['height'], $image_args[ $size ]['crop'] );
+
+				if ( $image_resized ) { // This could be false when the requested image size is larger than the full-size image.
+					$sizes['width']  = $image_resized[6];
+					$sizes['height'] = $image_resized[7];
+				}
+				// There are cases when the image meta is missing and image size is non existent, see SVG image handling.
+				if ( ! $sizes['width'] || ! $sizes['height'] ) {
+					break;
+				}
+				list( $sizes['width'], $sizes['height'] ) = image_constrain_size_for_editor( $sizes['width'], $sizes['height'], $size, 'display' );
+
+				$sizes['resize'] = $this->to_optml_crop( $image_args[ $size ]['crop'] );
+
+				break;
+		}
+		return $sizes;
+	}
+	/**
 	 * Normalize arguments for crop.
 	 *
 	 * @param array|bool $crop_args Crop arguments.

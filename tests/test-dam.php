@@ -62,6 +62,11 @@ class Test_Dam extends WP_UnitTestCase {
 			'orientation' => 'landscape',
 			'crop'        => true
 		],
+		'test_gravity' => [
+			'width'       => 200,
+			'height'      => 100,
+			'crop'        => ['left','top']
+		],
 		'test_portrait'  => [
 			'width'       => 100,
 			'height'      => 200,
@@ -232,27 +237,28 @@ class Test_Dam extends WP_UnitTestCase {
 			$this->assertStringContainsString( 'w:200/h:100/g:ce/rt:fill', $result[0] );
 			$this->assertEquals( 200, $result[1] );
 			$this->assertEquals( 100, $result[2] );
-			$this->assertTrue( $result[3] );
+			$this->assertFalse( $result[3] );
+			$result = $this->dam->alter_attachment_image_src( false, $id, 'test_gravity', false );
+			$this->assertStringContainsString( 'w:200/h:100/g:noea/rt:fill', $result[0] );
 
 			$result = $this->dam->alter_attachment_image_src( false, $id, 'test_portrait', false );
 			$this->assertStringContainsString( 'w:100/h:200/g:ce/rt:fill', $result[0] );
 			$this->assertEquals( 100, $result[1] );
 			$this->assertEquals( 200, $result[2] );
-			$this->assertTrue( $result[3] );
+			$this->assertFalse( $result[3] );
 
 			$result = $this->dam->alter_attachment_image_src( false, $id, 'medium', false );
-			$this->assertStringContainsString( 'w:300/h:300/', $result[0] );
+			$this->assertStringContainsString( 'w:200/h:300/', $result[0] );
 			$this->assertStringNotContainsString( 'g:ce/rt:fill', $result[0] );
-			$this->assertEquals( 300, $result[1] );
+			$this->assertEquals( 200, $result[1] );
 			$this->assertEquals( 300, $result[2] );
 			$this->assertFalse( $result[3] );
 
 			$result = $this->dam->alter_attachment_image_src( false, $id, [ 50, 20 ], false );
-			$this->assertStringContainsString( 'w:50/h:20/g:ce/rt:fill', $result[0] );
-			$this->assertEquals( 50, $result[1] );
+			$this->assertStringContainsString( 'w:13/h:20/', $result[0] );
+			$this->assertEquals( 13, $result[1] );
 			$this->assertEquals( 20, $result[2] );
-			$this->assertEquals( true, $result[3] );
-			$this->assertTrue( $result[3] );
+			$this->assertFalse( $result[3] );
 		}
 	}
 
@@ -327,11 +333,8 @@ class Test_Dam extends WP_UnitTestCase {
 
 			// Test custom image sizes.
 			foreach ( self::IMAGE_SIZES as $size => $image_size_args ) {
-				$args = [
-					'width'  => $image_size_args['width'],
-					'height' => $image_size_args['height'],
-					'crop'   => $image_size_args['crop']
-				];
+
+				$args = $this->dam->size_to_dimension( $size, wp_get_attachment_metadata($id) );
 
 				$test_url = $this->dam->replace_dam_url_args( $args, $current_attachment['url'] );
 				$altered_dimensions = $this->dam->alter_img_tag_w_h( $other_dimensions, $test_url, [], $id );

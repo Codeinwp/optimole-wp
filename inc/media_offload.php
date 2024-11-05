@@ -2221,7 +2221,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		$url       = get_post( $attachment_id );
 		$url       = $url->guid;
-		$image_url = $this->get_new_offloaded_attachment_url( $url, $attachment_id );
 		$metadata  = wp_get_attachment_metadata( $attachment_id );
 
 		// Use the original size if the requested size is full.
@@ -2244,65 +2243,26 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			];
 		}
 
-		$crop = false;
-
-		// Size can be int [] containing width and height.
-		if ( is_array( $size ) ) {
-			$width  = $size[0];
-			$height = $size[1];
-			$crop   = true;
-		} else {
-			$sizes = $this->get_all_image_sizes();
-
-			if ( ! isset( $sizes[ $size ] ) ) {
-				return [
-					$image_url,
-					$metadata['width'],
-					$metadata['height'],
-					false,
-				];
-			}
-
-			$width  = $sizes[ $size ]['width'];
-			$height = $sizes[ $size ]['height'];
-			$crop   = is_array( $sizes[ $size ]['crop'] ) ? $sizes[ $size ]['crop'] : (bool) $sizes[ $size ]['crop'];
-		}
-
-		$sizes2crop = self::size_to_crop();
-
 		if ( wp_attachment_is( 'video', $attachment_id ) && doing_action( 'wp_insert_post_data' ) ) {
 			return $image;
 		}
-
-		$resize = apply_filters( 'optml_default_crop', [] );
-		$data   = image_get_intermediate_size( $attachment_id, $size );
-
-		if ( is_array( $data ) && isset( $data['width'] ) && isset( $data['height'] ) ) { // @phpstan-ignore-line - these both exist.
-			if ( isset( $sizes2crop[ $data['width'] . $data['height'] ] ) ) {
-				$resize = $this->to_optml_crop( $sizes2crop[ $data['width'] . $data['height'] ] );
-			}
-		}
-
-		if ( $crop !== false ) {
-			$resize = $this->to_optml_crop( $crop );
-		}
-
+		$sizes     = $this->size_to_dimension( $size, $metadata );
 		$image_url = $this->get_new_offloaded_attachment_url(
 			$url,
 			$attachment_id,
 			[
-				'width'         => $width,
-				'height'        => $height,
-				'resize'        => $resize,
+				'width'         => $sizes['width'],
+				'height'        => $sizes['height'],
+				'resize'        => $sizes['resize'] ?? [],
 				'attachment_id' => $attachment_id,
 			]
 		);
 
 		return [
 			$image_url,
-			$width,
-			$height,
-			$crop,
+			$sizes['width'],
+			$sizes['height'],
+			$size === 'full',
 		];
 	}
 
@@ -2320,19 +2280,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $response;
 		}
 
-		$sizes = $this->get_all_image_sizes();
+		$meta = [];
+		if ( isset( $response['width'] ) ) {
+			$meta['width'] = $response['width'];
+		}
+		if ( isset( $response['height'] ) ) {
+			$meta['height'] = $response['height'];
+		}
+		$sizes = Optml_App_Replacer::image_sizes();
 
 		foreach ( $sizes as $size => $args ) {
 			if ( isset( $response['sizes'][ $size ] ) ) {
 				continue;
 			}
-
-			$args = [
-				'height' => $args['height'],
-				'width'  => $args['width'],
-				'crop'   => true,
-			];
-
+			$args = $this->size_to_dimension( $size, $meta );
 			$response['sizes'][ $size ] = array_merge(
 				$args,
 				[
@@ -2341,14 +2302,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				]
 			);
 		}
-
-		$url_args = [
-			'height' => $response['height'],
-			'width'  => $response['width'],
-			'crop'   => false,
-		];
-
-		$response['url'] = $this->get_new_offloaded_attachment_url( $response['url'], $attachment->ID, $url_args );
+		$response['url'] = $this->get_new_offloaded_attachment_url( $response['url'], $attachment->ID, $meta );
 
 		return $response;
 	}
