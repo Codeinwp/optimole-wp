@@ -1,6 +1,8 @@
 <?php
 
 trait Optml_Dam_Offload_Utils {
+	use Optml_Normalizer;
+
 	/**
 	 * Checks that the attachment is a DAM image.
 	 *
@@ -157,7 +159,6 @@ trait Optml_Dam_Offload_Utils {
 	 * @return mixed
 	 */
 	private function get_altered_metadata_for_remote_images( $metadata, $id ) {
-
 
 		$post = get_post( $id );
 
