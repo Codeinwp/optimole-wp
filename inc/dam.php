@@ -626,6 +626,7 @@ class Optml_Dam {
 		}
 
 		$sizes = Optml_App_Replacer::image_sizes();
+
 		$meta = [];
 		if ( isset( $response['width'] ) ) {
 			$meta['width'] = $response['width'];
@@ -638,6 +639,7 @@ class Optml_Dam {
 				continue;
 			}
 			$args = $this->size_to_dimension( $size, $meta );
+
 			$response['sizes'][ $size ] = array_merge(
 				$args,
 				[
@@ -710,7 +712,7 @@ class Optml_Dam {
 	 * @return string
 	 */
 	public function replace_dam_url_args( $args, $subject ) {
-		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'crop' => false, 'dam' => true ] );
+		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'dam' => true ] );
 
 		$width = $args['width'];
 		$height = $args['height'];
@@ -736,6 +738,7 @@ class Optml_Dam {
 		if ( $crop === true ) {
 			$replacement .= '/g:' . $gravity . '/rt:fill';
 		} elseif ( is_array( $crop ) && ! empty( $crop ) ) {
+
 			$replacement .= '/' . ( new GravityProperty( $crop['gravity'] ) ) .
 							'/' . new ResizeTypeProperty( $crop['type'] ) .
 							( $crop['enlarge'] ? '/el:1' : '' );
