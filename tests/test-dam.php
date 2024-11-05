@@ -333,11 +333,8 @@ class Test_Dam extends WP_UnitTestCase {
 
 			// Test custom image sizes.
 			foreach ( self::IMAGE_SIZES as $size => $image_size_args ) {
-				$args = [
-					'width'  => $image_size_args['width'],
-					'height' => $image_size_args['height'],
-					'crop'   => $image_size_args['crop']
-				];
+
+				$args = $this->dam->size_to_dimension( $size, wp_get_attachment_metadata($id) );
 
 				$test_url = $this->dam->replace_dam_url_args( $args, $current_attachment['url'] );
 				$altered_dimensions = $this->dam->alter_img_tag_w_h( $other_dimensions, $test_url, [], $id );
