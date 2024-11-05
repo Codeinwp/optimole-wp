@@ -459,48 +459,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		}
 
 		$image_meta = wp_get_attachment_metadata( $attachment_id );
-		$image_args = self::image_sizes();
-		// default size
-		$sizes = [
-			'width'  => isset( $image_meta['width'] ) ? intval( $image_meta['width'] ) : false,
-			'height' => isset( $image_meta['height'] ) ? intval( $image_meta['height'] ) : false,
-		];
-
-		switch ( $size ) {
-			case is_array( $size ):
-				$width  = isset( $size[0] ) ? (int) $size[0] : false;
-				$height = isset( $size[1] ) ? (int) $size[1] : false;
-				if ( ! $width || ! $height ) {
-					break;
-				}
-				$image_resized = image_resize_dimensions( $sizes['width'], $sizes['height'], $width, $height );
-				if ( $image_resized ) {
-					$width  = $image_resized[6];
-					$height = $image_resized[7];
-				} else {
-					$width  = $image_meta['width'];
-					$height = $image_meta['height'];
-				}
-				list( $sizes['width'], $sizes['height'] ) = image_constrain_size_for_editor( $width, $height, $size );
-
-				break;
-			case 'full' !== $size && isset( $image_args[ $size ] ):
-				$image_resized = image_resize_dimensions( $sizes['width'], $sizes['height'], $image_args[ $size ]['width'], $image_args[ $size ]['height'], $image_args[ $size ]['crop'] );
-
-				if ( $image_resized ) { // This could be false when the requested image size is larger than the full-size image.
-					$sizes['width']  = $image_resized[6];
-					$sizes['height'] = $image_resized[7];
-				}
-				// There are cases when the image meta is missing and image size is non existent, see SVG image handling.
-				if ( ! $sizes['width'] || ! $sizes['height'] ) {
-					break;
-				}
-				list( $sizes['width'], $sizes['height'] ) = image_constrain_size_for_editor( $sizes['width'], $sizes['height'], $size, 'display' );
-
-				$sizes['resize'] = $this->to_optml_crop( $image_args[ $size ]['crop'] );
-
-				break;
-		}
+		$sizes = $this->size_to_dimension( $size, $image_meta );
 		$image_url = $this->strip_image_size_from_url( $image_url );
 
 		$new_url = apply_filters( 'optml_content_url', $image_url, $sizes );

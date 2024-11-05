@@ -10,6 +10,7 @@
  */
 
 use Optimole\Sdk\Resource\ImageProperty\GravityProperty;
+use Optimole\Sdk\Resource\ImageProperty\ResizeTypeProperty;
 use Optimole\Sdk\ValueObject\Position;
 
 /**
@@ -215,10 +216,9 @@ class Optml_Dam {
 			];
 		}
 
+		$metadata = wp_get_attachment_metadata( $attachment_id );
 		// Use the original size if the requested size is full.
 		if ( $size === 'full' ) {
-			$metadata = wp_get_attachment_metadata( $attachment_id );
-
 			$image_url = $this->replace_dam_url_args(
 				[
 					'width'  => $metadata['width'],
@@ -235,45 +235,21 @@ class Optml_Dam {
 				false,
 			];
 		}
-
-		$crop = false;
-
-		// Size can be int [] containing width and height.
-		if ( is_array( $size ) ) {
-			$width  = $size[0];
-			$height = $size[1];
-			$crop = true;
-		} else {
-			$sizes = $this->get_all_image_sizes();
-
-			if ( ! isset( $sizes[ $size ] ) ) {
-				return [
-					$image_url,
-					$width,
-					$height,
-					false,
-				];
-			}
-
-			$width  = $sizes[ $size ]['width'];
-			$height = $sizes[ $size ]['height'];
-			$crop   = (bool) $sizes[ $size ]['crop'];
-		}
+		$sizes = $this->size_to_dimension( $size, $metadata );
 
 		$image_url = $this->replace_dam_url_args(
 			[
-				'width'  => $width,
-				'height' => $height,
-				'crop'   => $crop,
+				'width'  => $sizes['width'],
+				'height' => $sizes['height'],
+				'crop'   => $sizes['resize'] ?? false,
 			],
 			$image_url
 		);
-
 		return [
 			$image_url,
-			$width,
-			$height,
-			$crop,
+			$sizes['width'],
+			$sizes['height'],
+			$size === 'full',
 		];
 	}
 
@@ -626,7 +602,7 @@ class Optml_Dam {
 			return $this->replace_dam_url_args( $custom_dimensions, $html );
 		}
 
-		$all_sizes = $this->get_all_image_sizes();
+		$all_sizes = Optml_App_Replacer::image_sizes();
 
 		if ( ! isset( $all_sizes[ $image_size_key ] ) ) {
 			return $html;
@@ -649,18 +625,20 @@ class Optml_Dam {
 			return $response;
 		}
 
-		$sizes = $this->get_all_image_sizes();
+		$sizes = Optml_App_Replacer::image_sizes();
 
+		$meta = [];
+		if ( isset( $response['width'] ) ) {
+			$meta['width'] = $response['width'];
+		}
+		if ( isset( $response['height'] ) ) {
+			$meta['height'] = $response['height'];
+		}
 		foreach ( $sizes as $size => $args ) {
 			if ( isset( $response['sizes'][ $size ] ) ) {
 				continue;
 			}
-
-			$args = [
-				'height'      => $args['height'],
-				'width'       => $args['width'],
-				'crop'        => true,
-			];
+			$args = $this->size_to_dimension( $size, $meta );
 
 			$response['sizes'][ $size ] = array_merge(
 				$args,
@@ -670,14 +648,7 @@ class Optml_Dam {
 				]
 			);
 		}
-
-		$url_args = [
-			'height' => $response['height'],
-			'width'  => $response['width'],
-			'crop'   => false,
-		];
-
-		$response['url'] = $this->replace_dam_url_args( $url_args, $response['url'] );
+		$response['url'] = $this->replace_dam_url_args( $meta, $response['url'] );
 
 		return $response;
 	}
@@ -707,7 +678,7 @@ class Optml_Dam {
 		$width         = $incoming_size[0];
 		$height        = $incoming_size[1];
 
-		$sizes = $this->get_all_image_sizes();
+		$sizes = Optml_App_Replacer::image_sizes();
 
 		// If this is an image size. Return its dimensions.
 		foreach ( $sizes as $size => $args ) {
@@ -741,11 +712,11 @@ class Optml_Dam {
 	 * @return string
 	 */
 	public function replace_dam_url_args( $args, $subject ) {
-		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'crop' => false, 'dam' => true ] );
+		$args = wp_parse_args( $args, [ 'width' => 'auto', 'height' => 'auto', 'dam' => true ] );
 
 		$width = $args['width'];
 		$height = $args['height'];
-		$crop = (bool) $args['crop'];
+		$crop = $args['crop'] ?? $args['resize'] ?? false;
 
 		$gravity = Position::CENTER;
 
@@ -764,8 +735,13 @@ class Optml_Dam {
 		// Use the proper replacement for the image size.
 		$replacement = '/w:' . $width . '/h:' . $height;
 
-		if ( $crop ) {
+		if ( $crop === true ) {
 			$replacement .= '/g:' . $gravity . '/rt:fill';
+		} elseif ( is_array( $crop ) && ! empty( $crop ) ) {
+
+			$replacement .= '/' . ( new GravityProperty( $crop['gravity'] ) ) .
+							'/' . new ResizeTypeProperty( $crop['type'] ) .
+							( $crop['enlarge'] ? '/el:1' : '' );
 		}
 
 		$replacement .= '/q:';
