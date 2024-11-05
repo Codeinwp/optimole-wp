@@ -172,7 +172,7 @@ trait Optml_Normalizer {
 			'width'  => isset( $image_meta['width'] ) ? intval( $image_meta['width'] ) : false,
 			'height' => isset( $image_meta['height'] ) ? intval( $image_meta['height'] ) : false,
 		];
-		$image_args = self::image_sizes();
+		$image_args = Optml_App_Replacer::image_sizes();
 		switch ( $size ) {
 			case is_array( $size ):
 				$width  = isset( $size[0] ) ? (int) $size[0] : false;
