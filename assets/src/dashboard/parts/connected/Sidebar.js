@@ -41,9 +41,7 @@ const Sidebar = () => {
 	});
 
 	return (
-		<div
-			className="flex flex-col mt-8 mb-5 p-0 transition-all ease-in-out duration-700 gap-5 basis-3/12"
-		>
+		<div className="grid md:grid-cols-2 xl:flex xl:flex-col xl:mt-8 xl:mb-5 p-0 transition-all ease-in-out duration-700 gap-5 basis-4/12 2xl:basis-3/12">
 			<div className="bg-white gap-5 flex flex-col text-gray-700 border-0 rounded-lg shadow-md p-8">
 				<TextControl
 					label={ optimoleDashboardApp.strings.logged_in_as }
@@ -73,33 +71,41 @@ const Sidebar = () => {
 
 			{ 'free' === plan ? (
 				<div
-					className="bg-info flex flex-col text-white border-0 rounded-lg shadow-md p-8 bg-promo bg-no-repeat"
+					className="bg-info flex flex-col text-white border-0 rounded-lg overflow-hidden shadow-md bg-promo bg-no-repeat"
 					style={ {
 						backgroundImage: `url( ${ optimoleDashboardApp.assets_url }/img/logo2.png )`
 					} }
 				>
-					<h3 className="mt-0 text-white text-lg">{ optimoleDashboardApp.strings.upgrade.title_long }</h3>
+					{optimoleDashboardApp?.bf_notices?.sidebar && (
+						<a href={optimoleDashboardApp.bf_notices.sidebar.cta_link} className="flex flex-col gap-3 p-3 bg-black !no-underline text-center cursor-pointer hover:opacity-90 transition-opacity" target="_blank">
+							<span className="font-extrabold text-[17px] uppercase italic" dangerouslySetInnerHTML={{ __html: optimoleDashboardApp.bf_notices.sidebar.title }}/>
+							<span className="text-[11px] font-bold" dangerouslySetInnerHTML={{ __html: optimoleDashboardApp.bf_notices.sidebar.subtitle }}/>
+						</a>
+					)}
 
-					<ul>
-						{ reasons.map( ( reason, index ) => (
-							<li
-								key={ index }
-								className="flex items-center gap-2"
-							>
-								<Icon icon="yes-alt" className="text-white" />
-								<span className="text-white font-normal text-base">{ reason }</span>
-							</li>
-						) ) }
-					</ul>
+					<div className="p-8 flex flex-col">
+						<h3 className="mt-0 text-white text-lg">{ optimoleDashboardApp.strings.upgrade.title_long }</h3>
+						<ul>
+							{ reasons.map( ( reason, index ) => (
+								<li
+									key={ index }
+									className="flex items-center gap-2"
+								>
+									<Icon icon="yes-alt" className="text-white" />
+									<span className="text-white font-normal text-base">{ reason }</span>
+								</li>
+							) ) }
+						</ul>
 
-					<Button
-						variant="link"
-						className="optml__button flex w-full justify-center font-bold min-h-40 !no-underline !text-white !bg-opaque-black !rounded"
-						href={ optimoleDashboardApp.optimoleHome +  'pricing' }
-						target="_blank"
-					>
-						{ optimoleDashboardApp.strings.upgrade.cta }
-					</Button>
+						<Button
+							variant="link"
+							className="optml__button flex w-full justify-center font-bold min-h-40 !no-underline !text-white !bg-opaque-black !rounded"
+							href={ optimoleDashboardApp.optimoleHome +  'pricing' }
+							target="_blank"
+						>
+							{ optimoleDashboardApp.strings.upgrade.cta }
+						</Button>
+					</div>
 				</div>
 			) : (
 				<Button
