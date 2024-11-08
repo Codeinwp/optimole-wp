@@ -20,6 +20,8 @@ class Optml_Admin {
 	const IMAGE_DATA_COLLECTED = 'optml_image_data_collected';
 
 	const IMAGE_DATA_COLLECTED_BATCH = 100;
+
+	const BF_PROMO_DISMISS_KEY = 'optml_bf24_notice_dismiss';
 	/**
 	 * Hold the settings object.
 	 *
@@ -1333,7 +1335,64 @@ class Optml_Admin {
 					'hash' => '#settings',
 				],
 			],
+			'bf_notices'                 => $this->get_bf_notices(),
 		];
+	}
+
+	/**
+	 * Get the black friday notices.
+	 *
+	 * @return array
+	 */
+	public function get_bf_notices() {
+		$date = new DateTime();
+
+		$now   = time();
+		$start = strtotime( '2024-11-25 00:00:00' );
+		$end   = strtotime( '2024-12-03 23:59:59' );
+
+		if ( $now < $start || $now > $end ) {
+			return [];
+		}
+
+		$notices = [
+			'sidebar' => [
+				'title'    => sprintf(
+					'<span class="text-promo-orange">%1$s:</span> %2$s',
+					__( 'Private Sale', 'optimole-wp' ),
+					__( '25 Nov - 03 Dec', 'optimole-wp' )
+				),
+				'subtitle' => sprintf(
+				/* translators: 1 is the promo code, 2 is the discount amount ('25 off') */
+					__( 'Use code %1$s for %2$s on yearly plans.', 'optimole-wp' ),
+					'<span class="border-b border-0 border-white border-dashed text-promo-orange">BFCM2425</span>',
+					'<span class="text-promo-orange uppercase">' . __( '25% off', 'optimole-wp' ) . '</span>'
+				),
+				'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( 'https://optimole.com/pricing' ), 'bfcm24', 'sidebarnotice' ) ),
+			],
+		];
+
+		if ( get_option( self::BF_PROMO_DISMISS_KEY ) === 'yes' ) {
+			return $notices;
+		}
+
+		$notices['banner'] = [
+			/* translators: number of days left */
+			'urgency'  => sprintf( __( 'Hurry up! only %s left', 'optimole-wp' ), human_time_diff( $end, $now ) ),
+			/* translators: private sale */
+			'title'    => sprintf( __( 'Black Friday %s', 'optimole-wp' ), '<span class="text-promo-orange">' . __( 'private sale' ) . '</span>' ),
+			'subtitle' => sprintf(
+			/* translators: 1 is the promo code, 2 is the discount amount ('25 off') */
+				__( 'Use coupon code %1$s for an instant %2$s on Optimole yearly plans', 'optimole-wp' ),
+				'<span class="border-b border-0 border-white border-dashed text-promo-orange">BFCM2425</span>',
+				'<span class="text-promo-orange">' . __( '25% discount', 'optimole-wp' ) . '</span>'
+			),
+			'cta_text' => __( 'Claim now', 'optimole-wp' ),
+			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( 'https://optimole.com/pricing' ), 'bfcm24', 'dismissiblenotice' ) ),
+			'dismiss_key' => self::BF_PROMO_DISMISS_KEY,
+		];
+
+		return $notices;
 	}
 
 	/**

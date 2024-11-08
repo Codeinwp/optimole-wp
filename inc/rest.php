@@ -104,6 +104,17 @@ class Optml_Rest {
 				'permission_callback' => 'upload_files',
 			],
 		],
+		'notification_dismiss_routes' => [
+			'dismiss_notice' => [
+				'POST',
+				'args' => [
+					'key' => [
+						'type'     => 'string',
+						'required' => true,
+					],
+				],
+			],
+		],
 	];
 
 	/**
@@ -168,6 +179,7 @@ class Optml_Rest {
 		$this->register_cache_routes();
 		$this->register_media_offload_routes();
 		$this->register_dam_routes();
+		$this->register_notification_routes();
 	}
 
 	/**
@@ -241,6 +253,17 @@ class Optml_Rest {
 			$permission = isset( $details['permission_callback'] ) ? $details['permission_callback'] : 'manage_options';
 			$args       = isset( $details['args'] ) ? $details['args'] : [];
 			$this->reqister_route( $route, $details[0], $args, $permission );
+		}
+	}
+
+	/**
+	 * Register notification dismiss routes.
+	 *
+	 * @return void
+	 */
+	public function register_notification_routes() {
+		foreach ( self::$rest_routes['notification_dismiss_routes'] as $route => $details ) {
+			$this->reqister_route( $route, $details[0], isset( $details['args'] ) ? $details['args'] : [] );
 		}
 	}
 
@@ -886,5 +909,28 @@ class Optml_Rest {
 		$insert = Optml_Main::instance()->dam->insert_attachments( $images );
 
 		return $this->response( $insert );
+	}
+
+	/**
+	 * Dismiss a notification (set the notification key to 'yes').
+	 *
+	 * @param WP_REST_Request $request the incoming request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function dismiss_notice( WP_REST_Request $request ) {
+		$key = $request->get_param( 'key' );
+
+		if ( empty( $key ) ) {
+			return $this->response( [ 'error' => 'Invalid key' ], 'error' );
+		}
+
+		$result = update_option( $key, 'yes' );
+
+		if ( ! $result ) {
+			return $this->response( [ 'error' => 'Could not dismiss notice' ], 'error' );
+		}
+
+		return $this->response( [ 'success' => 'Notice dismissed' ] );
 	}
 }
