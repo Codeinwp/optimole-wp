@@ -144,10 +144,10 @@ const ConnectedLayout = ({
 	}, [ canSave ]);
 
 	return (
-		<>
-			<div className="optml-connected max-w-screen-xl flex flex-col lg:flex-row mx-auto gap-5">
+		<div className="optml-connected 2xl:max-w-screen-xl max-w-screen px-4 mx-auto">
+			<div className="flex flex-col xl:flex-row mx-auto gap-5">
 				<div
-					className="flex flex-col justify-between mt-8 mb-5 p-0 transition-all ease-in-out duration-700 relative text-gray-700 basis-9/12"
+					className="flex flex-col justify-between mt-8 xl:mb-5 p-0 transition-all ease-in-out duration-700 relative text-gray-700 basis-8/12 2xl:basis-9/12"
 				>
 					{ 'dashboard' === tab && <Dashboard /> }
 
@@ -171,7 +171,7 @@ const ConnectedLayout = ({
 			</div>
 
 			<CSAT />
-		</>
+		</div>
 	);
 };
 

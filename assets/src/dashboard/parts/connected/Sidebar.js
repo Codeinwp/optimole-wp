@@ -41,9 +41,7 @@ const Sidebar = () => {
 	});
 
 	return (
-		<div
-			className="flex flex-col mt-8 mb-5 p-0 transition-all ease-in-out duration-700 gap-5 basis-3/12"
-		>
+		<div className="grid md:grid-cols-2 xl:flex xl:flex-col xl:mt-8 xl:mb-5 p-0 transition-all ease-in-out duration-700 gap-5 basis-4/12 2xl:basis-3/12">
 			<div className="bg-white gap-5 flex flex-col text-gray-700 border-0 rounded-lg shadow-md p-8">
 				<TextControl
 					label={ optimoleDashboardApp.strings.logged_in_as }
