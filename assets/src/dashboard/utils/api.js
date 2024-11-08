@@ -603,4 +603,26 @@ export const addNotice = ( text )  => {
 	);
 };
 
+export const dismissNotice = ( key, callback = () => {}) => {
+	apiFetch({
+		path: optimoleDashboardApp.routes[ 'dismiss_notice' ],
+		method: 'POST',
+		data: {
+			key
+		}
+	}).then( response => {
+		if ( 'success' !== response.code ) {
+			addNotice( response?.data?.error || optimoleDashboardApp.strings.options_strings.settings_saved_error );
+
+			return;
+		}
+
+		if ( callback ) {
+			callback( response );
+		}
+	}).catch( err => {
+		addNotice( optimoleDashboardApp.strings.options_strings.settings_saved_error );
+	});
+};
+
 
