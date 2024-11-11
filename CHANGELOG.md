@@ -1,3 +1,10 @@
+##### [Version 3.13.8](https://github.com/Codeinwp/optimole-wp/compare/v3.13.7...v3.13.8) (2024-11-11)
+
+- Fix edge cases when the user data has a corrupted format.
+- Unify image size resize to both DAM and non-DAM contexts
+- Improve dashboard layout on various screen sizes
+- Update dependencies.
+
 ##### [Version 3.13.7](https://github.com/Codeinwp/optimole-wp/compare/v3.13.6...v3.13.7) (2024-09-11)
 
 - Resolved fatal error occurring with the Image Box widget when using Optimole DAM in Elementor.
