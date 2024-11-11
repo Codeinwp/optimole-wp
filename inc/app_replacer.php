@@ -267,7 +267,7 @@ abstract class Optml_App_Replacer {
 	 * @return array
 	 * @global $wp_additional_image_sizes
 	 */
-	protected static function image_sizes() {
+	public static function image_sizes() {
 		if ( ! empty( self::$image_sizes ) ) {
 			return self::$image_sizes;
 		}

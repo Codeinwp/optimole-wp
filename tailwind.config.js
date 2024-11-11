@@ -1,7 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
 	content: [
-		'./assets/src/**/*.js'
+		'./assets/src/**/*.js',
+		'./inc/admin.php'
 	],
 	theme: {
 		extend: {
@@ -9,6 +10,7 @@ module.exports = {
 				'promo': '90% 70%'
 			},
 			colors: {
+				'promo-orange': '#FF8811',
 				'primary': '#EF686B',
 				'success': '#5F9D61',
 				'danger': '#E77777',
