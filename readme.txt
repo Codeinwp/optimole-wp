@@ -4,7 +4,7 @@ Tags: image optimization, convert webp, image optimizer, lazy load, image, optim
 Requires at least: 5.5
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 3.13.8
+Stable tag: 3.13.9
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -150,12 +150,11 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 3.13.8](https://github.com/Codeinwp/optimole-wp/compare/v3.13.7...v3.13.8) (2024-11-11)
+##### [Version 3.13.9](https://github.com/Codeinwp/optimole-wp/compare/v3.13.8...v3.13.9) (2024-11-26)
 
-- Fix edge cases when the user data has a corrupted format.
-- Unify image size resize to both DAM and non-DAM contexts
-- Improve dashboard layout on various screen sizes
-- Update dependencies.
+- Fixes dashboard banner appearing in wrong conditions
+- Make --type optional on clear cache WP CLI command
+- Update dependencies
 
 
 
