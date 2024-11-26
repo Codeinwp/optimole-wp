@@ -129,7 +129,7 @@ class Optml_Cli_Setting extends WP_CLI_Command {
 	/**
 	 * Clear cache.
 	 *
-	 * --type=<type>
+	 * [--type=<type>]
 	 * : The type of cache to clear. Default is images.
 	 */
 	public function clear_cache( $args, $assoc_args ) {
