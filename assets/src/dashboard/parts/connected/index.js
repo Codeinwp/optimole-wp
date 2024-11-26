@@ -65,19 +65,23 @@ const ConnectedLayout = ({
 		hasApplication,
 		hasConflicts,
 		siteSettings,
-		extraVisits
+		extraVisits,
+		plan
 	} = useSelect( select => {
 		const {
 			isConnected,
 			hasApplication,
 			getConflicts,
-			getSiteSettings
+			getSiteSettings,
+			getUserData
 		} = select( 'optimole' );
 
 		const conflicts = getConflicts();
 		const siteSettings = getSiteSettings();
+		const user = getUserData();
 
 		return {
+			plan: user?.plan,
 			isConnected: isConnected(),
 			hasApplication: hasApplication(),
 			hasConflicts: 0 < conflicts.count || 0,
@@ -144,9 +148,11 @@ const ConnectedLayout = ({
 		}
 	}, [ canSave ]);
 
+	const showBFBanner = 'free' === plan && optimoleDashboardApp?.bf_notices?.banner;
+
 	return (
 		<div className="optml-connected 2xl:max-w-screen-xl max-w-screen px-4 mx-auto">
-			{optimoleDashboardApp?.bf_notices?.banner && <BlackFridayBanner/>}
+			{showBFBanner && <BlackFridayBanner/>}
 
 			<div className="flex flex-col xl:flex-row mx-auto gap-5">
 				<div
