@@ -17,16 +17,18 @@ export default function CloudLibrary( props ) {
 	} = props;
 
 	const storeData = useSelect( select => {
-		const { isLoading } = select( 'optimole' );
+		const { isLoading, isSubApiKey } = select( 'optimole' );
 		return {
-			isLoading: isLoading()
+			isLoading: isLoading(),
+			isSubApiKey: isSubApiKey()
 		};
 	}, []);
 
-	const { isLoading } = storeData;
+	const { isLoading, isSubApiKey } = storeData;
 
 
 	const isCloudLibraryEnabled = 'disabled' !== settings[ 'cloud_images' ];
+	const showSiteSelector = ! isSubApiKey && isCloudLibraryEnabled;
 	const whitelistedDomains = user_data.whitelist || [];
 
 
@@ -81,7 +83,7 @@ export default function CloudLibrary( props ) {
 
 			<hr className="my-8 border-grayish-blue"/>
 
-			{isCloudLibraryEnabled && (
+			{showSiteSelector && (
 				<BaseControl
 					label={options_strings.cloud_site_title}
 					help={options_strings.cloud_site_desc}
