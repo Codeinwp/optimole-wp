@@ -93,6 +93,9 @@ const selectors = {
 		}
 
 		return state.logs;
+	},
+	isSubApiKey( state ) {
+		return state.apiKey && state.apiKey.startsWith( 'optml-s' );
 	}
 };
 
