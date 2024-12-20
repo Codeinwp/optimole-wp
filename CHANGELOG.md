@@ -1,3 +1,9 @@
+##### [Version 3.13.9](https://github.com/Codeinwp/optimole-wp/compare/v3.13.8...v3.13.9) (2024-11-26)
+
+- Fixes dashboard banner appearing in wrong conditions
+- Make --type optional on clear cache WP CLI command
+- Update dependencies
+
 ##### [Version 3.13.8](https://github.com/Codeinwp/optimole-wp/compare/v3.13.7...v3.13.8) (2024-11-11)
 
 - Fix edge cases when the user data has a corrupted format.
