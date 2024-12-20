@@ -252,13 +252,13 @@ final class Optml_Main {
 	 *
 	 * @access public
 	 */
-	public static function sdk_hide_promo_notice() {
+	public static function sdk_hide_promo_notice( $should_show ) {
 		if ( self::$_instance->admin->settings->is_connected() ) {
 			$service_data = self::$_instance->admin->settings->get( 'service_data' );
 			if ( isset( $service_data['plan'] ) && 'free' !== $service_data['plan'] ) {
 				return true;
 			}
 		}
-		return false;
+		return $should_show;
 	}
 }
