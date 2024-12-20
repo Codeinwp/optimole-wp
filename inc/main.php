@@ -256,9 +256,9 @@ final class Optml_Main {
 		if ( self::$_instance->admin->settings->is_connected() ) {
 			$service_data = self::$_instance->admin->settings->get( 'service_data' );
 			if ( isset( $service_data['plan'] ) && 'free' !== $service_data['plan'] ) {
-				return false;
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 }
