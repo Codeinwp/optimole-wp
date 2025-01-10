@@ -9,6 +9,7 @@
 final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	use Optml_Normalizer;
 	use Optml_Validator;
+	use Optml_Dam_Offload_Utils;
 
 	/**
 	 * Cached object instance.
