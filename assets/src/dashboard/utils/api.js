@@ -592,6 +592,17 @@ export const callSync = ( data ) => {
 		});
 };
 
+export const clearOffloadErrors = async() => {
+	try {
+		return await apiFetch({
+			path: optimoleDashboardApp.routes['clear_offload_errors'],
+			method: 'GET'
+		});
+	} catch ( error ) {
+		console.log( error );
+	}
+};
+
 export const addNotice = ( text )  => {
 	createNotice(
 		'info',
