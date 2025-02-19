@@ -78,6 +78,7 @@ class Optml_Rest {
 		],
 		'media_cloud_routes' => [
 			'number_of_images_and_pages' => 'POST',
+			'clear_offload_errors' => 'GET',
 			'get_offload_conflicts' => 'GET',
 		],
 		'watermark_routes' => [
@@ -865,6 +866,19 @@ class Optml_Rest {
 		}
 
 		return $this->response( Optml_Media_Offload::get_image_count( $action, $refresh, $images ) );
+	}
+
+	/**
+	 * Clear the offload errors from previous offload attempts.
+	 *
+	 * @param WP_REST_Request $request Rest request object.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function clear_offload_errors( WP_REST_Request $request ) {
+		$delete_count = Optml_Media_Offload::clear_offload_errors_meta();
+
+		return $this->response( [ 'success' => $delete_count ] );
 	}
 
 	/**

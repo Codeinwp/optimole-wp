@@ -2754,4 +2754,18 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		return $url;
 	}
+
+	/**
+	 * Cleanup the offload errors meta.
+	 */
+	public static function clear_offload_errors_meta() {
+		global $wpdb;
+
+		return $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s",
+				self::META_KEYS['offload_error']
+			)
+		);
+	}
 }
