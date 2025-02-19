@@ -92,6 +92,7 @@ function optml() {
 	define( 'OPTML_VERSION', '3.13.9' );
 	define( 'OPTML_NAMESPACE', 'optml' );
 	define( 'OPTML_BASEFILE', __FILE__ );
+	define( 'OPTML_PRODUCT_SLUG', basename( OPTML_PATH ) );
 	// Fallback for old PHP versions when this constant is not defined.
 	if ( ! defined( 'PHP_INT_MIN' ) ) {
 		define( 'PHP_INT_MIN', - 999999 );
