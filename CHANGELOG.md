@@ -1,3 +1,23 @@
+#### [Version 3.14.0](https://github.com/Codeinwp/optimole-wp/compare/v3.13.9...v3.14.0) (2025-02-20)
+
+#### New Features
+
+- You can now create **sub-API keys** in the Optimole dashboard to connect sites while restricting access to specific folders. Ideal for agencies and multi-site users, this feature allows **folder-level access control**.  
+- **Bulk delete assets in the Cloud Library**, including entire folders with their contents.  
+
+#### Enhancements
+
+- Added **basic previews for video and audio files** in the Optimole dashboard, now with an **asset player** in the file details modal.  
+- **Increased the maximum file upload size** in the Cloud Library to **100MB** for better support of larger media files.  
+- The **Cloud Library now remembers your last used display mode**, keeping your preferred **folder view or image gallery view** for a smoother experience.  
+- **Improved folder listing**, allowing more than **50 folders** to load dynamically for better navigation.  
+- **Optimized upload process** by uploading files faster to our cloud.
+
+#### Bug Fixes
+
+- **Fixed folder movement behavior**, preventing folders from being moved into their own subfolders.  
+- **Fixed folder creation modal layout**, ensuring button text is displayed correctly.
+
 ##### [Version 3.13.9](https://github.com/Codeinwp/optimole-wp/compare/v3.13.8...v3.13.9) (2024-11-26)
 
 - Fixes dashboard banner appearing in wrong conditions

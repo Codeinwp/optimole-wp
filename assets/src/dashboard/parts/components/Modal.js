@@ -12,7 +12,7 @@ export default function Modal({	icon, labels = {}, onRequestClose = () => {}, on
 		'bg-stale-yellow': 'warning' === variant,
 		'bg-light-blue': 'default' === variant
 	},
-	'p-3 rounded-full'
+	'p-2 rounded-full flex items-center justify-center'
 	);
 
 	const actionButtonClasses = classnames(
@@ -37,11 +37,12 @@ export default function Modal({	icon, labels = {}, onRequestClose = () => {}, on
 			/>
 
 			<div className="flex flex-col items-center">
-				<Icon
-					icon={ icon }
-					size={ 24 }
-					className={iconClasses}
-				/>
+				<span className={iconClasses}>
+					<Icon
+						icon={ icon }
+						size={ 24 }
+					/>
+				</span>
 
 				<h2
 					className="mb-0"
