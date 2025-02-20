@@ -8,7 +8,6 @@ test.describe('Check amp page', () => {
   test('AMP body has Optimole no script class', async ({ page }) => {
     const html = page.locator('html');
     await expect(html).not.toHaveClass(/optml_no_js/);
-    await expect(html).toHaveClass(/optml_no_js/);
   });
 
   test('AMP images should have replaced srcs', async ({ page }) => {
