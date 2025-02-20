@@ -6,7 +6,7 @@ import { useDispatch, useSelect } from '@wordpress/data';
 import { Icon } from '@wordpress/icons';
 
 import { warning, rollback as rollbackIcon, offload, warningAlt, sync } from '../../../utils/icons';
-import { callSync, checkOffloadConflicts, saveSettings } from '../../../utils/api';
+import { callSync, clearOffloadErrors, checkOffloadConflicts, saveSettings } from '../../../utils/api';
 import Notice from '../../components/Notice';
 import RadioBoxes from '../../components/RadioBoxes';
 import ProgressTile from '../../components/ProgressTile';
@@ -113,7 +113,9 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 	}, []);
 
 
-	const onOffloadMedia = ( imageIds = []) => {
+	const onOffloadMedia = async( imageIds = []) => {
+		await clearOffloadErrors();
+
 		const nextSettings = { ...settings };
 		nextSettings['show_offload_finish_notice'] = '';
 		nextSettings['offloading_status'] = 'enabled';

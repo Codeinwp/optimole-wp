@@ -25,6 +25,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 	<img src="http://example.org/wp-content/optimole-wp/assets/img/logo5.gif">
 	 ';
 	const DAM_IMG_TAG = '<img width="100" height="200" src="https://cloudUrlTest.test/dam:1/w:auto/h:auto/q:auto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg">';
+	const DAM_IMG_TAG_NO_WIDTH = '<img src="https://cloudUrlTest.test/w:200/h:300/process:20202/q:auto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg">';
 	public function setUp() : void {
 		parent::setUp();
 		$settings = new Optml_Settings();
@@ -574,5 +575,14 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::DAM_IMG_TAG );
 
 		$this->assertStringContainsString( 'data-opt-src="https://cloudUrlTest.test/w:100/h:200/rt:fill/g:ce/ig:avif/q:mauto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg"', $replaced_content );
+	}
+	public function test_dam_lazyloading_no_wh_attributes() {
+		add_filter('optml_lazyload_images_skip','__return_zero');
+		Optml_Manager::instance()->lazyload_replacer->settings->update('lazyload_placeholder','enabled');
+		Optml_Manager::instance()->lazyload_replacer->init();
+		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::DAM_IMG_TAG_NO_WIDTH );
+		$svg = Optml_Manager::instance()->lazyload_replacer->get_svg_for( 200, 300, 'http://example.org/testimage.png' );
+		$this->assertStringContainsString( $svg, $replaced_content );
+		remove_filter('optml_lazyload_images_skip','__return_zero');
 	}
 }

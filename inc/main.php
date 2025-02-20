@@ -92,7 +92,7 @@ final class Optml_Main {
 
 		if ( null === self::$_instance ) {
 			add_filter( 'themeisle_sdk_products', [ __CLASS__, 'register_sdk' ] );
-			add_filter( 'themeisle_sdk_ran_promos', '__return_true' );
+			add_filter( 'themeisle_sdk_ran_promos', [ __CLASS__, 'sdk_hide_promo_notice' ] );
 			add_filter( 'optimole-wp_uninstall_feedback_icon', [ __CLASS__, 'change_icon' ] );
 			add_filter( 'optimole_wp_uninstall_feedback_after_css', [ __CLASS__, 'adds_uf_css' ] );
 			add_filter( 'optimole_wp_feedback_review_message', [ __CLASS__, 'change_review_message' ] );
@@ -245,5 +245,20 @@ final class Optml_Main {
 	 */
 	public function __wakeup() {
 		_doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'optimole-wp' ), '1.0.0' );
+	}
+
+	/**
+	 * Hide SDK promo notice for pro uses.
+	 *
+	 * @access public
+	 */
+	public static function sdk_hide_promo_notice( $should_show ) {
+		if ( self::$_instance->admin->settings->is_connected() ) {
+			$service_data = self::$_instance->admin->settings->get( 'service_data' );
+			if ( isset( $service_data['plan'] ) && 'free' !== $service_data['plan'] ) {
+				return true;
+			}
+		}
+		return $should_show;
 	}
 }
