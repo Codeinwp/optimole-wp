@@ -6,34 +6,23 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
   cancel-in-progress: true
-env:
-  CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
 
 jobs:
   e2e:
     if: ( github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name ) && ( github.actor != 'dependabot[bot]' )
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
           node-version: 16
-      - name: Get Composer Cache Directory
-        id: composer-cache
-        run: |
-          echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - name: Configure Composer cache
-        uses: actions/cache@v1
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-composer-
+          cache: 'npm'
       - name: Install dependencies
         run: |
           npm ci
           composer install --no-dev --prefer-dist --no-progress --no-suggest
+          npx playwright install --with-deps
       - name: Make build
         run: |
           npm run build
@@ -48,23 +37,13 @@ jobs:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_PATH: ${{ secrets.SSH_PATH }}
         run: ./bin/run-e2e-tests.sh
-      - name: E2E tests chrome
-        uses: cypress-io/github-action@v6
+      - name: Run E2E tests
+        run: npm run e2e:run
+      # Add test report artifacts
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
         with:
-          env: host=testing.optimole.com
-          config-file: cypress.config.js
-          browser: chrome
-  e2eFirefox:
-    needs: e2e
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 16
-      - uses: cypress-io/github-action@v6
-        with:
-          env: host=testing.optimole.com
-          config-file: cypress.config.js
-          browser: firefox
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
