@@ -22,7 +22,7 @@ jobs:
         run: |
           npm ci
           composer install --no-dev --prefer-dist --no-progress --no-suggest
-          npx playwright install --with-deps
+          npx playwright install
       - name: Make build
         run: |
           npm run build
