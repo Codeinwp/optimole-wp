@@ -206,6 +206,11 @@ final class Optml_Api {
 				return 'disconnect';
 			}
 
+			if ( $path === '/optml/v2/account/details'
+				&& isset( $response['error'] ) && $response['error'] === 'whitelist_limit_reached' ) {
+				return 'disconnect';
+			}
+
 			return isset( $response['error'] ) ? new WP_Error(
 				'api_error',
 				wp_kses(
