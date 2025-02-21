@@ -24,8 +24,6 @@ composer.lock
 npm-debug.log
 bin
 key.enc
-cypress
-cypress.json
 node_modules
 logs
 grunt
@@ -36,9 +34,10 @@ assets/src
 .wporg
 .nvmrc
 .github
-cypress.config.js
 .eslintrc
 postcss.config.js
 tailwind.config.js
 phpstan.neon
 development.php
+playwright.config.ts
+test-results

@@ -4,11 +4,10 @@ node_modules
 logs
 dist
 artifact
-cypress/videos
-cypress/fixtures
 vendor
 code_quality
 build
 .DS_Store
 cc-test-reporter
 assets/build
+test-results
