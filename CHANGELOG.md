@@ -1,3 +1,8 @@
+##### [Version 3.14.1](https://github.com/Codeinwp/optimole-wp/compare/v3.14.0...v3.14.1) (2025-02-21)
+
+- Improve error handling on connection
+- Fixes sub-API keys displaying the site selector in Cloud Library settings
+
 #### [Version 3.14.0](https://github.com/Codeinwp/optimole-wp/compare/v3.13.9...v3.14.0) (2025-02-20)
 
 #### New Features
