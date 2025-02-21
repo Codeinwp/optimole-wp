@@ -95,6 +95,8 @@ class Optml_Admin {
 			); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
 			add_filter( 'wp_handle_upload_prefilter', [ $this, 'check_svg_and_sanitize' ] );
 		}
+
+		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
 	}
 	/**
 	 * Check if the file is an SVG, if so handle appropriately
@@ -1257,6 +1259,8 @@ class Optml_Admin {
 			],
 			$asset_file['version']
 		);
+
+		do_action( 'themeisle_internal_page', OPTML_PRODUCT_SLUG, 'dashboard' );
 	}
 
 	/**
@@ -1979,5 +1983,72 @@ The root cause might be either a security plugin which blocks this feature or so
 		$mimes['svg'] = 'image/svg+xml';
 
 		return $mimes;
+	}
+
+	/**
+	 * Get the Formbricks survey metadata.
+	 *
+	 * @param array  $data The data in Formbricks format.
+	 * @param string $page_slug The slug of the page.
+	 *
+	 * @return array - The data in Formbricks format.
+	 */
+	public function get_survey_metadata( $data, $page_slug ) {
+
+		if ( 'dashboard' !== $page_slug ) {
+			return $data;
+		}
+
+		$dashboard_data = $this->localize_dashboard_app();
+		$user_data      = $dashboard_data['user_data'];
+
+		if ( ! isset( $user_data['plan'] ) ) {
+			return $data;
+		}
+
+		$data = [
+			'environmentId' => 'clo8wxwzj44orpm0gjchurujm',
+			'attributes'    => [
+				'plan'                => $user_data['plan'],
+				'status'              => $user_data['status'],
+				'cname_assigned'      => ! empty( $user_data['is_cname_assigned'] ) ? $user_data['is_cname_assigned'] : 'no',
+				'connected_websites'  => isset( $user_data['whitelist'] ) ? strval( count( $user_data['whitelist'] ) ) : '0',
+				'install_days_number' => intval( $dashboard_data['days_since_install'] ),
+				'traffic'             => strval( isset( $user_data['traffic'] ) ? $this->survey_category( $user_data['traffic'], 500 ) : 0 ),
+				'images_number'       => strval( isset( $user_data['images_number'] ) ? $this->survey_category( $user_data['images_number'], 100 ) : 0 ),
+			],
+		];
+
+		return $data;
+	}
+
+	/**
+	 * Categorize a number for survey based on its scale.
+	 *
+	 * @param int $value The value.
+	 * @param int $scale The scale.
+	 *
+	 * @return int - The category.
+	 */
+	public function survey_category( $value, $scale = 1 ) {
+		$value = intval( $value / $scale );
+
+		if ( 1 < $value && 8 > $value ) {
+			return 7;
+		}
+
+		if ( 8 <= $value && 31 > $value ) {
+			return 30;
+		}
+
+		if ( 30 < $value && 90 > $value ) {
+			return 90;
+		}
+
+		if ( 90 <= $value ) {
+			return 91;
+		}
+
+		return 0;
 	}
 }
