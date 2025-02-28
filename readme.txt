@@ -1,4 +1,4 @@
-=== Image Optimization by Optimole - Lazy Load, CDN, Convert WebP & AVIF ===
+=== Optimole – Optimize images | WebP, AVIF, CDN and Lazy Load ===
 Contributors: optimole
 Tags: image optimization, convert webp, image optimizer, lazy load, image, optimization, convert AVIF, resize, free cdn, compress images, optimize images
 Requires at least: 5.5
@@ -8,7 +8,7 @@ Stable tag: 3.14.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-Automatically compress, optimize and serve scaled images as well as convert WebP & AVIF all from CloudFront CDN. Lazy load included ⚡
+Optimize images instantly with WebP/AVIF conversion and lazy loading. Free CloudFront CDN for improved conversion & Core Web Vitals! ⚡
 
 == Description ==
 
