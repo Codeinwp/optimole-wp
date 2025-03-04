@@ -55,7 +55,10 @@ class MessageHandler {
 
 		// Wait for the frame to load.
 		this.frame.addEventListener( 'load', () => {
-			document.querySelector( '.om-dam-loader:not([style])' ).style.display = 'none';
+			let damLoader = document.querySelector( '.om-dam-loader:not([style])' );
+			if ( damLoader ) {
+				damLoader.style.display = 'none';
+			}
 			this.frame.style.display = '';
 			this.frame.classList.add( 'loaded' );
 			window.addEventListener( 'message', self.messageListener );
@@ -94,6 +97,7 @@ class MessageHandler {
 			}
 
 			this.insertImages( event.data.images );
+			this.detachListeners();
 		}
 	}
 
