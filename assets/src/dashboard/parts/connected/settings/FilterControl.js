@@ -170,6 +170,9 @@ const FilterControl = ({
 		}
 
 		setCanSave( true );
+
+		setFilterValue( '' );
+		setFilterType( FILTER_TYPES.FILENAME );
 	};
 
 	const hasItems = (
