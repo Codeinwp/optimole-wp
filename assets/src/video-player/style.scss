@@ -1,0 +1,226 @@
+:fullscreen {
+  .optml-player-container {
+    &,
+    video {
+      max-width: 100%;
+      max-height: 100%;
+    }
+  }
+}
+
+optimole-video-player {
+  --scrubber-size: 12px;
+  aspect-ratio: var(--om-aspect-ratio, 16/9);
+  overflow: hidden;
+  position: relative;
+  display: block;
+
+  .optml-vp-hide {
+    display: none !important;
+  }
+  
+  .optml-vp-opacity-0 {
+    opacity: 0 !important;
+  }
+  
+  .optml-vp-sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }  
+
+  .optml-player-container {
+    height: 100%;
+  }
+
+  .optml-spinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    width: 100%;
+    top: 0;
+    bottom: 0;
+    z-index: 0;
+    background-color: #000;
+
+    .optml-ic {
+      width: 20px;
+      height: 20px;
+      --optml-ctrl-ico-col: var(--om-primary-color);
+      animation: optmlSpin 1.5s linear infinite;
+    }
+  }
+
+  .optml-video-lg-play {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    padding: 0;
+    cursor: pointer;
+    
+    svg {
+      --optml-ctrl-ico-col: #fff;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 100%;
+      opacity: 1;
+      transition: scale 0.3s ease;
+      box-sizing: content-box
+    }
+
+    &:hover svg {
+      scale: 1.1;
+
+    }
+  }
+
+  .optml-controls {
+    box-sizing: border-box;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.9);
+    padding: 5px 7px;
+    bottom: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    position: absolute;
+    width: 100%;
+    z-index: 30;
+  }
+
+  &:hover .optml-controls {
+    opacity: 1;
+  }
+
+  button {
+    background: transparent !important;
+    border: none !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: color 0.3s ease !important;
+    padding: 0 5px !important;
+
+    &:hover {
+      --optml-ctrl-ico-col: var(--om-primary-color);
+    }
+
+    &:focus {
+      outline: none;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    flex-grow: 1;
+  }
+
+  .optml-progress-container {
+    flex-grow: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    margin: 0 10px;
+    position: relative;
+    cursor: pointer;
+    
+    .optml-progress-bar {
+      height: 100%;
+      background: var(--om-primary-color);
+      border-radius: 4px;
+      width: 0%;
+    }
+    
+    .optml-scrubber {
+      position: absolute;
+      width: var(--scrubber-size);
+      height: var(--scrubber-size);
+      background-color: var(--om-primary-color);
+      border-radius: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      left: 0%;
+      cursor: pointer;
+    }
+    
+    .optml-time-tooltip {
+      position: absolute;
+      background-color: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      bottom: 25px;
+      transform: translateX(-50%);
+      display: none;
+      pointer-events: none;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    &:hover .optml-time-tooltip { display: flex; }
+  }
+
+  .optml-time-display {
+    color: white;
+    font-size: 14px;
+    margin-left: 10px;
+    min-width: 80px;
+  }
+
+  .optml-volume-container {
+    display: flex;
+    align-items: center;
+    
+    .optml-volume-slider {
+      width: 60px;
+      margin-left: 5px;
+      -webkit-appearance: none;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      
+      &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--om-primary-color);
+        cursor: pointer;
+      }
+      
+      &:focus { outline: none; }
+    }
+  }
+}
+
+@keyframes optmlSpin {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
