@@ -908,7 +908,7 @@ class Optml_Admin {
 	 * Adds conflicts notice.
 	 */
 	public function add_notice_conflicts() {
-		if ( $this->settings->is_connected() || ! $this->conflicting_plugins->should_show_notice() ) {
+		if ( ! $this->conflicting_plugins->should_show_notice() ) {
 			return;
 		}
 
