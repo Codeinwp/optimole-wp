@@ -451,6 +451,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function filter_image_downsize( $image, $attachment_id, $size ) {
 
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			return $image;
+		}
 		$image_url = wp_get_attachment_url( $attachment_id );
 		if ( Optml_Media_Offload::is_uploaded_image( $image_url ) ) {
 			return $image;
