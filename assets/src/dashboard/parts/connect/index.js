@@ -166,11 +166,23 @@ const ConnectLayout = () => {
 
 			<div className={ connectContainerClasses }>
 				<div className="optml-connect__content basis-8/12">
-					<div className="text-gray-700 font-serif text-2 font-bold leading-7 m-0">{ optimoleDashboardApp.strings.account_needed_heading }</div>
+					<div className="inline-block bg-[#f0f6fc] text-[#646970] text-sm font-medium px-4 py-1.5 rounded-full mb-4">{ optimoleDashboardApp.strings.account_needed_trust_badge }</div>
+
+					<div className="text-gray-700 font-serif text-[26px] font-bold leading-7 m-0">{ optimoleDashboardApp.strings.account_needed_heading }</div>
 					<p
-						className="text-xl font-normal text-gray-800"
+						className="text-[16px] font-normal text-[#646970]"
+						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_sub_heading } }
+					/>
+
+					<div className="inline-flex items-center bg-[#f0f6fc] px-4 py-1.5 rounded-full mb-5 text-[14px] text-[#2c3338]">
+						<span className="text-[#2271b1] mr-2">⏱️</span>{ optimoleDashboardApp.strings.account_needed_setup_time }
+					</div>
+
+					<p
+						className="text-[15px] text-[#3c434a] mb-5 leading-[1.5]"
 						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_title } }
 					/>
+
 
 					<div className="flex py-3">
 						<Icon icon="yes-alt" />
@@ -185,6 +197,14 @@ const ConnectLayout = () => {
 						<p
 							className="text-base ml-3 m-0"
 							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_subtitle_2 } }
+						/>
+					</div>
+
+					<div className="flex py-3">
+						<Icon icon="yes-alt" />
+						<p
+							className="text-base ml-3 m-0"
+							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_subtitle_4 } }
 						/>
 					</div>
 				</div>
@@ -233,23 +253,21 @@ const ConnectLayout = () => {
 
 					<Button
 						variant="secondary"
-						className="optml__button flex w-full justify-center rounded font-bold mt-4 min-h-40"
+						className="optml__button flex w-full justify-center rounded font-bold mt-4 min-h-40 mb-[15px]"
 						onClick={ () => setMethod( 'key' ) }
 					>
 						{ optimoleDashboardApp.strings.api_exists }
 					</Button>
+
+					<div class="flex items-center justify-center text-[13px] text-[#50575e] mb-[15px]">
+						<span class="mr-1.5 text-[#00a32a]">🔒</span>{ optimoleDashboardApp.strings.secure_connection }
+					</div>
 
 					<p
 						className="mb-0"
 						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.signup_terms } }
 					/>
 				</div>
-			</div>
-
-			<div className="bg-grayish-blue text-gray-800 text-center font-bold uppercase p-2.5 rounded-b-lg">
-				<p
-					dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_footer } }
-				/>
 			</div>
 		</div>
 	);
