@@ -326,6 +326,7 @@ final class Optml_Api {
 				'version' => OPTML_VERSION,
 				'sample_image' => $this->get_sample_image(),
 				'site'    => get_home_url(),
+				'reference' => get_option( 'optimole_reference_key', '' ),
 			]
 		);
 	}
