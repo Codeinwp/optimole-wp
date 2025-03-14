@@ -1423,7 +1423,10 @@ class Optml_Admin {
 			'refresh_stats_cta'              => __( 'Refresh Stats', 'optimole-wp' ),
 			'updating_stats_cta'             => __( 'UPDATING STATS', 'optimole-wp' ),
 			'api_key_placeholder'            => __( 'API Key', 'optimole-wp' ),
-			'account_needed_heading'         => __( 'Sign-up for API key', 'optimole-wp' ),
+			'account_needed_heading'         => __( 'Supercharge Your WordPress Images in 60 Seconds', 'optimole-wp' ),
+			'account_needed_sub_heading'     => __( 'Stop sacrificing image quality for page speed. Optimole delivers both.', 'optimole-wp' ),
+			'account_needed_trust_badge'     => __( 'TRUSTED BY 200,000+ HAPPY USERS', 'optimole-wp' ),
+			'account_needed_setup_time'      => __( 'Setup is instant - just click connect', 'optimole-wp' ),
 			'invalid_key'                    => __( 'Invalid API Key', 'optimole-wp' ),
 			'keep_connected'                 => __( 'Ok, keep me connected', 'optimole-wp' ),
 			'cloud_library'                  => __( 'Cloud Library', 'optimole-wp' ),
@@ -1437,6 +1440,7 @@ If you still want to disconnect click the button below.',
 			'email_address_label'            => __( 'Your email address', 'optimole-wp' ),
 			'steps_connect_api_title'        => __( 'Connect your account', 'optimole-wp' ),
 			'register_btn'                   => __( 'Create & connect your account', 'optimole-wp' ),
+			'secure_connection'              => __( 'Secure connection - your data is protected', 'optimole-wp' ),
 			'step_one_api_title'             => __( 'Enter your API key.', 'optimole-wp' ),
 			'optml_dashboard'                => sprintf(
 			/* translators: 1 is the opening anchor tag, 2 is the closing anchor tag */
@@ -1468,17 +1472,15 @@ If you still want to disconnect click the button below.',
 			'premium_support'                => __( 'Access our Premium Support', 'optimole-wp' ),
 			'account_needed_title'           => sprintf(
 			/* translators: 1 is the link to optimole.com */
-				__( 'In order to get access to free image optimization service you will need an API key from %s.', 'optimole-wp' ),
+				__( 'Connect to Optimole\'s powerful image optimization service with a free API key from %s.', 'optimole-wp' ),
 				' <a href="' . esc_url( tsdk_translate_link( 'https://dashboard.optimole.com/register', 'query' ) ) . '" target="_blank">optimole.com</a>'
 			),
 			'account_needed_subtitle_1'      => sprintf(
 			/* translators: 1 is starting bold tag, 2 is ending bold tag, 3 is the starting bold tag, 4 is the limit number, 5 is ending bold tag, 6 is the starting anchor tag for the docs link on how we count visits, 7 is the ending anchor tag. */
-				__( 'You will get access to our %1$simage optimization service for FREE%2$s in the limit of %3$s%4$s%5$s %6$svisitors%7$s per month.', 'optimole-wp' ),
+				__( '%1$sOptimize unlimited images%2$s for up to %3$s monthly %4$svisitors%5$s - completely FREE.', 'optimole-wp' ),
 				'<strong>',
 				'</strong>',
 				number_format_i18n( 1000 ),
-				'<strong>',
-				'</strong>',
 				'<a href="https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors" target="_blank">',
 				'</a>'
 			),
@@ -1491,7 +1493,16 @@ If you still want to disconnect click the button below.',
 			'account_needed_subtitle_2'      => sprintf(
 			/* translators: 1 is the starting bold tag, 2 is the ending bold tag */
 				__(
-					'Bonus, if you dont use a CDN, we got you covered, %1$swe will serve the images using CloudFront CDN%2$s from 450+ locations.',
+					'%1$sInstant global delivery%2$s with CloudFront CDN - your images load 2-3x faster worldwide from 450+ locations.',
+					'optimole-wp'
+				),
+				'<strong>',
+				'</strong>'
+			),
+			'account_needed_subtitle_4'      => sprintf(
+			/* translators: 1 is the starting bold tag, 2 is the ending bold tag */
+				__(
+					'%1$sAdaptive optimization%2$s that perfectly sizes images for every visitor\'s device and connection speed.',
 					'optimole-wp'
 				),
 				'<strong>',
