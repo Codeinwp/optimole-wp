@@ -168,7 +168,7 @@ const ConnectLayout = () => {
 				<div className="optml-connect__content basis-8/12">
 					<div className="inline-block bg-light-blue text-gray-500 text-sm font-medium px-4 py-1.5 rounded-full mb-4">{ optimoleDashboardApp.strings.account_needed_trust_badge }</div>
 
-					<div className="text-gray-700 font-serif text-26 font-bold leading-7 m-0">{ optimoleDashboardApp.strings.account_needed_heading }</div>
+					<div className="text-gray-700 font-serif text-2xl font-bold leading-7 m-0">{ optimoleDashboardApp.strings.account_needed_heading }</div>
 					<p
 						className="text-base font-normal text-gray-500"
 						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_sub_heading } }

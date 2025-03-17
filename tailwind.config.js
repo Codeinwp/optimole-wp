@@ -32,8 +32,7 @@ module.exports = {
 			},
 			fontSize: {
 				'2': '2rem',
-				's': '13px',
-				'26': '26px',
+				's': '13px'
 			},
 			maxWidth: {
 				'64': '64px',
