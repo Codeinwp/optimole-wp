@@ -701,6 +701,8 @@ class Optml_Settings {
 		if ( $update ) {
 			$this->options = $reset_schema;
 		}
+		wp_unschedule_hook( Optml_Admin::SYNC_CRON );
+		wp_unschedule_hook( Optml_Admin::ENRICH_CRON );
 
 		return $update;
 	}

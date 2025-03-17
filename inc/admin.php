@@ -40,6 +40,8 @@ class Optml_Admin {
 	const OLD_USER_ENABLED_LD = 'optml_enabled_limit_dimensions';
 	const OLD_USER_ENABLED_CL = 'optml_enabled_cloud_sites';
 
+	const SYNC_CRON = 'optml_daily_sync';
+	const ENRICH_CRON = 'optml_pull_image_data';
 	/**
 	 * Optml_Admin constructor.
 	 */
@@ -55,13 +57,12 @@ class Optml_Admin {
 		add_action( 'admin_notices', [ $this, 'add_notice' ] );
 		add_action( 'admin_notices', [ $this, 'add_notice_upgrade' ] );
 		add_action( 'admin_notices', [ $this, 'add_notice_conflicts' ] );
-		add_action( 'optml_daily_sync', [ $this, 'daily_sync' ] );
+		add_action( self::SYNC_CRON, [ $this, 'daily_sync' ] );
 		add_action( 'admin_init', [ $this, 'redirect_old_dashboard' ] );
 
 		if ( $this->settings->is_connected() ) {
 			add_action( 'init', [ $this, 'check_domain_change' ] );
-			add_action( 'optml_pull_image_data_init', [ $this, 'pull_image_data_init' ] );
-			add_action( 'optml_pull_image_data', [ $this, 'pull_image_data' ] );
+			add_action( self::ENRICH_CRON, [ $this, 'pull_image_data' ] );
 
 			// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
 			$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
@@ -73,15 +74,17 @@ class Optml_Admin {
 
 			add_action( 'updated_post_meta', [ $this, 'detect_image_alt_change' ], 10, 4 );
 			add_action( 'added_post_meta', [ $this, 'detect_image_alt_change' ], 10, 4 );
-			add_action( 'init', [ $this, 'schedule_data_enhance_cron' ] );
+			if ( ! wp_next_scheduled( self::ENRICH_CRON ) ) {
+				wp_schedule_event( time() + 10, 'hourly', self::ENRICH_CRON );
+			}
 		}
 		add_action( 'init', [ $this, 'update_default_settings' ] );
 		add_action( 'init', [ $this, 'update_limit_dimensions' ] );
 		add_action( 'init', [ $this, 'update_cloud_sites_default' ] );
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
 		add_action( 'admin_init', [ $this, 'init_no_script' ] );
-		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
-			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', [] );
+		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( self::SYNC_CRON ) ) {
+			wp_schedule_event( time() + 10, 'twicedaily', self::SYNC_CRON, [] );
 		}
 		add_action( 'optml_after_setup', [ $this, 'register_public_actions' ], 999999 );
 
@@ -191,16 +194,6 @@ class Optml_Admin {
 		}
 		// phpcs:enable
 	}
-	/**
-	 * Schedules the hourly cron that starts the querying for images alt/title attributes
-	 *
-	 * @uses action: init
-	 */
-	public function schedule_data_enhance_cron() {
-		if ( ! wp_next_scheduled( 'optml_pull_image_data_init' ) ) {
-			wp_schedule_event( time(), 'hourly', 'optml_pull_image_data_init' );
-		}
-	}
 
 	/**
 	 * Query the database for images and extract the alt/title to send them to the API
@@ -249,20 +242,6 @@ class Optml_Admin {
 		if ( ! empty( $image_data ) ) {
 			$api = new Optml_Api();
 			$api->call_data_enrich_api( $image_data );
-		}
-		if ( ! empty( $attachments ) ) {
-			wp_schedule_single_event( time() + 5, 'optml_pull_image_data' );
-		}
-	}
-
-	/**
-	 * Schedule the event to pull image alt/title
-	 *
-	 * @uses action: optml_pull_image_data_init
-	 */
-	public function pull_image_data_init() {
-		if ( ! wp_next_scheduled( 'optml_pull_image_data' ) ) {
-			wp_schedule_single_event( time() + 5, 'optml_pull_image_data' );
 		}
 	}
 
@@ -1094,7 +1073,22 @@ class Optml_Admin {
 		if ( isset( $data['extra_visits'] ) ) {
 			$this->settings->update_frontend_banner_from_remote( $data['extra_visits'] );
 		}
+		// Here the account got deactivated, in this case we check if the user is using offloaded images and we roll them back.
+		if ( isset( $data['status'] ) && $data['status'] === 'inactive' ) {
+			// We check if the user has images offloaded.
+			if ( $this->settings->get( 'transfer_status' ) !== 'offload_images' ) {
+				return;
+			}
 
+			$in_progress = $this->settings->get( 'offloading_status' ) !== 'disabled';
+			// We check if there is an in progress transfer, we stop it.
+			if ( $in_progress ) {
+				$this->settings->update( 'offloading_status', 'disabled' );
+			}
+			// We start the rollback process.
+			Optml_Logger::instance()->add_log( 'rollback_images', 'Account deactivated, starting rollback.' );
+			Optml_Media_Offload::get_image_count( 'rollback_images', false );
+		}
 		remove_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
 	}
 
