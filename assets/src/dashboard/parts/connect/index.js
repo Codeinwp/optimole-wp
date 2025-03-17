@@ -166,20 +166,20 @@ const ConnectLayout = () => {
 
 			<div className={ connectContainerClasses }>
 				<div className="optml-connect__content basis-8/12">
-					<div className="inline-block bg-[#f0f6fc] text-[#646970] text-sm font-medium px-4 py-1.5 rounded-full mb-4">{ optimoleDashboardApp.strings.account_needed_trust_badge }</div>
+					<div className="inline-block bg-light-blue text-slate-gray text-sm font-medium px-4 py-1.5 rounded-full mb-4">{ optimoleDashboardApp.strings.account_needed_trust_badge }</div>
 
-					<div className="text-gray-700 font-serif text-[26px] font-bold leading-7 m-0">{ optimoleDashboardApp.strings.account_needed_heading }</div>
+					<div className="text-gray-700 font-serif text-26 font-bold leading-7 m-0">{ optimoleDashboardApp.strings.account_needed_heading }</div>
 					<p
-						className="text-[16px] font-normal text-[#646970]"
+						className="text-base font-normal text-slate-gray"
 						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_sub_heading } }
 					/>
 
-					<div className="inline-flex items-center bg-[#f0f6fc] px-4 py-1.5 rounded-full mb-5 text-[14px] text-[#2c3338]">
-						<span className="text-[#2271b1] mr-2">⏱️</span>{ optimoleDashboardApp.strings.account_needed_setup_time }
+					<div className="inline-flex items-center bg-light-blue px-4 py-1.5 rounded-full mb-5 text-sm text-gray-800">
+						<span className="mr-2">⏱️</span>{ optimoleDashboardApp.strings.account_needed_setup_time }
 					</div>
 
 					<p
-						className="text-[15px] text-[#3c434a] mb-5 leading-[1.5]"
+						className="text-15 text-gray-700 mb-5 leading-normal"
 						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_title } }
 					/>
 
@@ -253,14 +253,14 @@ const ConnectLayout = () => {
 
 					<Button
 						variant="secondary"
-						className="optml__button flex w-full justify-center rounded font-bold mt-4 min-h-40 mb-[15px]"
+						className="optml__button flex w-full justify-center rounded font-bold mt-4 min-h-40 mb-4"
 						onClick={ () => setMethod( 'key' ) }
 					>
 						{ optimoleDashboardApp.strings.api_exists }
 					</Button>
 
-					<div class="flex items-center justify-center text-[13px] text-[#50575e] mb-[15px]">
-						<span class="mr-1.5 text-[#00a32a]">🔒</span>{ optimoleDashboardApp.strings.secure_connection }
+					<div class="flex items-center justify-center text-s text-gray-600 mb-4">
+						<span class="mr-1.5">🔒</span>{ optimoleDashboardApp.strings.secure_connection }
 					</div>
 
 					<p
