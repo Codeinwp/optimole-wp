@@ -25,8 +25,7 @@ module.exports = {
 				'stale-yellow': '#FFF0C9',
 				'mango-yellow': '#FBBF24',
 				'disabled': '#6786F4',
-				'light-gray': 'rgba(87, 123, 249, 0.36)',
-				'slate-gray': '#646970'
+				'light-gray': 'rgba(87, 123, 249, 0.36)'
 			},
 			fontFamily: {
 				'serif': [ '-apple-system', 'BlinkMacSystemFont', 'sans-serif' ]
@@ -34,7 +33,6 @@ module.exports = {
 			fontSize: {
 				'2': '2rem',
 				's': '13px',
-				'15': '15px',
 				'26': '26px',
 			},
 			maxWidth: {

@@ -166,11 +166,11 @@ const ConnectLayout = () => {
 
 			<div className={ connectContainerClasses }>
 				<div className="optml-connect__content basis-8/12">
-					<div className="inline-block bg-light-blue text-slate-gray text-sm font-medium px-4 py-1.5 rounded-full mb-4">{ optimoleDashboardApp.strings.account_needed_trust_badge }</div>
+					<div className="inline-block bg-light-blue text-gray-500 text-sm font-medium px-4 py-1.5 rounded-full mb-4">{ optimoleDashboardApp.strings.account_needed_trust_badge }</div>
 
 					<div className="text-gray-700 font-serif text-26 font-bold leading-7 m-0">{ optimoleDashboardApp.strings.account_needed_heading }</div>
 					<p
-						className="text-base font-normal text-slate-gray"
+						className="text-base font-normal text-gray-500"
 						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_sub_heading } }
 					/>
 
@@ -179,12 +179,12 @@ const ConnectLayout = () => {
 					</div>
 
 					<p
-						className="text-15 text-gray-700 mb-5 leading-normal"
+						className="text-sm text-gray-700 mb-5 leading-normal"
 						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_title } }
 					/>
 
 
-					<div className="flex py-3">
+					<div className="flex py-3 items-center">
 						<Icon icon="yes-alt" />
 						<p
 							className="text-base ml-3 m-0"
@@ -192,7 +192,7 @@ const ConnectLayout = () => {
 						/>
 					</div>
 
-					<div className="flex py-3">
+					<div className="flex py-3 items-center">
 						<Icon icon="yes-alt" />
 						<p
 							className="text-base ml-3 m-0"
@@ -200,7 +200,7 @@ const ConnectLayout = () => {
 						/>
 					</div>
 
-					<div className="flex py-3">
+					<div className="flex py-3 items-center">
 						<Icon icon="yes-alt" />
 						<p
 							className="text-base ml-3 m-0"
@@ -259,7 +259,7 @@ const ConnectLayout = () => {
 						{ optimoleDashboardApp.strings.api_exists }
 					</Button>
 
-					<div class="flex items-center justify-center text-s text-gray-600 mb-4">
+					<div class="flex items-center justify-center text-gray-600 mb-4">
 						<span class="mr-1.5">🔒</span>{ optimoleDashboardApp.strings.secure_connection }
 					</div>
 
