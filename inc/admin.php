@@ -1694,6 +1694,11 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_limit_dimensions_title'       => __( 'Limit Image Sizes', 'optimole-wp' ),
 				'enable_limit_dimensions_notice'      => __( 'When you enable this feature to define a max width or height for image resizing, please note that DPR (retina) images will be disabled. This is done to ensure consistency in image dimensions across your website. Although this may result in slightly lower image quality for high-resolution displays, it will help maintain uniform image sizes, improving your website\'s overall layout and potentially boosting performance.', 'optimole-wp' ),
 				'enable_badge_title'                  => __( 'Enable Optimole Badge', 'optimole-wp' ),
+				'enable_badge_settings'               => __( 'Badge settings', 'optimole-wp' ),
+				'enable_badge_show_icon'              => __( 'Show only Optimole icon', 'optimole-wp' ),
+				'enable_badge_position'               => __( 'Badge Position', 'optimole-wp' ),
+				'badge_position_text_1'               => __( 'Left', 'optimole-wp' ),
+				'badge_position_text_2'               => __( 'Right', 'optimole-wp' ),
 				'enable_badge_description'            => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
 					__( 'Get 20.000 more visits for free by enabling the Optimole badge on your websites. %1$sLearn more%2$s', 'optimole-wp' ),
