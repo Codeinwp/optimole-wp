@@ -752,7 +752,7 @@ class Optml_Settings {
 			$token = $this->get( 'cache_buster_assets' );
 		} else {
 			// here is an individual clear cache based on filename.
-			$token = get_transient( '_file_' . crc32( $type ) ) ?? '';
+			$token = get_transient( '_file_' . crc32( $type ) ) ?: '';
 		}
 
 		$request = new Optml_Api();

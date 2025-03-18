@@ -284,7 +284,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 * @return string
 	 */
 	public static function get_active_cache_booster( $url, $main_cache_buster ) {
-		return get_transient( '_file_' . crc32( wp_basename( $url ) ) ) ?? $main_cache_buster;
+		return get_transient( '_file_' . crc32( wp_basename( $url ) ) ) ?: $main_cache_buster;
 	}
 	/**
 	 * Throw error on object clone
