@@ -133,7 +133,7 @@ final class Optml_Api {
 		} elseif ( $type === 'assets' ) {
 			$lock = get_transient( 'optml_cache_lock_assets' );
 		} else {
-			$type = '_file_' . crc32( $type );
+			$type = 'images';
 		}
 
 		if ( $lock === 'yes' ) {
