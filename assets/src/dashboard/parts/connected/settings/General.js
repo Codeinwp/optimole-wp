@@ -117,7 +117,7 @@ const General = ({
 						'is-disabled': isLoading
 					}
 				) }
-				onChange={ (value) => {
+				onChange={ ( value ) => {
 					updateOption( 'banner_frontend', value );
 					setBadgeSettings( value );
 				} }
