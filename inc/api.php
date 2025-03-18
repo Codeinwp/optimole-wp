@@ -352,59 +352,6 @@ final class Optml_Api {
 	}
 
 	/**
-	 * Get the watermarks from API.
-	 *
-	 * @param string $api_key The API key.
-	 *
-	 * @return array|bool|WP_Error
-	 */
-	public function get_watermarks( $api_key = '' ) {
-		if ( ! empty( $api_key ) ) {
-			$this->api_key = $api_key;
-		}
-
-		return $this->request( '/optml/v1/settings/watermark' );
-	}
-
-	/**
-	 * Remove the watermark from the API.
-	 *
-	 * @param integer $post_id The watermark post ID.
-	 * @param string  $api_key The API key.
-	 *
-	 * @return array|bool|WP_Error
-	 */
-	public function remove_watermark( $post_id, $api_key = '' ) {
-		if ( ! empty( $api_key ) ) {
-			$this->api_key = $api_key;
-		}
-
-		return $this->request( '/optml/v1/settings/watermark', 'DELETE', [ 'watermark' => $post_id ] );
-	}
-
-	/**
-	 * Add watermark.
-	 *
-	 * @param array $file The file to be uploaded.
-	 *
-	 * @return array|bool|mixed|object
-	 */
-	public function add_watermark( $file ) {
-
-		$headers = [
-			'Content-Disposition' => 'attachment; filename=' . $file['file']['name'],
-		];
-
-		$response = $this->request( 'wp/v2/media', 'POST', file_get_contents( $file['file']['tmp_name'] ), $headers );
-
-		if ( $response === false ) {
-			return false;
-		}
-
-		return $response;
-	}
-
-	/**
 	 * Call the images endpoint.
 	 *
 	 * @param integer $page Page used to advance the search.
