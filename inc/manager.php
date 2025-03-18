@@ -177,14 +177,8 @@ final class Optml_Manager {
 			return;
 		}
 
-		$badge_setting = $this->settings->get( 'badge_setting' ) === 'enabled';
-
-		$position       = 'right';
-		$show_icon_only = false;
-		if ( ! $badge_setting ) {
-			$position       = $this->settings->get( 'badge_position' ) ?? 'right';
-			$show_icon_only = $this->settings->get( 'show_badge_icon' ) === 'enabled';
-		}
+		$position       = $this->settings->get( 'badge_position' ) ?? 'right';
+		$show_icon_only = $this->settings->get( 'show_badge_icon' ) === 'enabled';
 
 		$string    = __( 'Optimized by Optimole', 'optimole-wp' );
 		$div_style = [

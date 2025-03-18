@@ -101,7 +101,6 @@ class Optml_Settings {
 		'offload_limit'              => 50000,
 		'placeholder_color'          => '',
 		'show_offload_finish_notice' => '',
-		'badge_setting'              => 'disabled',
 		'show_badge_icon'            => 'disabled',
 		'badge_position'             => 'left',
 	];
@@ -270,7 +269,6 @@ class Optml_Settings {
 				case 'best_format':
 				case 'offload_limit_reached':
 				case 'show_badge_icon':
-				case 'badge_setting':
 					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
 				case 'offload_limit':
@@ -538,7 +536,6 @@ class Optml_Settings {
 			'offload_limit_reached'      => $this->get( 'offload_limit_reached' ),
 			'placeholder_color'          => $this->get( 'placeholder_color' ),
 			'show_offload_finish_notice' => $this->get( 'show_offload_finish_notice' ),
-			'badge_setting'              => $this->get( 'badge_setting' ),
 			'show_badge_icon'            => $this->get( 'show_badge_icon' ),
 			'badge_position'             => $this->get( 'badge_position' ),
 		];

@@ -16,6 +16,10 @@ import { useSelect } from '@wordpress/data';
 
 import { Icon, chevronDown, chevronUp } from '@wordpress/icons';
 
+import {
+	useState
+} from '@wordpress/element';
+
 /**
  * Internal dependencies.
  */
@@ -40,9 +44,10 @@ const General = ({
 	const isReportEnabled = 'disabled' !== settings[ 'report_script' ];
 	const isAssetsEnabled = 'disabled' !== settings.cdn;
 	const isBannerEnabled = 'disabled' !== settings[ 'banner_frontend'];
-	const isOpenBadgeSetting = 'disabled' !== settings[ 'badge_setting' ];
 	const isShowBadgeIcon = 'disabled' !== settings[ 'show_badge_icon' ];
 	const activeBadgePosition = settings[ 'badge_position' ] || 'right';
+
+	const [ showBadgeSettings, setBadgeSettings ] = useState( isBannerEnabled );
 
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
@@ -112,7 +117,10 @@ const General = ({
 						'is-disabled': isLoading
 					}
 				) }
-				onChange={ value => updateOption( 'banner_frontend', value ) }
+				onChange={ (value) => {
+					updateOption( 'banner_frontend', value );
+					setBadgeSettings( value );
+				} }
 			/>
 
 			{ isBannerEnabled && (
@@ -124,16 +132,16 @@ const General = ({
 								'is-disabled': isLoading
 							}
 						) }
-						onClick={ () => updateOption( 'badge_setting', ! isOpenBadgeSetting ) }
+						onClick={ () => setBadgeSettings( ! showBadgeSettings ) }
 					>
 						<span>{ optimoleDashboardApp.strings.options_strings.enable_badge_settings }</span>
 						<Icon
-							icon={ ! isOpenBadgeSetting ? chevronUp : chevronDown }
+							icon={ showBadgeSettings ? chevronUp : chevronDown }
 							className="h-5 w-5"
 							style={{ fill: '#3b82f6' }}
 						/>
 					</Button>
-					{ ! isOpenBadgeSetting && (
+					{ showBadgeSettings && (
 						<div class="mt-4 space-y-4 pl-4 pt-2">
 							<div class="flex items-center justify-between mb-4">
 								<label class="text-gray-600 font-medium">{ optimoleDashboardApp.strings.options_strings.enable_badge_show_icon }</label>
