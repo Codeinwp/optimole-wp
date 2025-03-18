@@ -1743,7 +1743,7 @@ The root cause might be either a security plugin which blocks this feature or so
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1191-exclude-from-optimizing-or-lazy-loading">',
 					'</a>'
 				),
-				'exclude_title_optimize'              => __( 'Don\'t optimize images if', 'optimole-wp' ),
+				'exclude_title_optimize'              => __( 'Don\'t optimize and don\'t lazy-load images if', 'optimole-wp' ),
 				'exclude_url_desc'                    => sprintf(
 				/* translators: 1 is the starting bold tag, 2 is the ending bold tag */                    __( '%1$sPage url%2$s contains', 'optimole-wp' ),
 					'<strong>',
