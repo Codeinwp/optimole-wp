@@ -127,9 +127,13 @@ final class Optml_Api {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
-		$lock = get_transient( 'optml_cache_lock' );
-		if ( ! empty( $type ) && $type === 'assets' ) {
+		$lock = '';
+		if ( empty( $type ) || $type === 'images' ) {
+			$lock = get_transient( 'optml_cache_lock' );
+		} elseif ( $type === 'assets' ) {
 			$lock = get_transient( 'optml_cache_lock_assets' );
+		} else {
+			$type = '_file_' . crc32( $type );
 		}
 
 		if ( $lock === 'yes' ) {

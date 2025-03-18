@@ -732,6 +732,7 @@ class Optml_Settings {
 		);
 	}
 
+
 	/**
 	 * Clear cache.
 	 *
@@ -743,12 +744,15 @@ class Optml_Settings {
 		$token        = $this->get( 'cache_buster' );
 		$token_images = $this->get( 'cache_buster_images' );
 
-		if ( ! empty( $token_images ) ) {
-			$token = $token_images;
-		}
-
-		if ( ! empty( $type ) && $type === 'assets' ) {
+		if ( ( empty( $type ) || $type === 'images' ) ) {
+			if ( ! empty( $token_images ) ) {
+				$token = $token_images;
+			}
+		} elseif ( $type === 'assets' ) {
 			$token = $this->get( 'cache_buster_assets' );
+		} else {
+			// here is an individual clear cache based on filename.
+			$token = get_transient( '_file_' . crc32( $type ) ) ?? '';
 		}
 
 		$request = new Optml_Api();
@@ -769,12 +773,14 @@ class Optml_Settings {
 			return new WP_Error( 'optimole_cache_buster_error', __( 'Can not get new token from Optimole service', 'optimole-wp' ) . $extra );
 		}
 
-		if ( ! empty( $type ) && $type === 'assets' ) {
+		if ( empty( $type ) || $type === 'images' ) {
+			set_transient( 'optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS );
+			$this->update( 'cache_buster_images', $data['token'] );
+		} elseif ( $type === 'assets' ) {
 			set_transient( 'optml_cache_lock_assets', 'yes', 5 * MINUTE_IN_SECONDS );
 			$this->update( 'cache_buster_assets', $data['token'] );
 		} else {
-			set_transient( 'optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS );
-			$this->update( 'cache_buster_images', $data['token'] );
+			set_transient( '_file_' . crc32( $type ), $data['token'], 6 * HOUR_IN_SECONDS );
 		}
 
 		return $data['token'];

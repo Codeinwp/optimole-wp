@@ -74,6 +74,7 @@ class Optml_Admin {
 			add_action( 'updated_post_meta', [ $this, 'detect_image_alt_change' ], 10, 4 );
 			add_action( 'added_post_meta', [ $this, 'detect_image_alt_change' ], 10, 4 );
 			add_action( 'init', [ $this, 'schedule_data_enhance_cron' ] );
+			add_filter( 'update_attached_file', [ $this, 'listen_update_file' ], 999, 2 );
 		}
 		add_action( 'init', [ $this, 'update_default_settings' ] );
 		add_action( 'init', [ $this, 'update_limit_dimensions' ] );
@@ -97,6 +98,21 @@ class Optml_Admin {
 		}
 
 		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
+	}
+
+	/**
+	 * Listen when the file is updated and clear the cache for the file.
+	 *
+	 * @param string $file The file path.
+	 * @param int    $post_id The post ID.
+	 *
+	 * @return string The file path.
+	 */
+	public function listen_update_file( $file, $post_id ) {
+		$basename = wp_basename( $file );
+		$settings = new Optml_Settings();
+		$settings->clear_cache( $basename );
+		return $file;
 	}
 	/**
 	 * Check if the file is an SVG, if so handle appropriately
