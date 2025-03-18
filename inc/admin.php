@@ -1884,6 +1884,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'rollback_stop_title'                 => __( 'Are you sure?', 'optimole-wp' ),
 				'rollback_stop_description'           => __( 'Canceling will halt the ongoing process, and any remaining images will stay in the Optimole Cloud. To transfer images to the Optimole Cloud, use the Offloading option.', 'optimole-wp' ),
 				'rollback_stop_action'                => __( 'Cancel the transfer from Optimole', 'optimole-wp' ),
+				'cloud_library_btn_text'              => __( 'Go to Cloud Library', 'optimole-wp' ),
+				'cloud_library_btn_link'              => add_query_arg( 'page', 'optimole-dam', admin_url( 'admin.php' ) ),
 			],
 			'help'                           => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),
