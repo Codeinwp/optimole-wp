@@ -1076,7 +1076,7 @@ class Optml_Admin {
 		// Here the account got deactivated, in this case we check if the user is using offloaded images and we roll them back.
 		if ( isset( $data['status'] ) && $data['status'] === 'inactive' ) {
 			// We check if the user has images offloaded.
-			if ( $this->settings->get( 'transfer_status' ) !== 'offload_images' ) {
+			if ( $this->settings->get( 'offload_media' ) === 'disabled' ) {
 				return;
 			}
 
@@ -1085,6 +1085,7 @@ class Optml_Admin {
 			if ( $in_progress ) {
 				$this->settings->update( 'offloading_status', 'disabled' );
 			}
+			$this->settings->update( 'rollback_status', 'enabled' );
 			// We start the rollback process.
 			Optml_Logger::instance()->add_log( 'rollback_images', 'Account deactivated, starting rollback.' );
 			Optml_Media_Offload::get_image_count( 'rollback_images', false );
