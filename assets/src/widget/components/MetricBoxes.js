@@ -1,4 +1,4 @@
-import { useMemo } from '@wordpress/element';
+import { useCallback } from '@wordpress/element';
 
 import {
 	compressionPercentage,
@@ -25,7 +25,7 @@ export default function MetricBoxes() {
 		}
 	];
 
-	const getMetricValue = ( metric ) => useMemo( () => {
+	const getMetricValue = useCallback( ( metric ) => {
 		const metricValue = serviceData[ metric ];
 
 		if ( 'compression_percentage' === metric ) {
