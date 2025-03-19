@@ -2213,7 +2213,7 @@ The root cause might be either a security plugin which blocks this feature or so
 		if ( $service_data['plan'] !== 'free' ) {
 			return false;
 		}
-		$service_data['days_since_registration'] = 15;
+
 		if ( $service_data['days_since_registration'] <= 14 ) {
 			return false;
 		}
