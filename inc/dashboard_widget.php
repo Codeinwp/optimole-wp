@@ -20,6 +20,9 @@ class Optml_Dashboard_Widget {
 	 * Initialize the dashboard widget.
 	 */
 	public function init() {
+		if ( defined( 'OPTIOMLE_HIDE_ADMIN_AREA' ) && OPTIOMLE_HIDE_ADMIN_AREA ) {
+			return;
+		}
 		add_action( 'wp_dashboard_setup', [ $this, 'add_dashboard_widget' ] );
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_widget' ] );
 	}
