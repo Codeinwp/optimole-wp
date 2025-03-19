@@ -57,7 +57,7 @@ class Optml_Admin {
 		add_action( 'admin_notices', [ $this, 'add_notice_conflicts' ] );
 		add_action( 'optml_daily_sync', [ $this, 'daily_sync' ] );
 		add_action( 'admin_init', [ $this, 'redirect_old_dashboard' ] );
-
+		add_action( 'optml_purge_image_cache', [ $this, 'purge_image_cache' ] );
 		if ( $this->settings->is_connected() ) {
 			add_action( 'init', [ $this, 'check_domain_change' ] );
 			add_action( 'optml_pull_image_data_init', [ $this, 'pull_image_data_init' ] );
@@ -101,6 +101,18 @@ class Optml_Admin {
 	}
 
 	/**
+	 * Function that purges the image cache for a specific file.
+	 *
+	 * @param string $file Path or url of the file to clear.
+	 *
+	 * @return void
+	 */
+	public function purge_image_cache( $file ) {
+		$basename = wp_basename( $file );
+		$settings = new Optml_Settings();
+		$settings->clear_cache( $basename );
+	}
+	/**
 	 * Listen when the file is updated and clear the cache for the file.
 	 *
 	 * @param string $file The file path.
@@ -109,9 +121,8 @@ class Optml_Admin {
 	 * @return string The file path.
 	 */
 	public function listen_update_file( $file, $post_id ) {
-		$basename = wp_basename( $file );
-		$settings = new Optml_Settings();
-		$settings->clear_cache( $basename );
+		// Purge the image cache.
+		do_action( 'optml_purge_image_cache', $file );
 		return $file;
 	}
 	/**

@@ -16,6 +16,7 @@ class Optml_Settings {
 	const FILTER_TYPE_LAZYLOAD = 'lazyload';
 	const FILTER_TYPE_OPTIMIZE = 'optimize';
 	const OPTML_USER_EMAIL = 'optml_user_email';
+	const INDIVIDUAL_CACHE_TOKENS_KEY = '_optml_cache_tokens_individual';
 	/**
 	 * Holds an array of possible settings to alter via wp cli or wp-config constants.
 	 *
@@ -744,6 +745,8 @@ class Optml_Settings {
 		$token        = $this->get( 'cache_buster' );
 		$token_images = $this->get( 'cache_buster_images' );
 
+		// here is an individual cache tokens
+		$individual = get_transient( self::INDIVIDUAL_CACHE_TOKENS_KEY ) ?: [];
 		if ( ( empty( $type ) || $type === 'images' ) ) {
 			if ( ! empty( $token_images ) ) {
 				$token = $token_images;
@@ -751,8 +754,7 @@ class Optml_Settings {
 		} elseif ( $type === 'assets' ) {
 			$token = $this->get( 'cache_buster_assets' );
 		} else {
-			// here is an individual clear cache based on filename.
-			$token = get_transient( '_file_' . crc32( $type ) ) ?: '';
+			$token = $individual[ crc32( $type ) ] ?? $token_images ?: $token;
 		}
 
 		$request = new Optml_Api();
@@ -776,11 +778,14 @@ class Optml_Settings {
 		if ( empty( $type ) || $type === 'images' ) {
 			set_transient( 'optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS );
 			$this->update( 'cache_buster_images', $data['token'] );
+			// we delete individual cache tokens since this is a global cache clear.
+			delete_transient( self::INDIVIDUAL_CACHE_TOKENS_KEY );
 		} elseif ( $type === 'assets' ) {
 			set_transient( 'optml_cache_lock_assets', 'yes', 5 * MINUTE_IN_SECONDS );
 			$this->update( 'cache_buster_assets', $data['token'] );
 		} else {
-			set_transient( '_file_' . crc32( $type ), $data['token'], 6 * HOUR_IN_SECONDS );
+			$individual[ crc32( $type ) ] = $data['token'];
+			set_transient( self::INDIVIDUAL_CACHE_TOKENS_KEY, $individual, 6 * HOUR_IN_SECONDS );
 		}
 
 		return $data['token'];
