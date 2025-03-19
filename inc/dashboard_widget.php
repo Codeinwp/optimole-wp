@@ -28,6 +28,10 @@ class Optml_Dashboard_Widget {
 	 * Add the dashboard widget.
 	 */
 	public function add_dashboard_widget() {
+		if ( ! $this->has_at_least_ten_visits() ) {
+			return;
+		}
+
 		wp_add_dashboard_widget( $this->handle, sprintf( 'Optimole - %s', __( 'Image Optimization Stats', 'optimole' ) ), [ $this, 'render_widget' ] );
 	}
 
@@ -71,7 +75,9 @@ class Optml_Dashboard_Widget {
 	 * @return bool
 	 */
 	private function has_at_least_ten_visits() {
-		if ( OPTML_DEBUG ) {
+		$settings = new Optml_Settings();
+
+		if ( OPTML_DEBUG && $settings->is_connected() ) {
 			return true;
 		}
 
