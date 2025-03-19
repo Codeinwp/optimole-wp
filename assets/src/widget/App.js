@@ -1,15 +1,9 @@
-
-import { useState, useEffect } from '@wordpress/element';
-
 import MetricBoxes from './components/MetricBoxes';
-import WidgetFooter from './components/WidgetFooter';
 import Usage from './components/Usage';
+import WidgetFooter from './components/WidgetFooter';
 
 
 export default function App() {
-
-	const [ isLoading, setIsLoading ] = useState( true );
-
 	return (
 		<div className="antialiased">
 			<div className="p-4 flex flex-col gap-4">
