@@ -1624,6 +1624,14 @@ The root cause might be either a security plugin which blocks this feature or so
 				'</b>',
 				'<br>'
 			),
+			'exceed_plan_quota_notice'       => $this->should_show_exceed_quota_warning() ?
+				sprintf(
+				/* translators: 1 starting bold tag, 2 is the ending bold tag */
+					__( '%1$sYour site has already reached over 50%% of your monthly visits limit within just two weeks.%2$s <br/> Based on this trend, you are likely to exceed your free quota before the month ends. To avoid any disruption in service, we strongly recommend upgrading your plan or waiting until your traffic stabilizes before offloading your images. Do you still wish to proceed?', 'optimole-wp' ),
+					'<strong>',
+					'</strong>'
+				)
+				: '',
 			'signup_terms'                   => sprintf(
 			/* translators: 1 is starting anchor tag to terms, 2 is starting anchor tag to privacy link and 3 is ending anchor tag. */
 				__( 'By signing up, you agree to our  %1$sTerms of Service %3$s and %2$sPrivacy Policy %3$s.', 'optimole-wp' ),
@@ -2170,5 +2178,54 @@ The root cause might be either a security plugin which blocks this feature or so
 		}
 
 		return 0;
+	}
+
+	/**
+	 * Determines whether the exceed quota warning should be displayed to users.
+	 *
+	 * This function checks if the user's quota usage has exceeded a predefined limit
+	 * and returns a boolean value indicating whether the warning should be shown.
+	 *
+	 * @return bool True if the exceed quota warning should be displayed, false otherwise.
+	 */
+	public function should_show_exceed_quota_warning() {
+		$current_screen = get_current_screen();
+		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ||
+			is_network_admin() ||
+			! current_user_can( 'manage_options' ) ||
+			! $this->settings->is_connected() ||
+			empty( $current_screen )
+		) {
+			return false;
+		}
+		if ( get_option( 'optml_notice_hide_upg', 'no' ) === 'yes' ) {
+			return false;
+		}
+
+		if ( ! str_contains( $current_screen->base, 'page_optimole' ) ) {
+			return false;
+		}
+		$service_data = $this->settings->get( 'service_data' );
+
+		if ( ! isset( $service_data['plan'] ) ) {
+			return false;
+		}
+		if ( $service_data['plan'] !== 'free' ) {
+			return false;
+		}
+		$service_data['days_since_registration'] = 15;
+		if ( $service_data['days_since_registration'] <= 14 ) {
+			return false;
+		}
+		$visitors_limit     = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
+		$visitors_left      = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
+		$used_quota         = $visitors_limit - $visitors_left;
+		$is_50_percent_used = ( $used_quota / $visitors_limit ) >= 0.5;
+
+		if ( ! $is_50_percent_used ) {
+			return false;
+		}
+
+		return true;
 	}
 }

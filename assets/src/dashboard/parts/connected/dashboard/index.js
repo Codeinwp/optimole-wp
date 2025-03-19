@@ -81,6 +81,17 @@ const ActivatedNotice = () => (
 	</div>
 );
 
+const ExceedPlanQuotaWarning = () => (
+	<div className="flex gap-2 bg-warning text-danger border border-solid border-danger rounded relative px-6 py-5 mb-5">
+		<Icon icon="warning" />
+
+		<p
+			className="m-0"
+			dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.exceed_plan_quota_notice } }
+		/>
+	</div>
+);
+
 const Dashboard = () => {
 	const {
 		userData,
@@ -128,6 +139,7 @@ const Dashboard = () => {
 	return (
 		<div className="bg-white p-8 border-0 rounded-lg shadow-md">
 			{ ( 0 < optimoleDashboardApp.strings.notice_just_activated.length && 'active' === userStatus ) && <ActivatedNotice/> }
+			{ ( 0 < optimoleDashboardApp.strings.exceed_plan_quota_notice.length && 'active' === userStatus ) && <ExceedPlanQuotaWarning/> }
 
 			{ 'inactive' === userStatus && <InactiveWarning/> }
 
