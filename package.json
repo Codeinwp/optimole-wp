@@ -17,6 +17,9 @@
     "url": "https://github.com/Codeinwp/optimole-wp/issues"
   },
   "scripts": {
+    "build:widget": "wp-scripts build assets/src/widget/index.js --output-path=assets/build/widget",
+    "dev:widget": "wp-scripts start assets/src/widget/index.js --output-path=assets/build/widget --hot --allowed-hosts all --port=8888",
+    "build-dev:widget": "NODE_ENV=development wp-scripts build assets/src/widget/index.js --output-path=assets/build/widget",
     "build:dashboard": "wp-scripts build assets/src/dashboard/index.js --output-path=assets/build/dashboard",
     "dev:dashboard": "wp-scripts start assets/src/dashboard/index.js --output-path=assets/build/dashboard --hot --allowed-hosts all",
     "build-dev:dashboard": "NODE_ENV=development wp-scripts build assets/src/dashboard/index.js --output-path=assets/build/dashboard",
