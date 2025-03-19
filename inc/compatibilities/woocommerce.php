@@ -22,9 +22,11 @@ class Optml_woocommerce extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		if ( Optml_Main::instance()->admin->settings->use_lazyload() ) {
+		if ( Optml_Main::instance()->admin->settings->is_offload_enabled() && Optml_Main::instance()->admin->settings->use_lazyload() ) {
 			add_filter( 'optml_lazyload_early_flags', [ $this, 'add_lazyload_early_flag' ], PHP_INT_MAX, 1 );
 		}
+		add_filter( 'woocommerce_cart_item_thumbnail', [ Optml_Main::instance()->manager, 'replace_content' ] );
+		add_filter( 'woocommerce_store_api_cart_item_images', [ $this, 'replace_store_api_cart_item_images' ] );
 	}
 	/**
 	 * Add ignore lazyload flag.
@@ -72,9 +74,29 @@ class Optml_woocommerce extends Optml_compatibility {
 	 * @return bool Whether to load the compatibility or not.
 	 */
 	public function should_load_early() {
-		if ( Optml_Main::instance()->admin->settings->get( 'offload_media' ) === 'enabled' ) {
-			return true;
+		return true;
+	}
+
+	/**
+	 * Filter cart item images url.
+	 *
+	 * @param array $product_images Product images.
+	 *
+	 * @return array Filtered images.
+	 */
+	public function replace_store_api_cart_item_images( $product_images ) {
+		if ( empty( $product_images ) ) {
+			return $product_images;
 		}
-		return false;
+		do_action( 'optml_replacer_setup' );
+		$product_images = array_map(
+			function ( $product_image ) {
+				$product_image->thumbnail = Optml_Main::instance()->manager->url_replacer->build_url( $product_image->thumbnail );
+				$product_image->src       = $product_image->thumbnail;
+				return $product_image;
+			},
+			$product_images
+		);
+		return $product_images;
 	}
 }
