@@ -188,7 +188,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 			return;
 		}
 
-		setModal( show_exceed_plan_quota_notice ? MODAL_STATE_EXCEED_PLAN_QUOTA_NOTICE : MODAL_STATE_ROLLBACK );
+		setModal( MODAL_STATE_ROLLBACK );
 	};
 
 	const getModalProps = ( type ) => {
@@ -255,7 +255,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 					onOffloadMedia();
 					setModal( null );
 				},
-				onAction2: () => {
+				onSecondaryAction: () => {
 					setModal( null );
 					const options = settings;
 					options.offload_media = 'disabled';
@@ -268,7 +268,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 					title: options_strings.exceed_plan_quota_notice_title,
 					description: options_strings.exceed_plan_quota_notice_description,
 					action: options_strings.exceed_plan_quota_notice_start_action,
-					action2: options_strings.exceed_plan_quota_notice_start_action2
+					secondaryAction: options_strings.exceed_plan_quota_notice_secondary_action
 				}
 			}
 		};
@@ -299,7 +299,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 		}
 
 		if ( 'rollback' === radioBoxValue ) {
-			setModal( show_exceed_plan_quota_notice ? MODAL_STATE_EXCEED_PLAN_QUOTA_NOTICE : MODAL_STATE_ROLLBACK );
+			setModal( MODAL_STATE_ROLLBACK );
 		}
 	};
 
