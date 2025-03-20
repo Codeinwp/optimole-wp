@@ -1343,6 +1343,7 @@ class Optml_Admin {
 			],
 			'bf_notices'                 => $this->get_bf_notices(),
 			'spc_banner'                 => $this->get_spc_banner(),
+			'show_exceed_plan_quota_notice' => $this->should_show_exceed_quota_warning(),
 		];
 	}
 
@@ -1624,14 +1625,6 @@ The root cause might be either a security plugin which blocks this feature or so
 				'</b>',
 				'<br>'
 			),
-			'exceed_plan_quota_notice'       => $this->should_show_exceed_quota_warning() ?
-				sprintf(
-				/* translators: 1 starting bold tag, 2 is the ending bold tag */
-					__( '%1$sYour site has already reached over 50%% of your monthly visits limit within just two weeks.%2$s <br/> Based on this trend, you are likely to exceed your free quota before the month ends. To avoid any disruption in service, we strongly recommend upgrading your plan or waiting until your traffic stabilizes before offloading your images. Do you still wish to proceed?', 'optimole-wp' ),
-					'<strong>',
-					'</strong>'
-				)
-				: '',
 			'signup_terms'                   => sprintf(
 			/* translators: 1 is starting anchor tag to terms, 2 is starting anchor tag to privacy link and 3 is ending anchor tag. */
 				__( 'By signing up, you agree to our  %1$sTerms of Service %3$s and %2$sPrivacy Policy %3$s.', 'optimole-wp' ),
@@ -1986,6 +1979,10 @@ The root cause might be either a security plugin which blocks this feature or so
 				'rollback_stop_action'                => __( 'Cancel the transfer from Optimole', 'optimole-wp' ),
 				'cloud_library_btn_text'              => __( 'Go to Cloud Library', 'optimole-wp' ),
 				'cloud_library_btn_link'              => add_query_arg( 'page', 'optimole-dam', admin_url( 'admin.php' ) ),
+				'exceed_plan_quota_notice_title'      => __( 'Your site has already reached over 50% of your monthly visits limit within just two weeks.', 'optimole-wp' ),
+				'exceed_plan_quota_notice_description' => __( 'Based on this trend, you are likely to exceed your free quota before the month ends. To avoid any disruption in service, we strongly recommend upgrading your plan or waiting until your traffic stabilizes before offloading your images. Do you still wish to proceed?', 'optimole-wp' ),
+				'exceed_plan_quota_notice_start_action' => __( 'Yes, Transfer to Optimole Cloud', 'optimole-wp' ),
+				'exceed_plan_quota_notice_start_action2' => __( 'No', 'optimole-wp' ),
 			],
 			'help'                           => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),
