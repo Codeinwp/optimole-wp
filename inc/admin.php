@@ -1982,7 +1982,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exceed_plan_quota_notice_title'      => __( 'Your site has already reached over 50% of your monthly visits limit within just two weeks.', 'optimole-wp' ),
 				'exceed_plan_quota_notice_description' => __( 'Based on this trend, you are likely to exceed your free quota before the month ends. To avoid any disruption in service, we strongly recommend upgrading your plan or waiting until your traffic stabilizes before offloading your images. Do you still wish to proceed?', 'optimole-wp' ),
 				'exceed_plan_quota_notice_start_action' => __( 'Yes, Transfer to Optimole Cloud', 'optimole-wp' ),
-				'exceed_plan_quota_notice_start_action2' => __( 'No', 'optimole-wp' ),
+				'exceed_plan_quota_notice_secondary_action' => __( 'No', 'optimole-wp' ),
 			],
 			'help'                           => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),
@@ -2186,22 +2186,13 @@ The root cause might be either a security plugin which blocks this feature or so
 	 * @return bool True if the exceed quota warning should be displayed, false otherwise.
 	 */
 	public function should_show_exceed_quota_warning() {
-		$current_screen = get_current_screen();
-		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ||
-			is_network_admin() ||
-			! current_user_can( 'manage_options' ) ||
-			! $this->settings->is_connected() ||
-			empty( $current_screen )
-		) {
+		if ( ! $this->settings->is_connected() ) {
 			return false;
 		}
 		if ( get_option( 'optml_notice_hide_upg', 'no' ) === 'yes' ) {
 			return false;
 		}
 
-		if ( ! str_contains( $current_screen->base, 'page_optimole' ) ) {
-			return false;
-		}
 		$service_data = $this->settings->get( 'service_data' );
 
 		if ( ! isset( $service_data['plan'] ) ) {
@@ -2214,8 +2205,14 @@ The root cause might be either a security plugin which blocks this feature or so
 		if ( $service_data['days_since_registration'] <= 14 ) {
 			return false;
 		}
-		$visitors_limit     = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
-		$visitors_left      = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
+
+		$visitors_limit = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
+		$visitors_left  = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
+
+		if ( ! $visitors_limit || ! $visitors_left ) {
+			return false;
+		}
+
 		$used_quota         = $visitors_limit - $visitors_left;
 		$is_50_percent_used = ( $used_quota / $visitors_limit ) >= 0.5;
 

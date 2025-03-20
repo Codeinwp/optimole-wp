@@ -4,7 +4,7 @@ import { close } from '@wordpress/icons';
 import { useViewportMatch } from '@wordpress/compose';
 import { Button, Icon, Modal as CoreModal } from '@wordpress/components';
 
-export default function Modal({	icon, labels = {}, onRequestClose = () => {}, onConfirm = () => {}, variant = 'default', onAction2 = () => {} }) {
+export default function Modal({	icon, labels = {}, onRequestClose = () => {}, onConfirm = () => {}, variant = 'default', onSecondaryAction = () => {} }) {
 
 	const isMobileViewport = useViewportMatch( 'small', '<' );
 
@@ -19,7 +19,7 @@ export default function Modal({	icon, labels = {}, onRequestClose = () => {}, on
 		{
 			'bg-mango-yellow': 'warning' === variant
 		},
-		'inline-flex optml__button flex justify-center px-5 py-3 rounded font-bold min-h-40 basis-1/5'
+		'optml__button flex justify-center px-5 py-3 rounded font-bold min-h-40 basis-1/5'
 	);
 
 	return (
@@ -57,9 +57,9 @@ export default function Modal({	icon, labels = {}, onRequestClose = () => {}, on
 					<Button variant="primary" className={ actionButtonClasses } onClick={ onConfirm }>
 						{ labels.action }
 					</Button>
-					{ labels.action2 && (
-						<Button variant="link" className={ actionButtonClasses } onClick={ onAction2 }>
-							{ labels.action2 }
+					{ labels.secondaryAction && (
+						<Button variant="link" className={ actionButtonClasses } onClick={ onSecondaryAction }>
+							{ labels.secondaryAction }
 						</Button>
 					) }
 				</div>
