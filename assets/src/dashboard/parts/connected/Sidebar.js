@@ -11,6 +11,7 @@ import { useSelect } from '@wordpress/data';
 
 import { addQueryArgs } from '@wordpress/url';
 
+import SPCRecommendation from './SPCRecommendation';
 const reasons = [
 	optimoleDashboardApp.strings.upgrade.reason_1,
 	optimoleDashboardApp.strings.upgrade.reason_2,
@@ -39,6 +40,8 @@ const Sidebar = () => {
 			plan: user?.plan
 		};
 	});
+
+	const showSPCRecommendation = null !== optimoleDashboardApp.spc_banner;
 
 	return (
 		<div className="grid md:grid-cols-2 xl:flex xl:flex-col xl:mt-8 xl:mb-5 p-0 transition-all ease-in-out duration-700 gap-5 shrink-0 xl:w-[350px]">
@@ -120,6 +123,10 @@ const Sidebar = () => {
 				>
 					{ optimoleDashboardApp.strings.premium_support }
 				</Button>
+			) }
+
+			{ showSPCRecommendation && (
+				<SPCRecommendation />
 			) }
 		</div>
 	);
