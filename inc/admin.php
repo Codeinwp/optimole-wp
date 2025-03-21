@@ -1985,6 +1985,16 @@ The root cause might be either a security plugin which blocks this feature or so
 			],
 			'cron_error'                     => sprintf( /* translators: 1 is code to disable cron, 2 value of the constant */ __( 'It seems that you have the %1$s constant defined as %2$s. The offloading process uses cron events to offload the images in the background. Please remove the constant from your wp-config.php file in order for the offloading process to work.', 'optimole-wp' ), '<code>DISABLE_WP_CRON</code>', '<code>true</code>' ),
 			'cancel'                         => __( 'Cancel', 'optimole-wp' ),
+			'optimization_status'            => [
+				'title'           => __( 'Optimization Status', 'optimole-wp' ),
+				'statusTitle1'    => __( 'Image Handling Active', 'optimole-wp' ),
+				'statusSubTitle1' => __( 'All images are optimized automatically', 'optimole-wp' ),
+				'statusTitle2'    => __( 'Smart Lazy-Loading Enabled', 'optimole-wp' ),
+				'statusSubTitle2' => __( 'Images load as visitors scroll', 'optimole-wp' ),
+				'statusTitle3'    => __( 'Image Scalling Active', 'optimole-wp' ),
+				'statusSubTitle3' => __( 'All images are perfectly sized for devices', 'optimole-wp' ),
+			],
+			'optimization_tips'              => __( 'View all optimization tips', 'optimole-wp' ),
 		];
 	}
 
