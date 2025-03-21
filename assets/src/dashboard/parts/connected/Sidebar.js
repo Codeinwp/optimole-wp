@@ -3,6 +3,7 @@
  */
 import {
 	Button,
+	ExternalLink,
 	Icon,
 	TextControl
 } from '@wordpress/components';
@@ -16,6 +17,21 @@ const reasons = [
 	optimoleDashboardApp.strings.upgrade.reason_2,
 	optimoleDashboardApp.strings.upgrade.reason_3,
 	optimoleDashboardApp.strings.upgrade.reason_4
+];
+
+const statuses = [
+	{
+		label: optimoleDashboardApp.strings.optimization_status.statusTitle1,
+		description: optimoleDashboardApp.strings.optimization_status.statusSubTitle1
+	},
+	{
+		label: optimoleDashboardApp.strings.optimization_status.statusTitle2,
+		description: optimoleDashboardApp.strings.optimization_status.statusSubTitle2
+	},
+	{
+		label: optimoleDashboardApp.strings.optimization_status.statusTitle3,
+		description: optimoleDashboardApp.strings.optimization_status.statusSubTitle3
+	}
 ];
 
 const Sidebar = () => {
@@ -121,6 +137,29 @@ const Sidebar = () => {
 					{ optimoleDashboardApp.strings.premium_support }
 				</Button>
 			) }
+
+			<div className="bg-white flex flex-col text-gray-700 border-0 rounded-lg shadow-md p-8">
+				<h3 className="text-base m-0">{ optimoleDashboardApp.strings.optimization_status.title }</h3>
+				<ul>
+					{ statuses.map( ( status, index ) => (
+						<li
+							key={ index }
+							className="flex items-start gap-2"
+						>
+							<Icon icon="yes-alt" className="text-light-black mt-1" />
+							<div className="text-light-black font-normal text-base">
+								<div className='font-semibold'>
+									{ status.label }
+								</div>
+								<div>
+									{ status.description }
+								</div>
+							</div>
+						</li>
+					) ) }
+				</ul>
+				<ExternalLink className='font-semibold text-sm' href='https://docs.optimole.com/article/2238-optimization-tips'>{ optimoleDashboardApp.strings.optimization_tips }</ExternalLink>
+			</div>
 		</div>
 	);
 };
