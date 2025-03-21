@@ -6,13 +6,16 @@ import {
 	SelectControl,
 	ToolbarButton,
 	ToolbarGroup,
-	Notice
+	Notice,
+	CheckboxControl,
+	ColorPalette,
+	BaseControl
 } from '@wordpress/components';
 import { useDispatch } from '@wordpress/data';
 import { useEffect, useMemo, useState } from '@wordpress/element';
 import { edit } from '@wordpress/icons';
 import { logo } from '../common/icons';
-
+import { ASPECT_RATIO_OPTIONS } from '../common/constants';
 import { isOptimoleURL } from '../common/utils';
 
 const Edit = ( props ) => {
@@ -28,8 +31,9 @@ const Edit = ( props ) => {
 		setUrl( value );
 	};
 
-	const onAspectRatioChange = ( value ) => {
-		setAttributes({ aspectRatio: value });
+
+	const onAttributeUpdate = ( value, name ) => {
+		setAttributes({ [name]: value });
 	};
 
 	const onEdit = () => {
@@ -52,12 +56,10 @@ const Edit = ( props ) => {
 
 			setError( true );
 		});
-
 	};
 
 	useEffect( () => {
 		isOptimoleURL( attributes.url ).then( ( valid ) => {
-
 			if ( ! valid ) {
 				setEditing( true );
 				setError( true );
@@ -65,16 +67,7 @@ const Edit = ( props ) => {
 		});
 	}, [ attributes.url ]);
 
-	const aspectRatioOptions = useMemo( () => {
-		return OMVideoPlayerBlock.aspectRatioOptions.map( ( value ) => ({
-			label: value,
-			value: value.replace( ':', '/' )
-		}) );
-	}, []);
-
 	const style = useMemo( () => {
-
-
 		const style = {
 			'--om-primary-color': attributes.primaryColor,
 			'--om-aspect-ratio': attributes.aspectRatio
@@ -105,26 +98,51 @@ const Edit = ( props ) => {
 					<SelectControl
 						value={attributes.aspectRatio}
 						label={OMVideoPlayerBlock.aspectRatioLabel}
-						options={aspectRatioOptions}
-						onChange={onAspectRatioChange}
+						options={ASPECT_RATIO_OPTIONS}
+						onChange={( value ) => onAttributeUpdate( value, 'aspectRatio' )}
+					/>
+
+					<CheckboxControl
+						label={OMVideoPlayerBlock.loopLabel}
+						checked={attributes.loop}
+						onChange={( value ) => onAttributeUpdate( value, 'loop' )}
+					/>
+
+					<CheckboxControl
+						label={OMVideoPlayerBlock.hideControlsLabel}
+						checked={attributes.hideControls}
+						onChange={( value ) => onAttributeUpdate( value, 'hideControls' )}
 					/>
 
 				</PanelBody>
 			</InspectorControls>
-			{! editing && <optimole-video-player video-src={props.attributes.url} style={style}></optimole-video-player>}
-			{editing && <Placeholder
-				label={OMVideoPlayerBlock.urlLabel}
-				className="wp-block-embed"
-			>
-				<form onSubmit={onSave}>
-					<input type="url" id="url" defaultValue={attributes.url} className="wp-block-embed__placeholder-input" onChange={onUrlChange} />
-					<Button isPrimary type="submit">Save</Button>
-				</form>
+			<InspectorControls group="styles">
+				<PanelBody title={OMVideoPlayerBlock.blockTitle} initialOpen={true}>
+					<BaseControl label={OMVideoPlayerBlock.primaryColorLabel}>
+						<ColorPalette
+							clearable={false}
+							value={attributes.primaryColor}
+							onChange={( value ) => onAttributeUpdate( value, 'primaryColor' )}
+						/>
+					</BaseControl>
+				</PanelBody>
+			</InspectorControls>
+			<div style={{ display: 'flex', width: '100%' }}>
+				{! editing && <optimole-video-player video-src={props.attributes.url} style={style} loop={attributes.loop} hide-controls={attributes.hideControls}></optimole-video-player>}
+				{editing && <Placeholder
+					label={OMVideoPlayerBlock.urlLabel}
+					className="wp-block-embed"
+				>
+					<form onSubmit={onSave}>
+						<input type="url" id="url" defaultValue={attributes.url} className="wp-block-embed__placeholder-input" onChange={onUrlChange} />
+						<Button isPrimary type="submit">{OMVideoPlayerBlock.save}</Button>
+					</form>
 
-				{error && <Notice status="error" isDismissible={false}><span dangerouslySetInnerHTML={{ __html: OMVideoPlayerBlock.invalidUrlError }}/></Notice>}
+					{error && <Notice status="error" isDismissible={false}><span dangerouslySetInnerHTML={{ __html: OMVideoPlayerBlock.invalidUrlError }}/></Notice>}
 
-			</Placeholder>
-			}
+				</Placeholder>
+				}
+			</div>
 		</>
 	);
 };
@@ -149,11 +167,19 @@ export default {
 		},
 		aspectRatio: {
 			type: 'string',
-			default: '16/9'
+			default: 'auto'
 		},
 		primaryColor: {
 			type: 'string',
 			default: '#577BF9'
+		},
+		loop: {
+			type: 'boolean',
+			default: false
+		},
+		hideControls: {
+			type: 'boolean',
+			default: false
 		}
 	},
 	edit: Edit,

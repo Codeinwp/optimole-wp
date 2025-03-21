@@ -10,10 +10,12 @@
 
 optimole-video-player {
   --scrubber-size: 12px;
-  aspect-ratio: var(--om-aspect-ratio, 16/9);
+  aspect-ratio: var(--om-aspect-ratio, auto);
   overflow: hidden;
   position: relative;
   display: block;
+  background-color: #000;
+  width: 100%;
 
   .optml-vp-hide {
     display: none !important;
@@ -48,7 +50,6 @@ optimole-video-player {
     top: 0;
     bottom: 0;
     z-index: 0;
-    background-color: #000;
 
     .optml-ic {
       width: 20px;

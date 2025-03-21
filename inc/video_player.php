@@ -22,7 +22,15 @@ class Optml_Video_Player {
 		],
 		'aspectRatio' => [
 			'type' => 'string',
-			'default' => '16/9',
+			'default' => 'auto',
+		],
+		'loop' => [
+			'type' => 'boolean',
+			'default' => false,
+		],
+		'hideControls' => [
+			'type' => 'boolean',
+			'default' => false,
 		],
 	];
 
@@ -50,6 +58,12 @@ class Optml_Video_Player {
 	 * @since 4.0.0
 	 */
 	public function __construct() {
+		$settings = new Optml_Settings();
+
+		if ( ! $settings->is_connected() ) {
+			return;
+		}
+
 		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_admin_video_player_assets' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'maybe_enqueue_video_player_script' ] );
 		add_action( 'init', [ $this, 'register_video_player_block' ] );
@@ -177,6 +191,10 @@ class Optml_Video_Player {
 			'--om-aspect-ratio' => $attributes['aspectRatio'],
 		];
 
+		if ( isset( $attributes['style'] ) ) {
+			$style = array_merge( $style, $this->block_style_attributes_to_css_array( $attributes['style'] ) );
+		}
+
 		$css = array_map(
 			function ( $key, $value ) {
 				return $key . ': ' . $value;
@@ -185,11 +203,33 @@ class Optml_Video_Player {
 			$style
 		);
 
+		$tag_attributes = [
+			'video-src' => esc_url( $attributes['url'] ),
+			'loop' => $attributes['loop'] ? 'true' : 'false',
+			'hide-controls' => $attributes['hideControls'] ? 'true' : 'false',
+			'style' => esc_attr( implode( ';', $css ) ),
+		];
+
+		$tag_attributes = array_map(
+			function ( $key, $value ) {
+				return $key . '="' . $value . '"';
+			},
+			array_keys( $tag_attributes ),
+			$tag_attributes
+		);
+
+		$wrapper_attributes = array_filter(
+			$attributes,
+			function ( $key ) {
+				return ! in_array( $key, array_keys( $this->block_attributes ), true ) && $key !== 'style';
+			},
+			ARRAY_FILTER_USE_KEY
+		);
+
 		return sprintf(
-			'<div %s><optimole-video-player video-src="%s" style="%s"></optimole-video-player></div>',
-			get_block_wrapper_attributes( $attributes ),
-			esc_url( $attributes['url'] ),
-			esc_attr( implode( ';', $css ) ),
+			'<div %s><optimole-video-player %s></optimole-video-player></div>',
+			get_block_wrapper_attributes( $wrapper_attributes ),
+			implode( ' ', $tag_attributes ),
 		);
 	}
 
@@ -228,17 +268,58 @@ class Optml_Video_Player {
 				'urlLabel'          => __( 'Video URL', 'optimole-wp' ),
 				'urlHelp'           => __( 'Enter the URL of the video you want to display.', 'optimole-wp' ),
 				'editLabel'         => __( 'Change URL', 'optimole-wp' ),
+				'loopLabel'         => __( 'Loop Video', 'optimole-wp' ),
+				'hideControlsLabel' => __( 'Hide Video Controls Bar', 'optimole-wp' ),
 				// translators: %s is 'Optimole Dashboard'.
 				'invalidUrlError'   => sprintf( __( 'Invalid URL. Please enter a valid video URL from %s', 'optimole-wp' ), '<a target="_blank" href="https://dashboard.optimole.com">' . __( 'Optimole Dashboard', 'optimole-wp' ) . '</a>' ),
-				'aspectRatioOptions' => [
-					'16/9',
-					'4/3',
-					'1/1',
-					'9/16',
-					'1/2',
-					'2/1',
-				],
+				'auto'                          => __( 'Auto', 'optimole-wp' ),
+				'save'                          => __( 'Save', 'optimole-wp' ),
+				'primaryColorLabel' => __( 'Controls color', 'optimole-wp' ),
 			]
 		);
+	}
+
+	/**
+	 * Convert the block style attributes to a css array.
+	 *
+	 * @param array $attributes The block attributes.
+	 * @return array The css array.
+	 *
+	 * @since 4.0.0
+	 */
+	private function block_style_attributes_to_css_array( $attributes ) {
+		$css = [];
+
+		if ( isset( $attributes['spacing'] ) ) {
+			$spacing = $attributes['spacing'];
+
+			foreach ( $spacing as $css_prop_prefix => $values ) {
+				foreach ( $values as $direction => $value ) {
+					$css[ $css_prop_prefix . '-' . $direction ] = $this->core_var_to_css_var( $value );
+				}
+			}
+		}
+
+		return $css;
+	}
+
+	/**
+	 * Convert a core var to a css var.
+	 * e.g.: var:preset|spacing|50 -> var(--wp--preset--spacing--50)
+	 *
+	 * @param string $css_value The css value.
+	 * @return string The css var.
+	 *
+	 * @since 4.0.0
+	 */
+	private function core_var_to_css_var( $css_value ) {
+		if ( strpos( $css_value, 'var:' ) !== 0 ) {
+			return $css_value;
+		}
+
+		$css_value = str_replace( 'var:', '', $css_value );
+		$css_value = str_replace( '|', '--', $css_value );
+
+		return 'var(--wp--' . $css_value . ')';
 	}
 }
