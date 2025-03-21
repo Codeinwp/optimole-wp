@@ -58,7 +58,11 @@ export default function Modal({	icon, labels = {}, onRequestClose = () => {}, on
 						{ labels.action }
 					</Button>
 					{ labels.secondaryAction && (
-						<Button variant="link" className={ actionButtonClasses } onClick={ onSecondaryAction }>
+						<Button
+							variant="default"
+							className="optml__button flex justify-center rounded font-bold min-h-40"
+							onClick={ onSecondaryAction }
+						>
 							{ labels.secondaryAction }
 						</Button>
 					) }
