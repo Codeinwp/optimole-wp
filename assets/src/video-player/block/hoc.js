@@ -8,8 +8,7 @@ const BlockReplacer = ({ clientIDToReplace, url }) => {
 
 	useEffect( ()=> {
 		const block = createBlock( 'optimole/video-player', {
-			url: url,
-			editing: isOptimoleURL
+			url: url
 		});
 
 		replaceBlock( clientIDToReplace, block );
