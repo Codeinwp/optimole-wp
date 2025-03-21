@@ -22,6 +22,9 @@ class Optml_Admin {
 	const IMAGE_DATA_COLLECTED_BATCH = 100;
 
 	const BF_PROMO_DISMISS_KEY = 'optml_bf24_notice_dismiss';
+
+	const SPC_BANNER_DISMISS_KEY = 'optml_spc_banner_dismiss';
+
 	/**
 	 * Hold the settings object.
 	 *
@@ -95,6 +98,8 @@ class Optml_Admin {
 			); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
 			add_filter( 'wp_handle_upload_prefilter', [ $this, 'check_svg_and_sanitize' ] );
 		}
+
+		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
 	}
 	/**
 	 * Check if the file is an SVG, if so handle appropriately
@@ -906,7 +911,7 @@ class Optml_Admin {
 	 * Adds conflicts notice.
 	 */
 	public function add_notice_conflicts() {
-		if ( $this->settings->is_connected() || ! $this->conflicting_plugins->should_show_notice() ) {
+		if ( ! $this->conflicting_plugins->should_show_notice() ) {
 			return;
 		}
 
@@ -1241,7 +1246,7 @@ class Optml_Admin {
 		wp_register_script(
 			OPTML_NAMESPACE . '-admin',
 			OPTML_URL . 'assets/build/dashboard/index.js',
-			$asset_file['dependencies'],
+			array_merge( $asset_file['dependencies'], [ 'updates' ] ),
 			$asset_file['version'],
 			true
 		);
@@ -1257,6 +1262,8 @@ class Optml_Admin {
 			],
 			$asset_file['version']
 		);
+
+		do_action( 'themeisle_internal_page', OPTML_PRODUCT_SLUG, 'dashboard' );
 	}
 
 	/**
@@ -1336,7 +1343,92 @@ class Optml_Admin {
 				],
 			],
 			'bf_notices'                 => $this->get_bf_notices(),
+			'spc_banner'                 => $this->get_spc_banner(),
 		];
+	}
+
+	/**
+	 * Get the SPC banner data.
+	 *
+	 * @return array|null
+	 */
+	private function get_spc_banner() {
+		// User can't dismiss notice or install plugins.
+		if ( ! current_user_can( 'manage_options' ) || ! current_user_can( 'install_plugins' ) ) {
+			return null;
+		}
+
+		// User has dismissed the notice.
+		if ( get_option( self::SPC_BANNER_DISMISS_KEY ) === 'yes' ) {
+			return null;
+		}
+
+		// User has installed the pro plugin.
+		if ( defined( 'SPC_PRO_PATH' ) ) {
+			return null;
+		}
+
+		// User has installed the plugin.
+		if ( defined( 'SPC_PATH' ) ) {
+			return null;
+		}
+
+		return [
+			'activate_url'           => $this->get_spc_activate_url(),
+			'status'                                 => $this->get_spc_status(),
+			'banner_dismiss_key'     => self::SPC_BANNER_DISMISS_KEY,
+			'i18n' => [
+				'dismiss' => __( 'Dismiss', 'optimole-wp' ),
+				'title' => __( 'Pair Optimole with Super Page Cache', 'optimole-wp' ),
+				'byline' => __( 'Improve your Core Web Vitals with our recommended caching solution', 'optimole-wp' ),
+				'features' => [
+					__( 'Edge Caching (with Cloudflare free plan)', 'optimole-wp' ),
+					__( 'Works with Optimole optimization', 'optimole-wp' ),
+					__( 'Lightning Speed Disk Caching', 'optimole-wp' ),
+				],
+				'cta' => __( 'Get Super Page Cache', 'optimole-wp' ),
+				'activate' => __( 'Activate Super Page Cache', 'optimole-wp' ),
+				'installing' => __( 'Installing Super Page Cache...', 'optimole-wp' ),
+				'activating' => __( 'Activating Super Page Cache...', 'optimole-wp' ),
+				'activated' => __( 'Super Page Cache is active!', 'optimole-wp' ),
+				'error' => __( 'Something went wrong. Please refresh the page and try again.', 'optimole-wp' ),
+			],
+		];
+	}
+
+	/**
+	 * Get the SPC activate URL.
+	 *
+	 * @return string
+	 */
+	private function get_spc_activate_url() {
+		return add_query_arg(
+			[
+				'plugin_status' => 'all',
+				'paged' => 1,
+				'action' => 'activate',
+				'plugin' => rawurlencode( 'wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' ),
+				'_wpnonce' => wp_create_nonce( 'activate-plugin_wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' ),
+			],
+			admin_url( 'plugins.php' )
+		);
+	}
+
+	/**
+	 * Get the SPC status.
+	 *
+	 * @return string
+	 */
+	private function get_spc_status() {
+		if ( is_plugin_active( 'wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' ) ) {
+			return 'active';
+		}
+
+		if ( file_exists( WP_PLUGIN_DIR . '/wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' ) ) {
+			return 'installed';
+		}
+
+		return 'not-installed';
 	}
 
 	/**
@@ -1419,7 +1511,10 @@ class Optml_Admin {
 			'refresh_stats_cta'              => __( 'Refresh Stats', 'optimole-wp' ),
 			'updating_stats_cta'             => __( 'UPDATING STATS', 'optimole-wp' ),
 			'api_key_placeholder'            => __( 'API Key', 'optimole-wp' ),
-			'account_needed_heading'         => __( 'Sign-up for API key', 'optimole-wp' ),
+			'account_needed_heading'         => __( 'Supercharge Your WordPress Images in 60 Seconds', 'optimole-wp' ),
+			'account_needed_sub_heading'     => __( 'Stop sacrificing image quality for page speed. Optimole delivers both.', 'optimole-wp' ),
+			'account_needed_trust_badge'     => __( 'TRUSTED BY 200,000+ HAPPY USERS', 'optimole-wp' ),
+			'account_needed_setup_time'      => __( 'Setup is instant - just click connect', 'optimole-wp' ),
 			'invalid_key'                    => __( 'Invalid API Key', 'optimole-wp' ),
 			'keep_connected'                 => __( 'Ok, keep me connected', 'optimole-wp' ),
 			'cloud_library'                  => __( 'Cloud Library', 'optimole-wp' ),
@@ -1433,6 +1528,7 @@ If you still want to disconnect click the button below.',
 			'email_address_label'            => __( 'Your email address', 'optimole-wp' ),
 			'steps_connect_api_title'        => __( 'Connect your account', 'optimole-wp' ),
 			'register_btn'                   => __( 'Create & connect your account', 'optimole-wp' ),
+			'secure_connection'              => __( 'Secure connection - your data is protected', 'optimole-wp' ),
 			'step_one_api_title'             => __( 'Enter your API key.', 'optimole-wp' ),
 			'optml_dashboard'                => sprintf(
 			/* translators: 1 is the opening anchor tag, 2 is the closing anchor tag */
@@ -1464,17 +1560,15 @@ If you still want to disconnect click the button below.',
 			'premium_support'                => __( 'Access our Premium Support', 'optimole-wp' ),
 			'account_needed_title'           => sprintf(
 			/* translators: 1 is the link to optimole.com */
-				__( 'In order to get access to free image optimization service you will need an API key from %s.', 'optimole-wp' ),
+				__( 'Connect to Optimole\'s powerful image optimization service with a free API key from %s.', 'optimole-wp' ),
 				' <a href="' . esc_url( tsdk_translate_link( 'https://dashboard.optimole.com/register', 'query' ) ) . '" target="_blank">optimole.com</a>'
 			),
 			'account_needed_subtitle_1'      => sprintf(
 			/* translators: 1 is starting bold tag, 2 is ending bold tag, 3 is the starting bold tag, 4 is the limit number, 5 is ending bold tag, 6 is the starting anchor tag for the docs link on how we count visits, 7 is the ending anchor tag. */
-				__( 'You will get access to our %1$simage optimization service for FREE%2$s in the limit of %3$s%4$s%5$s %6$svisitors%7$s per month.', 'optimole-wp' ),
+				__( '%1$sOptimize unlimited images%2$s for up to %3$s monthly %4$svisitors%5$s - completely FREE.', 'optimole-wp' ),
 				'<strong>',
 				'</strong>',
 				number_format_i18n( 1000 ),
-				'<strong>',
-				'</strong>',
 				'<a href="https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors" target="_blank">',
 				'</a>'
 			),
@@ -1487,7 +1581,16 @@ If you still want to disconnect click the button below.',
 			'account_needed_subtitle_2'      => sprintf(
 			/* translators: 1 is the starting bold tag, 2 is the ending bold tag */
 				__(
-					'Bonus, if you dont use a CDN, we got you covered, %1$swe will serve the images using CloudFront CDN%2$s from 450+ locations.',
+					'%1$sInstant global delivery%2$s with CloudFront CDN - your images load 2-3x faster worldwide from 450+ locations.',
+					'optimole-wp'
+				),
+				'<strong>',
+				'</strong>'
+			),
+			'account_needed_subtitle_4'      => sprintf(
+			/* translators: 1 is the starting bold tag, 2 is the ending bold tag */
+				__(
+					'%1$sAdaptive optimization%2$s that perfectly sizes images for every visitor\'s device and connection speed.',
 					'optimole-wp'
 				),
 				'<strong>',
@@ -1690,6 +1793,11 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_limit_dimensions_title'       => __( 'Limit Image Sizes', 'optimole-wp' ),
 				'enable_limit_dimensions_notice'      => __( 'When you enable this feature to define a max width or height for image resizing, please note that DPR (retina) images will be disabled. This is done to ensure consistency in image dimensions across your website. Although this may result in slightly lower image quality for high-resolution displays, it will help maintain uniform image sizes, improving your website\'s overall layout and potentially boosting performance.', 'optimole-wp' ),
 				'enable_badge_title'                  => __( 'Enable Optimole Badge', 'optimole-wp' ),
+				'enable_badge_settings'               => __( 'Badge settings', 'optimole-wp' ),
+				'enable_badge_show_icon'              => __( 'Show only Optimole icon', 'optimole-wp' ),
+				'enable_badge_position'               => __( 'Badge Position', 'optimole-wp' ),
+				'badge_position_text_1'               => __( 'Left', 'optimole-wp' ),
+				'badge_position_text_2'               => __( 'Right', 'optimole-wp' ),
 				'enable_badge_description'            => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
 					__( 'Get 20.000 more visits for free by enabling the Optimole badge on your websites. %1$sLearn more%2$s', 'optimole-wp' ),
@@ -1728,7 +1836,7 @@ The root cause might be either a security plugin which blocks this feature or so
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1191-exclude-from-optimizing-or-lazy-loading">',
 					'</a>'
 				),
-				'exclude_title_optimize'              => __( 'Don\'t optimize images if', 'optimole-wp' ),
+				'exclude_title_optimize'              => __( 'Don\'t optimize and don\'t lazy-load images if', 'optimole-wp' ),
 				'exclude_url_desc'                    => sprintf(
 				/* translators: 1 is the starting bold tag, 2 is the ending bold tag */                    __( '%1$sPage url%2$s contains', 'optimole-wp' ),
 					'<strong>',
@@ -1869,6 +1977,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'rollback_stop_title'                 => __( 'Are you sure?', 'optimole-wp' ),
 				'rollback_stop_description'           => __( 'Canceling will halt the ongoing process, and any remaining images will stay in the Optimole Cloud. To transfer images to the Optimole Cloud, use the Offloading option.', 'optimole-wp' ),
 				'rollback_stop_action'                => __( 'Cancel the transfer from Optimole', 'optimole-wp' ),
+				'cloud_library_btn_text'              => __( 'Go to Cloud Library', 'optimole-wp' ),
+				'cloud_library_btn_link'              => add_query_arg( 'page', 'optimole-dam', admin_url( 'admin.php' ) ),
 			],
 			'help'                           => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),
@@ -1979,5 +2089,72 @@ The root cause might be either a security plugin which blocks this feature or so
 		$mimes['svg'] = 'image/svg+xml';
 
 		return $mimes;
+	}
+
+	/**
+	 * Get the Formbricks survey metadata.
+	 *
+	 * @param array  $data The data in Formbricks format.
+	 * @param string $page_slug The slug of the page.
+	 *
+	 * @return array - The data in Formbricks format.
+	 */
+	public function get_survey_metadata( $data, $page_slug ) {
+
+		if ( 'dashboard' !== $page_slug ) {
+			return $data;
+		}
+
+		$dashboard_data = $this->localize_dashboard_app();
+		$user_data      = $dashboard_data['user_data'];
+
+		if ( ! isset( $user_data['plan'] ) ) {
+			return $data;
+		}
+
+		$data = [
+			'environmentId' => 'clo8wxwzj44orpm0gjchurujm',
+			'attributes'    => [
+				'plan'                => $user_data['plan'],
+				'status'              => $user_data['status'],
+				'cname_assigned'      => ! empty( $user_data['is_cname_assigned'] ) ? $user_data['is_cname_assigned'] : 'no',
+				'connected_websites'  => isset( $user_data['whitelist'] ) ? strval( count( $user_data['whitelist'] ) ) : '0',
+				'install_days_number' => intval( $dashboard_data['days_since_install'] ),
+				'traffic'             => strval( isset( $user_data['traffic'] ) ? $this->survey_category( $user_data['traffic'], 500 ) : 0 ),
+				'images_number'       => strval( isset( $user_data['images_number'] ) ? $this->survey_category( $user_data['images_number'], 100 ) : 0 ),
+			],
+		];
+
+		return $data;
+	}
+
+	/**
+	 * Categorize a number for survey based on its scale.
+	 *
+	 * @param int $value The value.
+	 * @param int $scale The scale.
+	 *
+	 * @return int - The category.
+	 */
+	public function survey_category( $value, $scale = 1 ) {
+		$value = intval( $value / $scale );
+
+		if ( 1 < $value && 8 > $value ) {
+			return 7;
+		}
+
+		if ( 8 <= $value && 31 > $value ) {
+			return 30;
+		}
+
+		if ( 30 < $value && 90 > $value ) {
+			return 90;
+		}
+
+		if ( 90 <= $value ) {
+			return 91;
+		}
+
+		return 0;
 	}
 }
