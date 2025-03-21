@@ -1980,9 +1980,9 @@ The root cause might be either a security plugin which blocks this feature or so
 				'cloud_library_btn_text'              => __( 'Go to Cloud Library', 'optimole-wp' ),
 				'cloud_library_btn_link'              => add_query_arg( 'page', 'optimole-dam', admin_url( 'admin.php' ) ),
 				'exceed_plan_quota_notice_title'      => __( 'Your site has already reached over 50% of your monthly visits limit within just two weeks.', 'optimole-wp' ),
-				'exceed_plan_quota_notice_description' => __( 'Based on this trend, you are likely to exceed your free quota before the month ends. To avoid any disruption in service, we strongly recommend upgrading your plan or waiting until your traffic stabilizes before offloading your images. Do you still wish to proceed?', 'optimole-wp' ),
+				'exceed_plan_quota_notice_description' => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Based on this trend, you are likely to exceed your free quota before the month ends. To avoid any disruption in service, we strongly recommend %1$supgrading%2$s your plan or waiting until your traffic stabilizes before offloading your images. Do you still wish to proceed?', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://dashboard.optimole.com/settings/billing/">', '</a>' ),
 				'exceed_plan_quota_notice_start_action' => __( 'Yes, Transfer to Optimole Cloud', 'optimole-wp' ),
-				'exceed_plan_quota_notice_secondary_action' => __( 'No', 'optimole-wp' ),
+				'exceed_plan_quota_notice_secondary_action' => __( 'No, keep images on my website', 'optimole-wp' ),
 			],
 			'help'                           => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),
@@ -2202,7 +2202,11 @@ The root cause might be either a security plugin which blocks this feature or so
 			return false;
 		}
 
-		if ( $service_data['days_since_registration'] <= 14 ) {
+		$renews_on                  = $service_data['renews_on'];
+		$timestamp_before_two_weeks = strtotime( '-2 weeks', $renews_on );
+		$today_timestamp            = strtotime( 'today' );
+
+		if ( $timestamp_before_two_weeks <= $today_timestamp ) {
 			return false;
 		}
 
