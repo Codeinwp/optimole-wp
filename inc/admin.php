@@ -1086,10 +1086,10 @@ class Optml_Admin {
 				$this->settings->update( 'offloading_status', 'disabled' );
 			}
 			$this->settings->update( 'rollback_status', 'enabled' );
-			$this->settings->update( 'offload_media', 'disabled' );
 			// We start the rollback process.
 			Optml_Logger::instance()->add_log( 'rollback_images', 'Account deactivated, starting rollback.' );
 			Optml_Media_Offload::get_image_count( 'rollback_images', false );
+			$this->settings->update( 'offload_media', 'disabled' );
 		}
 		remove_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
 	}
