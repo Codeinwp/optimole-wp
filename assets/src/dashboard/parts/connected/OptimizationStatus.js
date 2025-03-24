@@ -7,14 +7,10 @@ import { closeSmall, check } from '@wordpress/icons';
 import { useSelect } from '@wordpress/data';
 
 const OptimizationStatus = () => {
-	const {
-		statuses
-	} = useSelect( select => {
+	const statuses = useSelect( select => {
 		const { getSiteSettings } = select( 'optimole' );
-
 		const siteSettings = getSiteSettings();
-
-		const statuses = [
+		return [
 			{
 				active: 'enabled' === siteSettings?.image_replacer,
 				label: optimoleDashboardApp.strings.optimization_status.statusTitle1,
@@ -31,10 +27,6 @@ const OptimizationStatus = () => {
 				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle3
 			}
 		];
-
-		return {
-			statuses: statuses
-		};
 	});
 
 	return (
