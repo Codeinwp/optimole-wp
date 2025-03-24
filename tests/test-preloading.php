@@ -31,7 +31,6 @@ class Test_Preloading extends WP_UnitTestCase {
 		Optml_Url_Replacer::instance()->init();
 		Optml_Tag_Replacer::instance()->init();
 		Optml_Lazyload_Replacer::instance()->init();
-		Optml_Hero_Preloader::instance()->init();
 		Optml_Manager::instance()->init();
 
 		self::$sample_attachement = self::factory()->attachment->create_upload_object( OPTML_PATH . 'assets/img/logo.png' );
