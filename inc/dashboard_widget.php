@@ -86,12 +86,11 @@ class Optml_Dashboard_Widget {
 
 		$service_data = $this->get_service_data();
 
-		if ( ! isset( $service_data['stats'] ) ) {
+		if ( ! isset( $service_data['visitors'] ) ) {
 			return false;
 		}
 
-		$stats = $service_data['stats'];
-		$visits = $stats['visits'];
+		$visits = $service_data['visitors'];
 
 		return $visits >= 10;
 	}
