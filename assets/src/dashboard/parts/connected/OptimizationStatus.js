@@ -26,7 +26,7 @@ const OptimizationStatus = () => {
 				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle2
 			},
 			{
-				active: 'enabled' === siteSettings?.scale,
+				active: 'disabled' === siteSettings?.scale,
 				label: optimoleDashboardApp.strings.optimization_status.statusTitle3,
 				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle3
 			}
