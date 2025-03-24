@@ -13,6 +13,8 @@ import { useSelect } from '@wordpress/data';
 import { addQueryArgs } from '@wordpress/url';
 
 import SPCRecommendation from './SPCRecommendation';
+import OptimizationStatus from './OptimizationStatus';
+
 const reasons = [
 	optimoleDashboardApp.strings.upgrade.reason_1,
 	optimoleDashboardApp.strings.upgrade.reason_2,
@@ -24,31 +26,11 @@ const Sidebar = () => {
 	const {
 		name,
 		domain,
-		plan,
-		statuses
+		plan
 	} = useSelect( select => {
-		const { getUserData, getSiteSettings } = select( 'optimole' );
+		const { getUserData } = select( 'optimole' );
 
 		const user = getUserData();
-		const siteSettings = getSiteSettings();
-
-		const statuses = [
-			{
-				active: 'enabled' === siteSettings?.image_replacer,
-				label: optimoleDashboardApp.strings.optimization_status.statusTitle1,
-				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle1
-			},
-			{
-				active: 'enabled' === siteSettings?.lazyload,
-				label: optimoleDashboardApp.strings.optimization_status.statusTitle2,
-				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle2
-			},
-			{
-				active: 'enabled' === siteSettings?.scale,
-				label: optimoleDashboardApp.strings.optimization_status.statusTitle3,
-				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle3
-			}
-		];
 
 		let domain = user?.cdn_key + '.i.optimole.com';
 		if ( user?.domain !== undefined && '' !== user?.domain ) {
@@ -58,8 +40,7 @@ const Sidebar = () => {
 		return {
 			name: user?.display_name,
 			domain,
-			plan: user?.plan,
-			statuses: statuses.filter( status => status.active )
+			plan: user?.plan
 		};
 	});
 
@@ -147,35 +128,8 @@ const Sidebar = () => {
 				</Button>
 			) }
 
-			{ 0 < statuses.length && (
-				<div className="bg-white flex flex-col text-gray-700 border-0 rounded-lg shadow-md p-8">
-					<h3 className="text-base m-0">{ optimoleDashboardApp.strings.optimization_status.title }</h3>
-					<ul>
-						{ statuses.map( ( status, index ) => (
-							<li
-								key={ index }
-								className="flex items-start gap-2"
-							>
-								<Icon icon="yes-alt" className="text-light-black mt-1" />
-								<div className="text-light-black font-normal text-base">
-									<div className='font-semibold'>
-										{ status.label }
-									</div>
-									<div>
-										{ status.description }
-									</div>
-								</div>
-							</li>
-						) ) }
-					</ul>
-					<p
-						className="m-0 -mt-3"
-						dangerouslySetInnerHTML={ {
-							__html: optimoleDashboardApp.strings.optimization_tips
-						} }
-					/>
-				</div>
-			) }
+			<OptimizationStatus />
+
 			{ showSPCRecommendation && (
 				<SPCRecommendation />
 			) }

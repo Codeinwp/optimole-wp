@@ -2075,17 +2075,17 @@ The root cause might be either a security plugin which blocks this feature or so
 			'cancel'                         => __( 'Cancel', 'optimole-wp' ),
 			'optimization_status'            => [
 				'title'           => __( 'Optimization Status', 'optimole-wp' ),
-				'statusTitle1'    => __( 'Image Handling Active', 'optimole-wp' ),
+				'statusTitle1'    => __( 'Image Handling', 'optimole-wp' ),
 				'statusSubTitle1' => __( 'All images are optimized automatically', 'optimole-wp' ),
-				'statusTitle2'    => __( 'Smart Lazy-Loading Enabled', 'optimole-wp' ),
+				'statusTitle2'    => __( 'Smart Lazy-Loading', 'optimole-wp' ),
 				'statusSubTitle2' => __( 'Images load as visitors scroll', 'optimole-wp' ),
-				'statusTitle3'    => __( 'Image Scalling Active', 'optimole-wp' ),
+				'statusTitle3'    => __( 'Image Scalling', 'optimole-wp' ),
 				'statusSubTitle3' => __( 'All images are perfectly sized for devices', 'optimole-wp' ),
 			],
 			'optimization_tips'              => sprintf(
 			/* translators: 1 is the opening anchor tag, 2 is the closing anchor tag */
 				__( '%1$sView all optimization tips%2$s', 'optimole-wp' ),
-				'<a  style="white-space:nowrap; text-decoration: underline !important;" href="https://docs.optimole.com/article/2238-optimization-tips" target="_blank"> ',
+				'<a class="flex justify-center font-bold rounded hover:opacity-90 transition-opacity" href="https://docs.optimole.com/article/2238-optimization-tips" target="_blank"> ',
 				'<span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>'
 			),
 		];
