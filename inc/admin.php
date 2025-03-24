@@ -22,6 +22,9 @@ class Optml_Admin {
 	const IMAGE_DATA_COLLECTED_BATCH = 100;
 
 	const BF_PROMO_DISMISS_KEY = 'optml_bf24_notice_dismiss';
+
+	const SPC_BANNER_DISMISS_KEY = 'optml_spc_banner_dismiss';
+
 	/**
 	 * Hold the settings object.
 	 *
@@ -1243,7 +1246,7 @@ class Optml_Admin {
 		wp_register_script(
 			OPTML_NAMESPACE . '-admin',
 			OPTML_URL . 'assets/build/dashboard/index.js',
-			$asset_file['dependencies'],
+			array_merge( $asset_file['dependencies'], [ 'updates' ] ),
 			$asset_file['version'],
 			true
 		);
@@ -1340,7 +1343,92 @@ class Optml_Admin {
 				],
 			],
 			'bf_notices'                 => $this->get_bf_notices(),
+			'spc_banner'                 => $this->get_spc_banner(),
 		];
+	}
+
+	/**
+	 * Get the SPC banner data.
+	 *
+	 * @return array|null
+	 */
+	private function get_spc_banner() {
+		// User can't dismiss notice or install plugins.
+		if ( ! current_user_can( 'manage_options' ) || ! current_user_can( 'install_plugins' ) ) {
+			return null;
+		}
+
+		// User has dismissed the notice.
+		if ( get_option( self::SPC_BANNER_DISMISS_KEY ) === 'yes' ) {
+			return null;
+		}
+
+		// User has installed the pro plugin.
+		if ( defined( 'SPC_PRO_PATH' ) ) {
+			return null;
+		}
+
+		// User has installed the plugin.
+		if ( defined( 'SPC_PATH' ) ) {
+			return null;
+		}
+
+		return [
+			'activate_url'           => $this->get_spc_activate_url(),
+			'status'                                 => $this->get_spc_status(),
+			'banner_dismiss_key'     => self::SPC_BANNER_DISMISS_KEY,
+			'i18n' => [
+				'dismiss' => __( 'Dismiss', 'optimole-wp' ),
+				'title' => __( 'Pair Optimole with Super Page Cache', 'optimole-wp' ),
+				'byline' => __( 'Improve your Core Web Vitals with our recommended caching solution', 'optimole-wp' ),
+				'features' => [
+					__( 'Edge Caching (with Cloudflare free plan)', 'optimole-wp' ),
+					__( 'Works with Optimole optimization', 'optimole-wp' ),
+					__( 'Lightning Speed Disk Caching', 'optimole-wp' ),
+				],
+				'cta' => __( 'Get Super Page Cache', 'optimole-wp' ),
+				'activate' => __( 'Activate Super Page Cache', 'optimole-wp' ),
+				'installing' => __( 'Installing Super Page Cache...', 'optimole-wp' ),
+				'activating' => __( 'Activating Super Page Cache...', 'optimole-wp' ),
+				'activated' => __( 'Super Page Cache is active!', 'optimole-wp' ),
+				'error' => __( 'Something went wrong. Please refresh the page and try again.', 'optimole-wp' ),
+			],
+		];
+	}
+
+	/**
+	 * Get the SPC activate URL.
+	 *
+	 * @return string
+	 */
+	private function get_spc_activate_url() {
+		return add_query_arg(
+			[
+				'plugin_status' => 'all',
+				'paged' => 1,
+				'action' => 'activate',
+				'plugin' => rawurlencode( 'wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' ),
+				'_wpnonce' => wp_create_nonce( 'activate-plugin_wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' ),
+			],
+			admin_url( 'plugins.php' )
+		);
+	}
+
+	/**
+	 * Get the SPC status.
+	 *
+	 * @return string
+	 */
+	private function get_spc_status() {
+		if ( is_plugin_active( 'wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' ) ) {
+			return 'active';
+		}
+
+		if ( file_exists( WP_PLUGIN_DIR . '/wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' ) ) {
+			return 'installed';
+		}
+
+		return 'not-installed';
 	}
 
 	/**
