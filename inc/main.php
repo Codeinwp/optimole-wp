@@ -69,6 +69,14 @@ final class Optml_Main {
 	public $cli;
 
 	/**
+	 * Holds the video player class.
+	 *
+	 * @access  public
+	 * @since   1.0.0
+	 * @var Optml_Video_Player Video player instance.
+	 */
+	public $video_player;
+	/**
 	 * Optml_Main constructor.
 	 */
 	public function __construct() {
@@ -104,6 +112,7 @@ final class Optml_Main {
 			self::$_instance->admin   = new Optml_Admin();
 			self::$_instance->dam     = new Optml_Dam();
 			self::$_instance->media_offload = Optml_Media_Offload::instance();
+			self::$_instance->video_player = new Optml_Video_Player();
 			if ( class_exists( 'WP_CLI' ) ) {
 				self::$_instance->cli = new Optml_Cli();
 			}
