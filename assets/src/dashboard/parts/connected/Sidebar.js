@@ -3,7 +3,6 @@
  */
 import {
 	Button,
-	ExternalLink,
 	Icon,
 	TextControl
 } from '@wordpress/components';
