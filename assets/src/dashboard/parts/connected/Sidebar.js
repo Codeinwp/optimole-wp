@@ -19,30 +19,35 @@ const reasons = [
 	optimoleDashboardApp.strings.upgrade.reason_4
 ];
 
-const statuses = [
-	{
-		label: optimoleDashboardApp.strings.optimization_status.statusTitle1,
-		description: optimoleDashboardApp.strings.optimization_status.statusSubTitle1
-	},
-	{
-		label: optimoleDashboardApp.strings.optimization_status.statusTitle2,
-		description: optimoleDashboardApp.strings.optimization_status.statusSubTitle2
-	},
-	{
-		label: optimoleDashboardApp.strings.optimization_status.statusTitle3,
-		description: optimoleDashboardApp.strings.optimization_status.statusSubTitle3
-	}
-];
-
 const Sidebar = () => {
 	const {
 		name,
 		domain,
-		plan
+		plan,
+		statuses
 	} = useSelect( select => {
-		const { getUserData } = select( 'optimole' );
+		const { getUserData, getSiteSettings } = select( 'optimole' );
 
 		const user = getUserData();
+		const siteSettings = getSiteSettings();
+
+		const statuses = [
+			{
+				active: 'enabled' === siteSettings?.image_replacer,
+				label: optimoleDashboardApp.strings.optimization_status.statusTitle1,
+				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle1
+			},
+			{
+				active: 'enabled' === siteSettings?.lazyload,
+				label: optimoleDashboardApp.strings.optimization_status.statusTitle2,
+				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle2
+			},
+			{
+				active: 'enabled' === siteSettings?.scale,
+				label: optimoleDashboardApp.strings.optimization_status.statusTitle3,
+				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle3
+			}
+		];
 
 		let domain = user?.cdn_key + '.i.optimole.com';
 		if ( user?.domain !== undefined && '' !== user?.domain ) {
@@ -52,7 +57,8 @@ const Sidebar = () => {
 		return {
 			name: user?.display_name,
 			domain,
-			plan: user?.plan
+			plan: user?.plan,
+			statuses: statuses.filter( status => status.active )
 		};
 	});
 
@@ -138,28 +144,35 @@ const Sidebar = () => {
 				</Button>
 			) }
 
-			<div className="bg-white flex flex-col text-gray-700 border-0 rounded-lg shadow-md p-8">
-				<h3 className="text-base m-0">{ optimoleDashboardApp.strings.optimization_status.title }</h3>
-				<ul>
-					{ statuses.map( ( status, index ) => (
-						<li
-							key={ index }
-							className="flex items-start gap-2"
-						>
-							<Icon icon="yes-alt" className="text-light-black mt-1" />
-							<div className="text-light-black font-normal text-base">
-								<div className='font-semibold'>
-									{ status.label }
+			{ 0 < statuses.length && (
+				<div className="bg-white flex flex-col text-gray-700 border-0 rounded-lg shadow-md p-8">
+					<h3 className="text-base m-0">{ optimoleDashboardApp.strings.optimization_status.title }</h3>
+					<ul>
+						{ statuses.map( ( status, index ) => (
+							<li
+								key={ index }
+								className="flex items-start gap-2"
+							>
+								<Icon icon="yes-alt" className="text-light-black mt-1" />
+								<div className="text-light-black font-normal text-base">
+									<div className='font-semibold'>
+										{ status.label }
+									</div>
+									<div>
+										{ status.description }
+									</div>
 								</div>
-								<div>
-									{ status.description }
-								</div>
-							</div>
-						</li>
-					) ) }
-				</ul>
-				<ExternalLink className='font-semibold text-sm' href='https://docs.optimole.com/article/2238-optimization-tips'>{ optimoleDashboardApp.strings.optimization_tips }</ExternalLink>
-			</div>
+							</li>
+						) ) }
+					</ul>
+					<p
+						className="m-0 -mt-3"
+						dangerouslySetInnerHTML={ {
+							__html: optimoleDashboardApp.strings.optimization_tips
+						} }
+					/>
+				</div>
+			) }
 		</div>
 	);
 };
