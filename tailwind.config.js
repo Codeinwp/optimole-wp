@@ -2,7 +2,8 @@
 module.exports = {
 	content: [
 		'./assets/src/**/*.js',
-		'./inc/admin.php'
+		'./inc/admin.php',
+		'./inc/dashboard_widget.php'
 	],
 	theme: {
 		extend: {

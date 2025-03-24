@@ -26,6 +26,7 @@ import {
 } from '../../../utils/icons';
 
 import ProgressBar from '../../components/ProgressBar';
+import DashboardMetricBox from '../../components/DashboardMetricBox';
 
 import LastImages from './LastImages';
 
@@ -98,34 +99,30 @@ const Dashboard = () => {
 
 	const visitorsLimitPercent = ( ( userData.visitors / userData.visitors_limit ) * 100 ).toFixed( 0 );
 
-	const getMetricValue = metric => {
-		if ( undefined !== userData[ metric ]) {
-			return userData[ metric ];
+	const getFormattedMetric = ( metric ) => {
+		let metricValue = userData[ metric ];
+
+		// Fallback for missing data
+		if ( undefined === metricValue ) {
+			metricValue = 'saved_size' === metric ?
+				Math.floor( Math.random() * 2500 ) + 500 :
+				Math.floor( Math.random() * 40 ) + 10;
 		}
 
+		// Format based on metric type
 		if ( 'saved_size' === metric ) {
-			return Math.floor( Math.random() * 2500 ) + 500;
-		}
-
-		return Math.floor( Math.random() * 40 ) + 10;
-	};
-
-	const formatMetricValue = metric => {
-		const value = getMetricValue( metric );
-
-		if ( 'saved_size' === metric ) {
-			return ( value / 1000 ).toFixed( 2 ) + 'MB';
+			return ( metricValue / 1000 ).toFixed( 2 ) + 'MB';
 		}
 
 		if ( 'compression_percentage' === metric ) {
-			return value.toFixed( 2 ) + '%';
+			return metricValue.toFixed( 2 ) + '%';
 		}
 
 		if ( 'traffic' === metric ) {
-			return value.toFixed( 2 ) + 'MB';
+			return metricValue.toFixed( 2 ) + 'MB';
 		}
 
-		return value;
+		return metricValue;
 	};
 
 	return (
@@ -188,31 +185,15 @@ const Dashboard = () => {
 			<div className="flex py-5 gap-5 flex-col md:flex-row">
 				{ metrics.map( metric => {
 					return (
-						<div
+						<DashboardMetricBox
 							key={ metric.value }
-							className={ classNames(
-								cardClasses,
-								'basis-1/4 flex-col items-start'
-							) }
-						>
-							<Icon icon={ metric.icon } />
-
-							<div className="flex w-full flex-col">
-								<div className="not-italic font-bold text-xl py-2 text-gray-800">
-									{ formatMetricValue( metric.value ) }
-								</div>
-
-								<div className="not-italic font-normal text-sm text-gray-800">
-									{ metric.label }
-								</div>
-
-								<div className="font-normal text-xs text-gray-600">
-									{ metric.description }
-								</div>
-							</div>
-						</div>
+							value={ getFormattedMetric( metric.value ) }
+							label={ metric.label }
+							description={ metric.description }
+							icon={ metric.icon }
+						/>
 					);
-				}) }
+				})}
 			</div>
 
 			{ 'yes' !== optimoleDashboardApp.remove_latest_images && (

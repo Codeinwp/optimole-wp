@@ -1,0 +1,8 @@
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+#optml-dashboard-widget {
+  .inside {
+    @apply p-0 m-0; 
+  }
+}
