@@ -195,7 +195,7 @@ const Dashboard = () => {
 						</div>
 					</div>
 				</div>
-				
+
 				<div
 					className={ classNames(
 						cardClasses,
