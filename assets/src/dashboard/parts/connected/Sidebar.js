@@ -12,6 +12,8 @@ import { useSelect } from '@wordpress/data';
 import { addQueryArgs } from '@wordpress/url';
 
 import SPCRecommendation from './SPCRecommendation';
+import OptimizationStatus from './OptimizationStatus';
+
 const reasons = [
 	optimoleDashboardApp.strings.upgrade.reason_1,
 	optimoleDashboardApp.strings.upgrade.reason_2,
@@ -124,6 +126,8 @@ const Sidebar = () => {
 					{ optimoleDashboardApp.strings.premium_support }
 				</Button>
 			) }
+
+			<OptimizationStatus />
 
 			{ showSPCRecommendation && (
 				<SPCRecommendation />
