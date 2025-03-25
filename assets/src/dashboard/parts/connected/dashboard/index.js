@@ -147,12 +147,7 @@ const Dashboard = () => {
 				Math.floor( Math.random() * 40 ) + 10;
 		}
 
-		// Format based on metric type
-		if ( 'saved_size' === metric ) {
-			return Math.floor( Math.random() * 2500 ) + 500;
-		}
-
-		return Math.floor( Math.random() * 40 ) + 10;
+		return metricValue;
 	};
 
 	const formatMetricValue = metric => {
