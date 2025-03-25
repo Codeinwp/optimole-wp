@@ -2201,7 +2201,9 @@ The root cause might be either a security plugin which blocks this feature or so
 		if ( $service_data['plan'] !== 'free' ) {
 			return false;
 		}
-
+		if ( ! isset( $service_data['renews_on'] ) ) {
+			return false;
+		}
 		$renews_on                  = $service_data['renews_on'];
 		$timestamp_before_two_weeks = strtotime( '-2 weeks', $renews_on );
 		$today_timestamp            = strtotime( 'today' );
