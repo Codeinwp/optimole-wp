@@ -23,7 +23,7 @@ class Optml_Attachment_Edit {
 		add_action('submenu_file', [$this, 'hide_sub_menu']);
 
 		add_action( 'edit_attachment', [ $this, 'save_attachment_filename' ] );
-		add_action( 'optml_attachment_renamed', [$this, 'bust_cached_assets'], 10, 2 );
+		add_action( 'optml_after_attachment_url_replace', [$this, 'bust_cached_assets'], 10, 3 );
 	}
 
 	public function add_metabox( string $post_type, \WP_Post $post ) {
@@ -282,8 +282,25 @@ class Optml_Attachment_Edit {
 		$renamer->rename();
 	}
 
-	public function bust_cached_assets() {
+	/**
+	 * Bust cached assets
+	 * 
+	 * @param int $attachment_id The attachment ID
+	 * @param string $new_guid The new GUID
+	 * @param string $old_guid The old GUID 
+	 */
+	public function bust_cached_assets( $attachment_id, $new_guid, $old_guid ) {
+		if (
+			class_exists('\ThemeIsle\GutenbergBlocks\Server\Dashboard_Server') &&
+			is_callable(['\ThemeIsle\GutenbergBlocks\Server\Dashboard_Server', 'regenerate_styles'])
+		) {
+			\ThemeIsle\GutenbergBlocks\Server\Dashboard_Server::regenerate_styles();
+		}
 
-		
+		if ( did_action( 'elementor/loaded' ) ) {
+			if ( class_exists( '\Elementor\Plugin' ) ) {
+				\Elementor\Plugin::instance()->files_manager->clear_cache();
+			}
+		}
 	}
 }
