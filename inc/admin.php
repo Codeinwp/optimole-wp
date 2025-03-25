@@ -52,6 +52,9 @@ class Optml_Admin {
 		$this->settings            = new Optml_Settings();
 		$this->conflicting_plugins = new Optml_Conflicting_Plugins();
 
+		$media_rename = new Optml_Attachment_Edit();
+		$media_rename->init();
+
 		add_filter( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
 		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
 		add_action( 'admin_menu', [ $this, 'add_settings_subpage' ], 99 );
