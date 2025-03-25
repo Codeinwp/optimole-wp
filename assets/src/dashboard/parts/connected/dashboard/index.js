@@ -156,7 +156,7 @@ const Dashboard = () => {
 	};
 
 	const formatMetricValue = metric => {
-		const value = getMetricValue( metric );
+		const value = getFormattedMetric( metric );
 		const calcValue = 'saved_size' === metric ? ( value / 1000 ).toFixed( 2 ) : value.toFixed( 2 );
 		return (
 			<div className='flex items-end gap-1'>
