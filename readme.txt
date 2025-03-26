@@ -1,6 +1,6 @@
 === Optimole – Optimize Images | Convert WebP & AVIF | CDN & Lazy Load | Image Optimization ===
 Contributors: optimole
-Tags: image optimization, convert webp, image optimizer, lazy load, image, optimization, convert AVIF, resize, free cdn, compress images, optimize images
+Tags: image optimization, convert webp, image optimizer, lazy load, image, optimisation, convert AVIF, resize, free cdn, compress images, optimize images
 Requires at least: 5.5
 Tested up to: 6.7
 Requires PHP: 7.4
@@ -8,7 +8,7 @@ Stable tag: 3.14.1
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-Optimize images instantly with WebP/AVIF conversion and lazy loading. Free CloudFront CDN for improved conversion & Core Web Vitals! ⚡
+Automatically compress, optimize, and serve scaled images as well as convert WebP & AVIF, all from CloudFront CDN. Lazy load included ⚡
 
 == Description ==
 
@@ -60,7 +60,7 @@ Better yet. The free version is fully functional and includes all of the followi
 
 #### Format-Based Optimization
 
-Our cloud-based transformation process means we can optimize images based on the format as well as serve images in next-gen formats. If your visitor is using a WebP-capable browser, then Optimole will convert to WebP the image and send it to their device. AVIF support included.
+Our cloud-based transformation process means we can optimise images based on the format as well as serve images in next-gen formats. If your visitor is using a WebP-capable browser, then Optimole will convert to WebP the image and send it to their device. AVIF support included.
 
 #### Cloud Library support
 
@@ -68,7 +68,7 @@ Offload your website images directly to Optimole Cloud and save storage space on
 
 #### Image Optimization
 
-Our algorithms crunch the numbers to provide the best lossy or lossless optimization for the best-looking image at the smallest size using Machine Learning(ML) powered compression.
+Our algorithms crunch the numbers to provide the best lossy or lossless optimisation for the best-looking image at the smallest size using Machine Learning(ML) powered compression.
 
 #### Digital Assets Management (DAM)
 
