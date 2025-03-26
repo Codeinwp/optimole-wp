@@ -10,6 +10,7 @@ const OptimizationStatus = () => {
 	const statuses = useSelect( select => {
 		const { getSiteSettings } = select( 'optimole' );
 		const siteSettings = getSiteSettings();
+		const lazyloadEnabled = 'enabled' === siteSettings?.lazyload;
 		return [
 			{
 				active: 'enabled' === siteSettings?.image_replacer,
@@ -17,12 +18,12 @@ const OptimizationStatus = () => {
 				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle1
 			},
 			{
-				active: 'enabled' === siteSettings?.lazyload,
+				active: lazyloadEnabled,
 				label: optimoleDashboardApp.strings.optimization_status.statusTitle2,
 				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle2
 			},
 			{
-				active: 'disabled' === siteSettings?.scale,
+				active: lazyloadEnabled && 'disabled' === siteSettings?.scale,
 				label: optimoleDashboardApp.strings.optimization_status.statusTitle3,
 				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle3
 			}
