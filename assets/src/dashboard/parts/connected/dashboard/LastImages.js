@@ -135,7 +135,7 @@ const LastImages = () => {
 	};
 
 	return (
-		<div className="hidden lg:block pt-5 border-grayish-blue border-0 border-t-2 border-solid">
+		<div className="hidden lg:block pt-5">
 			<h3 className="text-base m-0">{ optimoleDashboardApp.strings.latest_images.last } { optimoleDashboardApp.strings.latest_images.optimized_images }</h3>
 
 			{ ( isInitialLoading && ! isLoaded ) && (
