@@ -152,6 +152,7 @@ final class Optml_Api {
 		$headers = [
 			'Optml-Site' => get_home_url(),
 		];
+		update_option( 'optimole_wp_logger_flag', 'yes' );
 		if ( ! empty( $this->api_key ) ) {
 			$headers['Authorization'] = 'Bearer ' . $this->api_key;
 		}
@@ -326,6 +327,7 @@ final class Optml_Api {
 				'version' => OPTML_VERSION,
 				'sample_image' => $this->get_sample_image(),
 				'site'    => get_home_url(),
+				'reference' => get_option( 'optimole_reference_key', '' ),
 			]
 		);
 	}

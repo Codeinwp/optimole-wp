@@ -122,6 +122,12 @@ $mango-yellow: #FBBF24;
 					text-transform: none;
 				}
 			}
+			.badge-settings {
+				.components-button {
+					outline: none !important;
+					box-shadow: none !important;
+				}
+			}
 		}
 
 		.is-disabled {
@@ -185,6 +191,9 @@ $mango-yellow: #FBBF24;
 
 	.components-range-control .components-range-control__mark-label {
 		padding-top: 10px;
+	}
+	.components-toggle-control__help{
+		margin-inline-start: 0px;
 	}
 }
 

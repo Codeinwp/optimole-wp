@@ -101,6 +101,8 @@ class Optml_Settings {
 		'offload_limit'              => 50000,
 		'placeholder_color'          => '',
 		'show_offload_finish_notice' => '',
+		'show_badge_icon'            => 'disabled',
+		'badge_position'             => 'left',
 	];
 	/**
 	 * Option key.
@@ -113,7 +115,7 @@ class Optml_Settings {
 	 *
 	 * @var array All options.
 	 */
-	private $options;
+	private static $options;
 
 	/**
 	 * Optml_Settings constructor.
@@ -123,11 +125,11 @@ class Optml_Settings {
 
 		$this->namespace      = OPTML_NAMESPACE . '_settings';
 		$this->default_schema = apply_filters( 'optml_default_settings', $this->default_schema );
-		$this->options        = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
+		self::$options        = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 
 		if ( defined( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && $this->to_boolean( constant( 'OPTIML_ENABLED_MU' ) ) && constant( 'OPTIML_MU_SITE_ID' ) ) {
 			switch_to_blog( constant( 'OPTIML_MU_SITE_ID' ) );
-			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
+			self::$options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 			restore_current_blog();
 		}
 
@@ -164,7 +166,7 @@ class Optml_Settings {
 						continue;
 					}
 					$sanitized_value       = ( $type === 'bool' ) ? ( $value === 'on' ? 'enabled' : 'disabled' ) : (int) $value;
-					$this->options[ $key ] = $sanitized_value;
+					self::$options[ $key ] = $sanitized_value;
 				}
 			}
 		}
@@ -201,7 +203,7 @@ class Optml_Settings {
 			return null;
 		}
 
-		return isset( $this->options[ $key ] ) ? $this->options[ $key ] : '';
+		return isset( self::$options[ $key ] ) ? self::$options[ $key ] : '';
 	}
 
 	/**
@@ -266,6 +268,7 @@ class Optml_Settings {
 				case 'rollback_status':
 				case 'best_format':
 				case 'offload_limit_reached':
+				case 'show_badge_icon':
 					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
 				case 'offload_limit':
@@ -352,6 +355,9 @@ class Optml_Settings {
 						Position::SOUTH_EAST
 					);
 					break;
+				case 'badge_position':
+					$sanitized_value = $this->to_map_values( $value, [ 'left', 'right' ], 'right' );
+					break;
 				default:
 					$sanitized_value = '';
 					break;
@@ -412,13 +418,13 @@ class Optml_Settings {
 			return false;
 		}
 
-		$opts                    = $this->options;
+		$opts                    = self::$options;
 		$opts['banner_frontend'] = $value ? 'enabled' : 'disabled';
 
 		$update = update_option( $this->namespace, $opts, false );
 
 		if ( $update ) {
-			$this->options = $opts;
+			self::$options = $opts;
 		}
 
 		return $update;
@@ -440,7 +446,7 @@ class Optml_Settings {
 		if ( ! $this->is_main_mu_site() ) {
 			return false;
 		}
-		$opt = $this->options;
+		$opt = self::$options;
 
 		if ( $key === 'banner_frontend' ) {
 			$api          = new Optml_Api();
@@ -450,9 +456,11 @@ class Optml_Settings {
 		}
 
 		$opt[ $key ] = $value;
+
 		$update      = update_option( $this->namespace, $opt, false );
+
 		if ( $update ) {
-			$this->options = $opt;
+			self::$options = $opt;
 		}
 		if ( apply_filters( 'optml_dont_trigger_settings_updated', false ) === false ) {
 			do_action( 'optml_settings_updated' );
@@ -530,6 +538,8 @@ class Optml_Settings {
 			'offload_limit_reached'      => $this->get( 'offload_limit_reached' ),
 			'placeholder_color'          => $this->get( 'placeholder_color' ),
 			'show_offload_finish_notice' => $this->get( 'show_offload_finish_notice' ),
+			'show_badge_icon'            => $this->get( 'show_badge_icon' ),
+			'badge_position'             => $this->get( 'badge_position' ),
 		];
 	}
 
@@ -695,12 +705,14 @@ class Optml_Settings {
 	 */
 	public function reset() {
 		$reset_schema            = $this->default_schema;
-		$reset_schema['filters'] = $this->options['filters'];
+		$reset_schema['filters'] = self::$options['filters'];
 
 		$update = update_option( $this->namespace, $reset_schema );
 		if ( $update ) {
-			$this->options = $reset_schema;
+			self::$options = $reset_schema;
 		}
+		wp_unschedule_hook( Optml_Admin::SYNC_CRON );
+		wp_unschedule_hook( Optml_Admin::ENRICH_CRON );
 
 		return $update;
 	}
