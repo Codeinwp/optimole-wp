@@ -586,6 +586,8 @@
         a: aboveTheFoldImages,
         b: processedBgSelectors,
         u: url,
+        t: optimoleDataOptimizer._t,
+        h: optimoleDataOptimizer.hmac,
         l: { 
           i: lcpData.imageId,
           s: lcpData.bgSelector, 

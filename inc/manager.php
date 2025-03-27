@@ -48,6 +48,13 @@ final class Optml_Manager {
 	 */
 	public $lazyload_replacer;
 
+	/**
+	 * Holds the page profiler class.
+	 *
+	 * @access  public
+	 * @since   1.0.0
+	 * @var Profile Page profiler instance.
+	 */
 	public $page_profiler;
 
 	/**
@@ -410,22 +417,27 @@ final class Optml_Manager {
 			return $html;
 		}
 
-		$profile_id = Profile::generate_id($html);
+		$profile_id = Profile::generate_id( $html );
 		// We disable the optimizer for logged in users.
-		if(! is_user_logged_in() || ! apply_filters( 'optml_force_page_profiler', false ) !== true){
-			$js_optimizer = Optml_Admin::get_optimizer_script(false);
-			
-			if(! $this->page_profiler->exists_all($profile_id)){
-				$missing = $this->page_profiler->missing_devices($profile_id);
-				$js_optimizer = str_replace([Profile::PLACEHOLDER, Profile::PLACEHOLDER_MISSING], [$profile_id, implode(',', $missing)]	, $js_optimizer);
-				$html = str_replace(Optml_Admin::get_optimizer_script(true), $js_optimizer, $html);
-				 
+		if ( ! is_user_logged_in() || ! apply_filters( 'optml_force_page_profiler', false ) !== true ) {
+			$js_optimizer = Optml_Admin::get_optimizer_script( false );
+
+			if ( ! $this->page_profiler->exists_all( $profile_id ) ) {
+				$missing = $this->page_profiler->missing_devices( $profile_id );
+				$time = time();
+				$hmac = wp_hash( $profile_id . $time, 'nonce' );
+				$js_optimizer = str_replace(
+					[ Profile::PLACEHOLDER, Profile::PLACEHOLDER_MISSING, Profile::PLACEHOLDER_TIME, Profile::PLACEHOLDER_HMAC ],
+					[ $profile_id, implode( ',', $missing ), $time, $hmac ],
+					$js_optimizer
+				);
+				$html = str_replace( Optml_Admin::get_optimizer_script( true ), $js_optimizer, $html );
+
 			}
 		}
 
-		Profile::set_current_profile_id($profile_id);
+		Profile::set_current_profile_id( $profile_id );
 		$this->page_profiler->set_current_profile_data();
-
 
 		$html = $this->add_html_class( $html );
 
@@ -441,39 +453,39 @@ final class Optml_Manager {
 				}
 			}
 		}
+
+		$personalized_bg_css = Lazyload::get_current_personalized_css();
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', 'viewport_bgselectorsdata: ' . print_r( $personalized_bg_css, true ) );
+		}
+
+		if ( ! empty( $personalized_bg_css ) && ( $start_pos = strpos( $html, Lazyload::MARKER ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
+			// We replace the general bg css with the personalized one.
+			if ( ( $end_pos = strpos( $html, Lazyload::MARKER, $start_pos + strlen( Lazyload::MARKER ) ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
+				$html = substr_replace(
+					$html,
+					$personalized_bg_css,
+					$start_pos,
+					$end_pos + strlen( Lazyload::MARKER ) - $start_pos
+				);
+			}
+		}
+
+		// WE need this last since during bg personalized CSS we collect preload urls
+		if ( Links::get_links_count() > 0 ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', 'preload_links: ' . print_r( Links::get_links(), true ) );
+			}
+			$html = str_replace( Optml_Admin::get_preload_links(), Links::get_links_html(), $html );
+		}
+
 		$html = apply_filters( 'optml_url_pre_process', $html );
 
 		$html = $this->process_urls_from_content( $html );
 
 		$html = apply_filters( 'optml_url_post_process', $html );
-
-		$personalized_bg_css = Lazyload::get_current_personalized_css();
-		if(OPTML_DEBUG){
-			do_action('optml_log', 'viewport_bgselectorsdata: ' . print_r($personalized_bg_css, true));
-		}
-		
-		if( !empty($personalized_bg_css) && ($start_pos = strpos($html, Lazyload::MARKER)) !== false ) {
-			//We replace the general bg css with the personalized one.
-			if(($end_pos = strpos($html, Lazyload::MARKER, $start_pos + strlen(Lazyload::MARKER))) !== false) {
-				$html = substr_replace(
-					$html,
-					$personalized_bg_css,
-					$start_pos,
-					$end_pos + strlen(Lazyload::MARKER) - $start_pos
-				);
-			}
-		}
-
-		//WE need this last since during bg personalized CSS we collect preload urls
-		if(Links::get_links_count() > 0){
-			if(OPTML_DEBUG){
-				do_action('optml_log', 'preload_links: ' . print_r(Links::get_links(), true		));
-			}
-			$html = str_replace(Optml_Admin::get_preload_links(), Links::get_links_html(), $html);
-		}
 		Profile::reset_current_profile();
 		return $html;
-	 
 	}
 
 	/**
@@ -579,7 +591,7 @@ final class Optml_Manager {
 
 		if ( preg_match_all( $regex, $content, $images, PREG_OFFSET_CAPTURE ) ) {
 			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log',  'images parased: ' . print_r($images, true));
+				do_action( 'optml_log', 'images parased: ' . print_r( $images, true ) );
 			}
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.

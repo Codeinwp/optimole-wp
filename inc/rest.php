@@ -170,7 +170,7 @@ class Optml_Rest {
 		if ( $wp_method_constant !== false ) {
 			$params = [
 				'methods'             => $wp_method_constant,
-				'permission_callback' => function_exists($permission_callback) ? $permission_callback : function () use ( $permission_callback ) {
+				'permission_callback' => function_exists( $permission_callback ) ? $permission_callback : function () use ( $permission_callback ) {
 					return current_user_can( $permission_callback );
 				},
 				'callback'            => [ $this, $route ],
@@ -971,67 +971,93 @@ class Optml_Rest {
 	}
 
 	/**
-	 * Store above fold data.
+	 * Store optimization data.
 	 *
 	 * @param WP_REST_Request $request Rest request.
 	 *
 	 * @return WP_REST_Response
 	 */
 	public function optimizations( WP_REST_Request $request ) {
+		$time = $request->get_param( 't' );
+		$hmac = $request->get_param( 'h' );
+		if ( empty( $time ) || empty( $hmac ) ) {
+			return $this->response( 'Missing required parameters', 'error' );
+		}
+
 		$device_type = $request->get_param( 'd' );
 		$above_fold_images = $request->get_param( 'a' );
 		$url = $request->get_param( 'u' );
+		if ( $time < time() - 300 ) {
+			return $this->response( 'Invalid Signature.', 'error' );
+		}
+		if ( wp_hash( $url . $time, 'nonce' ) !== $hmac ) {
+			return $this->response( 'Invalid Signature.', 'error' );
+		}
 		$bg_selectors = $request->get_param( 'b' );
 		$lcp_data = $request->get_param( 'l' );
-
 		$origin = $request->get_header( 'origin' );
-		if ( empty($origin) || ! is_allowed_http_origin( $origin ) ) {
+		if ( empty( $origin ) || ! is_allowed_http_origin( $origin ) ) {
 			return $this->response( 'Invalid origin', 'error' );
 		}
-		if ( empty( $device_type ) || empty( $above_fold_images ) || empty( $url ) || !is_array($above_fold_images) ) {
+		if ( empty( $device_type ) || empty( $above_fold_images ) || empty( $url ) || ! is_array( $above_fold_images ) ) {
 			return $this->response( 'Missing required parameters', 'error' );
 		}
-		if(count($above_fold_images) > 20){	
+		if ( count( $above_fold_images ) > 20 ) {
 			return $this->response( 'Above fold images limit exceeded', 'error' );
 		}
-		if( count($bg_selectors) > 100){
+		if ( count( $bg_selectors ) > 100 ) {
 			return $this->response( 'Background selectors limit exceeded', 'error' );
 		}
-		if($url === Profile::PLACEHOLDER){
+		if ( $url === Profile::PLACEHOLDER ) {
 			return $this->response( 'Missing profile parameters', 'error' );
 		}
-		
-		$current_selectors = array_values(Optml_Lazyload_Replacer::get_background_lazyload_selectors());
+
+		$current_selectors = array_values( Optml_Lazyload_Replacer::get_background_lazyload_selectors() );
 		$sanitized_selectors = [];
-		foreach($bg_selectors as $selector => $above_fold_bg_selectors){
-			if(!in_array($selector, $current_selectors)){
+		foreach ( $bg_selectors as $selector => $above_fold_bg_selectors ) {
+			if ( ! in_array( $selector, $current_selectors, true ) ) {
 				return $this->response( 'Invalid background selector', 'error' );
 			}
-			if(count($above_fold_bg_selectors) > 100){
+			if ( count( $above_fold_bg_selectors ) > 100 ) {
 				return $this->response( 'Above fold background selectors limit exceeded', 'error' );
 			}
-			$selector = strip_tags($selector);
-			$sanitized_selectors[$selector] = [];
-			foreach($above_fold_bg_selectors as $above_fold_bg_selector => $bg_urls){
-				if(count($bg_urls) > 3){
+			$selector = strip_tags( $selector );
+			$sanitized_selectors[ $selector ] = [];
+			foreach ( $above_fold_bg_selectors as $above_fold_bg_selector => $bg_urls ) {
+				if ( count( $bg_urls ) > 3 ) {
 					return $this->response( 'Background URLs limit exceeded', 'error' );
 				}
-				$sanitized_selectors[$selector][strip_tags($above_fold_bg_selector)] =  array_map('sanitize_url', array_values($bg_urls));
+				$sanitized_selectors[ $selector ][ strip_tags( $above_fold_bg_selector ) ] = array_filter(
+					array_map( 'sanitize_url', array_values( $bg_urls ) ),
+					function ( $url ) {
+						// we ignore urls that are not from our service
+						return strpos( $url, Optml_Config::$service_url ) === 0;
+					}
+				);
 			}
 		}
 		$sanitized_lcp_data = [];
-		if(!empty($lcp_data)){
-			$sanitized_lcp_data['imageId'] = sanitize_text_field($lcp_data['i'] ?? '');
-			$sanitized_lcp_data['bgSelector'] = sanitize_text_field($lcp_data['s'] ?? '');
-			$sanitized_lcp_data['bgUrls'] = array_map('sanitize_url', array_values($lcp_data['u'] ?? []));
-			$sanitized_lcp_data['type'] = empty($sanitized_lcp_data['imageId']) ? 'bg' : 'img';
+		if ( ! empty( $lcp_data ) ) {
+			$sanitized_lcp_data['imageId'] = sanitize_text_field( $lcp_data['i'] ?? '' );
+			$sanitized_lcp_data['bgSelector'] = sanitize_text_field( $lcp_data['s'] ?? '' );
+			if ( count( $lcp_data['u'] ?? [] ) > 3 ) {
+				return $this->response( 'LCP Background URLs limit exceeded', 'error' );
+			}
+			$sanitized_lcp_data['bgUrls'] = array_filter(
+				array_map( 'sanitize_url', array_values( $lcp_data['u'] ?? [] ) ),
+				function ( $url ) {
+					// we ignore urls that are not from our service
+					return strpos( $url, Optml_Config::$service_url ) === 0;
+				}
+			);
+			$sanitized_lcp_data['type'] = empty( $sanitized_lcp_data['imageId'] ) ? 'bg' : 'img';
 		}
 
-		if(OPTML_DEBUG){
-			do_action('optml_log', 'Storing: ' . $url . ' - ' . $device_type . ' - ' . print_r($above_fold_images, true).print_r($sanitized_selectors, true). print_r($sanitized_lcp_data, true));
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', 'Storing: ' . $url . ' - ' . $device_type . ' - ' . print_r( $above_fold_images, true ) . print_r( $sanitized_selectors, true ) . print_r( $sanitized_lcp_data, true ) );
 		}
 		$profile = new Profile();
-		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data ); 
+		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data );
 		return $this->response( 'Above fold data stored successfully' );
 	}
 

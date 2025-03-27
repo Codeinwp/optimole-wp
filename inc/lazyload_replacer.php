@@ -326,7 +326,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		// We keep this for srcset lazyload compatibility that might break our mechanism.
 		$new_tag = str_replace( 'srcset=', 'old-srcset=', $new_tag );
-		
+
 		if ( ! $this->should_add_noscript( $new_tag ) ) {
 			return $new_tag;
 		}
@@ -398,8 +398,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return bool We can lazyload?
 	 */
 	public function can_lazyload_for( $url, $tag = '' ) {
-		if(OPTML_DEBUG){
-			do_action('optml_log', 'can_lazyload_for: ' . $url . ' ' . $tag);
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', 'can_lazyload_for: ' . $url . ' ' . $tag );
 		}
 		foreach ( self::possible_lazyload_flags() as $banned_string ) {
 			if ( strpos( $tag, $banned_string ) !== false ) {
@@ -428,16 +428,24 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return $type['ext'] !== 'png';
 		}
 
-		if(Optml_Manager::instance()->page_profiler->is_in_all_viewports($this->get_id_by_url($url))){	
-			if(OPTML_DEBUG){
-				do_action('optml_log', 'Lazyload skipped image is in all viewports ' . $url . '|' . $this->get_id_by_url($url) );
-			} 
+		if ( Optml_Manager::instance()->page_profiler->is_in_all_viewports( $this->get_id_by_url( $url ) ) ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', 'Lazyload skipped image is in all viewports ' . $url . '|' . $this->get_id_by_url( $url ) );
+			}
 			// collect ID for preload.
-			Links::add_id($this->get_id_by_url($url));
+			Links::add_id( $this->get_id_by_url( $url ), 'high' );
+			return false;
+		}
+		if ( Optml_Manager::instance()->page_profiler->is_lcp_image_in_all_viewports( $this->get_id_by_url( $url ) ) ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', 'Lazyload skipped image is LCP ' . $url . '|' . $this->get_id_by_url( $url ) );
+			}
+
+			Links::add_id( $this->get_id_by_url( $url ), 'high' );
 			return false;
 		}
 		// if ( Optml_Tag_Replacer::$lazyload_skipped_images < self::get_skip_lazyload_limit() ) {
-		// 	return false;
+		// return false;
 		// }
 		return true;
 	}
