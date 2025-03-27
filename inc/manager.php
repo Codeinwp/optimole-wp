@@ -1,5 +1,9 @@
 <?php
 
+use OptimoleWP\BgOptimizer\Lazyload;
+use OptimoleWP\PageProfiler\Profile;
+use OptimoleWP\Preload\Links;
+
 /**
  * Class Optml_Manager. Adds hooks for processing tags and urls.
  *
@@ -44,6 +48,7 @@ final class Optml_Manager {
 	 */
 	public $lazyload_replacer;
 
+	public $page_profiler;
 
 	/**
 	 * Holds plugin settings.
@@ -110,7 +115,7 @@ final class Optml_Manager {
 			self::$instance->url_replacer      = Optml_Url_Replacer::instance();
 			self::$instance->tag_replacer      = Optml_Tag_Replacer::instance();
 			self::$instance->lazyload_replacer = Optml_Lazyload_Replacer::instance();
-
+			self::$instance->page_profiler = new Profile();
 			add_action( 'after_setup_theme', [ self::$instance, 'init' ] );
 			add_action( 'wp_footer', [ self::$instance, 'banner' ] );
 		}
@@ -405,6 +410,23 @@ final class Optml_Manager {
 			return $html;
 		}
 
+		$profile_id = Profile::generate_id($html);
+		// We disable the optimizer for logged in users.
+		if(! is_user_logged_in() || ! apply_filters( 'optml_force_page_profiler', false ) !== true){
+			$js_optimizer = Optml_Admin::get_optimizer_script(false);
+			
+			if(! $this->page_profiler->exists_all($profile_id)){
+				$missing = $this->page_profiler->missing_devices($profile_id);
+				$js_optimizer = str_replace([Profile::PLACEHOLDER, Profile::PLACEHOLDER_MISSING], [$profile_id, implode(',', $missing)]	, $js_optimizer);
+				$html = str_replace(Optml_Admin::get_optimizer_script(true), $js_optimizer, $html);
+				 
+			}
+		}
+
+		Profile::set_current_profile_id($profile_id);
+		$this->page_profiler->set_current_profile_data();
+
+
 		$html = $this->add_html_class( $html );
 
 		$html = $this->process_images_from_content( $html );
@@ -425,7 +447,33 @@ final class Optml_Manager {
 
 		$html = apply_filters( 'optml_url_post_process', $html );
 
+		$personalized_bg_css = Lazyload::get_current_personalized_css();
+		if(OPTML_DEBUG){
+			do_action('optml_log', 'viewport_bgselectorsdata: ' . print_r($personalized_bg_css, true));
+		}
+		
+		if( !empty($personalized_bg_css) && ($start_pos = strpos($html, Lazyload::MARKER)) !== false ) {
+			//We replace the general bg css with the personalized one.
+			if(($end_pos = strpos($html, Lazyload::MARKER, $start_pos + strlen(Lazyload::MARKER))) !== false) {
+				$html = substr_replace(
+					$html,
+					$personalized_bg_css,
+					$start_pos,
+					$end_pos + strlen(Lazyload::MARKER) - $start_pos
+				);
+			}
+		}
+
+		//WE need this last since during bg personalized CSS we collect preload urls
+		if(Links::get_links_count() > 0){
+			if(OPTML_DEBUG){
+				do_action('optml_log', 'preload_links: ' . print_r(Links::get_links(), true		));
+			}
+			$html = str_replace(Optml_Admin::get_preload_links(), Links::get_links_html(), $html);
+		}
+		Profile::reset_current_profile();
 		return $html;
+	 
 	}
 
 	/**
@@ -531,7 +579,7 @@ final class Optml_Manager {
 
 		if ( preg_match_all( $regex, $content, $images, PREG_OFFSET_CAPTURE ) ) {
 			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', $images );
+				do_action( 'optml_log',  'images parased: ' . print_r($images, true));
 			}
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.

@@ -18,7 +18,10 @@
   "autoload": {
     "files": [
       "vendor/codeinwp/themeisle-sdk/load.php"
-    ]
+    ],
+    "psr-4": {
+      "OptimoleWP\\": "inc/v2/"
+    }
   },
   "autoload-dev": {
     "files": [

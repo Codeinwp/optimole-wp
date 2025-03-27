@@ -677,4 +677,10 @@ abstract class Optml_App_Replacer {
 
 		return $optimized_image->getUrl();
 	}
+	protected function get_id_by_url($url){
+		srand(crc32($url));
+		$random_id = rand();
+		srand();
+		return $random_id;
+	}
 }

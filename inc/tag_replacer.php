@@ -1,5 +1,7 @@
 <?php
 
+use OptimoleWP\Preload\Links;
+
 /**
  * The class handles the img tag replacements.
  *
@@ -137,6 +139,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		$image_sizes = self::image_sizes();
 		$sizes2crop  = self::size_to_crop();
+		if(OPTML_DEBUG){
+			do_action('optml_log', 'process_image_tags: ' . print_r($images, true));
+		}
 		foreach ( $images[0] as $index => $tag ) {
 			$width     = $height = false;
 			$crop = null;
@@ -229,6 +234,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			} else {
 				$image_tag = apply_filters( 'optml_tag_replace', $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
 			}
+			$image_tag = preg_replace( '/<img/im', '<img data-opt-id=' . $this->get_id_by_url($images['img_url'][ $index ]) . ' ', $image_tag );
+
+			if($priority = Links::is_preloaded($this->get_id_by_url($images['img_url'][ $index ]))){
+				Links::preload_tag($image_tag, $priority);
+			}
+			
 			if ( strpos( $image_tag, 'decoding=' ) === false ) {
 				$pattern = '/<img(.*?)/is';
 				$replace = '<img decoding=async $1';
@@ -323,6 +334,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * @return string
 	 */
 	public function regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed = false, $full_tag = '' ) {
+		if(OPTML_DEBUG){
+			do_action('optml_log', 'regular_tag_replace: ' . $original_url . ' ' . $new_url);
+		}
 		$pattern = '/(?<!\/)' . preg_quote( $original_url, '/' ) . '/i';
 		$replace = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
 		if ( $this->settings->get( 'lazyload' ) === 'enabled' && $this->settings->get( 'native_lazyload' ) === 'enabled'
@@ -333,12 +347,19 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$new_tag = $is_slashed ? str_replace( 'loading=\"lazy\"', 'loading=\"eager\"', $new_tag ) : str_replace( 'loading="lazy"', 'loading="eager"', $new_tag );
 			}
 		}
-		// If the image is between the first images we add the fetchpriority attribute to improve the LCP.
-		if ( self::$lazyload_skipped_images < Optml_Lazyload_Replacer::get_skip_lazyload_limit() ) {
-			if ( strpos( $new_tag, 'fetchpriority=' ) === false ) {
-				$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img fetchpriority=\"high\"' : '<img fetchpriority="high"', $new_tag );
-			}
+		if(Optml_Manager::instance()->page_profiler->is_in_all_viewports($this->get_id_by_url($original_url))){
+			if(OPTML_DEBUG){
+				do_action('optml_log', 'Adding preload priority for image ' . $original_url . '|' . $this->get_id_by_url($original_url) );
+			} 
+			// collect ID for preload.
+			Links::add_id($this->get_id_by_url($original_url), 'high');
 		}
+		// // If the image is between the first images we add the fetchpriority attribute to improve the LCP.
+		// if ( self::$lazyload_skipped_images < Optml_Lazyload_Replacer::get_skip_lazyload_limit() ) {
+		// 	if ( strpos( $new_tag, 'fetchpriority=' ) === false ) {
+		// 		$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img fetchpriority=\"high\"' : '<img fetchpriority="high"', $new_tag );
+		// 	}
+		// }
 
 		++self::$lazyload_skipped_images;
 		return preg_replace( $pattern, $replace, $new_tag );

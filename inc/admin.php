@@ -11,6 +11,8 @@
  */
 
 use enshrined\svgSanitize\Sanitizer;
+use OptimoleWP\BgOptimizer\Lazyload;
+use OptimoleWP\PageProfiler\Profile;
 /**
  * Class Optml_Admin
  */
@@ -959,9 +961,10 @@ class Optml_Admin {
 		if ( empty( $css ) ) {
 			return '';
 		}
-		$css = implode( ",\n", $css ) . ' { background-image: none !important; } ';
-
-		return strip_tags( $css );
+		$css = implode( ",\n", $css ) . ' { background-image: none !important; }';
+		 
+		$css = Lazyload::MARKER . "\n" . strip_tags( $css ) . "\n" . Lazyload::MARKER; 
+		return $css;
 	}
 
 	/**
@@ -995,8 +998,30 @@ class Optml_Admin {
 								 ';
 			wp_add_inline_script( 'optml-print', $script );
 		}
+		add_action('wp_footer', function(){
+			print (self::get_optimizer_script());
+		});
+		print (self::get_preload_links());
+	}
+	public static function get_optimizer_script($placeholder = true ){
+		if($placeholder){
+			return '<script id=optmloptimizer></script>';
+		}
+		
+		return '<script async  src="'. add_query_arg('v', OPTML_VERSION, OPTML_URL . 'assets/build/optimizer/optimizer.js').'"></script><script id="optmloptimizer" >
+		  var optimoleDataOptimizer = ' . wp_json_encode( [
+			'restUrl' => esc_js( untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) ),
+			'nonce' => esc_js( wp_create_nonce( 'wp_rest' ) ),
+			'missingDevices' => esc_js( Profile::PLACEHOLDER_MISSING ),
+			'pageProfileId' => esc_js( Profile::PLACEHOLDER ),
+			'bgSelectors' => arraY_values(Optml_Lazyload_Replacer::get_background_lazyload_selectors())
+		  ] ) . ';
+		</script>'; 
 	}
 
+	public static function get_preload_links(): string{
+		return '<script id=optmlpreload></script>';
+	}
 	/**
 	 * Maybe redirect to dashboard page.
 	 */

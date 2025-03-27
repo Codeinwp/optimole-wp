@@ -9,6 +9,7 @@
 
 use Optimole\Sdk\Resource\ImageProperty\ResizeTypeProperty;
 use Optimole\Sdk\ValueObject\Position;
+use OptimoleWP\PageProfiler\Profile;
 
 /**
  * Class Optml_Rest
@@ -116,6 +117,26 @@ class Optml_Rest {
 				],
 			],
 		],
+		'optimization_routes' => [
+			'optimizations' => [
+				'POST',
+				'args' => [
+					'd' => [
+						'type'     => 'integer',
+						'required' => true,
+					],
+					'a' => [
+						'type'     => 'array',
+						'required' => true,
+					],
+					'u' => [
+						'type'     => 'string',
+						'required' => true,
+					],
+				],
+				'permission_callback' => '__return_true',
+			],
+		],
 	];
 
 	/**
@@ -149,7 +170,7 @@ class Optml_Rest {
 		if ( $wp_method_constant !== false ) {
 			$params = [
 				'methods'             => $wp_method_constant,
-				'permission_callback' => function () use ( $permission_callback ) {
+				'permission_callback' => function_exists($permission_callback) ? $permission_callback : function () use ( $permission_callback ) {
 					return current_user_can( $permission_callback );
 				},
 				'callback'            => [ $this, $route ],
@@ -181,6 +202,7 @@ class Optml_Rest {
 		$this->register_media_offload_routes();
 		$this->register_dam_routes();
 		$this->register_notification_routes();
+		$this->register_optimization_routes();
 	}
 
 	/**
@@ -946,5 +968,79 @@ class Optml_Rest {
 		}
 
 		return $this->response( [ 'success' => 'Notice dismissed' ] );
+	}
+
+	/**
+	 * Store above fold data.
+	 *
+	 * @param WP_REST_Request $request Rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function optimizations( WP_REST_Request $request ) {
+		$device_type = $request->get_param( 'd' );
+		$above_fold_images = $request->get_param( 'a' );
+		$url = $request->get_param( 'u' );
+		$bg_selectors = $request->get_param( 'b' );
+		$lcp_data = $request->get_param( 'l' );
+
+		$origin = $request->get_header( 'origin' );
+		if ( empty($origin) || ! is_allowed_http_origin( $origin ) ) {
+			return $this->response( 'Invalid origin', 'error' );
+		}
+		if ( empty( $device_type ) || empty( $above_fold_images ) || empty( $url ) || !is_array($above_fold_images) ) {
+			return $this->response( 'Missing required parameters', 'error' );
+		}
+		if(count($above_fold_images) > 20){	
+			return $this->response( 'Above fold images limit exceeded', 'error' );
+		}
+		if( count($bg_selectors) > 100){
+			return $this->response( 'Background selectors limit exceeded', 'error' );
+		}
+		if($url === Profile::PLACEHOLDER){
+			return $this->response( 'Missing profile parameters', 'error' );
+		}
+		
+		$current_selectors = array_values(Optml_Lazyload_Replacer::get_background_lazyload_selectors());
+		$sanitized_selectors = [];
+		foreach($bg_selectors as $selector => $above_fold_bg_selectors){
+			if(!in_array($selector, $current_selectors)){
+				return $this->response( 'Invalid background selector', 'error' );
+			}
+			if(count($above_fold_bg_selectors) > 100){
+				return $this->response( 'Above fold background selectors limit exceeded', 'error' );
+			}
+			$selector = strip_tags($selector);
+			$sanitized_selectors[$selector] = [];
+			foreach($above_fold_bg_selectors as $above_fold_bg_selector => $bg_urls){
+				if(count($bg_urls) > 3){
+					return $this->response( 'Background URLs limit exceeded', 'error' );
+				}
+				$sanitized_selectors[$selector][strip_tags($above_fold_bg_selector)] =  array_map('sanitize_url', array_values($bg_urls));
+			}
+		}
+		$sanitized_lcp_data = [];
+		if(!empty($lcp_data)){
+			$sanitized_lcp_data['imageId'] = sanitize_text_field($lcp_data['i'] ?? '');
+			$sanitized_lcp_data['bgSelector'] = sanitize_text_field($lcp_data['s'] ?? '');
+			$sanitized_lcp_data['bgUrls'] = array_map('sanitize_url', array_values($lcp_data['u'] ?? []));
+			$sanitized_lcp_data['type'] = empty($sanitized_lcp_data['imageId']) ? 'bg' : 'img';
+		}
+
+		if(OPTML_DEBUG){
+			do_action('optml_log', 'Storing: ' . $url . ' - ' . $device_type . ' - ' . print_r($above_fold_images, true).print_r($sanitized_selectors, true). print_r($sanitized_lcp_data, true));
+		}
+		$profile = new Profile();
+		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data ); 
+		return $this->response( 'Above fold data stored successfully' );
+	}
+
+	/**
+	 * Method to register above fold data routes.
+	 */
+	public function register_optimization_routes() {
+		foreach ( self::$rest_routes['optimization_routes'] as $route => $details ) {
+			$this->reqister_route( $route, $details[0], $details['args'], $details['permission_callback'] );
+		}
 	}
 }
