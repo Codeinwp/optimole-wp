@@ -136,10 +136,15 @@ class Optml_Attachment_Rename {
 
 		// Update file path in metadata
 		$original_image = sprintf( '%s.%s', $new_file_name_no_ext, $extension );
-		$meta_file = $this->attachment->is_scaled() ? sprintf( '%s-scaled.%s', $new_file_name_no_ext, $extension ) : $original_image;
+		$meta_file = $original_image; 
+    
+    if( $this->attachment->is_scaled() ) {
+      $meta_file = sprintf( '%s-scaled.%s', $new_file_name_no_ext, $extension );
+      $metadata['original_image'] = $original_image;
+    }
 
 		$metadata['file'] = sprintf( '%s/%s', $this->attachment->get_metadata_prefix_path(), $meta_file );
-		$metadata['original_image'] = $original_image;
+    
 
 		// Update image sizes if they exist
 		if ( isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ) {
