@@ -2208,7 +2208,7 @@ The root cause might be either a security plugin which blocks this feature or so
 		$timestamp_before_two_weeks = strtotime( '-2 weeks', $renews_on );
 		$today_timestamp            = strtotime( 'today' );
 
-		if ( $timestamp_before_two_weeks <= $today_timestamp ) {
+		if ( $timestamp_before_two_weeks < $today_timestamp ) {
 			return false;
 		}
 
