@@ -64,14 +64,21 @@ table.compat-attachment-fields {
 .optml-rename-input:focus-within {
     box-shadow: 0 0 0 1px #577BF9;
 }
+
+.optml-rename-media-container {
+  display: flex; 
+  gap: 10px;
+  align-items: center;
+}
   
 .optml-rename-input {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   border-radius: 3px;
   border: 1px solid #577BF9;
   overflow: hidden;
   background: #fff;
+  flex-grow: 1;
 }
 
 .optml-rename-input #optml_rename_file {
@@ -80,17 +87,19 @@ table.compat-attachment-fields {
   flex-grow: 1;
   box-shadow: none;
   background: transparent;
+  min-height: 30px;
 }
 
 .optml-rename-input .optml-file-ext {
-  min-height: 30px;
   padding: 0 10px;
   display: flex;
   align-items: center;
   font-weight: 600;
-  background-color: #577BF9;
-  color: #fff;
+  background-color: #e6effd;
+  border-left: 1px solid #577BF9;
+  color: #577BF9;
 }	
+
 
 .optml-replace-section {
   display: flex;
@@ -166,7 +175,7 @@ table.compat-attachment-fields {
 
 #optml-file-drop-area.drag-active {
   background-color: #e6effd;
-  border: 1px dashed #2271b1;
+  border: 1px dashed #577BF9;
 }
 
 .optml-replace-file-actions {
@@ -175,29 +184,43 @@ table.compat-attachment-fields {
   flex-direction: row-reverse;
   justify-content: flex-end;
   gap: 10px;
+  width: 100%;
 }
 
-.optml-btn {
-  padding: 8px 20px !important;
+.optml-rename-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.optml-replace-file-actions p {
+  margin-right: auto;
+}
+
+[class^="compat-field-optml_"] .optml-btn {
   border-radius: 3px !important;
   border: 0 !important;
   cursor: pointer;
   transition: all 0.3s ease;
   color: #fff !important;
+  margin-bottom: 0 !important;
 }
 
-.optml-btn.primary {
+[class^="compat-field-optml_"] .optml-btn.primary {
   background: #577BF9 !important;
 }
 
-.optml-btn.destructive {
+[class^="compat-field-optml_"] .optml-btn.destructive {
   background: #D93025 !important;
 }
 
-.optml-btn:disabled {
+[class^="compat-field-optml_"] .optml-btn:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: not-allowed !important;
   pointer-events: none;
+  color: #fff !important;
 }
 
 .optml-btn.primary:hover {

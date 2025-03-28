@@ -1,6 +1,29 @@
 
 jQuery(document).ready(function($) {
   console.log(OMAttachmentEdit);
+  const existingFileName = $("#optml_rename_file").attr("placeholder");
+  const renameBtn = $("#optml-rename-file-btn");
+
+  renameBtn.on("click", function(e) {
+    e.preventDefault();
+    $('#publish').click();
+  });
+
+  $("#optml_rename_file").on("input", function(e) {
+    console.log("change");
+    const newFileName = $(this).val();
+    if (newFileName === existingFileName) {
+      return;
+    }
+
+    if(newFileName.trim().length === 0 || newFileName.trim().length > 100) {
+      renameBtn.prop("disabled", true);
+      return; 
+    }
+
+    renameBtn.prop("disabled", false);
+  });
+
   $("#optml-replace-file-field").on("change", function(e) {
     handleFileSelect(this.files[0]);
   });
@@ -90,6 +113,14 @@ jQuery(document).ready(function($) {
     formData.append("attachment_id", OMAttachmentEdit.attachmentId);
     formData.append("file", $("#optml-replace-file-field")[0].files[0]);
 
+    console.log({
+      action: "optml_replace_file",
+      attachment_id: OMAttachmentEdit.attachmentId,
+      file: $("#optml-replace-file-field")[0].files[0]
+    })
+
+    console.log(formData);
+
     jQuery.ajax({
       url: OMAttachmentEdit.ajaxURL,
       type: "POST",
@@ -99,7 +130,7 @@ jQuery(document).ready(function($) {
       success: function(response) {
         console.log(response);
         if(response.success) {
-          window.location.reload();
+          // window.location.reload();
           console.log(response);
         } else {
           $(".optml-replace-file-error").removeClass("hidden");

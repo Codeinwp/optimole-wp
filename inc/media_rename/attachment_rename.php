@@ -66,9 +66,9 @@ class Optml_Attachment_Rename {
 		}
 
 		// Rename the file (move) - moves the original, not the scaled image.
-		$renamed = $wp_filesystem->move( $file_path, $new_file_path );
-		if ( ! $renamed ) {
-			return;
+		$moved = $wp_filesystem->move( $file_path, $new_file_path );
+		if ( ! $moved ) {
+			return new WP_Error( 'optml_attachment_rename_failed', __( 'Failed to rename the attachment.', 'optimole' ) );
 		}
 
 		// Move the scaled image if it exists.
@@ -80,7 +80,7 @@ class Optml_Attachment_Rename {
 
 			$new_scaled_file_path = $base_dir . $scaled_new_file_with_ext;
 			// Move the scaled image. We also override any leftover scaled files.
-			$move = $wp_filesystem->move( $scaled_old_file_path, $new_scaled_file_path, true );
+			$wp_filesystem->move( $scaled_old_file_path, $new_scaled_file_path, true );
 		}
 
 		// Update attachment metadata
