@@ -3,249 +3,211 @@
  * Attachment edit class.
  */
 
- /**
-	* Optml_Attachment_Edit
-	*
-	* @since      4.0.0
-	*/
+/**
+ * Optml_Attachment_Edit
+ *
+ * @since      4.0.0
+ */
 class Optml_Attachment_Edit {
-
-	private static $error_message = '';
-
-	const REPLACE_FILE_PAGE = 'optml-replace-file';
-
+	/**
+	 * Initialize the attachment edit class.
+	 *
+	 * @return void
+	 */
 	public function init() {
 		add_action( 'attachment_fields_to_edit', [ $this, 'add_attachment_fields' ], 10, 2 );
 		add_filter( 'attachment_fields_to_save', [ $this, 'prepare_attachment_filename' ], 10, 2 );
-		
-		add_action( 'add_meta_boxes', [ $this, 'add_metabox' ], 10, 2 );
-		add_action( 'admin_menu', [ $this, 'add_admin_page' ] );
-		add_action('submenu_file', [$this, 'hide_sub_menu']);
 
 		add_action( 'edit_attachment', [ $this, 'save_attachment_filename' ] );
-		add_action( 'optml_after_attachment_url_replace', [$this, 'bust_cached_assets'], 10, 3 );
-	}
+		add_action( 'optml_after_attachment_url_replace', [ $this, 'bust_cached_assets' ], 10, 3 );
+		add_action( 'wp_ajax_optml_replace_file', [ $this, 'replace_file' ] );
 
-	public function add_metabox( string $post_type, \WP_Post $post ) {
-		if( $post_type !== 'attachment' ) {
-			return;
-		}
-
-		$label = '<div class="optml-utils-header">';
-		$label .= '<img src="' . OPTML_URL . 'assets/img/logo.svg" alt="' . __( 'Optimole logo', 'optimole' ) . '" />';
-		$label .= '<span>' . __( 'Optimole utilities', 'optimole' ) . '</span>';
-		$label .= '</div>';
-
-		add_meta_box( 'optml_utilities', $label, [ $this, 'render_metabox' ], 'attachment', 'side' );
-	}
-
-	public function render_metabox( \WP_Post $post ) {
-		$html = '<div class="optml-stack">';
-		$html .= '<label>' . __( 'Replace attachment file:', 'optimole' ) . '</label>';
-		$html .= '<a href="' . esc_url( add_query_arg( ['page' => self::REPLACE_FILE_PAGE, 'attachment_id' => $post->ID], admin_url( 'admin.php' ) ) ) . '" class="button button-primary optml-btn">';
-		$html .= __( 'Replace file', 'optimole' );
-		$html .= '</a>';
-		$html .= '</div>';
-
-		echo $html;
+		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
 	}
 
 	/**
-	 * Add fields to attachment edit form
-	 * 
-	 * @param array $form_fields Array of form fields
-	 * @param WP_Post $post The post object
-	 * @return array Modified form fields
+	 * Enqueue scripts.
+	 *
+	 * @param string $hook The hook.
+	 */
+	public function enqueue_scripts( $hook ) {
+		if ( $hook !== 'post.php' ) {
+			return;
+		}
+
+		$id = sanitize_text_field( $_GET['post'] );
+
+		if ( ! $id ) {
+			return;
+		}
+
+		if ( ! current_user_can( 'edit_post', $id ) ) {
+			return;
+		}
+
+		if ( get_post_type( $id ) !== 'attachment' ) {
+			return;
+		}
+
+		$max_file_size = wp_max_upload_size();
+		// translators: %s is the max file size in MB.
+		$max_file_size_error = sprintf( __( 'File size is too large. Max file size is %sMB', 'optimole' ), $max_file_size / 1024 / 1024 );
+
+		wp_enqueue_style( 'optml-attachment-edit', OPTML_URL . 'assets/css/single-attachment.css', [], OPTML_VERSION );
+
+		wp_register_script( 'optml-attachment-edit', OPTML_URL . 'assets/js/single-attachment.js', [ 'jquery' ], OPTML_VERSION, true );
+		wp_localize_script(
+			'optml-attachment-edit',
+			'OMAttachmentEdit',
+			[
+				'ajaxURL' => admin_url( 'admin-ajax.php' ),
+				'maxFileSize' => $max_file_size,
+				'attachmentId' => $id,
+				'i18n' => [
+					'maxFileSizeError' => $max_file_size_error,
+					'replaceFileError' => __( 'Error replacing file', 'optimole' ),
+				],
+			]
+		);
+		wp_enqueue_script( 'optml-attachment-edit' );
+	}
+
+	/**
+	 * Add fields to attachment edit form.
+	 *
+	 * @param array   $form_fields Array of form fields.
+	 * @param WP_Post $post The post object.
+	 * @return array Modified form fields.
 	 */
 	public function add_attachment_fields( $form_fields, $post ) {
-		$screen 								= get_current_screen();
+		$screen = get_current_screen();
 
-		if( ! isset( $screen ) ) {
+		$attachment = new Optml_Attachment_Model( $post->ID );
+
+		if ( ! isset( $screen ) ) {
 			return $form_fields;
 		}
-	
-		if ( $screen->parent_base !== 'upload' ) return $form_fields;
 
-		$file_path = get_attached_file( $post->ID );
-		$file_name = basename( $file_path );
-		$file_name_no_ext = pathinfo( $file_name, PATHINFO_FILENAME );
-		$file_ext = pathinfo( $file_name, PATHINFO_EXTENSION );
-		$attachment_metadata = wp_get_attachment_metadata( $post->ID );
-
-		$is_scaled = strpos( $file_name_no_ext, '-scaled' ) !== false && isset( $attachment_metadata['original_image'] );
-
-		$html = '<style>
-			.compat-attachment-fields {
-				width: 100% !important;
-			}
-				
-			.optml-stack {
-				display: flex;
-				flex-direction: column;
-				gap: 5px;
-			}
-
-			.optml-btn {
-				background: #577BF9 !important;
-				text-align: center;
-			}
-
-			.optml-btn:hover {
-				background: #4564d2 !important;
-			}
-
-			.optml-utils-header {
-				display: flex;
-				align-items: center;
-				gap: 8px;
-			}
-
-			.optml-utils-header img {
-				width: 25px;
-				height: 25px;
-			}
-
-			.optml-utils-header span {
-				font-size: 13px;
-				font-weight: 600;
-				color: #1d2327;
-			}
-
-			.compat-field-optml_utilities {
-				border-radius: 6px !important;
-				border: 1px solid #577BF9;
-				box-shadow: 0 0 0 1px #577BF9;
-				overflow: hidden;
-			}
-
-			.compat-field-optml_utilities td, 
-			.compat-field-optml_utilities th {
-				padding: 10px 20px;
-			}
-
-			.optml-utils-section {
-				margin: 15px 0;
-			}
-
-			.optml-mu-rename-input:focus-within {
-					box-shadow: 0 0 0 1px #577BF9;
-			}
-
-
-			.optml-rename-media-container label {
-				font-size: 13px;
-				font-weight: 500;
-				margin-bottom: 5px;
-				display: block;
-				color: #2c3338;
-			}
-				
-			.optml-mu-rename-input {
-				display: flex;
-				align-items: center;
-				border-radius: 6px;
-				border: 1px solid #577BF9;
-				overflow: hidden;
-				background: #fff;
-			}
-
-			.optml-mu-rename-input #optml-new-filename {
-				border: 0;
-				border-radius: 0;
-				flex-grow: 1;
-				box-shadow: none;
-				background: transparent;
-			}
-
-			.optml-mu-rename-input .optml-file-ext {
-				min-height: 30px;
-				padding: 0 10px;
-				display: flex;
-				align-items: center;
-				font-weight: 600;
-				background-color: #577BF9;
-				color: #fff;
-			}
-		</style>';
-		
-		$html .= '<div class="optml-utils-section">';
-		$html .= '<div class="optml-rename-media-container">';
-		$html .= '<div>';
-
-		$html .= '<label for="optml-new-filename">' . __( 'Change file name:', 'optimole' ) . '</label>';
-		$html .= '<div class="optml-mu-rename-input">';
-		$html .= '<input type="text" id="optml-new-filename" name="optml_new_filename" placeholder="' . esc_attr( $file_name_no_ext ) . '">';
-		$html .= '<span class="optml-file-ext">.' . esc_html( $file_ext ) . '</span>';
-		$html .= '</div>';
-
-		if( $is_scaled ) {
-			$html .= '<br>';
-			$html .= '<p class="description">' . __( 'This is a scaled image. The original image will be renamed to the new name and the scaled image which is used in the media library will have the suffix -scaled. There is no need to add the -scaled suffix to the new name as it will be added automatically.', 'optimole' ) . '</p>';
+		if ( $screen->parent_base !== 'upload' ) {
+			return $form_fields;
 		}
 
-		$html .= '</div>';
-		$html .= '</div>';
-		$html .= '</div>';
-		
-		$html .= '<input type="hidden" name="optml_current_ext" value="' . esc_attr( $file_ext ) . '">';
-
-		wp_nonce_field( 'optml_rename_media_nonce', 'optml_rename_nonce' );
-
-
-		$label = '';
-		$label .= '<div class="optml-utils-header">';
-		$label .= '<img src="' . OPTML_URL . 'assets/img/logo.svg" alt="' . __( 'Optimole logo', 'optimole' ) . '" />';
-		$label .= '<span>' . __( 'Rename attached file', 'optimole' ) . '</span>';
-		$label .= '</div>';
-		
-		$form_fields['optml_utilities'] = [
-			'label' => $label,
+		$form_fields['optml_rename_file'] = [
+			'label' => __( 'Rename attached file', 'optimole' ),
 			'input' => 'html',
-			'html' => $html,
+			'html' => $this->get_rename_field( $attachment ),
+		];
+
+		$form_fields['optml_replace_file'] = [
+			'label' => __( 'Replace file', 'optimole' ),
+			'input' => 'html',
+			'html' => $this->get_replace_field( $attachment ),
+		];
+
+		$form_fields['optml_footer_row'] = [
+			'label' => '',
+			'input' => 'html',
+			'html' => $this->get_footer_html(),
+		];
+
+		$form_fields['optml_spacer_row'] = [
+			'label' => '',
+			'input' => 'html',
+			'html' => '<div></div>',
 		];
 
 		return $form_fields;
 	}
 
-	public function add_admin_page() {
-		add_submenu_page(
-			'upload.php',
-			__('Replace file', 'optimole'),
-			__('Replace file', 'optimole'),
-			'edit_posts',
-			self::REPLACE_FILE_PAGE,
-			[ $this, 'render_admin_page' ],
-		);
-	}
-
-	public function render_admin_page() {
-		echo 'Hello';
-	}
-
 	/**
-	 * Hide the submenu item
-	 */
-	public function hide_sub_menu($submenu_file) {
-		 global $plugin_page;
-
-			if ( $plugin_page && $plugin_page === self::REPLACE_FILE_PAGE ) {
-					$submenu_file = 'upload.php';
-			}
-
-			remove_submenu_page( 'upload.php', self::REPLACE_FILE_PAGE );
-
-			return $submenu_file;
-	}
-
-	/**
-	 * Prepare the new filename before saving
+	 * Get the rename field HTML.
 	 *
-	 * @param array $post_data Array of post data
-	 * @param array $attachment Array of attachment data
-	 * @return array Modified post data
+	 * @param \Optml_Attachment_Model $attachment The attachment model.
+	 *
+	 * @return string The HTML.
+	 */
+	private function get_rename_field( \Optml_Attachment_Model $attachment ) {
+		$file_name_no_ext = $attachment->get_filename_no_ext();
+		$file_ext = $attachment->get_extension();
+
+		$html = '';
+
+		$html .= '<div class="optml-rename-media-container">';
+
+		$html .= '<div class="optml-rename-input">';
+		$html .= '<input type="text" id="optml_rename_file" name="optml_rename_file" placeholder="' . esc_attr( $file_name_no_ext ) . '">';
+		$html .= '<span class="optml-file-ext">.' . esc_html( $file_ext ) . '</span>';
+		$html .= '</div>';
+		$html .= '</div>';
+
+		$html .= '<input type="hidden" name="optml_current_ext" value="' . esc_attr( $file_ext ) . '">';
+
+		wp_nonce_field( 'optml_rename_media_nonce', 'optml_rename_nonce' );
+
+		return $html;
+	}
+
+	/**
+	 * Get the replace field HTML.
+	 *
+	 * @param \Optml_Attachment_Model $attachment The attachment model.
+	 *
+	 * @return string The HTML.
+	 */
+	private function get_replace_field( \Optml_Attachment_Model $attachment ) {
+		$file_ext = $attachment->get_extension();
+
+		$html = '<div class="optml-replace-section">';
+
+		$html .= '<p class="optml-description">' . __( 'This will replace the current file with the new one. The new file will be uploaded to the media library and the old file will be deleted.', 'optimole' ) . '</p>';
+
+		$html .= '<div class="optml-replace-input">';
+
+		$html .= '<label for="optml-replace-file-field" id="optml-file-drop-area">';
+		$html .= '<span class="label-text">' . __( 'Click to select a file or drag & drop here', 'optimole' ) . ' (.' . $file_ext . ')</span>';
+		$html .= '<div class="optml-replace-file-preview"></div>';
+		$html .= '</label>';
+
+		$html .= '<input type="file" class="hidden" id="optml-replace-file-field" name="optml-replace-file-field" accept=".' . esc_attr( $file_ext ) . '">';
+
+		$html .= '<div class="optml-replace-file-actions">';
+		$html .= '<button disabled type="button" class="button optml-btn primary" id="optml-replace-file-btn">' . __( 'Replace file', 'optimole' ) . '</button>';
+		$html .= '<button disabled type="button" class="button optml-btn destructive" id="optml-replace-clear-btn">' . __( 'Clear', 'optimole' ) . '</button>';
+		$html .= '</div>';
+
+		$html .= '<div class="optml-replace-file-error hidden"></div>';
+
+		$html .= '</div>';
+
+		return $html;
+	}
+
+	/**
+	 * Get the footer HTML.
+	 *
+	 * @return string The HTML.
+	 */
+	private function get_footer_html() {
+		$html = '';
+		$html .= '<div class="optml-logo-contianer">';
+		$html .= '<img src="' . OPTML_URL . 'assets/img/logo.svg" alt="' . __( 'Optimole logo', 'optimole' ) . '"/>';
+		// translators: %s is the 'Optimole'.
+		$html .= '<span>' . sprintf( __( 'Powered by %s', 'optimole' ), '<strong>Optimole</strong>' ) . '</span>';
+		$html .= '</div>';
+
+		return $html;
+	}
+
+
+	/**
+	 * Prepare the new filename before saving.
+	 *
+	 * @param array $post_data Array of post data.
+	 * @param array $attachment Array of attachment data.
+	 * @return array Modified post data.
 	 */
 	public function prepare_attachment_filename( array $post_data, array $attachment ) {
-		if( ! current_user_can( 'edit_post', $post_data['ID'] ) ) {
+		if ( ! current_user_can( 'edit_post', $post_data['ID'] ) ) {
 			return $post_data;
 		}
 
@@ -253,13 +215,19 @@ class Optml_Attachment_Edit {
 			return $post_data;
 		}
 
-		if ( ! isset( $post_data['optml_new_filename'] ) || empty( $post_data['optml_new_filename'] ) ) {
+		if ( ! isset( $post_data['optml_rename_file'] ) || empty( $post_data['optml_rename_file'] ) ) {
 			return $post_data;
 		}
 
-		// Store filename for later
-		update_post_meta( $post_data['ID'], '_optml_pending_rename', $post_data['optml_new_filename'] );
-		
+		/**
+		 * Store filename for later, it will be used to rename the attachment.
+		 *
+		 * We do it this way because we don't want to rename the attachment immediately, during the attachment fields update as it will break things.
+		 *
+		 * @see Optml_Attachment_Edit::save_attachment_filename()
+		 */
+		update_post_meta( $post_data['ID'], '_optml_pending_rename', $post_data['optml_rename_file'] );
+
 		return $post_data;
 	}
 
@@ -270,29 +238,57 @@ class Optml_Attachment_Edit {
 	 */
 	public function save_attachment_filename( $post_id ) {
 		$new_filename = get_post_meta( $post_id, '_optml_pending_rename', true );
-		
-		if( empty( $new_filename ) ) {
+
+		if ( empty( $new_filename ) ) {
 			return;
 		}
-		
+
 		// Delete the meta so we don't rename again
 		delete_post_meta( $post_id, '_optml_pending_rename' );
-		
+
 		$renamer = new Optml_Attachment_Rename( $post_id, $new_filename );
 		$renamer->rename();
 	}
 
 	/**
+	 * Replace the file
+	 */
+	public function replace_file() {
+		$id = sanitize_text_field( $_POST['attachment_id'] );
+
+		if ( ! current_user_can( 'edit_post', $id ) ) {
+			wp_send_json_error( __( 'You are not allowed to replace this file', 'optimole' ) );
+		}
+
+		if ( ! isset( $_FILES['file'] ) ) {
+			wp_send_json_error( __( 'No file uploaded', 'optimole' ) );
+		}
+
+		$replacer = new Optml_Attachment_Replace( $id, $_FILES['file'] );
+
+		$replaced = $replacer->replace();
+
+		$is_error = is_wp_error( $replaced );
+
+		$response = [
+			'success' => ! $is_error,
+			'message' => $is_error ? $replaced->get_error_message() : __( 'File replaced successfully', 'optimole' ),
+		];
+
+		wp_send_json( $response );
+	}
+
+	/**
 	 * Bust cached assets
-	 * 
-	 * @param int $attachment_id The attachment ID
-	 * @param string $new_guid The new GUID
-	 * @param string $old_guid The old GUID 
+	 *
+	 * @param int    $attachment_id The attachment ID.
+	 * @param string $new_guid The new GUID.
+	 * @param string $old_guid The old GUID.
 	 */
 	public function bust_cached_assets( $attachment_id, $new_guid, $old_guid ) {
 		if (
-			class_exists('\ThemeIsle\GutenbergBlocks\Server\Dashboard_Server') &&
-			is_callable(['\ThemeIsle\GutenbergBlocks\Server\Dashboard_Server', 'regenerate_styles'])
+			class_exists( '\ThemeIsle\GutenbergBlocks\Server\Dashboard_Server' ) &&
+			is_callable( [ '\ThemeIsle\GutenbergBlocks\Server\Dashboard_Server', 'regenerate_styles' ] )
 		) {
 			\ThemeIsle\GutenbergBlocks\Server\Dashboard_Server::regenerate_styles();
 		}
