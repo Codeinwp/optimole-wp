@@ -49,6 +49,8 @@ class Optml_Attachment_Edit {
 			return;
 		}
 
+		$mime_type = get_post_mime_type( $id );
+
 		$max_file_size = wp_max_upload_size();
 		// translators: %s is the max file size in MB.
 		$max_file_size_error = sprintf( __( 'File size is too large. Max file size is %sMB', 'optimole' ), $max_file_size / 1024 / 1024 );
@@ -63,6 +65,7 @@ class Optml_Attachment_Edit {
 				'ajaxURL' => admin_url( 'admin-ajax.php' ),
 				'maxFileSize' => $max_file_size,
 				'attachmentId' => $id,
+				'mimeType' => $mime_type,
 				'i18n' => [
 					'maxFileSizeError' => $max_file_size_error,
 					'replaceFileError' => __( 'Error replacing file', 'optimole' ),
@@ -83,6 +86,10 @@ class Optml_Attachment_Edit {
 		$screen = get_current_screen();
 
 		$attachment = new Optml_Attachment_Model( $post->ID );
+
+		if ( ! $attachment->can_be_renamed_or_replaced() ) {
+			return $form_fields;
+		}
 
 		if ( ! isset( $screen ) ) {
 			return $form_fields;
@@ -158,12 +165,9 @@ class Optml_Attachment_Edit {
 	 */
 	private function get_replace_field( \Optml_Attachment_Model $attachment ) {
 		$file_ext = $attachment->get_extension();
-		$file_ext = in_array( $file_ext, ['jpg', 'jpeg'] ) ? ['.jpg','.jpeg'] : ['.'. $file_ext];
-
+		$file_ext = in_array( $file_ext, [ 'jpg', 'jpeg' ], true ) ? [ '.jpg', '.jpeg' ] : [ '.' . $file_ext ];
 		$html = '<div class="optml-replace-section">';
-
 		$html .= '<div class="optml-replace-input">';
-
 		$html .= '<label for="optml-replace-file-field" id="optml-file-drop-area">';
 		$html .= '<span class="label-text">' . __( 'Click to select a file or drag & drop here', 'optimole' ) . ' (' . implode( ',', $file_ext ) . ')</span>';
 		$html .= '<div class="optml-replace-file-preview"></div>';
@@ -172,8 +176,9 @@ class Optml_Attachment_Edit {
 		$html .= '<input type="file" class="hidden" id="optml-replace-file-field" name="optml-replace-file-field" accept="' . implode( ',', $file_ext ) . '">';
 
 		$html .= '<div class="optml-replace-file-actions">';
-		$html .= '<button disabled type="button" class="button optml-btn primary" id="optml-replace-file-btn">' . __( 'Replace file', 'optimole' ) . '</button>';
-		$html .= '<button disabled type="button" class="button optml-btn destructive" id="optml-replace-clear-btn">' . __( 'Clear', 'optimole' ) . '</button>';
+		$html .= '<button type="button" class="button optml-btn primary" id="optml-replace-file-btn">' . __( 'Replace file', 'optimole' ) . '</button>';
+		$html .= '<button type="button" class="button optml-btn destructive" id="optml-replace-clear-btn">' . __( 'Clear', 'optimole' ) . '</button>';
+		$html .= $this->get_svg_loader();
 		$html .= '<p class="optml-description">' . __( 'This will replace the current file with the new one. This action cannot be undone.', 'optimole' ) . '</p>';
 		$html .= '</div>';
 
@@ -213,7 +218,6 @@ class Optml_Attachment_Edit {
 			return $post_data;
 		}
 
-		
 		if ( ! isset( $post_data['optml_rename_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $post_data['optml_rename_nonce'] ), 'optml_rename_media_nonce' ) ) {
 			return $post_data;
 		}
@@ -309,5 +313,14 @@ class Optml_Attachment_Edit {
 				\Elementor\Plugin::instance()->files_manager->clear_cache();
 			}
 		}
+	}
+
+	/**
+	 * Get the SVG loader.
+	 *
+	 * @return string The SVG loader.
+	 */
+	private function get_svg_loader() {
+		return '<svg style="display: none;" class="optml-svg-loader" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>';
 	}
 }

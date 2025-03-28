@@ -151,6 +151,21 @@ class Optml_Attachment_Model {
 	}
 
 	/**
+	 * Get filename with extension.
+	 *
+	 * @param bool $scaled Whether the filename is scaled.
+	 *
+	 * @return string
+	 */
+	public function get_filename_with_ext( $scaled = false ) {
+		if ( $scaled ) {
+			return sprintf( '%s-scaled.%s', $this->filename_no_ext, $this->extension );
+		}
+
+		return sprintf( '%s.%s', $this->filename_no_ext, $this->extension );
+	}
+
+	/**
 	 * Get extension.
 	 *
 	 * @return string
@@ -205,6 +220,10 @@ class Optml_Attachment_Model {
 	public function get_all_image_sizes_paths() {
 		$paths = [];
 
+		if ( ! isset( $this->attachment_metadata['sizes'] ) ) {
+			return [];
+		}
+
 		foreach ( $this->attachment_metadata['sizes'] as $size => $size_data ) {
 			$paths[ $size ] = $this->dir_path . '/' . $size_data['file'];
 		}
@@ -221,6 +240,10 @@ class Optml_Attachment_Model {
 		$attachment_metadata = $this->attachment_metadata;
 
 		$links = [];
+
+		if ( ! isset( $attachment_metadata['sizes'] ) ) {
+			return [];
+		}
 
 		foreach ( $attachment_metadata['sizes'] as $size => $size_data ) {
 			$links[ $size ] = str_replace( $this->original_attached_file_name, $size_data['file'], $this->get_guid() );
@@ -252,8 +275,23 @@ class Optml_Attachment_Model {
 	 * @return string
 	 */
 	public function get_metadata_prefix_path() {
+		if ( ! isset( $this->attachment_metadata['file'] ) ) {
+			$attached_file = get_post_meta( $this->attachment_id, '_wp_attached_file', true );
+
+			return dirname( $attached_file );
+		}
+
 		$file_path = $this->attachment_metadata['file'];
 
 		return dirname( $file_path );
+	}
+
+	/**
+	 * Check if can be renamed/replaced.
+	 *
+	 * @return bool
+	 */
+	public function can_be_renamed_or_replaced() {
+		return ! $this->is_remote_attachment;
 	}
 }

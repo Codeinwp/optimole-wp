@@ -136,15 +136,16 @@ class Optml_Attachment_Rename {
 
 		// Update file path in metadata
 		$original_image = sprintf( '%s.%s', $new_file_name_no_ext, $extension );
-		$meta_file = $original_image; 
-    
-    if( $this->attachment->is_scaled() ) {
-      $meta_file = sprintf( '%s-scaled.%s', $new_file_name_no_ext, $extension );
-      $metadata['original_image'] = $original_image;
-    }
+		$meta_file = $original_image;
 
-		$metadata['file'] = sprintf( '%s/%s', $this->attachment->get_metadata_prefix_path(), $meta_file );
-    
+		if ( $this->attachment->is_scaled() ) {
+			$meta_file = sprintf( '%s-scaled.%s', $new_file_name_no_ext, $extension );
+			$metadata['original_image'] = $original_image;
+		}
+
+		if ( isset( $metadata['file'] ) ) {
+			$metadata['file'] = sprintf( '%s/%s', $this->attachment->get_metadata_prefix_path(), $meta_file );
+		}
 
 		// Update image sizes if they exist
 		if ( isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ) {
@@ -192,16 +193,6 @@ class Optml_Attachment_Rename {
 		}
 
 		WP_Filesystem();
-	}
-
-	/**
-	 * Get attachment guid.
-	 *
-	 * @return string
-	 */
-	private function get_attachment_guid() {
-		$post = get_post( $this->attachment_id );
-		return $post->guid;
 	}
 
 	/**
