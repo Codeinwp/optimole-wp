@@ -134,7 +134,7 @@ class Optml_Attachment_Replace {
 
 		// Delete the old scaled version and replace scaled URLs with non-scaled URLs.
 		if ( $old_scaled && ! $new_scaled ) {
-			$main_file_url = $this->attachment->get_guid();
+			$main_file_url = $this->attachment->get_main_url();
 			$unscaled_file = $this->attachment->get_filename_with_ext();
 			$old_scaled_file = $this->attachment->get_filename_with_ext( true );
 			$old_scaled_url = str_replace( $unscaled_file, $old_scaled_file, $main_file_url );
@@ -166,12 +166,12 @@ class Optml_Attachment_Replace {
 		foreach ( $old_sizes_urls as $size => $old_url ) {
 			// If the size is not in the new sizes, we need to use the original URL.
 			if ( ! isset( $new_sizes[ $size ], $new_sizes[ $size ]['file'] ) ) {
-				$replacer->replace( $old_url, $this->attachment->get_guid() );
+				$replacer->replace( $old_url, $this->attachment->get_main_url() );
 				continue;
 			}
 
 			// If the size is in the new sizes, we need to use the new URL.
-			$new_url = str_replace( $this->attachment->get_filename_with_ext(), $new_sizes[ $size ]['file'], $this->attachment->get_guid() );
+			$new_url = str_replace( $this->attachment->get_filename_with_ext(), $new_sizes[ $size ]['file'], $this->attachment->get_main_url() );
 			$replacer->replace( $old_url, $new_url );
 		}
 	}

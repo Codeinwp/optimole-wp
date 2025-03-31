@@ -210,10 +210,6 @@ class Optml_Attachment_Db_Renamer {
 		$old_path = $old_path_parts['path'];
 		$old_file_info = pathinfo( $old_path );
 
-		if ( ! isset( $old_file_info['filename'] ) ) {
-			return 0;
-		}
-
 		$old_base = $old_file_info['filename'];
 		$old_dir = dirname( $old_path );
 		$old_domain = isset( $old_path_parts['host'] ) ? 'http' . ( isset( $old_path_parts['scheme'] ) && $old_path_parts['scheme'] === 'https' ? 's' : '' ) . '://' . $old_path_parts['host'] : '';
@@ -444,11 +440,6 @@ class Optml_Attachment_Db_Renamer {
 		$old_file_info = pathinfo( $old_path );
 		$new_file_info = pathinfo( $new_path );
 
-		if ( ! isset( $old_file_info['filename'] ) || ! isset( $new_file_info['filename'] ) ) {
-			// If we can't get the filenames, fallback to direct replacement
-			return str_replace( $old_url, $new_url, $content );
-		}
-
 		$old_base = $old_file_info['filename'];
 		$new_base = $new_file_info['filename'];
 		$old_ext = isset( $old_file_info['extension'] ) ? $old_file_info['extension'] : '';
@@ -491,7 +482,7 @@ class Optml_Attachment_Db_Renamer {
 
 			$content = preg_replace_callback(
 				$scaled_pattern,
-				function ( $matches ) use ( $old_base, $new_base, $old_domain, $new_domain, $old_dir, $new_dir, $old_ext, $new_ext ) {
+				function ( $matches ) use ( $new_base, $new_domain, $new_dir, $new_ext ) {
 					return $new_domain . $new_dir . '/' . $new_base . '-scaled.' . $new_ext;
 				},
 				$content
@@ -517,7 +508,7 @@ class Optml_Attachment_Db_Renamer {
 
 			$content = preg_replace_callback(
 				$json_scaled_pattern,
-				function ( $matches ) use ( $old_base, $new_base, $old_domain, $new_domain, $old_dir, $new_dir, $old_ext, $new_ext ) {
+				function ( $matches ) use ( $new_base, $new_domain, $new_dir, $new_ext ) {
 					return str_replace( '/', '\/', $new_domain . $new_dir . '/' . $new_base . '-scaled.' . $new_ext );
 				},
 				$content

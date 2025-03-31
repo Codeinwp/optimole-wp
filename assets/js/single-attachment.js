@@ -1,6 +1,5 @@
 
 jQuery(document).ready(function($) {
-  console.log(OMAttachmentEdit);
   const existingFileName = $("#optml_rename_file").attr("placeholder");
   const renameBtn = $("#optml-rename-file-btn");
 

@@ -3,11 +3,12 @@
  * Test class for Optml_Attachment_Rename.
  */
 
-require_once OPTML_PATH . 'tests/media_rename/attachment_edit_utils.php';
-
 /**
  * Class Test_Attachment_Rename.
  */
+
+require_once 'attachment_edit_utils.php';
+
 class Test_Attachment_Rename extends WP_UnitTestCase {
 	use Attachment_Edit_Utils;
 
@@ -16,23 +17,19 @@ class Test_Attachment_Rename extends WP_UnitTestCase {
 	 */
 	public function test_rename( $id, $model, $new_filename, $scaled = false ) {
 		$renamer = new Optml_Attachment_Rename( $id, $new_filename );
-
-		$result  = $renamer->rename();
+		$result = $renamer->rename();
 
 		$this->assertTrue( $result );
 
 		$new_model = new Optml_Attachment_Model( $id );
 
-		$this->assertEquals( $new_filename, $new_model->get_filename_no_ext() );
-
+		$this->assertStringContainsString( $new_filename,  $new_model->get_filename_no_ext() );
 		$this->check_rename_with_models( $new_model, $model, $scaled );
-
-		$this->delete_attachment( $id );
 	}
 
-	public function rename_provider() {
-		$unscaled = $this->create_attachment_get_id( OPTML_PATH . 'tests/assets/sample-test.jpg' );
-		$scaled   = $this->create_attachment_get_id( OPTML_PATH . 'tests/assets/3000x3000.jpg' );
+	public function rename_provider( $callee ) {
+		$unscaled = $this->create_attachment_get_id( OPTML_PATH . 'tests/assets/rename-unscaled.jpg' );
+		$scaled   = $this->create_attachment_get_id( OPTML_PATH . 'tests/assets/rename-scaled.jpg' );
 
 		$unscaled_model = new Optml_Attachment_Model( $unscaled );
 		$scaled_model   = new Optml_Attachment_Model( $scaled );

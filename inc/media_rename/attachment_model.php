@@ -61,11 +61,11 @@ class Optml_Attachment_Model {
 	private $is_scaled = false;
 
 	/**
-	 * The attachment GUID (main image URL).
+	 * The attached file main URL.
 	 *
 	 * @var string
 	 */
-	private $guid;
+	private $main_attachment_url;
 
 	/**
 	 * Whether the attachment is remote - offloaded, imported from DAM or legacy offloaded.
@@ -92,14 +92,15 @@ class Optml_Attachment_Model {
 		$this->attachment_id = $attachment_id;
 		$this->attachment_metadata = wp_get_attachment_metadata( $this->attachment_id );
 
-		$post = get_post( $attachment_id );
+		$mime_type = get_post_mime_type( $attachment_id );
+		$is_image = strpos( $mime_type, 'image' ) !== false;
 
-		$this->guid = $post->guid;
+		$this->main_attachment_url          = $is_image ? wp_get_original_image_url( $attachment_id ) : wp_get_attachment_url( $attachment_id );
 		$this->origianal_attached_file_path = $this->setup_original_attached_file();
 		$this->dir_path = dirname( $this->origianal_attached_file_path );
 		$this->is_scaled = isset( $this->attachment_metadata['original_image'] );
 
-		$filename = $this->is_scaled ?
+		$filename = $this->is_scaled && isset( $this->attachment_metadata['original_image'] ) ?
 		$this->attachment_metadata['original_image'] :
 		basename( $this->origianal_attached_file_path );
 
@@ -108,7 +109,7 @@ class Optml_Attachment_Model {
 		$file_parts = pathinfo( $filename );
 
 		$this->extension = isset( $file_parts['extension'] ) ? $file_parts['extension'] : '';
-		$this->filename_no_ext = isset( $file_parts['filename'] ) ? $file_parts['filename'] : $filename;
+		$this->filename_no_ext = $file_parts['filename'];
 		$this->is_remote_attachment = $this->is_dam_imported_image( $this->attachment_id ) ||
 		$this->is_legacy_offloaded_attachment( $this->attachment_id ) ||
 		$this->is_new_offloaded_attachment( $this->attachment_id );
@@ -186,12 +187,12 @@ class Optml_Attachment_Model {
 	}
 
 	/**
-	 * Get guid.
+	 * Get the attachment file main url.
 	 *
 	 * @return string
 	 */
-	public function get_guid() {
-		return $this->guid;
+	public function get_main_url() {
+		return $this->main_attachment_url;
 	}
 
 	/**
@@ -237,7 +238,7 @@ class Optml_Attachment_Model {
 		}
 
 		foreach ( $attachment_metadata['sizes'] as $size => $size_data ) {
-			$links[ $size ] = str_replace( $this->original_attached_file_name, $size_data['file'], $this->get_guid() );
+			$links[ $size ] = str_replace( $this->original_attached_file_name, $size_data['file'], $this->get_main_url() );
 		}
 
 		return $links;

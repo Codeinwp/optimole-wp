@@ -15,7 +15,7 @@ class Optml_Attachment_Edit {
 	 * @return void
 	 */
 	public function init() {
-		add_action( 'attachment_fields_to_edit', [ $this, 'add_attachment_fields' ], 10, 2 );
+		add_filter( 'attachment_fields_to_edit', [ $this, 'add_attachment_fields' ], 10, 2 );
 		add_filter( 'attachment_fields_to_save', [ $this, 'prepare_attachment_filename' ], 10, 2 );
 
 		add_action( 'edit_attachment', [ $this, 'save_attachment_filename' ] );
@@ -35,7 +35,7 @@ class Optml_Attachment_Edit {
 			return;
 		}
 
-		$id = sanitize_text_field( $_GET['post'] );
+		$id = (int) sanitize_text_field( $_GET['post'] );
 
 		if ( ! $id ) {
 			return;
@@ -218,7 +218,7 @@ class Optml_Attachment_Edit {
 			return $post_data;
 		}
 
-		if ( $post_data['post_type'] !== 'attachment' ) {
+		if ( ! isset( $post_data['post_type'] ) || $post_data['post_type'] !== 'attachment' ) {
 			return $post_data;
 		}
 
@@ -277,7 +277,7 @@ class Optml_Attachment_Edit {
 	 * Replace the file
 	 */
 	public function replace_file() {
-		$id = sanitize_text_field( $_POST['attachment_id'] );
+		$id = (int) sanitize_text_field( $_POST['attachment_id'] );
 
 		if ( ! current_user_can( 'edit_post', $id ) ) {
 			wp_send_json_error( __( 'You are not allowed to replace this file', 'optimole-wp' ) );
@@ -305,10 +305,10 @@ class Optml_Attachment_Edit {
 	 * Bust cached assets
 	 *
 	 * @param int    $attachment_id The attachment ID.
-	 * @param string $new_guid The new GUID.
-	 * @param string $old_guid The old GUID.
+	 * @param string $new_url The new attachment URL.
+	 * @param string $old_url The old attachment URL.
 	 */
-	public function bust_cached_assets( $attachment_id, $new_guid, $old_guid ) {
+	public function bust_cached_assets( $attachment_id, $new_url, $old_url ) {
 		if (
 			class_exists( '\ThemeIsle\GutenbergBlocks\Server\Dashboard_Server' ) &&
 			is_callable( [ '\ThemeIsle\GutenbergBlocks\Server\Dashboard_Server', 'regenerate_styles' ] )

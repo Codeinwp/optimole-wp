@@ -97,17 +97,17 @@ class Optml_Attachment_Rename {
 
 		try {
 			$replacer = new Optml_Attachment_Db_Renamer();
-			$count = $replacer->replace( $this->attachment->get_guid(), $this->get_new_guid( $new_unique_filename ) );
+			$count = $replacer->replace( $this->attachment->get_main_url(), $this->get_new_url( $new_unique_filename ) );
 
 			if ( $count > 0 ) {
 				/**
 				 * Action triggered after the attachment file is renamed.
 				 *
 				 * @param int $attachment_id Attachment ID.
-				 * @param string $new_guid New GUID (new image URL).
-				 * @param string $old_guid Old GUID (old image URL).
+				 * @param string $new_url New attachment URL.
+				 * @param string $old_url Old attachment URL.
 				 */
-				do_action( 'optml_after_attachment_url_replace', $this->attachment_id, $this->get_new_guid( $new_unique_filename ), $this->attachment->get_guid() );
+				do_action( 'optml_after_attachment_url_replace', $this->attachment_id, $this->get_new_url( $new_unique_filename ), $this->attachment->get_main_url() );
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'optml_attachment_url_replace_failed', __( 'Error renaming file.', 'optimole-wp' ) );
@@ -188,33 +188,21 @@ class Optml_Attachment_Rename {
 			return false;
 		}
 
-		global $wpdb;
-
-		$update = $wpdb->update(
-			$wpdb->posts,
-			[
-				'guid' => $this->get_new_guid( $original_image ),
-			],
-			[
-				'ID' => $this->attachment_id,
-			]
-		);
-
-		return $update !== false;
+		return true;
 	}
 
 	/**
-	 * Get the new guid (main image URL).
+	 * Get the new main attached file URL.
 	 *
 	 * @return string
 	 */
-	private function get_new_guid( $filename ) {
-		$guid = $this->attachment->get_guid();
+	private function get_new_url( $filename ) {
+		$url = $this->attachment->get_main_url();
 
 		return str_replace(
-			basename( $guid ),
+			basename( $url ),
 			$filename,
-			$guid
+			$url
 		);
 	}
 }

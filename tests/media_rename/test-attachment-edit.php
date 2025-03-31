@@ -26,7 +26,7 @@ class Test_Attachment_Edit extends WP_UnitTestCase {
 	 * Test prepare attachment filename
 	 */
 	public function test_prepare_attachment_filename() {
-		$attachment = $this->factory->post->create_and_get( [
+		$attachment = self::factory()->post->create_and_get( [
 			'post_type'      => 'attachment',
 			'post_mime_type' => 'image/jpeg',
 		] );
@@ -34,7 +34,8 @@ class Test_Attachment_Edit extends WP_UnitTestCase {
 		$post_data = [
 			'ID'                 => $attachment->ID,
 			'optml_rename_nonce' => wp_create_nonce( 'optml_rename_media_nonce' ),
-			'optml_rename_file'  => 'test-file'
+			'optml_rename_file'  => 'test-file',
+			'post_type'          => 'attachment',
 		];
 
 		$result = $this->instance->prepare_attachment_filename( $post_data, (array) $attachment );

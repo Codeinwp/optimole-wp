@@ -2,7 +2,8 @@
 /**
  * Test class for Optml_Attachment_Model.
  */
-require_once OPTML_PATH . 'tests/media_rename/attachment_edit_utils.php';
+
+require_once 'attachment_edit_utils.php';
 
 /**
  * Class Test_Attachment_Model.
@@ -49,7 +50,7 @@ class Test_Attachment_Model extends WP_UnitTestCase {
 		$this->assertEquals( ! $remote, $model->can_be_renamed_or_replaced() );
 
 		if( $remote ) {
-			$this->assertEquals( self::MOCK_REMOTE_ATTACHMENT['url'], $model->get_guid() );
+			$this->assertEquals( self::MOCK_REMOTE_ATTACHMENT['url'], $model->get_main_url() );
 		}
 
 		$this->delete_attachment( $id );
@@ -76,7 +77,7 @@ class Test_Attachment_Model extends WP_UnitTestCase {
 
 	private function test_basic_getters( $id, $model ) {
 		$this->assertEquals( $id, $model->get_attachment_id() );
-		$this->assertNotEmpty( $model->get_guid() );
+		$this->assertNotEmpty( $model->get_main_url() );
 		$this->assertNotEmpty( $model->get_attachment_metadata() );
 
 		if( $model->can_be_renamed_or_replaced() ) {
