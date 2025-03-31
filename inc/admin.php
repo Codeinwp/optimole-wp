@@ -392,93 +392,6 @@ class Optml_Admin {
 	}
 
 	/**
-	 * Adds Optimole tag to admin bar
-	 */
-	public function add_report_menu() {
-		global $wp_admin_bar;
-
-		$wp_admin_bar->add_node(
-			[
-				'id'    => 'optml_report_script',
-				'href'  => '#',
-				'title' => '<span class="ab-icon"></span>Optimole ' . __( 'debugger', 'optimole-wp' ),
-			]
-		);
-		$wp_admin_bar->add_menu(
-			[
-				'id'     => 'optml_status',
-				'title'  => __( 'Troubleshoot this page', 'optimole-wp' ),
-				'parent' => 'optml_report_script',
-			]
-		);
-	}
-
-	/**
-	 * Adds Optimole css to admin bar
-	 */
-	public function print_report_css() {
-		?>
-		<style type="text/css">
-			li#wp-admin-bar-optml_report_script > div :hover {
-				cursor: pointer;
-				color: #00b9eb !important;
-				text-decoration: underline;
-			}
-
-			#wpadminbar #wp-admin-bar-optml_report_script .ab-icon:before {
-				content: "\f227";
-				top: 3px;
-			}
-
-			/* The Modal (background) */
-			.optml-modal {
-				display: none; /* Hidden by default */
-				position: fixed; /* Stay in place */
-				z-index: 2147483641; /* Sit on top */
-				padding-top: 100px; /* Location of the box */
-				left: 0;
-				top: 0;
-				width: 100%; /* Full width */
-				height: 100%; /* Full height */
-				overflow: auto; /* Enable scroll if needed */
-				background-color: rgb(0, 0, 0); /* Fallback color */
-				background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
-			}
-
-			/* Modal Content */
-			.optml-modal-content {
-				background-color: #fefefe;
-				margin: auto;
-				padding: 20px;
-				border: 1px solid #888;
-				width: 80%;
-			}
-
-			/* The Close Button */
-			.optml-close {
-				color: #aaaaaa;
-				float: right;
-				font-size: 28px;
-				font-weight: bold;
-			}
-
-			.optml-modal-content ul {
-				list-style: none;
-				font-size: 80%;
-				margin-top: 50px;
-			}
-
-			.optml-close:hover,
-			.optml-close:focus {
-				color: #000;
-				text-decoration: none;
-				cursor: pointer;
-			}
-		</style>
-		<?php
-	}
-
-	/**
 	 * Register public actions.
 	 */
 	public function register_public_actions() {
@@ -488,12 +401,7 @@ class Optml_Admin {
 		if ( Optml_Manager::should_ignore_image_tags() ) {
 			return;
 		}
-		if ( ! is_admin() && $this->settings->get( 'report_script' ) === 'enabled' && current_user_can( 'manage_options' ) ) {
 
-			add_action( 'wp_head', [ $this, 'print_report_css' ] );
-			add_action( 'wp_before_admin_bar_render', [ $this, 'add_report_menu' ] );
-			add_action( 'wp_enqueue_scripts', [ $this, 'add_diagnosis_script' ] );
-		}
 		if ( ! $this->settings->use_lazyload()
 			|| ( $this->settings->get( 'native_lazyload' ) === 'enabled'
 					&& $this->settings->get( 'video_lazyload' ) === 'disabled'
@@ -609,24 +517,6 @@ class Optml_Admin {
 			$limit_height
 		);
 		echo $output;
-	}
-
-	/**
-	 * Adds script for lazyload/js replacement.
-	 */
-	public function add_diagnosis_script() {
-
-		wp_enqueue_script( 'optml-report', OPTML_URL . 'assets/js/report_script.js' );
-		$ignored_domains = [ 'gravatar.com', 'instagram.com', 'fbcdn' ];
-		$report_script   = [
-			'optmlCdn'       => $this->settings->get_cdn_url(),
-			'restUrl'        => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) . '/check_redirects',
-			'nonce'          => wp_create_nonce( 'wp_rest' ),
-			'ignoredDomains' => $ignored_domains,
-			'wait'           => __( 'We are checking the current page for any issues with optimized images ...', 'optimole-wp' ),
-			'description'    => __( 'Optimole page analyzer', 'optimole-wp' ),
-		];
-		wp_localize_script( 'optml-report', 'reportScript', $report_script );
 	}
 
 	/**
@@ -1753,13 +1643,6 @@ The root cause might be either a security plugin which blocks this feature or so
 				),
 				'enable_noscript_title'               => __( 'Noscript Tag', 'optimole-wp' ),
 				'enable_gif_replace_title'            => __( 'GIF to Video Conversion', 'optimole-wp' ),
-				'enable_report_title'                 => __( 'Enable Error Diagnosis Tool', 'optimole-wp' ),
-				'enable_report_desc'                  => sprintf(
-				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
-					__( 'Activates the Optimole debugging tool in the admin bar for reports on Optimole-related website issues using the built-in diagnostic feature. %1$sLearn more%2$s', 'optimole-wp' ),
-					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1390-how-does-the-error-diagnosis-tool-work">',
-					'</a>'
-				),
 				'enable_offload_media_title'          => __( 'Store Your Images in Optimole Cloud', 'optimole-wp' ),
 				'enable_offload_media_desc'           => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Free up space on your server by transferring your images to Optimole Cloud; you can transfer them back anytime. Once moved, the images will still be visible in the Media Library and can be used as before. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1967-store-your-images-in-optimole-cloud">', '</a>' ),
 				'enable_cloud_images_title'           => __( 'Unified Image Access', 'optimole-wp' ),
