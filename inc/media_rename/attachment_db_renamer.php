@@ -12,14 +12,6 @@
  * @since      4.0.0
  */
 class Optml_Attachment_Db_Renamer {
-
-	/**
-	 * WordPress database connection
-	 *
-	 * @var wpdb
-	 */
-	private $wpdb;
-
 	/**
 	 * Tables to skip during replacement
 	 *
@@ -35,25 +27,11 @@ class Optml_Attachment_Db_Renamer {
 	private $skip_columns = [ 'user_pass' ];
 
 	/**
-	 * Use regex for replacement
-	 *
-	 * @var bool
-	 */
-	private $use_regex = false;
-
-	/**
 	 * Handle image size variations
 	 *
 	 * @var bool
 	 */
 	private $handle_image_sizes = false;
-
-	/**
-	 * Handle scaled images
-	 *
-	 * @var bool
-	 */
-	private $handle_scaled = false;
 
 	/**
 	 * Skip sizes
@@ -66,16 +44,15 @@ class Optml_Attachment_Db_Renamer {
 	 * Constructor
 	 */
 	public function __construct( $skip_sizes = false ) {
-		global $wpdb;
-		$this->wpdb = $wpdb;
 		$this->skip_sizes = $skip_sizes;
 	}
 
 	/**
 	 * Replace URLs in the WordPress database
 	 *
-	 * @param string $old_url The base URL to search for (e.g., http://domain.com/wp-content/uploads/2025/03/image.jpg)
-	 * @param string $new_url The base URL to replace with (e.g., http://domain.com/wp-content/uploads/2025/03/new-name.jpg)
+	 * @param string $old_url The base URL to search for (e.g., http://domain.com/wp-content/uploads/2025/03/image.jpg).
+	 * @param string $new_url The base URL to replace with (e.g., http://domain.com/wp-content/uploads/2025/03/new-name.jpg).
+	 *
 	 * @return int Number of replacements made
 	 */
 	public function replace( $old_url, $new_url ) {
@@ -85,14 +62,12 @@ class Optml_Attachment_Db_Renamer {
 
 		// Always handle both image sizes and scaled variations
 		$this->handle_image_sizes = true;
-		$this->handle_scaled = true;
-		$this->use_regex = true;
 
 		$tables = $this->get_tables();
 		$total_replacements = 0;
 
 		foreach ( $tables as $table ) {
-			if ( in_array( $table, $this->skip_tables ) ) {
+			if ( in_array( $table, $this->skip_tables, true ) ) {
 				continue;
 			}
 
@@ -104,7 +79,7 @@ class Optml_Attachment_Db_Renamer {
 			}
 
 			foreach ( $columns as $column ) {
-				if ( in_array( $column, $this->skip_columns ) ) {
+				if ( in_array( $column, $this->skip_columns, true ) ) {
 					continue;
 				}
 
@@ -122,35 +97,29 @@ class Optml_Attachment_Db_Renamer {
 	 * @return array Table names
 	 */
 	private function get_tables() {
-		$tables = [];
+		global $wpdb;
 
-		// Get all tables with the WordPress prefix
-		$results = $this->wpdb->get_results( "SHOW TABLES LIKE '{$this->wpdb->prefix}%'", ARRAY_N );
-
-		foreach ( $results as $result ) {
-			$tables[] = $result[0];
-		}
-
-		return $tables;
+		return array_values( $wpdb->tables() );
 	}
 
 	/**
 	 * Get columns for a table
 	 *
-	 * @param string $table Table name
+	 * @param string $table Table name.
+	 *
 	 * @return array Array containing primary keys and text columns
 	 */
 	private function get_columns( $table ) {
+		global $wpdb;
+
 		$primary_keys = [];
 		$text_columns = [];
 
-		// Escape table name for safe use in SQL query
-		$table_sql = $this->esc_sql_ident( $table );
-
 		// Get table information
-		$results = $this->wpdb->get_results( "DESCRIBE $table_sql" );
+		$results = $wpdb->get_results( $wpdb->prepare( 'DESCRIBE %i', $table ) );
 
 		if ( ! empty( $results ) ) {
+			// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 			foreach ( $results as $col ) {
 				if ( 'PRI' === $col->Key ) {
 					$primary_keys[] = $col->Field;
@@ -159,6 +128,7 @@ class Optml_Attachment_Db_Renamer {
 					$text_columns[] = $col->Field;
 				}
 			}
+			// phpcs:enable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
 		}
 
 		return [ $primary_keys, $text_columns ];
@@ -167,7 +137,8 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Check if column is text type
 	 *
-	 * @param string $type Column type
+	 * @param string $type Column type.
+	 *
 	 * @return bool True if text column
 	 */
 	private function is_text_col( $type ) {
@@ -182,22 +153,28 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Process a single column for replacements
 	 *
-	 * @param string $table Table name
-	 * @param string $column Column name
-	 * @param array  $primary_keys Primary keys
-	 * @param string $old_url Old URL
-	 * @param string $new_url New URL
+	 * @param string $table Table name.
+	 * @param string $column Column name.
+	 * @param array  $primary_keys Primary keys.
+	 * @param string $old_url Old URL.
+	 * @param string $new_url New URL.
+	 *
 	 * @return int Number of replacements
 	 */
 	private function process_column( $table, $column, $primary_keys, $old_url, $new_url ) {
+		global $wpdb;
+
 		$count = 0;
 
-		// First check if column contains serialized data
-		$table_sql = $this->esc_sql_ident( $table );
-		$col_sql = $this->esc_sql_ident( $column );
-
 		// Check for serialized data
-		$has_serialized = $this->wpdb->get_var( "SELECT COUNT($col_sql) FROM $table_sql WHERE $col_sql REGEXP '^[aiO]:[1-9]' LIMIT 1" );
+		$has_serialized = $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(%i) FROM %i WHERE %i REGEXP '^[aiO]:[1-9]' LIMIT 1",
+				$column,
+				$table,
+				$column
+			)
+		);
 
 		// Process with PHP if serialized data is found
 		if ( $has_serialized ) {
@@ -213,15 +190,15 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Handle column using SQL replacement
 	 *
-	 * @param string $table Table name
-	 * @param string $column Column name
-	 * @param string $old_url Old URL
-	 * @param string $new_url New URL
+	 * @param string $table Table name.
+	 * @param string $column Column name.
+	 * @param string $old_url Old URL.
+	 * @param string $new_url New URL.
+	 *
 	 * @return int Number of replacements
 	 */
 	private function sql_handle_column( $table, $column, $old_url, $new_url ) {
-		$table_sql = $this->esc_sql_ident( $table );
-		$col_sql = $this->esc_sql_ident( $column );
+		global $wpdb;
 		$count = 0;
 
 		// Get the filename components
@@ -232,6 +209,7 @@ class Optml_Attachment_Db_Renamer {
 
 		$old_path = $old_path_parts['path'];
 		$old_file_info = pathinfo( $old_path );
+
 		if ( ! isset( $old_file_info['filename'] ) ) {
 			return 0;
 		}
@@ -242,25 +220,27 @@ class Optml_Attachment_Db_Renamer {
 
 		// Build pattern to match any URL containing the base filename
 		$base_url = $old_domain . $old_dir . '/' . $old_base;
-		$pattern = '%' . $this->wpdb->esc_like( $base_url ) . '%';
-
-		// Also create a pattern for JSON-escaped version
-		$json_base_url = str_replace( '/', '\/', $base_url );
-		$json_pattern = '%' . $this->wpdb->esc_like( $json_base_url ) . '%';
 
 		// Get rows with regular URLs
-		$rows = $this->wpdb->get_results(
-			$this->wpdb->prepare(
-				"SELECT * FROM $table_sql WHERE $col_sql LIKE %s",
-				$pattern
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE %i LIKE %s',
+				$table,
+				$column,
+				'%' . $wpdb->esc_like( $base_url ) . '%'
 			)
 		);
 
+		// Also create a pattern for JSON-escaped version
+		$json_base_url = str_replace( '/', '\/', $base_url );
+
 		// Get rows with JSON-escaped URLs
-		$json_rows = $this->wpdb->get_results(
-			$this->wpdb->prepare(
-				"SELECT * FROM $table_sql WHERE $col_sql LIKE %s",
-				$json_pattern
+		$json_rows = $wpdb->get_results(
+			$wpdb->prepare(
+				'SELECT * FROM %i WHERE %i LIKE %s',
+				$table,
+				$column,
+				'%' . $wpdb->esc_like( $json_base_url ) . '%'
 			)
 		);
 
@@ -268,39 +248,41 @@ class Optml_Attachment_Db_Renamer {
 		$processed_ids = [];
 		$all_rows = array_merge( $rows, $json_rows );
 
-		if ( ! empty( $all_rows ) ) {
-			foreach ( $all_rows as $row ) {
-				$id_field = $row->ID ?? $row->id ?? null;
-				if ( ! $id_field ) {
-					foreach ( $row as $field => $value ) {
-						if ( stripos( $field, 'id' ) !== false ) {
-							$id_field = $value;
-							break;
-						}
+		if ( empty( $all_rows ) ) {
+			return 0;
+		}
+
+		foreach ( $all_rows as $row ) {
+			$id_field = $row->ID ?? $row->id ?? null;
+			if ( ! $id_field ) {
+				foreach ( $row as $field => $value ) {
+					if ( stripos( $field, 'id' ) !== false ) {
+						$id_field = $value;
+						break;
 					}
 				}
+			}
 
-				if ( ! $id_field ) {
-					continue;
-				}
+			if ( ! $id_field ) {
+				continue;
+			}
 
-				// Skip if we've already processed this row
-				if ( isset( $processed_ids[ $id_field ] ) ) {
-					continue;
-				}
-				$processed_ids[ $id_field ] = true;
+			// Skip if we've already processed this row
+			if ( isset( $processed_ids[ $id_field ] ) ) {
+				continue;
+			}
+			$processed_ids[ $id_field ] = true;
 
-				$content = $row->$column;
-				$new_content = $this->replace_image_urls( $content, $old_url, $new_url );
+			$content = $row->$column;
+			$new_content = $this->replace_image_urls( $content, $old_url, $new_url );
 
-				if ( $content !== $new_content ) {
-					$this->wpdb->update(
-						$table,
-						[ $column => $new_content ],
-						[ 'ID' => $id_field ]
-					);
-					++$count;
-				}
+			if ( $content !== $new_content ) {
+				$wpdb->update(
+					$table,
+					[ $column => $new_content ],
+					[ 'ID' => $id_field ]
+				);
+				++$count;
 			}
 		}
 
@@ -310,39 +292,46 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Handle column using PHP for serialized data
 	 *
-	 * @param string $table Table name
-	 * @param string $column Column name
-	 * @param array  $primary_keys Primary keys
-	 * @param string $old_url Old URL
-	 * @param string $new_url New URL
+	 * @param string $table Table name.
+	 * @param string $column Column name.
+	 * @param array  $primary_keys Primary keys.
+	 * @param string $old_url Old URL.
+	 * @param string $new_url New URL.
+	 *
 	 * @return int Number of replacements
 	 */
 	private function php_handle_column( $table, $column, $primary_keys, $old_url, $new_url ) {
+		global $wpdb;
+
 		$count = 0;
-		$table_sql = $this->esc_sql_ident( $table );
-		$col_sql = $this->esc_sql_ident( $column );
-
-		// Prepare WHERE clause to find rows containing the old URL or its JSON-escaped version
-		$like_url = '%' . $this->wpdb->esc_like( $old_url ) . '%';
 		$json_old_url = str_replace( '/', '\/', $old_url );
-		$json_like_url = '%' . $this->wpdb->esc_like( $json_old_url ) . '%';
 
-		// Prepare SQL for primary keys
-		$primary_keys_sql = implode( ',', $this->esc_sql_ident( $primary_keys ) );
+		// Build the query and allow processing with multiple primary keys.
+		$query = 'SELECT ';
+		foreach ( $primary_keys as $key => $value ) {
+			$query .= $wpdb->prepare( '%i, ', $value );
+		}
+		$query .= '%i FROM %i WHERE %s LIKE %s LIMIT 100';
 
-		// Get the rows that need updating - first for regular URL
-		$rows = $this->wpdb->get_results(
-			$this->wpdb->prepare(
-				"SELECT $primary_keys_sql, $col_sql FROM $table_sql WHERE $col_sql LIKE %s LIMIT 1000",
-				$like_url
+		// Get the rows that need updating - first for regular URLs
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$column,
+				$table,
+				$column,
+				'%' . $wpdb->esc_like( $old_url ) . '%'
 			)
 		);
 
-		// Also get rows with JSON-escaped URLs and merge results
-		$json_rows = $this->wpdb->get_results(
-			$this->wpdb->prepare(
-				"SELECT $primary_keys_sql, $col_sql FROM $table_sql WHERE $col_sql LIKE %s LIMIT 1000",
-				$json_like_url
+		// Also get rows with JSON-escaped URLs
+		$json_rows = $wpdb->get_results(
+			$wpdb->prepare(
+				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				$column,
+				$table,
+				$column,
+				'%' . $wpdb->esc_like( $json_old_url ) . '%'
 			)
 		);
 
@@ -361,8 +350,8 @@ class Optml_Attachment_Db_Renamer {
 			if ( isset( $processed_ids[ $row_id ] ) ) {
 				continue;
 			}
-			$processed_ids[ $row_id ] = true;
 
+			$processed_ids[ $row_id ] = true;
 			$value = $row->$column;
 
 			// Skip empty values
@@ -385,7 +374,7 @@ class Optml_Attachment_Db_Renamer {
 			}
 
 			// Update the row
-			$updated = $this->wpdb->update(
+			$updated = $wpdb->update(
 				$table,
 				[ $column => $new_value ],
 				$where_conditions
@@ -402,9 +391,10 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Replace URLs in a value, handling serialized data
 	 *
-	 * @param string $value The value to process
-	 * @param string $old_url Old URL
-	 * @param string $new_url New URL
+	 * @param string $value The value to process.
+	 * @param string $old_url Old URL.
+	 * @param string $new_url New URL.
+	 *
 	 * @return string The processed value
 	 */
 	private function replace_urls_in_value( $value, $old_url, $new_url ) {
@@ -431,9 +421,10 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Replace image URLs including various WordPress size variations and scaled images
 	 *
-	 * @param string $content The content to process
-	 * @param string $old_url Old URL pattern
-	 * @param string $new_url New URL pattern
+	 * @param string $content The content to process.
+	 * @param string $old_url Old URL pattern.
+	 * @param string $new_url New URL pattern.
+	 *
 	 * @return string The processed content
 	 */
 	private function replace_image_urls( $content, $old_url, $new_url ) {
@@ -539,9 +530,10 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Recursively replace URLs in data structure
 	 *
-	 * @param mixed  $data The data to process
-	 * @param string $old_url Old URL
-	 * @param string $new_url New URL
+	 * @param mixed  $data The data to process.
+	 * @param string $old_url Old URL.
+	 * @param string $new_url New URL.
+	 *
 	 * @return mixed The processed data
 	 */
 	private function replace_in_data( $data, $old_url, $new_url ) {
@@ -568,28 +560,10 @@ class Optml_Attachment_Db_Renamer {
 	}
 
 	/**
-	 * Escape SQL identifiers (table/column names)
-	 *
-	 * @param string|array $idents Identifiers to escape
-	 * @return string|array Escaped identifiers
-	 */
-	private function esc_sql_ident( $idents ) {
-		$backtick = function ( $v ) {
-			// Escape any backticks in the identifier by doubling
-			return '`' . str_replace( '`', '``', $v ) . '`';
-		};
-
-		if ( is_string( $idents ) ) {
-			return $backtick( $idents );
-		}
-
-		return array_map( $backtick, $idents );
-	}
-
-	/**
 	 * Check if a string is serialized
 	 *
-	 * @param string $data String to check
+	 * @param string $data String to check.
+	 *
 	 * @return bool True if serialized
 	 */
 	private function is_serialized( $data ) {
@@ -611,8 +585,8 @@ class Optml_Attachment_Db_Renamer {
 			return false;
 		}
 
-		$lastChar = substr( $data, -1 );
-		if ( ';' !== $lastChar && '}' !== $lastChar ) {
+		$last_char = substr( $data, -1 );
+		if ( ';' !== $last_char && '}' !== $last_char ) {
 			return false;
 		}
 
