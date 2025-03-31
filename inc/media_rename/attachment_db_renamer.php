@@ -17,7 +17,7 @@ class Optml_Attachment_Db_Renamer {
 	 *
 	 * @var array
 	 */
-	private $skip_tables = [];
+	private $skip_tables = ['users', 'terms', 'term_relationships', 'term_taxonomy'];
 
 	/**
 	 * Columns to skip during replacement
@@ -34,17 +34,10 @@ class Optml_Attachment_Db_Renamer {
 	private $handle_image_sizes = false;
 
 	/**
-	 * Skip sizes
-	 *
-	 * @var bool
-	 */
-	private $skip_sizes = false;
-
-	/**
 	 * Constructor
 	 */
 	public function __construct( $skip_sizes = false ) {
-		$this->skip_sizes = $skip_sizes;
+		$this->handle_image_sizes = ! $skip_sizes;
 	}
 
 	/**
@@ -60,8 +53,13 @@ class Optml_Attachment_Db_Renamer {
 			return 0;
 		}
 
-		// Always handle both image sizes and scaled variations
-		$this->handle_image_sizes = true;
+		if( empty($old_url) || empty($new_url) ) {
+			return 0;
+		}
+
+		if( ! is_string($old_url) || ! is_string($new_url) ) {
+			return 0;
+		}
 
 		$tables = $this->get_tables();
 		$total_replacements = 0;
@@ -394,6 +392,10 @@ class Optml_Attachment_Db_Renamer {
 	 * @return string The processed value
 	 */
 	private function replace_urls_in_value( $value, $old_url, $new_url ) {
+		var_dump([
+			$value,
+			$old_url,
+		]);
 		// Check if the value is serialized
 		if ( $this->is_serialized( $value ) ) {
 			$unserialized = @unserialize( $value );
@@ -458,7 +460,7 @@ class Optml_Attachment_Db_Renamer {
 		$content = str_replace( $json_old_url, $json_new_url, $content );
 
 		// If we have a file with extension, handle variations
-		if ( ! empty( $old_ext ) && ! $this->skip_sizes ) {
+		if ( ! empty( $old_ext ) && $this->handle_image_sizes ) {
 			$old_dir = dirname( $old_path );
 			$new_dir = dirname( $new_path );
 
