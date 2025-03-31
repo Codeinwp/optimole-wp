@@ -55,6 +55,9 @@ class Optml_Admin {
 		$media_rename = new Optml_Attachment_Edit();
 		$media_rename->init();
 
+		$dashboard_widget = new Optml_Dashboard_Widget();
+		$dashboard_widget->init();
+
 		add_filter( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
 		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
 		add_action( 'admin_menu', [ $this, 'add_settings_subpage' ], 99 );
@@ -1500,6 +1503,10 @@ class Optml_Admin {
 			'privacy_menu'                   => __( 'Privacy', 'optimole-wp' ),
 			'testdrive_menu'                 => __( 'Test Optimole', 'optimole-wp' ),
 			'service_details'                => __( 'Image optimization service', 'optimole-wp' ),
+			'dashboard_title'                => __( 'Image Optimization Overview', 'optimole-wp' ),
+			'banner_title'                   => __( 'All images are automatically optimized!', 'optimole-wp' ),
+			'banner_description'             => __( 'Optimole is handling all your images in real-time with our CloudFront CDN (450+ locations worldwide)', 'optimole-wp' ),
+			'quick_action_title'             => __( 'Quick Actions' ),
 			'connect_btn'                    => __( 'Connect to Optimole', 'optimole-wp' ),
 			'disconnect_btn'                 => __( 'Disconnect', 'optimole-wp' ),
 			'select'                         => __( 'Select', 'optimole-wp' ),
@@ -1551,7 +1558,7 @@ If you still want to disconnect click the button below.',
 			'connecting'                     => __( 'CONNECTING', 'optimole-wp' ),
 			'not_connected'                  => __( 'NOT CONNECTED', 'optimole-wp' ),
 			'usage'                          => __( 'Monthly Usage', 'optimole-wp' ),
-			'quota'                          => __( 'Monthly visits quota', 'optimole-wp' ),
+			'quota'                          => __( 'Monthly visits:', 'optimole-wp' ),
 			'logged_in_as'                   => __( 'LOGGED IN AS', 'optimole-wp' ),
 			'private_cdn_url'                => __( 'IMAGES DOMAIN', 'optimole-wp' ),
 			'existing_user'                  => __( 'Existing user?', 'optimole-wp' ),
@@ -1669,12 +1676,23 @@ The root cause might be either a security plugin which blocks this feature or so
 			'metrics'                        => [
 				'metricsTitle1'    => __( 'Images optimized', 'optimole-wp' ),
 				'metricsSubtitle1' => __( 'Since plugin activation', 'optimole-wp' ),
-				'metricsTitle2'    => __( 'Saved file size', 'optimole-wp' ),
-				'metricsSubtitle2' => __( 'For the latest 10 images', 'optimole-wp' ),
-				'metricsTitle3'    => __( 'Average compression', 'optimole-wp' ),
-				'metricsSubtitle3' => __( 'During last month', 'optimole-wp' ),
-				'metricsTitle4'    => __( 'Traffic', 'optimole-wp' ),
-				'metricsSubtitle4' => __( 'During last month', 'optimole-wp' ),
+				'metricsTitle2'    => __( 'Saved File Size', 'optimole-wp' ),
+				'metricsSubtitle2' => __( 'Latest 10 images', 'optimole-wp' ),
+				'metricsTitle3'    => __( 'Average Compression', 'optimole-wp' ),
+				'metricsSubtitle3' => __( 'Average Reduction', 'optimole-wp' ),
+				'metricsTitle4'    => __( 'CDN Traffic', 'optimole-wp' ),
+				'metricsSubtitle4' => __( 'This month', 'optimole-wp' ),
+			],
+			'quick_actions'                  => [
+				'speed_test_title'      => __( 'Test Your Site Speed', 'optimole-wp' ),
+				'speed_test_desc'       => __( 'Run speed test', 'optimole-wp' ),
+				'speed_test_link'       => add_query_arg( 'url', get_site_url(), 'https://pagespeed.web.dev/analysis' ),
+				'clear_cache_images'    => __( 'Clear Cached Images', 'optimole-wp' ),
+				'clear_cache'           => __( 'Clear cache', 'optimole-wp' ),
+				'offload_images'        => __( 'Enable Offload Images', 'optimole-wp' ),
+				'offload_images_desc'   => __( 'Free up space on your server', 'optimole-wp' ),
+				'advance_settings'      => __( 'Advanced Settings', 'optimole-wp' ),
+				'configure_settings'    => __( 'Configure settings', 'optimole-wp' ),
 			],
 			'options_strings'                => [
 				'best_format_title'                   => __( 'Automatic Best Image Format Selection', 'optimole-wp' ),
@@ -2072,6 +2090,21 @@ The root cause might be either a security plugin which blocks this feature or so
 			],
 			'cron_error'                     => sprintf( /* translators: 1 is code to disable cron, 2 value of the constant */ __( 'It seems that you have the %1$s constant defined as %2$s. The offloading process uses cron events to offload the images in the background. Please remove the constant from your wp-config.php file in order for the offloading process to work.', 'optimole-wp' ), '<code>DISABLE_WP_CRON</code>', '<code>true</code>' ),
 			'cancel'                         => __( 'Cancel', 'optimole-wp' ),
+			'optimization_status'            => [
+				'title'           => __( 'Optimization Status', 'optimole-wp' ),
+				'statusTitle1'    => __( 'Image Handling', 'optimole-wp' ),
+				'statusSubTitle1' => __( 'All images are optimized automatically', 'optimole-wp' ),
+				'statusTitle2'    => __( 'Smart Lazy-Loading', 'optimole-wp' ),
+				'statusSubTitle2' => __( 'Images load as visitors scroll', 'optimole-wp' ),
+				'statusTitle3'    => __( 'Image Scalling', 'optimole-wp' ),
+				'statusSubTitle3' => __( 'All images are perfectly sized for devices', 'optimole-wp' ),
+			],
+			'optimization_tips'              => sprintf(
+			/* translators: 1 is the opening anchor tag, 2 is the closing anchor tag */
+				__( '%1$sView all optimization tips%2$s', 'optimole-wp' ),
+				'<a class="flex justify-center font-bold rounded hover:opacity-90 transition-opacity" href="https://docs.optimole.com/article/2238-optimization-tips" target="_blank"> ',
+				'<span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>'
+			),
 		];
 	}
 
