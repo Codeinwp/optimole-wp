@@ -133,15 +133,6 @@ class Optml_Attachment_Model {
 	}
 
 	/**
-	 * Get filename.
-	 *
-	 * @return string
-	 */
-	public function setup_original_attached_file_name() {
-		return $this->original_attached_file_name;
-	}
-
-	/**
 	 * Get filename no extension.
 	 *
 	 * @return string

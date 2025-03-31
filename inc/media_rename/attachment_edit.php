@@ -53,7 +53,7 @@ class Optml_Attachment_Edit {
 
 		$max_file_size = wp_max_upload_size();
 		// translators: %s is the max file size in MB.
-		$max_file_size_error = sprintf( __( 'File size is too large. Max file size is %sMB', 'optimole' ), $max_file_size / 1024 / 1024 );
+		$max_file_size_error = sprintf( __( 'File size is too large. Max file size is %sMB', 'optimole-wp' ), $max_file_size / 1024 / 1024 );
 
 		wp_enqueue_style( 'optml-attachment-edit', OPTML_URL . 'assets/css/single-attachment.css', [], OPTML_VERSION );
 
@@ -68,7 +68,7 @@ class Optml_Attachment_Edit {
 				'mimeType' => $mime_type,
 				'i18n' => [
 					'maxFileSizeError' => $max_file_size_error,
-					'replaceFileError' => __( 'Error replacing file', 'optimole' ),
+					'replaceFileError' => __( 'Error replacing file', 'optimole-wp' ),
 				],
 			]
 		);
@@ -100,13 +100,13 @@ class Optml_Attachment_Edit {
 		}
 
 		$form_fields['optml_rename_file'] = [
-			'label' => __( 'Rename attached file', 'optimole' ),
+			'label' => __( 'Rename attached file', 'optimole-wp' ),
 			'input' => 'html',
 			'html' => $this->get_rename_field( $attachment ),
 		];
 
 		$form_fields['optml_replace_file'] = [
-			'label' => __( 'Replace file', 'optimole' ),
+			'label' => __( 'Replace file', 'optimole-wp' ),
 			'input' => 'html',
 			'html' => $this->get_replace_field( $attachment ),
 		];
@@ -146,7 +146,7 @@ class Optml_Attachment_Edit {
 		$html .= '<span class="optml-file-ext">.' . esc_html( $file_ext ) . '</span>';
 		$html .= '</div>';
 
-		$html .= '<button type="button" disabled class="button optml-btn primary" id="optml-rename-file-btn">' . __( 'Rename', 'optimole' ) . '</button>';
+		$html .= '<button type="button" disabled class="button optml-btn primary" id="optml-rename-file-btn">' . __( 'Rename', 'optimole-wp' ) . '</button>';
 		$html .= '</div>';
 
 		$html .= '<input type="hidden" name="optml_current_ext" value="' . esc_attr( $file_ext ) . '">';
@@ -169,17 +169,17 @@ class Optml_Attachment_Edit {
 		$html = '<div class="optml-replace-section">';
 		$html .= '<div class="optml-replace-input">';
 		$html .= '<label for="optml-replace-file-field" id="optml-file-drop-area">';
-		$html .= '<span class="label-text">' . __( 'Click to select a file or drag & drop here', 'optimole' ) . ' (' . implode( ',', $file_ext ) . ')</span>';
+		$html .= '<span class="label-text">' . __( 'Click to select a file or drag & drop here', 'optimole-wp' ) . ' (' . implode( ',', $file_ext ) . ')</span>';
 		$html .= '<div class="optml-replace-file-preview"></div>';
 		$html .= '</label>';
 
 		$html .= '<input type="file" class="hidden" id="optml-replace-file-field" name="optml-replace-file-field" accept="' . implode( ',', $file_ext ) . '">';
 
 		$html .= '<div class="optml-replace-file-actions">';
-		$html .= '<button type="button" class="button optml-btn primary" id="optml-replace-file-btn">' . __( 'Replace file', 'optimole' ) . '</button>';
-		$html .= '<button type="button" class="button optml-btn destructive" id="optml-replace-clear-btn">' . __( 'Clear', 'optimole' ) . '</button>';
+		$html .= '<button disabled type="button" class="button optml-btn primary" id="optml-replace-file-btn">' . __( 'Replace file', 'optimole-wp' ) . '</button>';
+		$html .= '<button disabled type="button" class="button optml-btn destructive" id="optml-replace-clear-btn">' . __( 'Clear', 'optimole-wp' ) . '</button>';
 		$html .= $this->get_svg_loader();
-		$html .= '<p class="optml-description">' . __( 'This will replace the current file with the new one. This action cannot be undone.', 'optimole' ) . '</p>';
+		$html .= '<p class="optml-description">' . __( 'This will replace the current file with the new one. This action cannot be undone.', 'optimole-wp' ) . '</p>';
 		$html .= '</div>';
 
 		$html .= '<div class="optml-replace-file-error hidden"></div>';
@@ -197,9 +197,9 @@ class Optml_Attachment_Edit {
 	private function get_footer_html() {
 		$html = '';
 		$html .= '<div class="optml-logo-contianer">';
-		$html .= '<img src="' . OPTML_URL . 'assets/img/logo.svg" alt="' . __( 'Optimole logo', 'optimole' ) . '"/>';
+		$html .= '<img src="' . OPTML_URL . 'assets/img/logo.svg" alt="' . __( 'Optimole logo', 'optimole-wp' ) . '"/>';
 		// translators: %s is the 'Optimole'.
-		$html .= '<span>' . sprintf( __( 'Powered by %s', 'optimole' ), '<strong>Optimole</strong>' ) . '</span>';
+		$html .= '<span>' . sprintf( __( 'Powered by %s', 'optimole-wp' ), '<strong>Optimole</strong>' ) . '</span>';
 		$html .= '</div>';
 
 		return $html;
@@ -218,6 +218,10 @@ class Optml_Attachment_Edit {
 			return $post_data;
 		}
 
+		if ( $post_data['post_type'] !== 'attachment' ) {
+			return $post_data;
+		}
+
 		if ( ! isset( $post_data['optml_rename_nonce'] ) || ! wp_verify_nonce( sanitize_text_field( $post_data['optml_rename_nonce'] ), 'optml_rename_media_nonce' ) ) {
 			return $post_data;
 		}
@@ -230,7 +234,7 @@ class Optml_Attachment_Edit {
 			return $post_data;
 		}
 
-		if ( strlen( $new_name ) < 3 || strlen( $new_name ) > 100 ) {
+		if ( strlen( $new_name ) > 100 ) {
 			return $post_data;
 		}
 
@@ -262,7 +266,11 @@ class Optml_Attachment_Edit {
 		delete_post_meta( $post_id, '_optml_pending_rename' );
 
 		$renamer = new Optml_Attachment_Rename( $post_id, $new_filename );
-		$renamer->rename();
+		$status = $renamer->rename();
+
+		if ( is_wp_error( $status ) ) {
+			wp_die( $status->get_error_message() );
+		}
 	}
 
 	/**
@@ -272,11 +280,11 @@ class Optml_Attachment_Edit {
 		$id = sanitize_text_field( $_POST['attachment_id'] );
 
 		if ( ! current_user_can( 'edit_post', $id ) ) {
-			wp_send_json_error( __( 'You are not allowed to replace this file', 'optimole' ) );
+			wp_send_json_error( __( 'You are not allowed to replace this file', 'optimole-wp' ) );
 		}
 
 		if ( ! isset( $_FILES['file'] ) ) {
-			wp_send_json_error( __( 'No file uploaded', 'optimole' ) );
+			wp_send_json_error( __( 'No file uploaded', 'optimole-wp' ) );
 		}
 
 		$replacer = new Optml_Attachment_Replace( $id, $_FILES['file'] );
@@ -287,7 +295,7 @@ class Optml_Attachment_Edit {
 
 		$response = [
 			'success' => ! $is_error,
-			'message' => $is_error ? $replaced->get_error_message() : __( 'File replaced successfully', 'optimole' ),
+			'message' => $is_error ? $replaced->get_error_message() : __( 'File replaced successfully', 'optimole-wp' ),
 		];
 
 		wp_send_json( $response );

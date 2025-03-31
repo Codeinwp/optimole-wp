@@ -36,6 +36,12 @@ class Optml_Attachment_Rename {
 		$this->attachment_id = $attachment_id;
 		$this->attachment = new Optml_Attachment_Model( $attachment_id );
 		$this->new_filename = $new_filename;
+
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		WP_Filesystem();
 	}
 
 	/**
@@ -45,7 +51,7 @@ class Optml_Attachment_Rename {
 	 */
 	public function rename() {
 		if ( empty( $this->new_filename ) || sanitize_file_name( $this->new_filename ) === $this->attachment->get_filename_no_ext() ) {
-			return;
+			return true;
 		}
 
 		$extension = $this->attachment->get_extension();
@@ -57,18 +63,17 @@ class Optml_Attachment_Rename {
 		$new_unique_filename = wp_unique_filename( $base_dir, $new_file_with_ext );
 		$new_file_path = $base_dir . $new_unique_filename;
 
-		$this->init_filesystem();
 		global $wp_filesystem;
 
 		// Bail if original file doesn't exist.
 		if ( ! $wp_filesystem->exists( $file_path ) ) {
-			return;
+			return new WP_Error( 'optml_attachment_file_not_found', __( 'Error renaming file.', 'optimole-wp' ) );
 		}
 
 		// Rename the file (move) - moves the original, not the scaled image.
 		$moved = $wp_filesystem->move( $file_path, $new_file_path );
 		if ( ! $moved ) {
-			return new WP_Error( 'optml_attachment_rename_failed', __( 'Failed to rename the attachment.', 'optimole' ) );
+			return new WP_Error( 'optml_attachment_rename_failed', __( 'Error renaming file.', 'optimole-wp' ) );
 		}
 
 		// Move the scaled image if it exists.
@@ -84,21 +89,28 @@ class Optml_Attachment_Rename {
 		}
 
 		// Update attachment metadata
-		$this->update_attachment_metadata( $file_path, $new_file_path );
+		$metadata_update = $this->update_attachment_metadata( $new_file_path );
 
-		$replacer = new Optml_Attachment_Db_Renamer();
+		if ( $metadata_update === false ) {
+			return new WP_Error( 'optml_attachment_metadata_update_failed', __( 'Error renaming file.', 'optimole-wp' ) );
+		}
 
-		$count = $replacer->replace( $this->attachment->get_guid(), $this->get_new_guid( $new_unique_filename ) );
+		try {
+			$replacer = new Optml_Attachment_Db_Renamer();
+			$count = $replacer->replace( $this->attachment->get_guid(), $this->get_new_guid( $new_unique_filename ) );
 
-		if ( $count > 0 ) {
-			/**
-			 * Action triggered after the attachment file is renamed.
-			 *
-			 * @param int $attachment_id Attachment ID.
-			 * @param string $new_guid New GUID (new image URL).
-			 * @param string $old_guid Old GUID (old image URL).
-			 */
-			do_action( 'optml_after_attachment_url_replace', $this->attachment_id, $this->get_new_guid( $new_unique_filename ), $this->attachment->get_guid() );
+			if ( $count > 0 ) {
+				/**
+				 * Action triggered after the attachment file is renamed.
+				 *
+				 * @param int $attachment_id Attachment ID.
+				 * @param string $new_guid New GUID (new image URL).
+				 * @param string $old_guid Old GUID (old image URL).
+				 */
+				do_action( 'optml_after_attachment_url_replace', $this->attachment_id, $this->get_new_guid( $new_unique_filename ), $this->attachment->get_guid() );
+			}
+		} catch ( Exception $e ) {
+			return new WP_Error( 'optml_attachment_url_replace_failed', __( 'Error renaming file.', 'optimole-wp' ) );
 		}
 
 		return true;
@@ -107,11 +119,10 @@ class Optml_Attachment_Rename {
 	/**
 	 * Update attachment metadata.
 	 *
-	 * @param string $old_path Old path.
 	 * @param string $new_path New path.
-	 * @return void
+	 * @return bool
 	 */
-	private function update_attachment_metadata( $old_path, $new_path ) {
+	private function update_attachment_metadata( $new_path ) {
 		global $wp_filesystem;
 
 		$new_file_name_no_ext = pathinfo( $new_path, PATHINFO_FILENAME );
@@ -124,14 +135,14 @@ class Optml_Attachment_Rename {
 		$attached_update = update_attached_file( $this->attachment_id, $new_path );
 
 		if ( ! $attached_update ) {
-			return;
+			return false;
 		}
 
 		// Get current attachment metadata
 		$metadata = $this->attachment->get_attachment_metadata();
 
 		if ( empty( $metadata ) ) {
-			return;
+			return false;
 		}
 
 		// Update file path in metadata
@@ -149,6 +160,8 @@ class Optml_Attachment_Rename {
 
 		// Update image sizes if they exist
 		if ( isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ) {
+			$already_moved_paths = [];
+
 			foreach ( $metadata['sizes'] as $size => $size_data ) {
 				if ( ! isset( $size_data['file'] ) ) {
 					continue;
@@ -161,17 +174,23 @@ class Optml_Attachment_Rename {
 
 				$move = $wp_filesystem->move( $old_size_file_path, $new_size_file_path );
 
-				if ( $move ) {
+				if ( $move || in_array( $old_size_file_path, $already_moved_paths, true ) ) {
+					$already_moved_paths[] = $old_size_file_path;
 					$metadata['sizes'][ $size ]['file'] = $new_size_file;
+					$already_moved_paths = array_unique( $already_moved_paths );
 				}
 			}
 		}
 
-		wp_update_attachment_metadata( $this->attachment_id, $metadata );
+		$metadata_update = wp_update_attachment_metadata( $this->attachment_id, $metadata );
+
+		if ( ! $metadata_update ) {
+			return false;
+		}
 
 		global $wpdb;
 
-		$wpdb->update(
+		$update = $wpdb->update(
 			$wpdb->posts,
 			[
 				'guid' => $this->get_new_guid( $original_image ),
@@ -180,19 +199,8 @@ class Optml_Attachment_Rename {
 				'ID' => $this->attachment_id,
 			]
 		);
-	}
 
-	/**
-	 * Initialize filesystem.
-	 *
-	 * @return void
-	 */
-	private function init_filesystem() {
-		if ( ! function_exists( 'WP_Filesystem' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-		}
-
-		WP_Filesystem();
+		return $update !== false;
 	}
 
 	/**
