@@ -137,28 +137,55 @@ const Dashboard = () => {
 
 	const visitorsLimitPercent = ( ( userData.visitors / userData.visitors_limit ) * 100 ).toFixed( 0 );
 
-	const getFormattedMetric = ( metric ) => {
-		let metricValue = userData[ metric ];
+	const formatMetric = ( type, value ) => {
+		let formattedValue = 0;
+		let unit = '';
 
 		// Fallback for missing data
-		if ( undefined === metricValue ) {
-			metricValue = 'saved_size' === metric ?
-				Math.floor( Math.random() * 2500 ) + 500 :
-				Math.floor( Math.random() * 40 ) + 10;
+		if ( undefined === value ) {
+			value = 'saved_size' === type ?
+				Math.floor( Math.random() * 2500000 ) + 500000 : // Mock KB
+				'traffic' === type ?
+					Math.floor( Math.random() * 2500 ) + 500 : // Mock MB
+					Math.floor( Math.random() * 40 ) + 10; // Mock Percentage
 		}
 
-		return metricValue;
-	};
+		switch ( type ) {
+		case 'compression_percentage':
+			formattedValue = parseFloat( value ).toFixed( 2 );
+			unit = '%';
+			break;
+		case 'saved_size': // Assuming value is in KB
+			const sizeInMB = value / 1000;
+			if ( 1000 > sizeInMB ) {
+				formattedValue = sizeInMB.toFixed( 2 );
+				unit = 'MB';
+			} else if ( 1000000 > sizeInMB ) {
+				formattedValue = ( sizeInMB / 1000 ).toFixed( 2 );
+				unit = 'GB';
+			} else {
+				formattedValue = ( sizeInMB / 1000000 ).toFixed( 2 );
+				unit = 'TB';
+			}
+			break;
+		case 'traffic': // Assuming value is in MB
+			if ( 1000 > value ) {
+				formattedValue = parseFloat( value ).toFixed( 2 );
+				unit = 'MB';
+			} else if ( 1000000 > value ) {
+				formattedValue = ( value / 1000 ).toFixed( 2 );
+				unit = 'GB';
+			} else {
+				formattedValue = ( value / 1000000 ).toFixed( 2 );
+				unit = 'TB';
+			}
+			break;
+		default:
+			formattedValue = parseFloat( value ).toFixed( 2 );
+			unit = '';
+		}
 
-	const formatMetricValue = metric => {
-		const value = getFormattedMetric( metric );
-		const calcValue = 'saved_size' === metric ? ( value / 1000 ).toFixed( 2 ) : value.toFixed( 2 );
-		return (
-			<div className='flex items-end gap-1'>
-				<span className='text-2xl text-black font-bold'>{calcValue}</span>
-				<span className='text-sm text-gray-500'>{ 'compression_percentage' === metric ? '%' : 'MB' }</span>
-			</div>
-		);
+		return { formattedValue, unit };
 	};
 
 	return (
@@ -209,6 +236,9 @@ const Dashboard = () => {
 
 				<div className="flex pt-5 gap-5 flex-col md:flex-row">
 					{ metrics.map( metric => {
+						const rawValue = userData[ metric.value ];
+						const { formattedValue, unit } = formatMetric( metric.value, rawValue );
+
 						return (
 							<div
 								key={ metric.value }
@@ -221,8 +251,9 @@ const Dashboard = () => {
 										{ metric.label }
 									</div>
 
-									<div>
-										{ formatMetricValue( metric.value ) }
+									<div className='flex items-end gap-1'>
+										<span className='text-2xl text-black font-bold'>{formattedValue}</span>
+										<span className='text-sm text-gray-500'>{unit}</span>
 									</div>
 
 									<div className="font-normal text-gray-600">
