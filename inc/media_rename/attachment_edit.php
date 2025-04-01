@@ -19,7 +19,8 @@ class Optml_Attachment_Edit {
 		add_filter( 'attachment_fields_to_save', [ $this, 'prepare_attachment_filename' ], 10, 2 );
 
 		add_action( 'edit_attachment', [ $this, 'save_attachment_filename' ] );
-		add_action( 'optml_after_attachment_url_replace', [ $this, 'bust_cached_assets' ], 10, 3 );
+		add_action( 'optml_after_attachment_url_replace', [ $this, 'bust_cache_on_rename' ], 10, 3 );
+		add_action( 'optml_attachment_replaced', [ $this, 'bust_cache_on_replace' ] );
 		add_action( 'wp_ajax_optml_replace_file', [ $this, 'replace_file' ] );
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
@@ -62,11 +63,11 @@ class Optml_Attachment_Edit {
 			'optml-attachment-edit',
 			'OMAttachmentEdit',
 			[
-				'ajaxURL' => admin_url( 'admin-ajax.php' ),
-				'maxFileSize' => $max_file_size,
+				'ajaxURL'      => admin_url( 'admin-ajax.php' ),
+				'maxFileSize'  => $max_file_size,
 				'attachmentId' => $id,
-				'mimeType' => $mime_type,
-				'i18n' => [
+				'mimeType'     => $mime_type,
+				'i18n'         => [
 					'maxFileSizeError' => $max_file_size_error,
 					'replaceFileError' => __( 'Error replacing file', 'optimole-wp' ),
 				],
@@ -80,6 +81,7 @@ class Optml_Attachment_Edit {
 	 *
 	 * @param array   $form_fields Array of form fields.
 	 * @param WP_Post $post The post object.
+	 *
 	 * @return array Modified form fields.
 	 */
 	public function add_attachment_fields( $form_fields, $post ) {
@@ -102,25 +104,25 @@ class Optml_Attachment_Edit {
 		$form_fields['optml_rename_file'] = [
 			'label' => __( 'Rename attached file', 'optimole-wp' ),
 			'input' => 'html',
-			'html' => $this->get_rename_field( $attachment ),
+			'html'  => $this->get_rename_field( $attachment ),
 		];
 
 		$form_fields['optml_replace_file'] = [
 			'label' => __( 'Replace file', 'optimole-wp' ),
 			'input' => 'html',
-			'html' => $this->get_replace_field( $attachment ),
+			'html'  => $this->get_replace_field( $attachment ),
 		];
 
 		$form_fields['optml_footer_row'] = [
 			'label' => '',
 			'input' => 'html',
-			'html' => $this->get_footer_html(),
+			'html'  => $this->get_footer_html(),
 		];
 
 		$form_fields['optml_spacer_row'] = [
 			'label' => '',
 			'input' => 'html',
-			'html' => '<div></div>',
+			'html'  => '<div></div>',
 		];
 
 		return $form_fields;
@@ -135,7 +137,7 @@ class Optml_Attachment_Edit {
 	 */
 	private function get_rename_field( \Optml_Attachment_Model $attachment ) {
 		$file_name_no_ext = $attachment->get_filename_no_ext();
-		$file_ext = $attachment->get_extension();
+		$file_ext         = $attachment->get_extension();
 
 		$html = '';
 
@@ -166,12 +168,12 @@ class Optml_Attachment_Edit {
 	private function get_replace_field( \Optml_Attachment_Model $attachment ) {
 		$file_ext = $attachment->get_extension();
 		$file_ext = in_array( $file_ext, [ 'jpg', 'jpeg' ], true ) ? [ '.jpg', '.jpeg' ] : [ '.' . $file_ext ];
-		$html = '<div class="optml-replace-section">';
-		$html .= '<div class="optml-replace-input">';
-		$html .= '<label for="optml-replace-file-field" id="optml-file-drop-area">';
-		$html .= '<span class="label-text">' . __( 'Click to select a file or drag & drop here', 'optimole-wp' ) . ' (' . implode( ',', $file_ext ) . ')</span>';
-		$html .= '<div class="optml-replace-file-preview"></div>';
-		$html .= '</label>';
+		$html     = '<div class="optml-replace-section">';
+		$html     .= '<div class="optml-replace-input">';
+		$html     .= '<label for="optml-replace-file-field" id="optml-file-drop-area">';
+		$html     .= '<span class="label-text">' . __( 'Click to select a file or drag & drop here', 'optimole-wp' ) . ' (' . implode( ',', $file_ext ) . ')</span>';
+		$html     .= '<div class="optml-replace-file-preview"></div>';
+		$html     .= '</label>';
 
 		$html .= '<input type="file" class="hidden" id="optml-replace-file-field" name="optml-replace-file-field" accept="' . implode( ',', $file_ext ) . '">';
 
@@ -211,6 +213,7 @@ class Optml_Attachment_Edit {
 	 *
 	 * @param array $post_data Array of post data.
 	 * @param array $attachment Array of attachment data.
+	 *
 	 * @return array Modified post data.
 	 */
 	public function prepare_attachment_filename( array $post_data, array $attachment ) {
@@ -266,7 +269,7 @@ class Optml_Attachment_Edit {
 		delete_post_meta( $post_id, '_optml_pending_rename' );
 
 		$renamer = new Optml_Attachment_Rename( $post_id, $new_filename );
-		$status = $renamer->rename();
+		$status  = $renamer->rename();
 
 		if ( is_wp_error( $status ) ) {
 			wp_die( $status->get_error_message() );
@@ -302,13 +305,33 @@ class Optml_Attachment_Edit {
 	}
 
 	/**
-	 * Bust cached assets
+	 * Bust cached assets when an attachment is renamed.
 	 *
 	 * @param int    $attachment_id The attachment ID.
-	 * @param string $new_url The new attachment URL.
 	 * @param string $old_url The old attachment URL.
+	 * @param string $new_url The new attachment URL.
 	 */
-	public function bust_cached_assets( $attachment_id, $new_url, $old_url ) {
+	public function bust_cache_on_rename( $attachment_id, $old_url, $new_url ) {
+		$this->clear_cache();
+	}
+
+	/**
+	 * Bust cached assets when an attachment is replaced.
+	 *
+	 * @param int $attachment_id The attachment ID.
+	 *
+	 * @return void
+	 */
+	public function bust_cache_on_replace( $attachment_id ) {
+		$this->clear_cache();
+	}
+
+	/**
+	 * Clear the cache for third-party plugins.
+	 *
+	 * @return void
+	 */
+	private function clear_cache() {
 		if (
 			class_exists( '\ThemeIsle\GutenbergBlocks\Server\Dashboard_Server' ) &&
 			is_callable( [ '\ThemeIsle\GutenbergBlocks\Server\Dashboard_Server', 'regenerate_styles' ] )

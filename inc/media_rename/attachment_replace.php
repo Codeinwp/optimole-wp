@@ -43,8 +43,14 @@ class Optml_Attachment_Replace {
 	 */
 	public function __construct( $attachment_id, $file ) {
 		$this->attachment_id = $attachment_id;
-		$this->file = $file;
-		$this->attachment = new Optml_Attachment_Model( $attachment_id );
+		$this->file          = $file;
+		$this->attachment    = new Optml_Attachment_Model( $attachment_id );
+
+		if ( ! function_exists( 'WP_Filesystem' ) ) {
+			require_once ABSPATH . 'wp-admin/includes/file.php';
+		}
+
+		WP_Filesystem();
 	}
 
 	/**
@@ -57,7 +63,7 @@ class Optml_Attachment_Replace {
 			return new WP_Error( 'file_error', __( 'Error uploading file.', 'optimole-wp' ) );
 		}
 
-		$original_file = $this->attachment->get_source_file_path();
+		$original_file  = $this->attachment->get_source_file_path();
 		$old_sizes_urls = $this->attachment->get_all_image_sizes_urls();
 
 		if ( ! file_exists( $original_file ) ) {
@@ -71,7 +77,6 @@ class Optml_Attachment_Replace {
 			return new WP_Error( 'file_error', __( 'The uploaded file type does not match the original file type.', 'optimole-wp' ) );
 		}
 
-		$this->init_filesystem();
 		global $wp_filesystem;
 
 		if ( ! $wp_filesystem->move( $this->file['tmp_name'], $original_file, true ) ) {
@@ -92,6 +97,8 @@ class Optml_Attachment_Replace {
 		$this->new_attachment = new Optml_Attachment_Model( $this->attachment_id );
 
 		$this->handle_scaled_images();
+
+		do_action( 'optml_attachment_replaced', $this->attachment_id );
 
 		return true;
 	}
@@ -122,10 +129,10 @@ class Optml_Attachment_Replace {
 
 		$old_scaled = $this->attachment->is_scaled();
 		$new_scaled = $this->new_attachment->is_scaled();
-		$replacer = new Optml_Attachment_Db_Renamer( true );
+		$replacer   = new Optml_Attachment_Db_Renamer( true );
 
 		$new_file_path = $this->new_attachment->get_source_file_path();
-		$file = apply_filters( 'update_attached_file', $new_file_path, $this->attachment_id );
+		$file          = apply_filters( 'update_attached_file', $new_file_path, $this->attachment_id );
 
 		// New is scaled, but old is not scaled. We don't replace anything.
 		if ( $old_scaled === $new_scaled || ( ! $old_scaled && $new_scaled ) ) {
@@ -134,10 +141,10 @@ class Optml_Attachment_Replace {
 
 		// Delete the old scaled version and replace scaled URLs with non-scaled URLs.
 		if ( $old_scaled && ! $new_scaled ) {
-			$main_file_url = $this->attachment->get_main_url();
-			$unscaled_file = $this->attachment->get_filename_with_ext();
+			$main_file_url   = $this->attachment->get_main_url();
+			$unscaled_file   = $this->attachment->get_filename_with_ext();
 			$old_scaled_file = $this->attachment->get_filename_with_ext( true );
-			$old_scaled_url = str_replace( $unscaled_file, $old_scaled_file, $main_file_url );
+			$old_scaled_url  = str_replace( $unscaled_file, $old_scaled_file, $main_file_url );
 
 			$replacer->replace( $old_scaled_url, $main_file_url );
 
@@ -158,6 +165,7 @@ class Optml_Attachment_Replace {
 	 *
 	 * @param array $new_sizes New sizes.
 	 * @param array $old_sizes_urls Old sizes URLs.
+	 *
 	 * @return void
 	 */
 	private function replace_image_sizes_links( $new_sizes, $old_sizes_urls ) {
@@ -174,18 +182,5 @@ class Optml_Attachment_Replace {
 			$new_url = str_replace( $this->attachment->get_filename_with_ext(), $new_sizes[ $size ]['file'], $this->attachment->get_main_url() );
 			$replacer->replace( $old_url, $new_url );
 		}
-	}
-
-	/**
-	 * Initialize filesystem.
-	 *
-	 * @return void
-	 */
-	private function init_filesystem() {
-		if ( ! function_exists( 'WP_Filesystem' ) ) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-		}
-
-		WP_Filesystem();
 	}
 }

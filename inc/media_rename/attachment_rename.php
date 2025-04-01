@@ -97,21 +97,26 @@ class Optml_Attachment_Rename {
 
 		try {
 			$replacer = new Optml_Attachment_Db_Renamer();
-			$count = $replacer->replace( $this->attachment->get_main_url(), $this->get_new_url( $new_unique_filename ) );
+			$old_url = $this->attachment->get_main_url();
+			$new_url = $this->get_new_url( $new_unique_filename );
+
+			$count = $replacer->replace( $old_url, $new_url );
 
 			if ( $count > 0 ) {
 				/**
 				 * Action triggered after the attachment file is renamed.
 				 *
 				 * @param int $attachment_id Attachment ID.
-				 * @param string $new_url New attachment URL.
 				 * @param string $old_url Old attachment URL.
+				 * @param string $new_url New attachment URL.
 				 */
-				do_action( 'optml_after_attachment_url_replace', $this->attachment_id, $this->get_new_url( $new_unique_filename ), $this->attachment->get_main_url() );
+				do_action( 'optml_after_attachment_url_replace', $this->attachment_id, $old_url, $new_url );
 			}
 		} catch ( Exception $e ) {
 			return new WP_Error( 'optml_attachment_url_replace_failed', __( 'Error renaming file.', 'optimole-wp' ) );
 		}
+
+		do_action( 'optml_attachment_renamed', $this->attachment_id );
 
 		return true;
 	}
