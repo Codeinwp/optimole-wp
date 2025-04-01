@@ -6,16 +6,41 @@
 /**
  * Class Test_Attachment_Rename.
  */
-
-require_once 'attachment_edit_utils.php';
-
 class Test_Attachment_Rename extends WP_UnitTestCase {
-	use Attachment_Edit_Utils;
+	protected static $scaled_id;
+	protected static $unscaled_id;
 
-	/**
-	 * @dataProvider rename_provider
-	 */
-	public function test_rename( $id, $model, $new_filename, $scaled = false ) {
+	protected static $scaled_model;
+	protected static $unscaled_model;
+
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$scaled_id = $factory->attachment->create_upload_object( OPTML_PATH . 'tests/assets/rename-scaled.jpg' );
+		self::$unscaled_id = $factory->attachment->create_upload_object( OPTML_PATH . 'tests/assets/rename-unscaled.jpg' );
+
+		self::$scaled_model = new Optml_Attachment_Model( self::$scaled_id );
+		self::$unscaled_model = new Optml_Attachment_Model( self::$unscaled_id );
+	}
+
+	public static function tear_down_after_class() {
+		wp_delete_post( self::$scaled_id, true );
+		wp_delete_post( self::$unscaled_id, true );
+		parent::tear_down_after_class();
+	}
+
+	public function test_barebones() {
+		$this->assertInstanceOf( 'WP_Post' , get_post( self::$scaled_id ) );
+		$this->assertInstanceOf( 'WP_Post' , get_post( self::$unscaled_id ) );
+
+		$this->assertEquals('attachment', get_post_type( self::$scaled_id ) );
+		$this->assertEquals('attachment', get_post_type( self::$unscaled_id ) );
+	}
+
+	public function test_renames() {
+		$this->test_rename( self::$unscaled_id, self::$unscaled_model, 'renamed-image' );
+		$this->test_rename( self::$scaled_id, self::$scaled_model, 'big-file-rename', true );
+	}
+
+	private function test_rename( $id, $model, $new_filename, $scaled = false ) {
 		$renamer = new Optml_Attachment_Rename( $id, $new_filename );
 		$result = $renamer->rename();
 
@@ -25,19 +50,6 @@ class Test_Attachment_Rename extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( $new_filename,  $new_model->get_filename_no_ext() );
 		$this->check_rename_with_models( $new_model, $model, $scaled );
-	}
-
-	public function rename_provider( $callee ) {
-		$unscaled = $this->create_attachment_get_id( OPTML_PATH . 'tests/assets/rename-unscaled.jpg' );
-		$scaled   = $this->create_attachment_get_id( OPTML_PATH . 'tests/assets/rename-scaled.jpg' );
-
-		$unscaled_model = new Optml_Attachment_Model( $unscaled );
-		$scaled_model   = new Optml_Attachment_Model( $scaled );
-
-		return [
-			[ $unscaled, $unscaled_model, 'renamed-image' ],
-			[ $scaled, $scaled_model, 'big-file-rename', true ],
-		];
 	}
 
 	private function check_rename_with_models( $new, $old, $scaled = false ) {

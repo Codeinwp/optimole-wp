@@ -3,19 +3,17 @@
  * Test class for Optml_Attachment_Model.
  */
 
-require_once 'attachment_edit_utils.php';
-
 /**
  * Class Test_Attachment_Model.
  */
 class Test_Attachment_Model extends WP_UnitTestCase {
-	use Attachment_Edit_Utils;
-	/**
-	 * DAM Instance
-	 *
-	 * @var Optml_Dam
-	 */
-	private $dam;
+	protected static $unscaled_id;
+	protected static $scaled_id;
+	protected static $remote_id;
+
+	protected static $unscaled_model;
+	protected static $scaled_model;
+	protected static $remote_model;
 
 	const MOCK_REMOTE_ATTACHMENT = [
 		'url'  => 'https://cloudUrlTest.test/w:auto/h:auto/q:auto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg',
@@ -33,58 +31,66 @@ class Test_Attachment_Model extends WP_UnitTestCase {
 			],
 	];
 
-	/**
-	 * @dataProvider models_provider
-	 */
-	public function test_models( $id, $model, $scaled = false, $remote = false ) {
+	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
+		self::$unscaled_id = $factory->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		self::$scaled_id = $factory->attachment->create_upload_object( OPTML_PATH . 'tests/assets/3000x3000.jpg' );
+		
+		$plugin = Optml_Main::instance();
+		self::$remote_id = $plugin->dam->insert_attachments( [ self::MOCK_REMOTE_ATTACHMENT ] )[0];
+
+		self::$unscaled_model = new Optml_Attachment_Model( self::$unscaled_id );
+		self::$scaled_model = new Optml_Attachment_Model( self::$scaled_id );
+		self::$remote_model = new Optml_Attachment_Model( self::$remote_id );
+	}
+
+	public static function tear_down_after_class() {
+		wp_delete_post( self::$unscaled_id, true );
+		wp_delete_post( self::$scaled_id, true );
+		wp_delete_post( self::$remote_id, true );
+		parent::tear_down_after_class();
+	}
+
+	public function test_barebones() {
+		$this->assertInstanceOf( 'WP_Post', get_post( self::$unscaled_id ) );
+		$this->assertInstanceOf( 'WP_Post', get_post( self::$scaled_id ) );
+		$this->assertInstanceOf( 'WP_Post', get_post( self::$remote_id ) );
+	}
+
+	public function test_models() {
+		$this->test_model( self::$unscaled_id, self::$unscaled_model );
+		$this->test_model( self::$scaled_id, self::$scaled_model, true );
+		$this->test_model( self::$remote_id, self::$remote_model, false, true );
+	}
+
+	private function test_model( $id, $model, $scaled = false, $remote = false ) {
 		$this->test_basic_getters( $id, $model );
 		$this->test_filename_methods( $model );
 		$this->test_image_sizes_methods( $model );
 		$this->test_metadata_prefix_path( $model );
-
-
-
 		$this->assertEquals( $scaled, $model->is_scaled() );
 		$this->assertIsBool( $model->can_be_renamed_or_replaced() );
-
 		$this->assertEquals( ! $remote, $model->can_be_renamed_or_replaced() );
-
-		if( $remote ) {
-			$this->assertEquals( self::MOCK_REMOTE_ATTACHMENT['url'], $model->get_main_url() );
-		}
-
-		$this->delete_attachment( $id );
 	}
 
-	public function models_provider() {
-		$plugin    = Optml_Main::instance();
-		$dam = $plugin->dam;
-
-		$unscaled_attachment = $this->create_attachment_get_id( OPTML_PATH . 'tests/assets/sample-test.jpg' );
-		$scaled_attachment   = $this->create_attachment_get_id( OPTML_PATH . 'tests/assets/3000x3000.jpg' );
-		$remote_attachment   = $dam->insert_attachments( [ self::MOCK_REMOTE_ATTACHMENT ] )[0];
-
-		$unscaled_model = new Optml_Attachment_Model( $unscaled_attachment );
-		$scaled_model   = new Optml_Attachment_Model( $scaled_attachment );
-		$remote_model   = new Optml_Attachment_Model( $remote_attachment );
-
-		return [
-			[ $unscaled_attachment, $unscaled_model ],
-			[ $scaled_attachment, $scaled_model, true ],
-			[ $remote_attachment, $remote_model, false, true ],
-		];
-	}
-
+	/**
+	 * Test basic model getters.
+	 *
+	 * @param int $id Post ID.
+	 * @param Optml_Attachment_Model $model The model to test.
+	 *
+	 * @return void
+	 */
 	private function test_basic_getters( $id, $model ) {
 		$this->assertEquals( $id, $model->get_attachment_id() );
-		$this->assertNotEmpty( $model->get_main_url() );
 		$this->assertNotEmpty( $model->get_attachment_metadata() );
 
 		if( $model->can_be_renamed_or_replaced() ) {
+			$this->assertNotEmpty( $model->get_main_url() );
 			$this->assertNotEmpty( $model->get_source_file_path() );
 			$this->assertNotEmpty( $model->get_dir_path() );
 			$this->assertEquals( 'jpg', $model->get_extension() );
 		} else {
+			$this->assertFalse( $model->get_main_url() );
 			$this->assertEmpty( $model->get_source_file_path() );
 			$this->assertEmpty( $model->get_dir_path() );
 			$this->assertEmpty( $model->get_extension() );

@@ -17,7 +17,7 @@ class Optml_Attachment_Db_Renamer {
 	 *
 	 * @var array
 	 */
-	private $skip_tables = ['users', 'terms', 'term_relationships', 'term_taxonomy'];
+	private $skip_tables = [ 'users', 'terms', 'term_relationships', 'term_taxonomy' ];
 
 	/**
 	 * Columns to skip during replacement
@@ -53,11 +53,11 @@ class Optml_Attachment_Db_Renamer {
 			return 0;
 		}
 
-		if( empty($old_url) || empty($new_url) ) {
+		if ( empty( $old_url ) || empty( $new_url ) ) {
 			return 0;
 		}
 
-		if( ! is_string($old_url) || ! is_string($new_url) ) {
+		if ( ! is_string( $old_url ) || ! is_string( $new_url ) ) { // @phpstan-ignore-line docs require a string but it could be empty
 			return 0;
 		}
 
@@ -392,10 +392,6 @@ class Optml_Attachment_Db_Renamer {
 	 * @return string The processed value
 	 */
 	private function replace_urls_in_value( $value, $old_url, $new_url ) {
-		var_dump([
-			$value,
-			$old_url,
-		]);
 		// Check if the value is serialized
 		if ( $this->is_serialized( $value ) ) {
 			$unserialized = @unserialize( $value );
