@@ -71,26 +71,26 @@ const navigate = ( tabId ) => {
 
 const quickactions = [
 	{
-		icon: <Icon icon={bolt} className="text-info"/>,
+		icon: bolt,
 		title: optimoleDashboardApp.strings.quick_actions.speed_test_title,
 		description: optimoleDashboardApp.strings.quick_actions.speed_test_desc,
 		link: optimoleDashboardApp.strings.quick_actions.speed_test_link,
 		value: 'speedTest'
 	},
 	{
-		icon: <Icon icon={update} className="text-info"/>,
+		icon: update,
 		title: optimoleDashboardApp.strings.quick_actions.clear_cache_images,
 		description: optimoleDashboardApp.strings.quick_actions.clear_cache,
 		value: clearCache
 	},
 	{
-		icon: <Icon icon={offloadImage} className="text-info" />,
+		icon: offloadImage,
 		title: optimoleDashboardApp.strings.quick_actions.offload_images,
 		description: optimoleDashboardApp.strings.quick_actions.offload_images_desc,
 		value: () => navigate( settingsTab.offload_image )
 	},
 	{
-		icon: <Icon icon={settings} className="text-info"/>,
+		icon: settings,
 		title: optimoleDashboardApp.strings.quick_actions.advance_settings,
 		description: optimoleDashboardApp.strings.quick_actions.configure_settings,
 		value: () => navigate( settingsTab.advance )
@@ -162,25 +162,25 @@ const Dashboard = () => {
 	};
 
 	return (
-		<>
+		<div className="grid gap-5">
 			<div className="bg-white p-8 border-0 rounded-lg shadow-md">
 				{ ( 0 < optimoleDashboardApp.strings.notice_just_activated.length && 'active' === userStatus ) && <ActivatedNotice/> }
 
 				{ 'inactive' === userStatus && <InactiveWarning/> }
 
-				<div className='py-6 gap-6 flex-col sm:flex-row items-start sm:items-center'>
-					<div className='flex w-full justify-between sm:items-center'>
-						<div className="text-gray-800 text-2xl font-bold">
+				<div className='pb-6 gap-6 flex-col sm:flex-row items-start'>
+					<div className='flex flex-col md:flex-row gap-3 w-full justify-between'>
+						<div className="text-gray-800 text-xl font-semibold">
 							{ optimoleDashboardApp.strings.dashboard_title }
 						</div>
 						<div className="flex items-center gap-2">
-							<div className="text-gray-600 text-base font-normal ml-2">
+							<div className="text-gray-600 text-base">
 								{ optimoleDashboardApp.strings.quota }
 								<span className="pl-2 text-gray-800 font-bold">
 									{ userData.visitors_pretty } / { userData.visitors_limit_pretty }
 								</span>
 							</div>
-							<div className='w-20'>
+							<div className='md:w-20 grow md:grow-0'>
 								<ProgressBar
 									value={ userData.visitors }
 									max={ userData.visitors_limit }
@@ -197,27 +197,27 @@ const Dashboard = () => {
 						'gap-8 flex-col sm:flex-row items-start sm:items-center'
 					) }
 				>
-					<div>
-						<div className="text-gray-800 text-xl font-bold">
+					<div className="grid gap-2">
+						<div className="text-gray-700 text-lg font-semibold">
 							{ optimoleDashboardApp.strings.banner_title }
 						</div>
-						<div className="text-gray-600 text-base">
+						<div className="text-gray-600 text-sm">
 							{ optimoleDashboardApp.strings.banner_description }
 						</div>
 					</div>
 				</div>
 
-				<div className="flex py-5 gap-5 flex-col md:flex-row">
+				<div className="flex pt-5 gap-5 flex-col md:flex-row">
 					{ metrics.map( metric => {
 						return (
 							<div
 								key={ metric.value }
 								className={ classNames(
-									'p-3 basis-1/3 flex-col items-start border rounded-md border-solid bg-white border-light-gray border-slate-400'
+									'p-3 basis-1/3 flex-col items-start border rounded-md border-solid bg-white border-gray-300'
 								) }
 							>
 								<div className="flex w-full flex-col">
-									<div className="not-italic font-normal text-sm text-gray-500">
+									<div className="text-sm text-gray-500">
 										{ metric.label }
 									</div>
 
@@ -225,7 +225,7 @@ const Dashboard = () => {
 										{ formatMetricValue( metric.value ) }
 									</div>
 
-									<div className="font-normal text-sm text-gray-600">
+									<div className="font-normal text-gray-600">
 										{ metric.description }
 									</div>
 								</div>
@@ -234,39 +234,42 @@ const Dashboard = () => {
 					}) }
 				</div>
 			</div>
-			<div className="my-3 bg-white p-8 border-0 rounded-lg shadow-md">
-				<div className="text-gray-800 font-bold text-2xl">{ optimoleDashboardApp.strings.quick_action_title }</div>
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-5 py-5">
-					{quickactions.map( ( action, index ) => (
-						<div
-							key={index}
-							className="flex items-start items-center gap-3 p-4 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-						>
-							{action.icon}
-							<div className="flex flex-col">
-								<span className="font-medium text-base text-gray-800">{action.title}</span>
-								{ 'speedTest' === action.value ? (
-									<a href={action.link} target="_blank" className="text-info text-sm font-medium hover:text-info">{action.description}</a>
-								) : (
-									<Button
-										variant="default"
-										className="text-info text-sm font-medium p-0 h-5 focus:!shadow-none focus:!outline-none"
-										onClick={ () => action.value() }
-									>
-										{ action.description }
-									</Button>
-								) }
-							</div>
-						</div>
-					) )}
+			<div className="bg-white p-8 border-0 rounded-lg shadow-md">
+				<div className="text-gray-800 text-xl font-semibold mb-5">{ optimoleDashboardApp.strings.quick_action_title }</div>
+				<div className="grid md:grid-cols-2 gap-5">
+					{quickactions.map( ( action, index ) => {
+
+						const TAG = 'speedTest' === action.value ? 'a' : 'button';
+						const additionalProps = 'speedTest' === action.value ? {
+							href: action.link,
+							target: '_blank'
+						} : {
+							onClick: () => {
+								action.value();
+							}
+						};
+						return (
+							<TAG
+								key={index}
+								className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-light-blue hover:bg-info hover:border-info transition-background duration-300 group shadow-none border-gray-200 border border-solid cursor-pointer"
+								{...additionalProps}
+							>
+								<Icon icon={action.icon} className="text-info"/>
+								<div className="flex flex-col items-start gap-1">
+									<span className="font-medium text-base text-gray-800">{action.title}</span>
+									<span className="text-info text-sm font-medium hover:text-info">{action.description}</span>
+								</div>
+							</TAG>
+						);
+					})}
 				</div>
 			</div>
-			<div className="bg-white p-8 border-0 rounded-lg shadow-md">
+			<div className="bg-white p-8 border-0 rounded-lg shadow-md hidden lg:block">
 				{ 'yes' !== optimoleDashboardApp.remove_latest_images && (
 					<LastImages />
 				) }
 			</div>
-		</>
+		</div>
 	);
 };
 
