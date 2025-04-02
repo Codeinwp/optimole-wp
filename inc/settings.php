@@ -83,7 +83,6 @@ class Optml_Settings {
 		'img_to_video'               => 'disabled',
 		'css_minify'                 => 'enabled',
 		'js_minify'                  => 'disabled',
-		'report_script'              => 'disabled',
 		'avif'                       => 'enabled',
 		'autoquality'                => 'enabled',
 		'native_lazyload'            => 'disabled',
@@ -252,7 +251,6 @@ class Optml_Settings {
 				case 'resize_smart':
 				case 'bg_replacer':
 				case 'video_lazyload':
-				case 'report_script':
 				case 'avif':
 				case 'offload_media':
 				case 'cloud_images':
@@ -524,7 +522,6 @@ class Optml_Settings {
 			'css_minify'                 => $this->get( 'css_minify' ),
 			'js_minify'                  => $this->get( 'js_minify' ),
 			'native_lazyload'            => $this->get( 'native_lazyload' ),
-			'report_script'              => $this->get( 'report_script' ),
 			'avif'                       => $this->get( 'avif' ),
 			'autoquality'                => $this->get( 'autoquality' ),
 			'offload_media'              => $this->get( 'offload_media' ),
