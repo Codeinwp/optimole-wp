@@ -86,15 +86,17 @@ export default function CloudLibrary( props ) {
 				onChange={value => updateOption( 'cloud_images', value )}
 			/>
 
-			<div className="m-0">
-				<a href={options_strings.cloud_library_btn_link} className="font-semibold text-info text-sm hover:text-info inline-flex items-center">
-					{options_strings.cloud_library_btn_text}
-					<Icon
+			{isCloudLibraryEnabled && (
+				<div className="m-0">
+					<a href={options_strings.cloud_library_btn_link} className="font-semibold text-info text-sm hover:text-info inline-flex items-center">
+						{options_strings.cloud_library_btn_text}
+						<Icon
 						icon={arrowRight}
 						className="inline-block ml-2 fill-current"
 					/>
-				</a>
-			</div>
+					</a>
+				</div>
+			)}
 
 			<hr className="my-8 border-grayish-blue"/>
 

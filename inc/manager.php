@@ -416,29 +416,31 @@ final class Optml_Manager {
 		if ( defined( 'REST_REQUEST' ) && REST_REQUEST && is_user_logged_in() && ( apply_filters( 'optml_force_replacement', false ) !== true ) ) {
 			return $html;
 		}
+		if ( $this->settings->is_lazyload_type_viewport() ) {
+			$profile_id = Profile::generate_id( $html );
+			// We disable the optimizer for logged in users.
+			if ( ! is_user_logged_in() || ! apply_filters( 'optml_force_page_profiler', false ) !== true ) {
+				$js_optimizer = Optml_Admin::get_optimizer_script( false );
 
-		$profile_id = Profile::generate_id( $html );
-		// We disable the optimizer for logged in users.
-		if ( ! is_user_logged_in() || ! apply_filters( 'optml_force_page_profiler', false ) !== true ) {
-			$js_optimizer = Optml_Admin::get_optimizer_script( false );
-
-			if ( ! $this->page_profiler->exists_all( $profile_id ) ) {
-				$missing = $this->page_profiler->missing_devices( $profile_id );
-				$time = time();
-				$hmac = wp_hash( $profile_id . $time, 'nonce' );
-				$js_optimizer = str_replace(
-					[ Profile::PLACEHOLDER, Profile::PLACEHOLDER_MISSING, Profile::PLACEHOLDER_TIME, Profile::PLACEHOLDER_HMAC ],
-					[ $profile_id, implode( ',', $missing ), $time, $hmac ],
-					$js_optimizer
-				);
-				$html = str_replace( Optml_Admin::get_optimizer_script( true ), $js_optimizer, $html );
-
+				if ( ! $this->page_profiler->exists_all( $profile_id ) ) {
+					$missing = $this->page_profiler->missing_devices( $profile_id );
+					$time = time();
+					$hmac = wp_hash( $profile_id . $time, 'nonce' );
+					$js_optimizer = str_replace(
+						[ Profile::PLACEHOLDER, Profile::PLACEHOLDER_MISSING, Profile::PLACEHOLDER_TIME, Profile::PLACEHOLDER_HMAC ],
+						[ $profile_id, implode( ',', $missing ), $time, $hmac ],
+						$js_optimizer
+					);
+					$html = str_replace( Optml_Admin::get_optimizer_script( true ), $js_optimizer, $html );
+					if ( ! headers_sent() ) {
+						header( 'Cache-Control: max-age=300' ); // Attempt to cache the page just for 5 mins until the optimizer is done. Once the optimizer is done, the page will load optimized.
+					}
+				}
 			}
+
+			Profile::set_current_profile_id( $profile_id );
+			$this->page_profiler->set_current_profile_data();
 		}
-
-		Profile::set_current_profile_id( $profile_id );
-		$this->page_profiler->set_current_profile_data();
-
 		$html = $this->add_html_class( $html );
 
 		$html = $this->process_images_from_content( $html );
@@ -454,29 +456,32 @@ final class Optml_Manager {
 			}
 		}
 
-		$personalized_bg_css = Lazyload::get_current_personalized_css();
-		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', 'viewport_bgselectorsdata: ' . print_r( $personalized_bg_css, true ) );
-		}
+		if ( $this->settings->is_lazyload_type_viewport() ) {
+			$personalized_bg_css = Lazyload::get_current_personalized_css();
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', 'viewport_bgselectorsdata: ' . print_r( $personalized_bg_css, true ) );
+			}
 
-		if ( ! empty( $personalized_bg_css ) && ( $start_pos = strpos( $html, Lazyload::MARKER ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
-			// We replace the general bg css with the personalized one.
-			if ( ( $end_pos = strpos( $html, Lazyload::MARKER, $start_pos + strlen( Lazyload::MARKER ) ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
-				$html = substr_replace(
-					$html,
-					$personalized_bg_css,
-					$start_pos,
-					$end_pos + strlen( Lazyload::MARKER ) - $start_pos
-				);
+			if ( ! empty( $personalized_bg_css ) && ( $start_pos = strpos( $html, Lazyload::MARKER ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
+				// We replace the general bg css with the personalized one.
+				if ( ( $end_pos = strpos( $html, Lazyload::MARKER, $start_pos + strlen( Lazyload::MARKER ) ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
+					$html = substr_replace(
+						$html,
+						$personalized_bg_css,
+						$start_pos,
+						$end_pos + strlen( Lazyload::MARKER ) - $start_pos
+					);
+				}
 			}
 		}
-
 		// WE need this last since during bg personalized CSS we collect preload urls
 		if ( Links::get_links_count() > 0 ) {
 			if ( OPTML_DEBUG ) {
 				do_action( 'optml_log', 'preload_links: ' . print_r( Links::get_links(), true ) );
 			}
-			$html = str_replace( Optml_Admin::get_preload_links(), Links::get_links_html(), $html );
+			$html = str_replace( Optml_Admin::get_preload_links_placeholder(), Links::get_links_html(), $html );
+		} else {
+			$html = str_replace( Optml_Admin::get_preload_links_placeholder(), '', $html );
 		}
 
 		$html = apply_filters( 'optml_url_pre_process', $html );
@@ -484,7 +489,9 @@ final class Optml_Manager {
 		$html = $this->process_urls_from_content( $html );
 
 		$html = apply_filters( 'optml_url_post_process', $html );
-		Profile::reset_current_profile();
+		if ( $this->settings->is_lazyload_type_viewport() ) {
+			Profile::reset_current_profile();
+		}
 		return $html;
 	}
 
@@ -538,7 +545,6 @@ final class Optml_Manager {
 		if ( empty( $images ) ) {
 			return $content;
 		}
-
 		return apply_filters( 'optml_content_images_tags', $content, $images );
 	}
 
@@ -580,13 +586,6 @@ final class Optml_Manager {
 	public static function parse_images_from_html( $content ) {
 		$images = [];
 
-		$header_start = null;
-		$header_end   = null;
-
-		if ( preg_match( '/<header.*<\/header>/ismU', $content, $matches, PREG_OFFSET_CAPTURE ) === 1 ) {
-			$header_start = $matches[0][1];
-			$header_end   = $header_start + strlen( $matches[0][0] );
-		}
 		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ismu';
 
 		if ( preg_match_all( $regex, $content, $images, PREG_OFFSET_CAPTURE ) ) {
@@ -609,14 +608,14 @@ final class Optml_Manager {
 					$images[ $key ][ $url_key ] = $url_value[0];
 
 					if ( $key === 0 ) {
-						$images['in_header'][ $url_key ] = $header_start !== null ? ( $url_value[1] > $header_start && $url_value[1] < $header_end ) : false;
+						$images['in_no_script'][ $url_key ] = false;
 
 						// Check if we are in the noscript context.
 						if ( $is_no_script === false ) {
 							$is_no_script = strpos( $images[0][ $url_key ], '<noscript' ) !== false ? true : false;
 						}
 						if ( $is_no_script ) {
-							$images['in_header'][ $url_key ] = true;
+							$images['in_no_script'][ $url_key ] = true;
 							$is_no_script                    = strpos( $images[0][ $url_key ], '</noscript' ) !== false ? false : true;
 						}
 					}

@@ -56,6 +56,9 @@ class Transients extends Base {
 	 */
 	public function store( string $key, array $data ) {
 		set_transient( $this->get_key( $key ), $data, $this->expiration_time );
+		if ( OPTML_DEBUG ) {
+			error_log( 'stored: ' . $this->get_key( $key ) . '|' . print_r( $data, true ) );
+		}
 	}
 
 	/**

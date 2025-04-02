@@ -183,7 +183,7 @@ abstract class Optml_App_Replacer {
 			return self::$ignore_lazyload_strings;
 		}
 
-		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', [ 'skip-lazy', 'data-skip-lazy' ] );
+		self::$possible_src_attributes = apply_filters( 'optml_possible_lazyload_flags', [ 'skip-lazy', 'data-skip-lazy', 'data-opt-src' ] );
 
 		return array_merge( self::$possible_src_attributes, [ '<noscript' ] );
 	}
@@ -686,6 +686,7 @@ abstract class Optml_App_Replacer {
 	 * @return int
 	 */
 	protected function get_id_by_url( $url ) {
+		$url = $this->get_unoptimized_url( $url );
 		srand( crc32( $url ) );
 		$random_id = rand();
 		srand();

@@ -64,6 +64,7 @@ class Optml_Settings {
 		'bg_replacer'                => 'enabled',
 		'video_lazyload'             => 'enabled',
 		'retina_images'              => 'disabled',
+		'lazyload_type'              => 'fixed',
 		'limit_dimensions'           => 'enabled',
 		'limit_height'               => 1080,
 		'limit_width'                => 1920,
@@ -292,6 +293,9 @@ class Optml_Settings {
 				case 'cache_buster':
 					$sanitized_value = is_string( $value ) ? sanitize_text_field( $value ) : '';
 					break;
+				case 'lazyload_type':
+					$sanitized_value = $this->to_map_values( $value, [ 'fixed', 'viewport', 'all' ], 'fixed' );
+					break;
 				case 'cloud_sites':
 					$current_sites   = $this->get( 'cloud_sites' );
 					$sanitized_value = array_replace_recursive( $current_sites, $value );
@@ -512,6 +516,7 @@ class Optml_Settings {
 			'video_lazyload'             => $this->get( 'video_lazyload' ),
 			'resize_smart'               => $this->get( 'resize_smart' ),
 			'no_script'                  => $this->get( 'no_script' ),
+			'lazyload_type'              => $this->get( 'lazyload_type' ),
 			'image_replacer'             => $this->get( 'image_replacer' ),
 			'cdn'                        => $this->get( 'cdn' ),
 			'filters'                    => $this->get_filters(),
@@ -519,7 +524,7 @@ class Optml_Settings {
 			'defined_image_sizes'        => $this->get( 'defined_image_sizes' ),
 			'watchers'                   => $this->get_watchers(),
 			'watermark'                  => $this->get_watermark(),
-			'img_to_video'               => $this->get( 'img_to_video' ),
+			'img_to_video'               => $this->get( 'img_to_video' ), // @deprecated
 			'scale'                      => $this->get( 'scale' ),
 			'css_minify'                 => $this->get( 'css_minify' ),
 			'js_minify'                  => $this->get( 'js_minify' ),
@@ -792,6 +797,32 @@ class Optml_Settings {
 		return $data['token'];
 	}
 
+	/**
+	 * Check if lazyload type is viewport.
+	 *
+	 * @return bool
+	 */
+	public function is_lazyload_type_viewport() {
+		return $this->get( 'lazyload_type' ) === 'viewport';
+	}
+
+	/**
+	 * Check if lazyload type is all.
+	 *
+	 * @return bool
+	 */
+	public function is_lazyload_type_all() {
+		return $this->get( 'lazyload_type' ) === 'all';
+	}
+
+	/**
+	 * Check if lazyload type is fixed.
+	 *
+	 * @return bool
+	 */
+	public function is_lazyload_type_fixed() {
+		return $this->get( 'lazyload_type' ) === 'fixed';
+	}
 	/**
 	 * Utility to check if offload is enabled.
 	 *

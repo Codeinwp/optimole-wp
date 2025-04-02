@@ -31,6 +31,31 @@ trait Optml_Normalizer {
 	}
 
 	/**
+	 * Get the unoptimized url from an Optimole url.
+	 * Works only on non-offloaded images.
+	 *
+	 * @param string $url The url to get the unoptimized url for.
+	 *
+	 * @return string The unoptimized url.
+	 */
+	public function get_unoptimized_url( $url ) {
+
+		// If the url is not an optimole url, return the url
+		if ( strpos( $url, Optml_Config::$service_url ) === false ) {
+			return $url;
+		}
+		// If the url is an uploaded image, return the url
+		if ( Optml_Media_Offload::is_uploaded_image( $url ) ) {
+			return $url;
+		}
+
+		$url_parts = explode( 'http', $url );
+		if ( ! isset( $url_parts[2] ) ) {
+			return $url;
+		}
+		return 'http' . $url_parts[2];
+	}
+	/**
 	 * Return domain hash.
 	 *
 	 * @param string $domain Full url.

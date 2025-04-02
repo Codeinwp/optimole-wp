@@ -416,8 +416,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return $sources;
 		}
 
-		$requested_ratio = $requested_width / $requested_height;
-
 		$image_sizes = $this->get_all_image_sizes();
 		$crop        = false;
 
@@ -431,7 +429,6 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$crop = (bool) $args['crop'];
 			}
 		}
-
 		foreach ( $sources as $width => $source ) {
 			$filename = ( $image_meta['file'] );
 			$size     = $this->get_image_size_from_width( $image_meta['sizes'], $width, $filename, false );
@@ -455,13 +452,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				continue;
 			}
 
-			$size_ratio = $size['width'] / $size['height'];
-
-			// We need a srcset with the same aspect ratio.
-			// Otherwise, we'll display different images on different devices.
-			if ( $requested_ratio !== $size_ratio ) {
-				unset( $sources[ $width ] );
-
+			if ( ! wp_image_matches_ratio( $size['width'], $size['height'], $requested_width, $requested_height ) ) {
 				continue;
 			}
 
@@ -472,10 +463,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 				continue;
 			}
-
 			$sources[ $width ]['url'] = $optimized_url[0];
 		}
-
 		// Add the requested size to the srcset.
 		$sources[ $requested_width ] = [
 			'url'        => $image_src,
@@ -483,6 +472,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			'value'      => $requested_width,
 		];
 
+		if ( $this->settings->get( 'retina_images' ) === 'enabled' ) {
+			$max_width = max( array_keys( $sources ) );
+			$sources[ $max_width * 2 ] = [
+				'url'        => str_replace( '/w:', '/dpr:2/w:', $sources[ $max_width ]['url'] ),
+				'descriptor' => 'x',
+				'value'      => 2,
+			];
+		}
 		return $sources;
 	}
 

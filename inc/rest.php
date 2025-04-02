@@ -978,6 +978,10 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function optimizations( WP_REST_Request $request ) {
+		$settings = new Optml_Settings();
+		if ( ! $settings->is_lazyload_type_viewport() ) {
+			return $this->response( 'Optimization is not enabled', 'error' );
+		}
 		$time = $request->get_param( 't' );
 		$hmac = $request->get_param( 'h' );
 		if ( empty( $time ) || empty( $hmac ) ) {

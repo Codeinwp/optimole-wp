@@ -52,12 +52,12 @@ const Compression = ({
 
 	const isNetworkOptimizationEnabled = 'disabled' !== settings[ 'network_optimization' ];
 	const isCDNEnabled = 'disabled' !== settings.cdn;
-	const isGIFReplacementEnabled = 'disabled' !== settings[ 'img_to_video' ];
 	const isAVIFEnabled = 'disabled' !== settings.avif;
 	const isStripMetadataEnabled = 'disabled' !== settings[ 'strip_metadata' ];
 	const isAutoQualityEnabled = 'disabled' !== settings.autoquality;
 	const isBestFormatEnabled = 'disabled' !== settings[ 'best_format' ];
 
+	const isRetinaEnabled = 'disabled' !== settings[ 'retina_images' ];
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
 		const data = { ...settings };
@@ -134,6 +134,19 @@ const Compression = ({
 			<hr className="my-8 border-grayish-blue"/>
 
 			<ToggleControl
+				label={ optimoleDashboardApp.strings.options_strings.enable_retina_title }
+				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_retina_desc } } /> }
+				checked={ isRetinaEnabled }
+				disabled={ isLoading }
+				className={ classnames(
+					{
+						'is-disabled': isLoading
+					}
+				) }
+				onChange={ value => updateOption( 'retina_images', value ) }
+			/> 
+			<hr className="my-8 border-grayish-blue"/> 
+			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_network_opt_title }
 				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_network_opt_desc } } /> }
 				checked={ isNetworkOptimizationEnabled }
@@ -163,20 +176,6 @@ const Compression = ({
 
 			<hr className="my-8 border-grayish-blue"/>
 
-			<ToggleControl
-				label={ optimoleDashboardApp.strings.options_strings.enable_gif_replace_title }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.gif_replacer_desc } } /> }
-				checked={ isGIFReplacementEnabled }
-				disabled={ isLoading }
-				className={ classnames(
-					{
-						'is-disabled': isLoading
-					}
-				) }
-				onChange={ value => updateOption( 'img_to_video', value ) }
-			/>
-
-			<hr className="my-8 border-grayish-blue"/>
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_avif_title }

@@ -36,9 +36,10 @@ const Resize = ({
 	const [ height, setHeight ] = useState( '' );
 
 	const isSmartResizeEnabled = 'disabled' !== settings[ 'resize_smart' ];
-	const isRetinaEnabled = 'disabled' !== settings[ 'retina_images' ];
 	const isLimitDimensionsEnabled = 'disabled' !== settings[ 'limit_dimensions' ];
 
+	const isLazyloadEnabled = 'disabled' !== settings.lazyload;
+	const isScaleEnabled = 'disabled' === settings.scale;
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
 		const data = { ...settings };
@@ -108,21 +109,26 @@ const Resize = ({
 
 			<hr className="my-8 border-grayish-blue"/>
 
-			{ 'disabled' !== settings.lazyload && ( <> <ToggleControl
-				label={ optimoleDashboardApp.strings.options_strings.enable_retina_title }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_retina_desc } } /> }
-				checked={ isRetinaEnabled }
-				disabled={ isLoading }
-				className={ classnames(
+
+
+			{isLazyloadEnabled && (
+				<>
+					<ToggleControl
+						label={ optimoleDashboardApp.strings.options_strings.toggle_scale }
+						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.scale_desc } } /> }
+						checked={ isScaleEnabled }
+						disabled={ isLoading }
+						className={ classnames(
 					{
 						'is-disabled': isLoading
 					}
 				) }
-				onChange={ value => updateOption( 'retina_images', value ) }
-			/> <hr className="my-8 border-grayish-blue"/> </> )
-			}
+						onChange={ value => updateOption( 'scale', ! value ) }
+					/> 
+				<hr className="my-8 border-grayish-blue"/> </>
+			)  }
 
-
+			
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_title }
 				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_desc } } /> }
@@ -161,8 +167,6 @@ const Resize = ({
 							onChange={ value => updateValue( 'limit_height', value ) }
 						/>
 					</div>
-
-					<Notice disableIcon type='warning' text={optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_notice}/>
 
 				</BaseControl>
 			) }
