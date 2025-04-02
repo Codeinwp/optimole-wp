@@ -71,7 +71,7 @@ const Lazyload = ({
 					<RadioControl
 						labelPosition="side"
 						className="lazyload_behaviour"
-						selected={settings['lazyload_type'] || 'lazyload_all'}
+						selected={settings['lazyload_type'] || 'all'}
 						options={ [
 							{
 								label: (
