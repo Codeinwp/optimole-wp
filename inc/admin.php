@@ -1233,6 +1233,7 @@ class Optml_Admin {
 			],
 			'bf_notices'                 => $this->get_bf_notices(),
 			'spc_banner'                 => $this->get_spc_banner(),
+			'show_exceed_plan_quota_notice' => $this->should_show_exceed_quota_warning(),
 		];
 	}
 
@@ -1876,6 +1877,10 @@ The root cause might be either a security plugin which blocks this feature or so
 				'rollback_stop_action'                => __( 'Cancel the transfer from Optimole', 'optimole-wp' ),
 				'cloud_library_btn_text'              => __( 'Go to Cloud Library', 'optimole-wp' ),
 				'cloud_library_btn_link'              => add_query_arg( 'page', 'optimole-dam', admin_url( 'admin.php' ) ),
+				'exceed_plan_quota_notice_title'      => __( 'Your site has already reached over 50% of your monthly visits limit within just two weeks.', 'optimole-wp' ),
+				'exceed_plan_quota_notice_description' => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Based on this trend, you are likely to exceed your free quota before the month ends. To avoid any disruption in service, we strongly recommend %1$supgrading%2$s your plan or waiting until your traffic stabilizes before offloading your images. Do you still wish to proceed?', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://dashboard.optimole.com/settings/billing/">', '</a>' ),
+				'exceed_plan_quota_notice_start_action' => __( 'Yes, Transfer to Optimole Cloud', 'optimole-wp' ),
+				'exceed_plan_quota_notice_secondary_action' => __( 'No, keep images on my website', 'optimole-wp' ),
 			],
 			'help'                           => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),
@@ -2068,5 +2073,57 @@ The root cause might be either a security plugin which blocks this feature or so
 		}
 
 		return 0;
+	}
+
+	/**
+	 * Determines whether the exceed quota warning should be displayed to users.
+	 *
+	 * This function checks if the user's quota usage has exceeded a predefined limit
+	 * and returns a boolean value indicating whether the warning should be shown.
+	 *
+	 * @return bool True if the exceed quota warning should be displayed, false otherwise.
+	 */
+	public function should_show_exceed_quota_warning() {
+		if ( ! $this->settings->is_connected() ) {
+			return false;
+		}
+		if ( get_option( 'optml_notice_hide_upg', 'no' ) === 'yes' ) {
+			return false;
+		}
+
+		$service_data = $this->settings->get( 'service_data' );
+
+		if ( ! isset( $service_data['plan'] ) ) {
+			return false;
+		}
+		if ( $service_data['plan'] !== 'free' ) {
+			return false;
+		}
+		if ( ! isset( $service_data['renews_on'] ) ) {
+			return false;
+		}
+		$renews_on                  = $service_data['renews_on'];
+		$timestamp_before_two_weeks = strtotime( '-2 weeks', $renews_on );
+		$today_timestamp            = strtotime( 'today' );
+
+		if ( $timestamp_before_two_weeks < $today_timestamp ) {
+			return false;
+		}
+
+		$visitors_limit = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
+		$visitors_left  = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
+
+		if ( ! $visitors_limit || ! $visitors_left ) {
+			return false;
+		}
+
+		$used_quota         = $visitors_limit - $visitors_left;
+		$is_50_percent_used = ( $used_quota / $visitors_limit ) >= 0.5;
+
+		if ( ! $is_50_percent_used ) {
+			return false;
+		}
+
+		return true;
 	}
 }
