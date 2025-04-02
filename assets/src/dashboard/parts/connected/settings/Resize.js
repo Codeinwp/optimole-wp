@@ -110,7 +110,6 @@ const Resize = ({
 			<hr className="my-8 border-grayish-blue"/>
 
 
-
 			{isLazyloadEnabled && (
 				<>
 					<ToggleControl
@@ -119,16 +118,16 @@ const Resize = ({
 						checked={ isScaleEnabled }
 						disabled={ isLoading }
 						className={ classnames(
-					{
-						'is-disabled': isLoading
-					}
-				) }
+							{
+								'is-disabled': isLoading
+							}
+						) }
 						onChange={ value => updateOption( 'scale', ! value ) }
-					/> 
-				<hr className="my-8 border-grayish-blue"/> </>
+					/>
+					<hr className="my-8 border-grayish-blue"/> </>
 			)  }
 
-			
+
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_title }
 				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_desc } } /> }

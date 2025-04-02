@@ -66,18 +66,18 @@ const Lazyload = ({
 		<>
 			<BaseControl className="mt-2" label={optimoleDashboardApp.strings.options_strings.lazyload_behaviour_title}>
 				<p className="components-base-control__help mt-0" dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.lazyload_behaviour_desc } } />
-			
+
 				<div className="flex gap-8 ml-4">
 					<RadioControl
 						labelPosition="side"
 						className="lazyload_behaviour"
 						selected={settings['lazyload_type'] || 'lazyload_all'}
 						options={ [
-							{ 
+							{
 								label: (
 									<div>
-										<strong>{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_fixed.replace('[N]', settings['skip_lazyload_images'])}</strong>
-										{settings['lazyload_type'] === 'fixed' && (
+										<strong>{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_fixed.replace( '[N]', settings['skip_lazyload_images'])}</strong>
+										{'fixed' === settings['lazyload_type'] && (
 											<>
 												<p className="mt-2 text-sm text-gray-600">
 													{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_fixed_desc}
@@ -90,43 +90,43 @@ const Lazyload = ({
 														type="number"
 														min={ 0 }
 														className="basis-1/2 md:basis-1/3"
-														onChange={value => updateValue('skip_lazyload_images', value)}
+														onChange={value => updateValue( 'skip_lazyload_images', value )}
 													/>
 												</div>
 											</>
 										)}
 									</div>
-								), 
-								value: 'fixed' 
+								),
+								value: 'fixed'
 							},
-							{ 
+							{
 								label: (
 									<div>
 										<strong>{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_viewport}</strong>
-										{settings['lazyload_type'] === 'viewport' && (
+										{'viewport' === settings['lazyload_type'] && (
 											<p className="mt-2 text-sm text-gray-600">
 												{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_viewport_desc}
 											</p>
 										)}
 									</div>
-								), 
-								value: 'viewport' 
+								),
+								value: 'viewport'
 							},
-							{ 
+							{
 								label: (
 									<div >
 										<strong>{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_all}</strong>
-										{settings['lazyload_type'] === 'all' && (
+										{'all' === settings['lazyload_type'] && (
 											<p className="mt-2 text-sm text-gray-600">
 												{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_all_desc}
 											</p>
 										)}
 									</div>
-								), 
-								value: 'all' 
+								),
+								value: 'all'
 							}
 						] }
-						onChange={value => updateValue('lazyload_type', value)}
+						onChange={value => updateValue( 'lazyload_type', value )}
 					/>
 				</div>
 			</BaseControl>
@@ -200,7 +200,6 @@ const Lazyload = ({
 			/>
 
 			<hr className="my-8 border-grayish-blue"/>
-
 
 
 			<ToggleControl
