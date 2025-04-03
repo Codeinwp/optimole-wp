@@ -1141,7 +1141,7 @@ class Optml_Admin {
 			$this->settings->update( 'rollback_status', 'enabled' );
 			// We start the rollback process.
 			Optml_Logger::instance()->add_log( 'rollback_images', 'Account deactivated, starting rollback.' );
-			Optml_Media_Offload::get_image_count( 'rollback_images', false );
+			Optml_Media_Offload::move_images( 'rollback_images', false );
 			$this->settings->update( 'offload_media', 'disabled' );
 		}
 		remove_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
@@ -1282,7 +1282,33 @@ class Optml_Admin {
 		if ( ! isset( $current_screen->id ) ) {
 			return;
 		}
+		if ( $current_screen->id === 'upload' ) {
+			wp_enqueue_script( OPTML_NAMESPACE . '-media-admin', OPTML_URL . 'assets/js/media.js', [], OPTML_VERSION );
+			wp_localize_script(
+				OPTML_NAMESPACE . '-media-admin',
+				'optimoleMediaListing',
+				[
+					'rest_url' => rest_url( OPTML_NAMESPACE . '/v1/move_image' ),
+					'nonce' => wp_create_nonce( 'wp_rest' ),
+				]
+			);
 
+			wp_register_style( 'optml_media_admin_style', false );
+			wp_add_inline_style(
+				'optml_media_admin_style',
+				'
+				.is-loading {
+					pointer-events: none;
+					opacity: 0.5;
+					display: inline-block;
+				}
+				.spinner {
+					margin-top: 0px;
+				}
+			'
+			);
+			wp_enqueue_style( 'optml_media_admin_style' );
+		}
 		if ( $current_screen->id !== 'toplevel_page_optimole' ) {
 			return;
 		}
