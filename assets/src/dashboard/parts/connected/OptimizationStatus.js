@@ -23,7 +23,7 @@ const OptimizationStatus = ({ settings }) => {
 
 	return (
 		<div className="bg-white flex flex-col text-gray-700 border-0 rounded-lg shadow-md p-8">
-			<h3 className="text-base m-0 mb-4">{ optimoleDashboardApp.strings.optimization_status.title }</h3>
+			<h3 className="text-lg mt-0">{ optimoleDashboardApp.strings.optimization_status.title }</h3>
 			<ul className="grid gap-3 m-0">
 				{ statuses.map( ( status, index ) => {
 					let statusClass = status.active ? 'success' : 'danger';
