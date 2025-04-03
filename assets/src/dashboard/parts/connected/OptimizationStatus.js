@@ -1,34 +1,25 @@
-/**
- * WordPress dependencies.
- */
 import { Icon } from '@wordpress/components';
 import { closeSmall, check } from '@wordpress/icons';
 
-import { useSelect } from '@wordpress/data';
-
-const OptimizationStatus = () => {
-	const statuses = useSelect( select => {
-		const { getSiteSettings } = select( 'optimole' );
-		const siteSettings = getSiteSettings();
-		const lazyloadEnabled = 'enabled' === siteSettings?.lazyload;
-		return [
-			{
-				active: 'enabled' === siteSettings?.image_replacer,
-				label: optimoleDashboardApp.strings.optimization_status.statusTitle1,
-				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle1
-			},
-			{
-				active: lazyloadEnabled,
-				label: optimoleDashboardApp.strings.optimization_status.statusTitle2,
-				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle2
-			},
-			{
-				active: lazyloadEnabled && 'disabled' === siteSettings?.scale,
-				label: optimoleDashboardApp.strings.optimization_status.statusTitle3,
-				description: optimoleDashboardApp.strings.optimization_status.statusSubTitle3
-			}
-		];
-	});
+const OptimizationStatus = ({ settings }) => {
+	const lazyloadEnabled = 'enabled' === settings?.lazyload;
+	const statuses = [
+		{
+			active: 'enabled' === settings?.image_replacer,
+			label: optimoleDashboardApp.strings.optimization_status.statusTitle1,
+			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle1
+		},
+		{
+			active: lazyloadEnabled,
+			label: optimoleDashboardApp.strings.optimization_status.statusTitle2,
+			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle2
+		},
+		{
+			active: lazyloadEnabled && 'disabled' === settings?.scale,
+			label: optimoleDashboardApp.strings.optimization_status.statusTitle3,
+			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle3
+		}
+	];
 
 	return (
 		<div className="bg-white flex flex-col text-gray-700 border-0 rounded-lg shadow-md p-8">

@@ -21,7 +21,7 @@ const reasons = [
 	optimoleDashboardApp.strings.upgrade.reason_4
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ settings }) => {
 	const {
 		name,
 		domain,
@@ -127,7 +127,7 @@ const Sidebar = () => {
 				</Button>
 			) }
 
-			<OptimizationStatus />
+			<OptimizationStatus settings={settings} />
 
 			{ showSPCRecommendation && (
 				<SPCRecommendation />
