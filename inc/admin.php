@@ -1987,7 +1987,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			'optimization_tips'              => sprintf(
 			/* translators: 1 is the opening anchor tag, 2 is the closing anchor tag */
 				__( '%1$sView all optimization tips%2$s', 'optimole-wp' ),
-				'<a class="flex justify-center font-bold rounded hover:opacity-90 transition-opacity" href="https://docs.optimole.com/article/2238-optimization-tips" target="_blank"> ',
+				'<a class="flex justify-center items-center font-semibold" href="https://docs.optimole.com/article/2238-optimization-tips" target="_blank"> ',
 				'<span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>'
 			),
 		];
