@@ -1,6 +1,6 @@
 jQuery(document).ready(function($) {
     jQuery('.move-image-optml').click(function() {
-        //ge the id and send a jquery rest request to the server
+        //get the id and send a jquery rest request to the server
         var id = jQuery(this).data('id');
         var action = jQuery(this).data('action'); 
         moveImage(id, action, jQuery(this));
