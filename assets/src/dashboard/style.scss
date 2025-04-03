@@ -24,6 +24,7 @@ $mango-yellow: #FBBF24;
 }
 
 #optimole-app {
+
 	--wp-admin-theme-color: #577BF9;
 	--wp-components-color-foreground: #577BF9;
 	--optml-progress: #577BF9;
@@ -194,6 +195,12 @@ $mango-yellow: #FBBF24;
 	}
 	.components-toggle-control__help{
 		margin-inline-start: 0px;
+	}
+	.lazyload_behaviour {
+		.components-radio-control__option {
+			align-items: flex-start;
+			margin-top:1em;
+		}
 	}
 }
 

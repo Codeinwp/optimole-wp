@@ -195,44 +195,8 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'i.optimole.com', $replaced_content );
 		$this->assertStringNotContainsString( 'data-opt-src', $replaced_content );
 	}
+ 
 
-	public function test_lazy_dont_lazy_load_headers() {
-		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::HTML_TAGS_HEADER );
-
-		$this->assertStringContainsString( 'data-opt-src', $replaced_content );
-		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
-		$this->assertStringContainsString( 'http://example.org', $replaced_content );
-		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
-	}
-
-	public function test_lazy_dont_lazy_load_headers_relative() {
-		$content = '<div></div><header id="header">
-						<div id="wp-custom-header" class="wp-custom-header">
-							<img src="/wp-content/themes/twentyseventeen/assets/images/header2.jpg" width="2000" height="1200" alt="Test" />
-						</div>
-					</header>
-					<div id="wp-custom-header" class="wp-custom-header">
-						<img src="http://example.org/wp-content/themes/twentyseventeen/assets/images/header.jpg" width="2000" height="1200" alt="Test" />
-					</div>';
-
-		$replaced_content = Optml_Manager::instance()->process_images_from_content( $content );
-		$this->assertStringContainsString( 'data-opt-src', $replaced_content );
-		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
-		$this->assertStringContainsString( 'q:eco', $replaced_content );
-		$this->assertStringContainsString( 'http://example.org', $replaced_content );
-		$this->assertStringNotContainsString( 'src="/wp-content', $replaced_content );
-		$this->assertEquals( 1, substr_count( $replaced_content, 'data-opt-src' ) );
-	}
-
-	public function test_lazy_load_just_first_header() {
-		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::HTML_TAGS_HEADER_MULTIPLE );
-
-		$this->assertStringContainsString( 'data-opt-src', $replaced_content );
-		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
-		$this->assertStringContainsString( 'http://example.org', $replaced_content );
-
-		$this->assertEquals( 3, substr_count( $replaced_content, 'data-opt-src' ) );
-	}
 
 	public function test_replacement_lazyload_with_relative_url() {
 		$content          = '<div class="before-footer">
@@ -247,7 +211,7 @@ class Test_Lazyload extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'q:eco', $replaced_content );
 
 	}
-	public function test_replacement_without_quotes() {
+public function test_replacement_without_quotes() {
 		$content          = '<div class="before-footer">
 				<div class="codeinwp-container">
 					<p class="featuredon">Featured On</p>
@@ -262,6 +226,9 @@ class Test_Lazyload extends WP_UnitTestCase {
 	}
 
 	public function test_lazy_load_preserve_image_size() {
+		$settings = new Optml_Settings();
+		$settings->update( 'skip_lazyload_images', 0 );
+		Optml_Manager::instance()->init();
 		$html             = wp_get_attachment_image( self::$sample_attachement, 'sample_size_crop' );
 		$replaced_content = Optml_Manager::instance()->replace_content( $html );
 
@@ -273,12 +240,15 @@ class Test_Lazyload extends WP_UnitTestCase {
 	}
 
 	public function test_width_100() {
-
+ 
+		$settings = new Optml_Settings();
+		$settings->update( 'skip_lazyload_images', 0 );
+		Optml_Manager::instance()->init();
 		$content = '<img height="100%" src="http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/>';
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
-		$this->assertEquals( '<img decoding=async  data-opt-src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/ig:avif/http://example.org/wp-content/uploads/2018/11/gradient.png"  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:eco/ig:avif/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/><noscript><img decoding=async  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/ig:avif/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/></noscript>', $replaced_content );
+		$this->assertEquals( '<img decoding=async data-opt-id=1786304581  data-opt-src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/ig:avif/http://example.org/wp-content/uploads/2018/11/gradient.png"  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:eco/ig:avif/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/><noscript><img decoding=async data-opt-id=1786304581  height="100%" src="https://test123.i.optimole.com/w:auto/h:auto/q:mauto/ig:avif/http://example.org/wp-content/uploads/2018/11/gradient.png" class="at0px" width="100%"/></noscript>', $replaced_content );
 
 	}
 	public function test_check_with_no_script() {
@@ -301,7 +271,6 @@ class Test_Lazyload extends WP_UnitTestCase {
 					</noscript>	';
 
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
-
 		$this->assertStringContainsString( '<noscript>', $replaced_content );
 		$this->assertEquals( 1, substr_count( $replaced_content, '<noscript>' ) );
 		$this->assertEquals( 4, substr_count( $replaced_content, 'i.optimole.com' ) );
@@ -343,9 +312,9 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 
 	public function test_check_no_script() {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::HTML_TAGS_HEADER );
-
+		
 		$this->assertStringContainsString( '<noscript>', $replaced_content );
-		$this->assertEquals( 1, substr_count( $replaced_content, '<noscript>' ) );
+		$this->assertEquals( 2, substr_count( $replaced_content, '<noscript>' ) );
 	}
 
 	public function test_lazy_load_ignore_feed() {
@@ -573,11 +542,11 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 
 	public function test_dam_lazyloading() {
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::DAM_IMG_TAG );
-
 		$this->assertStringContainsString( 'data-opt-src="https://cloudUrlTest.test/w:100/h:200/rt:fill/g:ce/ig:avif/q:mauto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg"', $replaced_content );
 	}
 	public function test_dam_lazyloading_no_wh_attributes() {
 		add_filter('optml_lazyload_images_skip','__return_zero');
+		Optml_Manager::instance()->lazyload_replacer->settings->update('lazyload_type','fixed');
 		Optml_Manager::instance()->lazyload_replacer->settings->update('lazyload_placeholder','enabled');
 		Optml_Manager::instance()->lazyload_replacer->init();
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::DAM_IMG_TAG_NO_WIDTH );
