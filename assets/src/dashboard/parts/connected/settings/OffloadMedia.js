@@ -82,19 +82,6 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 	const isOffloadingInProgress = 'disabled' !== settings['offloading_status'];
 	const isRollbackInProgress = 'disabled' !== settings['rollback_status'];
 
-	useEffect( () => {
-		if ( ! queryArgs?.optimole_action || ! queryArgs?.images ) {
-			return;
-		}
-
-		if ( 'offload_images' === queryArgs.optimole_action ) {
-			onOffloadMedia( queryArgs.images );
-		}
-
-		if ( 'rollback_images' === queryArgs.optimole_action ) {
-			onRollbackdMedia( queryArgs.images );
-		}
-	}, []);
 
 	useEffect( () => {
 		if ( isOffloadingInProgress ) {
@@ -126,8 +113,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 			setOffloadLimitReached( false );
 
 			callSync({
-				action: 'offload_images',
-				images: imageIds
+				action: 'offload_images'
 			});
 
 			setCanSave( false );
@@ -148,8 +134,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 					setProcessedImages( 0 );
 
 					callSync({
-						action: 'rollback_images',
-						images: imageIds
+						action: 'rollback_images'
 					});
 
 					setCanSave( false );
