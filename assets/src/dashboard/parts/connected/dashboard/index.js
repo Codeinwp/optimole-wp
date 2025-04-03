@@ -12,6 +12,7 @@ import {
 } from '@wordpress/components';
 
 import { useSelect } from '@wordpress/data';
+import { warning } from '@wordpress/icons';
 
 import { clearCache } from '../../../utils/api';
 
@@ -99,7 +100,7 @@ const quickactions = [
 
 const InactiveWarning = () => (
 	<div className="flex gap-2 bg-warning text-danger border border-solid border-danger rounded relative px-6 py-5 mb-5">
-		<Icon icon={ warning } />
+		<Icon className="fill-current" icon={ warning } />
 
 		<p
 			className="m-0"
