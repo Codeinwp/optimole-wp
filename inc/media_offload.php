@@ -158,7 +158,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 				add_action( 'delete_attachment', [ self::$instance, 'delete_attachment_hook' ], 10 );
 				add_filter( 'handle_bulk_actions-upload', [ self::$instance, 'bulk_action_handler' ], 10, 3 );
-				add_filter( 'bulk_actions-upload', [ self::$instance, 'register_bulk_media_actions' ] );
+				// TODO: Uncomment this when bulk actions are implemented
+				// add_filter( 'bulk_actions-upload', [ self::$instance, 'register_bulk_media_actions' ] );
 				add_filter( 'media_row_actions', [ self::$instance, 'add_inline_media_action' ], 10, 2 );
 				add_filter( 'wp_calculate_image_srcset', [ self::$instance, 'calculate_image_srcset' ], 1, 5 );
 				add_action( 'post_updated', [ self::$instance, 'update_offload_meta' ], 10, 3 );
