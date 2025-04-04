@@ -76,6 +76,8 @@ class Optml_Attachment_Rename {
 			return new WP_Error( 'optml_attachment_rename_failed', __( 'Error renaming file.', 'optimole-wp' ) );
 		}
 
+		$wp_filesystem->chmod( $new_file_path, FS_CHMOD_FILE );
+
 		// Move the scaled image if it exists.
 		if ( $this->attachment->is_scaled() ) {
 			$new_unique_filename_no_ext = pathinfo( $new_unique_filename, PATHINFO_FILENAME );

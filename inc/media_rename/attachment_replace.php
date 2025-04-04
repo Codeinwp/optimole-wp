@@ -83,6 +83,8 @@ class Optml_Attachment_Replace {
 			return new WP_Error( 'file_error', __( 'Could not move file.', 'optimole-wp' ) );
 		}
 
+		$wp_filesystem->chmod( $original_file, FS_CHMOD_FILE );
+
 		$this->remove_all_image_sizes();
 
 		clean_attachment_cache( $this->attachment_id );
