@@ -21,6 +21,10 @@ const menuItems = [
 		value: 'general'
 	},
 	{
+		label: strings.image_storage,
+		value: 'offload_media'
+	},
+	{
 		label: strings.advanced_settings_menu_item,
 		value: 'compression',
 		children: [
@@ -45,10 +49,6 @@ const menuItems = [
 	{
 		label: strings.cloud_library,
 		value: 'cloud_library'
-	},
-	{
-		label: strings.image_storage,
-		value: 'offload_media'
 	}
 ];
 

@@ -44,14 +44,6 @@ final class Optml_Manager {
 	 */
 	public $lazyload_replacer;
 
-	/**
-	 * Holds the hero preloader class.
-	 *
-	 * @access  public
-	 * @since   3.9.0
-	 * @var Optml_Hero_Preloader Preloader instance.
-	 */
-	public $hero_preloader;
 
 	/**
 	 * Holds plugin settings.
@@ -118,7 +110,6 @@ final class Optml_Manager {
 			self::$instance->url_replacer      = Optml_Url_Replacer::instance();
 			self::$instance->tag_replacer      = Optml_Tag_Replacer::instance();
 			self::$instance->lazyload_replacer = Optml_Lazyload_Replacer::instance();
-			self::$instance->hero_preloader    = Optml_Hero_Preloader::instance();
 
 			add_action( 'after_setup_theme', [ self::$instance, 'init' ] );
 			add_action( 'wp_footer', [ self::$instance, 'banner' ] );
@@ -177,13 +168,15 @@ final class Optml_Manager {
 			return;
 		}
 
+		$position       = $this->settings->get( 'badge_position' ) ?? 'right';
+		$show_icon_only = $this->settings->get( 'show_badge_icon' ) === 'enabled';
+
 		$string    = __( 'Optimized by Optimole', 'optimole-wp' );
 		$div_style = [
 			'display'          => 'flex',
 			'position'         => 'fixed',
 			'align-items'      => 'center',
 			'bottom'           => '15px',
-			'right'            => '15px',
 			'background-color' => '#fff',
 			'padding'          => '8px 6px',
 			'font-size'        => '12px',
@@ -195,6 +188,8 @@ final class Optml_Manager {
 			'text-decoration'  => 'none',
 			'font-family'      => 'Arial, Helvetica, sans-serif',
 		];
+
+		$div_style[ $position ] = '15px';
 
 		$logo = OPTML_URL . 'assets/img/logo.svg';
 
@@ -239,7 +234,9 @@ final class Optml_Manager {
 <path d="M182.837 193.871C181.5 195.322 180.136 196.731 178.702 198.07C177.071 197.351 175.524 196.519 174.005 195.618C172.74 194.871 171.502 194.082 170.251 193.293C170.124 193.209 169.97 193.11 169.913 192.969C169.787 192.687 170.026 192.349 170.349 192.222C170.659 192.11 170.996 192.138 171.348 192.194C173.12 192.462 174.905 192.786 176.663 193.096C178.702 193.448 180.756 193.772 182.837 193.871Z" fill="#1D445C"/>
 <path d="M175.074 201.282C173.147 202.888 171.151 204.396 169.055 205.818C167.902 205.283 166.777 204.649 165.737 203.945C165.287 203.649 164.837 203.325 164.415 203.015C161.743 201 159.409 198.619 157.117 196.252C157.004 196.139 156.892 196.026 156.85 195.858C156.807 195.561 157.13 195.266 157.454 195.224C157.792 195.195 158.129 195.308 158.439 195.435C161.996 196.816 165.413 198.619 169.112 199.718C169.534 199.845 169.955 199.957 170.406 200.07C171.966 200.465 173.598 200.352 174.92 201.169C174.948 201.197 175.018 201.226 175.074 201.282Z" fill="#1D445C"/>
 </svg>';
-		$output .= '<span>' . esc_html( $string ) . '</span>';
+		if ( ! $show_icon_only ) {
+			$output .= '<span>' . esc_html( $string ) . '</span>';
+		}
 		$output .= '</a>';
 
 		echo $output;
