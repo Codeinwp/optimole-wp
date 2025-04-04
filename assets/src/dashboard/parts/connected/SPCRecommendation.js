@@ -100,7 +100,7 @@ const SPCRecommendation = () => {
 				<Icon icon={ close } className="fill-current" size={ 18 } />
 			</button>
 			<div className="p-8 flex flex-col gap-2">
-				<h3 className="text-gray-800 text-lg font-bold m-0">{ i18n.title }</h3>
+				<h3 className="text-lg mt-0">{ i18n.title }</h3>
 				<p className="text-gray-600 m-0">{ i18n.byline }</p>
 				<ul className="grid gap-2">
 					{ i18n.features.map( ( feature, index ) => (

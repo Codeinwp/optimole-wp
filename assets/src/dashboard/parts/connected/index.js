@@ -143,7 +143,7 @@ const ConnectedLayout = ({
 					{ 'help' === tab && <Help /> }
 				</div>
 
-				<Sidebar/>
+				<Sidebar settings={settings}/>
 			</div>
 
 			<CSAT />
