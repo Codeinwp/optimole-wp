@@ -1749,6 +1749,14 @@ The root cause might be either a security plugin which blocks this feature or so
 				'metricsSubtitle4' => __( 'During last month', 'optimole-wp' ),
 			],
 			'options_strings'                => [
+				'compression_mode'               => __( 'Compression Mode', 'optimole-wp' ),
+				'compression_mode_speed_optimized'                => __( 'Speed Optimized', 'optimole-wp' ),
+				'compression_mode_quality_optimized'              => __( 'Quality Optimized', 'optimole-wp' ),
+				'compression_mode_custom'                         => __( 'Custom', 'optimole-wp' ),
+				'compression_mode_speed_optimized_desc'           => __( 'Prioritizes faster loading and smaller image sizes by applying a balanced level of lossy compression. This setting reduces file size significantly without severely degrading visual quality.', 'optimole-wp' ),
+				'compression_mode_quality_optimized_desc'         => __( 'Delivers high-quality images by applying lossless or near-lossless optimization. Ensures images retain their sharpness and details while still benefiting from moderate file size reduction.', 'optimole-wp' ),
+				'compression_mode_custom_desc'                   => __( 'Customize each setting individually for complete control over image compression.', 'optimole-wp' ),
+
 				'best_format_title'                   => __( 'Automatic Best Image Format Selection', 'optimole-wp' ),
 				'best_format_desc'                    => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
