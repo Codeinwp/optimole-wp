@@ -65,8 +65,6 @@ const Compression = ({
 		setCanSave( true );
 		const data = { ...settings };
 		data[ option ] = value ? 'enabled' : 'disabled';
-		console.log( option, value, data );
-
 		setSettings( data );
 	};
 
