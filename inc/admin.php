@@ -65,7 +65,7 @@ class Optml_Admin {
 		add_action( 'admin_notices', [ $this, 'add_notice_conflicts' ] );
 		add_action( self::SYNC_CRON, [ $this, 'daily_sync' ] );
 		add_action( 'admin_init', [ $this, 'redirect_old_dashboard' ] );
-
+		add_action( 'optml_purge_image_cache', [ $this, 'purge_image_cache' ] );
 		if ( $this->settings->is_connected() ) {
 			add_action( 'init', [ $this, 'check_domain_change' ] );
 			add_action( self::ENRICH_CRON, [ $this, 'pull_image_data' ] );
@@ -80,6 +80,7 @@ class Optml_Admin {
 
 			add_action( 'updated_post_meta', [ $this, 'detect_image_alt_change' ], 10, 4 );
 			add_action( 'added_post_meta', [ $this, 'detect_image_alt_change' ], 10, 4 );
+			add_filter( 'update_attached_file', [ $this, 'listen_update_file' ], 999, 2 );
 			if ( ! wp_next_scheduled( self::ENRICH_CRON ) ) {
 				wp_schedule_event( time() + 10, 'hourly', self::ENRICH_CRON );
 			}
@@ -106,6 +107,32 @@ class Optml_Admin {
 		}
 
 		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
+	}
+
+	/**
+	 * Function that purges the image cache for a specific file.
+	 *
+	 * @param string $file Path or url of the file to clear.
+	 *
+	 * @return void
+	 */
+	public function purge_image_cache( $file ) {
+		$basename = wp_basename( $file );
+		$settings = new Optml_Settings();
+		$settings->clear_cache( $basename );
+	}
+	/**
+	 * Listen when the file is updated and clear the cache for the file.
+	 *
+	 * @param string $file The file path.
+	 * @param int    $post_id The post ID.
+	 *
+	 * @return string The file path.
+	 */
+	public function listen_update_file( $file, $post_id ) {
+		// Purge the image cache.
+		do_action( 'optml_purge_image_cache', $file );
+		return $file;
 	}
 	/**
 	 * Check if the file is an SVG, if so handle appropriately
