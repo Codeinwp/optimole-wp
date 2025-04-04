@@ -52,6 +52,9 @@ class Optml_Admin {
 		$this->settings            = new Optml_Settings();
 		$this->conflicting_plugins = new Optml_Conflicting_Plugins();
 
+		$media_rename = new Optml_Attachment_Edit();
+		$media_rename->init();
+
 		$dashboard_widget = new Optml_Dashboard_Widget();
 		$dashboard_widget->init();
 
