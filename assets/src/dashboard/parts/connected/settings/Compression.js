@@ -110,12 +110,7 @@ const Compression = ({
 		data.quality = value;
 		setSettings( data );
 	};
-	const updateCompressionMode = ( value ) => {
-		setCanSave( true );
-		const data = { ...settings };
-		data.compression_mode = value;
-		setSettings( data );
-	};
+
 	const getCompressionRatio = () => {
 		if ( sampleImages.optimized_size > sampleImages.original_size ) {
 			return Math.floor( Math.random() * 60 ) + 10;
@@ -141,7 +136,7 @@ const Compression = ({
 			//If user already changed those before, we need to save them so if he switch back to custom, we can use the old settings
 			saveCustomSettings();
 		}
-
+		setCanSave( true );
 		const data = { ...settings };
 		if ( 'speed_optimized' === value ) {
 			data[ 'best_format' ] = 'disabled';
@@ -165,9 +160,8 @@ const Compression = ({
 			data.avif = ( customSettings.avif ?? isAVIFEnabled ) ? 'enabled' : 'disabled';
 			data[ 'strip_metadata' ] = ( customSettings.strip_metadata ?? isStripMetadataEnabled ) ? 'enabled' : 'disabled';
 		}
+		data.compression_mode = value;
 		setSettings( data );
-		updateCompressionMode( value );
-
 	};
 	return (
 		<>
