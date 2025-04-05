@@ -536,6 +536,8 @@ class Optml_Dam {
 		wp_enqueue_script( OPTML_NAMESPACE . '-admin-page' );
 
 		wp_enqueue_style( OPTML_NAMESPACE . '-admin-page', OPTML_URL . 'assets/build/media/admin-page.css' );
+
+		do_action( 'themeisle_internal_page', OPTML_PRODUCT_SLUG, 'dam' );
 	}
 
 	/**
