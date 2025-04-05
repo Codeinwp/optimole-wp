@@ -6,6 +6,7 @@
  * @author     Optimole <friends@optimole.com>
  */
 
+use OptimoleWP\Offload\Loader;
 use Optimole\Sdk\Exception\InvalidArgumentException;
 use Optimole\Sdk\Exception\InvalidUploadApiResponseException;
 use Optimole\Sdk\Exception\RuntimeException;
@@ -186,6 +187,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				if ( self::$is_legacy_install === null ) {
 					self::$is_legacy_install = get_option( 'optimole_wp_install', 0 ) > 1677171600;
 				}
+				( new Loader() )->register_hooks();
 			}
 		}
 
