@@ -81,6 +81,20 @@ class Optml_Rest {
 			'number_of_images_and_pages' => 'POST',
 			'clear_offload_errors' => 'GET',
 			'get_offload_conflicts' => 'GET',
+			'move_image' => [
+				'POST',
+				'args' => [
+					'id' => [
+						'type'     => 'number',
+						'required' => true,
+					],
+					'action' => [
+						'type'     => 'string',
+						'required' => true,
+					],
+				],
+				'permission_callback' => 'upload_files',
+			],
 		],
 		'watermark_routes' => [
 			'poll_watermarks' => 'GET',
@@ -235,7 +249,10 @@ class Optml_Rest {
 	 */
 	public function register_media_offload_routes() {
 		foreach ( self::$rest_routes['media_cloud_routes'] as $route => $details ) {
-			$this->reqister_route( $route, $details );
+
+			$permission = isset( $details['permission_callback'] ) ? $details['permission_callback'] : 'manage_options';
+			$args       = isset( $details['args'] ) ? $details['args'] : [];
+			$this->reqister_route( $route, is_array( $details ) ? $details[0] : $details, $args, $permission );
 		}
 	}
 
@@ -873,7 +890,6 @@ class Optml_Rest {
 	public function number_of_images_and_pages( WP_REST_Request $request ) {
 		$action = 'offload_images';
 		$refresh = false;
-		$images = [];
 
 		if ( ! empty( $request->get_param( 'action' ) ) ) {
 			$action = $request->get_param( 'action' );
@@ -883,11 +899,7 @@ class Optml_Rest {
 			$refresh = $request->get_param( 'refresh' );
 		}
 
-		if ( ! empty( $request->get_param( 'images' ) ) ) {
-			$images = $request->get_param( 'images' );
-		}
-
-		return $this->response( Optml_Media_Offload::get_image_count( $action, $refresh, $images ) );
+		return $this->response( Optml_Media_Offload::move_images( $action, $refresh ) );
 	}
 
 	/**
@@ -1072,5 +1084,38 @@ class Optml_Rest {
 		foreach ( self::$rest_routes['optimization_routes'] as $route => $details ) {
 			$this->reqister_route( $route, $details[0], $details['args'], $details['permission_callback'] );
 		}
+	}
+
+	/**
+	 * Move image.
+	 *
+	 * @param WP_REST_Request $request Rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function move_image( WP_REST_Request $request ) {
+		$id = $request->get_param( 'id' );
+		$action = $request->get_param( 'action' );
+
+		if ( $request->get_param( 'status' ) === 'start' ) {
+			try {
+				Optml_Media_Offload::instance()->move_single_image( $action === 'offload_image' ? 'offload_images' : 'rollback_images', $id );
+			} catch ( Exception $e ) {
+				return $this->response( strip_tags( $e->getMessage() ), 'error' );
+			}
+		}
+
+		$meta = wp_get_attachment_metadata( $id );
+		$file = $meta['file'];
+		$result = 'not_moved';
+		if ( $action === 'offload_image' ) {
+			$result = Optml_Media_Offload::is_uploaded_image( $file ) ? 'moved' : 'not_moved';
+		}
+
+		if ( $action === 'rollback_image' ) {
+			$result = ! Optml_Media_Offload::is_uploaded_image( $file ) ? 'moved' : 'not_moved';
+		}
+
+		return $this->response( [ $id,$action ], $result );
 	}
 }
