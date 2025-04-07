@@ -342,6 +342,7 @@ class Optml_Admin {
 		$this->settings->update( 'best_format', 'disabled' );
 		$this->settings->update( 'skip_lazyload_images', '2' );
 		$this->settings->update( 'avif', 'disabled' );
+		$this->settings->update( 'compression_mode', 'speed_optimized' );
 
 		update_option( self::NEW_USER_DEFAULTS_UPDATED, 'yes' );
 	}
@@ -1141,7 +1142,7 @@ class Optml_Admin {
 			$this->settings->update( 'rollback_status', 'enabled' );
 			// We start the rollback process.
 			Optml_Logger::instance()->add_log( 'rollback_images', 'Account deactivated, starting rollback.' );
-			Optml_Media_Offload::get_image_count( 'rollback_images', false );
+			Optml_Media_Offload::move_images( 'rollback_images', false );
 			$this->settings->update( 'offload_media', 'disabled' );
 		}
 		remove_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
@@ -1282,7 +1283,33 @@ class Optml_Admin {
 		if ( ! isset( $current_screen->id ) ) {
 			return;
 		}
+		if ( $current_screen->id === 'upload' ) {
+			wp_enqueue_script( OPTML_NAMESPACE . '-media-admin', OPTML_URL . 'assets/js/media.js', [], OPTML_VERSION );
+			wp_localize_script(
+				OPTML_NAMESPACE . '-media-admin',
+				'optimoleMediaListing',
+				[
+					'rest_url' => rest_url( OPTML_NAMESPACE . '/v1/move_image' ),
+					'nonce' => wp_create_nonce( 'wp_rest' ),
+				]
+			);
 
+			wp_register_style( 'optml_media_admin_style', false );
+			wp_add_inline_style(
+				'optml_media_admin_style',
+				'
+				.is-loading {
+					pointer-events: none;
+					opacity: 0.5;
+					display: inline-block;
+				}
+				.spinner {
+					margin-top: 0px;
+				}
+			'
+			);
+			wp_enqueue_style( 'optml_media_admin_style' );
+		}
 		if ( $current_screen->id !== 'toplevel_page_optimole' ) {
 			return;
 		}
@@ -1723,6 +1750,14 @@ The root cause might be either a security plugin which blocks this feature or so
 				'metricsSubtitle4' => __( 'During last month', 'optimole-wp' ),
 			],
 			'options_strings'                => [
+				'compression_mode'               => __( 'Compression Mode', 'optimole-wp' ),
+				'compression_mode_speed_optimized'                => __( 'Speed Optimized', 'optimole-wp' ),
+				'compression_mode_quality_optimized'              => __( 'Quality Optimized', 'optimole-wp' ),
+				'compression_mode_custom'                         => __( 'Custom', 'optimole-wp' ),
+				'compression_mode_speed_optimized_desc'           => __( 'Prioritizes faster loading and smaller image sizes by applying a balanced level of lossy compression. This setting reduces file size significantly without severely degrading visual quality.', 'optimole-wp' ),
+				'compression_mode_quality_optimized_desc'         => __( 'Delivers high-quality images by applying lossless or near-lossless optimization. Ensures images retain their sharpness and details while still benefiting from moderate file size reduction.', 'optimole-wp' ),
+				'compression_mode_custom_desc'                   => __( 'Customize each setting individually for complete control over image compression.', 'optimole-wp' ),
+
 				'best_format_title'                   => __( 'Automatic Best Image Format Selection', 'optimole-wp' ),
 				'best_format_desc'                    => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
