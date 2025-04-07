@@ -71,6 +71,7 @@ class Optml_Settings {
 		'resize_smart'               => 'disabled',
 		'no_script'                  => 'disabled',
 		'filters'                    => [],
+		'compression_mode'           => 'custom',
 		'cloud_sites'                => [ 'all' => 'true' ],
 		'watchers'                   => '',
 		'quality'                    => 'auto',
@@ -296,6 +297,9 @@ class Optml_Settings {
 				case 'lazyload_type':
 					$sanitized_value = $this->to_map_values( $value, [ 'fixed', 'viewport', 'all' ], 'fixed' );
 					break;
+				case 'compression_mode':
+					$sanitized_value = $this->to_map_values( $value, [ 'speed_optimized', 'quality_optimized', 'custom' ], 'custom' );
+					break;
 				case 'cloud_sites':
 					$current_sites   = $this->get( 'cloud_sites' );
 					$sanitized_value = array_replace_recursive( $current_sites, $value );
@@ -517,6 +521,7 @@ class Optml_Settings {
 			'resize_smart'               => $this->get( 'resize_smart' ),
 			'no_script'                  => $this->get( 'no_script' ),
 			'lazyload_type'              => $this->get( 'lazyload_type' ),
+			'compression_mode'           => $this->get( 'compression_mode' ),
 			'image_replacer'             => $this->get( 'image_replacer' ),
 			'cdn'                        => $this->get( 'cdn' ),
 			'filters'                    => $this->get_filters(),
