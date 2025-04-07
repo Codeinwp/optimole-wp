@@ -127,7 +127,8 @@ const Compression = ({
 			retina_images: 'enabled' === settings.retina_images ? true : false,
 			network_optimization: 'enabled' === settings.network_optimization ? true : false,
 			avif: 'enabled' === settings.avif ? true : false,
-			strip_metadata: 'enabled' === settings.strip_metadata ? true : false
+			strip_metadata: 'enabled' === settings.strip_metadata ? true : false,
+			autoquality: 'enabled' === settings.autoquality ? true : false
 		};
 	};
 	const transformCompressionMode = ( value ) => {
@@ -142,7 +143,8 @@ const Compression = ({
 			data[ 'best_format' ] = 'disabled';
 			data[ 'retina_images' ] = 'disabled';
 			data[ 'network_optimization' ] = 'enabled';
-			data.avif = 'enabled';
+			data.avif = 'mauto';
+			data.autoquality = 'enabled';
 			data[ 'strip_metadata' ] = 'enabled';
 		}
 
@@ -151,13 +153,15 @@ const Compression = ({
 			data[ 'retina_images' ] = 'enabled';
 			data[ 'network_optimization' ] = 'disabled';
 			data.avif = 'enabled';
-			data[ 'strip_metadata' ] = 'disabled';
+			data.autoquality = 'enabled';
+			data[ 'strip_metadata' ] = 'enabled';
 		}
 		if ( 'custom' === value ) {
 			data[ 'best_format' ] = ( customSettings.best_format ?? isBestFormatEnabled ) ? 'enabled' : 'disabled';
 			data[ 'retina_images' ] = ( customSettings.retina_images ?? isRetinaEnabled ) ? 'enabled' : 'disabled';
 			data[ 'network_optimization' ] = ( customSettings.network_optimization ?? isNetworkOptimizationEnabled ) ? 'enabled' : 'disabled';
 			data.avif = ( customSettings.avif ?? isAVIFEnabled ) ? 'enabled' : 'disabled';
+			data.autoquality = ( customSettings.autoquality ?? isAutoQualityEnabled ) ? 'enabled' : 'disabled';
 			data[ 'strip_metadata' ] = ( customSettings.strip_metadata ?? isStripMetadataEnabled ) ? 'enabled' : 'disabled';
 		}
 		data.compression_mode = value;
