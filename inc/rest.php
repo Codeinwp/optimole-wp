@@ -96,11 +96,6 @@ class Optml_Rest {
 				'permission_callback' => 'upload_files',
 			],
 		],
-		'watermark_routes' => [
-			'poll_watermarks' => 'GET',
-			'add_watermark'   => 'POST',
-			'remove_watermark' => 'POST',
-		],
 		'conflict_routes' => [
 			'poll_conflicts' => 'GET',
 			'dismiss_conflict' => 'POST',
@@ -210,7 +205,6 @@ class Optml_Rest {
 		$this->register_service_routes();
 
 		$this->register_image_routes();
-		$this->register_watermark_routes();
 		$this->register_conflict_routes();
 		$this->register_cache_routes();
 		$this->register_media_offload_routes();
@@ -256,14 +250,6 @@ class Optml_Rest {
 		}
 	}
 
-	/**
-	 * Method to register watermark specific routes.
-	 */
-	public function register_watermark_routes() {
-		foreach ( self::$rest_routes['watermark_routes'] as $route => $details ) {
-			$this->reqister_route( $route, $details );
-		}
-	}
 
 	/**
 	 * Method to register conflicts specific routes.
@@ -689,57 +675,6 @@ class Optml_Rest {
 		return $this->response( $final_images );
 	}
 
-	/**
-	 * Get watermarks from API.
-	 *
-	 * @param WP_REST_Request $request rest request.
-	 *
-	 * @return WP_REST_Response
-	 */
-	public function poll_watermarks( WP_REST_Request $request ) {
-		$api_key    = $request->get_param( 'api_key' );
-		$request    = new Optml_Api();
-		$watermarks = $request->get_watermarks( $api_key );
-		if ( ! isset( $watermarks['watermarks'] ) || empty( $watermarks['watermarks'] ) ) {
-			return $this->response( [] );
-		}
-		$final_images = array_splice( $watermarks['watermarks'], 0, 10 );
-
-		return $this->response( $final_images );
-	}
-
-	/**
-	 * Add watermark.
-	 *
-	 * @param WP_REST_Request $request rest request.
-	 *
-	 * @return WP_REST_Response
-	 */
-	public function add_watermark( WP_REST_Request $request ) {
-		$file     = $request->get_file_params();
-		$request  = new Optml_Api();
-		$response = $request->add_watermark( $file );
-		if ( $response === false ) {
-			return $this->response( __( 'Error uploading image. Please try again.', 'optimole-wp' ), 'error' );
-		}
-
-		return $this->response( __( 'Watermark image uploaded succesfully !', 'optimole-wp' ) );
-	}
-
-	/**
-	 * Remove watermark.
-	 *
-	 * @param WP_REST_Request $request rest request.
-	 *
-	 * @return WP_REST_Response
-	 */
-	public function remove_watermark( WP_REST_Request $request ) {
-		$post_id = $request->get_param( 'postID' );
-		$api_key = $request->get_param( 'api_key' );
-		$request = new Optml_Api();
-
-		return $this->response( $request->remove_watermark( $post_id, $api_key ) );
-	}
 
 	/**
 	 * Get conflicts from API.

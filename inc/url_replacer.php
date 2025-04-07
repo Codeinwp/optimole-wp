@@ -227,8 +227,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		}
 
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
+		$image = Optimole::image( apply_filters( 'optml_processed_url', $url ), self::get_active_cache_booster( $url, $this->active_cache_buster ) );
 
-		$image = Optimole::image( apply_filters( 'optml_processed_url', $url ), $this->active_cache_buster );
 
 		$image->width( ! empty( $args['width'] ) && is_int( $args['width'] ) ? $args['width'] : 'auto' );
 		$image->height( ! empty( $args['height'] ) && is_int( $args['height'] ) ? $args['height'] : 'auto' );
@@ -278,6 +278,17 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		return $image->getUrl();
 	}
 
+	/**
+	 * Get the active cache booster.
+	 *
+	 * @param string $url The URL.
+	 * @param string $main_cache_buster The default value.
+	 *
+	 * @return string
+	 */
+	public static function get_active_cache_booster( $url, $main_cache_buster ) {
+		return ( get_transient( Optml_Settings::INDIVIDUAL_CACHE_TOKENS_KEY ) ?: [] )[ crc32( wp_basename( $url ) ) ] ?? $main_cache_buster;
+	}
 	/**
 	 * Throw error on object clone
 	 *

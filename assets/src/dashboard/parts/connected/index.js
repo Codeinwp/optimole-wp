@@ -102,7 +102,7 @@ const ConnectedLayout = ({
 
 			<div className="flex flex-col xl:flex-row mx-auto gap-5">
 				<div
-					className="flex flex-col justify-between mt-8 xl:mb-5 p-0 transition-all ease-in-out duration-700 relative text-gray-700 grow"
+					className="flex flex-col mt-8 xl:mb-5 p-0 transition-all ease-in-out duration-700 relative text-gray-700 grow"
 				>
 					{ 'dashboard' === tab && <Dashboard /> }
 
@@ -122,7 +122,7 @@ const ConnectedLayout = ({
 					{ 'help' === tab && <Help /> }
 				</div>
 
-				<Sidebar/>
+				<Sidebar settings={settings}/>
 			</div>
 
 			<CSAT />

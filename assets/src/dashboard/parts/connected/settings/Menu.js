@@ -93,13 +93,19 @@ const Menu = ({
 		<div className="basis-1/5">
 			<ul className="grid m-0 gap-1">
 				{menuItems.map( item => {
+					const disabled = 'enabled' !== settings?.image_replacer && 'general' !== item.value;
 					const isActive = tab === item.value || ( item.children && item.children.some( child => child.value === tab ) );
 
 
-					const buttonClasses = classnames({ '!text-info': isActive }, 'w-full bg-transparent border-0 flex items-center appearance-none not-italic font-semibold text-base text-purple-gray cursor-pointer hover:text-info py-2' );
+					const buttonClasses = classnames(
+						{ '!text-info': isActive },
+						{ 'opacity-50 pointer-events-none': disabled },
+						'w-full bg-transparent border-0 flex items-center appearance-none not-italic font-semibold text-base text-purple-gray cursor-pointer hover:text-info py-2'
+					);
 					return (
 						<li key={item.value} className='m-0'>
 							<button
+								disabled={disabled}
 								className={buttonClasses}
 								onClick={() => setTab( item.value )}
 							>
