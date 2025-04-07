@@ -11,3 +11,4 @@ build
 cc-test-reporter
 assets/build
 test-results
+tests/assets/filestash

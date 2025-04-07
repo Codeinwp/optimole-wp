@@ -26,7 +26,7 @@ function optml_autoload( $class_name ) {
 	if ( strpos( $class_name, $prefix ) !== 0 ) {
 		return;
 	}
-	foreach ( [ '/inc/', '/inc/traits/', '/inc/image_properties/', '/inc/asset_properties/', '/inc/compatibilities/', '/inc/conflicts/', '/inc/cli/' ] as $folder ) {
+	foreach ( [ '/inc/', '/inc/traits/', '/inc/image_properties/', '/inc/asset_properties/', '/inc/compatibilities/', '/inc/conflicts/', '/inc/cli/', '/inc/media_rename/' ] as $folder ) {
 		$file = str_replace( $prefix . '_', '', $class_name );
 		$file = strtolower( $file );
 		$file = __DIR__ . $folder . $file . '.php';
