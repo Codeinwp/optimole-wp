@@ -84,7 +84,11 @@ class Test_Dam extends WP_UnitTestCase {
 		$plugin         = Optml_Main::instance();
 		$this->dam      = $plugin->dam;
 		$this->settings = $plugin->admin->settings;
-
+		$this->settings->update( 'service_data', [
+			'cdn_key'    => 'test123',
+			'cdn_secret' => '12345',
+			'whitelist'  => [ 'example.org' ], 
+		] );
 		$this->insert_mock_attachments();
 		$this->settings->update( 'api_key', self::TEST_API_KEY );
 		$this->settings->update( 'cloud_images', 'enabled' );
@@ -261,7 +265,15 @@ class Test_Dam extends WP_UnitTestCase {
 			$this->assertFalse( $result[3] );
 		}
 	}
-
+	public function test_retina_images() {
+		$this->settings->update( 'retina_images', 'enabled' );
+		//We need to do this to apply the filters from the constructor.
+		$this->dam = new Optml_Dam();
+		foreach ( $this->inserted_ids as $id ) {
+			$content = wp_get_attachment_image( $id, 'full' );
+			$this->assertStringContainsString( 'dpr:2', $content );
+		}
+	}
 	public function test_alter_attachment_metadata() {
 		foreach ( $this->inserted_ids as $id ) {
 			$metadata = wp_get_attachment_metadata( $id );
@@ -316,6 +328,7 @@ class Test_Dam extends WP_UnitTestCase {
 		}
 	}
 
+	
 	public function test_alter_image_tag_w_h() {
 		$test_data = self::MOCK_ATTACHMENTS;
 		$other_dimensions = [1920, 1080];
