@@ -11,6 +11,8 @@
  */
 
 use enshrined\svgSanitize\Sanitizer;
+use OptimoleWP\BgOptimizer\Lazyload;
+use OptimoleWP\PageProfiler\Profile;
 /**
  * Class Optml_Admin
  */
@@ -370,6 +372,7 @@ class Optml_Admin {
 		$this->settings->update( 'best_format', 'disabled' );
 		$this->settings->update( 'skip_lazyload_images', '2' );
 		$this->settings->update( 'avif', 'disabled' );
+		$this->settings->update( 'compression_mode', 'speed_optimized' );
 
 		update_option( self::NEW_USER_DEFAULTS_UPDATED, 'yes' );
 	}
@@ -482,8 +485,7 @@ class Optml_Admin {
 		$limit_dimensions      = $this->settings->get( 'limit_dimensions' ) === 'enabled';
 		$limit_width           = $limit_dimensions ? $this->settings->get( 'limit_width' ) : 0;
 		$limit_height          = $limit_dimensions ? $this->settings->get( 'limit_height' ) : 0;
-		$retina_ready          = $limit_dimensions ||
-								! ( $this->settings->get( 'retina_images' ) === 'enabled' );
+		$retina_ready          = ( $this->settings->get( 'retina_images' ) !== 'enabled' );
 		$scale_is_disabled     = ( $this->settings->get( 'scale' ) === 'enabled' );
 		$native_lazy_enabled   = ( $this->settings->get( 'native_lazyload' ) === 'enabled' );
 		$output                = sprintf(
@@ -879,9 +881,10 @@ class Optml_Admin {
 		if ( empty( $css ) ) {
 			return '';
 		}
-		$css = implode( ",\n", $css ) . ' { background-image: none !important; } ';
+		$css = implode( ",\n", $css ) . ' { background-image: none !important; }';
 
-		return strip_tags( $css );
+		$css = Lazyload::MARKER . "\n" . strip_tags( $css ) . "\n" . Lazyload::MARKER;
+		return $css;
 	}
 
 	/**
@@ -915,8 +918,53 @@ class Optml_Admin {
 								 ';
 			wp_add_inline_script( 'optml-print', $script );
 		}
+		if ( $this->settings->is_lazyload_type_viewport() ) {
+			add_action(
+				'wp_footer',
+				function () {
+
+					print ( self::get_optimizer_script() );
+				}
+			);
+		}
+		print ( self::get_preload_links_placeholder() );
+	}
+	/**
+	 * Get the optimizer script.
+	 *
+	 * @param bool $placeholder Whether to return the placeholder or the actual script.
+	 *
+	 * @return string The optimizer script.
+	 */
+	public static function get_optimizer_script( $placeholder = true ) {
+
+		if ( $placeholder ) {
+			return '<script id=optmloptimizer></script>';
+		}
+
+		return '<script async  src="' . add_query_arg( 'v', OPTML_VERSION, OPTML_URL . 'assets/build/optimizer/optimizer.js' ) . '"></script><script id="optmloptimizer" >
+		  var optimoleDataOptimizer = ' . wp_json_encode(
+			[
+				'restUrl' => esc_js( untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) ),
+				'nonce' => esc_js( wp_create_nonce( 'wp_rest' ) ),
+				'missingDevices' => esc_js( Profile::PLACEHOLDER_MISSING ),
+				'pageProfileId' => esc_js( Profile::PLACEHOLDER ),
+				'_t' => esc_js( Profile::PLACEHOLDER_TIME ),
+				'hmac' => esc_js( Profile::PLACEHOLDER_HMAC ),
+				'bgSelectors' => array_values( Optml_Lazyload_Replacer::get_background_lazyload_selectors() ),
+			]
+		) . ';
+		</script>';
 	}
 
+	/**
+	 * Get the preload links placeholder.
+	 *
+	 * @return string The preload links placeholder.
+	 */
+	public static function get_preload_links_placeholder(): string {
+		return '<script id=optmlpreload></script>';
+	}
 	/**
 	 * Maybe redirect to dashboard page.
 	 */
@@ -1014,7 +1062,7 @@ class Optml_Admin {
 			$this->settings->update( 'rollback_status', 'enabled' );
 			// We start the rollback process.
 			Optml_Logger::instance()->add_log( 'rollback_images', 'Account deactivated, starting rollback.' );
-			Optml_Media_Offload::get_image_count( 'rollback_images', false );
+			Optml_Media_Offload::move_images( 'rollback_images', false );
 			$this->settings->update( 'offload_media', 'disabled' );
 		}
 		remove_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
@@ -1155,13 +1203,38 @@ class Optml_Admin {
 		if ( ! isset( $current_screen->id ) ) {
 			return;
 		}
+		if ( $current_screen->id === 'upload' ) {
+			wp_enqueue_script( OPTML_NAMESPACE . '-media-admin', OPTML_URL . 'assets/js/media.js', [], OPTML_VERSION );
+			wp_localize_script(
+				OPTML_NAMESPACE . '-media-admin',
+				'optimoleMediaListing',
+				[
+					'rest_url' => rest_url( OPTML_NAMESPACE . '/v1/move_image' ),
+					'nonce' => wp_create_nonce( 'wp_rest' ),
+				]
+			);
 
+			wp_register_style( 'optml_media_admin_style', false );
+			wp_add_inline_style(
+				'optml_media_admin_style',
+				'
+				.is-loading {
+					pointer-events: none;
+					opacity: 0.5;
+					display: inline-block;
+				}
+				.spinner {
+					margin-top: 0px;
+				}
+			'
+			);
+			wp_enqueue_style( 'optml_media_admin_style' );
+		}
 		if ( $current_screen->id !== 'toplevel_page_optimole' ) {
 			return;
 		}
 
 		$asset_file = include OPTML_PATH . 'assets/build/dashboard/index.asset.php';
-
 		wp_register_script(
 			OPTML_NAMESPACE . '-admin',
 			OPTML_URL . 'assets/build/dashboard/index.js',
@@ -1613,6 +1686,14 @@ The root cause might be either a security plugin which blocks this feature or so
 				'configure_settings'    => __( 'Configure settings', 'optimole-wp' ),
 			],
 			'options_strings'                => [
+				'compression_mode'               => __( 'Compression Mode', 'optimole-wp' ),
+				'compression_mode_speed_optimized'                => __( 'Speed Optimized', 'optimole-wp' ),
+				'compression_mode_quality_optimized'              => __( 'Quality Optimized', 'optimole-wp' ),
+				'compression_mode_custom'                         => __( 'Custom', 'optimole-wp' ),
+				'compression_mode_speed_optimized_desc'           => __( 'Prioritizes faster loading and smaller image sizes by applying a balanced level of lossy compression. This setting reduces file size significantly without severely degrading visual quality.', 'optimole-wp' ),
+				'compression_mode_quality_optimized_desc'         => __( 'Delivers high-quality images by applying lossless or near-lossless optimization. Ensures images retain their sharpness and details while still benefiting from moderate file size reduction.', 'optimole-wp' ),
+				'compression_mode_custom_desc'                   => __( 'Customize each setting individually for complete control over image compression.', 'optimole-wp' ),
+
 				'best_format_title'                   => __( 'Automatic Best Image Format Selection', 'optimole-wp' ),
 				'best_format_desc'                    => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
@@ -1690,6 +1771,21 @@ The root cause might be either a security plugin which blocks this feature or so
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1192-lazy-load-generic-placeholder">',
 					'</a>'
 				),
+
+				'lazyload_behaviour_title'            => __( 'Lazy Loading Behaviour', 'optimole-wp' ),
+				'lazyload_behaviour_desc'             => sprintf(
+				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
+					__( 'Choose how Optimole will handle lazy loading for images on your website. %1$sLearn more%2$s', 'optimole-wp' ),
+					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1958-lazy-loading-behaviour">',
+					'</a>'
+				),
+				'lazyload_behaviour_all'             => __( 'Lazy Load All Images', 'optimole-wp' ),
+				'lazyload_behaviour_all_desc'        => __( 'All images will use lazy loading regardless of position.', 'optimole-wp' ),
+				'lazyload_behaviour_viewport'          => __( 'Skip Lazy Loading for Initial Viewport', 'optimole-wp' ),
+				'lazyload_behaviour_viewport_desc'   => __( 'Automatically detects and immediately loads images visible in the initial viewport. Detection is done with a lightweight client-side script that identifies what\'s visible on each user\'s screen. All other images will lazy load.', 'optimole-wp' ),
+				/* translators: 1 is the placeholder for the number of images */
+				'lazyload_behaviour_fixed'           => sprintf( __( 'Skip Lazy Loading for First %s Images', 'optimole-wp' ), '[N]' ),
+				'lazyload_behaviour_fixed_desc'      => __( 'Indicate how many images at the top of each page should bypass lazy loading, ensuring they\'re instantly visible.', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title'   => __( 'Lazy Load with Generic Placeholder', 'optimole-wp' ),
 				'enable_network_opt_desc'             => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */

@@ -119,7 +119,6 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_replace_url( $url ) ) {
 			return $original_url;
 		}
-
 		// Remove any query strings that might affect conversion.
 		$url = strtok( $url, '?' );
 		$ext = $this->is_valid_mimetype_from_url( $url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_EXT ] );
@@ -268,6 +267,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		$offloaded_id = $this->is_offloaded_url( $image->getSource() );
 
+		if ( isset( $args['dpr'] ) && $args['dpr'] > 1 ) {
+			$image->dpr( $args['dpr'] );
+		}
 		if ( $offloaded_id !== 0 ) {
 			return $this->get_offloaded_url( $offloaded_id, $image->getUrl(), $image->getSource() );
 		}
