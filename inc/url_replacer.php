@@ -229,7 +229,6 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
 		$image = Optimole::image( apply_filters( 'optml_processed_url', $url ), self::get_active_cache_booster( $url, $this->active_cache_buster ) );
 
-
 		$image->width( ! empty( $args['width'] ) && is_int( $args['width'] ) ? $args['width'] : 'auto' );
 		$image->height( ! empty( $args['height'] ) && is_int( $args['height'] ) ? $args['height'] : 'auto' );
 
