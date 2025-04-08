@@ -951,7 +951,7 @@ class Optml_Admin {
 				'pageProfileId' => esc_js( Profile::PLACEHOLDER ),
 				'_t' => esc_js( Profile::PLACEHOLDER_TIME ),
 				'hmac' => esc_js( Profile::PLACEHOLDER_HMAC ),
-				'bgSelectors' => arraY_values( Optml_Lazyload_Replacer::get_background_lazyload_selectors() ),
+				'bgSelectors' => array_values( Optml_Lazyload_Replacer::get_background_lazyload_selectors() ),
 			]
 		) . ';
 		</script>';
