@@ -123,6 +123,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			'.elementor-section > .elementor-background-overlay',
 			'[class*="wp-block-cover"][style*="background-image"]',
 			'[style*="background-image:url("]', '[style*="background-image: url("]',
+			'[style*="background:url("]', '[style*="background: url("]',
 			'[class*="wp-block-group"][style*="background-image"]',
 		];
 
