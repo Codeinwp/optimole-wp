@@ -33,7 +33,7 @@
     "dev:video-player-frontend": "wp-scripts start assets/src/video-player/frontend.js --output-path=assets/build/video-player/frontend",
     "build-dev:video-player-frontend": "NODE_ENV=development wp-scripts build assets/src/video-player/frontend.js --output-path=assets/build/video-player/frontend",
     "dev:optimizer": "wp-scripts start assets/js/optimizer.js --output-path=assets/build/optimizer",
-    "build:optimizer": "NODE_ENV=development wp-scripts build  assets/js/optimizer.js --output-path=assets/build/optimizer",
+    "build:optimizer": "NODE_ENV=production wp-scripts build  assets/js/optimizer.js --output-path=assets/build/optimizer",
     "build": "npm-run-all build:*",
     "dev": "npm-run-all --parallel dev:*",
     "build-dev": "npm-run-all build-dev:*",
