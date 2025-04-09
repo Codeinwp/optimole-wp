@@ -1459,7 +1459,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 
-			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has an issue.' );
+			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has an issue.' . $exception->getMessage() );
 
 			return $meta;
 		}
