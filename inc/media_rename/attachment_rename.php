@@ -98,7 +98,9 @@ class Optml_Attachment_Rename {
 		}
 
 		try {
-			$replacer = new Optml_Attachment_Db_Renamer();
+			$skip_sizes = ! $this->attachment->is_image();
+
+			$replacer = new Optml_Attachment_Db_Renamer( $skip_sizes );
 			$old_url = $this->attachment->get_main_url();
 			$new_url = $this->get_new_url( $new_unique_filename );
 
@@ -143,6 +145,12 @@ class Optml_Attachment_Rename {
 
 		if ( ! $attached_update ) {
 			return false;
+		}
+
+		// We should bail for non-image attachments here.
+		// No need for additional metadata update.
+		if ( ! $this->attachment->is_image() ) {
+			return true;
 		}
 
 		// Get current attachment metadata
