@@ -173,6 +173,7 @@ const FilterControl = ({
 
 		setFilterValue( '' );
 		setFilterType( FILTER_TYPES.FILENAME );
+		setFilterMatchType( defaultFilterOperator );
 	};
 
 	const hasItems = (
