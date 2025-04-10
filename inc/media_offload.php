@@ -1448,7 +1448,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', $exception );
 			}
 
-			self::mark_retryable_error( $attachment_id, 'Image ID: ' . $attachment_id . ' has an error from upload api:' . $exception->getMessage() );
+			self::mark_retryable_error( $attachment_id, 'Error from upload api:' . $exception->getMessage() );
 
 			return $meta;
 		} catch ( RuntimeException $exception ) {
@@ -1457,8 +1457,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', $exception );
 			}
 
-			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
-			self::mark_retryable_error( $attachment_id, 'Image ID: ' . $attachment_id . ' has an unknown error from upload api:' . $exception->getMessage() );
+			self::mark_retryable_error( $attachment_id, 'Unknown error from upload api: ' . $exception->getMessage() );
 
 			return $meta;
 		}
