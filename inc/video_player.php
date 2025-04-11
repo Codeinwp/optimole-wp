@@ -65,6 +65,7 @@ class Optml_Video_Player {
 		}
 
 		add_action( 'enqueue_block_editor_assets', [ $this, 'enqueue_admin_video_player_assets' ] );
+		add_action( 'admin_head', [ $this, 'add_editor_player_icons' ] );
 		add_action( 'wp_enqueue_scripts', [ $this, 'maybe_enqueue_video_player_script' ] );
 		add_action( 'init', [ $this, 'register_video_player_block' ] );
 	}
@@ -95,6 +96,18 @@ class Optml_Video_Player {
 		wp_enqueue_script( $handle );
 
 		wp_enqueue_style( $handle, OPTML_URL . 'assets/build/video-player/frontend/style-frontend.css', [], $asset_file['version'] );
+	}
+
+	/**
+	 * Add the video player icons to the editor.
+	 *
+	 * @since 4.0.0
+	 */
+	public function add_editor_player_icons() {
+		$screen = get_current_screen();
+		if ( ! $screen || ! $screen->is_block_editor() ) {
+			return;
+		}
 
 		$this->render_player_icons();
 	}
