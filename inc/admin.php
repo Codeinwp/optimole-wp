@@ -95,6 +95,7 @@ class Optml_Admin {
 		add_action( 'init', [ $this, 'update_cloud_sites_default' ] );
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
 		add_action( 'admin_init', [ $this, 'init_no_script' ] );
+		add_action( 'plugins_loaded', [ $this,'add_permission_policy' ] );
 		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( self::SYNC_CRON ) ) {
 			wp_schedule_event( time() + 10, 'twicedaily', self::SYNC_CRON, [] );
 		}
@@ -114,6 +115,27 @@ class Optml_Admin {
 		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
 	}
 
+	/**
+	 * Add the permission policy for CH.
+	 *
+	 * @return void
+	 */
+	public function add_permission_policy() {
+		if ( ! $this->settings->is_connected() ) {
+			return;
+		}
+		if ( ! $this->settings->is_enabled() ) {
+			return;
+		}
+		if ( headers_sent() ) {
+			return;
+		}
+		$policy = 'ch-viewport-width=(self "%1$s")';
+		if ( $this->settings->get( 'network_optimization' ) === 'enabled' ) {
+			$policy .= ', ch-ect=(self "%1$s")';
+		}
+		header( sprintf( 'Permissions-Policy: %s', sprintf( $policy, esc_url( Optml_Config::$service_url ) ) ), false );
+	}
 	/**
 	 * Function that purges the image cache for a specific file.
 	 *
@@ -1009,7 +1031,12 @@ class Optml_Admin {
 		if ( ! $this->settings->is_enabled() ) {
 			return;
 		}
-		echo '<meta name="generator" content="Optimole ' . esc_attr( OPTML_VERSION ) . '">';
+
+		$hints = 'Viewport-Width';
+		if ( $this->settings->get( 'network_optimization' ) === 'enabled' ) {
+			$hints .= ', ECT';
+		}
+		echo sprintf( '<meta http-equiv="Accept-CH" content="%s" />', esc_attr( $hints ) );
 	}
 
 	/**
