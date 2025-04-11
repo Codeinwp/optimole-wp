@@ -12,6 +12,13 @@ use Optimole\Sdk\ValueObject\Position;
 trait Optml_Normalizer {
 
 	/**
+	 * Static cache for dimension calculations
+	 *
+	 * @var array
+	 */
+	private static $dimension_cache = [];
+
+	/**
 	 * Normalize value to boolean.
 	 *
 	 * @param mixed $value Value to process.
@@ -205,6 +212,10 @@ trait Optml_Normalizer {
 				if ( ! $width || ! $height ) {
 					break;
 				}
+				$cache_key = 'a' . $width . '_' . $height;
+				if ( isset( self::$dimension_cache[ $cache_key ] ) ) {
+					return self::$dimension_cache[ $cache_key ];
+				}
 				$image_resized = image_resize_dimensions( $sizes['width'], $sizes['height'], $width, $height );
 				if ( $image_resized ) {
 					$width  = $image_resized[6];
@@ -214,9 +225,13 @@ trait Optml_Normalizer {
 					$height = $image_meta['height'];
 				}
 				list( $sizes['width'], $sizes['height'] ) = image_constrain_size_for_editor( $width, $height, $size );
-
+				self::$dimension_cache[ $cache_key ] = $sizes;
 				break;
 			case 'full' !== $size && isset( $image_args[ $size ] ):
+				$cache_key = 'b' . $size;
+				if ( isset( self::$dimension_cache[ $cache_key ] ) ) {
+					return self::$dimension_cache[ $cache_key ];
+				}
 				$image_resized = image_resize_dimensions( $sizes['width'], $sizes['height'], $image_args[ $size ]['width'], $image_args[ $size ]['height'], $image_args[ $size ]['crop'] );
 
 				if ( $image_resized ) { // This could be false when the requested image size is larger than the full-size image.
@@ -230,7 +245,7 @@ trait Optml_Normalizer {
 				list( $sizes['width'], $sizes['height'] ) = image_constrain_size_for_editor( $sizes['width'], $sizes['height'], $size, 'display' );
 
 				$sizes['resize'] = $this->to_optml_crop( $image_args[ $size ]['crop'] );
-
+				self::$dimension_cache[ $cache_key ] = $sizes;
 				break;
 		}
 		return $sizes;

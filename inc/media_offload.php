@@ -2122,9 +2122,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( ! $this->is_new_offloaded_attachment( $attachment_id ) ) {
 			return $image;
 		}
-
-		$url       = get_post( $attachment_id );
-		$url       = $url->guid;
+		if ( isset( $image[0] ) ) {
+			$url = $image[0];
+		} else {
+			$url = get_post( $attachment_id );
+			$url = $url->guid;
+		}
 		$metadata  = wp_get_attachment_metadata( $attachment_id );
 
 		// Use the original size if the requested size is full.
@@ -2136,7 +2139,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					'width'         => $metadata['width'],
 					'height'        => $metadata['height'],
 					'attachment_id' => $attachment_id,
-				]
+				],
+				$metadata
 			);
 
 			return [
@@ -2147,7 +2151,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			];
 		}
 
-		if ( wp_attachment_is( 'video', $attachment_id ) && doing_action( 'wp_insert_post_data' ) ) {
+		if ( doing_action( 'wp_insert_post_data' ) && wp_attachment_is( 'video', $attachment_id ) ) {
 			return $image;
 		}
 		$sizes     = $this->size_to_dimension( $size, $metadata );
@@ -2159,7 +2163,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				'height'        => $sizes['height'],
 				'resize'        => $sizes['resize'] ?? [],
 				'attachment_id' => $attachment_id,
-			]
+			],
+			$metadata
 		);
 
 		return [
@@ -2230,24 +2235,27 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Get offloaded image attachment URL for new offloads.
 	 *
-	 * @param string $url The initial attachment URL.
-	 * @param int    $attachment_id The attachment ID.
-	 * @param array  $args The additional arguments.
-	 *                       - width: The width of the image.
-	 *                       - height: The height of the image.
-	 *                       - crop: Whether to crop the image.
-	 *
+	 * @param string     $url The initial attachment URL.
+	 * @param int        $attachment_id The attachment ID.
+	 * @param array      $args The additional arguments.
+	 *                           - width: The width of the image.
+	 *                           - height: The height of the image.
+	 *                           - crop: Whether to crop the image.
+	 * @param array|null $attachment_metadata The attachment metadata.
 	 * @return string
 	 */
-	private function get_new_offloaded_attachment_url( $url, $attachment_id, $args = [] ) {
+	private function get_new_offloaded_attachment_url( $url, $attachment_id, $args = [], $attachment_metadata = null ) {
 		$process_flag = self::KEYS['not_processed_flag'] . $attachment_id;
 
 		// Image might have already passed through this filter.
 		if ( strpos( $url, $process_flag ) !== false ) {
 			return $url;
 		}
-
-		$meta = wp_get_attachment_metadata( $attachment_id );
+		if ( $attachment_metadata === null ) {
+			$meta = wp_get_attachment_metadata( $attachment_id );
+		} else {
+			$meta = $attachment_metadata;
+		}
 		if ( ! isset( $meta['file'] ) ) {
 			return $url;
 		}
