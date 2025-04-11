@@ -212,7 +212,7 @@ trait Optml_Normalizer {
 				if ( ! $width || ! $height ) {
 					break;
 				}
-				$cache_key = 'a' . $width . '_' . $height;
+				$cache_key = 'a' . $width . '_' . $height . '_' . $sizes['width'] . '_' . $sizes['height'];
 				if ( isset( self::$dimension_cache[ $cache_key ] ) ) {
 					return self::$dimension_cache[ $cache_key ];
 				}
@@ -225,10 +225,11 @@ trait Optml_Normalizer {
 					$height = $image_meta['height'];
 				}
 				list( $sizes['width'], $sizes['height'] ) = image_constrain_size_for_editor( $width, $height, $size );
+
 				self::$dimension_cache[ $cache_key ] = $sizes;
 				break;
 			case 'full' !== $size && isset( $image_args[ $size ] ):
-				$cache_key = 'b' . $size;
+				$cache_key = 'b' . $size . '_' . $sizes['width'] . '_' . $sizes['height'];
 				if ( isset( self::$dimension_cache[ $cache_key ] ) ) {
 					return self::$dimension_cache[ $cache_key ];
 				}
