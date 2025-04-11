@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "982ac96f42d820de9ee152e7cd9a9062",
+    "content-hash": "abf01659a0c84959f8bda6a1b3a53084",
     "packages": [
         {
             "name": "codeinwp/optimole-sdk",
-            "version": "v1.2.1",
+            "version": "v1.2.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeinwp/optimole-php-sdk.git",
-                "reference": "72d96fe1fa89904ff83383e83efe641035346694"
+                "reference": "567557f1067c934a564154dd292a3f343749b538"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeinwp/optimole-php-sdk/zipball/72d96fe1fa89904ff83383e83efe641035346694",
-                "reference": "72d96fe1fa89904ff83383e83efe641035346694",
+                "url": "https://api.github.com/repos/Codeinwp/optimole-php-sdk/zipball/567557f1067c934a564154dd292a3f343749b538",
+                "reference": "567557f1067c934a564154dd292a3f343749b538",
                 "shasum": ""
             },
             "require": {
@@ -60,7 +60,7 @@
                 "issues": "https://github.com/Codeinwp/codeinwp/optimole-php-sdk/issues",
                 "source": "https://github.com/Codeinwp/optimole-php-sdk"
             },
-            "time": "2024-08-06T12:32:29+00:00"
+            "time": "2025-03-28T18:31:54+00:00"
         },
         {
             "name": "codeinwp/themeisle-sdk",
@@ -105,16 +105,16 @@
         },
         {
             "name": "enshrined/svg-sanitize",
-            "version": "0.20.0",
+            "version": "0.21.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/darylldoyle/svg-sanitizer.git",
-                "reference": "068d9fcf912c88a0471d101d95a2caa87c50aee7"
+                "reference": "5e477468fac5c5ce933dce53af3e8e4e58dcccc9"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/darylldoyle/svg-sanitizer/zipball/068d9fcf912c88a0471d101d95a2caa87c50aee7",
-                "reference": "068d9fcf912c88a0471d101d95a2caa87c50aee7",
+                "url": "https://api.github.com/repos/darylldoyle/svg-sanitizer/zipball/5e477468fac5c5ce933dce53af3e8e4e58dcccc9",
+                "reference": "5e477468fac5c5ce933dce53af3e8e4e58dcccc9",
                 "shasum": ""
             },
             "require": {
@@ -144,9 +144,9 @@
             "description": "An SVG sanitizer for PHP",
             "support": {
                 "issues": "https://github.com/darylldoyle/svg-sanitizer/issues",
-                "source": "https://github.com/darylldoyle/svg-sanitizer/tree/0.20.0"
+                "source": "https://github.com/darylldoyle/svg-sanitizer/tree/0.21.0"
             },
-            "time": "2024-09-05T10:18:12+00:00"
+            "time": "2025-01-13T09:32:25+00:00"
         },
         {
             "name": "symfony/polyfill-php80",
@@ -613,16 +613,16 @@
         },
         {
             "name": "php-stubs/wordpress-stubs",
-            "version": "v6.6.0",
+            "version": "v6.7.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-stubs/wordpress-stubs.git",
-                "reference": "86e8753e89d59849276dcdd91b9a7dd78bb4abe2"
+                "reference": "83448e918bf06d1ed3d67ceb6a985fc266a02fd1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-stubs/wordpress-stubs/zipball/86e8753e89d59849276dcdd91b9a7dd78bb4abe2",
-                "reference": "86e8753e89d59849276dcdd91b9a7dd78bb4abe2",
+                "url": "https://api.github.com/repos/php-stubs/wordpress-stubs/zipball/83448e918bf06d1ed3d67ceb6a985fc266a02fd1",
+                "reference": "83448e918bf06d1ed3d67ceb6a985fc266a02fd1",
                 "shasum": ""
             },
             "require-dev": {
@@ -631,9 +631,9 @@
                 "php": "^7.4 || ^8.0",
                 "php-stubs/generator": "^0.8.3",
                 "phpdocumentor/reflection-docblock": "^5.4.1",
-                "phpstan/phpstan": "^1.10.49",
+                "phpstan/phpstan": "^1.11",
                 "phpunit/phpunit": "^9.5",
-                "szepeviktor/phpcs-psr-12-neutron-hybrid-ruleset": "^1.0",
+                "szepeviktor/phpcs-psr-12-neutron-hybrid-ruleset": "^1.1.1",
                 "wp-coding-standards/wpcs": "3.1.0 as 2.3.0"
             },
             "suggest": {
@@ -655,22 +655,22 @@
             ],
             "support": {
                 "issues": "https://github.com/php-stubs/wordpress-stubs/issues",
-                "source": "https://github.com/php-stubs/wordpress-stubs/tree/v6.6.0"
+                "source": "https://github.com/php-stubs/wordpress-stubs/tree/v6.7.1"
             },
-            "time": "2024-07-17T08:50:38+00:00"
+            "time": "2024-11-24T03:57:09+00:00"
         },
         {
             "name": "php-stubs/wp-cli-stubs",
-            "version": "v2.10.0",
+            "version": "v2.11.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/php-stubs/wp-cli-stubs.git",
-                "reference": "fbd7ff47393c9478e0f557d0b4caadaed20986fb"
+                "reference": "f27ff9e8e29d7962cb070e58de70dfaf63183007"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/php-stubs/wp-cli-stubs/zipball/fbd7ff47393c9478e0f557d0b4caadaed20986fb",
-                "reference": "fbd7ff47393c9478e0f557d0b4caadaed20986fb",
+                "url": "https://api.github.com/repos/php-stubs/wp-cli-stubs/zipball/f27ff9e8e29d7962cb070e58de70dfaf63183007",
+                "reference": "f27ff9e8e29d7962cb070e58de70dfaf63183007",
                 "shasum": ""
             },
             "require": {
@@ -699,9 +699,9 @@
             ],
             "support": {
                 "issues": "https://github.com/php-stubs/wp-cli-stubs/issues",
-                "source": "https://github.com/php-stubs/wp-cli-stubs/tree/v2.10.0"
+                "source": "https://github.com/php-stubs/wp-cli-stubs/tree/v2.11.0"
             },
-            "time": "2024-02-09T02:10:10+00:00"
+            "time": "2024-11-25T10:09:13+00:00"
         },
         {
             "name": "phpcsstandards/phpcsextra",
@@ -2314,16 +2314,16 @@
         },
         {
             "name": "squizlabs/php_codesniffer",
-            "version": "3.10.3",
+            "version": "3.12.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/PHPCSStandards/PHP_CodeSniffer.git",
-                "reference": "62d32998e820bddc40f99f8251958aed187a5c9c"
+                "reference": "ea16a1f3719783345febd3aab41beb55c8c84bfd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/62d32998e820bddc40f99f8251958aed187a5c9c",
-                "reference": "62d32998e820bddc40f99f8251958aed187a5c9c",
+                "url": "https://api.github.com/repos/PHPCSStandards/PHP_CodeSniffer/zipball/ea16a1f3719783345febd3aab41beb55c8c84bfd",
+                "reference": "ea16a1f3719783345febd3aab41beb55c8c84bfd",
                 "shasum": ""
             },
             "require": {
@@ -2388,9 +2388,13 @@
                 {
                     "url": "https://opencollective.com/php_codesniffer",
                     "type": "open_collective"
+                },
+                {
+                    "url": "https://thanks.dev/u/gh/phpcsstandards",
+                    "type": "thanks_dev"
                 }
             ],
-            "time": "2024-09-18T10:38:58+00:00"
+            "time": "2025-04-04T12:57:55+00:00"
         },
         {
             "name": "symfony/polyfill-php73",
@@ -2713,15 +2717,15 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": ">=7.4"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "platform-overrides": {
         "php": "7.4"
     },
-    "plugin-api-version": "2.6.0"
+    "plugin-api-version": "2.3.0"
 }

@@ -102,10 +102,11 @@ const FilterControl = ({
 		};
 	});
 
+	const defaultFilterOperator = optimoleDashboardApp.strings.options_strings.filter_operator_contains;
 	const [ filterType, setFilterType ] = useState( FILTER_TYPES.FILENAME );
 	const [ filterOperator, setFilterOperator ] = useState( optimoleDashboardApp.strings.options_strings.filter_operator_contains );
 	const [ filterValue, setFilterValue ] = useState( '' );
-	const [ filterMatchType, setFilterMatchType ] = useState( optimoleDashboardApp.strings.options_strings.filter_operator_contains );
+	const [ filterMatchType, setFilterMatchType ] = useState( defaultFilterOperator );
 	const [ lengthError, setLengthError ] = useState( false );
 
 	const changeFilterType = value => {
@@ -127,6 +128,7 @@ const FilterControl = ({
 		setLengthError( false );
 		setFilterValue( selectedValue );
 		setFilterType( value );
+		setFilterMatchType( filterValue );
 	};
 
 	const updateFilterValue = value => {
@@ -168,6 +170,10 @@ const FilterControl = ({
 		}
 
 		setCanSave( true );
+
+		setFilterValue( '' );
+		setFilterType( FILTER_TYPES.FILENAME );
+		setFilterMatchType( defaultFilterOperator );
 	};
 
 	const hasItems = (

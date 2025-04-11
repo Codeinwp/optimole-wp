@@ -14,6 +14,7 @@ import {
 	ColorPicker,
 	ColorIndicator,
 	Button,
+	RadioControl,
 	Popover
 } from '@wordpress/components';
 
@@ -36,7 +37,6 @@ const Lazyload = ({
 
 	const isLazyloadPlaceholderEnabled = 'disabled' !== settings[ 'lazyload_placeholder' ];
 	const isNativeLazyloadEnabled = 'disabled' !== settings[ 'native_lazyload' ];
-	const isScaleEnabled = 'disabled' === settings.scale;
 	const isBGReplacerEnabled = 'disabled' !== settings[ 'bg_replacer' ];
 	const isVideoLazyloadEnabled = 'disabled' !== settings[ 'video_lazyload' ];
 	const isNoScriptEnabled = 'disabled' !== settings[ 'no_script' ];
@@ -64,6 +64,74 @@ const Lazyload = ({
 
 	return (
 		<>
+			<BaseControl className="mt-2" label={optimoleDashboardApp.strings.options_strings.lazyload_behaviour_title}>
+				<p className="components-base-control__help mt-0" dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.lazyload_behaviour_desc } } />
+
+				<div className="flex gap-8 ml-4">
+					<RadioControl
+						labelPosition="side"
+						className="lazyload_behaviour"
+						selected={settings['lazyload_type'] || 'all'}
+						options={ [
+							{
+								label: (
+									<div>
+										<strong>{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_fixed.replace( '[N]', settings['skip_lazyload_images'])}</strong>
+										{'fixed' === settings['lazyload_type'] && (
+											<>
+												<p className="mt-2 text-sm text-gray-600">
+													{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_fixed_desc}
+												</p>
+												<div className="mt-3 flex gap-8">
+													<NumberControl
+														label={ optimoleDashboardApp.strings.options_strings.exclude_first }
+														labelPosition="side"
+														value={ settings[ 'skip_lazyload_images' ] }
+														type="number"
+														min={ 0 }
+														className="basis-1/2 md:basis-1/3"
+														onChange={value => updateValue( 'skip_lazyload_images', value )}
+													/>
+												</div>
+											</>
+										)}
+									</div>
+								),
+								value: 'fixed'
+							},
+							{
+								label: (
+									<div>
+										<strong>{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_viewport}</strong>
+										{'viewport' === settings['lazyload_type'] && (
+											<p className="mt-2 text-sm text-gray-600">
+												{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_viewport_desc}
+											</p>
+										)}
+									</div>
+								),
+								value: 'viewport'
+							},
+							{
+								label: (
+									<div >
+										<strong>{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_all}</strong>
+										{'all' === settings['lazyload_type'] && (
+											<p className="mt-2 text-sm text-gray-600">
+												{optimoleDashboardApp.strings.options_strings.lazyload_behaviour_all_desc}
+											</p>
+										)}
+									</div>
+								),
+								value: 'all'
+							}
+						] }
+						onChange={value => updateValue( 'lazyload_type', value )}
+					/>
+				</div>
+			</BaseControl>
+
+			<hr className="my-8 border-grayish-blue"/>
 			<BaseControl>
 				<ToggleControl
 					label={ optimoleDashboardApp.strings.options_strings.enable_lazyload_placeholder_title }
@@ -118,29 +186,6 @@ const Lazyload = ({
 
 			<hr className="my-8 border-grayish-blue"/>
 
-			<BaseControl
-				label={ optimoleDashboardApp.strings.options_strings.exclude_first_images_title }
-			>
-				<p
-					className="components-base-control__help mt-0"
-					dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.exclude_first_images_desc } }
-				/>
-
-				<div className="flex gap-8">
-					<NumberControl
-						label={ optimoleDashboardApp.strings.options_strings.exclude_first }
-						labelPosition="side"
-						value={ settings[ 'skip_lazyload_images' ] }
-						type="number"
-						min={ 0 }
-						className="basis-1/2 md:basis-1/3"
-						onChange={ value => updateValue( 'skip_lazyload_images', value ) }
-					/>
-				</div>
-			</BaseControl>
-
-			<hr className="my-8 border-grayish-blue"/>
-
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.toggle_native }
 				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.native_desc } } /> }
@@ -152,21 +197,6 @@ const Lazyload = ({
 					}
 				) }
 				onChange={ value => updateOption( 'native_lazyload', value ) }
-			/>
-
-			<hr className="my-8 border-grayish-blue"/>
-
-			<ToggleControl
-				label={ optimoleDashboardApp.strings.options_strings.toggle_scale }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.scale_desc } } /> }
-				checked={ isScaleEnabled }
-				disabled={ isLoading }
-				className={ classnames(
-					{
-						'is-disabled': isLoading
-					}
-				) }
-				onChange={ value => updateOption( 'scale', ! value ) }
 			/>
 
 			<hr className="my-8 border-grayish-blue"/>

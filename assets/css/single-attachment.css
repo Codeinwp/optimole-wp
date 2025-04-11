@@ -1,0 +1,241 @@
+table.compat-attachment-fields {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+[class^="compat-field-optml_"] {
+  background: #fff;	
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #ccc;
+}
+
+[class^="compat-field-optml_"] tr {
+  background: #fff;
+}
+
+[class^="compat-field-optml_"] th {
+    display: block;
+    float: none;
+    white-space: nowrap;
+}
+
+[class^="compat-field-optml_"] th,
+[class^="compat-field-optml_"] td {
+  padding: 20px;
+}
+
+.compat-field-optml_footer_row {
+  padding: 0 !important;
+  background: #eee;
+}
+
+.compat-field-optml_spacer_row {
+  height: 40px !important;
+  background: transparent !important;
+  border: 0 !important;
+}	
+
+.compat-field-optml_spacer_row td, 
+.compat-field-optml_spacer_row th {
+  padding: 0 !important;
+}
+
+.compat-field-optml_footer_row th, 
+.compat-field-optml_footer_row td {
+  padding: 5px 20px;
+}
+
+
+.optml-logo-contianer {
+  justify-content: flex-end;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;	
+  position:relative;
+}
+
+.optml-logo-contianer img {
+  width: 25px;
+  height: 25px;
+}
+
+.optml-rename-input:focus-within {
+    box-shadow: 0 0 0 1px #577BF9;
+}
+
+.optml-rename-media-container {
+  display: flex; 
+  gap: 10px;
+  align-items: center;
+}
+  
+.optml-rename-input {
+  display: flex;
+  align-items: stretch;
+  border-radius: 3px;
+  border: 1px solid #577BF9;
+  overflow: hidden;
+  background: #fff;
+  flex-grow: 1;
+}
+
+.optml-rename-input #optml_rename_file {
+  border: 0;
+  border-radius: 0;
+  flex-grow: 1;
+  box-shadow: none;
+  background: transparent;
+  min-height: 30px;
+}
+
+.optml-rename-input .optml-file-ext {
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  background-color: #e6effd;
+  border-left: 1px solid #577BF9;
+  color: #577BF9;
+}	
+
+
+.optml-replace-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.optml-description {
+  color: #666;
+  margin: 0;
+  font-style: italic;
+}
+
+.optml-replace-input {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.optml-replace-input label {
+  width: 100%;
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  cursor: pointer;
+  flex-grow: 1;
+  padding: 8px;
+  border: 1px dashed #577BF9;
+  border-radius: 3px;
+  background: #fff;
+  transition: all 0.3s ease;
+}
+
+.optml-replace-input label:hover {
+  background: #577BF9;
+  color: #fff;
+}
+
+.optml-replace-file-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.optml-replace-file-preview img {
+  object-fit: cover;
+  border-radius: 6px;
+  max-width: 250px;
+  max-height: 75px;
+  border: 1px solid #ccc;
+  background: #f0f0f0;
+}
+
+.optml-replace-file-error {
+  color: rgb(163, 11, 0);
+  padding: 5px 10px;
+  border-radius: 3px;
+  border: 1px solid rgb(163, 11, 0);
+  background:rgb(255, 205, 201);
+}
+
+#optml-file-drop-area {
+  box-sizing: border-box;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+#optml-file-drop-area.drag-active {
+  background-color: #e6effd;
+  border: 1px dashed #577BF9;
+}
+
+.optml-replace-file-actions {
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+}
+
+.optml-rename-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.optml-replace-file-actions p {
+  margin-right: auto;
+}
+
+[class^="compat-field-optml_"] .optml-btn {
+  border-radius: 3px !important;
+  border: 0 !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #fff !important;
+  margin-bottom: 0 !important;
+}
+
+[class^="compat-field-optml_"] .optml-btn.primary {
+  background: #577BF9 !important;
+}
+
+[class^="compat-field-optml_"] .optml-btn.destructive {
+  background: #D93025 !important;
+}
+
+[class^="compat-field-optml_"] .optml-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  pointer-events: none;
+  color: #fff !important;
+}
+
+.optml-btn.primary:hover {
+  background: #4161d7;
+}
+
+.optml-btn.destructive:hover {
+  background: #c2291e;
+}
+
+.optml-svg-loader {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

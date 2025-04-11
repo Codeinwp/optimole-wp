@@ -139,3 +139,38 @@ export const warningAlt = (
 		<path d="M10.0015 8V10M10.0015 14H10.0115M3.0733 18H16.9297C18.4693 18 19.4316 16.3333 18.6618 15L11.7336 3C10.9637 1.66667 9.03925 1.66667 8.26945 3L1.34125 15C0.571445 16.3333 1.5337 18 3.0733 18Z" stroke="#DE9F0C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 	</svg>
 );
+
+export const bolt = (
+	<svg viewBox="0 0 24 24" fill="none" stroke="#577BF9" xmlns="http://www.w3.org/2000/svg" svg-inline="" class="absolute w-16 h-16 text-o-blue outline-none" role="presentation" focusable="false" tabindex="-1">
+		<path d="M6.08998 13.28H9.17998V20.48C9.17998 22.16 10.09 22.5 11.2 21.24L18.77 12.64C19.7 11.59 19.31 10.72 17.9 10.72H14.81V3.52002C14.81 1.84002 13.9 1.50002 12.79 2.76002L5.21998 11.36C4.29998 12.42 4.68998 13.28 6.08998 13.28Z" stroke="#577BF9" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"></path>
+	</svg>
+);
+
+export const update = (
+	<svg viewBox="0 0 24 24" fill="none" stroke="#577BF9" xmlns="http://www.w3.org/2000/svg" svg-inline="" class="absolute w-16 h-16 text-o-blue outline-none" role="presentation" focusable="false" tabindex="-1">
+		<path d="M3 12C3 16.9706 7.02944 21 12 21C14.3051 21 16.4077 20.1334 18 18.7083L21 16M21 12C21 7.02944 16.9706 3 12 3C9.69494 3 7.59227 3.86656 6 5.29168L3 8M21 21V16M21 16H16M3 3V8M3 8H8" stroke="#577BF9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+	</svg>
+);
+
+export const offloadImage = (
+	<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#577BF9" svg-inline="" class="absolute w-16 h-16 text-o-blue outline-none" role="presentation" focusable="false" tabindex="-1">
+		<polyline points="336 176 225.2 304 176 255.8" stroke="#577BF9" stroke-width="30.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+		<path d="M463.1,112.37C373.68,96.33,336.71,84.45,256,48,175.29,84.45,138.32,96.33,48.9,112.37,32.7,369.13,240.58,457.79,256,464,271.42,457.79,479.3,369.13,463.1,112.37Z" stroke="#577BF9" stroke-width="30.5" stroke-linecap="round" stroke-linejoin="round"></path>
+	</svg>
+);
+
+export const settings = (
+	<svg viewBox="0 0 24 24" fill="none" stroke="#577BF9" xmlns="http://www.w3.org/2000/svg" svg-inline="" class="absolute w-16 h-16 text-o-blue outline-none" role="presentation" focusable="false" tabindex="-1">
+		<path d="M10.65 3L9.93163 3.53449L9.32754 5.54812L7.47651 4.55141L6.5906 4.68143L4.68141 6.59062L4.55139 7.47652L5.5481 9.32755L3.53449 9.93163L3 10.65V13.35L3.53449 14.0684L5.54811 14.6725L4.55142 16.5235L4.68144 17.4094L6.59063 19.3186L7.47653 19.4486L9.32754 18.4519L9.93163 20.4655L10.65 21H13.35L14.0684 20.4655L14.6725 18.4519L16.5235 19.4486L17.4094 19.3185L19.3186 17.4094L19.4486 16.5235L18.4519 14.6724L20.4655 14.0684L21 13.35V10.65L20.4655 9.93163L18.4519 9.32754L19.4486 7.47654L19.3186 6.59063L17.4094 4.68144L16.5235 4.55142L14.6725 5.54812L14.0684 3.53449L13.35 3H10.65Z" stroke="#577BF9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+		<circle cx="12" cy="12" r="3.75" stroke="#577BF9" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></circle>
+	</svg>
+);
+
+export const globe = (
+	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+);
+
+export const user = (
+	<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+);
+

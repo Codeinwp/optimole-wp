@@ -17,7 +17,7 @@ test.describe('Sassy Social Share', () => {
     
     const images = await page.locator('img').all();
     expect(images.length).toBe(5);
-
+    await page.waitForTimeout(2000);
     for (let i = 0; i < 4; i++) {
       const src = await images[i].getAttribute('src');
       expect(src).not.toMatch(/eco/);

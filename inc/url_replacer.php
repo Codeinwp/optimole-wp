@@ -119,7 +119,6 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		if ( ! $this->can_replace_url( $url ) ) {
 			return $original_url;
 		}
-
 		// Remove any query strings that might affect conversion.
 		$url = strtok( $url, '?' );
 		$ext = $this->is_valid_mimetype_from_url( $url, self::$filters[ Optml_Settings::FILTER_TYPE_OPTIMIZE ][ Optml_Settings::FILTER_EXT ] );
@@ -228,7 +227,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		}
 
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
-		$image = Optimole::image( apply_filters( 'optml_processed_url', $url ), $this->active_cache_buster );
+		$image = Optimole::image( apply_filters( 'optml_processed_url', $url ), self::get_active_cache_booster( $url, $this->active_cache_buster ) );
 
 		$image->width( ! empty( $args['width'] ) && is_int( $args['width'] ) ? $args['width'] : 'auto' );
 		$image->height( ! empty( $args['height'] ) && is_int( $args['height'] ) ? $args['height'] : 'auto' );
@@ -268,6 +267,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		$offloaded_id = $this->is_offloaded_url( $image->getSource() );
 
+		if ( isset( $args['dpr'] ) && $args['dpr'] > 1 ) {
+			$image->dpr( $args['dpr'] );
+		}
 		if ( $offloaded_id !== 0 ) {
 			return $this->get_offloaded_url( $offloaded_id, $image->getUrl(), $image->getSource() );
 		}
@@ -275,6 +277,17 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		return $image->getUrl();
 	}
 
+	/**
+	 * Get the active cache booster.
+	 *
+	 * @param string $url The URL.
+	 * @param string $main_cache_buster The default value.
+	 *
+	 * @return string
+	 */
+	public static function get_active_cache_booster( $url, $main_cache_buster ) {
+		return ( get_transient( Optml_Settings::INDIVIDUAL_CACHE_TOKENS_KEY ) ?: [] )[ crc32( wp_basename( $url ) ) ] ?? $main_cache_buster;
+	}
 	/**
 	 * Throw error on object clone
 	 *

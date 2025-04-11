@@ -58,7 +58,9 @@ class Optml_Dam {
 		if ( defined( 'OPTML_DAM_ENDPOINT' ) ) {
 			$this->dam_endpoint = constant( 'OPTML_DAM_ENDPOINT' );
 		}
-
+		if ( $this->settings->get( 'retina_images' ) === 'enabled' ) {
+			add_filter( 'wp_get_attachment_image_attributes', [ Optml_Tag_Replacer::instance(), 'filter_attachment_image_attributes' ], 99, 3 );
+		}
 		add_filter( 'wp_get_attachment_image_src', [ $this, 'alter_attachment_image_src' ], 10, 4 );
 		add_filter( 'wp_get_attachment_metadata', [ $this, 'alter_attachment_metadata' ], 10, 2 );
 		add_filter( 'image_downsize', [ $this, 'catch_downsize' ], 10, 3 );
@@ -196,11 +198,11 @@ class Optml_Dam {
 	 * @return array $image.
 	 */
 	public function alter_attachment_image_src( $image, $attachment_id, $size, $icon ) {
+
 		// Skip if not DAM image.
 		if ( ! $this->is_dam_imported_image( $attachment_id ) ) {
 			return $image;
 		}
-
 		$image_url     = wp_get_attachment_url( $attachment_id );
 		$incoming_size = $this->parse_dimension_from_optimized_url( $image_url );
 		$width         = $incoming_size[0];
@@ -536,6 +538,8 @@ class Optml_Dam {
 		wp_enqueue_script( OPTML_NAMESPACE . '-admin-page' );
 
 		wp_enqueue_style( OPTML_NAMESPACE . '-admin-page', OPTML_URL . 'assets/build/media/admin-page.css' );
+
+		do_action( 'themeisle_internal_page', OPTML_PRODUCT_SLUG, 'dam' );
 	}
 
 	/**

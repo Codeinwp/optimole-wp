@@ -166,13 +166,25 @@ const ConnectLayout = () => {
 
 			<div className={ connectContainerClasses }>
 				<div className="optml-connect__content basis-8/12">
-					<div className="text-gray-700 font-serif text-2 font-bold leading-7 m-0">{ optimoleDashboardApp.strings.account_needed_heading }</div>
+					<div className="inline-block bg-light-blue text-gray-500 text-sm font-medium px-4 py-1.5 rounded-full mb-4">{ optimoleDashboardApp.strings.account_needed_trust_badge }</div>
+
+					<div className="text-gray-700 font-serif text-2xl font-bold leading-7 m-0">{ optimoleDashboardApp.strings.account_needed_heading }</div>
 					<p
-						className="text-xl font-normal text-gray-800"
+						className="text-base font-normal text-gray-500"
+						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_sub_heading } }
+					/>
+
+					<div className="inline-flex items-center bg-light-blue px-4 py-1.5 rounded-full mb-5 text-sm text-gray-800">
+						<span className="mr-2">⏱️</span>{ optimoleDashboardApp.strings.account_needed_setup_time }
+					</div>
+
+					<p
+						className="text-sm text-gray-700 mb-5 leading-normal"
 						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_title } }
 					/>
 
-					<div className="flex py-3">
+
+					<div className="flex py-3 items-center">
 						<Icon icon="yes-alt" />
 						<p
 							className="text-base ml-3 m-0"
@@ -180,11 +192,19 @@ const ConnectLayout = () => {
 						/>
 					</div>
 
-					<div className="flex py-3">
+					<div className="flex py-3 items-center">
 						<Icon icon="yes-alt" />
 						<p
 							className="text-base ml-3 m-0"
 							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_subtitle_2 } }
+						/>
+					</div>
+
+					<div className="flex py-3 items-center">
+						<Icon icon="yes-alt" />
+						<p
+							className="text-base ml-3 m-0"
+							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_subtitle_4 } }
 						/>
 					</div>
 				</div>
@@ -233,23 +253,21 @@ const ConnectLayout = () => {
 
 					<Button
 						variant="secondary"
-						className="optml__button flex w-full justify-center rounded font-bold mt-4 min-h-40"
+						className="optml__button flex w-full justify-center rounded font-bold mt-4 min-h-40 mb-4"
 						onClick={ () => setMethod( 'key' ) }
 					>
 						{ optimoleDashboardApp.strings.api_exists }
 					</Button>
+
+					<div class="flex items-center justify-center text-gray-600 mb-4">
+						<span class="mr-1.5">🔒</span>{ optimoleDashboardApp.strings.secure_connection }
+					</div>
 
 					<p
 						className="mb-0"
 						dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.signup_terms } }
 					/>
 				</div>
-			</div>
-
-			<div className="bg-grayish-blue text-gray-800 text-center font-bold uppercase p-2.5 rounded-b-lg">
-				<p
-					dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_footer } }
-				/>
 			</div>
 		</div>
 	);

@@ -21,41 +21,8 @@ import Help from './help';
 import Sidebar from './Sidebar';
 import CSAT from './CSAT';
 import { retrieveConflicts } from '../../utils/api';
-import formbricks from '@formbricks/js/app';
 import BlackFridayBanner from '../components/BlackFridayBanner';
-if ( 'undefined' !== typeof window && optimoleDashboardApp.user_data.plan ) {
-	formbricks.init({
-		environmentId: 'clo8wxwzj44orpm0gjchurujm',
-		apiHost: 'https://app.formbricks.com',
-		userId: 'optml_' + ( optimoleDashboardApp.user_data.id ),
-		attributes: {
-			plan: optimoleDashboardApp.user_data.plan,
-			status: optimoleDashboardApp.user_data.status,
-			language: optimoleDashboardApp.language,
-			cname_assigned: optimoleDashboardApp.user_data.is_cname_assigned || 'no',
-			connected_websites: optimoleDashboardApp.user_data.whitelist && optimoleDashboardApp.user_data.whitelist.length.toString(),
-			traffic: convertToCategory( optimoleDashboardApp.user_data.traffic || 0, 500 ).toString(),
-			images_number: convertToCategory( optimoleDashboardApp.user_data.images_number || 0, 100 ).toString(),
-			days_since_install: convertToCategory( optimoleDashboardApp.days_since_install ).toString()
-		}
-	});
 
-}
-function convertToCategory( number, scale = 1 ) {
-
-	const normalizedNumber = Math.round( number / scale );
-	if ( 0 === normalizedNumber || 1 === normalizedNumber ) {
-		return 0;
-	} else if ( 1 < normalizedNumber && 8 > normalizedNumber ) {
-		return 7;
-	} else if ( 8 <= normalizedNumber && 31 > normalizedNumber ) {
-		return 30;
-	} else if ( 30 < normalizedNumber && 90 > normalizedNumber ) {
-		return 90;
-	} else if ( 90 < normalizedNumber ) {
-		return 91;
-	}
-}
 const ConnectedLayout = ({
 	tab,
 	setTab
@@ -97,27 +64,6 @@ const ConnectedLayout = ({
 	const [ canSave, setCanSave ] = useState( false );
 	const [ settings, setSettings ] = useState( siteSettings );
 
-	useEffect( () => {
-		const urlSearchParams = new URLSearchParams( window.location.search );
-		const params = Object.fromEntries( urlSearchParams.entries() );
-		let images = [];
-
-		if ( Object.prototype.hasOwnProperty.call( params, 'optimole_action' ) ) {
-			for ( let i = 0; 20 > i; i++ ) {
-				if ( Object.prototype.hasOwnProperty.call( params, i ) ) {
-					if ( ! isNaN( params[i]) ) {
-						images[i] = parseInt( params[i], 10 );
-					}
-				}
-			}
-
-			params.images = images;
-			params.url = window.location.href.split( '?' )[0] + ( Object.prototype.hasOwnProperty.call( params, 'paged' ) ? '?paged=' + params.paged : '' );
-			setQueryArgs( params );
-			setTab( 'settings' );
-			setMenu( 'offload_media' );
-		}
-	}, []);
 
 	useEffect( () => {
 		if ( isConnected && hasApplication ) {
@@ -156,7 +102,7 @@ const ConnectedLayout = ({
 
 			<div className="flex flex-col xl:flex-row mx-auto gap-5">
 				<div
-					className="flex flex-col justify-between mt-8 xl:mb-5 p-0 transition-all ease-in-out duration-700 relative text-gray-700 basis-8/12 2xl:basis-9/12"
+					className="flex flex-col mt-8 xl:mb-5 p-0 transition-all ease-in-out duration-700 relative text-gray-700 grow"
 				>
 					{ 'dashboard' === tab && <Dashboard /> }
 
@@ -176,7 +122,7 @@ const ConnectedLayout = ({
 					{ 'help' === tab && <Help /> }
 				</div>
 
-				<Sidebar/>
+				<Sidebar settings={settings}/>
 			</div>
 
 			<CSAT />

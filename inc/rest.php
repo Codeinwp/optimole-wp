@@ -9,6 +9,7 @@
 
 use Optimole\Sdk\Resource\ImageProperty\ResizeTypeProperty;
 use Optimole\Sdk\ValueObject\Position;
+use OptimoleWP\PageProfiler\Profile;
 
 /**
  * Class Optml_Rest
@@ -80,11 +81,20 @@ class Optml_Rest {
 			'number_of_images_and_pages' => 'POST',
 			'clear_offload_errors' => 'GET',
 			'get_offload_conflicts' => 'GET',
-		],
-		'watermark_routes' => [
-			'poll_watermarks' => 'GET',
-			'add_watermark'   => 'POST',
-			'remove_watermark' => 'POST',
+			'move_image' => [
+				'POST',
+				'args' => [
+					'id' => [
+						'type'     => 'number',
+						'required' => true,
+					],
+					'action' => [
+						'type'     => 'string',
+						'required' => true,
+					],
+				],
+				'permission_callback' => 'upload_files',
+			],
 		],
 		'conflict_routes' => [
 			'poll_conflicts' => 'GET',
@@ -114,6 +124,26 @@ class Optml_Rest {
 						'required' => true,
 					],
 				],
+			],
+		],
+		'optimization_routes' => [
+			'optimizations' => [
+				'POST',
+				'args' => [
+					'd' => [
+						'type'     => 'integer',
+						'required' => true,
+					],
+					'a' => [
+						'type'     => 'array',
+						'required' => true,
+					],
+					'u' => [
+						'type'     => 'string',
+						'required' => true,
+					],
+				],
+				'permission_callback' => '__return_true',
 			],
 		],
 	];
@@ -149,7 +179,7 @@ class Optml_Rest {
 		if ( $wp_method_constant !== false ) {
 			$params = [
 				'methods'             => $wp_method_constant,
-				'permission_callback' => function () use ( $permission_callback ) {
+				'permission_callback' => function_exists( $permission_callback ) ? $permission_callback : function () use ( $permission_callback ) {
 					return current_user_can( $permission_callback );
 				},
 				'callback'            => [ $this, $route ],
@@ -175,12 +205,12 @@ class Optml_Rest {
 		$this->register_service_routes();
 
 		$this->register_image_routes();
-		$this->register_watermark_routes();
 		$this->register_conflict_routes();
 		$this->register_cache_routes();
 		$this->register_media_offload_routes();
 		$this->register_dam_routes();
 		$this->register_notification_routes();
+		$this->register_optimization_routes();
 	}
 
 	/**
@@ -213,18 +243,13 @@ class Optml_Rest {
 	 */
 	public function register_media_offload_routes() {
 		foreach ( self::$rest_routes['media_cloud_routes'] as $route => $details ) {
-			$this->reqister_route( $route, $details );
+
+			$permission = isset( $details['permission_callback'] ) ? $details['permission_callback'] : 'manage_options';
+			$args       = isset( $details['args'] ) ? $details['args'] : [];
+			$this->reqister_route( $route, is_array( $details ) ? $details[0] : $details, $args, $permission );
 		}
 	}
 
-	/**
-	 * Method to register watermark specific routes.
-	 */
-	public function register_watermark_routes() {
-		foreach ( self::$rest_routes['watermark_routes'] as $route => $details ) {
-			$this->reqister_route( $route, $details );
-		}
-	}
 
 	/**
 	 * Method to register conflicts specific routes.
@@ -650,57 +675,6 @@ class Optml_Rest {
 		return $this->response( $final_images );
 	}
 
-	/**
-	 * Get watermarks from API.
-	 *
-	 * @param WP_REST_Request $request rest request.
-	 *
-	 * @return WP_REST_Response
-	 */
-	public function poll_watermarks( WP_REST_Request $request ) {
-		$api_key    = $request->get_param( 'api_key' );
-		$request    = new Optml_Api();
-		$watermarks = $request->get_watermarks( $api_key );
-		if ( ! isset( $watermarks['watermarks'] ) || empty( $watermarks['watermarks'] ) ) {
-			return $this->response( [] );
-		}
-		$final_images = array_splice( $watermarks['watermarks'], 0, 10 );
-
-		return $this->response( $final_images );
-	}
-
-	/**
-	 * Add watermark.
-	 *
-	 * @param WP_REST_Request $request rest request.
-	 *
-	 * @return WP_REST_Response
-	 */
-	public function add_watermark( WP_REST_Request $request ) {
-		$file     = $request->get_file_params();
-		$request  = new Optml_Api();
-		$response = $request->add_watermark( $file );
-		if ( $response === false ) {
-			return $this->response( __( 'Error uploading image. Please try again.', 'optimole-wp' ), 'error' );
-		}
-
-		return $this->response( __( 'Watermark image uploaded succesfully !', 'optimole-wp' ) );
-	}
-
-	/**
-	 * Remove watermark.
-	 *
-	 * @param WP_REST_Request $request rest request.
-	 *
-	 * @return WP_REST_Response
-	 */
-	public function remove_watermark( WP_REST_Request $request ) {
-		$post_id = $request->get_param( 'postID' );
-		$api_key = $request->get_param( 'api_key' );
-		$request = new Optml_Api();
-
-		return $this->response( $request->remove_watermark( $post_id, $api_key ) );
-	}
 
 	/**
 	 * Get conflicts from API.
@@ -851,7 +825,6 @@ class Optml_Rest {
 	public function number_of_images_and_pages( WP_REST_Request $request ) {
 		$action = 'offload_images';
 		$refresh = false;
-		$images = [];
 
 		if ( ! empty( $request->get_param( 'action' ) ) ) {
 			$action = $request->get_param( 'action' );
@@ -861,11 +834,7 @@ class Optml_Rest {
 			$refresh = $request->get_param( 'refresh' );
 		}
 
-		if ( ! empty( $request->get_param( 'images' ) ) ) {
-			$images = $request->get_param( 'images' );
-		}
-
-		return $this->response( Optml_Media_Offload::get_image_count( $action, $refresh, $images ) );
+		return $this->response( Optml_Media_Offload::move_images( $action, $refresh ) );
 	}
 
 	/**
@@ -946,5 +915,142 @@ class Optml_Rest {
 		}
 
 		return $this->response( [ 'success' => 'Notice dismissed' ] );
+	}
+
+	/**
+	 * Store optimization data.
+	 *
+	 * @param WP_REST_Request $request Rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function optimizations( WP_REST_Request $request ) {
+		$settings = new Optml_Settings();
+		if ( ! $settings->is_lazyload_type_viewport() ) {
+			return $this->response( 'Optimization is not enabled', 'error' );
+		}
+		$time = $request->get_param( 't' );
+		$hmac = $request->get_param( 'h' );
+		if ( empty( $time ) || empty( $hmac ) ) {
+			return $this->response( 'Missing required parameters', 'error' );
+		}
+
+		$device_type = $request->get_param( 'd' );
+		$above_fold_images = $request->get_param( 'a' );
+		$url = $request->get_param( 'u' );
+		if ( $time < time() - 300 ) {
+			return $this->response( 'Invalid Signature.', 'error' );
+		}
+		if ( wp_hash( $url . $time, 'nonce' ) !== $hmac ) {
+			return $this->response( 'Invalid Signature.', 'error' );
+		}
+		$bg_selectors = $request->get_param( 'b' );
+		$lcp_data = $request->get_param( 'l' );
+		$origin = $request->get_header( 'origin' );
+		if ( empty( $origin ) || ! is_allowed_http_origin( $origin ) ) {
+			return $this->response( 'Invalid origin', 'error' );
+		}
+		if ( empty( $device_type ) || empty( $above_fold_images ) || empty( $url ) || ! is_array( $above_fold_images ) ) {
+			return $this->response( 'Missing required parameters', 'error' );
+		}
+		if ( count( $above_fold_images ) > 20 ) {
+			return $this->response( 'Above fold images limit exceeded', 'error' );
+		}
+		if ( count( $bg_selectors ) > 100 ) {
+			return $this->response( 'Background selectors limit exceeded', 'error' );
+		}
+		if ( $url === Profile::PLACEHOLDER ) {
+			return $this->response( 'Missing profile parameters', 'error' );
+		}
+
+		$current_selectors = array_values( Optml_Lazyload_Replacer::get_background_lazyload_selectors() );
+		$sanitized_selectors = [];
+		foreach ( $bg_selectors as $selector => $above_fold_bg_selectors ) {
+			if ( ! in_array( $selector, $current_selectors, true ) ) {
+				return $this->response( 'Invalid background selector', 'error' );
+			}
+			if ( count( $above_fold_bg_selectors ) > 100 ) {
+				return $this->response( 'Above fold background selectors limit exceeded', 'error' );
+			}
+			$selector = strip_tags( $selector );
+			$sanitized_selectors[ $selector ] = [];
+			foreach ( $above_fold_bg_selectors as $above_fold_bg_selector => $bg_urls ) {
+				if ( count( $bg_urls ) > 3 ) {
+					return $this->response( 'Background URLs limit exceeded', 'error' );
+				}
+				$sanitized_selectors[ $selector ][ strip_tags( $above_fold_bg_selector ) ] = array_filter(
+					array_map( 'sanitize_url', array_values( $bg_urls ) ),
+					function ( $url ) {
+						// we ignore urls that are not from our service
+						return strpos( $url, Optml_Config::$service_url ) === 0;
+					}
+				);
+			}
+		}
+		$sanitized_lcp_data = [];
+		if ( ! empty( $lcp_data ) ) {
+			$sanitized_lcp_data['imageId'] = sanitize_text_field( $lcp_data['i'] ?? '' );
+			$sanitized_lcp_data['bgSelector'] = sanitize_text_field( $lcp_data['s'] ?? '' );
+			if ( count( $lcp_data['u'] ?? [] ) > 3 ) {
+				return $this->response( 'LCP Background URLs limit exceeded', 'error' );
+			}
+			$sanitized_lcp_data['bgUrls'] = array_filter(
+				array_map( 'sanitize_url', array_values( $lcp_data['u'] ?? [] ) ),
+				function ( $url ) {
+					// we ignore urls that are not from our service
+					return strpos( $url, Optml_Config::$service_url ) === 0;
+				}
+			);
+			$sanitized_lcp_data['type'] = empty( $sanitized_lcp_data['imageId'] ) ? 'bg' : 'img';
+		}
+
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', 'Storing: ' . $url . ' - ' . $device_type . ' - ' . print_r( $above_fold_images, true ) . print_r( $sanitized_selectors, true ) . print_r( $sanitized_lcp_data, true ) );
+		}
+		$profile = new Profile();
+		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data );
+		return $this->response( 'Above fold data stored successfully' );
+	}
+
+	/**
+	 * Method to register above fold data routes.
+	 */
+	public function register_optimization_routes() {
+		foreach ( self::$rest_routes['optimization_routes'] as $route => $details ) {
+			$this->reqister_route( $route, $details[0], $details['args'], $details['permission_callback'] );
+		}
+	}
+
+	/**
+	 * Move image.
+	 *
+	 * @param WP_REST_Request $request Rest request.
+	 *
+	 * @return WP_REST_Response
+	 */
+	public function move_image( WP_REST_Request $request ) {
+		$id = $request->get_param( 'id' );
+		$action = $request->get_param( 'action' );
+
+		if ( $request->get_param( 'status' ) === 'start' ) {
+			try {
+				Optml_Media_Offload::instance()->move_single_image( $action === 'offload_image' ? 'offload_images' : 'rollback_images', $id );
+			} catch ( Exception $e ) {
+				return $this->response( strip_tags( $e->getMessage() ), 'error' );
+			}
+		}
+
+		$meta = wp_get_attachment_metadata( $id );
+		$file = $meta['file'];
+		$result = 'not_moved';
+		if ( $action === 'offload_image' ) {
+			$result = Optml_Media_Offload::is_uploaded_image( $file ) ? 'moved' : 'not_moved';
+		}
+
+		if ( $action === 'rollback_image' ) {
+			$result = ! Optml_Media_Offload::is_uploaded_image( $file ) ? 'moved' : 'not_moved';
+		}
+
+		return $this->response( [ $id,$action ], $result );
 	}
 }

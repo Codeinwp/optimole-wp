@@ -232,15 +232,15 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertEmpty( get_post_meta( self::$sample_attachement, Optml_Media_Offload::META_KEYS['offload_error'], true ) );
 
 		$content =  wp_get_attachment_image( self::$sample_attachement );
-		$this->assertStringNotContainsString( 'example.i.optimole.com', $content );
+		$this->assertStringNotContainsString( 'id:', $content );
 		Optml_Media_Offload::instance()->upload_images( 2 );
 		$content =  wp_get_attachment_image( self::$sample_attachement );
 		$this->assertEquals(2, (int)get_post_meta(self::$sample_attachement, Optml_Media_Offload::RETRYABLE_META_COUNTER, true));
-		$this->assertStringNotContainsString( 'example.i.optimole.com', $content );
+		$this->assertStringNotContainsString( 'id:', $content );
 		self::$error_mark = false;
 		Optml_Media_Offload::instance()->upload_images( 2 );
 		$content =  wp_get_attachment_image( self::$sample_attachement );
-		$this->assertStringContainsString( 'example.i.optimole.com', $content );
+		$this->assertStringContainsString( 'id:', $content );
 		$this->assertEmpty( get_post_meta( self::$sample_attachement, Optml_Media_Offload::RETRYABLE_META_COUNTER, true ) );
 	}
 	public function test_retryable_error_and_error() {
@@ -250,7 +250,7 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertEquals(1, (int)get_post_meta(self::$sample_attachement, Optml_Media_Offload::RETRYABLE_META_COUNTER, true));
 		$this->assertEmpty( get_post_meta( self::$sample_attachement, Optml_Media_Offload::META_KEYS['offload_error'], true ) );
 		$content =  wp_get_attachment_image( self::$sample_attachement );
-		$this->assertStringNotContainsString( 'example.i.optimole.com', $content );
+		$this->assertStringNotContainsString( 'id:', $content );
 
 		update_post_meta(self::$sample_attachement, Optml_Media_Offload::RETRYABLE_META_COUNTER, 5);
 		Optml_Media_Offload::instance()->upload_images( 2 );
@@ -313,6 +313,14 @@ class Test_Media extends WP_UnitTestCase {
 		$image_meta  = wp_get_attachment_metadata( self::$sample_attachement);
 
 		$this->assertStringContainsString( '/id:579c7f7707ce87caa65fdf50c238a117', $image_meta['file'] );
+	}
+	public function test_retina_images() {
+		Optml_Media_Offload::instance()->settings->update( 'retina_images', 'enabled' ); 
+		$image_medium_size = wp_get_attachment_image(self::$sample_attachement, 'medium');
+		$this->assertStringContainsString( '/dpr:2/', $image_medium_size );
+		Optml_Media_Offload::instance()->settings->update( 'retina_images', 'disabled' ); 
+		$image_medium_size = wp_get_attachment_image(self::$sample_attachement, 'medium');
+		$this->assertStringNotContainsString( '/dpr:2/', $image_medium_size );
 	}
 
 	public function test_image_sync() {
@@ -516,6 +524,7 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 	}
 	public function test_alter_attachment_image_src() {
+		Optml_Attachment_Cache::reset();
 		$test_data = [
 			'full' => [
 				'data' => Optml_Media_Offload::instance()->alter_attachment_image_src( [], self::$sample_attachement, 'full', false ),

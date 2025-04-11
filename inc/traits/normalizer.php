@@ -12,6 +12,13 @@ use Optimole\Sdk\ValueObject\Position;
 trait Optml_Normalizer {
 
 	/**
+	 * Static cache for dimension calculations
+	 *
+	 * @var array
+	 */
+	private static $dimension_cache = [];
+
+	/**
 	 * Normalize value to boolean.
 	 *
 	 * @param mixed $value Value to process.
@@ -30,6 +37,31 @@ trait Optml_Normalizer {
 		return boolval( $value );
 	}
 
+	/**
+	 * Get the unoptimized url from an Optimole url.
+	 * Works only on non-offloaded images.
+	 *
+	 * @param string $url The url to get the unoptimized url for.
+	 *
+	 * @return string The unoptimized url.
+	 */
+	public function get_unoptimized_url( $url ) {
+
+		// If the url is not an optimole url, return the url
+		if ( strpos( $url, Optml_Config::$service_url ) === false ) {
+			return $url;
+		}
+		// If the url is an uploaded image, return the url
+		if ( Optml_Media_Offload::is_uploaded_image( $url ) ) {
+			return $url;
+		}
+
+		$url_parts = explode( 'http', $url );
+		if ( ! isset( $url_parts[2] ) ) {
+			return $url;
+		}
+		return 'http' . $url_parts[2];
+	}
 	/**
 	 * Return domain hash.
 	 *
@@ -180,6 +212,10 @@ trait Optml_Normalizer {
 				if ( ! $width || ! $height ) {
 					break;
 				}
+				$cache_key = 'a' . $width . '_' . $height . '_' . $sizes['width'] . '_' . $sizes['height'];
+				if ( isset( self::$dimension_cache[ $cache_key ] ) ) {
+					return self::$dimension_cache[ $cache_key ];
+				}
 				$image_resized = image_resize_dimensions( $sizes['width'], $sizes['height'], $width, $height );
 				if ( $image_resized ) {
 					$width  = $image_resized[6];
@@ -190,8 +226,13 @@ trait Optml_Normalizer {
 				}
 				list( $sizes['width'], $sizes['height'] ) = image_constrain_size_for_editor( $width, $height, $size );
 
+				self::$dimension_cache[ $cache_key ] = $sizes;
 				break;
 			case 'full' !== $size && isset( $image_args[ $size ] ):
+				$cache_key = 'b' . $size . '_' . $sizes['width'] . '_' . $sizes['height'];
+				if ( isset( self::$dimension_cache[ $cache_key ] ) ) {
+					return self::$dimension_cache[ $cache_key ];
+				}
 				$image_resized = image_resize_dimensions( $sizes['width'], $sizes['height'], $image_args[ $size ]['width'], $image_args[ $size ]['height'], $image_args[ $size ]['crop'] );
 
 				if ( $image_resized ) { // This could be false when the requested image size is larger than the full-size image.
@@ -205,7 +246,7 @@ trait Optml_Normalizer {
 				list( $sizes['width'], $sizes['height'] ) = image_constrain_size_for_editor( $sizes['width'], $sizes['height'], $size, 'display' );
 
 				$sizes['resize'] = $this->to_optml_crop( $image_args[ $size ]['crop'] );
-
+				self::$dimension_cache[ $cache_key ] = $sizes;
 				break;
 		}
 		return $sizes;
