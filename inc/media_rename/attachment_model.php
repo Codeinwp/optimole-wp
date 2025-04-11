@@ -75,6 +75,13 @@ class Optml_Attachment_Model {
 	private $is_remote_attachment;
 
 	/**
+	 * The attachment mime type.
+	 *
+	 * @var string
+	 */
+	private $mime_type;
+
+	/**
 	 * The attachment metadata.
 	 *
 	 * @var array
@@ -91,11 +98,9 @@ class Optml_Attachment_Model {
 	public function __construct( int $attachment_id ) {
 		$this->attachment_id = $attachment_id;
 		$this->attachment_metadata = wp_get_attachment_metadata( $this->attachment_id );
+		$this->mime_type = get_post_mime_type( $attachment_id );
 
-		$mime_type = get_post_mime_type( $attachment_id );
-		$is_image = strpos( $mime_type, 'image' ) !== false;
-
-		$this->main_attachment_url          = $is_image ? wp_get_original_image_url( $attachment_id ) : wp_get_attachment_url( $attachment_id );
+		$this->main_attachment_url          = $this->is_image() ? wp_get_original_image_url( $attachment_id ) : wp_get_attachment_url( $attachment_id );
 		$this->origianal_attached_file_path = $this->setup_original_attached_file();
 		$this->dir_path = dirname( $this->origianal_attached_file_path );
 		$this->is_scaled = isset( $this->attachment_metadata['original_image'] );
@@ -285,5 +290,19 @@ class Optml_Attachment_Model {
 	 */
 	public function can_be_renamed_or_replaced() {
 		return ! $this->is_remote_attachment;
+	}
+
+	/**
+	 * Get the attachment mime type.
+	 */
+	public function get_attachment_mimetype() {
+		return $this->mime_type;
+	}
+
+	/**
+	 * Check if the attachment is an image.
+	 */
+	public function is_image() {
+		return strpos( $this->mime_type, 'image' ) !== false;
 	}
 }
