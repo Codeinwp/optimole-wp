@@ -9,7 +9,12 @@ test.describe('Check Shortcode ultimate page', () => {
     const images = await page.locator('.su-carousel-slide img').all();
     for (const image of images) {
       await expect(image).toHaveAttribute('src', /i\.optimole\.com/);
+     // change this to check only if data-opt-src if exists and if not check src 
+     if(await image.getAttribute('data-opt-src')){
+      await expect(image).toHaveAttribute('data-opt-src', /rt:fill/); 
+     }else{
       await expect(image).toHaveAttribute('src', /rt:fill/);
+     }
     }
   });
 

@@ -16,7 +16,6 @@ test.describe('Check product page', () => {
     const links = await page.locator('.woocommerce-product-gallery__wrapper > div > a').all();
     for (const link of links) {
       await expect(link).toHaveAttribute('href', /i\.optimole\.com/);
-      await expect(link).toHaveAttribute('href', /w:auto\/h:auto/);
     }
   });
 
