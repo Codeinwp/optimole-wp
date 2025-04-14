@@ -1,3 +1,51 @@
+#### [Version 4.0.0](https://github.com/Codeinwp/optimole-wp/compare/v3.14.1...v4.0.0) (2025-04-14)
+
+### New Features
+
+- Added [client-side detection](https://docs.optimole.com/article/1948-bypass-lazy-load-for-first-images) of above-the-fold images with device-specific lazy loading for improved performance on both desktop and mobile.
+- Introduced [video](https://docs.optimole.com/article/2254-how-to-use-optimole-video-integration) integration that allows uploading, managing, and displaying videos directly via the Optimole DAM.
+- Enabled rename and replace functionality for media files within both the WordPress media library and the Optimole Cloud Library.
+- Simplified compression settings with [presets](https://docs.optimole.com/article/2252-choose-the-best-optimization-preset-for-your-website) for Speed and Quality optimized workflows.
+- Added a download button in the Optimole Cloud Library for quick image retrieval.
+- Introduced a WordPress dashboard widget showing visits, optimizations, and latest media activity.
+- Launched a [referral](https://docs.optimole.com/article/2253-referral-program) program where each referral grants 500 extra visits, up to 5,000.
+- Added support to host and serve PDFs from the Optimole.
+- Added support for JPEG XL format
+
+---
+
+### Enhancements
+
+- Added direct access to the Optimole Cloud Library from the plugin settings for faster navigation.
+- Redesigned the plugin dashboard layout to make metrics clearer and easier to read.
+- Enhanced Optimole badge settings with position options and icon-only display mode.
+- Added sorting options in the Cloud Library to organize media by upload time or file size.
+- Refreshed the first plugin screen with improved trust-building elements.
+- Enhanced image preloading logic to more accurately detect and prioritize visible images.
+- Displayed clear warnings when free users are approaching their offload limits.
+- Added slider navigation and persistent folder state to the Cloud Library for a better media browsing experience.
+- Displayed offload quota usage directly in the plugin dashboard.
+
+---
+
+### Bug Fixes
+
+- Fixed pixelated SVGs by ensuring proper format is served.
+- Prevented redirect issues when rolling back offloaded images in the media library.
+- Respected custom image dimensions set in Elementor sliders during auto-scaling.
+- Stopped misidentification of mega menu images as hero images.
+- Prevented broken links when editing cloud-only images by redirecting to the Optimole Library.
+- Preserved original image URLs in Gutenberg when lazy load and scaling are disabled.
+- Fixed issue where product gallery images from the Cloud Library also appeared in product descriptions.
+- Resolved incorrect quota display for disabled accounts with badge enabled.
+- Ensured first-time DAM authorization works across all browsers.
+- Corrected sorting so newest uploads appear at the top of the Cloud Library.
+- Cleared cache automatically when images are updated on the site.
+- Made update and delete buttons for watermarks visible when multiple rows exist.
+- Clarified that excluding an image from optimization also excludes it from lazy loading.
+- Stopped image distortion when no size attributes are present and scaling is disabled.
+- Synced folder tree view and search in the Cloud Library for consistent navigation.
+
 ##### [Version 3.14.1](https://github.com/Codeinwp/optimole-wp/compare/v3.14.0...v3.14.1) (2025-02-21)
 
 - Improve error handling on connection
