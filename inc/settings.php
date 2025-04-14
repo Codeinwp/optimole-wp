@@ -16,6 +16,7 @@ class Optml_Settings {
 	const FILTER_TYPE_LAZYLOAD = 'lazyload';
 	const FILTER_TYPE_OPTIMIZE = 'optimize';
 	const OPTML_USER_EMAIL = 'optml_user_email';
+	const INDIVIDUAL_CACHE_TOKENS_KEY = '_optml_cache_tokens_individual';
 	/**
 	 * Holds an array of possible settings to alter via wp cli or wp-config constants.
 	 *
@@ -64,12 +65,14 @@ class Optml_Settings {
 		'bg_replacer'                => 'enabled',
 		'video_lazyload'             => 'enabled',
 		'retina_images'              => 'disabled',
+		'lazyload_type'              => 'fixed',
 		'limit_dimensions'           => 'enabled',
 		'limit_height'               => 1080,
 		'limit_width'                => 1920,
 		'resize_smart'               => 'disabled',
 		'no_script'                  => 'disabled',
 		'filters'                    => [],
+		'compression_mode'           => 'custom',
 		'cloud_sites'                => [ 'all' => 'true' ],
 		'watchers'                   => '',
 		'quality'                    => 'auto',
@@ -83,7 +86,6 @@ class Optml_Settings {
 		'img_to_video'               => 'disabled',
 		'css_minify'                 => 'enabled',
 		'js_minify'                  => 'disabled',
-		'report_script'              => 'disabled',
 		'avif'                       => 'enabled',
 		'autoquality'                => 'enabled',
 		'native_lazyload'            => 'disabled',
@@ -101,6 +103,8 @@ class Optml_Settings {
 		'offload_limit'              => 50000,
 		'placeholder_color'          => '',
 		'show_offload_finish_notice' => '',
+		'show_badge_icon'            => 'disabled',
+		'badge_position'             => 'left',
 	];
 	/**
 	 * Option key.
@@ -113,7 +117,7 @@ class Optml_Settings {
 	 *
 	 * @var array All options.
 	 */
-	private $options;
+	private static $options;
 
 	/**
 	 * Optml_Settings constructor.
@@ -123,11 +127,11 @@ class Optml_Settings {
 
 		$this->namespace      = OPTML_NAMESPACE . '_settings';
 		$this->default_schema = apply_filters( 'optml_default_settings', $this->default_schema );
-		$this->options        = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
+		self::$options        = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 
 		if ( defined( 'OPTIML_ENABLED_MU' ) && defined( 'OPTIML_MU_SITE_ID' ) && $this->to_boolean( constant( 'OPTIML_ENABLED_MU' ) ) && constant( 'OPTIML_MU_SITE_ID' ) ) {
 			switch_to_blog( constant( 'OPTIML_MU_SITE_ID' ) );
-			$this->options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
+			self::$options = wp_parse_args( get_option( $this->namespace, $this->default_schema ), $this->default_schema );
 			restore_current_blog();
 		}
 
@@ -164,7 +168,7 @@ class Optml_Settings {
 						continue;
 					}
 					$sanitized_value       = ( $type === 'bool' ) ? ( $value === 'on' ? 'enabled' : 'disabled' ) : (int) $value;
-					$this->options[ $key ] = $sanitized_value;
+					self::$options[ $key ] = $sanitized_value;
 				}
 			}
 		}
@@ -201,7 +205,7 @@ class Optml_Settings {
 			return null;
 		}
 
-		return isset( $this->options[ $key ] ) ? $this->options[ $key ] : '';
+		return isset( self::$options[ $key ] ) ? self::$options[ $key ] : '';
 	}
 
 	/**
@@ -250,7 +254,6 @@ class Optml_Settings {
 				case 'resize_smart':
 				case 'bg_replacer':
 				case 'video_lazyload':
-				case 'report_script':
 				case 'avif':
 				case 'offload_media':
 				case 'cloud_images':
@@ -266,6 +269,7 @@ class Optml_Settings {
 				case 'rollback_status':
 				case 'best_format':
 				case 'offload_limit_reached':
+				case 'show_badge_icon':
 					$sanitized_value = $this->to_map_values( $value, [ 'enabled', 'disabled' ], 'enabled' );
 					break;
 				case 'offload_limit':
@@ -288,6 +292,12 @@ class Optml_Settings {
 				case 'cache_buster_images':
 				case 'cache_buster':
 					$sanitized_value = is_string( $value ) ? sanitize_text_field( $value ) : '';
+					break;
+				case 'lazyload_type':
+					$sanitized_value = $this->to_map_values( $value, [ 'fixed', 'viewport', 'all' ], 'fixed' );
+					break;
+				case 'compression_mode':
+					$sanitized_value = $this->to_map_values( $value, [ 'speed_optimized', 'quality_optimized', 'custom' ], 'custom' );
 					break;
 				case 'cloud_sites':
 					$current_sites   = $this->get( 'cloud_sites' );
@@ -352,6 +362,9 @@ class Optml_Settings {
 						Position::SOUTH_EAST
 					);
 					break;
+				case 'badge_position':
+					$sanitized_value = $this->to_map_values( $value, [ 'left', 'right' ], 'right' );
+					break;
 				default:
 					$sanitized_value = '';
 					break;
@@ -412,13 +425,13 @@ class Optml_Settings {
 			return false;
 		}
 
-		$opts                    = $this->options;
+		$opts                    = self::$options;
 		$opts['banner_frontend'] = $value ? 'enabled' : 'disabled';
 
 		$update = update_option( $this->namespace, $opts, false );
 
 		if ( $update ) {
-			$this->options = $opts;
+			self::$options = $opts;
 		}
 
 		return $update;
@@ -440,7 +453,7 @@ class Optml_Settings {
 		if ( ! $this->is_main_mu_site() ) {
 			return false;
 		}
-		$opt = $this->options;
+		$opt = self::$options;
 
 		if ( $key === 'banner_frontend' ) {
 			$api          = new Optml_Api();
@@ -450,9 +463,11 @@ class Optml_Settings {
 		}
 
 		$opt[ $key ] = $value;
+
 		$update      = update_option( $this->namespace, $opt, false );
+
 		if ( $update ) {
-			$this->options = $opt;
+			self::$options = $opt;
 		}
 		if ( apply_filters( 'optml_dont_trigger_settings_updated', false ) === false ) {
 			do_action( 'optml_settings_updated' );
@@ -504,6 +519,8 @@ class Optml_Settings {
 			'video_lazyload'             => $this->get( 'video_lazyload' ),
 			'resize_smart'               => $this->get( 'resize_smart' ),
 			'no_script'                  => $this->get( 'no_script' ),
+			'lazyload_type'              => $this->get( 'lazyload_type' ),
+			'compression_mode'           => $this->get( 'compression_mode' ),
 			'image_replacer'             => $this->get( 'image_replacer' ),
 			'cdn'                        => $this->get( 'cdn' ),
 			'filters'                    => $this->get_filters(),
@@ -511,12 +528,11 @@ class Optml_Settings {
 			'defined_image_sizes'        => $this->get( 'defined_image_sizes' ),
 			'watchers'                   => $this->get_watchers(),
 			'watermark'                  => $this->get_watermark(),
-			'img_to_video'               => $this->get( 'img_to_video' ),
+			'img_to_video'               => $this->get( 'img_to_video' ), // @deprecated
 			'scale'                      => $this->get( 'scale' ),
 			'css_minify'                 => $this->get( 'css_minify' ),
 			'js_minify'                  => $this->get( 'js_minify' ),
 			'native_lazyload'            => $this->get( 'native_lazyload' ),
-			'report_script'              => $this->get( 'report_script' ),
 			'avif'                       => $this->get( 'avif' ),
 			'autoquality'                => $this->get( 'autoquality' ),
 			'offload_media'              => $this->get( 'offload_media' ),
@@ -530,6 +546,8 @@ class Optml_Settings {
 			'offload_limit_reached'      => $this->get( 'offload_limit_reached' ),
 			'placeholder_color'          => $this->get( 'placeholder_color' ),
 			'show_offload_finish_notice' => $this->get( 'show_offload_finish_notice' ),
+			'show_badge_icon'            => $this->get( 'show_badge_icon' ),
+			'badge_position'             => $this->get( 'badge_position' ),
 		];
 	}
 
@@ -695,12 +713,14 @@ class Optml_Settings {
 	 */
 	public function reset() {
 		$reset_schema            = $this->default_schema;
-		$reset_schema['filters'] = $this->options['filters'];
+		$reset_schema['filters'] = self::$options['filters'];
 
 		$update = update_option( $this->namespace, $reset_schema );
 		if ( $update ) {
-			$this->options = $reset_schema;
+			self::$options = $reset_schema;
 		}
+		wp_unschedule_hook( Optml_Admin::SYNC_CRON );
+		wp_unschedule_hook( Optml_Admin::ENRICH_CRON );
 
 		return $update;
 	}
@@ -732,6 +752,7 @@ class Optml_Settings {
 		);
 	}
 
+
 	/**
 	 * Clear cache.
 	 *
@@ -743,12 +764,16 @@ class Optml_Settings {
 		$token        = $this->get( 'cache_buster' );
 		$token_images = $this->get( 'cache_buster_images' );
 
-		if ( ! empty( $token_images ) ) {
-			$token = $token_images;
-		}
-
-		if ( ! empty( $type ) && $type === 'assets' ) {
+		// here is an individual cache tokens
+		$individual = get_transient( self::INDIVIDUAL_CACHE_TOKENS_KEY ) ?: [];
+		if ( ( empty( $type ) || $type === 'images' ) ) {
+			if ( ! empty( $token_images ) ) {
+				$token = $token_images;
+			}
+		} elseif ( $type === 'assets' ) {
 			$token = $this->get( 'cache_buster_assets' );
+		} else {
+			$token = $individual[ crc32( $type ) ] ?? $token_images ?: $token;
 		}
 
 		$request = new Optml_Api();
@@ -769,17 +794,48 @@ class Optml_Settings {
 			return new WP_Error( 'optimole_cache_buster_error', __( 'Can not get new token from Optimole service', 'optimole-wp' ) . $extra );
 		}
 
-		if ( ! empty( $type ) && $type === 'assets' ) {
+		if ( empty( $type ) || $type === 'images' ) {
+			set_transient( 'optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS );
+			$this->update( 'cache_buster_images', $data['token'] );
+			// we delete individual cache tokens since this is a global cache clear.
+			delete_transient( self::INDIVIDUAL_CACHE_TOKENS_KEY );
+		} elseif ( $type === 'assets' ) {
 			set_transient( 'optml_cache_lock_assets', 'yes', 5 * MINUTE_IN_SECONDS );
 			$this->update( 'cache_buster_assets', $data['token'] );
 		} else {
-			set_transient( 'optml_cache_lock', 'yes', 5 * MINUTE_IN_SECONDS );
-			$this->update( 'cache_buster_images', $data['token'] );
+			$individual[ crc32( $type ) ] = $data['token'];
+			set_transient( self::INDIVIDUAL_CACHE_TOKENS_KEY, $individual, 6 * HOUR_IN_SECONDS );
 		}
 
 		return $data['token'];
 	}
 
+	/**
+	 * Check if lazyload type is viewport.
+	 *
+	 * @return bool
+	 */
+	public function is_lazyload_type_viewport() {
+		return $this->get( 'lazyload_type' ) === 'viewport';
+	}
+
+	/**
+	 * Check if lazyload type is all.
+	 *
+	 * @return bool
+	 */
+	public function is_lazyload_type_all() {
+		return $this->get( 'lazyload_type' ) === 'all';
+	}
+
+	/**
+	 * Check if lazyload type is fixed.
+	 *
+	 * @return bool
+	 */
+	public function is_lazyload_type_fixed() {
+		return $this->get( 'lazyload_type' ) === 'fixed';
+	}
 	/**
 	 * Utility to check if offload is enabled.
 	 *

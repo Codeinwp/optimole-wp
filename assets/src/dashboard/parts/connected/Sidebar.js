@@ -11,6 +11,11 @@ import { useSelect } from '@wordpress/data';
 
 import { addQueryArgs } from '@wordpress/url';
 
+import SPCRecommendation from './SPCRecommendation';
+import OptimizationStatus from './OptimizationStatus';
+import { globe, user } from '../../utils/icons';
+import Tooltip from '../components/Tooltip';
+
 const reasons = [
 	optimoleDashboardApp.strings.upgrade.reason_1,
 	optimoleDashboardApp.strings.upgrade.reason_2,
@@ -18,7 +23,7 @@ const reasons = [
 	optimoleDashboardApp.strings.upgrade.reason_4
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ settings }) => {
 	const {
 		name,
 		domain,
@@ -40,33 +45,27 @@ const Sidebar = () => {
 		};
 	});
 
+	const showSPCRecommendation = null !== optimoleDashboardApp.spc_banner;
+
 	return (
-		<div className="grid md:grid-cols-2 xl:flex xl:flex-col xl:mt-8 xl:mb-5 p-0 transition-all ease-in-out duration-700 gap-5 basis-4/12 2xl:basis-3/12">
-			<div className="bg-white gap-5 flex flex-col text-gray-700 border-0 rounded-lg shadow-md p-8">
-				<TextControl
-					label={ optimoleDashboardApp.strings.logged_in_as }
-					value={ name }
-					className="optml__placeholder"
-					disabled
-				/>
+		<div className="grid md:grid-cols-2 xl:flex xl:flex-col xl:mt-8 xl:mb-5 p-0 transition-all ease-in-out duration-700 gap-5 shrink-0 xl:w-[350px]">
+			<div className="bg-white gap-3 flex flex-col text-gray-700 border-0 rounded-lg shadow-md p-8">
 
-				<TextControl
-					label={ optimoleDashboardApp.strings.private_cdn_url }
-					value={ domain }
-					className="optml__placeholder"
-					disabled
-				/>
+				<div className="grid gap-4">
+					<PlaceholderInput icon={user} value={name} tooltipText={optimoleDashboardApp.strings.logged_in_as}/>
+					<PlaceholderInput icon={globe} value={domain} tooltipText={optimoleDashboardApp.strings.private_cdn_url}/>
+				</div>
 
-				<hr className="m-0 border-grayish-blue"/>
+				<hr className="m-0 border-t-grayish-blue"/>
 
-				<p className="font-semibold text-xs text-light-black m-0">{ optimoleDashboardApp.strings.looking_for_api_key }</p>
-
-				<p
-					className="m-0 -mt-3"
-					dangerouslySetInnerHTML={ {
-						__html: optimoleDashboardApp.strings.optml_dashboard
-					} }
-				/>
+				<div className="border-t border-gray-300 block grid gap-2">
+					<p className="font-semibold text-xs text-light-black m-0">{ optimoleDashboardApp.strings.looking_for_api_key }</p>
+					<span
+						dangerouslySetInnerHTML={ {
+							__html: optimoleDashboardApp.strings.optml_dashboard
+						} }
+					/>
+				</div>
 			</div>
 
 			{ 'free' === plan ? (
@@ -121,8 +120,33 @@ const Sidebar = () => {
 					{ optimoleDashboardApp.strings.premium_support }
 				</Button>
 			) }
+
+			<OptimizationStatus settings={settings} />
+
+			{ showSPCRecommendation && (
+				<SPCRecommendation />
+			) }
 		</div>
 	);
 };
 
 export default Sidebar;
+
+
+const PlaceholderInput = ({ icon = null, value, tooltipText = '' }) => {
+	return (
+		<Tooltip text={tooltipText}>
+			<div className="grid grid-cols-1 text-gray-700 hover:text-info transition-all ease-in-out duration-300">
+				<input
+					value={value}
+					type="text"
+					disabled
+					className="col-start-1 row-start-1 block w-full rounded-md !bg-light-blue py-1.5 !pl-9 pr-3 !text-gray-500 !m-0 text-sm !py-0.5 !border-0"
+				/>
+				<span className="pointer-events-none col-start-1 row-start-1 flex items-center ml-3 w-4 h-4 self-center">
+					{icon}
+				</span>
+			</div>
+		</Tooltip>
+	);
+};

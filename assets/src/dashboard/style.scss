@@ -24,6 +24,7 @@ $mango-yellow: #FBBF24;
 }
 
 #optimole-app {
+
 	--wp-admin-theme-color: #577BF9;
 	--wp-components-color-foreground: #577BF9;
 	--optml-progress: #577BF9;
@@ -72,7 +73,18 @@ $mango-yellow: #FBBF24;
 			}
 		}
 	}
-
+	.components-toggle-group-control-option-base{
+	  	color: var(--wp-components-color-foreground);
+		&[aria-checked="true"]{
+			color:white;
+		}
+		+ div > div{
+			background: var(--wp-components-color-foreground);
+		}
+	} 
+	.components-toggle-group-control{
+		border-color: var(--wp-components-color-foreground);
+	}
 	.base-control-label {
 		color: #363636;
 		display: block;
@@ -120,6 +132,12 @@ $mango-yellow: #FBBF24;
 					font-weight: 700;
 					font-size: 1rem;
 					text-transform: none;
+				}
+			}
+			.badge-settings {
+				.components-button {
+					outline: none !important;
+					box-shadow: none !important;
 				}
 			}
 		}
@@ -185,6 +203,15 @@ $mango-yellow: #FBBF24;
 
 	.components-range-control .components-range-control__mark-label {
 		padding-top: 10px;
+	}
+	.components-toggle-control__help{
+		margin-inline-start: 0px;
+	}
+	.lazyload_behaviour {
+		.components-radio-control__option {
+			align-items: flex-start;
+			margin-top:1em;
+		}
 	}
 }
 
@@ -424,6 +451,7 @@ $mango-yellow: #FBBF24;
 			margin-left: -14px;
 		}
 	}
+
 }
 
 .om-notice {

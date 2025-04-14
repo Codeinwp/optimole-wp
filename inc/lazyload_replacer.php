@@ -1,5 +1,8 @@
 <?php
 
+use OptimoleWP\PageProfiler\Profile;
+use OptimoleWP\Preload\Links;
+
 /**
  * The class handles the img tag replacements for lazyload.
  *
@@ -119,6 +122,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			'.elementor-section[data-settings*="background_background"]',
 			'.elementor-section > .elementor-background-overlay',
 			'[class*="wp-block-cover"][style*="background-image"]',
+			'[style*="background-image:url("]', '[style*="background-image: url("]',
+			'[style*="background:url("]', '[style*="background: url("]',
 			'[class*="wp-block-group"][style*="background-image"]',
 		];
 
@@ -243,12 +248,24 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	public function lazyload_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed = false, $full_tag = '' ) {
 
 		if ( ! $this->can_lazyload_for( $original_url, $full_tag ) ) {
+
 			return Optml_Tag_Replacer::instance()->regular_tag_replace( $new_tag, $original_url, $new_url, $optml_args, $is_slashed );
+		}
+		// Remove fetchpriority high attribute when the image is lazyloaded
+		if ( strpos( $new_tag, 'fetchpriority' ) !== false ) {
+			$new_tag = preg_replace( '/\s+fetchpriority=(high|[\'"][^\'"]*high[^\'"]*)(?=[\'"\s>]|$)/i', '', $new_tag );
 		}
 
 		if ( self::instance()->settings->get( 'native_lazyload' ) === 'enabled' ) {
-			if ( strpos( $new_tag, 'loading=' ) === false ) {
-				$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img loading=\"lazy\"' : '<img loading="lazy"', $new_tag );
+			// First check if loading attribute already exists
+			if ( strpos( $new_tag, 'loading=' ) !== false ) {
+				// Replace existing loading attribute with lazy
+				$loading_attr = $is_slashed ? 'loading=\"lazy\"' : 'loading="lazy"';
+				$new_tag = preg_replace( '/loading=(["\'])[^"\']*\1/i', $loading_attr, $new_tag );
+			} else {
+				// No loading attribute exists, add it after <img
+				$loading_attr = $is_slashed ? ' loading=\"lazy\"' : ' loading="lazy"';
+				$new_tag = preg_replace( '/<img/i', '<img' . $loading_attr, $new_tag, 1 );
 			}
 			return $new_tag;
 		}
@@ -258,7 +275,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( ! self::$is_lazyload_placeholder && ! $should_ignore_rescale ) {
 			$optml_args['quality'] = 'eco';
 			$optml_args['resize']  = [];
-			$low_url               = apply_filters( 'optml_content_url', $original_url, $optml_args );
+			$low_url               = apply_filters( 'optml_content_url', $this->get_unoptimized_url( $original_url ), $optml_args );
 			$low_url               = $is_slashed ? addcslashes( $low_url, '/' ) : $low_url;
 		} else {
 			$low_url = $this->get_svg_for(
@@ -267,7 +284,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				( $should_ignore_rescale ? null : $original_url )
 			);
 		}
-
 		$opt_format = '';
 
 		if ( $this->should_add_data_tag( $full_tag ) ) {
@@ -394,6 +410,9 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return bool We can lazyload?
 	 */
 	public function can_lazyload_for( $url, $tag = '' ) {
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', 'can_lazyload_for: ' . $url . ' ' . $tag );
+		}
 		foreach ( self::possible_lazyload_flags() as $banned_string ) {
 			if ( strpos( $tag, $banned_string ) !== false ) {
 				return false;
@@ -420,7 +439,23 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) && OPTML_DISABLE_PNG_LAZYLOAD ) {
 			return $type['ext'] !== 'png';
 		}
-		if ( Optml_Tag_Replacer::$lazyload_skipped_images < self::get_skip_lazyload_limit() ) {
+		if ( $this->settings->is_lazyload_type_viewport() && Optml_Manager::instance()->page_profiler->is_in_all_viewports( $this->get_id_by_url( $url ) ) ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', 'Lazyload skipped image is in all viewports ' . $url . '|' . $this->get_id_by_url( $url ) );
+			}
+			// collect ID for preload.
+			Links::add_id( $this->get_id_by_url( $url ), 'high' );
+			return false;
+		}
+		if ( $this->settings->is_lazyload_type_viewport() && Optml_Manager::instance()->page_profiler->is_lcp_image_in_all_viewports( $this->get_id_by_url( $url ) ) ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', 'Lazyload skipped image is LCP ' . $url . '|' . $this->get_id_by_url( $url ) );
+			}
+
+			Links::add_id( $this->get_id_by_url( $url ), 'high' );
+			return false;
+		}
+		if ( $this->settings->is_lazyload_type_fixed() && Optml_Tag_Replacer::$lazyload_skipped_images < self::get_skip_lazyload_limit() ) {
 			return false;
 		}
 		return true;
@@ -535,7 +570,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return self::$ignore_no_script_flags;
 		}
 
-		self::$ignore_no_script_flags = apply_filters( 'optml_ignore_noscript_on', [] );
+		self::$ignore_no_script_flags = apply_filters( 'optml_ignore_noscript_on', [ '<noscript' ] );
 
 		return self::$ignore_no_script_flags;
 	}

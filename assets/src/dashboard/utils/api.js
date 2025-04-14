@@ -497,15 +497,13 @@ export const callSync = ( data ) => {
 
 	setIsLoading( true );
 
-	const images_ids = undefined !== data.images ? data.images : [];
 
 	apiFetch({
 		path: optimoleDashboardApp.routes['number_of_images_and_pages'],
 		method: 'POST',
 		data: {
 			action: data.action,
-			refresh: data.refresh || false,
-			images: images_ids
+			refresh: data.refresh || false
 		},
 		parse: false
 	})
@@ -577,8 +575,7 @@ export const callSync = ( data ) => {
 			setTimeout( () => {
 				callSync({
 					action: data.action,
-					refresh: true,
-					images: images_ids
+					refresh: true
 				});
 			}, 10000 );
 		})

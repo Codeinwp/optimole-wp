@@ -24,15 +24,21 @@ const ConnectingLayout = () => {
 	const [ progress, setProgress ] = useState( 0 );
 	const [ step, setStep ] = useState( 0 );
 	const [ timer, setTimer ] = useState( 0 );
-	const maxTime = 25;
+	const maxTime = 5;
 
 	const { sethasDashboardLoaded } = useDispatch( 'optimole' );
 
 	useEffect( () => {
 		if ( timer <= maxTime ) {
-			setTimeout( () => {
+			const timeout = setTimeout( () => {
 				updateProgress();
 			}, 1000 );
+
+			return () => {
+				if ( timeout ) {
+					clearTimeout( timeout );
+				}
+			};
 		}
 	}, [ timer ]);
 

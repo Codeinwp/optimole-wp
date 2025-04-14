@@ -14,13 +14,15 @@ import Modal from '../../components/Modal';
 import Logs from './Logs';
 
 const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
-	const { strings, cron_disabled } = optimoleDashboardApp;
+	const { strings, cron_disabled, show_exceed_plan_quota_notice } = optimoleDashboardApp;
+
 	const { conflicts, options_strings } = strings;
 
 	const MODAL_STATE_OFFLOAD = 'offload';
 	const MODAL_STATE_ROLLBACK = 'rollback';
 	const MODAL_STATE_STOP_OFFLOAD = 'stopOffload';
 	const MODAL_STATE_STOP_ROLLBACK = 'stopRollback';
+	const MODAL_STATE_EXCEED_PLAN_QUOTA_NOTICE = 'planQuotaNotice';
 
 	const {
 		offloadConflicts,
@@ -82,19 +84,6 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 	const isOffloadingInProgress = 'disabled' !== settings['offloading_status'];
 	const isRollbackInProgress = 'disabled' !== settings['rollback_status'];
 
-	useEffect( () => {
-		if ( ! queryArgs?.optimole_action || ! queryArgs?.images ) {
-			return;
-		}
-
-		if ( 'offload_images' === queryArgs.optimole_action ) {
-			onOffloadMedia( queryArgs.images );
-		}
-
-		if ( 'rollback_images' === queryArgs.optimole_action ) {
-			onRollbackdMedia( queryArgs.images );
-		}
-	}, []);
 
 	useEffect( () => {
 		if ( isOffloadingInProgress ) {
@@ -126,8 +115,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 			setOffloadLimitReached( false );
 
 			callSync({
-				action: 'offload_images',
-				images: imageIds
+				action: 'offload_images'
 			});
 
 			setCanSave( false );
@@ -148,8 +136,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 					setProcessedImages( 0 );
 
 					callSync({
-						action: 'rollback_images',
-						images: imageIds
+						action: 'rollback_images'
 					});
 
 					setCanSave( false );
@@ -181,7 +168,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 		setCanSave( true );
 
 		if ( offloadEnabled ) {
-			setModal( MODAL_STATE_OFFLOAD );
+			setModal( show_exceed_plan_quota_notice ? MODAL_STATE_EXCEED_PLAN_QUOTA_NOTICE : MODAL_STATE_OFFLOAD );
 
 			return;
 		}
@@ -245,6 +232,29 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 					description: options_strings.rollback_stop_description,
 					action: options_strings.rollback_stop_action
 				}
+			},
+			[MODAL_STATE_EXCEED_PLAN_QUOTA_NOTICE]: {
+				variant: 'warning',
+				icon: warningAlt,
+				onConfirm: () => {
+					onOffloadMedia();
+					setModal( null );
+				},
+				onSecondaryAction: () => {
+					setModal( null );
+					const options = settings;
+					options.offload_media = 'disabled';
+					saveSettings( options );
+
+					// Remove "unsaved changes" warning
+					window.onbeforeunload = null;
+				},
+				labels: {
+					title: options_strings.exceed_plan_quota_notice_title,
+					description: options_strings.exceed_plan_quota_notice_description,
+					action: options_strings.exceed_plan_quota_notice_start_action,
+					secondaryAction: options_strings.exceed_plan_quota_notice_secondary_action
+				}
 			}
 		};
 
@@ -270,7 +280,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 		e.preventDefault();
 
 		if ( 'offload' === radioBoxValue ) {
-			setModal( MODAL_STATE_OFFLOAD );
+			setModal( show_exceed_plan_quota_notice ? MODAL_STATE_EXCEED_PLAN_QUOTA_NOTICE : MODAL_STATE_OFFLOAD );
 		}
 
 		if ( 'rollback' === radioBoxValue ) {

@@ -127,9 +127,13 @@ final class Optml_Api {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
-		$lock = get_transient( 'optml_cache_lock' );
-		if ( ! empty( $type ) && $type === 'assets' ) {
+		$lock = '';
+		if ( empty( $type ) || $type === 'images' ) {
+			$lock = get_transient( 'optml_cache_lock' );
+		} elseif ( $type === 'assets' ) {
 			$lock = get_transient( 'optml_cache_lock_assets' );
+		} else {
+			$type = 'images';
 		}
 
 		if ( $lock === 'yes' ) {
@@ -152,6 +156,7 @@ final class Optml_Api {
 		$headers = [
 			'Optml-Site' => get_home_url(),
 		];
+		update_option( 'optimole_wp_logger_flag', 'yes' );
 		if ( ! empty( $this->api_key ) ) {
 			$headers['Authorization'] = 'Bearer ' . $this->api_key;
 		}
@@ -326,6 +331,7 @@ final class Optml_Api {
 				'version' => OPTML_VERSION,
 				'sample_image' => $this->get_sample_image(),
 				'site'    => get_home_url(),
+				'reference' => get_option( 'optimole_reference_key', '' ),
 			]
 		);
 	}
@@ -348,59 +354,6 @@ final class Optml_Api {
 			$app_key = $service_data['cdn_key'];
 		}
 		return $this->request( '/optml/v1/stats/images', 'GET', [], [ 'application' => $app_key ] );
-	}
-
-	/**
-	 * Get the watermarks from API.
-	 *
-	 * @param string $api_key The API key.
-	 *
-	 * @return array|bool|WP_Error
-	 */
-	public function get_watermarks( $api_key = '' ) {
-		if ( ! empty( $api_key ) ) {
-			$this->api_key = $api_key;
-		}
-
-		return $this->request( '/optml/v1/settings/watermark' );
-	}
-
-	/**
-	 * Remove the watermark from the API.
-	 *
-	 * @param integer $post_id The watermark post ID.
-	 * @param string  $api_key The API key.
-	 *
-	 * @return array|bool|WP_Error
-	 */
-	public function remove_watermark( $post_id, $api_key = '' ) {
-		if ( ! empty( $api_key ) ) {
-			$this->api_key = $api_key;
-		}
-
-		return $this->request( '/optml/v1/settings/watermark', 'DELETE', [ 'watermark' => $post_id ] );
-	}
-
-	/**
-	 * Add watermark.
-	 *
-	 * @param array $file The file to be uploaded.
-	 *
-	 * @return array|bool|mixed|object
-	 */
-	public function add_watermark( $file ) {
-
-		$headers = [
-			'Content-Disposition' => 'attachment; filename=' . $file['file']['name'],
-		];
-
-		$response = $this->request( 'wp/v2/media', 'POST', file_get_contents( $file['file']['tmp_name'] ), $headers );
-
-		if ( $response === false ) {
-			return false;
-		}
-
-		return $response;
 	}
 
 	/**

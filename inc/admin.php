@@ -11,6 +11,8 @@
  */
 
 use enshrined\svgSanitize\Sanitizer;
+use OptimoleWP\BgOptimizer\Lazyload;
+use OptimoleWP\PageProfiler\Profile;
 /**
  * Class Optml_Admin
  */
@@ -22,6 +24,9 @@ class Optml_Admin {
 	const IMAGE_DATA_COLLECTED_BATCH = 100;
 
 	const BF_PROMO_DISMISS_KEY = 'optml_bf24_notice_dismiss';
+
+	const SPC_BANNER_DISMISS_KEY = 'optml_spc_banner_dismiss';
+
 	/**
 	 * Hold the settings object.
 	 *
@@ -40,12 +45,20 @@ class Optml_Admin {
 	const OLD_USER_ENABLED_LD = 'optml_enabled_limit_dimensions';
 	const OLD_USER_ENABLED_CL = 'optml_enabled_cloud_sites';
 
+	const SYNC_CRON = 'optml_daily_sync';
+	const ENRICH_CRON = 'optml_pull_image_data';
 	/**
 	 * Optml_Admin constructor.
 	 */
 	public function __construct() {
 		$this->settings            = new Optml_Settings();
 		$this->conflicting_plugins = new Optml_Conflicting_Plugins();
+
+		$media_rename = new Optml_Attachment_Edit();
+		$media_rename->init();
+
+		$dashboard_widget = new Optml_Dashboard_Widget();
+		$dashboard_widget->init();
 
 		add_filter( 'plugin_action_links_' . plugin_basename( OPTML_BASEFILE ), [ $this, 'add_action_links' ] );
 		add_action( 'admin_menu', [ $this, 'add_dashboard_page' ] );
@@ -55,13 +68,12 @@ class Optml_Admin {
 		add_action( 'admin_notices', [ $this, 'add_notice' ] );
 		add_action( 'admin_notices', [ $this, 'add_notice_upgrade' ] );
 		add_action( 'admin_notices', [ $this, 'add_notice_conflicts' ] );
-		add_action( 'optml_daily_sync', [ $this, 'daily_sync' ] );
+		add_action( self::SYNC_CRON, [ $this, 'daily_sync' ] );
 		add_action( 'admin_init', [ $this, 'redirect_old_dashboard' ] );
-
+		add_action( 'optml_purge_image_cache', [ $this, 'purge_image_cache' ] );
 		if ( $this->settings->is_connected() ) {
 			add_action( 'init', [ $this, 'check_domain_change' ] );
-			add_action( 'optml_pull_image_data_init', [ $this, 'pull_image_data_init' ] );
-			add_action( 'optml_pull_image_data', [ $this, 'pull_image_data' ] );
+			add_action( self::ENRICH_CRON, [ $this, 'pull_image_data' ] );
 
 			// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
 			$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
@@ -73,15 +85,19 @@ class Optml_Admin {
 
 			add_action( 'updated_post_meta', [ $this, 'detect_image_alt_change' ], 10, 4 );
 			add_action( 'added_post_meta', [ $this, 'detect_image_alt_change' ], 10, 4 );
-			add_action( 'init', [ $this, 'schedule_data_enhance_cron' ] );
+			add_filter( 'update_attached_file', [ $this, 'listen_update_file' ], 999, 2 );
+			if ( ! wp_next_scheduled( self::ENRICH_CRON ) ) {
+				wp_schedule_event( time() + 10, 'hourly', self::ENRICH_CRON );
+			}
 		}
 		add_action( 'init', [ $this, 'update_default_settings' ] );
 		add_action( 'init', [ $this, 'update_limit_dimensions' ] );
 		add_action( 'init', [ $this, 'update_cloud_sites_default' ] );
 		add_action( 'admin_init', [ $this, 'maybe_redirect' ] );
 		add_action( 'admin_init', [ $this, 'init_no_script' ] );
-		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( 'optml_daily_sync' ) ) {
-			wp_schedule_event( time() + 10, 'daily', 'optml_daily_sync', [] );
+		add_action( 'plugins_loaded', [ $this,'add_permission_policy' ] );
+		if ( ! is_admin() && $this->settings->is_connected() && ! wp_next_scheduled( self::SYNC_CRON ) ) {
+			wp_schedule_event( time() + 10, 'twicedaily', self::SYNC_CRON, [] );
 		}
 		add_action( 'optml_after_setup', [ $this, 'register_public_actions' ], 999999 );
 
@@ -95,6 +111,55 @@ class Optml_Admin {
 			); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
 			add_filter( 'wp_handle_upload_prefilter', [ $this, 'check_svg_and_sanitize' ] );
 		}
+
+		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
+	}
+
+	/**
+	 * Add the permission policy for CH.
+	 *
+	 * @return void
+	 */
+	public function add_permission_policy() {
+		if ( ! $this->settings->is_connected() ) {
+			return;
+		}
+		if ( ! $this->settings->is_enabled() ) {
+			return;
+		}
+		if ( headers_sent() ) {
+			return;
+		}
+		$policy = 'ch-viewport-width=(self "%1$s")';
+		if ( $this->settings->get( 'network_optimization' ) === 'enabled' ) {
+			$policy .= ', ch-ect=(self "%1$s")';
+		}
+		header( sprintf( 'Permissions-Policy: %s', sprintf( $policy, esc_url( Optml_Config::$service_url ) ) ), false );
+	}
+	/**
+	 * Function that purges the image cache for a specific file.
+	 *
+	 * @param string $file Path or url of the file to clear.
+	 *
+	 * @return void
+	 */
+	public function purge_image_cache( $file ) {
+		$basename = wp_basename( $file );
+		$settings = new Optml_Settings();
+		$settings->clear_cache( $basename );
+	}
+	/**
+	 * Listen when the file is updated and clear the cache for the file.
+	 *
+	 * @param string $file The file path.
+	 * @param int    $post_id The post ID.
+	 *
+	 * @return string The file path.
+	 */
+	public function listen_update_file( $file, $post_id ) {
+		// Purge the image cache.
+		do_action( 'optml_purge_image_cache', $file );
+		return $file;
 	}
 	/**
 	 * Check if the file is an SVG, if so handle appropriately
@@ -189,16 +254,6 @@ class Optml_Admin {
 		}
 		// phpcs:enable
 	}
-	/**
-	 * Schedules the hourly cron that starts the querying for images alt/title attributes
-	 *
-	 * @uses action: init
-	 */
-	public function schedule_data_enhance_cron() {
-		if ( ! wp_next_scheduled( 'optml_pull_image_data_init' ) ) {
-			wp_schedule_event( time(), 'hourly', 'optml_pull_image_data_init' );
-		}
-	}
 
 	/**
 	 * Query the database for images and extract the alt/title to send them to the API
@@ -247,20 +302,6 @@ class Optml_Admin {
 		if ( ! empty( $image_data ) ) {
 			$api = new Optml_Api();
 			$api->call_data_enrich_api( $image_data );
-		}
-		if ( ! empty( $attachments ) ) {
-			wp_schedule_single_event( time() + 5, 'optml_pull_image_data' );
-		}
-	}
-
-	/**
-	 * Schedule the event to pull image alt/title
-	 *
-	 * @uses action: optml_pull_image_data_init
-	 */
-	public function pull_image_data_init() {
-		if ( ! wp_next_scheduled( 'optml_pull_image_data' ) ) {
-			wp_schedule_single_event( time() + 5, 'optml_pull_image_data' );
 		}
 	}
 
@@ -353,6 +394,7 @@ class Optml_Admin {
 		$this->settings->update( 'best_format', 'disabled' );
 		$this->settings->update( 'skip_lazyload_images', '2' );
 		$this->settings->update( 'avif', 'disabled' );
+		$this->settings->update( 'compression_mode', 'speed_optimized' );
 
 		update_option( self::NEW_USER_DEFAULTS_UPDATED, 'yes' );
 	}
@@ -405,93 +447,6 @@ class Optml_Admin {
 	}
 
 	/**
-	 * Adds Optimole tag to admin bar
-	 */
-	public function add_report_menu() {
-		global $wp_admin_bar;
-
-		$wp_admin_bar->add_node(
-			[
-				'id'    => 'optml_report_script',
-				'href'  => '#',
-				'title' => '<span class="ab-icon"></span>Optimole ' . __( 'debugger', 'optimole-wp' ),
-			]
-		);
-		$wp_admin_bar->add_menu(
-			[
-				'id'     => 'optml_status',
-				'title'  => __( 'Troubleshoot this page', 'optimole-wp' ),
-				'parent' => 'optml_report_script',
-			]
-		);
-	}
-
-	/**
-	 * Adds Optimole css to admin bar
-	 */
-	public function print_report_css() {
-		?>
-		<style type="text/css">
-			li#wp-admin-bar-optml_report_script > div :hover {
-				cursor: pointer;
-				color: #00b9eb !important;
-				text-decoration: underline;
-			}
-
-			#wpadminbar #wp-admin-bar-optml_report_script .ab-icon:before {
-				content: "\f227";
-				top: 3px;
-			}
-
-			/* The Modal (background) */
-			.optml-modal {
-				display: none; /* Hidden by default */
-				position: fixed; /* Stay in place */
-				z-index: 2147483641; /* Sit on top */
-				padding-top: 100px; /* Location of the box */
-				left: 0;
-				top: 0;
-				width: 100%; /* Full width */
-				height: 100%; /* Full height */
-				overflow: auto; /* Enable scroll if needed */
-				background-color: rgb(0, 0, 0); /* Fallback color */
-				background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
-			}
-
-			/* Modal Content */
-			.optml-modal-content {
-				background-color: #fefefe;
-				margin: auto;
-				padding: 20px;
-				border: 1px solid #888;
-				width: 80%;
-			}
-
-			/* The Close Button */
-			.optml-close {
-				color: #aaaaaa;
-				float: right;
-				font-size: 28px;
-				font-weight: bold;
-			}
-
-			.optml-modal-content ul {
-				list-style: none;
-				font-size: 80%;
-				margin-top: 50px;
-			}
-
-			.optml-close:hover,
-			.optml-close:focus {
-				color: #000;
-				text-decoration: none;
-				cursor: pointer;
-			}
-		</style>
-		<?php
-	}
-
-	/**
 	 * Register public actions.
 	 */
 	public function register_public_actions() {
@@ -501,12 +456,7 @@ class Optml_Admin {
 		if ( Optml_Manager::should_ignore_image_tags() ) {
 			return;
 		}
-		if ( ! is_admin() && $this->settings->get( 'report_script' ) === 'enabled' && current_user_can( 'manage_options' ) ) {
 
-			add_action( 'wp_head', [ $this, 'print_report_css' ] );
-			add_action( 'wp_before_admin_bar_render', [ $this, 'add_report_menu' ] );
-			add_action( 'wp_enqueue_scripts', [ $this, 'add_diagnosis_script' ] );
-		}
 		if ( ! $this->settings->use_lazyload()
 			|| ( $this->settings->get( 'native_lazyload' ) === 'enabled'
 					&& $this->settings->get( 'video_lazyload' ) === 'disabled'
@@ -557,8 +507,7 @@ class Optml_Admin {
 		$limit_dimensions      = $this->settings->get( 'limit_dimensions' ) === 'enabled';
 		$limit_width           = $limit_dimensions ? $this->settings->get( 'limit_width' ) : 0;
 		$limit_height          = $limit_dimensions ? $this->settings->get( 'limit_height' ) : 0;
-		$retina_ready          = $limit_dimensions ||
-								! ( $this->settings->get( 'retina_images' ) === 'enabled' );
+		$retina_ready          = ( $this->settings->get( 'retina_images' ) !== 'enabled' );
 		$scale_is_disabled     = ( $this->settings->get( 'scale' ) === 'enabled' );
 		$native_lazy_enabled   = ( $this->settings->get( 'native_lazyload' ) === 'enabled' );
 		$output                = sprintf(
@@ -622,24 +571,6 @@ class Optml_Admin {
 			$limit_height
 		);
 		echo $output;
-	}
-
-	/**
-	 * Adds script for lazyload/js replacement.
-	 */
-	public function add_diagnosis_script() {
-
-		wp_enqueue_script( 'optml-report', OPTML_URL . 'assets/js/report_script.js' );
-		$ignored_domains = [ 'gravatar.com', 'instagram.com', 'fbcdn' ];
-		$report_script   = [
-			'optmlCdn'       => $this->settings->get_cdn_url(),
-			'restUrl'        => untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) . '/check_redirects',
-			'nonce'          => wp_create_nonce( 'wp_rest' ),
-			'ignoredDomains' => $ignored_domains,
-			'wait'           => __( 'We are checking the current page for any issues with optimized images ...', 'optimole-wp' ),
-			'description'    => __( 'Optimole page analyzer', 'optimole-wp' ),
-		];
-		wp_localize_script( 'optml-report', 'reportScript', $report_script );
 	}
 
 	/**
@@ -906,7 +837,7 @@ class Optml_Admin {
 	 * Adds conflicts notice.
 	 */
 	public function add_notice_conflicts() {
-		if ( $this->settings->is_connected() || ! $this->conflicting_plugins->should_show_notice() ) {
+		if ( ! $this->conflicting_plugins->should_show_notice() ) {
 			return;
 		}
 
@@ -972,9 +903,10 @@ class Optml_Admin {
 		if ( empty( $css ) ) {
 			return '';
 		}
-		$css = implode( ",\n", $css ) . ' { background-image: none !important; } ';
+		$css = implode( ",\n", $css ) . ' { background-image: none !important; }';
 
-		return strip_tags( $css );
+		$css = Lazyload::MARKER . "\n" . strip_tags( $css ) . "\n" . Lazyload::MARKER;
+		return $css;
 	}
 
 	/**
@@ -1008,8 +940,53 @@ class Optml_Admin {
 								 ';
 			wp_add_inline_script( 'optml-print', $script );
 		}
+		if ( $this->settings->is_lazyload_type_viewport() ) {
+			add_action(
+				'wp_footer',
+				function () {
+
+					print ( self::get_optimizer_script() );
+				}
+			);
+		}
+		print ( self::get_preload_links_placeholder() );
+	}
+	/**
+	 * Get the optimizer script.
+	 *
+	 * @param bool $placeholder Whether to return the placeholder or the actual script.
+	 *
+	 * @return string The optimizer script.
+	 */
+	public static function get_optimizer_script( $placeholder = true ) {
+
+		if ( $placeholder ) {
+			return '<script id=optmloptimizer></script>';
+		}
+
+		return '<script async  src="' . add_query_arg( 'v', OPTML_VERSION, OPTML_URL . 'assets/build/optimizer/optimizer.js' ) . '"></script><script id="optmloptimizer" >
+		  var optimoleDataOptimizer = ' . wp_json_encode(
+			[
+				'restUrl' => esc_js( untrailingslashit( rest_url( OPTML_NAMESPACE . '/v1' ) ) ),
+				'nonce' => esc_js( wp_create_nonce( 'wp_rest' ) ),
+				'missingDevices' => esc_js( Profile::PLACEHOLDER_MISSING ),
+				'pageProfileId' => esc_js( Profile::PLACEHOLDER ),
+				'_t' => esc_js( Profile::PLACEHOLDER_TIME ),
+				'hmac' => esc_js( Profile::PLACEHOLDER_HMAC ),
+				'bgSelectors' => array_values( Optml_Lazyload_Replacer::get_background_lazyload_selectors() ),
+			]
+		) . ';
+		</script>';
 	}
 
+	/**
+	 * Get the preload links placeholder.
+	 *
+	 * @return string The preload links placeholder.
+	 */
+	public static function get_preload_links_placeholder(): string {
+		return '<script id=optmlpreload></script>';
+	}
 	/**
 	 * Maybe redirect to dashboard page.
 	 */
@@ -1054,7 +1031,12 @@ class Optml_Admin {
 		if ( ! $this->settings->is_enabled() ) {
 			return;
 		}
-		echo '<meta name="generator" content="Optimole ' . esc_attr( OPTML_VERSION ) . '">';
+
+		$hints = 'Viewport-Width';
+		if ( $this->settings->get( 'network_optimization' ) === 'enabled' ) {
+			$hints .= ', ECT';
+		}
+		echo sprintf( '<meta http-equiv="Accept-CH" content="%s" />', esc_attr( $hints ) );
 	}
 
 	/**
@@ -1092,7 +1074,24 @@ class Optml_Admin {
 		if ( isset( $data['extra_visits'] ) ) {
 			$this->settings->update_frontend_banner_from_remote( $data['extra_visits'] );
 		}
+		// Here the account got deactivated, in this case we check if the user is using offloaded images and we roll them back.
+		if ( isset( $data['status'] ) && $data['status'] === 'inactive' ) {
+			// We check if the user has images offloaded.
+			if ( $this->settings->get( 'offload_media' ) === 'disabled' ) {
+				return;
+			}
 
+			$in_progress = $this->settings->get( 'offloading_status' ) !== 'disabled';
+			// We check if there is an in progress transfer, we stop it.
+			if ( $in_progress ) {
+				$this->settings->update( 'offloading_status', 'disabled' );
+			}
+			$this->settings->update( 'rollback_status', 'enabled' );
+			// We start the rollback process.
+			Optml_Logger::instance()->add_log( 'rollback_images', 'Account deactivated, starting rollback.' );
+			Optml_Media_Offload::move_images( 'rollback_images', false );
+			$this->settings->update( 'offload_media', 'disabled' );
+		}
 		remove_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
 	}
 
@@ -1231,17 +1230,42 @@ class Optml_Admin {
 		if ( ! isset( $current_screen->id ) ) {
 			return;
 		}
+		if ( $current_screen->id === 'upload' ) {
+			wp_enqueue_script( OPTML_NAMESPACE . '-media-admin', OPTML_URL . 'assets/js/media.js', [], OPTML_VERSION );
+			wp_localize_script(
+				OPTML_NAMESPACE . '-media-admin',
+				'optimoleMediaListing',
+				[
+					'rest_url' => rest_url( OPTML_NAMESPACE . '/v1/move_image' ),
+					'nonce' => wp_create_nonce( 'wp_rest' ),
+				]
+			);
 
+			wp_register_style( 'optml_media_admin_style', false );
+			wp_add_inline_style(
+				'optml_media_admin_style',
+				'
+				.is-loading {
+					pointer-events: none;
+					opacity: 0.5;
+					display: inline-block;
+				}
+				.spinner {
+					margin-top: 0px;
+				}
+			'
+			);
+			wp_enqueue_style( 'optml_media_admin_style' );
+		}
 		if ( $current_screen->id !== 'toplevel_page_optimole' ) {
 			return;
 		}
 
 		$asset_file = include OPTML_PATH . 'assets/build/dashboard/index.asset.php';
-
 		wp_register_script(
 			OPTML_NAMESPACE . '-admin',
 			OPTML_URL . 'assets/build/dashboard/index.js',
-			$asset_file['dependencies'],
+			array_merge( $asset_file['dependencies'], [ 'updates' ] ),
 			$asset_file['version'],
 			true
 		);
@@ -1257,6 +1281,8 @@ class Optml_Admin {
 			],
 			$asset_file['version']
 		);
+
+		do_action( 'themeisle_internal_page', OPTML_PRODUCT_SLUG, 'dashboard' );
 	}
 
 	/**
@@ -1336,7 +1362,93 @@ class Optml_Admin {
 				],
 			],
 			'bf_notices'                 => $this->get_bf_notices(),
+			'spc_banner'                 => $this->get_spc_banner(),
+			'show_exceed_plan_quota_notice' => $this->should_show_exceed_quota_warning(),
 		];
+	}
+
+	/**
+	 * Get the SPC banner data.
+	 *
+	 * @return array|null
+	 */
+	private function get_spc_banner() {
+		// User can't dismiss notice or install plugins.
+		if ( ! current_user_can( 'manage_options' ) || ! current_user_can( 'install_plugins' ) ) {
+			return null;
+		}
+
+		// User has dismissed the notice.
+		if ( get_option( self::SPC_BANNER_DISMISS_KEY ) === 'yes' ) {
+			return null;
+		}
+
+		// User has installed the pro plugin.
+		if ( defined( 'SPC_PRO_PATH' ) ) {
+			return null;
+		}
+
+		// User has installed the plugin.
+		if ( defined( 'SPC_PATH' ) ) {
+			return null;
+		}
+
+		return [
+			'activate_url'           => $this->get_spc_activate_url(),
+			'status'                                 => $this->get_spc_status(),
+			'banner_dismiss_key'     => self::SPC_BANNER_DISMISS_KEY,
+			'i18n' => [
+				'dismiss' => __( 'Dismiss', 'optimole-wp' ),
+				'title' => __( 'Pair Optimole with Super Page Cache', 'optimole-wp' ),
+				'byline' => __( 'Improve your Core Web Vitals with our recommended caching solution', 'optimole-wp' ),
+				'features' => [
+					__( 'Edge Caching (with Cloudflare free plan)', 'optimole-wp' ),
+					__( 'Works with Optimole optimization', 'optimole-wp' ),
+					__( 'Lightning Speed Disk Caching', 'optimole-wp' ),
+				],
+				'cta' => __( 'Get Super Page Cache', 'optimole-wp' ),
+				'activate' => __( 'Activate Super Page Cache', 'optimole-wp' ),
+				'installing' => __( 'Installing Super Page Cache...', 'optimole-wp' ),
+				'activating' => __( 'Activating Super Page Cache...', 'optimole-wp' ),
+				'activated' => __( 'Super Page Cache is active!', 'optimole-wp' ),
+				'error' => __( 'Something went wrong. Please refresh the page and try again.', 'optimole-wp' ),
+			],
+		];
+	}
+
+	/**
+	 * Get the SPC activate URL.
+	 *
+	 * @return string
+	 */
+	private function get_spc_activate_url() {
+		return add_query_arg(
+			[
+				'plugin_status' => 'all',
+				'paged' => 1,
+				'action' => 'activate',
+				'plugin' => rawurlencode( 'wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' ),
+				'_wpnonce' => wp_create_nonce( 'activate-plugin_wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' ),
+			],
+			admin_url( 'plugins.php' )
+		);
+	}
+
+	/**
+	 * Get the SPC status.
+	 *
+	 * @return string
+	 */
+	private function get_spc_status() {
+		if ( is_plugin_active( 'wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' ) ) {
+			return 'active';
+		}
+
+		if ( file_exists( WP_PLUGIN_DIR . '/wp-cloudflare-page-cache/wp-cloudflare-super-page-cache.php' ) ) {
+			return 'installed';
+		}
+
+		return 'not-installed';
 	}
 
 	/**
@@ -1409,6 +1521,10 @@ class Optml_Admin {
 			'privacy_menu'                   => __( 'Privacy', 'optimole-wp' ),
 			'testdrive_menu'                 => __( 'Test Optimole', 'optimole-wp' ),
 			'service_details'                => __( 'Image optimization service', 'optimole-wp' ),
+			'dashboard_title'                => __( 'Image Optimization Overview', 'optimole-wp' ),
+			'banner_title'                   => __( 'All images are automatically optimized!', 'optimole-wp' ),
+			'banner_description'             => __( 'Optimole is handling all your images in real-time with our CloudFront CDN (450+ locations worldwide)', 'optimole-wp' ),
+			'quick_action_title'             => __( 'Quick Actions' ),
 			'connect_btn'                    => __( 'Connect to Optimole', 'optimole-wp' ),
 			'disconnect_btn'                 => __( 'Disconnect', 'optimole-wp' ),
 			'select'                         => __( 'Select', 'optimole-wp' ),
@@ -1419,7 +1535,10 @@ class Optml_Admin {
 			'refresh_stats_cta'              => __( 'Refresh Stats', 'optimole-wp' ),
 			'updating_stats_cta'             => __( 'UPDATING STATS', 'optimole-wp' ),
 			'api_key_placeholder'            => __( 'API Key', 'optimole-wp' ),
-			'account_needed_heading'         => __( 'Sign-up for API key', 'optimole-wp' ),
+			'account_needed_heading'         => __( 'Supercharge Your WordPress Images in 60 Seconds', 'optimole-wp' ),
+			'account_needed_sub_heading'     => __( 'Stop sacrificing image quality for page speed. Optimole delivers both.', 'optimole-wp' ),
+			'account_needed_trust_badge'     => __( 'TRUSTED BY 200,000+ HAPPY USERS', 'optimole-wp' ),
+			'account_needed_setup_time'      => __( 'Setup is instant - just click connect', 'optimole-wp' ),
 			'invalid_key'                    => __( 'Invalid API Key', 'optimole-wp' ),
 			'keep_connected'                 => __( 'Ok, keep me connected', 'optimole-wp' ),
 			'cloud_library'                  => __( 'Cloud Library', 'optimole-wp' ),
@@ -1433,6 +1552,7 @@ If you still want to disconnect click the button below.',
 			'email_address_label'            => __( 'Your email address', 'optimole-wp' ),
 			'steps_connect_api_title'        => __( 'Connect your account', 'optimole-wp' ),
 			'register_btn'                   => __( 'Create & connect your account', 'optimole-wp' ),
+			'secure_connection'              => __( 'Secure connection - your data is protected', 'optimole-wp' ),
 			'step_one_api_title'             => __( 'Enter your API key.', 'optimole-wp' ),
 			'optml_dashboard'                => sprintf(
 			/* translators: 1 is the opening anchor tag, 2 is the closing anchor tag */
@@ -1456,7 +1576,7 @@ If you still want to disconnect click the button below.',
 			'connecting'                     => __( 'CONNECTING', 'optimole-wp' ),
 			'not_connected'                  => __( 'NOT CONNECTED', 'optimole-wp' ),
 			'usage'                          => __( 'Monthly Usage', 'optimole-wp' ),
-			'quota'                          => __( 'Monthly visits quota', 'optimole-wp' ),
+			'quota'                          => __( 'Monthly visits:', 'optimole-wp' ),
 			'logged_in_as'                   => __( 'LOGGED IN AS', 'optimole-wp' ),
 			'private_cdn_url'                => __( 'IMAGES DOMAIN', 'optimole-wp' ),
 			'existing_user'                  => __( 'Existing user?', 'optimole-wp' ),
@@ -1464,17 +1584,15 @@ If you still want to disconnect click the button below.',
 			'premium_support'                => __( 'Access our Premium Support', 'optimole-wp' ),
 			'account_needed_title'           => sprintf(
 			/* translators: 1 is the link to optimole.com */
-				__( 'In order to get access to free image optimization service you will need an API key from %s.', 'optimole-wp' ),
+				__( 'Connect to Optimole\'s powerful image optimization service with a free API key from %s.', 'optimole-wp' ),
 				' <a href="' . esc_url( tsdk_translate_link( 'https://dashboard.optimole.com/register', 'query' ) ) . '" target="_blank">optimole.com</a>'
 			),
 			'account_needed_subtitle_1'      => sprintf(
 			/* translators: 1 is starting bold tag, 2 is ending bold tag, 3 is the starting bold tag, 4 is the limit number, 5 is ending bold tag, 6 is the starting anchor tag for the docs link on how we count visits, 7 is the ending anchor tag. */
-				__( 'You will get access to our %1$simage optimization service for FREE%2$s in the limit of %3$s%4$s%5$s %6$svisitors%7$s per month.', 'optimole-wp' ),
+				__( '%1$sOptimize unlimited images%2$s for up to %3$s monthly %4$svisitors%5$s - completely FREE.', 'optimole-wp' ),
 				'<strong>',
 				'</strong>',
 				number_format_i18n( 1000 ),
-				'<strong>',
-				'</strong>',
 				'<a href="https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors" target="_blank">',
 				'</a>'
 			),
@@ -1487,7 +1605,16 @@ If you still want to disconnect click the button below.',
 			'account_needed_subtitle_2'      => sprintf(
 			/* translators: 1 is the starting bold tag, 2 is the ending bold tag */
 				__(
-					'Bonus, if you dont use a CDN, we got you covered, %1$swe will serve the images using CloudFront CDN%2$s from 450+ locations.',
+					'%1$sInstant global delivery%2$s with CloudFront CDN - your images load 2-3x faster worldwide from 450+ locations.',
+					'optimole-wp'
+				),
+				'<strong>',
+				'</strong>'
+			),
+			'account_needed_subtitle_4'      => sprintf(
+			/* translators: 1 is the starting bold tag, 2 is the ending bold tag */
+				__(
+					'%1$sAdaptive optimization%2$s that perfectly sizes images for every visitor\'s device and connection speed.',
 					'optimole-wp'
 				),
 				'<strong>',
@@ -1567,14 +1694,33 @@ The root cause might be either a security plugin which blocks this feature or so
 			'metrics'                        => [
 				'metricsTitle1'    => __( 'Images optimized', 'optimole-wp' ),
 				'metricsSubtitle1' => __( 'Since plugin activation', 'optimole-wp' ),
-				'metricsTitle2'    => __( 'Saved file size', 'optimole-wp' ),
-				'metricsSubtitle2' => __( 'For the latest 10 images', 'optimole-wp' ),
-				'metricsTitle3'    => __( 'Average compression', 'optimole-wp' ),
-				'metricsSubtitle3' => __( 'During last month', 'optimole-wp' ),
-				'metricsTitle4'    => __( 'Traffic', 'optimole-wp' ),
-				'metricsSubtitle4' => __( 'During last month', 'optimole-wp' ),
+				'metricsTitle2'    => __( 'Saved File Size', 'optimole-wp' ),
+				'metricsSubtitle2' => __( 'Latest 10 images', 'optimole-wp' ),
+				'metricsTitle3'    => __( 'Average Compression', 'optimole-wp' ),
+				'metricsSubtitle3' => __( 'Average Reduction', 'optimole-wp' ),
+				'metricsTitle4'    => __( 'CDN Traffic', 'optimole-wp' ),
+				'metricsSubtitle4' => __( 'This month', 'optimole-wp' ),
+			],
+			'quick_actions'                  => [
+				'speed_test_title'      => __( 'Test Your Site Speed', 'optimole-wp' ),
+				'speed_test_desc'       => __( 'Run speed test', 'optimole-wp' ),
+				'speed_test_link'       => add_query_arg( 'url', get_site_url(), 'https://pagespeed.web.dev/analysis' ),
+				'clear_cache_images'    => __( 'Clear Cached Images', 'optimole-wp' ),
+				'clear_cache'           => __( 'Clear cache', 'optimole-wp' ),
+				'offload_images'        => __( 'Enable Offload Images', 'optimole-wp' ),
+				'offload_images_desc'   => __( 'Free up space on your server', 'optimole-wp' ),
+				'advance_settings'      => __( 'Advanced Settings', 'optimole-wp' ),
+				'configure_settings'    => __( 'Configure settings', 'optimole-wp' ),
 			],
 			'options_strings'                => [
+				'compression_mode'               => __( 'Compression Mode', 'optimole-wp' ),
+				'compression_mode_speed_optimized'                => __( 'Speed Optimized', 'optimole-wp' ),
+				'compression_mode_quality_optimized'              => __( 'Quality Optimized', 'optimole-wp' ),
+				'compression_mode_custom'                         => __( 'Custom', 'optimole-wp' ),
+				'compression_mode_speed_optimized_desc'           => __( 'Prioritizes faster loading and smaller image sizes by applying a balanced level of lossy compression. This setting reduces file size significantly without severely degrading visual quality.', 'optimole-wp' ),
+				'compression_mode_quality_optimized_desc'         => __( 'Delivers high-quality images by applying lossless or near-lossless optimization. Ensures images retain their sharpness and details while still benefiting from moderate file size reduction.', 'optimole-wp' ),
+				'compression_mode_custom_desc'                   => __( 'Customize each setting individually for complete control over image compression.', 'optimole-wp' ),
+
 				'best_format_title'                   => __( 'Automatic Best Image Format Selection', 'optimole-wp' ),
 				'best_format_desc'                    => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
@@ -1636,13 +1782,6 @@ The root cause might be either a security plugin which blocks this feature or so
 				),
 				'enable_noscript_title'               => __( 'Noscript Tag', 'optimole-wp' ),
 				'enable_gif_replace_title'            => __( 'GIF to Video Conversion', 'optimole-wp' ),
-				'enable_report_title'                 => __( 'Enable Error Diagnosis Tool', 'optimole-wp' ),
-				'enable_report_desc'                  => sprintf(
-				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
-					__( 'Activates the Optimole debugging tool in the admin bar for reports on Optimole-related website issues using the built-in diagnostic feature. %1$sLearn more%2$s', 'optimole-wp' ),
-					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1390-how-does-the-error-diagnosis-tool-work">',
-					'</a>'
-				),
 				'enable_offload_media_title'          => __( 'Store Your Images in Optimole Cloud', 'optimole-wp' ),
 				'enable_offload_media_desc'           => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Free up space on your server by transferring your images to Optimole Cloud; you can transfer them back anytime. Once moved, the images will still be visible in the Media Library and can be used as before. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1967-store-your-images-in-optimole-cloud">', '</a>' ),
 				'enable_cloud_images_title'           => __( 'Unified Image Access', 'optimole-wp' ),
@@ -1659,6 +1798,21 @@ The root cause might be either a security plugin which blocks this feature or so
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1192-lazy-load-generic-placeholder">',
 					'</a>'
 				),
+
+				'lazyload_behaviour_title'            => __( 'Lazy Loading Behaviour', 'optimole-wp' ),
+				'lazyload_behaviour_desc'             => sprintf(
+				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
+					__( 'Choose how Optimole will handle lazy loading for images on your website. %1$sLearn more%2$s', 'optimole-wp' ),
+					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1958-lazy-loading-behaviour">',
+					'</a>'
+				),
+				'lazyload_behaviour_all'             => __( 'Lazy Load All Images', 'optimole-wp' ),
+				'lazyload_behaviour_all_desc'        => __( 'All images will use lazy loading regardless of position.', 'optimole-wp' ),
+				'lazyload_behaviour_viewport'          => __( 'Skip Lazy Loading for Initial Viewport', 'optimole-wp' ),
+				'lazyload_behaviour_viewport_desc'   => __( 'Automatically detects and immediately loads images visible in the initial viewport. Detection is done with a lightweight client-side script that identifies what\'s visible on each user\'s screen. All other images will lazy load.', 'optimole-wp' ),
+				/* translators: 1 is the placeholder for the number of images */
+				'lazyload_behaviour_fixed'           => sprintf( __( 'Skip Lazy Loading for First %s Images', 'optimole-wp' ), '[N]' ),
+				'lazyload_behaviour_fixed_desc'      => __( 'Indicate how many images at the top of each page should bypass lazy loading, ensuring they\'re instantly visible.', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title'   => __( 'Lazy Load with Generic Placeholder', 'optimole-wp' ),
 				'enable_network_opt_desc'             => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
@@ -1690,6 +1844,11 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_limit_dimensions_title'       => __( 'Limit Image Sizes', 'optimole-wp' ),
 				'enable_limit_dimensions_notice'      => __( 'When you enable this feature to define a max width or height for image resizing, please note that DPR (retina) images will be disabled. This is done to ensure consistency in image dimensions across your website. Although this may result in slightly lower image quality for high-resolution displays, it will help maintain uniform image sizes, improving your website\'s overall layout and potentially boosting performance.', 'optimole-wp' ),
 				'enable_badge_title'                  => __( 'Enable Optimole Badge', 'optimole-wp' ),
+				'enable_badge_settings'               => __( 'Badge settings', 'optimole-wp' ),
+				'enable_badge_show_icon'              => __( 'Show only Optimole icon', 'optimole-wp' ),
+				'enable_badge_position'               => __( 'Badge Position', 'optimole-wp' ),
+				'badge_position_text_1'               => __( 'Left', 'optimole-wp' ),
+				'badge_position_text_2'               => __( 'Right', 'optimole-wp' ),
 				'enable_badge_description'            => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
 					__( 'Get 20.000 more visits for free by enabling the Optimole badge on your websites. %1$sLearn more%2$s', 'optimole-wp' ),
@@ -1728,7 +1887,7 @@ The root cause might be either a security plugin which blocks this feature or so
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1191-exclude-from-optimizing-or-lazy-loading">',
 					'</a>'
 				),
-				'exclude_title_optimize'              => __( 'Don\'t optimize images if', 'optimole-wp' ),
+				'exclude_title_optimize'              => __( 'Don\'t optimize and don\'t lazy-load images if', 'optimole-wp' ),
 				'exclude_url_desc'                    => sprintf(
 				/* translators: 1 is the starting bold tag, 2 is the ending bold tag */                    __( '%1$sPage url%2$s contains', 'optimole-wp' ),
 					'<strong>',
@@ -1869,6 +2028,12 @@ The root cause might be either a security plugin which blocks this feature or so
 				'rollback_stop_title'                 => __( 'Are you sure?', 'optimole-wp' ),
 				'rollback_stop_description'           => __( 'Canceling will halt the ongoing process, and any remaining images will stay in the Optimole Cloud. To transfer images to the Optimole Cloud, use the Offloading option.', 'optimole-wp' ),
 				'rollback_stop_action'                => __( 'Cancel the transfer from Optimole', 'optimole-wp' ),
+				'cloud_library_btn_text'              => __( 'Go to Cloud Library', 'optimole-wp' ),
+				'cloud_library_btn_link'              => add_query_arg( 'page', 'optimole-dam', admin_url( 'admin.php' ) ),
+				'exceed_plan_quota_notice_title'      => __( 'Your site has already reached over 50% of your monthly visits limit within just two weeks.', 'optimole-wp' ),
+				'exceed_plan_quota_notice_description' => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Based on this trend, you are likely to exceed your free quota before the month ends. To avoid any disruption in service, we strongly recommend %1$supgrading%2$s your plan or waiting until your traffic stabilizes before offloading your images. Do you still wish to proceed?', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://dashboard.optimole.com/settings/billing/">', '</a>' ),
+				'exceed_plan_quota_notice_start_action' => __( 'Yes, Transfer to Optimole Cloud', 'optimole-wp' ),
+				'exceed_plan_quota_notice_secondary_action' => __( 'No, keep images on my website', 'optimole-wp' ),
 			],
 			'help'                           => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),
@@ -1963,6 +2128,21 @@ The root cause might be either a security plugin which blocks this feature or so
 			],
 			'cron_error'                     => sprintf( /* translators: 1 is code to disable cron, 2 value of the constant */ __( 'It seems that you have the %1$s constant defined as %2$s. The offloading process uses cron events to offload the images in the background. Please remove the constant from your wp-config.php file in order for the offloading process to work.', 'optimole-wp' ), '<code>DISABLE_WP_CRON</code>', '<code>true</code>' ),
 			'cancel'                         => __( 'Cancel', 'optimole-wp' ),
+			'optimization_status'            => [
+				'title'           => __( 'Optimization Status', 'optimole-wp' ),
+				'statusTitle1'    => __( 'Image Handling', 'optimole-wp' ),
+				'statusSubTitle1' => __( 'All images are optimized automatically', 'optimole-wp' ),
+				'statusTitle2'    => __( 'Smart Lazy-Loading', 'optimole-wp' ),
+				'statusSubTitle2' => __( 'Images load as visitors scroll', 'optimole-wp' ),
+				'statusTitle3'    => __( 'Image Scalling', 'optimole-wp' ),
+				'statusSubTitle3' => __( 'All images are perfectly sized for devices', 'optimole-wp' ),
+			],
+			'optimization_tips'              => sprintf(
+			/* translators: 1 is the opening anchor tag, 2 is the closing anchor tag */
+				__( '%1$sView all optimization tips%2$s', 'optimole-wp' ),
+				'<a class="flex justify-center items-center font-semibold" href="https://docs.optimole.com/article/2238-optimization-tips" target="_blank"> ',
+				'<span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>'
+			),
 		];
 	}
 
@@ -1979,5 +2159,124 @@ The root cause might be either a security plugin which blocks this feature or so
 		$mimes['svg'] = 'image/svg+xml';
 
 		return $mimes;
+	}
+
+	/**
+	 * Get the Formbricks survey metadata.
+	 *
+	 * @param array  $data The data in Formbricks format.
+	 * @param string $page_slug The slug of the page.
+	 *
+	 * @return array - The data in Formbricks format.
+	 */
+	public function get_survey_metadata( $data, $page_slug ) {
+
+		if ( 'dashboard' !== $page_slug ) {
+			return $data;
+		}
+
+		$dashboard_data = $this->localize_dashboard_app();
+		$user_data      = $dashboard_data['user_data'];
+
+		if ( ! isset( $user_data['plan'] ) ) {
+			return $data;
+		}
+
+		$data = [
+			'environmentId' => 'clo8wxwzj44orpm0gjchurujm',
+			'attributes'    => [
+				'plan'                => $user_data['plan'],
+				'status'              => $user_data['status'],
+				'cname_assigned'      => ! empty( $user_data['is_cname_assigned'] ) ? $user_data['is_cname_assigned'] : 'no',
+				'connected_websites'  => isset( $user_data['whitelist'] ) ? strval( count( $user_data['whitelist'] ) ) : '0',
+				'install_days_number' => intval( $dashboard_data['days_since_install'] ),
+				'traffic'             => strval( isset( $user_data['traffic'] ) ? $this->survey_category( $user_data['traffic'], 500 ) : 0 ),
+				'images_number'       => strval( isset( $user_data['images_number'] ) ? $this->survey_category( $user_data['images_number'], 100 ) : 0 ),
+			],
+		];
+
+		return $data;
+	}
+
+	/**
+	 * Categorize a number for survey based on its scale.
+	 *
+	 * @param int $value The value.
+	 * @param int $scale The scale.
+	 *
+	 * @return int - The category.
+	 */
+	public function survey_category( $value, $scale = 1 ) {
+		$value = intval( $value / $scale );
+
+		if ( 1 < $value && 8 > $value ) {
+			return 7;
+		}
+
+		if ( 8 <= $value && 31 > $value ) {
+			return 30;
+		}
+
+		if ( 30 < $value && 90 > $value ) {
+			return 90;
+		}
+
+		if ( 90 <= $value ) {
+			return 91;
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Determines whether the exceed quota warning should be displayed to users.
+	 *
+	 * This function checks if the user's quota usage has exceeded a predefined limit
+	 * and returns a boolean value indicating whether the warning should be shown.
+	 *
+	 * @return bool True if the exceed quota warning should be displayed, false otherwise.
+	 */
+	public function should_show_exceed_quota_warning() {
+		if ( ! $this->settings->is_connected() ) {
+			return false;
+		}
+		if ( get_option( 'optml_notice_hide_upg', 'no' ) === 'yes' ) {
+			return false;
+		}
+
+		$service_data = $this->settings->get( 'service_data' );
+
+		if ( ! isset( $service_data['plan'] ) ) {
+			return false;
+		}
+		if ( $service_data['plan'] !== 'free' ) {
+			return false;
+		}
+		if ( ! isset( $service_data['renews_on'] ) ) {
+			return false;
+		}
+		$renews_on                  = $service_data['renews_on'];
+		$timestamp_before_two_weeks = strtotime( '-2 weeks', $renews_on );
+		$today_timestamp            = strtotime( 'today' );
+
+		if ( $timestamp_before_two_weeks < $today_timestamp ) {
+			return false;
+		}
+
+		$visitors_limit = isset( $service_data['visitors_limit'] ) ? (int) $service_data['visitors_limit'] : 0;
+		$visitors_left  = isset( $service_data['visitors_left'] ) ? (int) $service_data['visitors_left'] : 0;
+
+		if ( ! $visitors_limit || ! $visitors_left ) {
+			return false;
+		}
+
+		$used_quota         = $visitors_limit - $visitors_left;
+		$is_50_percent_used = ( $used_quota / $visitors_limit ) >= 0.5;
+
+		if ( ! $is_50_percent_used ) {
+			return false;
+		}
+
+		return true;
 	}
 }

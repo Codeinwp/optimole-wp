@@ -16,7 +16,7 @@ export default function RadioBoxes({ options, value, onChange, label, disabled =
 			onChange={handleClick}
 		>
 
-			{label && <legend className="uppercase font-semibold text-s text-light-black mb-6">{label}</legend>}
+			{label && <legend className="uppercase font-semibold text-s text-light-black mb-6 inline-block">{label}</legend>}
 
 			{options.map( ( option, index ) => {
 				const { title, value: buttonValue, description } = option;
