@@ -2441,6 +2441,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			$size = $this->parse_dimension_from_optimized_url( $url );
 
+			if ( $size[0] === false || $size[1] === false ) {
+				continue;
+			}
 			if ( $size[0] === 'auto' || $size[1] === 'auto' ) {
 				continue;
 			}
