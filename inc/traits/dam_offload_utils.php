@@ -91,8 +91,8 @@ trait Optml_Dam_Offload_Utils {
 	 */
 	private function parse_dimension_from_optimized_url( $url ) {
 		$catch  = [];
-		$height = 'auto';
-		$width  = 'auto';
+		$height = false;
+		$width  = false;
 		preg_match( '/\/w:(.*)\/h:(.*)\/q:/', $url, $catch );
 		if ( isset( $catch[1] ) && isset( $catch[2] ) ) {
 			$width  = $catch[1];

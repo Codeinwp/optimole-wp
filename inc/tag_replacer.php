@@ -65,7 +65,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	}
 
 	/**
-	 *  Get the dimensions of the image based on the optimized url fro Optimole.
+	 * We have to short-circuit the logic that adds width and height to the img tag.
+	 * It compares the URL basename, and the `file` param for each image.
+	 * This happens for any image that gets its size set non-explicitly
+	 * e.g. an image block with its size set from the sidebar to `thumbnail`).
+	 *
+	 * Optimole has a single basename for all image resizes in its URL.
 	 *
 	 * @param mixed $dimensions The dimensions of the image.
 	 * @param mixed $image_src The source of the image.
@@ -74,9 +79,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function filter_image_src_get_dimensions( $dimensions, $image_src, $image_meta, $attachment_id ) {
 
-		$incoming_size = $this->parse_dimension_from_optimized_url( $image_src );
-		list($width, $height) = $incoming_size;
+		list($width, $height) = $this->parse_dimension_from_optimized_url( $image_src );
 
+		if ( false === $width || false === $height ) {
+			return $dimensions;
+		}
 		$sizes = Optml_App_Replacer::image_sizes();
 
 		// If this is an image size. Return its dimensions.

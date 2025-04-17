@@ -203,16 +203,14 @@ class Optml_Dam {
 			return $image;
 		}
 		$image_url     = wp_get_attachment_url( $attachment_id );
-		$incoming_size = $this->parse_dimension_from_optimized_url( $image_url );
-		$width         = $incoming_size[0];
-		$height        = $incoming_size[1];
+		list($width, $height) = $this->parse_dimension_from_optimized_url( $image_url );
 
 		// Skip resize in single attachment view on backend.
 		if ( $this->is_attachment_edit_page( $attachment_id ) ) {
 			return [
 				$image_url,
-				$width,
-				$height,
+				$width === 'auto' ? false : $width,
+				$height === 'auto' ? false : $height,
 				false,
 			];
 		}
@@ -654,53 +652,6 @@ class Optml_Dam {
 		$response['url'] = $this->replace_dam_url_args( $meta, $response['url'] );
 
 		return $response;
-	}
-
-	/**
-	 * We have to short-circuit the logic that adds width and height to the img tag.
-	 * It compares the URL basename, and the `file` param for each image.
-	 * This happens for any image that gets its size set non-explicitly
-	 * e.g. an image block with its size set from the sidebar to `thumbnail`).
-	 *
-	 * Optimole has a single basename for all image resizes in its URL.
-	 *
-	 * @param array|false $dimensions    Array with first element being the width
-	 *                                   and second element being the height, or
-	 *                                   false if dimensions could not be determined.
-	 * @param string      $image_src     The image URL (will be Optimole URL).
-	 * @param array       $image_meta    The image metadata.
-	 * @param int         $attachment_id The image attachment ID. Default 0.
-	 */
-	public function alter_img_tag_w_h( $dimensions, $image_src, $image_meta, $attachment_id ) {
-		if ( ! $this->is_dam_imported_image( $attachment_id ) ) {
-			return $dimensions;
-		}
-
-		// Get the dimensions from the optimized URL.
-		$incoming_size = $this->parse_dimension_from_optimized_url( $image_src );
-		$width         = $incoming_size[0];
-		$height        = $incoming_size[1];
-
-		$sizes = Optml_App_Replacer::image_sizes();
-
-		// If this is an image size. Return its dimensions.
-		foreach ( $sizes as $size => $args ) {
-			if ( (int) $args['width'] !== (int) $width ) {
-				continue;
-			}
-
-			if ( (int) $args['height'] !== (int) $height ) {
-				continue;
-			}
-
-			return [
-				$args['width'],
-				$args['height'],
-			];
-		}
-
-		// Fall-through with the original dimensions.
-		return $dimensions;
 	}
 
 	/**
