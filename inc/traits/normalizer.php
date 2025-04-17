@@ -195,16 +195,18 @@ trait Optml_Normalizer {
 	 *
 	 * @param mixed $size The size of the image. Can be an array of width and height, a predefined size, or 'full'.
 	 * @param array $image_meta Metadata of the image, including width and height.
+	 * @param int   $attachment_id The ID of the attachment.
 	 *
 	 * @return array The dimensions of the image, including width, height, and optional resize parameters.
 	 */
-	public function size_to_dimension( $size, $image_meta ) {
+	public function size_to_dimension( $size, $image_meta, $attachment_id = null ) {
 		// default size
 		$sizes = [
 			'width'  => isset( $image_meta['width'] ) ? intval( $image_meta['width'] ) : false,
 			'height' => isset( $image_meta['height'] ) ? intval( $image_meta['height'] ) : false,
 		];
 		$image_args = Optml_App_Replacer::image_sizes();
+		$sizes2crop = Optml_App_Replacer::size_to_crop();
 		switch ( $size ) {
 			case is_array( $size ):
 				$width  = isset( $size[0] ) ? (int) $size[0] : false;
@@ -216,16 +218,20 @@ trait Optml_Normalizer {
 				if ( isset( self::$dimension_cache[ $cache_key ] ) ) {
 					return self::$dimension_cache[ $cache_key ];
 				}
-				$image_resized = image_resize_dimensions( $sizes['width'], $sizes['height'], $width, $height );
-				if ( $image_resized ) {
-					$width  = $image_resized[6];
-					$height = $image_resized[7];
-				} else {
-					$width  = $image_meta['width'];
-					$height = $image_meta['height'];
+				if ( $attachment_id ) {
+					$intermediate = image_get_intermediate_size( $attachment_id, $size );
+					if ( $intermediate ) {
+						$sizes['width'] = $intermediate['width'];
+						$sizes['height'] = $intermediate['height'];
+					}
 				}
-				list( $sizes['width'], $sizes['height'] ) = image_constrain_size_for_editor( $width, $height, $size );
 
+				list( $sizes['width'], $sizes['height'] ) = image_constrain_size_for_editor( $sizes['width'], $sizes['height'], $size );
+				$resize = apply_filters( 'optml_default_crop', [] );
+				if ( isset( $sizes2crop[ $sizes['width'] . $sizes['height'] ] ) ) {
+					$resize = $this->to_optml_crop( $sizes2crop[ $sizes['width'] . $sizes['height'] ] );
+				}
+				$sizes['resize'] = $resize;
 				self::$dimension_cache[ $cache_key ] = $sizes;
 				break;
 			case 'full' !== $size && isset( $image_args[ $size ] ):

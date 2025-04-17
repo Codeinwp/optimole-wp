@@ -253,7 +253,17 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 		// Remove fetchpriority high attribute when the image is lazyloaded
 		if ( strpos( $new_tag, 'fetchpriority' ) !== false ) {
-			$new_tag = preg_replace( '/\s+fetchpriority=(high|[\'"][^\'"]*high[^\'"]*)(?=[\'"\s>]|$)/i', '', $new_tag );
+			$new_tag = str_ireplace(
+				[
+					'fetchpriority=high',
+					'fetchpriority="high"',
+					"fetchpriority='high'",
+					'fetchpriority=\"high\"',
+					"fetchpriority=\'high\'",
+				],
+				'',
+				$new_tag
+			);
 		}
 
 		if ( self::instance()->settings->get( 'native_lazyload' ) === 'enabled' ) {

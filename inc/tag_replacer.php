@@ -58,9 +58,52 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		add_filter( 'image_downsize', [ $this, 'filter_image_downsize' ], PHP_INT_MAX, 3 );
 		add_filter( 'wp_calculate_image_srcset', [ $this, 'filter_srcset_attr' ], PHP_INT_MAX - 1, 5 );
 		add_filter( 'wp_calculate_image_sizes', [ $this, 'filter_sizes_attr' ], 1, 2 );
+		add_filter( 'wp_image_src_get_dimensions', [ $this, 'filter_image_src_get_dimensions' ], 99, 4 );
 		if ( $this->settings->get( 'retina_images' ) === 'enabled' ) {
 			add_filter( 'wp_get_attachment_image_attributes', [ $this, 'filter_attachment_image_attributes' ], 99, 3 );
 		}
+	}
+
+	/**
+	 * We have to short-circuit the logic that adds width and height to the img tag.
+	 * It compares the URL basename, and the `file` param for each image.
+	 * This happens for any image that gets its size set non-explicitly
+	 * e.g. an image block with its size set from the sidebar to `thumbnail`).
+	 *
+	 * Optimole has a single basename for all image resizes in its URL.
+	 *
+	 * @param mixed $dimensions The dimensions of the image.
+	 * @param mixed $image_src The source of the image.
+	 * @param mixed $image_meta The meta of the image.
+	 * @param mixed $attachment_id The ID of the attachment.
+	 */
+	public function filter_image_src_get_dimensions( $dimensions, $image_src, $image_meta, $attachment_id ) {
+
+		list($width, $height) = $this->parse_dimension_from_optimized_url( $image_src );
+
+		if ( false === $width || false === $height ) {
+			return $dimensions;
+		}
+		$sizes = Optml_App_Replacer::image_sizes();
+
+		// If this is an image size. Return its dimensions.
+		foreach ( $sizes as $size => $args ) {
+			if ( (int) $args['width'] !== (int) $width ) {
+				continue;
+			}
+
+			if ( (int) $args['height'] !== (int) $height ) {
+				continue;
+			}
+
+			return [
+				$args['width'],
+				$args['height'],
+			];
+		}
+
+		// Fall-through with the original dimensions.
+		return $dimensions;
 	}
 	/**
 	 * Filter the attachment image attributes to add the srcset attribute with retina support.
@@ -511,7 +554,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		}
 
 		$image_meta = wp_get_attachment_metadata( $attachment_id );
-		$sizes = $this->size_to_dimension( $size, $image_meta );
+		$sizes = $this->size_to_dimension( $size, $image_meta, $attachment_id );
+
 		$image_url = $this->strip_image_size_from_url( $image_url );
 
 		$new_url = apply_filters( 'optml_content_url', $image_url, $sizes );

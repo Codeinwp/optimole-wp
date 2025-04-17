@@ -221,7 +221,7 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @return array Size mapping.
 	 */
-	protected static function size_to_crop() {
+	public static function size_to_crop() {
 		if ( ! empty( self::$size_to_crop ) ) {
 			return self::$size_to_crop;
 		}
@@ -614,7 +614,7 @@ abstract class Optml_App_Replacer {
 			}
 		} else {
 			$optimized_args = $this->parse_dimension_from_optimized_url( $src );
-			if ( $optimized_args[0] !== 'auto' || $optimized_args[1] !== 'auto' ) {
+			if ( $optimized_args[0] !== false || $optimized_args[1] !== false ) {
 				return [
 					$optimized_args[0] !== 'auto' ? (int) $optimized_args[0] : false,
 					$optimized_args[1] !== 'auto' ? (int) $optimized_args[1] : false,

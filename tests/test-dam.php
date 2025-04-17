@@ -22,6 +22,11 @@ class Test_Dam extends WP_UnitTestCase {
 	 */
 	private $dam;
 
+	/**
+	 * @var Optml_Manager
+	 */
+	private $manager;
+
 	const MOCK_ATTACHMENTS = [
 		[
 			'url'  => 'https://cloudUrlTest.test/w:auto/h:auto/q:auto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg',
@@ -83,6 +88,7 @@ class Test_Dam extends WP_UnitTestCase {
 
 		$plugin         = Optml_Main::instance();
 		$this->dam      = $plugin->dam;
+		$this->manager      = $plugin->manager;
 		$this->settings = $plugin->admin->settings;
 		$this->settings->update( 'service_data', [
 			'cdn_key'    => 'test123',
@@ -339,7 +345,7 @@ class Test_Dam extends WP_UnitTestCase {
 			// Set these images as thumbnails.
 			$args     = [ 'width' => 150, 'height' => 150, 'crop' => true ];
 			$test_url = $this->dam->replace_dam_url_args( $args, $current_attachment['url'] );
-			$altered_dimensions = $this->dam->alter_img_tag_w_h( $other_dimensions, $test_url, [], $id );
+			$altered_dimensions = $this->manager->tag_replacer->filter_image_src_get_dimensions( $other_dimensions, $test_url, [], $id );
 
 			$this->assertEquals( 150, $altered_dimensions[0] );
 			$this->assertEquals( 150, $altered_dimensions[1] );
@@ -350,7 +356,7 @@ class Test_Dam extends WP_UnitTestCase {
 				$args = $this->dam->size_to_dimension( $size, wp_get_attachment_metadata($id) );
 
 				$test_url = $this->dam->replace_dam_url_args( $args, $current_attachment['url'] );
-				$altered_dimensions = $this->dam->alter_img_tag_w_h( $other_dimensions, $test_url, [], $id );
+				$altered_dimensions = $this->manager->tag_replacer->filter_image_src_get_dimensions( $other_dimensions, $test_url, [], $id );
 
 				$this->assertEquals( $image_size_args['width'], $altered_dimensions[0] );
 				$this->assertEquals( $image_size_args['height'], $altered_dimensions[1] );
@@ -364,7 +370,7 @@ class Test_Dam extends WP_UnitTestCase {
 			];
 
 			$test_url = $this->dam->replace_dam_url_args( $args, $current_attachment['url'] );
-			$altered_dimensions = $this->dam->alter_img_tag_w_h( $other_dimensions, $test_url, [], $id );
+			$altered_dimensions = $this->manager->tag_replacer->filter_image_src_get_dimensions( $other_dimensions, $test_url, [], $id );
 
 			$this->assertEquals( $other_dimensions[0], $altered_dimensions[0] );
 			$this->assertEquals( $other_dimensions[1], $altered_dimensions[1] );
