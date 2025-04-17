@@ -58,9 +58,45 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		add_filter( 'image_downsize', [ $this, 'filter_image_downsize' ], PHP_INT_MAX, 3 );
 		add_filter( 'wp_calculate_image_srcset', [ $this, 'filter_srcset_attr' ], PHP_INT_MAX - 1, 5 );
 		add_filter( 'wp_calculate_image_sizes', [ $this, 'filter_sizes_attr' ], 1, 2 );
+		add_filter( 'wp_image_src_get_dimensions', [ $this, 'filter_image_src_get_dimensions' ], 99, 4 );
 		if ( $this->settings->get( 'retina_images' ) === 'enabled' ) {
 			add_filter( 'wp_get_attachment_image_attributes', [ $this, 'filter_attachment_image_attributes' ], 99, 3 );
 		}
+	}
+
+	/**
+	 *  Get the dimensions of the image based on the optimized url fro Optimole.
+	 *
+	 * @param mixed $dimensions The dimensions of the image.
+	 * @param mixed $image_src The source of the image.
+	 * @param mixed $image_meta The meta of the image.
+	 * @param mixed $attachment_id The ID of the attachment.
+	 */
+	public function filter_image_src_get_dimensions( $dimensions, $image_src, $image_meta, $attachment_id ) {
+
+		$incoming_size = $this->parse_dimension_from_optimized_url( $image_src );
+		list($width, $height) = $incoming_size;
+
+		$sizes = Optml_App_Replacer::image_sizes();
+
+		// If this is an image size. Return its dimensions.
+		foreach ( $sizes as $size => $args ) {
+			if ( (int) $args['width'] !== (int) $width ) {
+				continue;
+			}
+
+			if ( (int) $args['height'] !== (int) $height ) {
+				continue;
+			}
+
+			return [
+				$args['width'],
+				$args['height'],
+			];
+		}
+
+		// Fall-through with the original dimensions.
+		return $dimensions;
 	}
 	/**
 	 * Filter the attachment image attributes to add the srcset attribute with retina support.
@@ -511,7 +547,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		}
 
 		$image_meta = wp_get_attachment_metadata( $attachment_id );
-		$sizes = $this->size_to_dimension( $size, $image_meta );
+		$sizes = $this->size_to_dimension( $size, $image_meta, $attachment_id );
+
 		$image_url = $this->strip_image_size_from_url( $image_url );
 
 		$new_url = apply_filters( 'optml_content_url', $image_url, $sizes );
