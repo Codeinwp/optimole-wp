@@ -221,7 +221,7 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @return array Size mapping.
 	 */
-	protected static function size_to_crop() {
+	public static function size_to_crop() {
 		if ( ! empty( self::$size_to_crop ) ) {
 			return self::$size_to_crop;
 		}
