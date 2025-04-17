@@ -1,3 +1,8 @@
+##### [Version 4.0.1](https://github.com/Codeinwp/optimole-wp/compare/v4.0.0...v4.0.1) (2025-04-17)
+
+Fix extraneous quotation mark in image URL when changing fetchpriority.  
+Fix resize behavior for certain image sizes that were improperly resized.
+
 #### [Version 4.0.0](https://github.com/Codeinwp/optimole-wp/compare/v3.14.1...v4.0.0) (2025-04-14)
 
 ### New Features
