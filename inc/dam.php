@@ -65,7 +65,6 @@ class Optml_Dam {
 		add_filter( 'wp_get_attachment_metadata', [ $this, 'alter_attachment_metadata' ], 10, 2 );
 		add_filter( 'image_downsize', [ $this, 'catch_downsize' ], 10, 3 );
 		add_filter( 'wp_prepare_attachment_for_js', [ $this, 'alter_attachment_for_js' ], 10, 3 );
-		add_filter( 'wp_image_src_get_dimensions', [ $this, 'alter_img_tag_w_h' ], 10, 4 );
 		add_filter( 'get_attached_file', [ $this, 'alter_attached_file_response' ], 10, 2 );
 		add_filter( 'wp_calculate_image_srcset', [ $this, 'disable_dam_images_srcset' ], 1, 5 );
 
