@@ -85,6 +85,10 @@ class Optml_Attachment_Edit {
 	 * @return array Modified form fields.
 	 */
 	public function add_attachment_fields( $form_fields, $post ) {
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			return $form_fields;
+		}
+
 		$screen = get_current_screen();
 
 		$attachment = new Optml_Attachment_Model( $post->ID );
