@@ -41,3 +41,6 @@ phpstan.neon
 development.php
 playwright.config.ts
 test-results
+wp-scripts.config.js
+README.md
+CHANGELOG.md

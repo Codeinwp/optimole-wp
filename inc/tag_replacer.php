@@ -85,7 +85,15 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return $dimensions;
 		}
 		$sizes = Optml_App_Replacer::image_sizes();
-
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', 'filter_image_src_get_dimensions: ' . $image_src . ' ' . $width . ' ' . $height . ' ' . print_r( $image_meta, true ) );
+		}
+		if ( $width === 'auto' && $height === 'auto' && isset( $image_meta['width'], $image_meta['height'] ) ) {
+			return [
+				$image_meta['width'],
+				$image_meta['height'],
+			];
+		}
 		// If this is an image size. Return its dimensions.
 		foreach ( $sizes as $size => $args ) {
 			if ( (int) $args['width'] !== (int) $width ) {
