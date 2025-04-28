@@ -37,7 +37,7 @@ class Optml_wpsp extends Optml_compatibility {
 	 * Register integration details.
 	 */
 	public function register() {
-		// This is hack based to fix the breaking images, we can reconsider when this is merged https://github.com/tomusborne/wp-show-posts/issues/50
+		// This is a hack to fix the breaking images, we can reconsider when this is merged https://github.com/tomusborne/wp-show-posts/issues/50
 		add_filter(
 			'wpsp_image_attributes',
 			function ( $attribute ) {
