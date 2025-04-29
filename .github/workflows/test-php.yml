@@ -24,7 +24,7 @@ jobs:
         run: composer phpcs
   phpunit:
       name: PHPUnit tests on ${{ matrix.php-versions }}
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-22.04
       strategy:
         fail-fast: false
         matrix:
@@ -44,8 +44,6 @@ jobs:
             php-version: ${{ matrix.php-version }}
             extensions: simplexml, mysql
             tools: phpunit-polyfills:1.1
-        - name: Install Subversion
-          run: sudo apt-get update && sudo apt-get install -y subversion
         - name: Checkout source code
           uses: actions/checkout@v4
         - name: Install WordPress Test Suite

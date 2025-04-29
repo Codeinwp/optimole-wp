@@ -99,6 +99,7 @@ final class Optml_Manager {
 		'wpml',
 		'otter_blocks',
 		'spectra',
+		'wpsp',
 	];
 	/**
 	 * The current state of the buffer.

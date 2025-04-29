@@ -4,7 +4,7 @@ Tags: image optimization, convert webp, image optimizer, lazy load, image, optim
 Requires at least: 5.5
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 4.0.1
+Stable tag: 4.0.2
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -247,10 +247,10 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 4.0.1](https://github.com/Codeinwp/optimole-wp/compare/v4.0.0...v4.0.1) (2025-04-17)
+##### [Version 4.0.2](https://github.com/Codeinwp/optimole-wp/compare/v4.0.1...v4.0.2) (2025-04-22)
 
-Fix extraneous quotation mark in image URL when changing fetchpriority.  
-Fix resize behavior for certain image sizes that were improperly resized.
+- fatal error thrown because get_current_screen function is not loading in certain contexts
+- enhance image dimension handling when the width-height attributes are not provided.
 
 
 
