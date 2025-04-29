@@ -1,3 +1,7 @@
+##### [Version 4.0.3](https://github.com/Codeinwp/optimole-wp/compare/v4.0.2...v4.0.3) (2025-04-29)
+
+- Fix compatibility with WP Show Posts plugin
+
 ##### [Version 4.0.2](https://github.com/Codeinwp/optimole-wp/compare/v4.0.1...v4.0.2) (2025-04-22)
 
 - fatal error thrown because get_current_screen function is not loading in certain contexts
