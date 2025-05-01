@@ -6,11 +6,10 @@ $primary: #EF686B;
 $success: #5F9D61;
 $danger: #E77777;
 $warning: #ffebeb;
-$purple: #8b5cf6;
 $info: #577BF9;
 $light-blue: #F5F7FC;
 $dark-blue: #3557A6;
-$purple-gray: #757296;
+$purple-gray: #e9e9f6;
 $grayish-blue: #f6f6fa;
 $disabled: #6786F4;
 $mango-yellow: #FBBF24;
@@ -332,12 +331,12 @@ $mango-yellow: #FBBF24;
 			color: #4d4c4c;
 			border: none;
 			box-shadow: none;
-			background-color: #e9e9f6;
+			background-color: $purple-gray;
 
 			&:hover:not(:disabled),
 			&:active:not(:disabled) {
 				color: #4d4c4c;
-				background-color: #e9e9f6;
+				background-color: $purple-gray;
 			}
 
 			&:focus:not(:disabled) {
