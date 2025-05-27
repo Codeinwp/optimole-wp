@@ -8,7 +8,7 @@ Stable tag: 4.0.3
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-Automatically optimize images: bulk compression, lazy loading, WebP/AVIF conversion. CloudFront image CDN included to boost Core Web Vitals and conversions!
+Automatically optimize images: bulk compression, lazy loading, WebP/AVIF conversion. With CloudFront image CDN to boost Core Web Vitals & conversions!
 
 == Description ==
 
