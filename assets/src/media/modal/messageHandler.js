@@ -150,7 +150,7 @@ class MessageHandler {
 			attachment.fetch().then( ( r ) => {
 				attachmentsQueue.push( r );
 
-				if ( idx === result.data.length - 1 ) {
+				if ( attachmentsQueue.length === result.data.length ) {
 					this.sendMessage({ status: 'done' });
 
 					// Add the attachments to the selection.
