@@ -2,9 +2,15 @@ import { Icon } from '@wordpress/components';
 import { closeSmall, check } from '@wordpress/icons';
 
 const OptimizationStatus = ({ settings }) => {
-	const lazyloadEnabled = 'enabled' === settings?.lazyload;
-	const imageHandlingEnabled = 'enabled' === settings?.image_replacer;
+	const userStatus = optimoleDashboardApp.user_status ? optimoleDashboardApp.user_status : 'inactive';
+	const lazyloadEnabled = 'enabled' === settings?.lazyload  &&  'inactive' !== userStatus;
+	const imageHandlingEnabled = 'enabled' === settings?.image_replacer && 'inactive' !== userStatus;
 	const statuses = [
+		{
+			active: 'inactive' !== userStatus,
+			label: optimoleDashboardApp.strings.optimization_status.statusTitle4,
+			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle4
+		},
 		{
 			active: imageHandlingEnabled,
 			label: optimoleDashboardApp.strings.optimization_status.statusTitle1,
