@@ -3,8 +3,8 @@ import { closeSmall, check } from '@wordpress/icons';
 
 const OptimizationStatus = ({ settings }) => {
 	const userStatus = optimoleDashboardApp.user_status ? optimoleDashboardApp.user_status : 'inactive';
-	const lazyloadEnabled = 'enabled' === settings?.lazyload  &&  'inactive' !== userStatus;
-	const imageHandlingEnabled = 'enabled' === settings?.image_replacer && 'inactive' !== userStatus;
+	const lazyloadEnabled = 'enabled' === settings?.lazyload  &&  userStatus === 'active';
+	const imageHandlingEnabled = 'enabled' === settings?.image_replacer && userStatus === 'active';
 	const statuses = [
 		{
 			active: imageHandlingEnabled,
