@@ -7,11 +7,6 @@ const OptimizationStatus = ({ settings }) => {
 	const imageHandlingEnabled = 'enabled' === settings?.image_replacer && 'inactive' !== userStatus;
 	const statuses = [
 		{
-			active: 'inactive' !== userStatus,
-			label: optimoleDashboardApp.strings.optimization_status.statusTitle4,
-			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle4
-		},
-		{
 			active: imageHandlingEnabled,
 			label: optimoleDashboardApp.strings.optimization_status.statusTitle1,
 			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle1
