@@ -409,15 +409,16 @@ final class Optml_Manager {
 	 * Filter raw HTML content for urls.
 	 *
 	 * @param string $html HTML to filter.
+	 * @param bool   $partial If this is a partial content replacement and not a full page. It matters when we are are doing full page optimization like viewport lazyload.
 	 *
 	 * @return mixed Filtered content.
 	 */
-	public function replace_content( $html ) {
+	public function replace_content( $html, $partial = false ) {
 
 		if ( defined( 'REST_REQUEST' ) && REST_REQUEST && is_user_logged_in() && ( apply_filters( 'optml_force_replacement', false ) !== true ) ) {
 			return $html;
 		}
-		if ( $this->settings->is_lazyload_type_viewport() ) {
+		if ( $this->settings->is_lazyload_type_viewport() && ! $partial ) {
 			$profile_id = Profile::generate_id( $html );
 			// We disable the optimizer for logged in users.
 			if ( ! is_user_logged_in() || ! apply_filters( 'optml_force_page_profiler', false ) !== true ) {
@@ -442,7 +443,9 @@ final class Optml_Manager {
 			Profile::set_current_profile_id( $profile_id );
 			$this->page_profiler->set_current_profile_data();
 		}
-		$html = $this->add_html_class( $html );
+		if ( ! $partial ) {
+			$html = $this->add_html_class( $html );
+		}
 
 		$html = $this->process_images_from_content( $html );
 
@@ -457,7 +460,7 @@ final class Optml_Manager {
 			}
 		}
 
-		if ( $this->settings->is_lazyload_type_viewport() ) {
+		if ( $this->settings->is_lazyload_type_viewport() && ! $partial ) {
 			$personalized_bg_css = Lazyload::get_current_personalized_css();
 			if ( OPTML_DEBUG ) {
 				do_action( 'optml_log', 'viewport_bgselectorsdata: ' . print_r( $personalized_bg_css, true ) );
@@ -475,14 +478,16 @@ final class Optml_Manager {
 				}
 			}
 		}
-		// WE need this last since during bg personalized CSS we collect preload urls
-		if ( Links::get_links_count() > 0 ) {
-			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', 'preload_links: ' . print_r( Links::get_links(), true ) );
+		if ( ! $partial ) {
+			// WE need this last since during bg personalized CSS we collect preload urls
+			if ( Links::get_links_count() > 0 ) {
+				if ( OPTML_DEBUG ) {
+					do_action( 'optml_log', 'preload_links: ' . print_r( Links::get_links(), true ) );
+				}
+				$html = str_replace( Optml_Admin::get_preload_links_placeholder(), Links::get_links_html(), $html );
+			} else {
+				$html = str_replace( Optml_Admin::get_preload_links_placeholder(), '', $html );
 			}
-			$html = str_replace( Optml_Admin::get_preload_links_placeholder(), Links::get_links_html(), $html );
-		} else {
-			$html = str_replace( Optml_Admin::get_preload_links_placeholder(), '', $html );
 		}
 
 		$html = apply_filters( 'optml_url_pre_process', $html );
@@ -490,7 +495,7 @@ final class Optml_Manager {
 		$html = $this->process_urls_from_content( $html );
 
 		$html = apply_filters( 'optml_url_post_process', $html );
-		if ( $this->settings->is_lazyload_type_viewport() ) {
+		if ( $this->settings->is_lazyload_type_viewport() && ! $partial ) {
 			Profile::reset_current_profile();
 		}
 		return $html;
