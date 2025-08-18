@@ -106,6 +106,7 @@ final class Optml_Main {
 			add_filter( 'optimole_wp_feedback_review_message', [ __CLASS__, 'change_review_message' ] );
 			add_filter( 'optimole_wp_logger_heading', [ __CLASS__, 'change_review_message' ] );
 			add_filter( 'optml_register_conflicts', [ __CLASS__, 'register_conflicts' ] );
+			add_filter( 'optimole_wp_logger_data', [ __CLASS__, 'add_settings' ] );
 			self::$_instance          = new self();
 			self::$_instance->manager = Optml_Manager::instance();
 			self::$_instance->rest    = new Optml_Rest();
@@ -145,6 +146,20 @@ final class Optml_Main {
 		return $conflicts_to_register;
 	}
 
+	/**
+	 * Add settings to the logger data.
+	 *
+	 * @param array $data Logger data.
+	 *
+	 * @return array
+	 */
+	public static function add_settings( $data ): array {
+		$saved_data = ( new Optml_Settings() )->get_raw_settings();
+		unset( $saved_data['service_data'] );
+		unset( $saved_data['api_key'] );
+
+		return array_merge( $data, $saved_data );
+	}
 	/**
 	 * Change review message.
 	 *
