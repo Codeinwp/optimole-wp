@@ -56,7 +56,7 @@ class Optml_divi_builder extends Optml_compatibility {
 				$data = $page_resource->get_data( 'file' );
 
 				if ( ! empty( $data ) ) {
-					$data = Optml_Main::instance()->manager->replace_content( $data );
+					$data = Optml_Main::instance()->manager->replace_content( $data, true );
 					ET_Core_PageResource::$wpfs->put_contents( $page_resource->path, $data, 0644 );
 				}
 			}
