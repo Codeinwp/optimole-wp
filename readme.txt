@@ -4,7 +4,7 @@ Tags: image optimization, convert webp, image optimizer, lazy load, optimize ima
 Requires at least: 5.5
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 4.0.3
+Stable tag: 4.0.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -247,9 +247,12 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 4.0.3](https://github.com/Codeinwp/optimole-wp/compare/v4.0.2...v4.0.3) (2025-04-29)
+##### [Version 4.0.4](https://github.com/Codeinwp/optimole-wp/compare/v4.0.3...v4.0.4) (2025-08-20)
 
-- Fix compatibility with WP Show Posts plugin
+- Fix DAM image selection issue in Gallery Block
+- Fix incorrect optimization status display when account is inactive
+- Update dependencies. 
+- Fix various compatibilities when viewport lazyload is on.
 
 
 

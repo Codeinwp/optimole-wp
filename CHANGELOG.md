@@ -1,3 +1,10 @@
+##### [Version 4.0.4](https://github.com/Codeinwp/optimole-wp/compare/v4.0.3...v4.0.4) (2025-08-20)
+
+- Fix DAM image selection issue in Gallery Block
+- Fix incorrect optimization status display when account is inactive
+- Update dependencies. 
+- Fix various compatibilities when viewport lazyload is on.
+
 ##### [Version 4.0.3](https://github.com/Codeinwp/optimole-wp/compare/v4.0.2...v4.0.3) (2025-04-29)
 
 - Fix compatibility with WP Show Posts plugin

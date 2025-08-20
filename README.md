@@ -1,14 +1,14 @@
-# Image Optimization by Optimole – Lazy Load, CDN, Convert WebP & AVIF, Optimize Images #
+# Optimole – Optimize Images | Convert WebP & AVIF | CDN & Lazy Load | Image Optimization #
 **Contributors:** [optimole](https://profiles.wordpress.org/optimole/)  
-**Tags:** image optimization, convert webp, image optimizer, lazy load, image, optimisation, convert AVIF, resize, free cdn, compress images, optimize images  
+**Tags:** image optimization, convert webp, image optimizer, lazy load, optimize images  
 **Requires at least:** 5.5  
 **Tested up to:** 6.8  
 **Requires PHP:** 7.4  
-**Stable tag:** 4.0.3  
+**Stable tag:** 4.0.4  
 **License:** GPLv3  
 **License URI:** https://www.gnu.org/licenses/gpl-3.0.en.html  
 
-Automatically compress, optimize, and serve scaled images as well as convert WebP & AVIF, all from CloudFront CDN. Lazy load included ⚡
+**Automatically optimize images:** bulk compression, lazy loading, WebP/AVIF conversion. With CloudFront image CDN to boost Core Web Vitals & conversions!  
 
 ## Description ##
 
@@ -247,9 +247,12 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 ## Changelog ##
 
-##### [Version 4.0.3](https://github.com/Codeinwp/optimole-wp/compare/v4.0.2...v4.0.3) (2025-04-29)
+##### [Version 4.0.4](https://github.com/Codeinwp/optimole-wp/compare/v4.0.3...v4.0.4) (2025-08-20)
 
-- Fix compatibility with WP Show Posts plugin
+- Fix DAM image selection issue in Gallery Block
+- Fix incorrect optimization status display when account is inactive
+- Update dependencies. 
+- Fix various compatibilities when viewport lazyload is on.
 
 
 
