@@ -48,7 +48,7 @@ class Optml_elementor_builder_late extends Optml_compatibility {
 				return $metadata;
 			}
 
-			return Optml_Main::instance()->manager->replace_content( $current_meta );
+			return Optml_Main::instance()->manager->replace_content( $current_meta, true );
 		}
 
 		// Return original if the check does not pass

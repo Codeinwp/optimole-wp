@@ -39,7 +39,7 @@ class Optml_facetwp extends Optml_compatibility {
 		$output = json_decode( $output );
 
 		if ( isset( $output->template ) ) {
-			$output->template = Optml_Main::instance()->manager->replace_content( $output->template );
+			$output->template = Optml_Main::instance()->manager->replace_content( $output->template, true );
 		}
 
 		// Ignore invalid UTF-8 characters in PHP 7.2+
@@ -48,7 +48,7 @@ class Optml_facetwp extends Optml_compatibility {
 		} else {
 			$output = json_encode( $output, JSON_INVALID_UTF8_IGNORE );
 		}
-		$output = Optml_Main::instance()->manager->replace_content( $output );
+		$output = Optml_Main::instance()->manager->replace_content( $output, true );
 		return $output;
 	}
 	/**
@@ -65,7 +65,7 @@ class Optml_facetwp extends Optml_compatibility {
 		if ( ! isset( $output['template'] ) || ! function_exists( 'FWP' ) ) {
 			return;
 		}
-		$output['template'] = Optml_Main::instance()->manager->replace_content( $output['template'] );
+		$output['template'] = Optml_Main::instance()->manager->replace_content( $output['template'], true );
 		FWP()->request->output = $output;
 	}
 	/**

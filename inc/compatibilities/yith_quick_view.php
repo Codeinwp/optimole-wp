@@ -23,7 +23,12 @@ class Optml_yith_quick_view extends Optml_compatibility {
 	 */
 	public function register() {
 		Optml_Url_Replacer::instance()->init();
-		add_filter( 'woocommerce_single_product_image_thumbnail_html', [ Optml_Main::instance()->manager, 'replace_content' ] );
+		add_filter(
+			'woocommerce_single_product_image_thumbnail_html',
+			function ( $html ) {
+				return Optml_Main::instance()->manager->replace_content( $html, true );
+			}
+		);
 	}
 
 	/**

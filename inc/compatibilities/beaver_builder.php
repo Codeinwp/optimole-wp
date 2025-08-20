@@ -32,7 +32,18 @@ class Optml_beaver_builder extends Optml_compatibility {
 				return $all_watchers;
 			}
 		);
-		add_filter( 'fl_builder_render_css', [ Optml_Main::instance()->manager, 'replace_content' ], PHP_INT_MAX, 1 );
-		add_filter( 'fl_builder_render_js', [ Optml_Main::instance()->manager, 'replace_content' ], PHP_INT_MAX, 1 );
+		add_filter( 'fl_builder_render_css', [ $this, 'replace_static_content' ], PHP_INT_MAX, 1 );
+		add_filter( 'fl_builder_render_js', [ $this, 'replace_static_content' ], PHP_INT_MAX, 1 );
+	}
+
+	/**
+	 * Replace urls in static content.
+	 *
+	 * @param string $content Content to replace.
+	 *
+	 * @return string Altered content.
+	 */
+	public function replace_static_content( $content ) {
+		return Optml_Main::instance()->manager->replace_content( $content, true );
 	}
 }
