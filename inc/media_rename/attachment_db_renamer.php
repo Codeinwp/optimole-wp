@@ -551,7 +551,7 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Check if a string is serialized
 	 *
-	 * @param string $data String to check.
+	 * @param string|mixed $data String to check.
 	 *
 	 * @return bool True if serialized
 	 */

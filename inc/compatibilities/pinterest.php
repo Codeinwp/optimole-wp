@@ -31,7 +31,7 @@ class Optml_pinterest extends Optml_compatibility {
 			$selectors_array[] = '.heateorSssSharing.heateorSssPinterestBackground';
 			$load = true;
 		}
-		$this->selectors = implode( ', ', array_filter( $selectors_array ) );
+		$this->selectors = implode( ', ', $selectors_array );
 		return $load;
 	}
 

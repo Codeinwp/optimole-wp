@@ -160,9 +160,7 @@ final class Optml_Api {
 		if ( ! empty( $this->api_key ) ) {
 			$headers['Authorization'] = 'Bearer ' . $this->api_key;
 		}
-		if ( is_array( $headers ) ) {
-			$headers = array_merge( $headers, $extra_headers );
-		}
+		$headers = array_merge( $headers, $extra_headers );
 		$url  = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
 		// If there is a extra, add that as a url var.
 		if ( 'GET' === $method && ! empty( $params ) ) {

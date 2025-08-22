@@ -158,7 +158,7 @@ class Optml_Conflicting_Plugins {
 	 * @return bool Should show?
 	 */
 	public function should_show_notice() {
-		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+		if ( wp_doing_ajax() ) {
 			return false;
 		}
 
