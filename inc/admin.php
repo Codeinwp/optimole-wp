@@ -576,15 +576,11 @@ class Optml_Admin {
 	/**
 	 * Add settings links in the plugin listing page.
 	 *
-	 * @param array $links Old plugin links.
+	 * @param string[] $links Old plugin links.
 	 *
-	 * @return array Altered links.
+	 * @return string[] Altered links.
 	 */
 	public function add_action_links( $links ) {
-		if ( ! is_array( $links ) ) {
-			return $links;
-		}
-
 		return array_merge(
 			$links,
 			[
@@ -599,7 +595,7 @@ class Optml_Admin {
 	 * @return bool Should show?
 	 */
 	public function should_show_notice() {
-		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+		if ( wp_doing_ajax() ) {
 			return false;
 		}
 
@@ -676,7 +672,7 @@ class Optml_Admin {
 	 */
 	public function should_show_upgrade() {
 		$current_screen = get_current_screen();
-		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ||
+		if ( wp_doing_ajax() ||
 			is_network_admin() ||
 			! current_user_can( 'manage_options' ) ||
 			! $this->settings->is_connected() ||
@@ -1003,7 +999,7 @@ class Optml_Admin {
 			return;
 		}
 
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+		if ( wp_doing_ajax() ) {
 			return;
 		}
 

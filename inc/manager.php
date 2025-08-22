@@ -435,7 +435,7 @@ final class Optml_Manager {
 					$hmac = wp_hash( $profile_id . $time, 'nonce' );
 					$js_optimizer = str_replace(
 						[ Profile::PLACEHOLDER, Profile::PLACEHOLDER_MISSING, Profile::PLACEHOLDER_TIME, Profile::PLACEHOLDER_HMAC ],
-						[ $profile_id, implode( ',', $missing ), $time, $hmac ],
+						[ $profile_id, implode( ',', $missing ), strval( $time ), $hmac ],
 						$js_optimizer
 					);
 					$html = str_replace( Optml_Admin::get_optimizer_script( true ), $js_optimizer, $html );
