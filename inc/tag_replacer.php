@@ -430,20 +430,15 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	/**
 	 * Replace image URLs in the srcset attributes and in case there is a resize in action, also replace the sizes.
 	 *
-	 * @param array  $sources Array of image sources.
-	 * @param array  $size_array Array of width and height values in pixels (in that order).
-	 * @param string $image_src The 'src' of the image.
-	 * @param array  $image_meta The image meta data as returned by 'wp_get_attachment_metadata()'.
-	 * @param int    $attachment_id Image attachment ID.
+	 * @param array<int, array{url: string, descriptor: string, value: int}> $sources Array of image sources.
+	 * @param array{0: int, 1: int}|int[]                                    $size_array Array of width and height values in pixels (in that order).
+	 * @param string                                                         $image_src The 'src' of the image.
+	 * @param array<string, mixed>                                           $image_meta The image meta data as returned by 'wp_get_attachment_metadata()'.
+	 * @param int                                                            $attachment_id Image attachment ID or 0.
 	 *
 	 * @return array
 	 */
 	public function filter_srcset_attr( $sources = [], $size_array = [], $image_src = '', $image_meta = [], $attachment_id = 0 ) {
-
-		if ( ! is_array( $sources ) ) {
-			return $sources;
-		}
-
 		if ( Optml_Media_Offload::is_uploaded_image( $image_src ) ) {
 			return $sources;
 		}
@@ -513,10 +508,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	/**
 	 * Filters sizes attribute of the images.
 	 *
-	 * @param array $sizes An array of media query breakpoints.
-	 * @param array $size Width and height of the image.
+	 * @param string       $sizes An array of media query breakpoints.
+	 * @param string|int[] $size Width and height of the image.
 	 *
-	 * @return mixed An array of media query breakpoints.
+	 * @return string An array of media query breakpoints.
 	 */
 	public function filter_sizes_attr( $sizes, $size ) {
 
