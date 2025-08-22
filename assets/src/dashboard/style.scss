@@ -7,9 +7,9 @@ $success: #5F9D61;
 $danger: #E77777;
 $warning: #ffebeb;
 $info: #577BF9;
-$light-blue: #EEF2FE;
+$light-blue: #F5F7FC;
 $dark-blue: #3557A6;
-$purple-gray: #757296;
+$purple-gray: #e9e9f6;
 $grayish-blue: #f6f6fa;
 $disabled: #6786F4;
 $mango-yellow: #FBBF24;
@@ -328,19 +328,19 @@ $mango-yellow: #FBBF24;
 		}
 
 		&.is-secondary {
-			color: #fff;
+			color: #4d4c4c;
 			border: none;
 			box-shadow: none;
 			background-color: $purple-gray;
 
 			&:hover:not(:disabled),
 			&:active:not(:disabled) {
-				color: #fff;
+				color: #4d4c4c;
 				background-color: $purple-gray;
 			}
 
 			&:focus:not(:disabled) {
-				box-shadow: inset 0 0 0 1px var(--wp-components-color-background,#fff),0 0 0 var(--wp-admin-border-width-focus) var(--wp-components-color-accent,var(--wp-admin-theme-color,#007cba));
+				box-shadow: inset 0 0 0 1px var(--wp-components-color-background,#fff),0 0 0 var(--wp-admin-border-width-focus) #4d4c4c;
 			}
 		}
 
