@@ -38,6 +38,7 @@ assets/src
 postcss.config.js
 tailwind.config.js
 phpstan.neon
+phpstan-baseline.neon
 development.php
 playwright.config.ts
 test-results

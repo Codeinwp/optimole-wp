@@ -51,6 +51,7 @@
     "format": "phpcbf --standard=phpcs.xml --report-summary --report-source",
     "phpcs": "phpcs --standard=phpcs.xml --extensions=php -s -d memory_limit=-1",
     "phpstan": "phpstan analyse --memory-limit=-1",
+    "phpstan:generate:baseline": "phpstan analyse --memory-limit=-1 --generate-baseline",
     "phpunit": "phpunit --configuration=phpunit.xml",
     "install-wp-tests": "bash bin/install-wp-tests.sh wordpress_tests root root 127.0.0.1 latest true"
   },

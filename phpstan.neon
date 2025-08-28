@@ -1,5 +1,5 @@
 parameters:
-	level: 5
+	level: 6
 	paths:
 		- %currentWorkingDirectory%/optimole-wp.php
 		- %currentWorkingDirectory%/inc
@@ -23,3 +23,4 @@ parameters:
 				- requireOnce.fileNotFound
 includes:
 	- %currentWorkingDirectory%/vendor/szepeviktor/phpstan-wordpress/extension.neon
+	- %currentWorkingDirectory%/phpstan-baseline.neon
