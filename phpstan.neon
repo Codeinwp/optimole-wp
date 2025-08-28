@@ -15,12 +15,6 @@ parameters:
 		- TEST_GROUND
 		- OPTML_DEBUG
 		- OPTML_DEBUG_MEDIA
-	ignoreErrors:
-		-
-			identifiers:
-				- includeOnce.fileNotFound
-				- include.fileNotFound
-				- requireOnce.fileNotFound
 includes:
 	- %currentWorkingDirectory%/vendor/szepeviktor/phpstan-wordpress/extension.neon
 	- %currentWorkingDirectory%/phpstan-baseline.neon
