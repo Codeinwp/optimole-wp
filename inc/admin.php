@@ -1834,6 +1834,12 @@ The root cause might be either a security plugin which blocks this feature or so
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1391-what-is-a-retina-image">',
 					'</a>'
 				),
+				'retina_scaling_warning' => sprintf(
+					/* translators: 1 is the starting anchor tag for "Image Scaling", 2 is the ending anchor tag */
+    				__( 'Retina optimization is disabled when %1$sImage Scaling%2$s is turned off. The retina feature requires the resizing functionality to detect high-density displays and deliver appropriately optimized images.', 'optimole-wp' ),
+					'<strong>',
+					'</strong>'
+				),
 				'enable_retina_title'                 => __( 'Retina Quality', 'optimole-wp' ),
 				'enable_limit_dimensions_desc'        => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */

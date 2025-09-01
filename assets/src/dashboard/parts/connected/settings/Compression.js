@@ -7,6 +7,8 @@ import ReactCompareImage from 'react-compare-image';
 
 import { rotateRight } from '@wordpress/icons';
 
+import Notice from '../../components/Notice';
+
 /**
  * WordPress dependencies.
  */
@@ -22,6 +24,7 @@ import {
 } from '@wordpress/components';
 
 import { useSelect } from '@wordpress/data';
+import { useEffect } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -61,6 +64,14 @@ const Compression = ({
 	const isBestFormatEnabled = 'disabled' !== settings[ 'best_format' ];
 	const compressionMode = settings[ 'compression_mode' ];
 	const isRetinaEnabled = 'disabled' !== settings[ 'retina_images' ];
+	const isScaleEnabled = 'disabled' === settings.scale;
+
+	useEffect( () => {
+		if ( ! isScaleEnabled && isRetinaEnabled ) {
+			updateOption( 'retina_images', false );
+		}
+	}, [ isScaleEnabled ]);
+
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
 		const data = { ...settings };
@@ -233,14 +244,20 @@ const Compression = ({
 						label={ optimoleDashboardApp.strings.options_strings.enable_retina_title }
 						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_retina_desc } } /> }
 						checked={ isRetinaEnabled }
-						disabled={ isLoading }
+						disabled={ isLoading || ! isScaleEnabled}
 						className={ classnames(
 							{
-								'is-disabled': isLoading
+								'is-disabled': isLoading || ! isScaleEnabled
 							}
 						) }
 						onChange={ value => updateOption( 'retina_images', value ) }
 					/>
+					{ ! isScaleEnabled && ! isLoading && (
+						<Notice
+							type="info"
+							text={ optimoleDashboardApp.strings.options_strings.retina_scaling_warning }
+						/>
+					)}
 					<hr className="my-8 border-grayish-blue"/>
 					<ToggleControl
 						label={ optimoleDashboardApp.strings.options_strings.enable_network_opt_title }
