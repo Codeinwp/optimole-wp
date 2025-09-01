@@ -1835,8 +1835,8 @@ The root cause might be either a security plugin which blocks this feature or so
 					'</a>'
 				),
 				'retina_scaling_warning' => sprintf(
-					/* translators: 1 is the starting anchor tag for "Image Scaling", 2 is the ending anchor tag */
-    				__( 'Retina optimization is disabled when %1$sImage Scaling%2$s is turned off. The retina feature requires the resizing functionality to detect high-density displays and deliver appropriately optimized images.', 'optimole-wp' ),
+				/* translators: 1 is the starting anchor tag for "Image Scaling", 2 is the ending anchor tag */
+					__( 'Retina optimization is disabled when %1$sImage Scaling%2$s is turned off. The retina feature requires the resizing functionality to detect high-density displays and deliver appropriately optimized images.', 'optimole-wp' ),
 					'<strong>',
 					'</strong>'
 				),
