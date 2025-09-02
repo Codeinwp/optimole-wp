@@ -24,24 +24,18 @@ class Optml_jetengine extends Optml_compatibility {
 	 * @return void
 	 */
 	public function register() {
-		add_action( 'jet-engine/listings/ajax/load-more', [ $this, 'setup_tag_replacer' ], PHP_INT_MIN, 1 );
-	}
-
-
-	/**
-	 * Setup the URL replacer for Load More ajax calls for "Listings Grid" block.
-	 *
-	 * The request is with "POST" method, so the usual checks in should_replace() will fail.
-	 *
-	 * @see ajax:jet_engine_ajax with action:listing_load_more
-	 *
-	 * @return void
-	 */
-	public function setup_tag_replacer() {
-		if ( did_action( 'optml_replacer_setup' ) ) {
-			return;
-		}
-		do_action( 'optml_replacer_setup' );
+		Optml_Url_Replacer::instance()->init();
+		add_filter( 
+			'jet-engine/ajax/listing_load_more/response',
+			function ( $response) {
+				if ( isset( $response['html'] ) && ! empty( $response['html'] ) ) {
+					$response['html'] = Optml_Main::instance()->manager->replace_content( $response['html'], true );
+				}
+				
+				return $response;
+			},
+			10,
+		);
 	}
 
 	/**
