@@ -25,13 +25,13 @@ class Optml_jetengine extends Optml_compatibility {
 	 */
 	public function register() {
 		Optml_Url_Replacer::instance()->init();
-		add_filter( 
+		add_filter(
 			'jet-engine/ajax/listing_load_more/response',
-			function ( $response) {
+			function ( $response ) {
 				if ( isset( $response['html'] ) && ! empty( $response['html'] ) ) {
 					$response['html'] = Optml_Main::instance()->manager->replace_content( $response['html'], true );
 				}
-				
+
 				return $response;
 			},
 			10,
