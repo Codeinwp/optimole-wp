@@ -162,10 +162,6 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 
 	const updateRadioBoxValue = value => {
 		const offloadEnabled = 'offload' === value;
-		const nextSettings = { ...settings };
-		nextSettings['offload_media'] = offloadEnabled ? 'enabled' : 'disabled';
-		setSettings( nextSettings );
-		setCanSave( true );
 
 		if ( offloadEnabled ) {
 			setModal( show_exceed_plan_quota_notice ? MODAL_STATE_EXCEED_PLAN_QUOTA_NOTICE : MODAL_STATE_OFFLOAD );
@@ -177,10 +173,16 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 	};
 
 	const getModalProps = ( type ) => {
+		const nextSettings = { ...settings };
+
 		const props = {
 			[MODAL_STATE_OFFLOAD]: {
 				icon: offload,
 				onConfirm: () => {
+					nextSettings['offload_media'] = 'enabled';
+					setSettings( nextSettings );
+					setCanSave( true );
+
 					onOffloadMedia();
 					setModal( null );
 				},
@@ -193,6 +195,10 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 			[MODAL_STATE_ROLLBACK]: {
 				icon: rollbackIcon,
 				onConfirm: () => {
+					nextSettings['offload_media'] = 'disabled';
+					setSettings( nextSettings );
+					setCanSave( true );
+
 					onRollbackdMedia();
 					setModal( null );
 				},
