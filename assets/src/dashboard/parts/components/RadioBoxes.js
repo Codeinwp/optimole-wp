@@ -3,7 +3,6 @@ import classNames from 'classnames';
 export default function RadioBoxes({ options, value, onChange, label, disabled = false, className }) {
 
 	const handleClick = ( e ) => {
-		console.log( e );
 		onChange( e.target.value );
 	};
 
