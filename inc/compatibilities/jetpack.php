@@ -27,21 +27,25 @@ class Optml_jetpack extends Optml_compatibility {
 		add_filter(
 			'jetpack_sync_before_send_jetpack_published_post',
 			function ( $data ) {
-				if ( is_array( $data ) ) {
-					foreach ( $data as $key => &$value ) {
-						if ( $value instanceof \WP_Post ) {
-							if ( ! empty( $value->post_content ) ) {
-								$value->post_content = Optml_Main::instance()->manager->replace_content( $value->post_content );
-							}
+				if ( ! is_array( $data ) ) {
+					return $data;
+				}
 
-							if ( ! empty( $value->post_excerpt ) ) {
-								$value->post_excerpt = Optml_Main::instance()->manager->replace_content( $value->post_excerpt );
-							}
+				foreach ( $data as &$value ) {
+					if ( ! $value instanceof \WP_Post ) {
+						continue;
+					}
 
-							if ( isset( $value->featured_image ) && ! empty( $value->featured_image ) ) {
-								$value->featured_image = apply_filters( 'optml_content_url', $value->featured_image );
-							}
-						}
+					if ( ! empty( $value->post_content ) ) {
+						$value->post_content = Optml_Main::instance()->manager->replace_content( $value->post_content );
+					}
+
+					if ( ! empty( $value->post_excerpt ) ) {
+						$value->post_excerpt = Optml_Main::instance()->manager->replace_content( $value->post_excerpt );
+					}
+
+					if ( isset( $value->featured_image ) && ! empty( $value->featured_image ) ) {
+						$value->featured_image = apply_filters( 'optml_content_url', $value->featured_image );
 					}
 				}
 
