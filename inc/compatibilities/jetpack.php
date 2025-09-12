@@ -27,8 +27,6 @@ class Optml_jetpack extends Optml_compatibility {
 		add_filter(
 			'jetpack_sync_before_send_jetpack_published_post',
 			function ( $data ) {
-				Optml_Url_Replacer::instance()->init();
-
 				if ( is_array( $data ) ) {
 					foreach ( $data as $key => &$value ) {
 						if ( $value instanceof \WP_Post ) {
@@ -43,8 +41,6 @@ class Optml_jetpack extends Optml_compatibility {
 							if ( isset( $value->featured_image ) && ! empty( $value->featured_image ) ) {
 								$value->featured_image = apply_filters( 'optml_content_url', $value->featured_image );
 							}
-
-							$data[ $key ] = $value;
 						}
 					}
 				}
