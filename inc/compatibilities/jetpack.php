@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Class Optml_jetengine
+ * Class Optml_jetpack
  *
- * @reason Add support for JetEngine plugin custom endpoints.
+ * @reason Add support for Jetpack plugin custom endpoints.
  */
 class Optml_jetpack extends Optml_compatibility {
 
