@@ -18,42 +18,42 @@ class Optml_jetpack extends Optml_compatibility {
 		return is_plugin_active( 'jetpack/jetpack.php' );
 	}
 
-    /**
-     * Register integration details.
-     *
-     * @return void
-     */
-    public function register() {
-    	add_filter(
-    		'jetpack_sync_before_send_jetpack_published_post',
-    		function ( $data ) {
-    		    Optml_Url_Replacer::instance()->init();
-    			
-    			if ( is_array( $data ) ) {
-    				foreach ( $data as $key => &$value ) {
-    					if ( $value instanceof \WP_Post ) {
-    						if ( ! empty( $value->post_content ) ) {
-    							$value->post_content = Optml_Main::instance()->manager->replace_content( $value->post_content );
-    						}
-    						
-    						if ( ! empty( $value->post_excerpt ) ) {
-    							$value->post_excerpt = Optml_Main::instance()->manager->replace_content( $value->post_excerpt );
-    						}
-    						
-    						if ( isset( $value->featured_image ) && ! empty( $value->featured_image ) ) {
-    							$value->featured_image = apply_filters( 'optml_content_url', $value->featured_image );
-    						}
-    						
-    						$data[ $key ] = $value;
-    					}
-    				}
-    			}
-    			
-    			return $data;
-    		},
-    		10
-    	);
-    }
+	/**
+	 * Register integration details.
+	 *
+	 * @return void
+	 */
+	public function register() {
+		add_filter(
+			'jetpack_sync_before_send_jetpack_published_post',
+			function ( $data ) {
+				Optml_Url_Replacer::instance()->init();
+
+				if ( is_array( $data ) ) {
+					foreach ( $data as $key => &$value ) {
+						if ( $value instanceof \WP_Post ) {
+							if ( ! empty( $value->post_content ) ) {
+								$value->post_content = Optml_Main::instance()->manager->replace_content( $value->post_content );
+							}
+
+							if ( ! empty( $value->post_excerpt ) ) {
+								$value->post_excerpt = Optml_Main::instance()->manager->replace_content( $value->post_excerpt );
+							}
+
+							if ( isset( $value->featured_image ) && ! empty( $value->featured_image ) ) {
+								$value->featured_image = apply_filters( 'optml_content_url', $value->featured_image );
+							}
+
+							$data[ $key ] = $value;
+						}
+					}
+				}
+
+				return $data;
+			},
+			10
+		);
+	}
 
 	/**
 	 * Should we early load the compatibility?
