@@ -25,8 +25,8 @@ import { optmlMain } from './modules/main.js';
    * Initialize the image detection process
    */
   function initializeOptimizer() {
-    if (optmlMain && optmlMain.findAboveTheFoldImages) {
-      optmlMain.findAboveTheFoldImages();
+    if (optmlMain && optmlMain.runProfiling) {
+      optmlMain.runProfiling();
     } else {
       console.error('[Optimole] Main module not available');
     }

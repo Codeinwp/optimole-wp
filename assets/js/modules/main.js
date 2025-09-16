@@ -17,10 +17,10 @@ import { optmlImageDetector } from './image-detector.js';
  */
 export const optmlMain = {
   /**
-   * Find and log all above-the-fold images with data-opt-id
+   * Run the page profiling process to detect images, background selectors, and LCP element
    * @returns {Promise<Object|null>} Detection results or null
    */
-  findAboveTheFoldImages: async function() {
+  runProfiling: async function() {
     // Check for zero-dimension viewports and hidden pages
     const pageConditions = optmlDomUtils.checkPageConditions();
 
