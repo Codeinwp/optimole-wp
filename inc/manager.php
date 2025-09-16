@@ -100,6 +100,8 @@ final class Optml_Manager {
 		'otter_blocks',
 		'spectra',
 		'wpsp',
+		'jetengine',
+		'jetpack',
 	];
 	/**
 	 * The current state of the buffer.
