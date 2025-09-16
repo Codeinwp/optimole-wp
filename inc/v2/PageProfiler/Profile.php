@@ -47,6 +47,13 @@ class Profile {
 	const DEVICE_TYPE_DESKTOP = 2;
 
 	/**
+	 * Device type constant for global devices.
+	 *
+	 * @var int
+	 */
+	const DEVICE_TYPE_GLOBAL = -1;
+
+	/**
 	 * Stores the current profile ID being processed.
 	 *
 	 * @var string|null
@@ -163,10 +170,10 @@ class Profile {
 	 *                                                                   'bgSelector' is the selector,
 	 *                                                                   'bgUrls' is an array of URLs
 	 *                                                                   'type' is the type of the LCP element.
-	 *
+	 * @param array<int, array{w: int, h: int}>                                                   $missing_dimensions Array of missing dimensions.
 	 * @return void
 	 */
-	public function store( string $id, string $device_type, array $above_fold_images, $af_bg_selectors = [], $lcp_data = [] ) {
+	public function store( string $id, string $device_type, array $above_fold_images, $af_bg_selectors = [], $lcp_data = [], $missing_dimensions = [] ) {
 		if ( ! in_array( (int) $device_type, self::get_active_devices(), true ) ) {
 			return;
 		}
@@ -174,6 +181,13 @@ class Profile {
 		// store $above_fold_images as image_id => true to faster access.
 		$above_fold_images = array_fill_keys( $above_fold_images, true );
 
+		if ( ! empty( $missing_dimensions ) ) {
+			// Missing dimensions are not device specific, so we store them in on a global profile scope.
+			$this->storage->store(
+				$id,
+				[ 'm' => $missing_dimensions ]
+			);
+		}
 		$this->storage->store(
 			$id . '_' . $device_type,
 			[
@@ -182,6 +196,17 @@ class Profile {
 				'lcp' => $lcp_data,
 			]
 		);
+	}
+
+	/**
+	 * Gets the missing dimensions for a specific profile ID.
+	 *
+	 * @param int $image_id The image ID to get the missing dimensions for.
+	 *
+	 * @return array{w: int, h: int}|array{} The missing dimensions.
+	 */
+	public function get_missing_dimensions( int $image_id ): array {
+		return self::$current_profile_data[ self::DEVICE_TYPE_GLOBAL ]['m'][ $image_id ] ?? [];
 	}
 
 	/**
@@ -277,6 +302,7 @@ class Profile {
 		self::$current_profile_data = [
 			self::DEVICE_TYPE_MOBILE  => $this->storage->get( self::get_current_profile_id() . '_' . self::DEVICE_TYPE_MOBILE ),
 			self::DEVICE_TYPE_DESKTOP => $this->storage->get( self::get_current_profile_id() . '_' . self::DEVICE_TYPE_DESKTOP ),
+			self::DEVICE_TYPE_GLOBAL  => $this->storage->get( self::get_current_profile_id() ),
 		];
 		if ( OPTML_DEBUG ) {
 			do_action( 'optml_log', 'Profile data: ' . print_r( self::$current_profile_data, true ) . ' for id: ' . self::get_current_profile_id() );

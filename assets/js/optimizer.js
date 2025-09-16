@@ -442,8 +442,15 @@
       threshold: 0.1 // Consider element visible when 10% is in viewport
     });
     
+    // Get all images with data-opt-id for processing
+    const allOptimoleImages = document.querySelectorAll('img[data-opt-id]');
+    
+    // Detect images with missing dimensions
+    const imageDimensionsData = detectImageDimensions(allOptimoleImages);
+    optmlLogger.info('Images with missing dimensions found:', Object.keys(imageDimensionsData).length);
+    
     // Observe all images with data-opt-id
-    document.querySelectorAll('img[data-opt-id]').forEach(img => {
+    allOptimoleImages.forEach(img => {
       const id = parseInt(img.getAttribute('data-opt-id'), 10);
       if (isNaN(id)) {
         optmlLogger.warn('Invalid data-opt-id:', img.getAttribute('data-opt-id'));
@@ -556,8 +563,8 @@
     optmlLogger.info('Above the fold images with data-opt-id:', aboveTheFoldImages);
     optmlLogger.info('Background selectors:', selectorMap);
     
-    // Prepare and send data if we found any images or background selectors
-    if (aboveTheFoldImages.length > 0 || selectorMap.size > 0 || lcpData.imageId || lcpData.bgSelector) {
+    // Prepare and send data if we found any images, background selectors, or dimension data
+    if (aboveTheFoldImages.length > 0 || selectorMap.size > 0 || lcpData.imageId || lcpData.bgSelector || Object.keys(imageDimensionsData).length > 0) {
       // Convert the Map to a plain object for the API
       const processedBgSelectors = {};
       
@@ -592,7 +599,8 @@
           i: lcpData.imageId,
           s: lcpData.bgSelector, 
           u: lcpData.bgUrls   
-        }
+        },
+        m: imageDimensionsData // m for missing dimensions
       };
       
       optmlLogger.info('Sending data with LCP information:', { 
@@ -601,11 +609,12 @@
         lcpBgUrls: lcpData.bgUrls
       });
       optmlLogger.info('Sending background selectors:', processedBgSelectors);
+      optmlLogger.info('Sending dimension data for images:', imageDimensionsData);
       
       sendToRestApi(data);
       return data;
     } else {
-      optmlLogger.info('No above-the-fold images, background elements, or LCP elements found');
+      optmlLogger.info('No above-the-fold images, background elements, LCP elements, or dimension data found');
       return null;
     }
   }
@@ -623,6 +632,45 @@
     }
     
     return urls.length > 0 ? urls : null;
+  }
+
+  // Function to detect images with missing width/height attributes and calculate their dimensions
+  function detectImageDimensions(images) {
+    const imageDimensions = {};
+    
+    images.forEach(img => {
+      try {
+        const id = parseInt(img.getAttribute('data-opt-id'), 10);
+        if (isNaN(id)) return;
+        
+        const hasWidth = img.hasAttribute('width') && img.getAttribute('width') !== '';
+        const hasHeight = img.hasAttribute('height') && img.getAttribute('height') !== '';
+        
+        // Only process images that are missing width or height attributes
+        if (!hasWidth || !hasHeight) {
+          const naturalWidth = img.naturalWidth || 0;
+          const naturalHeight = img.naturalHeight || 0;
+          
+          // Only add if we have valid natural dimensions
+          if (naturalWidth > 0 && naturalHeight > 0) {
+            imageDimensions[id] = {
+              w: naturalWidth,
+              h: naturalHeight
+            };
+            
+            optmlLogger.info(`Image ${id} missing dimensions:`, {
+              missingWidth: !hasWidth,
+              missingHeight: !hasHeight,
+              naturalDimensions: `${naturalWidth}x${naturalHeight}`
+            });
+          }
+        }
+      } catch (error) {
+        optmlLogger.error('Error detecting dimensions for image:', img, error);
+      }
+    });
+    
+    return imageDimensions;
   }
 
   // Ensure the DOM is loaded before running detection

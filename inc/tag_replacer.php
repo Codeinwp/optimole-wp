@@ -279,7 +279,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				],
 				$image_tag
 			);
-
+			$image_id = $this->get_id_by_url( $images['img_url'][ $index ] );
 			// If the image is in header or has a class excluded from lazyload or is an excluded gif, we need to do the regular replace.
 			if ( $images['in_no_script'][ $index ] || $should_lazy_gif === false ) {
 
@@ -288,15 +288,26 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$image_tag = apply_filters( 'optml_tag_replace', $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
 			}
 			if ( strpos( $image_tag, 'data-opt-id=' ) === false ) {
-				$image_tag = preg_replace( '/<img/im', '<img data-opt-id=' . $this->get_id_by_url( $images['img_url'][ $index ] ) . ' ', $image_tag );
+				$image_tag = preg_replace( '/<img/im', '<img data-opt-id=' . $image_id . ' ', $image_tag );
 			}
 
-			if ( $priority = Links::is_preloaded( $this->get_id_by_url( $images['img_url'][ $index ] ) ) ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
+			if ( $priority = Links::is_preloaded( $image_id ) ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
 				Links::preload_tag( $image_tag, $priority );
 			}
 
 			if ( strpos( $image_tag, 'decoding=' ) === false ) {
 				$image_tag = str_replace( 'data-opt-id=', 'decoding=async data-opt-id=', $image_tag );
+			}
+			if ( strpos( $image_tag, 'width=' ) === false || strpos( $image_tag, 'height=' ) === false ) {
+				$missing_dimensions = Optml_Manager::instance()->page_profiler->get_missing_dimensions( $image_id );
+				if ( ! empty( $missing_dimensions ) ) {
+					if ( strpos( $image_tag, 'width=' ) === false ) {
+						$image_tag = str_replace( 'data-opt-id=', 'width="' . $missing_dimensions['w'] . '" data-opt-id=', $image_tag );
+					}
+					if ( strpos( $image_tag, 'height=' ) === false ) {
+						$image_tag = str_replace( 'data-opt-id=', 'height="' . $missing_dimensions['h'] . '" data-opt-id=', $image_tag );
+					}
+				}
 			}
 			$content = str_replace( $images['img_tag'][ $index ], $image_tag, $content );
 		}

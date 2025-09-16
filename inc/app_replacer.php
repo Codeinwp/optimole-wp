@@ -685,7 +685,7 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @return int
 	 */
-	protected function get_id_by_url( $url ) {
+	public function get_id_by_url( $url ) {
 		$url = $this->get_unoptimized_url( $url );
 		srand( crc32( $url ) );
 		$random_id = rand();
