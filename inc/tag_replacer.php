@@ -199,7 +199,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		$image_sizes = self::image_sizes();
 		$sizes2crop  = self::size_to_crop();
 		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', 'process_image_tags: ' . print_r( $images, true ) );
+			do_action( 'optml_log', 'Images tags to process: ' . print_r( $images, true ) );
 		}
 		foreach ( $images[0] as $index => $tag ) {
 			$width     = $height = false;

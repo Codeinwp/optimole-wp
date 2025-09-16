@@ -420,6 +420,9 @@ final class Optml_Manager {
 		if ( defined( 'REST_REQUEST' ) && REST_REQUEST && is_user_logged_in() && ( apply_filters( 'optml_force_replacement', false ) !== true ) ) {
 			return $html;
 		}
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', 'in Viewport: ' . var_export( $partial, true ) . wp_debug_backtrace_summary() );
+		}
 		if ( $this->settings->is_lazyload_type_viewport() && ! $partial ) {
 			$profile_id = Profile::generate_id( $html );
 			// We disable the optimizer for logged in users.
@@ -594,11 +597,14 @@ final class Optml_Manager {
 	public static function parse_images_from_html( $content ) {
 		$images = [];
 
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', 'Content to parse images from: ' . $content );
+		}
 		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ismu';
 
 		if ( preg_match_all( $regex, $content, $images, PREG_OFFSET_CAPTURE ) ) {
 			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', 'images parased: ' . print_r( $images, true ) );
+				do_action( 'optml_log', 'Image tags parsed: ' . print_r( $images, true ) );
 			}
 			foreach ( $images as $key => $unused ) {
 				// Simplify the output as much as possible, mostly for confirming test results.
@@ -646,8 +652,7 @@ final class Optml_Manager {
 	public function process_urls_from_content( $html ) {
 		$extracted_urls = $this->extract_urls_from_content( $html );
 		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', 'matched urls' );
-			do_action( 'optml_log', $extracted_urls );
+			do_action( 'optml_log', 'Extracted image urls from content: ' . print_r( $extracted_urls, true ) );
 		}
 		return $this->do_url_replacement( $html, $extracted_urls );
 	}
@@ -759,7 +764,20 @@ final class Optml_Manager {
 		remove_filter( 'the_content', [ $this, 'process_images_from_content' ], PHP_INT_MAX );
 
 		ob_start(
-			[ &$this, 'replace_content' ]
+			function ( $content ) {
+					/*
+					* Wrap the call to replace_content() so that PHP’s output-buffering system
+					* does not pass its own second argument ($phase bitmask) to our method.
+					*
+					* replace_content() expects the second parameter to be a boolean $partial,
+					* indicating whether the content is a partial replacement (e.g. for
+					* viewport lazy-load) or a full page. If PHP’s $phase integer is passed
+					* directly, it would be misinterpreted as $partial and break the logic.
+					*
+					* This closure filters the call, forwarding only the captured HTML buffer.
+					*/
+				return $this->replace_content( $content );
+			}
 		);
 	}
 
