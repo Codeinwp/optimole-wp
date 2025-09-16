@@ -10,7 +10,7 @@ import Lazyload from './Lazyload';
 import Exclusions from './Exclusions';
 import OffloadMedia from './OffloadMedia';
 import CloudLibrary from './CloudLibrary';
-import { sampleRate, saveSettings } from '../../../utils/api';
+import { saveSettings } from '../../../utils/api';
 import { toggleDamSidebarLink } from '../../../utils/helpers';
 
 const Settings = ({
@@ -59,18 +59,7 @@ const Settings = ({
 		localStorage.setItem( 'optimole_settings_visits', visits ? parseInt( visits ) + 1 : 1 );
 	}, [ tab ]);
 
-	const loadSample = () => {
-		if ( ! showSample ) {
-			setIsSampleLoading( true );
-
-			sampleRate(
-				{
-					quality: settings.quality
-				},
-				() => setIsSampleLoading( false )
-			);
-		}
-
+	const toggleShowSample = () => {
 		setShowSample( ! showSample );
 	};
 
@@ -165,7 +154,7 @@ const Settings = ({
 						<Button
 							variant="default"
 							disabled={ isLoading }
-							onClick={ loadSample }
+							onClick={ toggleShowSample }
 						>
 							{ optimoleDashboardApp.strings.options_strings.view_sample_image }
 						</Button>
