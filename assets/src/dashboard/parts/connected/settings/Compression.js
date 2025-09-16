@@ -22,6 +22,7 @@ import {
 } from '@wordpress/components';
 
 import { useSelect } from '@wordpress/data';
+import { useEffect } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -46,7 +47,6 @@ const Compression = ({
 			getSampleRate,
 			isLoading
 		} = select( 'optimole' );
-
 		return {
 			sampleImages: getSampleRate(),
 			isLoading: isLoading()
@@ -167,6 +167,13 @@ const Compression = ({
 		data.compression_mode = value;
 		setSettings( data );
 	};
+
+	useEffect( () => {
+		if ( showSample ) {
+			loadSample();
+		}
+	}, [ showSample ]);
+
 	return (
 		<>
 
