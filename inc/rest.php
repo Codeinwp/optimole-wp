@@ -1025,7 +1025,7 @@ class Optml_Rest {
 		}
 
 		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', 'Storing profile data: ' . $url . ' - ' . $device_type . ' - ' . print_r( $above_fold_images, true ) . print_r( $sanitized_selectors, true ) . print_r( $sanitized_lcp_data, true ) . print_r( $sanitized_missing_dimensions, true ) );
+			do_action( 'optml_log', 'Storing profile data: ' . $url . ' - ' . $device_type . ' - ' . print_r( $above_fold_images, true ) . print_r( $sanitized_selectors, true ) . print_r( $sanitized_lcp_data, true ) . print_r( $sanitized_missing_dimensions, true ) . print_r( $sanitized_missing_srcsets, true ) );
 		}
 		$profile = new Profile();
 		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data, $sanitized_missing_dimensions, $sanitized_missing_srcsets );

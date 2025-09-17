@@ -420,9 +420,6 @@ final class Optml_Manager {
 		if ( defined( 'REST_REQUEST' ) && REST_REQUEST && is_user_logged_in() && ( apply_filters( 'optml_force_replacement', false ) !== true ) ) {
 			return $html;
 		}
-		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', 'in Viewport: ' . var_export( $partial, true ) . wp_debug_backtrace_summary() );
-		}
 		if ( $this->settings->is_lazyload_type_viewport() && ! $partial ) {
 			$profile_id = Profile::generate_id( $html );
 			// We disable the optimizer for logged in users.

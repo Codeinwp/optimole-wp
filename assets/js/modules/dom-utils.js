@@ -158,5 +158,24 @@ export const optmlDomUtils = {
           setTimeout(resolve, 200);
         }
       });
+    },
+
+    /**
+     * Wait for images in viewport to load
+     * @param {number} delay - Additional delay in milliseconds (default: 1000)
+     * @returns {Promise} Promise that resolves after images are loaded
+     */
+    waitForViewportImages: function(delay = 1000) {
+      return new Promise(resolve => {
+        // Wait for page load first
+        if (document.readyState !== 'complete') {
+          window.addEventListener('load', () => {
+            setTimeout(resolve, delay);
+          }, { once: true });
+        } else {
+          // Page is already loaded, add delay for images to load
+          setTimeout(resolve, delay);
+        }
+      });
     }
 };

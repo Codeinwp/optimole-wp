@@ -174,7 +174,7 @@ class Profile {
 	 * @param array<int, array{w: int, h: int, d: int, s: string, b: int}>                        $missing_srcsets Array of missing srcsets.
 	 * @return void
 	 */
-	public function store( string $id, string $device_type, array $above_fold_images, $af_bg_selectors = [], $lcp_data = [], $missing_dimensions = [] ) {
+	public function store( string $id, string $device_type, array $above_fold_images, $af_bg_selectors = [], $lcp_data = [], $missing_dimensions = [], $missing_srcsets = [] ) {
 		if ( ! in_array( (int) $device_type, self::get_active_devices(), true ) ) {
 			return;
 		}

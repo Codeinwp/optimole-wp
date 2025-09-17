@@ -72,17 +72,73 @@ export const optmlSrcsetDetector = {
   },
 
   /**
+   * Wait for images to load and get their natural dimensions
+   * @param {NodeList} images - Collection of image elements
+   * @returns {Promise} Promise that resolves when all images are loaded
+   */
+  _waitForImagesToLoad: function(images) {
+    const imagePromises = Array.from(images).map(img => {
+      return new Promise((resolve) => {
+        // If image is already loaded
+        if (img.complete && img.naturalWidth > 0) {
+          resolve(img);
+          return;
+        }
+        
+        // Wait for image to load
+        const onLoad = () => {
+          img.removeEventListener('load', onLoad);
+          img.removeEventListener('error', onError);
+          resolve(img);
+        };
+        
+        const onError = () => {
+          img.removeEventListener('load', onLoad);
+          img.removeEventListener('error', onError);
+          optmlLogger.warn('Image failed to load:', img.src);
+          resolve(img); // Still resolve to continue processing
+        };
+        
+        img.addEventListener('load', onLoad);
+        img.addEventListener('error', onError);
+        
+        // Timeout after 5 seconds
+        setTimeout(() => {
+          img.removeEventListener('load', onLoad);
+          img.removeEventListener('error', onError);
+          optmlLogger.warn('Image load timeout:', img.src);
+          resolve(img);
+        }, 5000);
+      });
+    });
+    
+    return Promise.all(imagePromises);
+  },
+
+  /**
    * Detect all Optimole images that are NOT using lazyload (no data-opt-src)
    * and calculate missing srcset variations
-   * @returns {Object} Object mapping image IDs to their required srcset data
+   * @returns {Promise<Object>} Promise that resolves to object mapping image IDs to their required srcset data
    */
-  detectMissingSrcsets: function() {
+  detectMissingSrcsets: async function() {
     const missingSrcsetData = {};
     
     // Find all Optimole images
     const optimoleImages = document.querySelectorAll('img[data-opt-id]');
     
-    optimoleImages.forEach(img => {
+    if (optimoleImages.length === 0) {
+      optmlLogger.info('No Optimole images found for srcset analysis');
+      return missingSrcsetData;
+    }
+    
+    optmlLogger.info(`Found ${optimoleImages.length} Optimole images, waiting for them to load...`);
+    
+    // Wait for all images to load to get accurate natural dimensions
+    const loadedImages = await this._waitForImagesToLoad(optimoleImages);
+    
+    optmlLogger.info(`Loaded ${loadedImages.length} images, analyzing srcset requirements...`);
+    
+    loadedImages.forEach(img => {
       try {
         const imageId = parseInt(img.getAttribute('data-opt-id'), 10);
         if (isNaN(imageId)) return;

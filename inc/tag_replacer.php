@@ -410,7 +410,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		// Add missing srcset attributes based on measurements from JavaScript module
 		$missing_srcsets = Optml_Manager::instance()->page_profiler->get_missing_srcsets( $image_id );
 		if ( ! empty( $missing_srcsets ) ) {
-			$new_tag = $this->add_missing_srcset_attributes( $new_tag, $missing_srcsets, $original_url, $is_slashed );
+			$new_tag = $this->add_missing_srcset_attributes( $new_tag, $missing_srcsets, $new_url, $is_slashed );
 		}
 		
 		if ( $this->settings->get( 'lazyload' ) === 'enabled' && $this->settings->get( 'native_lazyload' ) === 'enabled'
@@ -453,12 +453,15 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 *
 	 * @param string $tag The image tag.
 	 * @param array  $missing_srcsets Array of missing srcset data from JavaScript module.
-	 * @param string $original_url The original image URL.
+	 * @param string $new_url The new image URL.
 	 * @param bool   $is_slashed Whether the URL needs to be slashed.
 	 *
 	 * @return string The modified image tag with enhanced srcset attributes.
 	 */
-	public function add_missing_srcset_attributes( $tag, $missing_srcsets, $original_url, $is_slashed = false ) {
+	public function add_missing_srcset_attributes( $tag, $missing_srcsets, $new_url, $is_slashed = false ) {
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', 'add_missing_srcset_attributes: ' . $new_url . ' ' . print_r( $missing_srcsets, true ) );
+		}
 		if ( empty( $missing_srcsets ) || ! is_array( $missing_srcsets ) ) {
 			return $tag;
 		}
@@ -488,7 +491,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$breakpoint = isset( $srcset_data['b'] ) ? (int) $srcset_data['b'] : 0;
 
 			// Generate optimized URL for this size
-			$optimized_url = $this->change_url_for_size( $original_url, $width, $height, $dpr );
+			$optimized_url = $this->change_url_for_size( $new_url, $width, $height, $dpr );
 			
 			if ( $optimized_url ) {
 				$new_srcset_entries[] = $optimized_url . ' ' . $descriptor;
@@ -558,7 +561,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		if ( OPTML_DEBUG ) {
 			$action = $has_existing_srcset ? 'Enhanced' : 'Added';
-			do_action( 'optml_log', $action . ' srcset for image: ' . $original_url . ' with ' . count( $new_srcset_entries ) . ' new entries' );
+			do_action( 'optml_log', $action . ' srcset for image: ' . $new_url . ' with ' . count( $new_srcset_entries ) . ' new entries' );
 		}
 
 		return $tag;
@@ -688,9 +691,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function change_url_for_size( $original_url, $width, $height, $dpr = 1 ) {
 		// Assume w and h are always present - just replace them
+		// Updated regex to match w:auto, w:123, h:auto, h:456, etc.
 		$replacements = [
-			'/w:[^\/]+/' => 'w:' . $width,
-			'/h:[^\/]+/' => 'h:' . $height,
+			'/w:(?:auto|\d+)/' => 'w:' . $width,
+			'/h:(?:auto|\d+)/' => 'h:' . $height,
 		];
 		
 		// Handle DPR - replace if exists, add after w: if missing
@@ -698,8 +702,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			if ( strpos( $original_url, 'dpr:' ) !== false ) {
 				$replacements['/dpr:\d+/'] = 'dpr:' . $dpr;
 			} else {
-				// Add DPR after width parameter
-				$replacements['/(w:[^\/]+)/'] = '$1/dpr:' . $dpr;
+				// Add DPR after width parameter - use the same pattern as width replacement
+				$replacements['/(w:(?:auto|\d+))/'] = '$1/dpr:' . $dpr;
 			}
 		} else {
 			$replacements['/dpr:\d+\//'] = '';

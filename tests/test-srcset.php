@@ -85,6 +85,30 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test DPR addition with auto values
+	 */
+	public function test_change_url_for_size_dpr_with_auto_values() {
+		$tag_replacer = new Optml_Tag_Replacer();
+		
+		$original_url = 'https://cdn.optimole.com/w:auto/h:auto/q:auto/f:best/image.jpg';
+		$result = $tag_replacer->change_url_for_size( $original_url, 400, 300, 2 );
+		
+		$this->assertEquals( 'https://cdn.optimole.com/w:400/dpr:2/h:300/q:auto/f:best/image.jpg', $result );
+	}
+
+	/**
+	 * Test mixed auto and numeric values
+	 */
+	public function test_change_url_for_size_mixed_auto_numeric() {
+		$tag_replacer = new Optml_Tag_Replacer();
+		
+		$original_url = 'https://cdn.optimole.com/w:auto/h:600/q:auto/f:best/image.jpg';
+		$result = $tag_replacer->change_url_for_size( $original_url, 500, 400, 1 );
+		
+		$this->assertEquals( 'https://cdn.optimole.com/w:500/h:400/q:auto/f:best/image.jpg', $result );
+	}
+
+	/**
 	 * Test add_missing_srcset_attributes with no existing srcset
 	 */
 	public function test_add_missing_srcset_attributes_no_existing() {

@@ -65,6 +65,11 @@ export const optmlMain = {
       optmlLogger.info('Page fully loaded, proceeding with detection');
     }
 
+    // Wait for images in viewport to load
+    optmlLogger.info('Waiting for viewport images to load...');
+    await optmlDomUtils.waitForViewportImages(1500); // 1.5 second delay for images
+    optmlLogger.info('Viewport images loaded, proceeding with detection');
+
     // Wait for browser idle time to run detection
     await optmlDomUtils.waitForIdleTime();
 
@@ -107,7 +112,7 @@ export const optmlMain = {
     optmlLogger.info('Images with missing dimensions found:', Object.keys(imageDimensionsData).length);
     
     // Detect images requiring srcset variations (non-lazyload images)
-    const srcsetData = optmlSrcsetDetector.detectMissingSrcsets();
+    const srcsetData = await optmlSrcsetDetector.detectMissingSrcsets();
     
     optmlLogger.info('Images requiring srcset variations found:', Object.keys(srcsetData).length);
     
