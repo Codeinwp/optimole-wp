@@ -280,6 +280,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return $new_tag;
 		}
 
+		//we remove the loading attribute if it exists with strpos
+		$new_tag = preg_replace( '/loading=(["\'])[^"\']*\1/i', '', $new_tag );
+
+
+
+
 		$should_ignore_rescale = ! $this->is_valid_mimetype_from_url( $original_url, [ 'gif' => true, 'svg' => true ] );
 
 		if ( ! self::$is_lazyload_placeholder && ! $should_ignore_rescale ) {

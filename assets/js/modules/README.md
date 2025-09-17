@@ -81,6 +81,29 @@ This directory contains the modular JavaScript components for the Optimole image
   - Optimole image observation (`data-opt-id` attributes)
   - Cleanup utilities for temporary attributes
 
+#### `srcset-detector.js`
+- **Purpose**: Srcset analysis and missing variation detection for eligible images
+- **Exports**: `optmlSrcsetDetector` object
+- **Key Features**:
+  - Smart image detection with improved skip logic:
+    - Includes images without `data-opt-src` (non-lazyload images)
+    - Includes images with `data-opt-src` AND `data-opt-lazy-loaded` (completed lazyload)
+    - Skips images with only `data-opt-src` (pending lazyload)
+  - Calculates required srcset variations using comprehensive size ranges:
+    - Mobile range: 200w-500w (50w steps) for dense mobile coverage
+    - Tablet range: 500w-800w (100w steps) for tablet devices
+    - Desktop range: 800w-1200w (200w steps) for desktop screens
+    - High-res range: 1200w-1600w (200w steps) with strategic 2x DPR
+  - Configurable generation settings:
+    - `widthStepSize`: Step size for width variations (default: 100px)
+    - `minSize`: Minimum image size to consider (default: 200px)
+    - `maxVariations`: Maximum srcset variations per image (default: 8)
+    - `sizeTolerance`: Tolerance for existing sizes (default: 50px)
+  - Analyzes existing srcset attributes to identify missing sizes
+  - **Ultra-compact API payload**: Sends only essential fields with short names (w, h, d, s, b)
+  - **Full logging**: Complete analysis data available in console logs for debugging
+  - Smart selection from dense size grid for optimal responsive coverage
+
 #### `main.js`
 - **Purpose**: Main orchestrator coordinating all functionality
 - **Exports**: `optmlMain` object

@@ -994,6 +994,19 @@ class Optml_Rest {
 				$sanitized_missing_dimensions[ intval( $id ) ] = [ 'w' => intval( $dimension['w'] ), 'h' => intval( $dimension['h'] ) ];
 			}
 		}
+		$missing_srcsets = $request->get_param( 's' );
+		$sanitized_missing_srcsets = [];
+		if ( ! empty( $missing_srcsets ) ) {
+			foreach ( $missing_srcsets as $id => $srcset ) {
+				foreach ( $srcset as $size ) {
+					if(!isset($size['w'], $size['h'], $size['d'], $size['s'], $size['b'])) {
+						continue;
+					}
+					$sanitized_missing_srcsets[ intval( $id ) ][ intval( $size['w'] ) ] = [ 'h' => intval( $size['h'] ), 'd' => intval( $size['d'] ), 's' => sanitize_text_field( $size['s'] ), 'b' => intval( $size['b'] ) ];
+				}
+				$sanitized_missing_srcsets[ intval( $id ) ] = $srcset;
+			}
+		}
 		$sanitized_lcp_data = [];
 		if ( ! empty( $lcp_data ) ) {
 			$sanitized_lcp_data['imageId'] = sanitize_text_field( $lcp_data['i'] ?? '' );
@@ -1015,7 +1028,7 @@ class Optml_Rest {
 			do_action( 'optml_log', 'Storing profile data: ' . $url . ' - ' . $device_type . ' - ' . print_r( $above_fold_images, true ) . print_r( $sanitized_selectors, true ) . print_r( $sanitized_lcp_data, true ) . print_r( $sanitized_missing_dimensions, true ) );
 		}
 		$profile = new Profile();
-		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data, $sanitized_missing_dimensions );
+		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data, $sanitized_missing_dimensions, $sanitized_missing_srcsets );
 		return $this->response( 'Above fold data stored successfully' );
 	}
 

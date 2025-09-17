@@ -11,6 +11,7 @@ import { optmlDomUtils } from './dom-utils.js';
 import { optmlBackground } from './background.js';
 import { optmlLcp } from './lcp.js';
 import { optmlImageDetector } from './image-detector.js';
+import { optmlSrcsetDetector } from './srcset-detector.js';
 
 /**
  * Main detection functionality
@@ -105,6 +106,11 @@ export const optmlMain = {
     
     optmlLogger.info('Images with missing dimensions found:', Object.keys(imageDimensionsData).length);
     
+    // Detect images requiring srcset variations (non-lazyload images)
+    const srcsetData = optmlSrcsetDetector.detectMissingSrcsets();
+    
+    optmlLogger.info('Images requiring srcset variations found:', Object.keys(srcsetData).length);
+    
     // Process background image selectors if available
     let bgImageUrls = new Map();
     let pendingElements = 0;
@@ -147,8 +153,8 @@ export const optmlMain = {
     optmlLogger.info('Above the fold images with data-opt-id:', aboveTheFoldImages);
     optmlLogger.info('Background selectors:', selectorMap);
     
-    // Prepare and send data if we found any images, background selectors, or dimension data
-    if (aboveTheFoldImages.length > 0 || selectorMap.size > 0 || lcpData.imageId || lcpData.bgSelector || Object.keys(imageDimensionsData).length > 0) {
+    // Prepare and send data if we found any images, background selectors, dimension data, or srcset data
+    if (aboveTheFoldImages.length > 0 || selectorMap.size > 0 || lcpData.imageId || lcpData.bgSelector || Object.keys(imageDimensionsData).length > 0 || Object.keys(srcsetData).length > 0) {
       // Convert the Map to a plain object for the API
       const processedBgSelectors = this._processBackgroundSelectors(selectorMap, bgImageUrls);
       
@@ -165,7 +171,8 @@ export const optmlMain = {
           s: lcpData.bgSelector, 
           u: lcpData.bgUrls   
         },
-        m: imageDimensionsData // m for missing dimensions
+        m: imageDimensionsData, // m for missing dimensions
+        s: srcsetData // s for srcset data
       };
       
       optmlLogger.info('Sending data with LCP information:', { 
@@ -175,11 +182,12 @@ export const optmlMain = {
       });
       optmlLogger.info('Sending background selectors:', processedBgSelectors);
       optmlLogger.info('Sending dimension data for images:', imageDimensionsData);
+      optmlLogger.info('Sending srcset data for images:', srcsetData);
       
       optmlApi.sendToRestApi(data);
       return data;
     } else {
-      optmlLogger.info('No above-the-fold images, background elements, LCP elements, or dimension data found');
+      optmlLogger.info('No above-the-fold images, background elements, LCP elements, dimension data, or srcset data found');
       return null;
     }
   },

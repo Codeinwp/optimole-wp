@@ -171,6 +171,7 @@ class Profile {
 	 *                                                                   'bgUrls' is an array of URLs
 	 *                                                                   'type' is the type of the LCP element.
 	 * @param array<int, array{w: int, h: int}>                                                   $missing_dimensions Array of missing dimensions.
+	 * @param array<int, array{w: int, h: int, d: int, s: string, b: int}>                        $missing_srcsets Array of missing srcsets.
 	 * @return void
 	 */
 	public function store( string $id, string $device_type, array $above_fold_images, $af_bg_selectors = [], $lcp_data = [], $missing_dimensions = [] ) {
@@ -180,12 +181,18 @@ class Profile {
 
 		// store $above_fold_images as image_id => true to faster access.
 		$above_fold_images = array_fill_keys( $above_fold_images, true );
-
+		$global_data = [];
+		if ( ! empty( $missing_srcsets ) ) {
+			$global_data['s'] = $missing_srcsets;
+		}
 		if ( ! empty( $missing_dimensions ) ) {
-			// Missing dimensions are not device specific, so we store them in on a global profile scope.
+			$global_data['m'] = $missing_dimensions;
+		}
+		if ( ! empty( $global_data ) ) {
+			//those measurements are not device specific, so we store them in on a global profile scope.
 			$this->storage->store(
 				$id,
-				[ 'm' => $missing_dimensions ]
+				$global_data
 			);
 		}
 		$this->storage->store(
@@ -209,6 +216,16 @@ class Profile {
 		return self::$current_profile_data[ self::DEVICE_TYPE_GLOBAL ]['m'][ $image_id ] ?? [];
 	}
 
+	/**
+	 * Gets the missing srcsets for a specific profile ID.
+	 *
+	 * @param int $image_id The image ID to get the missing srcsets for.
+	 *
+	 * @return array{w: int, h: int, d: int, s: string, b: int}|array{} The missing srcsets.
+	 */
+	public function get_missing_srcsets( int $image_id ): array {
+		return self::$current_profile_data[ self::DEVICE_TYPE_GLOBAL ]['s'][ $image_id ] ?? [];
+	}
 	/**
 	 * Checks if profile data exists for all active device types.
 	 *
