@@ -403,16 +403,16 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		}
 		$pattern = '/(?<!\/)' . preg_quote( $original_url, '/' ) . '/i';
 		$replace = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
-		
+
 		// Get image ID for srcset enhancement
 		$image_id = $this->get_id_by_url( $original_url );
-		
+
 		// Add missing srcset attributes based on measurements from JavaScript module
 		$missing_srcsets = Optml_Manager::instance()->page_profiler->get_missing_srcsets( $image_id );
 		if ( ! empty( $missing_srcsets ) ) {
 			$new_tag = $this->add_missing_srcset_attributes( $new_tag, $missing_srcsets, $new_url, $is_slashed );
 		}
-		
+
 		if ( $this->settings->get( 'lazyload' ) === 'enabled' && $this->settings->get( 'native_lazyload' ) === 'enabled'
 			&& apply_filters( 'optml_should_load_eager', '__return_true' ) && ! $this->is_valid_gif( $original_url ) ) {
 			if ( strpos( $new_tag, 'loading=' ) === false ) {
@@ -443,7 +443,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img fetchpriority=\"high\"' : '<img fetchpriority="high"', $new_tag );
 			}
 		}
-		
+
 		++self::$lazyload_skipped_images;
 		return preg_replace( $pattern, $replace, $new_tag );
 	}
@@ -484,18 +484,18 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$height = (int) $srcset_data['h'];
 			$descriptor = $srcset_data['s']; // e.g., "200w"
 			$dpr = isset( $srcset_data['d'] ) ? (int) $srcset_data['d'] : 1;
-			//If the retina images are not enabled, we don't need to add the retina srcset.
-			if($dpr > 1 && $this->settings->get( 'retina_images' ) !== 'enabled' ) {
+			// If the retina images are not enabled, we don't need to add the retina srcset.
+			if ( $dpr > 1 && $this->settings->get( 'retina_images' ) !== 'enabled' ) {
 				continue;
 			}
 			$breakpoint = isset( $srcset_data['b'] ) ? (int) $srcset_data['b'] : 0;
 
 			// Generate optimized URL for this size
 			$optimized_url = $this->change_url_for_size( $new_url, $width, $height, $dpr );
-			
+
 			if ( $optimized_url ) {
 				$new_srcset_entries[] = $optimized_url . ' ' . $descriptor;
-				
+
 				// Add sizes attribute entry for responsive breakpoints
 				if ( $breakpoint > 0 ) {
 					$new_sizes_entries[] = '(max-width: ' . $breakpoint . 'px) ' . $width . 'px';
@@ -514,7 +514,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			// Add new srcset attribute
 			$srcset_value = implode( ', ', $new_srcset_entries );
 			$srcset_attr = $is_slashed ? 'srcset=\"' . addcslashes( $srcset_value, '"' ) . '\"' : 'srcset="' . $srcset_value . '"';
-			
+
 			// Insert srcset attribute after the src attribute
 			$tag = preg_replace( '/(src=["\'][^"\']*["\'])/i', '$1 ' . $srcset_attr, $tag );
 		}
@@ -522,7 +522,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		// Handle sizes attribute - skip if existing sizes contains calc() or complex formulas
 		if ( ! empty( $new_sizes_entries ) ) {
 			$should_skip_sizes = false;
-			
+
 			if ( $has_existing_sizes ) {
 				// Check if existing sizes contains calc() or complex formulas
 				if ( preg_match( '/sizes=["\']([^"\']*)["\']/i', $tag, $matches ) ) {
@@ -535,7 +535,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 					}
 				}
 			}
-			
+
 			if ( ! $should_skip_sizes ) {
 				if ( $has_existing_sizes ) {
 					// Enhance existing sizes
@@ -544,10 +544,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 					// Add new sizes attribute
 					$sizes_entries = array_unique( $new_sizes_entries );
 					rsort( $sizes_entries ); // Sort descending by breakpoint
-					
+
 					$sizes_value = implode( ', ', $sizes_entries );
 					$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $sizes_value, '"' ) . '\"' : 'sizes="' . $sizes_value . '"';
-					
+
 					// Insert sizes attribute after srcset
 					$tag = preg_replace( '/(srcset=["\'][^"\']*["\'])/i', '$1 ' . $sizes_attr, $tag );
 				}
@@ -581,27 +581,30 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( preg_match( '/srcset=["\']([^"\']*)["\']/i', $tag, $matches ) ) {
 			$existing_srcset = $matches[1];
 			$existing_entries = array_map( 'trim', explode( ',', $existing_srcset ) );
-			
+
 			// Merge with new entries, avoiding duplicates
 			$all_entries = array_merge( $existing_entries, $new_srcset_entries );
 			$all_entries = array_unique( $all_entries );
-			
+
 			// Sort by descriptor (width) for better organization
-			usort( $all_entries, function( $a, $b ) {
-				preg_match( '/(\d+)w/', $a, $matches_a );
-				preg_match( '/(\d+)w/', $b, $matches_b );
-				$width_a = isset( $matches_a[1] ) ? (int) $matches_a[1] : 0;
-				$width_b = isset( $matches_b[1] ) ? (int) $matches_b[1] : 0;
-				return $width_a - $width_b;
-			});
-			
+			usort(
+				$all_entries,
+				function ( $a, $b ) {
+					preg_match( '/(\d+)w/', $a, $matches_a );
+					preg_match( '/(\d+)w/', $b, $matches_b );
+					$width_a = isset( $matches_a[1] ) ? (int) $matches_a[1] : 0;
+					$width_b = isset( $matches_b[1] ) ? (int) $matches_b[1] : 0;
+					return $width_a - $width_b;
+				}
+			);
+
 			$enhanced_srcset = implode( ', ', $all_entries );
 			$srcset_attr = $is_slashed ? 'srcset=\"' . addcslashes( $enhanced_srcset, '"' ) . '\"' : 'srcset="' . $enhanced_srcset . '"';
-			
+
 			// Replace existing srcset
 			$tag = preg_replace( '/srcset=["\'][^"\']*["\']/i', $srcset_attr, $tag );
 		}
-		
+
 		return $tag;
 	}
 
@@ -619,27 +622,30 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( preg_match( '/sizes=["\']([^"\']*)["\']/i', $tag, $matches ) ) {
 			$existing_sizes = $matches[1];
 			$existing_entries = array_map( 'trim', explode( ',', $existing_sizes ) );
-			
+
 			// Merge with new entries, avoiding duplicates
 			$all_entries = array_merge( $existing_entries, $new_sizes_entries );
 			$all_entries = array_unique( $all_entries );
-			
+
 			// Sort by breakpoint (descending)
-			usort( $all_entries, function( $a, $b ) {
-				preg_match( '/max-width:\s*(\d+)px/', $a, $matches_a );
-				preg_match( '/max-width:\s*(\d+)px/', $b, $matches_b );
-				$breakpoint_a = isset( $matches_a[1] ) ? (int) $matches_a[1] : 0;
-				$breakpoint_b = isset( $matches_b[1] ) ? (int) $matches_b[1] : 0;
-				return $breakpoint_b - $breakpoint_a; // Descending order
-			});
-			
+			usort(
+				$all_entries,
+				function ( $a, $b ) {
+					preg_match( '/max-width:\s*(\d+)px/', $a, $matches_a );
+					preg_match( '/max-width:\s*(\d+)px/', $b, $matches_b );
+					$breakpoint_a = isset( $matches_a[1] ) ? (int) $matches_a[1] : 0;
+					$breakpoint_b = isset( $matches_b[1] ) ? (int) $matches_b[1] : 0;
+					return $breakpoint_b - $breakpoint_a; // Descending order
+				}
+			);
+
 			$enhanced_sizes = implode( ', ', $all_entries );
 			$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $enhanced_sizes, '"' ) . '\"' : 'sizes="' . $enhanced_sizes . '"';
-			
+
 			// Replace existing sizes
 			$tag = preg_replace( '/sizes=["\'][^"\']*["\']/i', $sizes_attr, $tag );
 		}
-		
+
 		return $tag;
 	}
 
@@ -655,27 +661,27 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( strpos( $sizes_value, 'calc(' ) !== false ) {
 			return true;
 		}
-		
+
 		// Check for complex mathematical operations
 		if ( preg_match( '/\d+%\s*[+\-*\/]|[+\-*\/]\s*\d+%|\d+px\s*[+\-*\/]|[+\-*\/]\s*\d+px/', $sizes_value ) ) {
 			return true;
 		}
-		
+
 		// Check for viewport units with calculations
 		if ( preg_match( '/\d+vw\s*[+\-*\/]|\d+vh\s*[+\-*\/]|\d+vmin\s*[+\-*\/]|\d+vmax\s*[+\-*\/]/', $sizes_value ) ) {
 			return true;
 		}
-		
+
 		// Check for complex CSS functions
 		if ( preg_match( '/(min|max|clamp)\(/', $sizes_value ) ) {
 			return true;
 		}
-		
+
 		// Check for multiple percentage values with operations
 		if ( preg_match( '/\d+%\s*[+\-*\/]\s*\d+%/', $sizes_value ) ) {
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -696,7 +702,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			'/w:(?:auto|\d+)/' => 'w:' . $width,
 			'/h:(?:auto|\d+)/' => 'h:' . $height,
 		];
-		
+
 		// Handle DPR - replace if exists, add after w: if missing
 		if ( $dpr > 1 ) {
 			if ( strpos( $original_url, 'dpr:' ) !== false ) {
@@ -708,7 +714,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		} else {
 			$replacements['/dpr:\d+\//'] = '';
 		}
-		
+
 		return preg_replace( array_keys( $replacements ), array_values( $replacements ), $original_url );
 	}
 

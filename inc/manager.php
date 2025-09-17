@@ -773,7 +773,7 @@ final class Optml_Manager {
 					*
 					* This closure filters the call, forwarding only the captured HTML buffer.
 					*/
-				return $this->replace_content( $content );
+				return $this->replace_content( $content, self::is_ajax_request() );
 			}
 		);
 	}

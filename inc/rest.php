@@ -999,7 +999,7 @@ class Optml_Rest {
 		if ( ! empty( $missing_srcsets ) ) {
 			foreach ( $missing_srcsets as $id => $srcset ) {
 				foreach ( $srcset as $size ) {
-					if(!isset($size['w'], $size['h'], $size['d'], $size['s'], $size['b'])) {
+					if ( ! isset( $size['w'], $size['h'], $size['d'], $size['s'], $size['b'] ) ) {
 						continue;
 					}
 					$sanitized_missing_srcsets[ intval( $id ) ][ intval( $size['w'] ) ] = [ 'h' => intval( $size['h'] ), 'd' => intval( $size['d'] ), 's' => sanitize_text_field( $size['s'] ), 'b' => intval( $size['b'] ) ];

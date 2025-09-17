@@ -189,7 +189,7 @@ class Profile {
 			$global_data['m'] = $missing_dimensions;
 		}
 		if ( ! empty( $global_data ) ) {
-			//those measurements are not device specific, so we store them in on a global profile scope.
+			// those measurements are not device specific, so we store them in on a global profile scope.
 			$this->storage->store(
 				$id,
 				$global_data
