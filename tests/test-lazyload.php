@@ -407,7 +407,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
 		$this->assertStringContainsString( 'data-opt-src', $replaced_content );
-		$this->assertEquals( 2, substr_count( $replaced_content, 'loading="lazy"' ) );
+		$this->assertEquals( 0, substr_count( $replaced_content, 'loading="lazy"' ) );
 		$this->assertStringContainsString( 'loading="eager"', $replaced_content );
 	}
 
