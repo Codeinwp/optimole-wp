@@ -92,7 +92,7 @@ class Profile {
 		 */
 		$storage_class = apply_filters( 'optml_page_profiler_storage', wp_using_ext_object_cache() ? Storage\ObjectCache::class : Storage\Transients::class );
 		if ( OPTML_DEBUG ) {
-			error_log( 'storage_class: ' . $storage_class );
+			do_action( 'optml_log', 'storage_class: ' . $storage_class );
 		}
 		if ( ! is_subclass_of( $storage_class, Storage\Base::class ) ) {
 			throw new \Exception( 'Invalid storage class' );

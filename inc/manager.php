@@ -408,6 +408,16 @@ final class Optml_Manager {
 	}
 
 	/**
+	 * Check if we should load the profiler.
+	 *
+	 * @param bool $default_value Default value.
+	 *
+	 * @return bool Should load the profiler.
+	 */
+	public static function should_load_profiler( $default_value = false ) {
+		return ! $default_value && apply_filters( 'optml_page_profiler_disable', false ) === false;
+	}
+	/**
 	 * Filter raw HTML content for urls.
 	 *
 	 * @param string $html HTML to filter.
@@ -420,8 +430,7 @@ final class Optml_Manager {
 		if ( defined( 'REST_REQUEST' ) && REST_REQUEST && is_user_logged_in() && ( apply_filters( 'optml_force_replacement', false ) !== true ) ) {
 			return $html;
 		}
-		$should_load_profiler = ! $partial && apply_filters( 'optml_page_profiler_disable', false ) === false;
-		if ( $should_load_profiler ) {
+		if ( self::should_load_profiler( $partial ) ) {
 			$profile_id = Profile::generate_id( $html );
 			// We disable the optimizer for logged in users.
 			if ( ! is_user_logged_in() || ! apply_filters( 'optml_force_page_profiler', false ) !== true ) {
@@ -498,7 +507,7 @@ final class Optml_Manager {
 		$html = $this->process_urls_from_content( $html );
 
 		$html = apply_filters( 'optml_url_post_process', $html );
-		if ( $should_load_profiler ) {
+		if ( self::should_load_profiler( $partial ) ) {
 			Profile::reset_current_profile();
 		}
 		return $html;

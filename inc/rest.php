@@ -926,7 +926,7 @@ class Optml_Rest {
 	 */
 	public function optimizations( WP_REST_Request $request ) {
 		$settings = new Optml_Settings();
-		if ( ! $settings->is_lazyload_type_viewport() ) {
+		if ( ! Optml_Manager::should_load_profiler() ) {
 			return $this->response( 'Optimization is not enabled', 'error' );
 		}
 		$time = $request->get_param( 't' );

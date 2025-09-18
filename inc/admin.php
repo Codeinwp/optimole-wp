@@ -940,7 +940,7 @@ class Optml_Admin {
 								 ';
 			wp_add_inline_script( 'optml-print', $script );
 		}
-		if ( $this->settings->is_lazyload_type_viewport() ) {
+		if ( Optml_Manager::should_load_profiler() ) {
 			add_action(
 				'wp_footer',
 				function () {
