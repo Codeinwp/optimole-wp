@@ -2113,6 +2113,9 @@ The root cause might be either a security plugin which blocks this feature or so
 				'medium_optimization'   => __( '🤓 We are on the right track, <strong>{ratio}</strong> squeezed.', 'optimole-wp' ),
 				'big_optimization'      => __( '❤️❤️❤️ Our moles just nailed it, this one is <strong>{ratio}</strong> smaller.', 'optimole-wp' ),
 			],
+			'csat'                           => [
+				'close'                => __( 'Close', 'optimole-wp' ),
+			],
 			'cron_error'                     => sprintf( /* translators: 1 is code to disable cron, 2 value of the constant */ __( 'It seems that you have the %1$s constant defined as %2$s. The offloading process uses cron events to offload the images in the background. Please remove the constant from your wp-config.php file in order for the offloading process to work.', 'optimole-wp' ), '<code>DISABLE_WP_CRON</code>', '<code>true</code>' ),
 			'cancel'                         => __( 'Cancel', 'optimole-wp' ),
 			'optimization_status'            => [
