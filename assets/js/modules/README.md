@@ -89,6 +89,11 @@ This directory contains the modular JavaScript components for the Optimole image
     - Includes images without `data-opt-src` (non-lazyload images)
     - Includes images with `data-opt-src` AND `data-opt-lazy-loaded` (completed lazyload)
     - Skips images with only `data-opt-src` (pending lazyload)
+  - **Aspect ratio detection for cropping requirements**:
+    - Compares natural vs. displayed aspect ratios to determine if cropping is needed
+    - Uses intelligent thresholds: 5% tolerance, 15% significant difference, 10% ratio change
+    - Prevents unnecessary cropping when aspect ratios match
+    - Returns separate crop status data as `imageId: cropStatus` mapping
   - Calculates required srcset variations using comprehensive size ranges:
     - Mobile range: 200w-500w (50w steps) for dense mobile coverage
     - Tablet range: 500w-800w (100w steps) for tablet devices
@@ -101,6 +106,7 @@ This directory contains the modular JavaScript components for the Optimole image
     - `sizeTolerance`: Tolerance for existing sizes (default: 50px)
   - Analyzes existing srcset attributes to identify missing sizes
   - **Ultra-compact API payload**: Sends only essential fields with short names (w, h, d, s, b)
+  - **Separate crop status**: Returns crop requirements as `imageId: cropStatus` mapping instead of per-srcset flags
   - **Full logging**: Complete analysis data available in console logs for debugging
   - Smart selection from dense size grid for optimal responsive coverage
 
@@ -110,6 +116,47 @@ This directory contains the modular JavaScript components for the Optimole image
 - **Key Features**:
   - Complete above-the-fold detection workflow
   - Module coordination and data aggregation
-  - API data preparation and submission
+  - API data preparation and submission with separate crop status
   - Error handling and condition checking
+
+## Data Structure
+
+### API Payload Structure
+The main module sends data to the REST API with the following structure:
+
+```javascript
+{
+  d: deviceType,           // Device type (1=mobile, 2=desktop)
+  a: aboveTheFoldImages,   // Array of above-fold image IDs
+  b: backgroundSelectors,  // Background image selectors
+  u: url,                  // Page URL
+  t: timestamp,            // Request timestamp
+  h: hmac,                 // Security hash
+  l: lcpData,              // LCP (Largest Contentful Paint) data
+  m: missingDimensions,    // Missing dimension data
+  s: srcsetData,           // Srcset variations data
+  c: cropStatusData        // Crop status mapping (imageId -> boolean)
+}
+```
+
+### Srcset Data Structure
+Individual srcset entries contain:
+```javascript
+{
+  w: width,        // Image width
+  h: height,       // Image height  
+  d: dpr,          // Device pixel ratio
+  s: descriptor,   // Srcset descriptor (e.g., "300w")
+  b: breakpoint    // CSS breakpoint
+}
+```
+
+### Crop Status Data Structure
+Crop requirements are stored separately:
+```javascript
+{
+  882936320: true,   // Image ID -> requires cropping
+  123456789: false   // Image ID -> no cropping needed
+}
+```
  

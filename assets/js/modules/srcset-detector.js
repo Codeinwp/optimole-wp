@@ -118,17 +118,18 @@ export const optmlSrcsetDetector = {
   /**
    * Detect all Optimole images that are NOT using lazyload (no data-opt-src)
    * and calculate missing srcset variations
-   * @returns {Promise<Object>} Promise that resolves to object mapping image IDs to their required srcset data
+   * @returns {Promise<Object>} Promise that resolves to object with srcset data and crop status
    */
   detectMissingSrcsets: async function() {
     const missingSrcsetData = {};
+    const cropStatusData = {};
     
     // Find all Optimole images
     const optimoleImages = document.querySelectorAll('img[data-opt-id]');
     
     if (optimoleImages.length === 0) {
       optmlLogger.info('No Optimole images found for srcset analysis');
-      return missingSrcsetData;
+      return { srcset: missingSrcsetData, crop: cropStatusData };
     }
     
     optmlLogger.info(`Found ${optimoleImages.length} Optimole images, waiting for them to load...`);
@@ -159,10 +160,11 @@ export const optmlSrcsetDetector = {
           optmlLogger.info(`Image ${imageId} ${reason}, analyzing srcset requirements`);
           
           // Analyze the image and calculate required srcset variations
-          const missingSizes = this._analyzeSrcsetRequirements(img, imageId);
+          const analysisResult = this._analyzeSrcsetRequirements(img, imageId);
           
-          if (missingSizes && missingSizes.length > 0) {
-            missingSrcsetData[imageId] = missingSizes;
+          if (analysisResult && analysisResult.srcset && analysisResult.srcset.length > 0) {
+            missingSrcsetData[imageId] = analysisResult.srcset;
+            cropStatusData[imageId] = analysisResult.requiresCropping;
           }
         }
       } catch (error) {
@@ -171,7 +173,8 @@ export const optmlSrcsetDetector = {
     });
     
     optmlLogger.info('Images requiring srcset variations:', Object.keys(missingSrcsetData).length);
-    return missingSrcsetData;
+    optmlLogger.info('Images with crop status:', Object.keys(cropStatusData).length);
+    return { srcset: missingSrcsetData, crop: cropStatusData };
   },
 
   /**
@@ -199,17 +202,24 @@ export const optmlSrcsetDetector = {
       natural: `${naturalWidth}x${naturalHeight}`
     });
     
-    // Calculate aspect ratio
-    const aspectRatio = naturalWidth / naturalHeight;
+    // Calculate aspect ratios
+    const naturalAspectRatio = naturalWidth / naturalHeight;
+    const currentAspectRatio = currentWidth / currentHeight;
+    
+    // Determine if image requires cropping based on aspect ratio difference
+    const aspectRatioDifference = Math.abs(naturalAspectRatio - currentAspectRatio);
+    const requiresCropping = this._requiresCropping(aspectRatioDifference, naturalAspectRatio, currentAspectRatio);
     
     // Get current device type
     const currentDeviceType = optmlDevice.getDeviceType();
     
     // Calculate required sizes for different breakpoints
+    // Use current aspect ratio for srcset generation to match the rendered dimensions
+    const aspectRatioForSizing = requiresCropping ? currentAspectRatio : naturalAspectRatio;
     const requiredSizes = this._calculateRequiredSizes(
       currentWidth, 
       currentHeight, 
-      aspectRatio,
+      aspectRatioForSizing,
       currentDeviceType,
       naturalWidth,
       naturalHeight
@@ -231,20 +241,68 @@ export const optmlSrcsetDetector = {
     optmlLogger.info(`Image ${imageId} srcset analysis:`, {
       currentSize: { w: currentWidth, h: currentHeight },
       naturalSize: { w: naturalWidth, h: naturalHeight },
-      aspectRatio: Math.round(aspectRatio * 1000) / 1000,
+      naturalAspectRatio: Math.round(naturalAspectRatio * 1000) / 1000,
+      currentAspectRatio: Math.round(currentAspectRatio * 1000) / 1000,
+      aspectRatioDifference: Math.round(aspectRatioDifference * 1000) / 1000,
+      requiresCropping: requiresCropping,
+      aspectRatioForSizing: Math.round(aspectRatioForSizing * 1000) / 1000,
       deviceType: currentDeviceType,
       missingSizes: missingSizes,
       existingSrcset: existingSrcset || null
     });
+
+    // Additional debug logging for aspect ratio analysis
+    console.log(`[Optimole Debug] Image ${imageId} aspect ratio analysis:`, {
+      natural: `${naturalWidth}x${naturalHeight} (${Math.round(naturalAspectRatio * 1000) / 1000}:1)`,
+      current: `${currentWidth}x${currentHeight} (${Math.round(currentAspectRatio * 1000) / 1000}:1)`,
+      difference: Math.round(aspectRatioDifference * 1000) / 1000,
+      requiresCropping: requiresCropping,
+      aspectRatioForSizing: Math.round(aspectRatioForSizing * 1000) / 1000,
+      reason: requiresCropping ? 'Aspect ratio significantly different' : 'Aspect ratios match within tolerance'
+    });
     
-    // Return only essential fields for API (ultra-minimal payload with short names)
-    return missingSizes.map(size => ({
-      w: size.w,
-      h: size.h,
-      d: size.dpr,        // dpr -> d
-      s: size.descriptor, // descriptor -> s (srcset)
-      b: size.breakpoint  // breakpoint -> b
-    }));
+    // Return both srcset data and crop status separately
+    return {
+      srcset: missingSizes.map(size => ({
+        w: size.w,
+        h: size.h,
+        d: size.dpr,        // dpr -> d
+        s: size.descriptor, // descriptor -> s (srcset)
+        b: size.breakpoint  // breakpoint -> b
+      })),
+      requiresCropping: requiresCropping
+    };
+  },
+
+  /**
+   * Determine if an image requires cropping based on aspect ratio differences
+   * @private
+   * @param {number} aspectRatioDifference - Absolute difference between natural and current aspect ratios
+   * @param {number} naturalAspectRatio - Natural image aspect ratio
+   * @param {number} currentAspectRatio - Current displayed aspect ratio
+   * @returns {boolean} True if the image requires cropping
+   */
+  _requiresCropping: function(aspectRatioDifference, naturalAspectRatio, currentAspectRatio) {
+    // Define thresholds for determining when cropping is needed
+    const ASPECT_RATIO_TOLERANCE = 0.05; // 5% tolerance for minor differences
+    const SIGNIFICANT_DIFFERENCE_THRESHOLD = 0.15; // 15% for significant differences
+    
+    // If the difference is very small, no cropping needed
+    if (aspectRatioDifference <= ASPECT_RATIO_TOLERANCE) {
+      return false;
+    }
+    
+    // If the difference is significant, definitely needs cropping
+    if (aspectRatioDifference >= SIGNIFICANT_DIFFERENCE_THRESHOLD) {
+      return true;
+    }
+    
+    // For moderate differences, check if the current aspect ratio is significantly different
+    // from the natural one (indicating intentional resizing that would require cropping)
+    const ratioChange = Math.abs(currentAspectRatio - naturalAspectRatio) / naturalAspectRatio;
+    
+    // If the current aspect ratio is more than 10% different from natural, likely needs cropping
+    return ratioChange > 0.1;
   },
 
   /**
@@ -329,23 +387,45 @@ export const optmlSrcsetDetector = {
   _generateResponsiveSizes: function(currentWidth, currentHeight, aspectRatio, naturalWidth, naturalHeight) {
     const sizes = [];
     
-    // Generate comprehensive responsive sizes with better coverage
-    // Strategy: Create a dense grid of sizes for better responsive coverage
+    // Container-based size generation: Generate sizes relative to the actual container size
+    // This prevents oversized images from being selected for small containers
     
-    // Define size ranges for different device categories
-    const sizeRanges = [
-      // Mobile range: 200w - 500w (step 50w) - dense coverage for mobile
-      { min: 200, max: 500, step: 50, dpr: [1], category: 'mobile' },
-      
-      // Tablet range: 500w - 800w (step 100w) - good tablet coverage
-      { min: 500, max: 800, step: 100, dpr: [1], category: 'tablet' },
-      
-      // Desktop range: 800w - 1200w (step 200w) - desktop coverage
-      { min: 800, max: 1200, step: 200, dpr: [1], category: 'desktop' },
-      
-      // High-res range: 1200w - 1600w (step 200w) with selective 2x - practical high-res
-      { min: 1200, max: 1600, step: 200, dpr: [1, 2], category: 'high-res' }
-    ];
+    // Calculate maximum reasonable size for this container
+    // Use a multiplier to allow for some flexibility while staying close to container size
+    const maxSizeMultiplier = 1.5; // Allow up to 1.5x the container size
+    const maxReasonableWidth = Math.min(
+      Math.round(currentWidth * maxSizeMultiplier),
+      naturalWidth
+    );
+    
+    // Define size ranges based on container size
+    let sizeRanges = [];
+    
+    if (currentWidth <= 300) {
+      // Small containers (thumbnails, icons, etc.)
+      sizeRanges = [
+        { min: Math.max(200, Math.round(currentWidth * 0.8)), max: Math.round(currentWidth * 1.2), step: 25, dpr: [1], category: 'small' },
+        { min: Math.round(currentWidth * 1.2), max: maxReasonableWidth, step: 50, dpr: [1, 2], category: 'small-retina' }
+      ];
+    } else if (currentWidth <= 600) {
+      // Medium containers (cards, medium images)
+      sizeRanges = [
+        { min: Math.max(200, Math.round(currentWidth * 0.8)), max: Math.round(currentWidth * 1.2), step: 50, dpr: [1], category: 'medium' },
+        { min: Math.round(currentWidth * 1.2), max: maxReasonableWidth, step: 100, dpr: [1, 2], category: 'medium-retina' }
+      ];
+    } else if (currentWidth <= 1000) {
+      // Large containers (featured images, banners)
+      sizeRanges = [
+        { min: Math.max(200, Math.round(currentWidth * 0.8)), max: Math.round(currentWidth * 1.2), step: 100, dpr: [1], category: 'large' },
+        { min: Math.round(currentWidth * 1.2), max: maxReasonableWidth, step: 200, dpr: [1, 2], category: 'large-retina' }
+      ];
+    } else {
+      // Very large containers (full-width images)
+      sizeRanges = [
+        { min: Math.max(200, Math.round(currentWidth * 0.8)), max: Math.round(currentWidth * 1.2), step: 200, dpr: [1], category: 'xlarge' },
+        { min: Math.round(currentWidth * 1.2), max: maxReasonableWidth, step: 400, dpr: [1, 2], category: 'xlarge-retina' }
+      ];
+    }
     
     // Generate sizes for each range
     sizeRanges.forEach(range => {
@@ -358,13 +438,25 @@ export const optmlSrcsetDetector = {
           if (this._isValidSize(targetWidth, targetHeight, naturalWidth, naturalHeight) &&
               targetWidth >= this.CONFIG.MIN_SIZE) {
             
-            // Determine breakpoint based on width
+            // Determine breakpoint based on container size, not image size
+            // Use viewport-based breakpoints that make sense for the container
             let breakpoint = null;
-            if (targetWidth <= 400) breakpoint = 320;
-            else if (targetWidth <= 600) breakpoint = 768;
-            else if (targetWidth <= 900) breakpoint = 1024;
-            else if (targetWidth <= 1200) breakpoint = 1440;
-            else breakpoint = 1920;
+            if (currentWidth <= 300) {
+              // Small containers: use smaller breakpoints
+              if (targetWidth <= currentWidth * 1.1) breakpoint = 480;
+              else if (targetWidth <= currentWidth * 1.3) breakpoint = 768;
+              else breakpoint = 1024;
+            } else if (currentWidth <= 600) {
+              // Medium containers: use medium breakpoints
+              if (targetWidth <= currentWidth * 1.1) breakpoint = 768;
+              else if (targetWidth <= currentWidth * 1.3) breakpoint = 1024;
+              else breakpoint = 1440;
+            } else {
+              // Large containers: use larger breakpoints
+              if (targetWidth <= currentWidth * 1.1) breakpoint = 1024;
+              else if (targetWidth <= currentWidth * 1.3) breakpoint = 1440;
+              else breakpoint = 1920;
+            }
             
             sizes.push({
               w: targetWidth,

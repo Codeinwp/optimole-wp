@@ -172,9 +172,10 @@ class Profile {
 	 *                                                                   'type' is the type of the LCP element.
 	 * @param array<int, array{w: int, h: int}>                                                   $missing_dimensions Array of missing dimensions.
 	 * @param array<int, array{w: int, h: int, d: int, s: string, b: int}>                        $missing_srcsets Array of missing srcsets.
+	 * @param array<int, bool>                                                                    $crop_status Array of crop status for images.
 	 * @return void
 	 */
-	public function store( string $id, string $device_type, array $above_fold_images, $af_bg_selectors = [], $lcp_data = [], $missing_dimensions = [], $missing_srcsets = [] ) {
+	public function store( string $id, string $device_type, array $above_fold_images, $af_bg_selectors = [], $lcp_data = [], $missing_dimensions = [], $missing_srcsets = [], $crop_status = [] ) {
 		if ( ! in_array( (int) $device_type, self::get_active_devices(), true ) ) {
 			return;
 		}
@@ -187,6 +188,9 @@ class Profile {
 		}
 		if ( ! empty( $missing_dimensions ) ) {
 			$global_data['m'] = $missing_dimensions;
+		}
+		if ( ! empty( $crop_status ) ) {
+			$global_data['c'] = $crop_status;
 		}
 		if ( ! empty( $global_data ) ) {
 			// those measurements are not device specific, so we store them in on a global profile scope.
@@ -225,6 +229,17 @@ class Profile {
 	 */
 	public function get_missing_srcsets( int $image_id ): array {
 		return self::$current_profile_data[ self::DEVICE_TYPE_GLOBAL ]['s'][ $image_id ] ?? [];
+	}
+
+	/**
+	 * Gets the crop status for a specific image ID.
+	 *
+	 * @param int $image_id The image ID to get the crop status for.
+	 *
+	 * @return bool The crop status.
+	 */
+	public function get_crop_status( int $image_id ): bool {
+		return self::$current_profile_data[ self::DEVICE_TYPE_GLOBAL ]['c'][ $image_id ] ?? false;
 	}
 	/**
 	 * Checks if profile data exists for all active device types.

@@ -946,6 +946,7 @@ class Optml_Rest {
 		}
 		$bg_selectors = $request->get_param( 'b' );
 		$lcp_data = $request->get_param( 'l' );
+		$crop_status = $request->get_param( 'c' );
 		$origin = $request->get_header( 'origin' );
 		if ( empty( $origin ) || ! is_allowed_http_origin( $origin ) ) {
 			return $this->response( 'Invalid origin', 'error' );
@@ -1007,6 +1008,12 @@ class Optml_Rest {
 				$sanitized_missing_srcsets[ intval( $id ) ] = $srcset;
 			}
 		}
+		$sanitized_crop_status = [];
+		if ( ! empty( $crop_status ) ) {
+			foreach ( $crop_status as $id => $crop ) {
+				$sanitized_crop_status[ intval( $id ) ] = (bool) $crop;
+			}
+		}
 		$sanitized_lcp_data = [];
 		if ( ! empty( $lcp_data ) ) {
 			$sanitized_lcp_data['imageId'] = sanitize_text_field( $lcp_data['i'] ?? '' );
@@ -1025,10 +1032,10 @@ class Optml_Rest {
 		}
 
 		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', 'Storing profile data: ' . $url . ' - ' . $device_type . ' - ' . print_r( $above_fold_images, true ) . print_r( $sanitized_selectors, true ) . print_r( $sanitized_lcp_data, true ) . print_r( $sanitized_missing_dimensions, true ) . print_r( $sanitized_missing_srcsets, true ) );
+			do_action( 'optml_log', 'Storing profile data: ' . $url . ' - ' . $device_type . ' - ' . print_r( $above_fold_images, true ) . print_r( $sanitized_selectors, true ) . print_r( $sanitized_lcp_data, true ) . print_r( $sanitized_missing_dimensions, true ) . print_r( $sanitized_missing_srcsets, true ) . print_r( $sanitized_crop_status, true ) );
 		}
 		$profile = new Profile();
-		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data, $sanitized_missing_dimensions, $sanitized_missing_srcsets );
+		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data, $sanitized_missing_dimensions, $sanitized_missing_srcsets, $sanitized_crop_status );
 		return $this->response( 'Above fold data stored successfully' );
 	}
 

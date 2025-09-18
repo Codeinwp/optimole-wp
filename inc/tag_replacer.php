@@ -262,6 +262,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 
 			$tmp        = $this->strip_image_size_from_url( $tmp );
+
+			$image_id = $this->get_id_by_url( $images['img_url'][ $index ] );
+
+			if ( Optml_Manager::instance()->page_profiler->get_crop_status( $image_id ) && empty( $optml_args['resize'] ) ) {
+				$optml_args['resize'] = $this->to_optml_crop( true );
+			}
 			$new_url    = apply_filters( 'optml_content_url', $tmp, $optml_args );
 
 			$image_tag = str_replace(
@@ -279,7 +285,6 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				],
 				$image_tag
 			);
-			$image_id = $this->get_id_by_url( $images['img_url'][ $index ] );
 			// If the image is in header or has a class excluded from lazyload or is an excluded gif, we need to do the regular replace.
 			if ( $images['in_no_script'][ $index ] || $should_lazy_gif === false ) {
 
@@ -537,19 +542,24 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 
 			if ( ! $should_skip_sizes ) {
-				if ( $has_existing_sizes ) {
-					// Enhance existing sizes
-					$tag = $this->enhance_existing_sizes( $tag, $new_sizes_entries, $is_slashed );
-				} else {
-					// Add new sizes attribute
-					$sizes_entries = array_unique( $new_sizes_entries );
-					rsort( $sizes_entries ); // Sort descending by breakpoint
+				// Filter sizes entries to ensure they're appropriate for the container
+				$filtered_sizes_entries = $this->filter_sizes_entries_for_container( $new_sizes_entries, $tag );
 
-					$sizes_value = implode( ', ', $sizes_entries );
-					$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $sizes_value, '"' ) . '\"' : 'sizes="' . $sizes_value . '"';
+				if ( ! empty( $filtered_sizes_entries ) ) {
+					if ( $has_existing_sizes ) {
+						// Enhance existing sizes
+						$tag = $this->enhance_existing_sizes( $tag, $filtered_sizes_entries, $is_slashed );
+					} else {
+						// Add new sizes attribute
+						$sizes_entries = array_unique( $filtered_sizes_entries );
+						rsort( $sizes_entries ); // Sort descending by breakpoint
 
-					// Insert sizes attribute after srcset
-					$tag = preg_replace( '/(srcset=["\'][^"\']*["\'])/i', '$1 ' . $sizes_attr, $tag );
+						$sizes_value = implode( ', ', $sizes_entries );
+						$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $sizes_value, '"' ) . '\"' : 'sizes="' . $sizes_value . '"';
+
+						// Insert sizes attribute after srcset
+						$tag = preg_replace( '/(srcset=["\'][^"\']*["\'])/i', '$1 ' . $sizes_attr, $tag );
+					}
 				}
 			} else {
 				// Log that sizes were skipped due to complex formulas
@@ -683,6 +693,71 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Filter sizes entries to ensure they're appropriate for the container size.
+	 * This prevents oversized images from being selected for small containers.
+	 *
+	 * @param array  $sizes_entries Array of sizes entries from JavaScript module.
+	 * @param string $tag The image tag to extract container dimensions from.
+	 *
+	 * @return array Filtered sizes entries appropriate for the container.
+	 */
+	public function filter_sizes_entries_for_container( $sizes_entries, $tag ) {
+		if ( empty( $sizes_entries ) ) {
+			return [];
+		}
+
+		// Extract container dimensions from the image tag
+		$container_width = null;
+		$container_height = null;
+
+		// Try to get width and height from the tag
+		if ( preg_match( '/width=["\']?(\d+)["\']?/i', $tag, $width_match ) ) {
+			$container_width = (int) $width_match[1];
+		}
+		if ( preg_match( '/height=["\']?(\d+)["\']?/i', $tag, $height_match ) ) {
+			$container_height = (int) $height_match[1];
+		}
+
+		// If we can't determine container size, return all entries (fallback)
+		if ( ! $container_width || ! $container_height ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', 'Cannot determine container size, using all sizes entries' );
+			}
+			return $sizes_entries;
+		}
+
+		// Calculate maximum reasonable size for this container
+		$max_reasonable_width = $container_width * 1.5; // Allow up to 1.5x the container size
+
+		$filtered_entries = [];
+
+		foreach ( $sizes_entries as $entry ) {
+			// Extract image size from the entry (e.g., "(max-width: 768px) 400px" -> 400)
+			if ( preg_match( '/\(max-width:\s*\d+px\)\s*(\d+)px/', $entry, $matches ) ) {
+				$image_width = (int) $matches[1];
+
+				// Only include entries where the image size is reasonable for the container
+				if ( $image_width <= $max_reasonable_width ) {
+					$filtered_entries[] = $entry;
+				} else {
+					if ( OPTML_DEBUG ) {
+						do_action( 'optml_log', "Filtered out oversized entry: {$entry} (container: {$container_width}px, image: {$image_width}px)" );
+					}
+				}
+			} else {
+				// If we can't parse the entry, include it (better safe than sorry)
+				$filtered_entries[] = $entry;
+			}
+		}
+
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', "Filtered sizes entries for container {$container_width}x{$container_height}: " . count( $filtered_entries ) . ' of ' . count( $sizes_entries ) . ' entries' );
+		}
+
+		return $filtered_entries;
 	}
 
 	/**

@@ -112,9 +112,12 @@ export const optmlMain = {
     optmlLogger.info('Images with missing dimensions found:', Object.keys(imageDimensionsData).length);
     
     // Detect images requiring srcset variations (non-lazyload images)
-    const srcsetData = await optmlSrcsetDetector.detectMissingSrcsets();
+    const srcsetResult = await optmlSrcsetDetector.detectMissingSrcsets();
+    const srcsetData = srcsetResult.srcset;
+    const cropStatusData = srcsetResult.crop;
     
     optmlLogger.info('Images requiring srcset variations found:', Object.keys(srcsetData).length);
+    optmlLogger.info('Images with crop status found:', Object.keys(cropStatusData).length);
     
     // Process background image selectors if available
     let bgImageUrls = new Map();
@@ -177,7 +180,8 @@ export const optmlMain = {
           u: lcpData.bgUrls   
         },
         m: imageDimensionsData, // m for missing dimensions
-        s: srcsetData // s for srcset data
+        s: srcsetData, // s for srcset data
+        c: cropStatusData // c for crop status data
       };
       
       optmlLogger.info('Sending data with LCP information:', { 
@@ -188,6 +192,7 @@ export const optmlMain = {
       optmlLogger.info('Sending background selectors:', processedBgSelectors);
       optmlLogger.info('Sending dimension data for images:', imageDimensionsData);
       optmlLogger.info('Sending srcset data for images:', srcsetData);
+      optmlLogger.info('Sending crop status data for images:', cropStatusData);
       
       optmlApi.sendToRestApi(data);
       return data;
