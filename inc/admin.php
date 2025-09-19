@@ -1535,6 +1535,7 @@ class Optml_Admin {
 			'account_needed_sub_heading'     => __( 'Stop sacrificing image quality for page speed. Optimole delivers both.', 'optimole-wp' ),
 			'account_needed_trust_badge'     => __( 'TRUSTED BY 200,000+ HAPPY USERS', 'optimole-wp' ),
 			'account_needed_setup_time'      => __( 'Setup is instant - just click connect', 'optimole-wp' ),
+			'account_needed_benefits_toggle' => __( 'See what you\'ll get', 'optimole-wp' ),
 			'invalid_key'                    => __( 'Invalid API Key', 'optimole-wp' ),
 			'keep_connected'                 => __( 'Ok, keep me connected', 'optimole-wp' ),
 			'cloud_library'                  => __( 'Cloud Library', 'optimole-wp' ),

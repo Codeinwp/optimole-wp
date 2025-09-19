@@ -39,6 +39,7 @@ const ConnectLayout = () => {
 	const [ email, setEmail ] = useState( optimoleDashboardApp.current_user.email );
 	const [ method, setMethod ] = useState( 'email' );
 	const [ errors, setErrors ] = useState({});
+	const [ showBenefits, setShowBenefits ] = useState( false );
 
 	const { setAutoConnect } = useDispatch( 'optimole' );
 
@@ -184,29 +185,50 @@ const ConnectLayout = () => {
 					/>
 
 
-					<div className="flex py-3 items-center">
-						<Icon icon="yes-alt" />
-						<p
-							className="text-base ml-3 m-0"
-							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_subtitle_1 } }
+					<div
+						onClick={ () => setShowBenefits( ! showBenefits ) }
+						className="inline-flex items-center bg-light-blue px-4 py-1.5 rounded-full mb-4 text-sm text-gray-500 cursor-pointer transition-all hover:bg-blue-100"
+						role="button"
+						tabIndex="0"
+						onKeyPress={ ( e ) => {
+							if ( 'Enter' === e.key || ' ' === e.key ) {
+								setShowBenefits( ! showBenefits );
+							}
+						}}
+					>
+						<span>{ optimoleDashboardApp.strings.account_needed_benefits_toggle }</span>
+						<span
+							className={ `dashicons dashicons-arrow-${ showBenefits ? 'up' : 'down' } ml-1` }
 						/>
 					</div>
 
-					<div className="flex py-3 items-center">
-						<Icon icon="yes-alt" />
-						<p
-							className="text-base ml-3 m-0"
-							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_subtitle_2 } }
-						/>
-					</div>
+					{ showBenefits && (
+						<div className="mb-4">
+							<div className="flex py-3 items-center">
+								<Icon icon="yes-alt" />
+								<p
+									className="text-base ml-3 m-0"
+									dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_subtitle_1 } }
+								/>
+							</div>
 
-					<div className="flex py-3 items-center">
-						<Icon icon="yes-alt" />
-						<p
-							className="text-base ml-3 m-0"
-							dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_subtitle_4 } }
-						/>
-					</div>
+							<div className="flex py-3 items-center">
+								<Icon icon="yes-alt" />
+								<p
+									className="text-base ml-3 m-0"
+									dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_subtitle_2 } }
+								/>
+							</div>
+
+							<div className="flex py-3 items-center">
+								<Icon icon="yes-alt" />
+								<p
+									className="text-base ml-3 m-0"
+									dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.account_needed_subtitle_4 } }
+								/>
+							</div>
+						</div>
+					) }
 				</div>
 
 				<div className="optml-connect__form basis-4/12 p-8 bg-light-blue border border-blue-300 rounded-md">
