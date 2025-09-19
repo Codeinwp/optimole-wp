@@ -1141,7 +1141,29 @@ class Optml_Admin {
 	 * @return void
 	 */
 	public function menu_icon_style() {
-		echo '<style>#toplevel_page_optimole img{ max-width:22px;padding-top:6px!important;opacity:.9!important;} #toplevel_page_optimole li.wp-first-item{ display:none }</style>';
+		$conflicts_count = $this->get_conflicts_count();
+		$badge_html = '';
+
+		if ( $conflicts_count > 0 ) {
+			$badge_html = sprintf(
+				'<style>
+				#toplevel_page_optimole .wp-menu-name::after { 
+					content: "%d";
+					background: #d63638;
+					border-radius: 10px;
+					padding: 1.5px 1px;
+					font-size: 11px;
+					margin-left: 5px; 
+					min-width: 18px;
+					display: inline-block;
+					text-align: center;
+				}
+				</style>',
+				$conflicts_count
+			);
+		}
+
+		echo '<style>#toplevel_page_optimole img{ max-width:22px;padding-top:6px!important;opacity:.9!important;} #toplevel_page_optimole li.wp-first-item{ display:none }</style>' . $badge_html;
 	}
 
 	/**
@@ -2264,5 +2286,20 @@ The root cause might be either a security plugin which blocks this feature or so
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get the number of active conflicts
+	 *
+	 * @return int - Number of conflicts
+	 */
+	private function get_conflicts_count() {
+		if ( ! $this->conflicting_plugins ) {
+			return 0;
+		}
+
+		$conflicting_plugins = $this->conflicting_plugins->get_conflicting_plugins();
+
+		return count( $conflicting_plugins );
 	}
 }
