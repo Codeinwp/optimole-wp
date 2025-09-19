@@ -2289,15 +2289,11 @@ The root cause might be either a security plugin which blocks this feature or so
 	}
 
 	/**
-	 * Get the number of active conflicts
+	 * Get the number of active conflicts.
 	 *
 	 * @return int - Number of conflicts
 	 */
 	private function get_conflicts_count() {
-		if ( ! $this->conflicting_plugins ) {
-			return 0;
-		}
-
 		$conflicting_plugins = $this->conflicting_plugins->get_conflicting_plugins();
 
 		return count( $conflicting_plugins );
