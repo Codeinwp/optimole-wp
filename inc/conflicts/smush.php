@@ -25,7 +25,7 @@ class Optml_Smush extends Optml_Abstract_Conflict {
 		$this->message = sprintf(
 			/* translators: 1 is the settings path link */
 			__( 'WP Smush has <strong>Lazy loading</strong> enabled. Optimole already provides its own lazy loading mechanism, which may conflict with Smush\'s. To continue using Optimole\'s lazy loading feature, please disable lazy loading in %1$s.', 'optimole-wp' ),
-			'<a href="' . admin_url( 'admin.php?page=smush&view=lazy_load' ) . '">Smush → Lazy Load</a>'
+			'<a href="' . admin_url( 'admin.php?page=smush-lazy-preload' ) . '">Smush → Lazy Load</a>'
 		);
 	}
 
