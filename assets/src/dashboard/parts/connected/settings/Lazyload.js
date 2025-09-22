@@ -33,6 +33,13 @@ import {
 	GroupSettingsOption
 } from '../../components/GroupSettingsContainer';
 import Notice from '../../components/Notice';
+import Modal from '../../components/Modal';
+
+const DISABLE_OPTION_MODAL_TYPE = {
+	scale: 'image-scaling',
+	lazyLoad: 'lazy-load',
+	javascriptLoading: 'javascript-loading'
+};
 
 const Lazyload = ({ settings, setSettings, setCanSave }) => {
 	const { isLoading } = useSelect( ( select ) => {
@@ -43,11 +50,11 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 		};
 	});
 
-	const isLazyloadPlaceholderEnabled = useMemo(
+	const isLazyLoadPlaceholderEnabled = useMemo(
 		() => 'disabled' !== settings['lazyload_placeholder'],
 		[ settings ]
 	);
-	const isNativeLazyloadEnabled = useMemo(
+	const isNativeLazyLoadEnabled = useMemo(
 		() => 'disabled' !== settings['native_lazyload'],
 		[ settings ]
 	);
@@ -55,7 +62,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 		() => 'disabled' !== settings['bg_replacer'],
 		[ settings ]
 	);
-	const isVideoLazyloadEnabled = useMemo(
+	const isVideoLazyLoadEnabled = useMemo(
 		() => 'disabled' !== settings['video_lazyload'],
 		[ settings ]
 	);
@@ -71,7 +78,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 		() => 'disabled' === settings.scale,
 		[ settings.scale ]
 	);
-	const isLazyloadEnabled = useMemo(
+	const isLazyLoadEnabled = useMemo(
 		() => 'disabled' !== settings.lazyload,
 		[ settings.lazyload ]
 	);
@@ -85,6 +92,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 	);
 
 	const [ phPicker, setPhPicker ] = useState( false );
+	const [ showModal, setShowModal ] = useState( false );
 
 	const toggleOption = useCallback(
 		( option, value ) => {
@@ -126,7 +134,6 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 			} else {
 				setting.delete( slug );
 			}
-			console.log( setting );
 			updateValue( 'lazyload_type', Array.from( setting ).toSorted().join( '|' ) );
 		},
 		[ settings?.lazyload_type ]
@@ -176,13 +183,13 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 		[ Tag ]
 	);
 
-	if ( ! isLazyloadEnabled ) {
+	if ( ! isLazyLoadEnabled ) {
 		return (
 			<>
 				<ToggleControl
 					label={optimoleDashboardApp.strings.options_strings.toggle_lazyload}
 					help={optimoleDashboardApp.strings.options_strings.lazyload_desc}
-					checked={isLazyloadEnabled}
+					checked={isLazyLoadEnabled}
 					disabled={isLoading}
 					className={classnames({
 						'is-disabled': isLoading
@@ -198,13 +205,46 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 			<ToggleControl
 				label={optimoleDashboardApp.strings.options_strings.toggle_lazyload}
 				help={optimoleDashboardApp.strings.options_strings.lazyload_desc}
-				checked={isLazyloadEnabled}
+				checked={isLazyLoadEnabled}
 				disabled={isLoading}
 				className={classnames({
 					'is-disabled': isLoading
 				})}
-				onChange={( value ) => toggleOption( 'lazyload', value )}
+				onChange={() => setShowModal( DISABLE_OPTION_MODAL_TYPE.lazyLoad )}
 			/>
+			{
+				showModal && (
+					<Modal
+						icon="warning"
+						variant="warning"
+						labels={{
+							title: optimoleDashboardApp.strings.options_strings.performance_impact_alert_title,
+							description: 'scale' === showModal ? optimoleDashboardApp.strings.options_strings.performance_impact_alert_scale_desc : optimoleDashboardApp.strings.options_strings.performance_impact_alert_lazy_desc,
+							action: optimoleDashboardApp.strings.options_strings.performance_impact_alert_action_label,
+							secondaryAction: optimoleDashboardApp.strings.options_strings.performance_impact_alert_secondary_action_label
+						}}
+						onRequestClose={ () => setShowModal( false ) }
+						onConfirm={ () => {
+							window?.formbricks?.track( 'disable_lazy_load_feature', {
+								hiddenFields: {
+									feature: `${ showModal }`
+								}
+							});
+
+							if ( DISABLE_OPTION_MODAL_TYPE.javascriptLoading === showModal ) {
+								toggleOption( 'native_lazyload', true );
+							} else if ( DISABLE_OPTION_MODAL_TYPE.scale === showModal ) {
+								toggleOption( 'scale', false );
+							} else if ( DISABLE_OPTION_MODAL_TYPE.lazyLoad === showModal ) {
+								toggleOption( 'lazyload', false );
+							}
+
+							setShowModal( false );
+						} }
+						onSecondaryAction={ () => setShowModal( false ) }
+					/>
+				)
+			}
 			<hr className="my-8 border-grayish-blue" />
 			<BaseControl
 				className="mt-2"
@@ -271,10 +311,14 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 								value: 'enabled'
 							}
 						]}
-						value={isNativeLazyloadEnabled ? 'enabled' : 'disabled'}
-						onChange={( value ) =>
-							toggleOption( 'native_lazyload', 'enabled' === value )
-						}
+						value={isNativeLazyLoadEnabled ? 'enabled' : 'disabled'}
+						onChange={( value ) => {
+							if ( 'disabled' === value ) {
+								toggleOption( 'native_lazyload', false );
+							} else {
+								setShowModal( DISABLE_OPTION_MODAL_TYPE.javascriptLoading );
+							}
+						}}
 					/>
 
 					<GroupSettingsContainer>
@@ -334,7 +378,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 								title={''}
 								text={
 									optimoleDashboardApp.strings.options_strings
-										.vieport_skip_images_notice
+										.viewport_skip_images_notice
 								}
 							/>
 						)}
@@ -351,7 +395,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 										optimoleDashboardApp.strings.options_strings
 											.enable_lazyload_placeholder_title
 									}
-									checked={isLazyloadPlaceholderEnabled}
+									checked={isLazyLoadPlaceholderEnabled}
 									onChange={( value ) =>
 										toggleOption( 'lazyload_placeholder', value )
 									}
@@ -360,7 +404,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 								/>
 							</div>
 
-							{isLazyloadPlaceholderEnabled && (
+							{isLazyLoadPlaceholderEnabled && (
 								<div className="relative inline-block">
 									<Button
 										disabled={isLoading}
@@ -421,6 +465,19 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 				</div>
 			</BaseControl>
 
+			{
+				isNativeLazyLoadEnabled && (
+					<Notice
+						type="warning"
+						title={''}
+						text={
+							optimoleDashboardApp.strings.options_strings
+								.native_lazy_load_warning
+						}
+					/>
+				)
+			}
+
 			<hr className="my-8 border-grayish-blue" />
 
 			<ToggleControl
@@ -431,7 +488,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 				className={classnames({
 					'is-disabled': isLoading
 				})}
-				onChange={( value ) => toggleOption( 'scale', ! value )}
+				onChange={() => setShowModal( DISABLE_OPTION_MODAL_TYPE.scale ) }
 			/>
 
 			<GroupSettingsContainer>
@@ -494,7 +551,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 							}}
 						/>
 					)}
-					checked={isVideoLazyloadEnabled}
+					checked={isVideoLazyLoadEnabled}
 					disabled={isLoading}
 					className={classnames( 'mt-8', {
 						'is-disabled': isLoading

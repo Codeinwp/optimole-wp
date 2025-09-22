@@ -1973,7 +1973,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'cloud_site_title'                    => __( 'Show images only from these sites:', 'optimole-wp' ),
 				'cloud_site_desc'                     => __( 'Browse images only from the specified websites. Otherwise, images from all websites will appear in the library.', 'optimole-wp' ),
 				'toggle_ab_item'                      => __( 'Admin bar status', 'optimole-wp' ),
-				'toggle_lazyload'                     => __( 'Enable Lazy Loading', 'optimole-wp' ),
+				'toggle_lazyload'                     => __( 'Enable Lazy Loading & Scaling', 'optimole-wp' ),
 				'toggle_scale'                        => __( 'Smart Image Scaling', 'optimole-wp' ),
 				'toggle_native'                       => __( 'Browser Native Lazy Load', 'optimole-wp' ),
 				'on_toggle'                           => __( 'On', 'optimole-wp' ),
@@ -2073,10 +2073,17 @@ The root cause might be either a security plugin which blocks this feature or so
 				'extended_features'                         => __( 'Extended Features', 'optimole-wp' ),
 				// translators: mark that the options are aplied globally.
 				'global_option'                             => __( 'Global', 'optimole-wp' ),
-				'enable_lazy_loading_title'                 => __( 'Enable Lazy Loading', 'optimole-wp' ),
 				// translators: This option is discouraged from being used.
 				'not_recommended'                           => __( 'Not recommended', 'optimole-wp' ),
-				'vieport_skip_images_notice'                => __( "When viewport-based loading and skip first images are both enabled: the skip rule applies on a user's first page view. On subsequent views, once viewport data exists, the skip rule is ignored in favor of the viewport data.", 'optimole-wp' ),
+				// translators: %1$s is the starting bold tag, %2$s is the ending bold tag.
+				'viewport_skip_images_notice'               => sprintf( __( 'When %1$sviewport-based loading%2$s and %1$sskip first images%2$s are both enabled: the skip rule applies on a user\'s first page view. On subsequent views, once viewport data exists, the skip rule is ignored in favor of the viewport data.', 'optimole-wp' ), '<strong>', '</strong>' ),
+				// translators: %1$s is the starting bold tag, %2$s is the ending bold tag.
+				'native_lazy_load_warning'                  => sprintf( __( 'Native browser loading works with viewport detection, but it does not support smart image scaling. It can offer better cross-browser compatibility. Still, we do %1$snot recommend%2$s it for most sites due to fewer controls and features compared to Smart Loading.', 'optimole-wp' ), '<strong>', '</strong>' ),
+				'performance_impact_alert_title'            => __( 'Performance Impact Alert', 'optimole-wp' ),
+				'performance_impact_alert_lazy_desc'         => __( 'Disabling Lazy Load may significantly impact your site\'s loading speed and Core Web Vitals scores.', 'optimole-wp' ),
+				'performance_impact_alert_scale_desc'         => __( 'Disabling Image Scaling may significantly impact your site\'s loading speed and Core Web Vitals scores.', 'optimole-wp' ),
+				'performance_impact_alert_action_label'      => __( 'Continue with disabling', 'optimole-wp' ),
+				'performance_impact_alert_secondary_action_label' => __( 'Keep enabled', 'optimole-wp' ),
 			],
 			'help'                           => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),

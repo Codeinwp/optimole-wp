@@ -127,6 +127,7 @@ export interface Strings {
   cancel: string
   optimization_status: OptimizationStatus
   optimization_tips: string
+  native_lazy_load_warning: string
 }
 
 export interface Conflicts {
@@ -398,9 +399,8 @@ export interface OptionsStrings {
   visual_settings: string
   extended_features: string
   global_option: string
-  enable_lazy_loading_title: string
   not_recommended: string
-  vieport_skip_images_notice: string
+  viewport_skip_images_notice: string
 }
 
 export interface Help {
