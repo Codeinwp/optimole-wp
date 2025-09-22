@@ -44,9 +44,6 @@ class Optml_Jetpack_Lazyload extends Optml_Abstract_Conflict {
 		if ( ! class_exists( 'Jetpack', false ) ) {
 			return false;
 		}
-		if ( ! class_exists( 'Jetpack', false ) ) {
-			return false;
-		}
 
 		if ( ! Optml_Main::instance()->admin->settings->use_lazyload() ) {
 			return false;

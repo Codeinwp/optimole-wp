@@ -140,6 +140,7 @@ final class Optml_Main {
 				'Optml_Wprocket',
 				'Optml_Divi',
 				'Optml_w3_total_cache_cdn',
+				'Optml_Smush',
 			]
 		);
 
