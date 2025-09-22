@@ -252,7 +252,7 @@ export const optmlSrcsetDetector = {
     });
 
     // Additional debug logging for aspect ratio analysis
-    console.log(`[Optimole Debug] Image ${imageId} aspect ratio analysis:`, {
+    optmlLogger.log(`[Optimole Debug] Image ${imageId} aspect ratio analysis:`, {
       natural: `${naturalWidth}x${naturalHeight} (${Math.round(naturalAspectRatio * 1000) / 1000}:1)`,
       current: `${currentWidth}x${currentHeight} (${Math.round(currentAspectRatio * 1000) / 1000}:1)`,
       difference: Math.round(aspectRatioDifference * 1000) / 1000,
