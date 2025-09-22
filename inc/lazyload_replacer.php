@@ -449,22 +449,25 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( defined( 'OPTML_DISABLE_PNG_LAZYLOAD' ) && OPTML_DISABLE_PNG_LAZYLOAD ) {
 			return $type['ext'] !== 'png';
 		}
-		if ( $this->settings->is_lazyload_type_viewport() && Optml_Manager::instance()->page_profiler->is_in_all_viewports( $this->get_id_by_url( $url ) ) ) {
+
+		if ( $this->settings->is_lazyload_type_viewport() ) {
+			$is_in_all_viewports = Optml_Manager::instance()->page_profiler->is_in_all_viewports( $this->get_id_by_url( $url ) );
+			$is_lcp_image        = Optml_Manager::instance()->page_profiler->is_lcp_image_in_all_viewports( $this->get_id_by_url( $url ) );
+
 			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', 'Lazyload skipped image is in all viewports ' . $url . '|' . $this->get_id_by_url( $url ) );
-			}
-			// collect ID for preload.
-			Links::add_id( $this->get_id_by_url( $url ), 'high' );
-			return false;
-		}
-		if ( $this->settings->is_lazyload_type_viewport() && Optml_Manager::instance()->page_profiler->is_lcp_image_in_all_viewports( $this->get_id_by_url( $url ) ) ) {
-			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', 'Lazyload skipped image is LCP ' . $url . '|' . $this->get_id_by_url( $url ) );
+				if ( $is_in_all_viewports ) {
+					do_action( 'optml_log', 'Lazyload skipped image is in all viewports ' . $url . '|' . $this->get_id_by_url( $url ) );
+				} elseif ( $is_lcp_image ) {
+					do_action( 'optml_log', 'Lazyload skipped image is LCP ' . $url . '|' . $this->get_id_by_url( $url ) );
+				}
 			}
 
-			Links::add_id( $this->get_id_by_url( $url ), 'high' );
-			return false;
+			if ( $is_in_all_viewports || $is_lcp_image ) {
+				Links::add_id( $this->get_id_by_url( $url ), 'high' ); // collect ID for preload.
+				return false;
+			}
 		}
+
 		if ( $this->settings->is_lazyload_type_fixed() && Optml_Tag_Replacer::$lazyload_skipped_images < self::get_skip_lazyload_limit() ) {
 			return false;
 		}

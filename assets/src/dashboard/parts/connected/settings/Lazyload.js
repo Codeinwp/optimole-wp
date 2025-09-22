@@ -127,7 +127,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 				setting.delete( slug );
 			}
 			console.log( setting );
-			updateValue( 'lazyload_type', Array.from( setting ).join( '|' ) );
+			updateValue( 'lazyload_type', Array.from( setting ).toSorted().join( '|' ) );
 		},
 		[ settings?.lazyload_type ]
 	);
