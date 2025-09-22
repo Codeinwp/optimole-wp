@@ -141,6 +141,7 @@ final class Optml_Main {
 				'Optml_Divi',
 				'Optml_w3_total_cache_cdn',
 				'Optml_Smush',
+				'Optml_Litespeed',
 			]
 		);
 

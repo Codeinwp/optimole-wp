@@ -48,7 +48,6 @@ class Optml_Smush extends Optml_Abstract_Conflict {
 		if ( class_exists( '\Smush\Core\Settings' ) ) {
 			$smush_settings = \Smush\Core\Settings::get_instance();
 			if ( method_exists( $smush_settings, 'get' ) ) {
-				error_log( print_r( $smush_settings->get( 'lazy_load' ), true ) );
 				return (bool) $smush_settings->get( 'lazy_load' );
 			}
 		}

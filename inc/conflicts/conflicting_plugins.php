@@ -51,6 +51,7 @@ class Optml_Conflicting_Plugins {
 			'ewww-cloud'   => 'ewww-image-optimizer-cloud/ewww-image-optimizer-cloud.php',
 			'imagerecycle' => 'imagerecycle-pdf-image-compression/wp-image-recycle.php',
 			'imagify'      => 'imagify/imagify.php',
+			'litespeed'    => 'litespeed-cache/litespeed-cache.php',
 			// 'plugin-slug' => 'plugin-folder/plugin-file.php'
 		];
 

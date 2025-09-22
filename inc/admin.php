@@ -1141,7 +1141,7 @@ class Optml_Admin {
 	 * @return void
 	 */
 	public function menu_icon_style() {
-		$conflicts_count = $this->get_conflicts_count();
+		$conflicts_count = $this->get_active_notices_count();
 		$badge_html = '';
 
 		if ( $conflicts_count > 0 ) {
@@ -2289,12 +2289,28 @@ The root cause might be either a security plugin which blocks this feature or so
 	}
 
 	/**
-	 * Get the number of active conflicts.
+	 * Get the number of active notices (not dismissed).
 	 *
-	 * @return int - Number of conflicts
+	 * @return int - Number of active notices
 	 */
-	private function get_conflicts_count() {
+	private function get_active_notices_count() {
 		$conflicting_plugins = $this->conflicting_plugins->get_conflicting_plugins();
+
+		foreach ( $conflicting_plugins as $key => $plugin ) {
+			$class_name = 'Optml_' . ucfirst( $key );
+
+			if ( class_exists( $class_name ) ) {
+				try {
+					$conflict_instance = new $class_name();
+
+					if ( method_exists( $conflict_instance, 'is_conflict_valid' ) && ! $conflict_instance->is_conflict_valid() ) {
+						unset( $conflicting_plugins[ $key ] );
+					}
+				} catch ( Exception $e ) {
+					unset( $conflicting_plugins[ $key ] );
+				}
+			}
+		}
 
 		return count( $conflicting_plugins );
 	}
