@@ -234,7 +234,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 							if ( DISABLE_OPTION_MODAL_TYPE.javascriptLoading === showModal ) {
 								toggleOption( 'native_lazyload', true );
 							} else if ( DISABLE_OPTION_MODAL_TYPE.scale === showModal ) {
-								toggleOption( 'scale', false );
+								toggleOption( 'scale', true );
 							} else if ( DISABLE_OPTION_MODAL_TYPE.lazyLoad === showModal ) {
 								toggleOption( 'lazyload', false );
 							}
@@ -488,7 +488,13 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 				className={classnames({
 					'is-disabled': isLoading
 				})}
-				onChange={() => setShowModal( DISABLE_OPTION_MODAL_TYPE.scale ) }
+				onChange={( value ) => {
+					if ( value ) {
+						toggleOption( 'scale', ! value );
+					} else {
+						setShowModal( DISABLE_OPTION_MODAL_TYPE.scale );
+					}
+				} }
 			/>
 
 			<GroupSettingsContainer>
