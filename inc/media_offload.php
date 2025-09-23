@@ -376,15 +376,19 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Replace image URLs in the srcset attributes.
 	 *
-	 * @param array<int, array{url: string, descriptor: string, value: int}> $sources Array of image sources.
+	 * @param mixed|array<int, array{url: string, descriptor: string, value: int}> $sources Array of image sources.
 	 * @param array{0: int, 1: int}                                          $size_array Array of width and height values in pixels (in that order).
 	 * @param string                                                         $image_src The 'src' of the image.
 	 * @param array<string, mixed>                                           $image_meta The image meta data as returned by 'wp_get_attachment_metadata()'.
 	 * @param int                                                            $attachment_id Image attachment ID or 0.
 	 *
-	 * @return array
+	 * @return array<int, array{url: string, descriptor: string, value: int}>|mixed
 	 */
 	public function calculate_image_srcset( $sources, $size_array, $image_src, $image_meta, $attachment_id ) {
+
+		if ( ! is_array( $sources ) ) {
+			return $sources;
+		}
 
 		if ( $this->is_legacy_offloaded_attachment( $attachment_id ) ) {
 			if ( ! Optml_Media_Offload::is_uploaded_image( $image_src ) || ! isset( $image_meta['file'] ) || ! Optml_Media_Offload::is_uploaded_image( $image_meta['file'] ) ) {

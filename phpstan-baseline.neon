@@ -2089,12 +2089,6 @@ parameters:
 			path: inc/media_offload.php
 
 		-
-			message: '#^Method Optml_Media_Offload\:\:calculate_image_srcset\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/media_offload.php
-
-		-
 			message: '#^Method Optml_Media_Offload\:\:clear_offload_errors_meta\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
