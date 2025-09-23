@@ -1345,6 +1345,12 @@ class Optml_Admin {
 		];
 		$lang_code = isset( $available_languages[ $language ] ) ? 'de' : 'en';
 
+		// Migrate settings if needed.
+		if ( isset( $service_data['lazyload_type'] ) && 'all' === $service_data['lazyload_type'] ) {
+			$service_data['lazyload_type']        = 'fixed';
+			$service_data['skip_lazyload_images'] = 0;
+		}
+
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',
