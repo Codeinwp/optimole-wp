@@ -52,6 +52,7 @@ class Optml_Conflicting_Plugins {
 			'imagerecycle' => 'imagerecycle-pdf-image-compression/wp-image-recycle.php',
 			'imagify'      => 'imagify/imagify.php',
 			'litespeed'    => 'litespeed-cache/litespeed-cache.php',
+			'autoptimize'  => 'autoptimize/autoptimize.php',
 			// 'plugin-slug' => 'plugin-folder/plugin-file.php'
 		];
 

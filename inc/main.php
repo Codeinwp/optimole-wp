@@ -142,6 +142,7 @@ final class Optml_Main {
 				'Optml_w3_total_cache_cdn',
 				'Optml_Smush',
 				'Optml_Litespeed',
+				'Optml_Autoptimize',
 			]
 		);
 
