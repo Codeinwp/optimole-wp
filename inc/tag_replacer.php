@@ -401,26 +401,31 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 		}
 
+		$no_viewport_data_available = true;
+
 		if ( $this->settings->is_lazyload_type_viewport() ) {
-			$is_in_all_viewports = Optml_Manager::instance()->page_profiler->is_in_all_viewports( $this->get_id_by_url( $original_url ) );
-			$is_lcp_image        = Optml_Manager::instance()->page_profiler->is_lcp_image_in_all_viewports( $this->get_id_by_url( $original_url ) );
+			$image_id                   = $this->get_id_by_url( $original_url );
+			$is_in_all_viewports        = Optml_Manager::instance()->page_profiler->is_in_all_viewports( $image_id );
+			$is_lcp_image               = Optml_Manager::instance()->page_profiler->is_lcp_image_in_all_viewports( $image_id );
+			$no_viewport_data_available = ! Optml_Manager::instance()->page_profiler->check_data_availability();
 
 			if ( OPTML_DEBUG ) {
 				if ( $is_in_all_viewports ) {
-					do_action( 'optml_log', 'Adding preload priority for image ' . $original_url . '|' . $this->get_id_by_url( $original_url ) );
+					do_action( 'optml_log', 'Adding preload priority for image ' . $original_url . '|' . $image_id );
 				} elseif ( $is_lcp_image ) {
-					do_action( 'optml_log', 'Adding preload image is LCP ' . $original_url . '|' . $this->get_id_by_url( $original_url ) );
+					do_action( 'optml_log', 'Adding preload image is LCP ' . $original_url . '|' . $image_id );
 				}
 			}
 
 			if ( $is_in_all_viewports || $is_lcp_image ) {
 				$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img fetchpriority=\"high\"' : '<img fetchpriority="high"', $new_tag );
-				Links::add_id( $this->get_id_by_url( $original_url ), 'high' ); // collect ID for preload.
+				Links::add_id( $image_id, 'high' ); // collect ID for preload.
 			}
 		}
 
-		// // If the image is between the first images we add the fetchpriority attribute to improve the LCP.
+		// If the image is between the first images we add the fetchpriority attribute to improve the LCP.
 		if (
+			$no_viewport_data_available &&
 			$this->settings->is_lazyload_type_fixed() &&
 			self::$lazyload_skipped_images < Optml_Lazyload_Replacer::get_skip_lazyload_limit() &&
 			false === strpos( $new_tag, 'fetchpriority=' )
