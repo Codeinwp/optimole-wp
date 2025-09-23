@@ -2306,7 +2306,6 @@ The root cause might be either a security plugin which blocks this feature or so
 			}
 			$conflict_instance = new $class_name();
 
-
 			if ( ! is_a( $conflict_instance, 'Optml_Abstract_Conflict' ) ) {
 				continue;
 			}
@@ -2317,7 +2316,7 @@ The root cause might be either a security plugin which blocks this feature or so
 		}
 
 		$dismissed_notices = get_option( 'optml_dismissed_conflicts', [] );
-    
+
 		return $conflicts_count - count( $dismissed_notices );
 	}
 }
