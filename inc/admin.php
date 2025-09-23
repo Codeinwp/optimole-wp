@@ -1578,6 +1578,7 @@ If you still want to disconnect click the button below.',
 			'usage'                          => __( 'Monthly Usage', 'optimole-wp' ),
 			'quota'                          => __( 'Monthly visits:', 'optimole-wp' ),
 			'tooltip_visits_title'           => __( 'What are visits?', 'optimole-wp' ),
+			/* translators: 1 is the day when the visits reset, for example 1st of each month */
 			'tooltip_visits_description'     => __( 'Each visitor to your site is counted as a unique daily user, regardless of their actions or return visits on the same day. Your visit count resets on %s.', 'optimole-wp' ),
 			'logged_in_as'                   => __( 'LOGGED IN AS', 'optimole-wp' ),
 			'private_cdn_url'                => __( 'IMAGES DOMAIN', 'optimole-wp' ),

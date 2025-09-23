@@ -224,11 +224,8 @@ const Dashboard = () => {
 								</span>
 								<Tooltip
 									text={
-										<div style={{
-											padding: '10px',
-											maxWidth: '320px'
-										}}>
-											<div style={{ fontWeight: 'bold', marginBottom: '8px' }}>
+										<div className="p-2.5 max-w-[320px]">
+											<div className="font-bold mb-2">
 												{ optimoleDashboardApp.strings.tooltip_visits_title }
 											</div>
 											<div>
