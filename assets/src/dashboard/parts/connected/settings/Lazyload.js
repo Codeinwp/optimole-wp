@@ -35,6 +35,12 @@ import {
 } from '../../components/GroupSettingsContainer';
 import Notice from '../../components/Notice';
 import Modal from '../../components/Modal';
+import {
+	DescriptionWithTags,
+	TextWithWarningBadge
+} from '../../components/Miscellaneous';
+
+const { options_strings } = optimoleDashboardApp.strings;
 
 const DISABLE_OPTION_MODAL_TYPE = {
 	scale: 'image-scaling',
@@ -97,9 +103,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 
 	const supportPrefilledContactFormUrl = useMemo( () => {
 		const contactUrl = new URL( window.optimoleDashboardApp.report_issue_url );
-		const {
-			contact_support
-		} = window.optimoleDashboardApp.strings;
+		const { contact_support } = window.optimoleDashboardApp.strings;
 
 		let subject = contact_support.disable_lazy_load_scaling;
 		if ( DISABLE_OPTION_MODAL_TYPE.scale === showModal ) {
@@ -110,10 +114,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 
 		contactUrl.searchParams.set(
 			'contact_subject',
-			sprintf(
-				contact_support.title_prefix,
-				subject
-			)
+			sprintf( contact_support.title_prefix, subject )
 		);
 
 		return contactUrl;
@@ -164,56 +165,12 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 		[ settings?.lazyload_type ]
 	);
 
-	const NotRecommendedWarning = useCallback( ( props ) => {
-		return (
-			<>
-				{props.label}
-				<span className="ml-4 text-xs font-bold p-1 rounded bg-yellow-400 text-yellow-800 uppercase">
-					{optimoleDashboardApp.strings.options_strings.not_recommended}
-				</span>
-			</>
-		);
-	}, []);
-
-	const Tag = useCallback(
-		({ text, disabled }) => (
-			<span
-				className={classnames(
-					'inline-block  text-xs px-2 py-1 rounded mr-2 mt-2 font-medium',
-					{
-						'bg-gray-200 text-gray-800 line-through': disabled,
-						'bg-blue-200 text-blue-800': ! disabled
-					}
-				)}
-			>
-				{text}
-			</span>
-		),
-		[]
-	);
-
-	const DescriptionWithTags = useCallback(
-		({ text, tags }) => {
-			return (
-				<>
-					{text}
-					<div className="mt-2">
-						{tags.map( ({ text, disabled }) => (
-							<Tag key={text} text={text} disabled={disabled} />
-						) )}
-					</div>
-				</>
-			);
-		},
-		[ Tag ]
-	);
-
 	if ( ! isLazyLoadEnabled ) {
 		return (
 			<>
 				<ToggleControl
-					label={optimoleDashboardApp.strings.options_strings.toggle_lazyload}
-					help={optimoleDashboardApp.strings.options_strings.lazyload_desc}
+					label={options_strings.toggle_lazyload}
+					help={options_strings.lazyload_desc}
 					checked={isLazyLoadEnabled}
 					disabled={isLoading}
 					className={classnames({
@@ -228,8 +185,8 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 	return (
 		<>
 			<ToggleControl
-				label={optimoleDashboardApp.strings.options_strings.toggle_lazyload}
-				help={optimoleDashboardApp.strings.options_strings.lazyload_desc}
+				label={options_strings.toggle_lazyload}
+				help={options_strings.lazyload_desc}
 				checked={isLazyLoadEnabled}
 				disabled={isLoading}
 				className={classnames({
@@ -242,21 +199,14 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 					icon="warning"
 					variant="warning"
 					labels={{
-						title:
-							optimoleDashboardApp.strings.options_strings
-								.performance_impact_alert_title,
+						title: options_strings.performance_impact_alert_title,
 						description:
 							'scale' === showModal ?
-								optimoleDashboardApp.strings.options_strings
-									.performance_impact_alert_scale_desc :
-								optimoleDashboardApp.strings.options_strings
-									.performance_impact_alert_lazy_desc,
-						action:
-							optimoleDashboardApp.strings.options_strings
-								.performance_impact_alert_action_label,
+								options_strings.performance_impact_alert_scale_desc :
+								options_strings.performance_impact_alert_lazy_desc,
+						action: options_strings.performance_impact_alert_action_label,
 						secondaryAction:
-							optimoleDashboardApp.strings.options_strings
-								.performance_impact_alert_secondary_action_label
+							options_strings.performance_impact_alert_secondary_action_label
 					}}
 					onRequestClose={() => setShowModal( false )}
 					onConfirm={() => {
@@ -285,36 +235,26 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 			<hr className="my-8 border-grayish-blue" />
 			<BaseControl
 				className="mt-2"
-				label={
-					optimoleDashboardApp.strings.options_strings.lazyload_behaviour_title
-				}
+				label={options_strings.lazyload_behaviour_title}
 			>
 				<div className="ml-4">
 					<RadioBoxes
 						label={''}
 						options={[
 							{
-								title:
-									optimoleDashboardApp.strings.options_strings
-										.smart_loading_title,
+								title: options_strings.smart_loading_title,
 								description: (
 									<DescriptionWithTags
-										text={
-											optimoleDashboardApp.strings.options_strings
-												.smart_loading_desc
-										}
+										text={options_strings.smart_loading_desc}
 										tags={[
 											{
-												text: optimoleDashboardApp.strings.options_strings
-													.viewport_detection
+												text: options_strings.viewport_detection
 											},
 											{
-												text: optimoleDashboardApp.strings.options_strings
-													.placeholders_color
+												text: options_strings.placeholders_color
 											},
 											{
-												text: optimoleDashboardApp.strings.options_strings
-													.auto_scaling
+												text: options_strings.auto_scaling
 											}
 										]}
 									/>
@@ -323,23 +263,23 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 							},
 							{
 								title: (
-									<NotRecommendedWarning label={'Native Browser Loading'} />
+									<TextWithWarningBadge
+										text={options_strings.toggle_native}
+										badgeLabel={options_strings.not_recommended}
+									/>
 								),
 								description: (
 									<DescriptionWithTags
-										text={'Uses the browser\'s build-in "lazy" behavior'}
+										text={options_strings.native_desc}
 										tags={[
 											{
-												text: optimoleDashboardApp.strings.options_strings
-													.viewport_detection
+												text: options_strings.viewport_detection
 											},
 											{
-												text: optimoleDashboardApp.strings.options_strings
-													.lightweight_native
+												text: options_strings.lightweight_native
 											},
 											{
-												text: optimoleDashboardApp.strings.options_strings
-													.auto_scaling,
+												text: options_strings.auto_scaling,
 												disabled: true
 											}
 										]}
@@ -360,19 +300,13 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 
 					<GroupSettingsContainer>
 						<GroupSettingsTitle>
-							{
-								optimoleDashboardApp.strings.options_strings
-									.lazyload_behaviour_title
-							}{' '}
-							({optimoleDashboardApp.strings.options_strings.global_option})
+							{options_strings.lazyload_behaviour_title} (
+							{options_strings.global_option})
 						</GroupSettingsTitle>
 						<GroupSettingsOption className="flex flex-row items-center gap-4">
 							<CheckboxControl
 								className="optml-skip-lazy-load-images"
-								label={
-									optimoleDashboardApp.strings.options_strings
-										.lazyload_behaviour_fixed
-								}
+								label={options_strings.lazyload_behaviour_fixed}
 								checked={isFixedSkipLazyEnabled}
 								onChange={( value ) => {
 									toggleLoadingBehavior( value, 'fixed' );
@@ -397,10 +331,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 						</GroupSettingsOption>
 						<GroupSettingsOption className="mt-2">
 							<CheckboxControl
-								label={
-									optimoleDashboardApp.strings.options_strings
-										.lazyload_behaviour_viewport
-								}
+								label={options_strings.lazyload_behaviour_viewport}
 								checked={isViewPortLoadingEnabled}
 								onChange={( value ) => {
 									toggleLoadingBehavior( value, 'viewport' );
@@ -413,25 +344,19 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 							<Notice
 								type="warning"
 								title={''}
-								text={
-									optimoleDashboardApp.strings.options_strings
-										.viewport_skip_images_notice
-								}
+								text={options_strings.viewport_skip_images_notice}
 							/>
 						)}
 					</GroupSettingsContainer>
 
 					<GroupSettingsContainer>
 						<GroupSettingsTitle>
-							{optimoleDashboardApp.strings.options_strings.visual_settings}
+							{options_strings.visual_settings}
 						</GroupSettingsTitle>
 						<GroupSettingsOption>
 							<div className="grow" htmlFor="optml-lazyload-placeholder">
 								<CheckboxControl
-									label={
-										optimoleDashboardApp.strings.options_strings
-											.enable_lazyload_placeholder_title
-									}
+									label={options_strings.enable_lazyload_placeholder_title}
 									checked={isLazyLoadPlaceholderEnabled}
 									onChange={( value ) =>
 										toggleOption( 'lazyload_placeholder', value )
@@ -476,7 +401,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 													setColor( '' );
 												}}
 											>
-												{optimoleDashboardApp.strings.options_strings.clear}
+												{options_strings.clear}
 											</Button>
 										</Popover>
 									)}
@@ -487,8 +412,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 							<CheckboxControl
 								checked={isNoScriptEnabled}
 								label={createInterpolateElement(
-									optimoleDashboardApp.strings.options_strings
-										.enable_noscript_title,
+									options_strings.enable_noscript_title,
 									{
 										custom_component: <code>&lt;noscript&gt;</code>
 									}
@@ -506,18 +430,15 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 				<Notice
 					type="warning"
 					title={''}
-					text={
-						optimoleDashboardApp.strings.options_strings
-							.native_lazy_load_warning
-					}
+					text={options_strings.native_lazy_load_warning}
 				/>
 			)}
 
 			<hr className="my-8 border-grayish-blue" />
 
 			<ToggleControl
-				label={optimoleDashboardApp.strings.options_strings.toggle_scale}
-				help={optimoleDashboardApp.strings.options_strings.scale_desc}
+				label={options_strings.toggle_scale}
+				help={options_strings.scale_desc}
 				checked={isScaleEnabled}
 				disabled={isLoading}
 				className={classnames({
@@ -534,19 +455,14 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 
 			<GroupSettingsContainer>
 				<GroupSettingsTitle>
-					{optimoleDashboardApp.strings.options_strings.extended_features}
+					{options_strings.extended_features}
 				</GroupSettingsTitle>
 				<ToggleControl
-					label={
-						optimoleDashboardApp.strings.options_strings
-							.enable_bg_lazyload_title
-					}
+					label={options_strings.enable_bg_lazyload_title}
 					help={() => (
 						<p
 							dangerouslySetInnerHTML={{
-								__html:
-									optimoleDashboardApp.strings.options_strings
-										.enable_bg_lazyload_desc
+								__html: options_strings.enable_bg_lazyload_desc
 							}}
 						/>
 					)}
@@ -563,32 +479,23 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 						<TextareaControl
 							id="optml-css-watchers"
 							placeholder={
-								optimoleDashboardApp.strings.options_strings
-									.watch_placeholder_lazyload +
+								options_strings.watch_placeholder_lazyload +
 								'\n' +
-								optimoleDashboardApp.strings.options_strings
-									.watch_placeholder_lazyload_example
+								options_strings.watch_placeholder_lazyload_example
 							}
 							value={settings.watchers}
 							onChange={( value ) => updateValue( 'watchers', value )}
-							help={
-								optimoleDashboardApp.strings.options_strings.watch_desc_lazyload
-							}
+							help={options_strings.watch_desc_lazyload}
 						/>
 					</>
 				)}
 
 				<ToggleControl
-					label={
-						optimoleDashboardApp.strings.options_strings
-							.enable_video_lazyload_title
-					}
+					label={options_strings.enable_video_lazyload_title}
 					help={() => (
 						<p
 							dangerouslySetInnerHTML={{
-								__html:
-									optimoleDashboardApp.strings.options_strings
-										.enable_video_lazyload_desc
+								__html: options_strings.enable_video_lazyload_desc
 							}}
 						/>
 					)}
