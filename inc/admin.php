@@ -1345,10 +1345,11 @@ class Optml_Admin {
 		];
 		$lang_code = isset( $available_languages[ $language ] ) ? 'de' : 'en';
 
+		$site_settings = $this->settings->get_site_settings();
 		// Migrate settings if needed.
-		if ( isset( $service_data['lazyload_type'] ) && 'all' === $service_data['lazyload_type'] ) {
-			$service_data['lazyload_type']        = 'fixed';
-			$service_data['skip_lazyload_images'] = 0;
+		if ( isset( $site_settings['lazyload_type'] ) && 'all' === $site_settings['lazyload_type'] ) {
+			$site_settings['lazyload_type']        = 'fixed';
+			$site_settings['skip_lazyload_images'] = 0;
 		}
 
 		return [
@@ -1368,7 +1369,7 @@ class Optml_Admin {
 			'current_user'               => [
 				'email' => $user->user_email,
 			],
-			'site_settings'              => $this->settings->get_site_settings(),
+			'site_settings'              => $site_settings,
 			'offload_limit'              => $this->settings->get( 'offload_limit' ),
 			'home_url'                   => home_url(),
 			'optimoleHome'               => tsdk_translate_link( 'https://optimole.com/' ),
