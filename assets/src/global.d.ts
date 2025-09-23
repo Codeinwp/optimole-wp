@@ -35,6 +35,7 @@ export interface IOptimoleDashboardApp {
   bf_notices: any[]
   spc_banner: SpcBanner
   show_exceed_plan_quota_notice: string
+  report_issue_url: string
 }
 
 export interface Strings {
@@ -128,6 +129,12 @@ export interface Strings {
   optimization_status: OptimizationStatus
   optimization_tips: string
   native_lazy_load_warning: string
+  contact_support: {
+    title_prefix: string
+    disable_lazy_load_scaling: string
+    disable_image_scaling: string
+    enable_native_lazy_load: string
+  }
 }
 
 export interface Conflicts {

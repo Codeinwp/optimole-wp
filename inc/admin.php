@@ -1382,6 +1382,15 @@ class Optml_Admin {
 			'bf_notices'                 => $this->get_bf_notices(),
 			'spc_banner'                 => $this->get_spc_banner(),
 			'show_exceed_plan_quota_notice' => $this->should_show_exceed_quota_warning(),
+			'report_issue_url' => add_query_arg(
+				[
+					'utm_source'   => 'plugin',
+					'utm_medium'   => 'wp_dashboard',
+					'utm_campaign' => 'report_issue',
+					'contact_website' => home_url(),
+				],
+				tsdk_translate_link( 'https://optimole.com/contact/' )
+			),
 		];
 	}
 
@@ -2183,6 +2192,13 @@ The root cause might be either a security plugin which blocks this feature or so
 				'<a class="flex justify-center items-center font-semibold" href="https://docs.optimole.com/article/2238-optimization-tips" target="_blank"> ',
 				'<span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>'
 			),
+			'contact_support' => [
+				// translators: %s is the email main subject.
+				'title_prefix'              => __( '[Lazy Load Issue] %s', 'optimole-wp' ),
+				'disable_lazy_load_scaling' => __( 'Disable Lazy Load & Scaling' ),
+				'disable_image_scaling'     => __( 'Disable Image Scaling' ),
+				'enable_native_lazy_load'   => __( 'Enable Native Lazy Load' ),
+			],
 			// translators: %s is the date of the renewal.
 			'renew_date'                   => __( 'Renews %s', 'optimole-wp' ),
 		];
@@ -2225,7 +2241,7 @@ The root cause might be either a security plugin which blocks this feature or so
 		}
 
 		$data = [
-			'environmentId' => 'clo8wxwzj44orpm0gjchurujm',
+			'environmentId' => 'clo8wxwy044olpm0gn83ihta6',
 			'attributes'    => [
 				'plan'                => $user_data['plan'],
 				'status'              => $user_data['status'],

@@ -43,6 +43,8 @@ export default function RadioBoxes({ options, value, onChange, label, disabled =
 							type="radio"
 							name="label"
 							value={buttonValue}
+							checked={isActive}
+							onChange={() => {}} // Add empty onChange to satisfy React's controlled input requirements
 							id={buttonValue}
 							className="!opacity-0 !w-0 !h-0 !overflow-hidden !absolute !pointer-events-none"
 							disabled={disabled}

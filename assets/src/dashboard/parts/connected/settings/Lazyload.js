@@ -17,6 +17,7 @@ import {
 	Popover,
 	CheckboxControl
 } from '@wordpress/components';
+import { sprintf } from '@wordpress/i18n';
 
 import { useSelect } from '@wordpress/data';
 
@@ -93,6 +94,30 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 
 	const [ phPicker, setPhPicker ] = useState( false );
 	const [ showModal, setShowModal ] = useState( false );
+
+	const supportPrefilledContactFormUrl = useMemo( () => {
+		const contactUrl = new URL( window.optimoleDashboardApp.report_issue_url );
+		const {
+			contact_support
+		} = window.optimoleDashboardApp.strings;
+
+		let subject = contact_support.disable_lazy_load_scaling;
+		if ( DISABLE_OPTION_MODAL_TYPE.scale === showModal ) {
+			subject = contact_support.disable_image_scaling;
+		} else if ( DISABLE_OPTION_MODAL_TYPE.javascriptLoading === showModal ) {
+			subject = contact_support.enable_native_lazy_load;
+		}
+
+		contactUrl.searchParams.set(
+			'contact_subject',
+			sprintf(
+				contact_support.title_prefix,
+				subject
+			)
+		);
+
+		return contactUrl;
+	}, [ showModal ]);
 
 	const toggleOption = useCallback(
 		( option, value ) => {
@@ -212,39 +237,51 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 				})}
 				onChange={() => setShowModal( DISABLE_OPTION_MODAL_TYPE.lazyLoad )}
 			/>
-			{
-				showModal && (
-					<Modal
-						icon="warning"
-						variant="warning"
-						labels={{
-							title: optimoleDashboardApp.strings.options_strings.performance_impact_alert_title,
-							description: 'scale' === showModal ? optimoleDashboardApp.strings.options_strings.performance_impact_alert_scale_desc : optimoleDashboardApp.strings.options_strings.performance_impact_alert_lazy_desc,
-							action: optimoleDashboardApp.strings.options_strings.performance_impact_alert_action_label,
-							secondaryAction: optimoleDashboardApp.strings.options_strings.performance_impact_alert_secondary_action_label
-						}}
-						onRequestClose={ () => setShowModal( false ) }
-						onConfirm={ () => {
-							window?.formbricks?.track( 'disable_lazy_load_feature', {
-								hiddenFields: {
-									feature: `${ showModal }`
-								}
-							});
-
-							if ( DISABLE_OPTION_MODAL_TYPE.javascriptLoading === showModal ) {
-								toggleOption( 'native_lazyload', true );
-							} else if ( DISABLE_OPTION_MODAL_TYPE.scale === showModal ) {
-								toggleOption( 'scale', true );
-							} else if ( DISABLE_OPTION_MODAL_TYPE.lazyLoad === showModal ) {
-								toggleOption( 'lazyload', false );
+			{showModal && (
+				<Modal
+					icon="warning"
+					variant="warning"
+					labels={{
+						title:
+							optimoleDashboardApp.strings.options_strings
+								.performance_impact_alert_title,
+						description:
+							'scale' === showModal ?
+								optimoleDashboardApp.strings.options_strings
+									.performance_impact_alert_scale_desc :
+								optimoleDashboardApp.strings.options_strings
+									.performance_impact_alert_lazy_desc,
+						action:
+							optimoleDashboardApp.strings.options_strings
+								.performance_impact_alert_action_label,
+						secondaryAction:
+							optimoleDashboardApp.strings.options_strings
+								.performance_impact_alert_secondary_action_label
+					}}
+					onRequestClose={() => setShowModal( false )}
+					onConfirm={() => {
+						window?.formbricks?.track( 'disable_lazy_load_feature', {
+							hiddenFields: {
+								feature: `${showModal}`
 							}
+						});
 
-							setShowModal( false );
-						} }
-						onSecondaryAction={ () => setShowModal( false ) }
-					/>
-				)
-			}
+						if ( DISABLE_OPTION_MODAL_TYPE.javascriptLoading === showModal ) {
+							toggleOption( 'native_lazyload', true );
+						} else if ( DISABLE_OPTION_MODAL_TYPE.scale === showModal ) {
+							toggleOption( 'scale', true );
+						} else if ( DISABLE_OPTION_MODAL_TYPE.lazyLoad === showModal ) {
+							toggleOption( 'lazyload', false );
+						}
+
+						setShowModal( false );
+					}}
+					onSecondaryAction={() => {
+						window.open( supportPrefilledContactFormUrl, '_blank' );
+						setShowModal( false );
+					}}
+				/>
+			)}
 			<hr className="my-8 border-grayish-blue" />
 			<BaseControl
 				className="mt-2"
@@ -465,18 +502,16 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 				</div>
 			</BaseControl>
 
-			{
-				isNativeLazyLoadEnabled && (
-					<Notice
-						type="warning"
-						title={''}
-						text={
-							optimoleDashboardApp.strings.options_strings
-								.native_lazy_load_warning
-						}
-					/>
-				)
-			}
+			{isNativeLazyLoadEnabled && (
+				<Notice
+					type="warning"
+					title={''}
+					text={
+						optimoleDashboardApp.strings.options_strings
+							.native_lazy_load_warning
+					}
+				/>
+			)}
 
 			<hr className="my-8 border-grayish-blue" />
 
@@ -494,7 +529,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 					} else {
 						setShowModal( DISABLE_OPTION_MODAL_TYPE.scale );
 					}
-				} }
+				}}
 			/>
 
 			<GroupSettingsContainer>
