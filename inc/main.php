@@ -143,6 +143,7 @@ final class Optml_Main {
 				'Optml_Smush',
 				'Optml_Litespeed',
 				'Optml_Autoptimize',
+				'Optml_Perfmatters',
 			]
 		);
 

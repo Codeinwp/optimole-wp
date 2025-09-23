@@ -53,6 +53,7 @@ class Optml_Conflicting_Plugins {
 			'imagify'      => 'imagify/imagify.php',
 			'litespeed'    => 'litespeed-cache/litespeed-cache.php',
 			'autoptimize'  => 'autoptimize/autoptimize.php',
+			'perfmatters'  => 'perfmatters/perfmatters.php',
 			// 'plugin-slug' => 'plugin-folder/plugin-file.php'
 		];
 
