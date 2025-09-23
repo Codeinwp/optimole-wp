@@ -2295,23 +2295,29 @@ The root cause might be either a security plugin which blocks this feature or so
 	 */
 	private function get_active_notices_count() {
 		$conflicting_plugins = $this->conflicting_plugins->get_conflicting_plugins();
+		$conflicts_count = 0;
 
 		foreach ( $conflicting_plugins as $key => $plugin ) {
+			$key = str_replace( 'wp-', '', $key );
 			$class_name = 'Optml_' . ucfirst( $key );
 
-			if ( class_exists( $class_name ) ) {
-				try {
-					$conflict_instance = new $class_name();
+			if ( ! class_exists( $class_name ) ) {
+				continue;
+			}
+			$conflict_instance = new $class_name();
 
-					if ( method_exists( $conflict_instance, 'is_conflict_valid' ) && ! $conflict_instance->is_conflict_valid() ) {
-						unset( $conflicting_plugins[ $key ] );
-					}
-				} catch ( Exception $e ) {
-					unset( $conflicting_plugins[ $key ] );
-				}
+
+			if ( ! is_a( $conflict_instance, 'Optml_Abstract_Conflict' ) ) {
+				continue;
+			}
+
+			if ( $conflict_instance->is_conflict_valid() ) {
+				++$conflicts_count;
 			}
 		}
 
-		return count( $conflicting_plugins );
+		$dismissed_notices = get_option( 'optml_dismissed_conflicts', [] );
+    
+		return $conflicts_count - count( $dismissed_notices );
 	}
 }
