@@ -383,7 +383,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 * @return bool
 	 */
 	private function is_dam_url( $url ) {
-		return is_string( $url ) && strpos( $url, Optml_Dam::URL_DAM_FLAG ) !== false;
+		return strpos( $url, Optml_Dam::URL_DAM_FLAG ) !== false;
 	}
 
 	/**
