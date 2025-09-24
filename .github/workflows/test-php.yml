@@ -56,13 +56,21 @@ jobs:
     name: PHPStan on PHP 8.0
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
       - name: Setup PHP version
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.0'
           extensions: simplexml, mysql
-      - name: Checkout source code
-        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Create the build file
+        run: |
+          npm ci
+          npm run build
       - name: Install Composer dependencies
         run: composer install --prefer-dist --no-progress --no-suggest
       - name: PHPStan Static Analysis

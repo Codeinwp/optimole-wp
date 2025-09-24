@@ -1,0 +1,3559 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method Optml_Admin\:\:add_dashboard_page\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:add_dns_prefetch\(\) has parameter \$hints with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:add_dns_prefetch\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:add_no_js_class_to_html_tag\(\) has parameter \$classes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:add_no_js_class_to_html_tag\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:add_notice\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:add_notice_conflicts\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:add_notice_upgrade\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:add_settings_subpage\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:allow_svg\(\) has parameter \$mimes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:allow_svg\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:check_domain_change\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:check_svg_and_sanitize\(\) has parameter \$file with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:daily_sync\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:detect_image_alt_change\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:detect_image_alt_change\(\) has parameter \$meta_id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:detect_image_alt_change\(\) has parameter \$meta_key with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:detect_image_alt_change\(\) has parameter \$meta_value with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:detect_image_alt_change\(\) has parameter \$post_id with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:detect_image_title_changes\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:detect_image_title_changes\(\) has parameter \$data with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:detect_image_title_changes\(\) has parameter \$postarr with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:detect_image_title_changes\(\) has parameter \$unsanitized_postarr with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:detect_image_title_changes\(\) has parameter \$update with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:enqueue\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:frontend_scripts\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:generator\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:get_background_lazy_css\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:get_bf_notices\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:get_dashboard_strings\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:get_spc_banner\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:get_survey_metadata\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:get_survey_metadata\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:init_no_script\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:inline_bootstrap_script\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:legacy_detect_image_title_changes\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:legacy_detect_image_title_changes\(\) has parameter \$data with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:legacy_detect_image_title_changes\(\) has parameter \$postarr with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:legacy_detect_image_title_changes\(\) has parameter \$unsanitized_postarr with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:localize_dashboard_app\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:maybe_redirect\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:notice_js\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:notice_js\(\) has parameter \$action with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:notice_styles\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:pull_image_data\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:register_public_actions\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:render_dashboard_page\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:size_to_dimension\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:to_map_values\(\) has parameter \$map with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:to_optml_crop\(\) has parameter \$crop_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:to_optml_crop\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:to_optml_watermark\(\) has parameter \$watermark_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:to_optml_watermark\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Admin\:\:update_default_settings\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Property Optml_Admin\:\:\$dimension_cache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/admin.php
+
+		-
+			message: '#^Method Optml_Api\:\:build_args\(\) has parameter \$headers with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:build_args\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:build_args\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:call_data_enrich_api\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:call_data_enrich_api\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:call_onboard_api\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:call_onboard_api\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:connect\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:create_account\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:get_cache_token\(\) has parameter \$api_key with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:get_cache_token\(\) has parameter \$token with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:get_cache_token\(\) has parameter \$type with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:get_cache_token\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:get_cloud_images\(\) has parameter \$domains with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:get_offload_conflicts\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:get_optimized_images\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:get_user_data\(\) has parameter \$api_key with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:get_user_data\(\) has parameter \$application with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:get_user_data\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:log_offload_error\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:log_offload_error\(\) has parameter \$error_response with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:request\(\) has parameter \$extra_headers with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:request\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:request\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:update_extra_visits\(\) has parameter \$application with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_Api\:\:update_extra_visits\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/api.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:add_size\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:add_size\(\) has parameter \$crop with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:extract_domain_from_urls\(\) has parameter \$urls with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:extract_domain_from_urls\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:get_all_image_sizes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:get_altered_metadata_for_remote_images\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:get_media_optimized_url\(\) has parameter \$resize with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:get_optimized_image_url\(\) has parameter \$resize with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:get_upload_resource\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:image_sizes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:init\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:parse_dimension_from_optimized_url\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:parse_dimensions_from_filename\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:possible_data_ignore_flags\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:possible_lazyload_flags\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:possible_src_attributes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:possible_tag_flags\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:set_properties\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:size_to_crop\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:size_to_dimension\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:to_map_values\(\) has parameter \$map with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:to_optml_crop\(\) has parameter \$crop_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:to_optml_crop\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:to_optml_watermark\(\) has parameter \$watermark_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_App_Replacer\:\:to_optml_watermark\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$allowed_sources type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$custom_size_buffer type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$dimension_cache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$filters type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$ignore_data_opt_attribute type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$ignore_lazyload_strings type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$ignore_tag_strings type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$ignored_url_map type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$image_sizes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$possible_sources type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$possible_src_attributes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$site_mappings type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$size_to_crop type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Property Optml_App_Replacer\:\:\$upload_resource type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/app_replacer.php
+
+		-
+			message: '#^Method Optml_Attachment_Cache\:\:reset\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/attachment_cache.php
+
+		-
+			message: '#^Property Optml_Attachment_Cache\:\:\$cache_map type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/attachment_cache.php
+
+		-
+			message: '#^Property Optml_Cli\:\:\$commands type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/cli.php
+
+		-
+			message: '#^Method Optml_Cli_Media\:\:move_to_optimole\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/cli/cli_media.php
+
+		-
+			message: '#^Method Optml_Cli_Media\:\:rollback_images\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/cli/cli_media.php
+
+		-
+			message: '#^Method Optml_Cli_Setting\:\:clear_cache\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/cli/cli_setting.php
+
+		-
+			message: '#^Method Optml_Cli_Setting\:\:clear_cache\(\) has parameter \$args with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/cli/cli_setting.php
+
+		-
+			message: '#^Method Optml_Cli_Setting\:\:clear_cache\(\) has parameter \$assoc_args with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/cli/cli_setting.php
+
+		-
+			message: '#^Method Optml_Cli_Setting\:\:connect\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/cli/cli_setting.php
+
+		-
+			message: '#^Method Optml_Cli_Setting\:\:connect\(\) has parameter \$args with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/cli/cli_setting.php
+
+		-
+			message: '#^Method Optml_Cli_Setting\:\:disconnect\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/cli/cli_setting.php
+
+		-
+			message: '#^Method Optml_Cli_Setting\:\:get\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/cli/cli_setting.php
+
+		-
+			message: '#^Method Optml_Cli_Setting\:\:get\(\) has parameter \$args with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/cli/cli_setting.php
+
+		-
+			message: '#^Method Optml_Cli_Setting\:\:update\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/cli/cli_setting.php
+
+		-
+			message: '#^Method Optml_Cli_Setting\:\:update\(\) has parameter \$args with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/cli/cli_setting.php
+
+		-
+			message: '#^Method Optml_Cli_Setting\:\:update_setting\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/cli/cli_setting.php
+
+		-
+			message: '#^Method Optml_beaver_builder\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/beaver_builder.php
+
+		-
+			message: '#^Method Optml_cache_enabler\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/cache_enabler.php
+
+		-
+			message: '#^Method Optml_compatibility\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/compatibility.php
+
+		-
+			message: '#^Method Optml_divi_builder\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/divi_builder.php
+
+		-
+			message: '#^Method Optml_elementor_builder\:\:optimize_src\(\) has parameter \$image with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/elementor_builder.php
+
+		-
+			message: '#^Method Optml_elementor_builder\:\:optimize_src\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/elementor_builder.php
+
+		-
+			message: '#^Method Optml_elementor_builder\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/elementor_builder.php
+
+		-
+			message: '#^Method Optml_elementor_builder_late\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/elementor_builder_late.php
+
+		-
+			message: '#^Method Optml_envira\:\:add_lazyflag\(\) has parameter \$strings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/envira.php
+
+		-
+			message: '#^Method Optml_envira\:\:add_lazyflag\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/envira.php
+
+		-
+			message: '#^Method Optml_envira\:\:check_resize_tag\(\) has parameter \$old_resize with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/envira.php
+
+		-
+			message: '#^Method Optml_envira\:\:check_resize_tag\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/envira.php
+
+		-
+			message: '#^Method Optml_envira\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/envira.php
+
+		-
+			message: '#^Method Optml_essential_grid\:\:add_bg_class\(\) has parameter \$classes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/essential_grid.php
+
+		-
+			message: '#^Method Optml_essential_grid\:\:add_bg_class\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/essential_grid.php
+
+		-
+			message: '#^Method Optml_essential_grid\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/essential_grid.php
+
+		-
+			message: '#^Method Optml_facetwp\:\:api_replacement_action\(\) has parameter \$output with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/facetwp.php
+
+		-
+			message: '#^Method Optml_facetwp\:\:api_replacement_filter\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/facetwp.php
+
+		-
+			message: '#^Method Optml_facetwp\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/facetwp.php
+
+		-
+			message: '#^Method Optml_foogallery\:\:add_lazysrc\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/foogallery.php
+
+		-
+			message: '#^Method Optml_foogallery\:\:add_lazysrc\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/foogallery.php
+
+		-
+			message: '#^Method Optml_foogallery\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/foogallery.php
+
+		-
+			message: '#^Method Optml_give_wp\:\:add_ignore_lazyload_iframe\(\) has parameter \$flags with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/give_wp.php
+
+		-
+			message: '#^Method Optml_give_wp\:\:add_ignore_lazyload_iframe\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/give_wp.php
+
+		-
+			message: '#^Method Optml_give_wp\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/give_wp.php
+
+		-
+			message: '#^Method Optml_jet_elements\:\:add_ignore_lazyload\(\) has parameter \$flags with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/jet_elements.php
+
+		-
+			message: '#^Method Optml_jet_elements\:\:add_ignore_lazyload\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/jet_elements.php
+
+		-
+			message: '#^Method Optml_jet_elements\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/jet_elements.php
+
+		-
+			message: '#^Method Optml_master_slider\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/master_slider.php
+
+		-
+			message: '#^Method Optml_metaslider\:\:add_ignore_lazyload\(\) has parameter \$flags with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/metaslider.php
+
+		-
+			message: '#^Method Optml_metaslider\:\:add_ignore_lazyload\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/metaslider.php
+
+		-
+			message: '#^Method Optml_metaslider\:\:add_noscript_flags\(\) has parameter \$flags with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/metaslider.php
+
+		-
+			message: '#^Method Optml_metaslider\:\:add_noscript_flags\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/metaslider.php
+
+		-
+			message: '#^Method Optml_metaslider\:\:add_watcher_class\(\) has parameter \$classes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/metaslider.php
+
+		-
+			message: '#^Method Optml_metaslider\:\:add_watcher_class\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/metaslider.php
+
+		-
+			message: '#^Method Optml_metaslider\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/metaslider.php
+
+		-
+			message: '#^Method Optml_metaslider\:\:setup_listner\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/metaslider.php
+
+		-
+			message: '#^Method Optml_otter_blocks\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/otter_blocks.php
+
+		-
+			message: '#^Method Optml_pinterest\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/pinterest.php
+
+		-
+			message: '#^Method Optml_revslider\:\:add_bg_class\(\) has parameter \$classes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/revslider.php
+
+		-
+			message: '#^Method Optml_revslider\:\:add_bg_class\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/revslider.php
+
+		-
+			message: '#^Method Optml_revslider\:\:add_data_ignore\(\) has parameter \$flags with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/revslider.php
+
+		-
+			message: '#^Method Optml_revslider\:\:add_data_ignore\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/revslider.php
+
+		-
+			message: '#^Method Optml_revslider\:\:add_lazyflag\(\) has parameter \$strings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/revslider.php
+
+		-
+			message: '#^Method Optml_revslider\:\:add_lazyflag\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/revslider.php
+
+		-
+			message: '#^Method Optml_revslider\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/revslider.php
+
+		-
+			message: '#^Method Optml_sg_optimizer\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/sg_optimizer.php
+
+		-
+			message: '#^Method Optml_shortcode_ultimate\:\:alter_shortcode_output\(\) has parameter \$attr with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/shortcode_ultimate.php
+
+		-
+			message: '#^Method Optml_shortcode_ultimate\:\:change_default_crop\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/shortcode_ultimate.php
+
+		-
+			message: '#^Method Optml_shortcode_ultimate\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/shortcode_ultimate.php
+
+		-
+			message: '#^Property Optml_shortcode_ultimate\:\:\$allowed_tags type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/shortcode_ultimate.php
+
+		-
+			message: '#^Method Optml_smart_search_woocommerce\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/smart_search_woocommerce.php
+
+		-
+			message: '#^Method Optml_spectra\:\:iterate_array\(\) has parameter \$attrs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/spectra.php
+
+		-
+			message: '#^Method Optml_spectra\:\:iterate_array\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/spectra.php
+
+		-
+			message: '#^Method Optml_spectra\:\:optimize_src\(\) has parameter \$attrs with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/spectra.php
+
+		-
+			message: '#^Method Optml_spectra\:\:optimize_src\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/spectra.php
+
+		-
+			message: '#^Method Optml_spectra\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/spectra.php
+
+		-
+			message: '#^Method Optml_swift_performance\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/swift_performance.php
+
+		-
+			message: '#^Method Optml_thrive\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/thrive.php
+
+		-
+			message: '#^Method Optml_thrive\:\:update_trive_postmeta\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/thrive.php
+
+		-
+			message: '#^Method Optml_translate_press\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/translate_press.php
+
+		-
+			message: '#^Method Optml_w3_total_cache\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/w3_total_cache.php
+
+		-
+			message: '#^Method Optml_woocommerce\:\:add_lazyload_early_flag\(\) has parameter \$flags with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/woocommerce.php
+
+		-
+			message: '#^Method Optml_woocommerce\:\:add_lazyload_early_flag\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/woocommerce.php
+
+		-
+			message: '#^Method Optml_woocommerce\:\:add_product_pages_to_image_query\(\) has parameter \$parents with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/woocommerce.php
+
+		-
+			message: '#^Method Optml_woocommerce\:\:add_product_pages_to_image_query\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/woocommerce.php
+
+		-
+			message: '#^Method Optml_woocommerce\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/woocommerce.php
+
+		-
+			message: '#^Method Optml_wp_bakery\:\:add_images_from_wp_bakery_to_offload\(\) has parameter \$found_images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/wp_bakery.php
+
+		-
+			message: '#^Method Optml_wp_bakery\:\:add_images_from_wp_bakery_to_offload\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/wp_bakery.php
+
+		-
+			message: '#^Method Optml_wp_bakery\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/wp_bakery.php
+
+		-
+			message: '#^Method Optml_wp_fastest_cache\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/wp_fastest_cache.php
+
+		-
+			message: '#^Method Optml_wp_rest_cache\:\:api_optimization\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/compatibilities/wp_rest_cache.php
+
+		-
+			message: '#^Method Optml_wp_rest_cache\:\:api_optimization\(\) has parameter \$result with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/wp_rest_cache.php
+
+		-
+			message: '#^Method Optml_wp_rest_cache\:\:api_optimization\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/wp_rest_cache.php
+
+		-
+			message: '#^Method Optml_wp_rest_cache\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/wp_rest_cache.php
+
+		-
+			message: '#^Method Optml_wpml\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/wpml.php
+
+		-
+			message: '#^Method Optml_wpml\:\:wpml_get_duplicates\(\) has parameter \$duplicated_attachments with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/wpml.php
+
+		-
+			message: '#^Method Optml_wpml\:\:wpml_get_duplicates\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/wpml.php
+
+		-
+			message: '#^Method Optml_wpsp\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/wpsp.php
+
+		-
+			message: '#^Property Optml_wpsp\:\:\$last_attribute type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/compatibilities/wpsp.php
+
+		-
+			message: '#^Method Optml_yith_quick_view\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/compatibilities/yith_quick_view.php
+
+		-
+			message: '#^Method Optml_Config\:\:init\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/config.php
+
+		-
+			message: '#^Method Optml_Config\:\:init\(\) has parameter \$service_settings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/config.php
+
+		-
+			message: '#^Property Optml_Config\:\:\$image_extensions type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/config.php
+
+		-
+			message: '#^Method Optml_Abstract_Conflict\:\:define_message\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/conflicts/abstract_conflict.php
+
+		-
+			message: '#^Method Optml_Abstract_Conflict\:\:get_conflict\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/conflicts/abstract_conflict.php
+
+		-
+			message: '#^Method Optml_Abstract_Conflict\:\:is_active\(\) has parameter \$dismissed_conflicts with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/conflicts/abstract_conflict.php
+
+		-
+			message: '#^Method Optml_Conflict_Manager\:\:__construct\(\) has parameter \$register_conflicts with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/conflicts/conflict_manager.php
+
+		-
+			message: '#^Method Optml_Conflict_Manager\:\:get_conflict_list\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/conflicts/conflict_manager.php
+
+		-
+			message: '#^Method Optml_Conflict_Manager\:\:watch\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/conflicts/conflict_manager.php
+
+		-
+			message: '#^Property Optml_Conflict_Manager\:\:\$dismissed_conflicts type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/conflicts/conflict_manager.php
+
+		-
+			message: '#^Property Optml_Conflict_Manager\:\:\$watched_conflicts type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/conflicts/conflict_manager.php
+
+		-
+			message: '#^Method Optml_Conflicting_Plugins\:\:defined_plugins\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/conflicts/conflicting_plugins.php
+
+		-
+			message: '#^Method Optml_Conflicting_Plugins\:\:dismiss_conflicting_plugins\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/conflicts/conflicting_plugins.php
+
+		-
+			message: '#^Method Optml_Conflicting_Plugins\:\:dismiss_notice\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/conflicts/conflicting_plugins.php
+
+		-
+			message: '#^Method Optml_Conflicting_Plugins\:\:filter_conflicting_plugins\(\) has parameter \$plugins with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/conflicts/conflicting_plugins.php
+
+		-
+			message: '#^Method Optml_Conflicting_Plugins\:\:filter_conflicting_plugins\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/conflicts/conflicting_plugins.php
+
+		-
+			message: '#^Method Optml_Conflicting_Plugins\:\:get_active_plugins\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/conflicts/conflicting_plugins.php
+
+		-
+			message: '#^Method Optml_Conflicting_Plugins\:\:get_conflicting_plugins\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/conflicts/conflicting_plugins.php
+
+		-
+			message: '#^Method Optml_Conflicting_Plugins\:\:get_dismissed_notices\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/conflicts/conflicting_plugins.php
+
+		-
+			message: '#^Method Optml_Divi\:\:define_message\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/conflicts/divi.php
+
+		-
+			message: '#^Method Optml_Jetpack_Lazyload\:\:define_message\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/conflicts/jetpack_lazyload.php
+
+		-
+			message: '#^Method Optml_Jetpack_Photon\:\:define_message\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/conflicts/jetpack_photon.php
+
+		-
+			message: '#^Method Optml_w3_total_cache_cdn\:\:define_message\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/conflicts/w3_total_cache_cdn.php
+
+		-
+			message: '#^Method Optml_Wprocket\:\:define_message\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/conflicts/wprocket.php
+
+		-
+			message: '#^Method Optml_Dam\:\:alter_attachment_for_js\(\) has parameter \$meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:alter_attachment_for_js\(\) has parameter \$response with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:alter_attachment_for_js\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:alter_attachment_image_src\(\) has parameter \$image with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:alter_attachment_image_src\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:alter_attachment_metadata\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:alter_attachment_metadata\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:alter_elementor_image_size\(\) has parameter \$settings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:catch_downsize\(\) has parameter \$image with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:catch_downsize\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:check_existing_attachments\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:check_existing_attachments\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:disable_dam_images_srcset\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:disable_dam_images_srcset\(\) has parameter \$size_array with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:disable_dam_images_srcset\(\) has parameter \$sources with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:disable_dam_images_srcset\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:get_all_image_sizes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:get_altered_metadata_for_remote_images\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:get_dam_imported_attachments\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:get_dam_imported_attachments\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:get_localized_vars\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:get_offloaded_attachments\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:get_offloaded_attachments\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:insert_attachment\(\) has parameter \$image with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:insert_attachments\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:insert_attachments\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:parse_dimension_from_optimized_url\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:replace_dam_url_args\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:size_to_dimension\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:to_map_values\(\) has parameter \$map with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:to_optml_crop\(\) has parameter \$crop_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:to_optml_crop\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:to_optml_watermark\(\) has parameter \$watermark_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dam\:\:to_optml_watermark\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/dam.php
+
+		-
+			message: '#^Property Optml_Dam\:\:\$dimension_cache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/dam.php
+
+		-
+			message: '#^Method Optml_Dashboard_Widget\:\:add_dashboard_widget\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/dashboard_widget.php
+
+		-
+			message: '#^Method Optml_Dashboard_Widget\:\:enqueue_widget\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/dashboard_widget.php
+
+		-
+			message: '#^Method Optml_Dashboard_Widget\:\:get_script_localization\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dashboard_widget.php
+
+		-
+			message: '#^Method Optml_Dashboard_Widget\:\:get_service_data\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/dashboard_widget.php
+
+		-
+			message: '#^Method Optml_Dashboard_Widget\:\:init\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/dashboard_widget.php
+
+		-
+			message: '#^Method Optml_Dashboard_Widget\:\:render_widget\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/dashboard_widget.php
+
+		-
+			message: '#^Method Optml_Filters\:\:should_do_extension\(\) has parameter \$flags with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/filters.php
+
+		-
+			message: '#^Method Optml_Filters\:\:should_do_image\(\) has parameter \$flags with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/filters.php
+
+		-
+			message: '#^Method Optml_Filters\:\:should_do_page\(\) has parameter \$contains_flags with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/filters.php
+
+		-
+			message: '#^Method Optml_Filters\:\:should_do_page\(\) has parameter \$match_flags with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/filters.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:get_background_lazyload_selectors\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:get_iframe_lazyload_flags\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:get_ignore_noscript_flags\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:get_lazyload_bg_classes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:get_watcher_lz_classes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:init\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:is_valid_mimetype_from_url\(\) has parameter \$filters with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:lazyload_tag_replace\(\) has parameter \$optml_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:size_to_dimension\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:to_map_values\(\) has parameter \$map with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:to_optml_crop\(\) has parameter \$crop_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:to_optml_crop\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:to_optml_watermark\(\) has parameter \$watermark_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Method Optml_Lazyload_Replacer\:\:to_optml_watermark\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Property Optml_Lazyload_Replacer\:\:\$background_lazyload_selectors type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Property Optml_Lazyload_Replacer\:\:\$dimension_cache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Property Optml_Lazyload_Replacer\:\:\$iframe_lazyload_flags type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Property Optml_Lazyload_Replacer\:\:\$ignore_no_script_flags type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Property Optml_Lazyload_Replacer\:\:\$lazyload_background_classes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Property Optml_Lazyload_Replacer\:\:\$lazyload_watcher_classes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/lazyload_replacer.php
+
+		-
+			message: '#^Property Optml_Logger\:\:\$log_filenames type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/logger.php
+
+		-
+			message: '#^Method Optml_Main\:\:activate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Main\:\:add_settings\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Main\:\:add_settings\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Main\:\:adds_uf_css\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Main\:\:change_icon\(\) has parameter \$old_icon with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Main\:\:deactivate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Main\:\:load_plugin_textdomain\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Main\:\:register_conflicts\(\) has parameter \$conflicts_to_register with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Main\:\:register_conflicts\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Main\:\:register_sdk\(\) has parameter \$products with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Main\:\:register_sdk\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Main\:\:sdk_hide_promo_notice\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Main\:\:sdk_hide_promo_notice\(\) has parameter \$should_show with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/main.php
+
+		-
+			message: '#^Method Optml_Manager\:\:close_buffer\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/manager.php
+
+		-
+			message: '#^Method Optml_Manager\:\:do_url_replacement\(\) has parameter \$extracted_urls with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/manager.php
+
+		-
+			message: '#^Method Optml_Manager\:\:extract_urls_from_content\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/manager.php
+
+		-
+			message: '#^Method Optml_Manager\:\:init\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/manager.php
+
+		-
+			message: '#^Method Optml_Manager\:\:normalize_urls\(\) has parameter \$urls with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/manager.php
+
+		-
+			message: '#^Method Optml_Manager\:\:normalize_urls\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/manager.php
+
+		-
+			message: '#^Method Optml_Manager\:\:parse_images_from_html\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/manager.php
+
+		-
+			message: '#^Method Optml_Manager\:\:process_template_redirect_content\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/manager.php
+
+		-
+			message: '#^Method Optml_Manager\:\:register_after_setup\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/manager.php
+
+		-
+			message: '#^Method Optml_Manager\:\:register_hooks\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/manager.php
+
+		-
+			message: '#^Property Optml_Manager\:\:\$possible_compatibilities type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/manager.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:add_inline_media_action\(\) has parameter \$actions with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:add_inline_media_action\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:add_page_meta_query_args\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:add_page_meta_query_args\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:alter_attachment_for_js\(\) has parameter \$meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:alter_attachment_for_js\(\) has parameter \$response with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:alter_attachment_for_js\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:alter_attachment_image_src\(\) has parameter \$image with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:alter_attachment_image_src\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:alter_attachment_metadata\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:alter_attachment_metadata\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:alter_elementor_image_size\(\) has parameter \$settings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:bulk_action_handler\(\) has parameter \$image_ids with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:clear_offload_errors_meta\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:delete_attachment_from_server\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:delete_attachment_hook\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:filter_saved_data\(\) has parameter \$post_data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:filter_saved_data\(\) has parameter \$postarr with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:filter_saved_data\(\) has parameter \$unsanitized_postarr with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:filter_saved_data\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:filter_uploaded_images\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:filter_uploaded_images\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:generate_filter_downsize_urls\(\) has parameter \$image with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:generate_filter_downsize_urls\(\) has parameter \$size with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:generate_filter_downsize_urls\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:generate_image_meta\(\) has parameter \$meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:generate_image_meta\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_all_image_sizes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_altered_metadata_for_remote_images\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_image_id_from_content\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_image_size_from_width\(\) has parameter \$just_name with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_image_size_from_width\(\) has parameter \$sizes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_image_size_from_width\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_images_or_pages_query_args\(\) has parameter \$get_images with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_images_or_pages_query_args\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_local_attachement_id_from_url\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_new_offloaded_attachment_url\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_new_offloaded_attachment_url\(\) has parameter \$attachment_metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_posts_by_image_ids\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_posts_by_image_ids\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:get_process_meta\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:insert\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:insert\(\) has parameter \$postarr with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:insert\(\) has parameter \$unsanitized_postarr with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:insert\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:insert_legacy\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:insert_legacy\(\) has parameter \$postarr with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:insert_legacy\(\) has parameter \$unsanitized_postarr with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:insert_legacy\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:instance\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:legacy_filter_saved_data\(\) has parameter \$post_data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:legacy_filter_saved_data\(\) has parameter \$postarr with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:legacy_filter_saved_data\(\) has parameter \$unsanitized_postarr with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:legacy_filter_saved_data\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:mark_retryable_error\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:move_images\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:number_of_images_by_ids\(\) has parameter \$ids with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:parse_dimension_from_optimized_url\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:pre_filter_rest_content\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:register_bulk_media_actions\(\) has parameter \$bulk_array with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:register_bulk_media_actions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:rollback_and_update_images\(\) has parameter \$image_ids with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:rollback_images\(\) has parameter \$images with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:rollback_images\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:schedule_action\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:size_to_dimension\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:to_map_values\(\) has parameter \$map with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:to_optml_crop\(\) has parameter \$crop_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:to_optml_crop\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:to_optml_watermark\(\) has parameter \$watermark_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:to_optml_watermark\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:update_content\(\) has parameter \$page_in with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:update_content\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:upload_and_update_existing_images\(\) has parameter \$image_ids with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:upload_images\(\) has parameter \$images with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Media_Offload\:\:upload_images\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_offload.php
+
+		-
+			message: '#^Property Optml_Media_Offload\:\:\$dimension_cache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/media_offload.php
+
+		-
+			message: '#^Method Optml_Attachment_Db_Renamer\:\:__construct\(\) has parameter \$skip_sizes with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/media_rename/attachment_db_renamer.php
+
+		-
+			message: '#^Method Optml_Attachment_Db_Renamer\:\:get_columns\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_db_renamer.php
+
+		-
+			message: '#^Method Optml_Attachment_Db_Renamer\:\:get_tables\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_db_renamer.php
+
+		-
+			message: '#^Method Optml_Attachment_Db_Renamer\:\:php_handle_column\(\) has parameter \$primary_keys with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_db_renamer.php
+
+		-
+			message: '#^Method Optml_Attachment_Db_Renamer\:\:process_column\(\) has parameter \$primary_keys with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_db_renamer.php
+
+		-
+			message: '#^Property Optml_Attachment_Db_Renamer\:\:\$skip_columns type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_db_renamer.php
+
+		-
+			message: '#^Property Optml_Attachment_Db_Renamer\:\:\$skip_tables type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_db_renamer.php
+
+		-
+			message: '#^Method Optml_Attachment_Edit\:\:add_attachment_fields\(\) has parameter \$form_fields with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_edit.php
+
+		-
+			message: '#^Method Optml_Attachment_Edit\:\:add_attachment_fields\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_edit.php
+
+		-
+			message: '#^Method Optml_Attachment_Edit\:\:bust_cache_on_rename\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/media_rename/attachment_edit.php
+
+		-
+			message: '#^Method Optml_Attachment_Edit\:\:enqueue_scripts\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/media_rename/attachment_edit.php
+
+		-
+			message: '#^Method Optml_Attachment_Edit\:\:prepare_attachment_filename\(\) has parameter \$attachment with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_edit.php
+
+		-
+			message: '#^Method Optml_Attachment_Edit\:\:prepare_attachment_filename\(\) has parameter \$post_data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_edit.php
+
+		-
+			message: '#^Method Optml_Attachment_Edit\:\:prepare_attachment_filename\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_edit.php
+
+		-
+			message: '#^Method Optml_Attachment_Edit\:\:replace_file\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/media_rename/attachment_edit.php
+
+		-
+			message: '#^Method Optml_Attachment_Edit\:\:save_attachment_filename\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/media_rename/attachment_edit.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:get_all_image_sizes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:get_all_image_sizes_paths\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:get_all_image_sizes_urls\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:get_altered_metadata_for_remote_images\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:get_attachment_metadata\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:get_attachment_mimetype\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:is_image\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:parse_dimension_from_optimized_url\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:size_to_dimension\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:to_map_values\(\) has parameter \$map with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:to_optml_crop\(\) has parameter \$crop_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:to_optml_crop\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:to_optml_watermark\(\) has parameter \$watermark_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Model\:\:to_optml_watermark\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Property Optml_Attachment_Model\:\:\$attachment_metadata type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Property Optml_Attachment_Model\:\:\$dimension_cache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_model.php
+
+		-
+			message: '#^Method Optml_Attachment_Rename\:\:get_new_url\(\) has parameter \$filename with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/media_rename/attachment_rename.php
+
+		-
+			message: '#^Method Optml_Attachment_Replace\:\:__construct\(\) has parameter \$file with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_replace.php
+
+		-
+			message: '#^Method Optml_Attachment_Replace\:\:replace_image_sizes_links\(\) has parameter \$new_sizes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_replace.php
+
+		-
+			message: '#^Method Optml_Attachment_Replace\:\:replace_image_sizes_links\(\) has parameter \$old_sizes_urls with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_replace.php
+
+		-
+			message: '#^Property Optml_Attachment_Replace\:\:\$file type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/media_rename/attachment_replace.php
+
+		-
+			message: '#^Method Optml_Rest\:\:check_redirects\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:clear_cache_request\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:clear_offload_errors\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:connect\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:disconnect\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:disconnect\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:dismiss_conflict\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:dismiss_notice\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:fetch_sample_image\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:get_offload_conflicts\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:get_sample_rate\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:insert_images\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:move_image\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:number_of_images_and_pages\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:optimizations\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:poll_conflicts\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:poll_optimized_images\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:register\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:register_cache_routes\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:register_conflict_routes\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:register_image_routes\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:register_media_offload_routes\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:register_optimization_routes\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:register_service\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:register_service_routes\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:reqister_route\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:reqister_route\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:request_update\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:response\(\) has parameter \$code with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:select_application\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:update_option\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Rest\:\:upload_onboard_images\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Property Optml_Rest\:\:\$rest_routes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/rest.php
+
+		-
+			message: '#^Method Optml_Settings\:\:auto_connect\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:get_cloud_sites_whitelist_default\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:get_raw_settings\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:get_site_settings\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:get_watermark\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:parse_settings\(\) has parameter \$new_settings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:parse_settings\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:size_to_dimension\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:to_map_values\(\) has parameter \$map with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:to_optml_crop\(\) has parameter \$crop_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:to_optml_crop\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:to_optml_watermark\(\) has parameter \$watermark_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Settings\:\:to_optml_watermark\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Property Optml_Settings\:\:\$default_schema type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Property Optml_Settings\:\:\$dimension_cache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Property Optml_Settings\:\:\$options type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Property Optml_Settings\:\:\$whitelisted_settings type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/settings.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:filter_attachment_image_attributes\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:filter_attachment_image_attributes\(\) has parameter \$attr with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:filter_image_downsize\(\) has parameter \$image with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:filter_image_downsize\(\) has parameter \$size with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:filter_image_downsize\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:filter_image_src_get_dimensions\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:filter_srcset_attr\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:get_all_image_sizes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:get_altered_metadata_for_remote_images\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:init\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:is_valid_mimetype_from_url\(\) has parameter \$filters with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:parse_dimension_from_optimized_url\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:parse_dimensions_from_tag\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:parse_dimensions_from_tag\(\) has parameter \$image_sizes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:parse_dimensions_from_tag\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:process_image_tags\(\) has parameter \$images with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:regular_tag_replace\(\) has parameter \$optml_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:should_lazy_gif\(\) has parameter \$optml_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:size_to_dimension\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:to_map_values\(\) has parameter \$map with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:to_optml_crop\(\) has parameter \$crop_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:to_optml_crop\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:to_optml_watermark\(\) has parameter \$watermark_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Tag_Replacer\:\:to_optml_watermark\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Property Optml_Tag_Replacer\:\:\$dimension_cache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/tag_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:apply_resize\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:apply_watermark\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:build_url\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:get_all_image_sizes\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:get_altered_metadata_for_remote_images\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:init\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:is_valid_mimetype_from_url\(\) has parameter \$filters with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:normalize_image\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:normalize_image\(\) has parameter \$ext with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:normalize_image\(\) has parameter \$is_uploaded with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:parse_dimension_from_optimized_url\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:size_to_dimension\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:to_map_values\(\) has parameter \$map with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:to_optml_crop\(\) has parameter \$crop_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:to_optml_crop\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:to_optml_watermark\(\) has parameter \$watermark_args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method Optml_Url_Replacer\:\:to_optml_watermark\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Property Optml_Url_Replacer\:\:\$dimension_cache type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: inc/url_replacer.php
+
+		-
+			message: '#^Method OptimoleWP\\BgOptimizer\\Lazyload\:\:get_personalized_css\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/BgOptimizer/Lazyload.php
+
+		-
+			message: '#^Method OptimoleWP\\Offload\\ImageEditor\:\:multi_resize\(\) has parameter \$sizes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/Offload/ImageEditor.php
+
+		-
+			message: '#^Method OptimoleWP\\Offload\\ImageEditor\:\:multi_resize\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/Offload/ImageEditor.php
+
+		-
+			message: '#^Method OptimoleWP\\Offload\\ImageEditor\:\:save\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/Offload/ImageEditor.php
+
+		-
+			message: '#^Method OptimoleWP\\Offload\\ImageEditor\:\:test\(\) has parameter \$args with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/Offload/ImageEditor.php
+
+		-
+			message: '#^Method OptimoleWP\\Offload\\Loader\:\:register_hooks\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/v2/Offload/Loader.php
+
+		-
+			message: '#^Method OptimoleWP\\Offload\\Loader\:\:register_image_editor\(\) has parameter \$editors with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/Offload/Loader.php
+
+		-
+			message: '#^Method OptimoleWP\\Offload\\Loader\:\:register_image_editor\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/Offload/Loader.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Profile\:\:get_active_devices\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/PageProfiler/Profile.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Profile\:\:get_current_profile_data\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/PageProfiler/Profile.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Profile\:\:get_profile_data\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/PageProfiler/Profile.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Profile\:\:missing_devices\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/PageProfiler/Profile.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Profile\:\:set_current_profile_data\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/PageProfiler/Profile.php
+
+		-
+			message: '#^Property OptimoleWP\\PageProfiler\\Profile\:\:\$current_profile_data type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/PageProfiler/Profile.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Storage\\Base\:\:delete\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/v2/PageProfiler/Storage/Base.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Storage\\Base\:\:delete_all\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/v2/PageProfiler/Storage/Base.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Storage\\Base\:\:get\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/PageProfiler/Storage/Base.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Storage\\Base\:\:store\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/v2/PageProfiler/Storage/Base.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Storage\\Base\:\:store\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/PageProfiler/Storage/Base.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Storage\\ObjectCache\:\:get\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/PageProfiler/Storage/ObjectCache.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Storage\\ObjectCache\:\:store\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/PageProfiler/Storage/ObjectCache.php
+
+		-
+			message: '#^Method OptimoleWP\\PageProfiler\\Storage\\Transients\:\:store\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/PageProfiler/Storage/Transients.php
+
+		-
+			message: '#^Method OptimoleWP\\Preload\\Links\:\:add_id\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/v2/Preload/Links.php
+
+		-
+			message: '#^Method OptimoleWP\\Preload\\Links\:\:add_link\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/v2/Preload/Links.php
+
+		-
+			message: '#^Method OptimoleWP\\Preload\\Links\:\:add_link\(\) has parameter \$url_data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/Preload/Links.php
+
+		-
+			message: '#^Method OptimoleWP\\Preload\\Links\:\:get_links\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/Preload/Links.php
+
+		-
+			message: '#^Method OptimoleWP\\Preload\\Links\:\:preload_tag\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/v2/Preload/Links.php
+
+		-
+			message: '#^Property OptimoleWP\\Preload\\Links\:\:\$ids type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/Preload/Links.php
+
+		-
+			message: '#^Property OptimoleWP\\Preload\\Links\:\:\$links type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/v2/Preload/Links.php
+
+		-
+			message: '#^Method Optml_Video_Player\:\:add_editor_player_icons\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Method Optml_Video_Player\:\:block_style_attributes_to_css_array\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Method Optml_Video_Player\:\:block_style_attributes_to_css_array\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Method Optml_Video_Player\:\:enqueue_admin_video_player_assets\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Method Optml_Video_Player\:\:enqueue_video_player_component_script\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Method Optml_Video_Player\:\:get_localization\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Method Optml_Video_Player\:\:maybe_enqueue_video_player_script\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Method Optml_Video_Player\:\:register_video_player_block\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Method Optml_Video_Player\:\:render_player_icons\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Method Optml_Video_Player\:\:render_video_player_block\(\) has parameter \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Method Optml_Video_Player\:\:render_video_player_block\(\) has parameter \$block with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Method Optml_Video_Player\:\:render_video_player_block\(\) has parameter \$content with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Property Optml_Video_Player\:\:\$block_attributes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Property Optml_Video_Player\:\:\$icons type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: inc/video_player.php
+
+		-
+			message: '#^Function optml_autoload\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: optimole-wp.php
+
+		-
+			message: '#^Function optml_deactivate\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: optimole-wp.php
+
+		-
+			message: '#^Function optml_php_notice\(\) has no return type specified\.$#'
+			identifier: missingType.return
+			count: 1
+			path: optimole-wp.php

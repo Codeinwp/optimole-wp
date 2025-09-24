@@ -631,7 +631,6 @@ class Optml_Rest {
 	/**
 	 * Disconnect from optimole service.
 	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 * @param WP_REST_Request $request disconnect rest request.
 	 */
 	public function disconnect( WP_REST_Request $request ) {
@@ -784,7 +783,7 @@ class Optml_Rest {
 
 			if ( $processed_images > 0 ) {
 				$response = wp_remote_get( $value['src'][ rand( 0, $processed_images - 1 ) ], $args );
-				if ( ! is_wp_error( $response ) && is_array( $response ) ) {
+				if ( ! is_wp_error( $response ) ) {
 					$headers     = $response['headers']; // array of http header lines
 					$status_code = $response['response']['code'];
 					if ( $status_code === 301 ) {
