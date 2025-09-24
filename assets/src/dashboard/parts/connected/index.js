@@ -19,7 +19,6 @@ import Conflicts from './conflicts';
 import Settings from './settings';
 import Help from './help';
 import Sidebar from './Sidebar';
-import CSAT from './CSAT';
 import { retrieveConflicts } from '../../utils/api';
 import BlackFridayBanner from '../components/BlackFridayBanner';
 
@@ -124,8 +123,6 @@ const ConnectedLayout = ({
 
 				<Sidebar settings={settings}/>
 			</div>
-
-			<CSAT />
 		</div>
 	);
 };
