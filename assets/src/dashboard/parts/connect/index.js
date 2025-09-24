@@ -276,6 +276,11 @@ const ConnectLayout = () => {
 					<Button
 						variant="secondary"
 						className="optml__button flex w-full justify-center rounded font-bold mt-4 min-h-40 mb-4"
+						style={{
+							backgroundColor: '#EAE7F1',
+							borderColor: '#9CA3AF',
+							color: '#000000'
+						}}
 						onClick={ () => setMethod( 'key' ) }
 					>
 						{ optimoleDashboardApp.strings.api_exists }
