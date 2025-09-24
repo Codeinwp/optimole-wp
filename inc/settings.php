@@ -67,7 +67,7 @@ class Optml_Settings {
 		'retina_images'              => 'disabled',
 		'lazyload_type'              => 'fixed',
 		'limit_dimensions'           => 'enabled',
-		'limit_height'               => 1080,
+		'limit_height'               => 4000,
 		'limit_width'                => 1920,
 		'resize_smart'               => 'disabled',
 		'no_script'                  => 'disabled',

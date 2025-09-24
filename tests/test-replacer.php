@@ -233,13 +233,13 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['portrait'] );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
-		$this->assertStringContainsString( '/w:720/', $replaced_content );
-		$this->assertStringContainsString( '/h:1080/', $replaced_content );
+		$this->assertStringContainsString( '/w:1920/', $replaced_content );
+		$this->assertStringContainsString( '/h:2880/', $replaced_content ); // the height is 1.5 times the width because the original image is 2:3 ratio
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['landscape'] );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
-		$this->assertStringContainsString( '/w:1620/', $replaced_content );
-		$this->assertStringContainsString( '/h:1080/', $replaced_content );
+		$this->assertStringContainsString( '/w:1920/', $replaced_content );
+		$this->assertStringContainsString( '/h:1280/', $replaced_content );
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['equal'] );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
