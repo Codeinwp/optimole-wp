@@ -1070,8 +1070,16 @@ class Optml_Admin {
 		if ( isset( $data['extra_visits'] ) ) {
 			$this->settings->update_frontend_banner_from_remote( $data['extra_visits'] );
 		}
+
 		// Here the account got deactivated, in this case we check if the user is using offloaded images and we roll them back.
-		if ( isset( $data['status'] ) && $data['status'] === 'inactive' ) {
+		$should_revert_offloading = isset( $data['status'] ) && $data['status'] === 'inactive';
+
+		// The user is now on a plan without offloading and the grace period is over.
+		if ( isset( $data['should_revert_offload'] ) && $data['should_revert_offload'] === true ) {
+			$should_revert_offloading = true;
+		}
+
+		if ( $should_revert_offloading ) {
 			// We check if the user has images offloaded.
 			if ( $this->settings->get( 'offload_media' ) === 'disabled' ) {
 				return;
