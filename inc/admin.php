@@ -2093,6 +2093,9 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exceed_plan_quota_notice_description' => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Based on this trend, you are likely to exceed your free quota before the month ends. To avoid any disruption in service, we strongly recommend %1$supgrading%2$s your plan or waiting until your traffic stabilizes before offloading your images. Do you still wish to proceed?', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://dashboard.optimole.com/settings/billing/">', '</a>' ),
 				'exceed_plan_quota_notice_start_action' => __( 'Yes, Transfer to Optimole Cloud', 'optimole-wp' ),
 				'exceed_plan_quota_notice_secondary_action' => __( 'No, keep images on my website', 'optimole-wp' ),
+				'plan_update_notice_title'                  => __( 'Plan Update', 'optimole-wp' ),
+				'plan_update_notice_desc'                   => __( 'We\'ve changed how plans work. Users on Optimole Free plan can not offload new image. Existing images that are already offloaded will remain offloaded.', 'optimole-wp' ),
+				'upgrade_to_use_offloading_notice_desc'     => __( 'Offloading images is a PRO feature. Please upgrade your plan to enable image transfer to Optimole Cloud.', 'optimole-wp' ),
 				'visual_settings'                           => __( 'Visual Settings', 'optimole-wp' ),
 				'extended_features'                         => __( 'Extended Features', 'optimole-wp' ),
 				// translators: mark that the options are aplied globally.
