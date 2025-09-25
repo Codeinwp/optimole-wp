@@ -29,6 +29,10 @@ const menuItems = [
 		value: 'compression',
 		children: [
 			{
+				label: strings.settings_watermark_menu_item,
+				value: 'watermark'
+			},
+			{
 				label: strings.settings_compression_menu_item,
 				value: 'compression'
 			},
