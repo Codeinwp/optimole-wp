@@ -1,28 +1,82 @@
-import { Icon } from '@wordpress/components';
+import { Icon, Button } from '@wordpress/components';
 import { closeSmall, check } from '@wordpress/icons';
+import { useSelect } from '@wordpress/data';
+import { saveSettings } from '../../utils/api';
 
-const OptimizationStatus = ({ settings }) => {
+const OptimizationStatus = ({ settings, setSettings, setCanSave, setTab }) => {
+
+	const { isLoading } = useSelect( select => {
+		const { isLoading } = select( 'optimole' );
+		return {
+			isLoading: isLoading()
+		};
+	}, []);
+
 	const userStatus = optimoleDashboardApp.user_status ? optimoleDashboardApp.user_status : 'inactive';
-	const lazyloadEnabled = 'enabled' === settings?.lazyload  &&  'active' === userStatus  ;
+	const lazyloadEnabled = 'enabled' === settings?.lazyload && 'active' === userStatus;
 	const imageHandlingEnabled = 'enabled' === settings?.image_replacer && 'active' === userStatus;
+	const directUpdate = ( option, value ) => {
+		if ( setCanSave && setSettings ) {
+			setCanSave( true );
+			const data = { ...settings };
+
+			data[ option ] = value ? 'enabled' : 'disabled';
+
+			if ( 'scale' === option && data.scale && 'disabled' === data.scale && 'disabled' === data.lazyload ) {
+				data.lazyload = 'enabled';
+			}
+
+			if ( 'lazyload' === option && data.lazyload && 'disabled' === data.lazyload && 'disabled' === data.scale ) {
+				data.scale = 'enabled';
+			}
+
+			setSettings( data );
+
+			saveSettings(
+				data,
+				false,
+				false,
+				() => {
+					setCanSave( false );
+				}
+			);
+		}
+	};
+
+	const handleSettingsNavigation = ( ) => {
+		if ( setTab ) {
+			setTab( 'settings' );
+		}
+	};
+
+
 	const statuses = [
 		{
 			active: imageHandlingEnabled,
 			label: optimoleDashboardApp.strings.optimization_status.statusTitle1,
-			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle1
+			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle1,
+			buttonText: imageHandlingEnabled ? optimoleDashboardApp.strings.optimization_status.manage : optimoleDashboardApp.strings.optimization_status.enable,
+			settingType: 'image_replacer'
 		},
 		{
 			active: lazyloadEnabled,
 			label: optimoleDashboardApp.strings.optimization_status.statusTitle2,
-			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle2
+			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle2,
+			buttonText: lazyloadEnabled ? optimoleDashboardApp.strings.optimization_status.disable : optimoleDashboardApp.strings.optimization_status.enable,
+			settingType: 'lazyload'
 		},
 		{
 			active: lazyloadEnabled && 'disabled' === settings?.scale,
 			label: optimoleDashboardApp.strings.optimization_status.statusTitle3,
-			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle3
+			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle3,
+			buttonText: ( lazyloadEnabled && 'disabled' === settings?.scale ) ? optimoleDashboardApp.strings.optimization_status.disable : optimoleDashboardApp.strings.optimization_status.enable,
+			settingType: 'scale'
 		}
 	].map( el => ({
-		...el, active: imageHandlingEnabled && el.active
+		...el, active: imageHandlingEnabled && el.active,
+		buttonText: 'image_replacer' === el.settingType ?
+			( imageHandlingEnabled ? el.buttonText : optimoleDashboardApp.strings.optimization_status.enable ) :
+			( imageHandlingEnabled ? el.buttonText : optimoleDashboardApp.strings.optimization_status.block )
 	}) );
 
 	return (
@@ -32,20 +86,47 @@ const OptimizationStatus = ({ settings }) => {
 				{ statuses.map( ( status, index ) => (
 					<li
 						key={index}
-						className="flex items-start gap-2"
+						className="flex items-start gap-2 justify-between"
 					>
-						{status.active ? (
-							<Icon icon={check} className="fill-success bg-success/20 rounded-full" size={20} />
-						) : (
-							<Icon icon={closeSmall} className="fill-danger bg-danger/20 rounded-full" size={20} />
-						)}
-						<div>
-							<span className='text-gray-700 font-normal font-semibold'>
-								{status.label}
-							</span>
-
-							<p className="m-0">{status.description}</p>
+						<div className="flex items-start gap-2">
+							{status.active ? (
+								<Icon icon={check} className="fill-success bg-success/20 rounded-full" size={20} />
+							) : (
+								<Icon icon={closeSmall} className="fill-danger bg-danger/20 rounded-full" size={20} />
+							)}
+							<div>
+								<span className='text-gray-700 font-normal font-semibold'>
+									{status.label}
+								</span>
+								<p className="m-0">{status.description}</p>
+							</div>
 						</div>
+						<Button
+							variant="link"
+							className="text-info text-sm font-medium"
+							style={{ textDecoration: 'none' }}
+							onClick={() => {
+								if ( 'image_replacer' === status.settingType && status.active ) {
+									handleSettingsNavigation( );
+									return;
+								}
+
+								if ( 'scale' === status.settingType  ) {
+									status.active = ! status.active;
+								}
+
+								if ( 'disabled' === settings?.image_replacer && 'image_replacer' !== status.settingType ) {
+									return;
+								}
+
+								directUpdate( status.settingType, ! status.active );
+							}}
+
+							isBusy={isLoading}
+							disabled={isLoading}
+						>
+							{status.buttonText}
+						</Button>
 					</li>
 				) ) }
 			</ul>
