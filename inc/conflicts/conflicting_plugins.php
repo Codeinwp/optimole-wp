@@ -54,6 +54,7 @@ class Optml_Conflicting_Plugins {
 			'litespeed'    => 'litespeed-cache/litespeed-cache.php',
 			'autoptimize'  => 'autoptimize/autoptimize.php',
 			'perfmatters'  => 'perfmatters/perfmatters.php',
+			'jetpack_Photon'      => 'jetpack/jetpack.php',
 			// 'plugin-slug' => 'plugin-folder/plugin-file.php'
 		];
 

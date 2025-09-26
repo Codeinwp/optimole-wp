@@ -136,7 +136,6 @@ final class Optml_Main {
 			$conflicts_to_register,
 			[
 				'Optml_Jetpack_Photon',
-				'Optml_Jetpack_Lazyload',
 				'Optml_Wprocket',
 				'Optml_Divi',
 				'Optml_w3_total_cache_cdn',
