@@ -18,8 +18,9 @@ class Optml_Perfmatters extends Optml_Abstract_Conflict {
 	/**
 	 * Set the message property
 	 *
-	 * @since   2.0.6
+	 * @since   4.1.0
 	 * @access  public
+	 * @return 	void
 	 */
 	public function define_message() {
 		$this->message = sprintf(
