@@ -73,8 +73,6 @@ const settingsTab = {
 	advance: 2
 };
 
-const { getUserData } = select( 'optimole' );
-const user = getUserData();
 
 const navigate = ( tabId ) => {
 	const links = window.optimoleDashboardApp.submenu_links;
@@ -352,8 +350,7 @@ const Dashboard = () => {
 										{ metric.description }
 									</div>
 
-
-									{ 'free' !== user.plan && metric.hasButton && (
+									{ 'free' !== userData.plan && metric.hasButton && (
 										<Button
 											variant="secondary"
 											size="small"
@@ -366,7 +363,6 @@ const Dashboard = () => {
 											) }
 										</Button>
 									) }
-
 								</div>
 							</div>
 						);
