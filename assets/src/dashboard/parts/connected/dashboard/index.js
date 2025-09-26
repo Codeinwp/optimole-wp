@@ -52,6 +52,11 @@ const metrics = [
 		label: optimoleDashboardApp.strings.metrics.metricsTitle4,
 		description: optimoleDashboardApp.strings.metrics.metricsSubtitle4,
 		value: 'traffic'
+	},
+	{
+		label: optimoleDashboardApp.strings.metrics.metricsTitle5,
+		description: optimoleDashboardApp.strings.metrics.metricsSubtitle5,
+		value: 'offloaded_images'
 	}
 ];
 
@@ -140,6 +145,8 @@ const Dashboard = () => {
 		};
 	});
 
+	window.console.log( 'userData', userData );
+
 	const visitorsLimitPercent = ( ( userData.visitors / userData.visitors_limit ) * 100 ).toFixed( 0 );
 
 	const renewalDate = useMemo( () => {
@@ -163,7 +170,9 @@ const Dashboard = () => {
 				Math.floor( Math.random() * 2500000 ) + 500000 : // Mock KB
 				'traffic' === type ?
 					Math.floor( Math.random() * 2500 ) + 500 : // Mock MB
-					Math.floor( Math.random() * 40 ) + 10; // Mock Percentage
+					'offloaded_images' === type ?
+						Math.floor( Math.random() * 500 ) + 50 : // Mock images count
+						Math.floor( Math.random() * 40 ) + 10; // Mock Percentage
 		}
 
 		switch ( type ) {
@@ -195,6 +204,10 @@ const Dashboard = () => {
 				formattedValue = ( value / 1000000 ).toFixed( 2 );
 				unit = 'TB';
 			}
+			break;
+		case 'offloaded_images':
+			formattedValue = parseInt( value );
+			unit = 1 === formattedValue ? optimoleDashboardApp.strings.metrics.image : optimoleDashboardApp.strings.metrics.images;
 			break;
 		default:
 			formattedValue = parseFloat( value ).toFixed( 2 );

@@ -1748,6 +1748,10 @@ The root cause might be either a security plugin which blocks this feature or so
 				'metricsSubtitle3' => __( 'Average Reduction', 'optimole-wp' ),
 				'metricsTitle4'    => __( 'CDN Traffic', 'optimole-wp' ),
 				'metricsSubtitle4' => __( 'This month', 'optimole-wp' ),
+				'metricsTitle5'    => __( 'Offloaded images', 'optimole-wp' ),
+				'metricsSubtitle5' => __( 'Offloaded to cloud', 'optimole-wp'),
+				'image'			   => __( 'image', 'optimole-wp' ),
+				'images'		   => __( 'images', 'optimole-wp' ),
 			],
 			'quick_actions'                  => [
 				'speed_test_title'      => __( 'Test Your Site Speed', 'optimole-wp' ),
