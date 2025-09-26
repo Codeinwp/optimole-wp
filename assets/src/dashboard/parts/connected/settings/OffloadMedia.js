@@ -1,8 +1,8 @@
 /* global optimoleDashboardApp */
 
 import classnames from 'classnames';
-import { useEffect, useState } from '@wordpress/element';
-import { useDispatch, useSelect, useMemo } from '@wordpress/data';
+import { useEffect, useState, useMemo } from '@wordpress/element';
+import { useDispatch, useSelect } from '@wordpress/data';
 import { Icon } from '@wordpress/icons';
 
 import { warning, rollback as rollbackIcon, offload, warningAlt, sync } from '../../../utils/icons';
@@ -38,8 +38,8 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 		offloadFinishNotice,
 		offloadLimitReached,
 		offloadLimit,
-		canUseMediaOffloading,
-		isMediaOffloadingLegacyFreeUser
+		canUseMediaOffloadingFlag,
+		canShowFreeUserWithOffloadNoticeFlag
 	} = useSelect( select => {
 		const {
 			getOffloadConflicts,
@@ -54,12 +54,11 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 			isLoading,
 			getSiteSettings,
 			getOffloadLimit,
-			getUserData
+			getUserData,
+			canShowFreeUserWithOffloadNotice
 		} = select( 'optimole' );
 
 		const userData = getUserData();
-		const canUseMediaOffloading = Boolean( userData?.can_use_offloading );
-		const isMediaOffloadingLegacyFreeUser = Boolean( userData?.is_legacy_offloading_free_user );
 
 		return {
 			offloadConflicts: getOffloadConflicts(),
@@ -75,8 +74,8 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 			offloadFinishNotice: getSiteSettings( 'show_offload_finish_notice' ),
 			offloadLimitReached: 'enabled' === getSiteSettings( 'offload_limit_reached' ),
 			offloadLimit: getOffloadLimit(),
-			canUseMediaOffloading,
-			isMediaOffloadingLegacyFreeUser
+			canUseMediaOffloadingFlag: Boolean( userData?.can_use_offloading ),
+			canShowFreeUserWithOffloadNoticeFlag: canShowFreeUserWithOffloadNotice()
 		};
 	}, []);
 
@@ -95,8 +94,8 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 	const isRollbackInProgress = 'disabled' !== settings['rollback_status'];
 
 	const showDisabledOffloadingNotice = useMemo( () => {
-		return ! canUseMediaOffloading && isMediaOffloadingLegacyFreeUser && 'enabled' === settings?.['offload_media'];
-	}, [ settings, canUseMediaOffloading, isMediaOffloadingLegacyFreeUser ]);
+		return 'enabled' === settings?.['offload_media'] && ! canUseMediaOffloadingFlag && canShowFreeUserWithOffloadNoticeFlag;
+	}, [ settings, canUseMediaOffloadingFlag, canShowFreeUserWithOffloadNoticeFlag ]);
 
 	useEffect( () => {
 		if ( isOffloadingInProgress ) {
@@ -199,7 +198,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 			[MODAL_STATE_OFFLOAD]: {
 				icon: offload,
 				onConfirm: () => {
-					if ( canUseMediaOffloading ) {
+					if ( canUseMediaOffloadingFlag ) {
 						nextSettings['offload_media'] = 'offload' === optionValue ? 'enabled' : 'disabled';
 						setSettings( nextSettings );
 						setCanSave( true );
@@ -213,9 +212,9 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 				labels: {
 					title: options_strings.offloading_start_title,
 					description: options_strings.offloading_start_description,
-					action: canUseMediaOffloading ? options_strings.offloading_start_action : optimoleDashboardApp.strings.upgrade.title_long
+					action: canUseMediaOffloadingFlag ? options_strings.offloading_start_action : optimoleDashboardApp.strings.upgrade.title_long
 				},
-				afterContentChildren: ! canUseMediaOffloading && (
+				afterContentChildren: ! canUseMediaOffloadingFlag && (
 					<Notice
 						type="warning"
 						text={options_strings.upgrade_to_use_offloading_notice_desc}

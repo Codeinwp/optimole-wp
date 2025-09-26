@@ -113,6 +113,7 @@ class Optml_Admin {
 		}
 
 		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
+		add_action( 'admin_init', [ $this, 'mark_free_user_with_offload' ] );
 	}
 
 	/**
@@ -1397,6 +1398,7 @@ class Optml_Admin {
 			'bf_notices'                 => $this->get_bf_notices(),
 			'spc_banner'                 => $this->get_spc_banner(),
 			'show_exceed_plan_quota_notice' => $this->should_show_exceed_quota_warning(),
+			'show_free_user_with_offload_notice' => get_option( 'optml_free_user_with_offload', 'no' ),
 			'report_issue_url' => add_query_arg(
 				[
 					'utm_source'   => 'plugin',
@@ -2386,5 +2388,29 @@ The root cause might be either a security plugin which blocks this feature or so
 		$dismissed_notices = get_option( 'optml_dismissed_conflicts', [] );
 
 		return $conflicts_count - count( $dismissed_notices );
+	}
+
+	/**
+	 * Mark the users that are on free plan and have offload enabled.
+	 *
+	 * User for displaying a notice after plugin update about offload restrictions.
+	 *
+	 * @return void
+	 */
+	public function mark_free_user_with_offload() {
+		if ( ! $this->settings->is_connected() ) {
+			return;
+		}
+
+		$service_data = $this->settings->get( 'service_data' );
+		if ( isset( $service_data['plan'] ) && 'free' !== $service_data['plan'] ) {
+			return;
+		}
+
+		if ( false !== get_option( 'optml_free_user_with_offload', false ) ) {
+			return;
+		}
+
+		update_option( 'optml_free_user_with_offload', $this->settings->is_offload_enabled() ? 'yes' : 'no' );
 	}
 }
