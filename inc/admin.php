@@ -1714,7 +1714,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'watermark_media_title'          => __( 'Watermarks', 'optimole-wp' ),
 				'learn_more'                      => __( 'Learn more', 'optimole-wp' ),
 				'open_optimole_dashboard'         => __( 'Open Optimole Dashboard', 'optimole-wp' ),
-				'watermark_footer'      => __( 'Watermark rules and exclusions are fully managed in your Optimole Dashboard.', 'optimole-wp' ),
+				'watermark_footer'                => __( 'Watermark rules and exclusions are fully managed in your Optimole Dashboard.', 'optimole-wp' ),
 				'watermark_info_1' => __( 'Choose from multiple watermark positions and set opacity.', 'optimole-wp' ),
 				'watermark_info_2' => __( 'Set different watermarks for different image sizes.', 'optimole-wp' ),
 				'watermark_info_3' => __( 'Create rule-based targeting by filename, page URL, class, and more.', 'optimole-wp' ),
