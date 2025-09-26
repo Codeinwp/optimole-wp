@@ -20,7 +20,7 @@ class Optml_Smush extends Optml_Abstract_Conflict {
 	 *
 	 * @since   4.1.0
 	 * @access  public
-	 * @return 	void
+	 * @return  void
 	 */
 	public function define_message() {
 		$this->message = sprintf(
