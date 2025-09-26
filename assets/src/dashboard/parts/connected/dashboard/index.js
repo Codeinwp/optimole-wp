@@ -14,8 +14,8 @@ import {
 
 import { sprintf } from '@wordpress/i18n';
 
-import { useSelect } from '@wordpress/data';
-import { warning, help } from '@wordpress/icons';
+import { useSelect, select } from '@wordpress/data';
+import { warning, external, help } from '@wordpress/icons';
 
 import { clearCache } from '../../../utils/api';
 
@@ -41,22 +41,30 @@ const metrics = [
 	{
 		label: optimoleDashboardApp.strings.metrics.metricsTitle2,
 		description: optimoleDashboardApp.strings.metrics.metricsSubtitle2,
-		value: 'saved_size'
+		value: 'saved_size',
+		hasButton: true,
+		buttonText: optimoleDashboardApp.strings.metrics.adjust_compression
 	},
 	{
 		label: optimoleDashboardApp.strings.metrics.metricsTitle3,
 		description: optimoleDashboardApp.strings.metrics.metricsSubtitle3,
-		value: 'compression_percentage'
+		value: 'compression_percentage',
+		hasButton: true,
+		buttonText: optimoleDashboardApp.strings.metrics.adjust_compression
 	},
 	{
 		label: optimoleDashboardApp.strings.metrics.metricsTitle4,
 		description: optimoleDashboardApp.strings.metrics.metricsSubtitle4,
-		value: 'traffic'
+		value: 'traffic',
+		hasButton: true,
+		buttonText: optimoleDashboardApp.strings.metrics.view_analytics
 	},
 	{
 		label: optimoleDashboardApp.strings.metrics.metricsTitle5,
 		description: optimoleDashboardApp.strings.metrics.metricsSubtitle5,
-		value: 'offloaded_images'
+		value: 'offloaded_images',
+		hasButton: true,
+		buttonText: optimoleDashboardApp.strings.metrics.manage_offloading
 	}
 ];
 
@@ -64,6 +72,9 @@ const settingsTab = {
 	offload_image: 1,
 	advance: 2
 };
+
+const { getUserData } = select( 'optimole' );
+const user = getUserData();
 
 const navigate = ( tabId ) => {
 	const links = window.optimoleDashboardApp.submenu_links;
@@ -217,6 +228,24 @@ const Dashboard = () => {
 		return { formattedValue, unit };
 	};
 
+	const getMetricButtonAction = ( metricValue ) => {
+		switch ( metricValue ) {
+		case 'saved_size':
+			return () => navigate( settingsTab.advance );
+		case 'compression_percentage':
+			return () => navigate( settingsTab.advance );
+		case 'traffic':
+			return () => {
+				const newWindow = window.open( 'https://dashboard.optimole.com/metrics', '_blank' );
+				if ( newWindow ) {
+					newWindow.focus();
+				}
+			};
+		case 'offloaded_images':
+			return () => navigate( settingsTab.offload_image );
+		}
+	};
+
 	return (
 		<div className="grid gap-5">
 			<div className="bg-white p-8 border-0 rounded-lg shadow-md">
@@ -319,9 +348,25 @@ const Dashboard = () => {
 										<span className='text-sm text-gray-500'>{unit}</span>
 									</div>
 
-									<div className="font-normal text-gray-600">
+									<div className="font-normal text-gray-600 mb-3">
 										{ metric.description }
 									</div>
+
+
+									{ 'free' !== user.plan && metric.hasButton && (
+										<Button
+											variant="secondary"
+											size="small"
+											className="mt-auto font-semibold rounded-md w-fit px-3 flex items-center gap-1"
+											onClick={ getMetricButtonAction( metric.value ) }
+										>
+											{ metric.buttonText }
+											{ ( 'traffic' === metric.value ) && (
+												<Icon icon={ external } size={ 16 } />
+											) }
+										</Button>
+									) }
+
 								</div>
 							</div>
 						);
