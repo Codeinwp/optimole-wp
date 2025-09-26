@@ -54,7 +54,7 @@ export default function Modal({	icon, labels = {}, onRequestClose = () => {}, on
 					dangerouslySetInnerHTML={ { __html: labels.description } }
 				/>
 				{ afterContentChildren }
-				<div class="flex gap-4">
+				<div className="flex gap-4">
 					<Button variant="primary" className={ actionButtonClasses } onClick={ onConfirm }>
 						{ labels.action }
 					</Button>

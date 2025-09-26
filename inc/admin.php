@@ -2393,7 +2393,7 @@ The root cause might be either a security plugin which blocks this feature or so
 	/**
 	 * Mark the users that are on free plan and have offload enabled.
 	 *
-	 * User for displaying a notice after plugin update about offload restrictions.
+	 * Used for displaying a notice after plugin update about offload restrictions.
 	 *
 	 * @return void
 	 */
