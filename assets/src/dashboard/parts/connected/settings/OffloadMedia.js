@@ -205,7 +205,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 
 						onOffloadMedia();
 					} else {
-						window.open( optimoleDashboardApp.optimoleHome + 'pricing', '_blank' );
+						window.open( optimoleDashboardApp?.offload_upgrade_url, '_blank' );
 					}
 					setModal( null );
 				},

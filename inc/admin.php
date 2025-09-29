@@ -1076,7 +1076,7 @@ class Optml_Admin {
 		$should_revert_offloading = isset( $data['status'] ) && $data['status'] === 'inactive';
 
 		// The user is now on a plan without offloading and the grace period is over.
-		if ( isset( $data['should_revert_offload'] ) && $data['should_revert_offload'] === true ) {
+		if ( isset( $data['should_revert_offload'] ) && (bool) $data['should_revert_offload'] ) {
 			$should_revert_offloading = true;
 		}
 
@@ -1384,6 +1384,7 @@ class Optml_Admin {
 			'optimoleHome'               => tsdk_translate_link( 'https://optimole.com/' ),
 			'optimoleDashHome'           => tsdk_translate_link( 'https://dashboard.optimole.com/', 'query' ),
 			'optimoleDashBilling'        => tsdk_translate_link( 'https://dashboard.optimole.com/settings/billing', 'query' ),
+			'offload_upgrade_url'        => tsdk_translate_link( tsdk_utmify( 'https://optimole.com/pricing/', 'offload' ) ),
 			'days_since_install'         => round( ( time() - get_option( 'optimole_wp_install', 0 ) ) / DAY_IN_SECONDS ),
 			'is_offload_media_available' => $is_offload_media_available,
 			'auto_connect'               => $auto_connect,
@@ -2399,11 +2400,6 @@ The root cause might be either a security plugin which blocks this feature or so
 	 */
 	public function mark_free_user_with_offload() {
 		if ( ! $this->settings->is_connected() ) {
-			return;
-		}
-
-		$service_data = $this->settings->get( 'service_data' );
-		if ( isset( $service_data['plan'] ) && 'free' !== $service_data['plan'] ) {
 			return;
 		}
 
