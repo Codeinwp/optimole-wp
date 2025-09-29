@@ -3,96 +3,64 @@ jQuery(document).ready(function($) {
         return;
     }
 
-    var originalAttachmentDetails = wp.media.view.Attachment.Details;
-    
-    wp.media.view.Attachment.Details = originalAttachmentDetails.extend({
-        initialize: function() {
-            originalAttachmentDetails.prototype.initialize.apply(this, arguments);
-        },
+    /**
+     * Helper function to add Replace or Rename button to attachment actions
+     * @param {Object} view - The attachment view instance
+     */
+    function addReplaceRenameButton(view) {
+        var $el = view.$el;
+        var $actions = $el.find('.actions');
         
-        render: function() {
-            originalAttachmentDetails.prototype.render.apply(this, arguments);
-            
-            this.addReplaceRenameButton();
-            
-            return this;
-        },
-        
-        addReplaceRenameButton: function() {
-            var self = this;
-            
-            var $el = self.$el;
-            var $actions = $el.find('.actions');
-            
-            if ($actions.find('.optml-replace-rename-link').length) {
-                return;
-            }
-            
-            var attachmentId = self.model.get('id');
-            
-            if (attachmentId && $actions.length) {
-                var editUrl = OptimoleModalAttachment.editPostURL + '?post=' + attachmentId + 
-                             '&action=edit&TB_iframe=true&width=90%&height=90%';
-                
-                var $editLink = $actions.find('a[href*="post.php"]');
-                
-                if ($editLink.length) {
-                    $editLink.after(
-                        ' <span class="links-separator">|</span>' +
-                        '<a href="' + editUrl + '" class="optml-replace-rename-link thickbox" title="' + 
-                        OptimoleModalAttachment.i18n.replaceOrRename + '"> ' +
-                        OptimoleModalAttachment.i18n.replaceOrRename + '</a>'
-                    );
-                }
-            }
+        if (!$actions.length || $actions.find('.optml-replace-rename-link').length) {
+            return;
         }
-    });
-    
-    if (wp.media.view.Attachment.Details.TwoColumn) {
-        var originalTwoColumn = wp.media.view.Attachment.Details.TwoColumn;
         
-        wp.media.view.Attachment.Details.TwoColumn = originalTwoColumn.extend({
+        var attachmentId = view.model.get('id');
+        
+        if (!attachmentId) {
+            return;
+        }
+        
+        var editUrl = OptimoleModalAttachment.editPostURL + '?post=' + attachmentId + 
+                     '&action=edit&TB_iframe=true&width=90%&height=90%';
+        
+        var $editLink = $actions.find('a[href*="post.php"]');
+        
+        if ($editLink.length) {
+            $editLink.after(
+                ' <span class="links-separator">|</span>' +
+                '<a href="' + editUrl + '" class="optml-replace-rename-link thickbox" title="' + 
+                OptimoleModalAttachment.i18n.replaceOrRename + '"> ' +
+                OptimoleModalAttachment.i18n.replaceOrRename + '</a>'
+            );
+        }
+    }
+
+    /**
+     * Extend a WordPress media view with Replace/Rename functionality
+     * @param {Object} OriginalView - The original view to extend
+     * @returns {Object} Extended view
+     */
+    function extendMediaView(OriginalView) {
+        return OriginalView.extend({
             initialize: function() {
-                originalTwoColumn.prototype.initialize.apply(this, arguments);
+                OriginalView.prototype.initialize.apply(this, arguments);
             },
             
             render: function() {
-                originalTwoColumn.prototype.render.apply(this, arguments);
-                
-                this.addReplaceRenameButton();
-                
+                OriginalView.prototype.render.apply(this, arguments);
+                addReplaceRenameButton(this);
                 return this;
-            },
-            
-            addReplaceRenameButton: function() {
-                var self = this;
-                
-                var $el = self.$el;
-                var $actions = $el.find('.actions');
-                
-                if ($actions.find('.optml-replace-rename-link').length) {
-                    return;
-                }
-                
-                var attachmentId = self.model.get('id');
-                
-                if (attachmentId && $actions.length) {
-                    var editUrl = OptimoleModalAttachment.editPostURL + '?post=' + attachmentId + 
-                                 '&action=edit&TB_iframe=true&width=90%&height=90%';
-                    
-                    var $editLink = $actions.find('a[href*="post.php"]');
-                    
-                    if ($editLink.length) {
-                        $editLink.after(
-                            ' <span class="links-separator">|</span>' +
-                            '<a href="' + editUrl + '" class="optml-replace-rename-link thickbox" title="' + 
-                            OptimoleModalAttachment.i18n.replaceOrRename + '"> ' +
-                            OptimoleModalAttachment.i18n.replaceOrRename + '</a>'
-                        );
-                    }
-                }
             }
         });
+    }
+
+    var originalAttachmentDetails = wp.media.view.Attachment.Details;
+    wp.media.view.Attachment.Details = extendMediaView(originalAttachmentDetails);
+    
+    if (wp.media.view.Attachment.Details.TwoColumn) {
+        var originalTwoColumn = wp.media.view.Attachment.Details.TwoColumn;
+        wp.media.view.Attachment.Details.TwoColumn = extendMediaView(originalTwoColumn);
     }
     
     $(document).on('click', '.optml-replace-rename-link.thickbox', function() {

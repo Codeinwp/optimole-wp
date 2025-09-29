@@ -30,9 +30,9 @@ class Optml_Attachment_Edit {
 	/**
 	 * Add Replace or Rename action in media library list view.
 	 *
-	 * @param array   $actions The list of actions.
-	 * @param WP_Post $post The post object.
-	 * @return array
+	 * @param string[] $actions Array of row action links.
+	 * @param WP_Post  $post The post object.
+	 * @return string[]
 	 */
 	public function add_replace_rename_action( $actions, $post ) {
 		if ( get_post_type( $post->ID ) !== 'attachment' ) {
