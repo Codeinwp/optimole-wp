@@ -185,22 +185,16 @@ const ConnectLayout = () => {
 					/>
 
 
-					<div
+					<button
 						onClick={ () => setShowBenefits( ! showBenefits ) }
-						className="inline-flex items-center bg-light-blue px-4 py-1.5 rounded-full mb-4 text-sm text-gray-500 cursor-pointer transition-all hover:bg-blue-100"
+						className="inline-flex items-center bg-light-blue px-4 py-1.5 rounded-full mb-4 text-sm text-gray-500 cursor-pointer transition-all hover:bg-blue-100 border-none"
 						role="button"
-						tabIndex="0"
-						onKeyPress={ ( e ) => {
-							if ( 'Enter' === e.key || ' ' === e.key ) {
-								setShowBenefits( ! showBenefits );
-							}
-						}}
 					>
 						<span>{ optimoleDashboardApp.strings.account_needed_benefits_toggle }</span>
 						<span
 							className={ `dashicons dashicons-arrow-${ showBenefits ? 'up' : 'down' } ml-1` }
 						/>
-					</div>
+					</button>
 
 					{ showBenefits && (
 						<div className="mb-4">
