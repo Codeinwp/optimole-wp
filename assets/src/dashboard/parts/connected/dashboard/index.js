@@ -154,8 +154,6 @@ const Dashboard = () => {
 		};
 	});
 
-	window.console.log( 'userData', userData );
-
 	const visitorsLimitPercent = ( ( userData.visitors / userData.visitors_limit ) * 100 ).toFixed( 0 );
 
 	const renewalDate = useMemo( () => {
