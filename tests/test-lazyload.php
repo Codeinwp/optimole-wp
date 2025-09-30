@@ -235,7 +235,7 @@ public function test_replacement_without_quotes() {
 		$this->assertNotEquals( $replaced_content, $html );
 		$this->assertStringNotContainsString( 'q:eco/rt:fill/g:ce', $replaced_content );
 		$this->assertStringContainsString( '/rt:fill/g:ce', $replaced_content );
-		$this->assertStringContainsString( '/w:96/h:96/q:eco/ig:avif/http://example.org/', $replaced_content );
+		$this->assertStringContainsString( '/w:96/h:96/q:eco/ig:avif/dpr:2/http://example.org/', $replaced_content );
 
 	}
 
