@@ -31,19 +31,36 @@ const ConflictItem = ({ conflict }) => {
 		);
 	};
 
+	const getBorderColor = () => {
+		if ( 'high' === conflict.severity ) {
+			return '#E77777';
+		} else if ( 'medium' === conflict.severity ) {
+			return '#577BF9';
+		}
+		return '#5F9D61';
+	};
+
+	const noticeStyles = {
+		border: '1px solid #c3c4c7',
+		borderLeftWidth: '4px',
+		borderLeftColor: getBorderColor(),
+		margin: '5px 0 15px',
+		padding: '12px',
+		paddingRight: '38px',
+		position: 'relative'
+	};
+
+	const messageStyles = {
+		margin: '0',
+		padding: '2px',
+		lineHeight: '1.5',
+		fontSize: '15px'
+	};
+
 	return (
-		<div
-			className={ classnames(
-				'flex gap-2 text-white rounded relative px-6 py-5 mb-5',
-				{
-					'bg-danger': 'high' === conflict.severity,
-					'bg-info': 'medium' === conflict.severity,
-					'bg-success': 'high' !== conflict.severity && 'medium' !== conflict.severity
-				}
-			) }
-		>
+		<div style={ noticeStyles }>
 			<p
-				className="m-0 text-white"
+				style={ messageStyles }
 				dangerouslySetInnerHTML={ { __html: conflict.message } }
 			/>
 
@@ -52,12 +69,17 @@ const ConflictItem = ({ conflict }) => {
 				label={ optimoleDashboardApp.strings.conflicts.conflict_close }
 				disabled={ isLoading }
 				className={ classnames(
-					'text-white hover:text-white',
+					'text-black hover:text-black',
 					{
 						'animate-spin': isLoading
 					}
 				) }
 				onClick={ dismiss }
+				style={{
+					position: 'absolute',
+					top: '8px',
+					right: '8px'
+				}}
 			/>
 		</div>
 	);
