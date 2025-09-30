@@ -1596,6 +1596,9 @@ If you still want to disconnect click the button below.',
 			'not_connected'                  => __( 'NOT CONNECTED', 'optimole-wp' ),
 			'usage'                          => __( 'Monthly Usage', 'optimole-wp' ),
 			'quota'                          => __( 'Monthly visits:', 'optimole-wp' ),
+			'tooltip_visits_title'           => __( 'What are visits?', 'optimole-wp' ),
+			/* translators: 1 is the day when the visits reset, for example 1st of each month */
+			'tooltip_visits_description'     => __( 'Each visitor to your site is counted as a unique daily user, regardless of their actions or return visits on the same day. Your visit count resets on %s.', 'optimole-wp' ),
 			'logged_in_as'                   => __( 'LOGGED IN AS', 'optimole-wp' ),
 			'private_cdn_url'                => __( 'IMAGES DOMAIN', 'optimole-wp' ),
 			'existing_user'                  => __( 'Existing user?', 'optimole-wp' ),
@@ -2152,6 +2155,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'<a class="flex justify-center items-center font-semibold" href="https://docs.optimole.com/article/2238-optimization-tips" target="_blank"> ',
 				'<span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>'
 			),
+			// translators: %s is the date of the renewal.
+			'renew_date'                   => __( 'Renews %s', 'optimole-wp' ),
 		];
 	}
 
