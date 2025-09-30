@@ -1435,12 +1435,6 @@ parameters:
 			path: inc/conflicts/divi.php
 
 		-
-			message: '#^Method Optml_Jetpack_Lazyload\:\:define_message\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: inc/conflicts/jetpack_lazyload.php
-
-		-
 			message: '#^Method Optml_Jetpack_Photon\:\:define_message\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
