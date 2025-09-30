@@ -1837,7 +1837,7 @@ The root cause might be either a security plugin which blocks this feature or so
 					'</a>'
 				),
 
-				'lazyload_behaviour_title'            => __( 'Loading Behaviour', 'optimole-wp' ),
+				'lazyload_behaviour_title'            => __( 'Loading Method', 'optimole-wp' ),
 				'lazyload_behaviour_desc'             => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
 					__( 'Choose how Optimole will handle lazy loading for images on your website. %1$sLearn more%2$s', 'optimole-wp' ),
@@ -1848,7 +1848,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'lazyload_behaviour_all_desc'        => __( 'All images will use lazy loading regardless of position.', 'optimole-wp' ),
 				'lazyload_behaviour_viewport'          => __( 'Enable viewport-based loading', 'optimole-wp' ),
 				'lazyload_behaviour_viewport_desc'   => __( 'Automatically detects and immediately loads images visible in the initial viewport. Detection is done with a lightweight client-side script that identifies what\'s visible on each user\'s screen. All other images will lazy load.', 'optimole-wp' ),
-				'lazyload_behaviour_fixed'           => __( 'Skip lazy Loading for first images', 'optimole-wp' ),
+				'lazyload_behaviour_fixed'           => __( 'Skip lazy loading for first images', 'optimole-wp' ),
 				'lazyload_behaviour_fixed_desc'      => __( 'Indicate how many images at the top of each page should bypass lazy loading, ensuring they\'re instantly visible.', 'optimole-wp' ),
 				'enable_lazyload_placeholder_title'   => __( 'Enable generic placeholder color', 'optimole-wp' ),
 				'enable_network_opt_desc'             => sprintf(
@@ -2000,18 +2000,18 @@ The root cause might be either a security plugin which blocks this feature or so
 				'watch_placeholder_lazyload_example'  => sprintf( __( 'Example: %s', 'optimole-wp' ), '.hero-bg, #banner-image, .lazy-bg, .footer-bg' ),
 				'watch_desc_lazyload'                 => __( 'If everything is covered out of the box, leave this empty.', 'optimole-wp' ),
 				'smart_loading_title'                       => __( 'Smart Loading', 'optimole-wp' ),
-				'smart_loading_desc'                  => __( 'JavaScript-drive with advanced controls', 'optimole-wp' ),
+				'smart_loading_desc'                  => __( 'JavaScript-driven with advanced controls', 'optimole-wp' ),
 				'browser_native_lazy'                 => __( 'Uses the browser\'s built-in lazy loading feature', 'optimole-wp' ),
 				// translators: viewport is the visible area of a web page on a display device.
 				'viewport_detection'                  => __( 'Viewport detection', 'optimole-wp' ),
 				// translators: set the colors for the placeholder image.
-				'placeholders_color'                  => __( 'Placeholder', 'optimole-wp' ),
+				'placeholders_color'                  => __( 'Placeholders', 'optimole-wp' ),
 				// translators: it can handle many images without slowing down the site.
 				'auto_scaling'                        => __( 'Auto Scaling', 'optimole-wp' ),
 				// translators: it uses the browser's built-in lazy loading feature without any additional scripts.
 				'lightweight_native'                  => __( 'Lightweight', 'optimole-wp' ),
 
-				'watch_title_lazyload'                => __( 'Extend CSS Background Lazy Loading', 'optimole-wp' ),
+				'watch_title_lazyload'                => __( 'Extend CSS Background Images', 'optimole-wp' ),
 				'width_field'                         => __( 'Width', 'optimole-wp' ),
 				'crop'                                => __( 'crop', 'optimole-wp' ),
 				'toggle_cdn'                          => __( 'Serve CSS & JS Through Optimole', 'optimole-wp' ),
