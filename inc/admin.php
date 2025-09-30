@@ -1326,6 +1326,7 @@ class Optml_Admin {
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',
+			'enableAVIF'                 => apply_filters( 'optml_show_avif_setting', false ),
 			'dam_url'                    => 'admin.php?page=optimole-dam',
 			'connection_status'          => empty( $service_data ) ? 'no' : 'yes',
 			'has_application'            => isset( $service_data['app_count'] ) && $service_data['app_count'] >= 1 ? 'yes' : 'no',
@@ -1720,7 +1721,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'best_format_title'                   => __( 'Automatic Best Image Format Selection', 'optimole-wp' ),
 				'best_format_desc'                    => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
-					__( 'When enabled, Optimole picks the ideal format for your images, balancing quality and speed. It tests different formats, like AVIF and WebP, ensuring images look good and load quickly. %1$sLearn more%2$s.', 'optimole-wp' ),
+					__( 'When enabled, Optimole chooses the best format for your images, balancing quality with speed. It tries options like AVIF and WebP to keep visuals sharp and pages fast, though uncached images may take a bit longer to process. %1$sLearn more%2$s.', 'optimole-wp' ),
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1942-best-format">',
 					'</a>'
 				),
@@ -1826,7 +1827,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_resize_smart_title'           => __( 'Smart Cropping', 'optimole-wp' ),
 				'enable_retina_desc'                  => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
-					__( 'Enable this feature to optimize your images for Retina displays. Retina-ready images are optimized to look sharp on screens with higher pixel density, offering viewers enhanced visual quality. %1$sLearn more%2$s', 'optimole-wp' ),
+					__( 'Optimizes images for Retina (high-DPI) screens for sharper results. Always enabled for images under 150px wide. %1$sLearn more%2$s', 'optimole-wp' ),
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1391-what-is-a-retina-image">',
 					'</a>'
 				),

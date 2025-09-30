@@ -140,7 +140,7 @@ const Compression = ({
 		setCanSave( true );
 		const data = { ...settings };
 		if ( 'speed_optimized' === value ) {
-			data[ 'best_format' ] = 'disabled';
+			data[ 'best_format' ] = 'enabled';
 			data[ 'retina_images' ] = 'disabled';
 			data[ 'network_optimization' ] = 'enabled';
 			data.avif = 'mauto';
@@ -280,20 +280,25 @@ const Compression = ({
 					<hr className="my-8 border-grayish-blue"/>
 
 
-					<ToggleControl
-						label={ optimoleDashboardApp.strings.options_strings.enable_avif_title }
-						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_avif_desc } } /> }
-						checked={ isAVIFEnabled }
-						disabled={ isLoading }
-						className={ classnames(
-							{
-								'is-disabled': isLoading
-							}
-						) }
-						onChange={ value => updateOption( 'avif', value ) }
-					/>
+					{ optimoleDashboardApp?.enableAVIF && (
+						<>
 
-					<hr className="my-8 border-grayish-blue"/>
+							<ToggleControl
+								label={ optimoleDashboardApp.strings.options_strings.enable_avif_title }
+								help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_avif_desc } } /> }
+								checked={ isAVIFEnabled }
+								disabled={ isLoading }
+								className={ classnames(
+									{
+										'is-disabled': isLoading
+									}
+								) }
+								onChange={ value => updateOption( 'avif', value ) }
+							/>
+							<hr className="my-8 border-grayish-blue"/>
+						</>
+					) }
+
 
 					<ToggleControl
 						label={ optimoleDashboardApp.strings.options_strings.strip_meta_title }
