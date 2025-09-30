@@ -102,7 +102,7 @@ class Optml_Attachment_Edit {
 		} elseif ( $hook === 'upload.php' ) {
 			wp_enqueue_script(
 				'optml-modal-attachment',
-				OPTML_URL . 'assets/js/modal-attachment.js', // Your JavaScript file
+				OPTML_URL . 'assets/js/modal-attachment.js',
 				[ 'jquery', 'media-views', 'media-models' ],
 				OPTML_VERSION,
 				true
