@@ -1382,6 +1382,7 @@ class Optml_Admin {
 			'optimoleHome'               => tsdk_translate_link( 'https://optimole.com/' ),
 			'optimoleDashHome'           => tsdk_translate_link( 'https://dashboard.optimole.com/', 'query' ),
 			'optimoleDashBilling'        => tsdk_translate_link( 'https://dashboard.optimole.com/settings/billing', 'query' ),
+			'optimoleDashMetrics'        => tsdk_translate_link( tsdk_utmify( 'https://dashboard.optimole.com/metrics', 'wp-plugin', 'shortcut' ) ),
 			'offload_upgrade_url'        => tsdk_translate_link( tsdk_utmify( 'https://optimole.com/pricing/', 'offload' ) ),
 			'days_since_install'         => round( ( time() - get_option( 'optimole_wp_install', 0 ) ) / DAY_IN_SECONDS ),
 			'is_offload_media_available' => $is_offload_media_available,

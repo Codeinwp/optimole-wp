@@ -14,7 +14,7 @@ import {
 
 import { sprintf } from '@wordpress/i18n';
 
-import { useSelect, select } from '@wordpress/data';
+import { useSelect } from '@wordpress/data';
 import { warning, external, help } from '@wordpress/icons';
 
 import { clearCache } from '../../../utils/api';
@@ -30,7 +30,6 @@ import {
 } from '../../../utils/icons';
 
 import ProgressBar from '../../components/ProgressBar';
-import DashboardMetricBox from '../../components/DashboardMetricBox';
 
 import LastImages from './LastImages';
 import { useMemo } from 'react';
@@ -227,18 +226,13 @@ const Dashboard = () => {
 	const getMetricButtonAction = ( metricValue ) => {
 		switch ( metricValue ) {
 		case 'saved_size':
-			return () => navigate( settingsTab.advance );
+			return { onClick: () => navigate( settingsTab.advance ) };
 		case 'compression_percentage':
-			return () => navigate( settingsTab.advance );
+			return { onClick: () => navigate( settingsTab.advance ) };
 		case 'traffic':
-			return () => {
-				const newWindow = window.open( 'https://dashboard.optimole.com/metrics', '_blank' );
-				if ( newWindow ) {
-					newWindow.focus();
-				}
-			};
+			return { href: window.optimoleDashboardApp.optimoleDashMetrics, target: '_blank' };
 		case 'offloaded_images':
-			return () => navigate( settingsTab.offload_image );
+			return { onClick: () => navigate( settingsTab.offload_image ) };
 		}
 	};
 
@@ -326,6 +320,8 @@ const Dashboard = () => {
 					{ metrics.map( metric => {
 						const rawValue = userData[ metric.value ];
 						const { formattedValue, unit } = formatMetric( metric.value, rawValue );
+						const buttonAction = getMetricButtonAction( metric.value );
+						const showButton = 'free' !== userData.plan && metric.hasButton;
 
 						return (
 							<div
@@ -344,16 +340,16 @@ const Dashboard = () => {
 										<span className='text-sm text-gray-500'>{unit}</span>
 									</div>
 
-									<div className="font-normal text-gray-600 mb-3">
+									<div className={ `font-normal text-gray-600 ${ showButton ? 'mb-3' : '' }` }>
 										{ metric.description }
 									</div>
 
-									{ 'free' !== userData.plan && metric.hasButton && (
+									{ showButton && (
 										<Button
 											variant="secondary"
 											size="small"
 											className="mt-auto font-semibold rounded-md w-fit px-3 flex items-center gap-1"
-											onClick={ getMetricButtonAction( metric.value ) }
+											{ ...buttonAction }
 										>
 											{ metric.buttonText }
 											{ ( 'traffic' === metric.value ) && (
