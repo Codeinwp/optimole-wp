@@ -1962,7 +1962,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'high_q_title'                        => __( 'High', 'optimole-wp' ),
 				'image_1_label'                       => __( 'Original', 'optimole-wp' ),
 				'image_2_label'                       => __( 'Optimized', 'optimole-wp' ),
-				'lazyload_desc'                       => __( 'Images load only when they\'re about to enter the viewport', 'optimole-wp' ),
+				'lazyload_desc'                       => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Images load only when they\'re about to enter the viewport. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1948-bypass-lazy-load-for-first-images">', '</a>' ),
 				'filter_length_error'                 => __( 'The filter should be at least 3 characters long.', 'optimole-wp' ),
 				'scale_desc'                          => __( 'Automatically resize the images based on device and viewport', 'optimole-wp' ),
 				'low_q_title'                         => __( 'Low', 'optimole-wp' ),

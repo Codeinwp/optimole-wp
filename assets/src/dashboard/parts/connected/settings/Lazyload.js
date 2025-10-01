@@ -170,7 +170,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 			<>
 				<ToggleControl
 					label={options_strings.toggle_lazyload}
-					help={options_strings.lazyload_desc}
+					help={() => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.lazyload_desc } } />}
 					checked={isLazyLoadEnabled}
 					disabled={isLoading}
 					className={classnames({
@@ -186,7 +186,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 		<>
 			<ToggleControl
 				label={options_strings.toggle_lazyload}
-				help={options_strings.lazyload_desc}
+				help={() => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.lazyload_desc } } />}
 				checked={isLazyLoadEnabled}
 				disabled={isLoading}
 				className={classnames({
