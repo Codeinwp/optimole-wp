@@ -24,7 +24,7 @@ import {
 import { useSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 
-import { useEffect, useRef } from '@wordpress/element';
+import { useRef } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -94,7 +94,7 @@ const Compression = ({
 		}
 
 		manualQualityRef.current = getQuality( settings.quality );
-	}, [ isAutoQualityEnabled, settings.quality ] );
+	}, [ isAutoQualityEnabled, settings.quality ]);
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
 		const data = { ...settings };
@@ -323,18 +323,18 @@ const Compression = ({
 					<BaseControl
 						help={ ! isAutoQualityEnabled && optimoleDashboardApp.strings.options_strings.quality_desc }
 					>
-					<ToggleControl
-						label={ optimoleDashboardApp.strings.options_strings.quality_title }
-						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.ml_quality_desc } } /> }
-						checked={ isAutoQualityEnabled }
-						disabled={ isLoading }
-						className={ classnames(
-							{
-								'is-disabled': isLoading
-							}
-						) }
-						onChange={ handleAutoQualityToggle }
-					/>
+						<ToggleControl
+							label={ optimoleDashboardApp.strings.options_strings.quality_title }
+							help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.ml_quality_desc } } /> }
+							checked={ isAutoQualityEnabled }
+							disabled={ isLoading }
+							className={ classnames(
+								{
+									'is-disabled': isLoading
+								}
+							) }
+							onChange={ handleAutoQualityToggle }
+						/>
 					</BaseControl>
 
 					{ ! isAutoQualityEnabled && (
