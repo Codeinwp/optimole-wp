@@ -267,7 +267,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 			if ( Optml_Manager::instance()->page_profiler->get_crop_status( $image_id ) && empty( $optml_args['resize'] ) ) {
 				$optml_args['resize'] = $this->to_optml_crop( true );
+				$optml_args['force'] = true; // here we need to force the url to be rebuild if the image is already using an Optimole URL.
 			}
+
 			$new_url    = apply_filters( 'optml_content_url', $tmp, $optml_args );
 
 			$image_tag = str_replace(

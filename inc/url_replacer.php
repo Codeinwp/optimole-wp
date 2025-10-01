@@ -116,7 +116,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 				$url = $unoptimized_url;
 			}
 		}
-		if ( strpos( $url, Optml_Config::$service_url ) !== false && ! $this->url_has_dam_flag( $url ) ) {
+		if ( isset( $args['force'] ) && $args['force'] === true && strpos( $url, Optml_Config::$service_url ) !== false && ! $this->url_has_dam_flag( $url ) ) {
 			if ( OPTML_DEBUG ) {
 				do_action( 'optml_log', 'url is already using optimole: ' . $url );
 			}
