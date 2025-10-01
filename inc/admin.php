@@ -576,15 +576,11 @@ class Optml_Admin {
 	/**
 	 * Add settings links in the plugin listing page.
 	 *
-	 * @param array $links Old plugin links.
+	 * @param string[] $links Old plugin links.
 	 *
-	 * @return array Altered links.
+	 * @return string[] Altered links.
 	 */
 	public function add_action_links( $links ) {
-		if ( ! is_array( $links ) ) {
-			return $links;
-		}
-
 		return array_merge(
 			$links,
 			[
@@ -599,7 +595,7 @@ class Optml_Admin {
 	 * @return bool Should show?
 	 */
 	public function should_show_notice() {
-		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+		if ( wp_doing_ajax() ) {
 			return false;
 		}
 
@@ -676,7 +672,7 @@ class Optml_Admin {
 	 */
 	public function should_show_upgrade() {
 		$current_screen = get_current_screen();
-		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ||
+		if ( wp_doing_ajax() ||
 			is_network_admin() ||
 			! current_user_can( 'manage_options' ) ||
 			! $this->settings->is_connected() ||
@@ -1003,7 +999,7 @@ class Optml_Admin {
 			return;
 		}
 
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+		if ( wp_doing_ajax() ) {
 			return;
 		}
 
@@ -1145,7 +1141,29 @@ class Optml_Admin {
 	 * @return void
 	 */
 	public function menu_icon_style() {
-		echo '<style>#toplevel_page_optimole img{ max-width:22px;padding-top:6px!important;opacity:.9!important;} #toplevel_page_optimole li.wp-first-item{ display:none }</style>';
+		$conflicts_count = $this->get_active_notices_count();
+		$badge_html = '';
+
+		if ( $conflicts_count > 0 ) {
+			$badge_html = sprintf(
+				'<style>
+				#toplevel_page_optimole .wp-menu-name::after { 
+					content: "%d";
+					background: #d63638;
+					border-radius: 10px;
+					padding: 1.5px 1px;
+					font-size: 11px;
+					margin-left: 5px; 
+					min-width: 18px;
+					display: inline-block;
+					text-align: center;
+				}
+				</style>',
+				$conflicts_count
+			);
+		}
+
+		echo '<style>#toplevel_page_optimole img{ max-width:22px;padding-top:6px!important;opacity:.9!important;} #toplevel_page_optimole li.wp-first-item{ display:none }</style>' . $badge_html;
 	}
 
 	/**
@@ -1539,6 +1557,7 @@ class Optml_Admin {
 			'account_needed_sub_heading'     => __( 'Stop sacrificing image quality for page speed. Optimole delivers both.', 'optimole-wp' ),
 			'account_needed_trust_badge'     => __( 'TRUSTED BY 200,000+ HAPPY USERS', 'optimole-wp' ),
 			'account_needed_setup_time'      => __( 'Setup is instant - just click connect', 'optimole-wp' ),
+			'account_needed_benefits_toggle' => __( 'See what you\'ll get', 'optimole-wp' ),
 			'invalid_key'                    => __( 'Invalid API Key', 'optimole-wp' ),
 			'keep_connected'                 => __( 'Ok, keep me connected', 'optimole-wp' ),
 			'cloud_library'                  => __( 'Cloud Library', 'optimole-wp' ),
@@ -1577,6 +1596,9 @@ If you still want to disconnect click the button below.',
 			'not_connected'                  => __( 'NOT CONNECTED', 'optimole-wp' ),
 			'usage'                          => __( 'Monthly Usage', 'optimole-wp' ),
 			'quota'                          => __( 'Monthly visits:', 'optimole-wp' ),
+			'tooltip_visits_title'           => __( 'What are visits?', 'optimole-wp' ),
+			/* translators: 1 is the day when the visits reset, for example 1st of each month */
+			'tooltip_visits_description'     => __( 'Each visitor to your site is counted as a unique daily user, regardless of their actions or return visits on the same day. Your visit count resets on %s.', 'optimole-wp' ),
 			'logged_in_as'                   => __( 'LOGGED IN AS', 'optimole-wp' ),
 			'private_cdn_url'                => __( 'IMAGES DOMAIN', 'optimole-wp' ),
 			'existing_user'                  => __( 'Existing user?', 'optimole-wp' ),
@@ -1659,6 +1681,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			'dashboard_menu_item'            => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'             => __( 'Settings', 'optimole-wp' ),
 			'help_menu_item'                 => __( 'Help', 'optimole-wp' ),
+			'settings_watermark_menu_item'   => __( 'Watermark', 'optimole-wp' ),
 			'settings_exclusions_menu_item'  => __( 'Exclusions', 'optimole-wp' ),
 			'settings_resize_menu_item'      => __( 'Resize', 'optimole-wp' ),
 			'settings_compression_menu_item' => __( 'Compression', 'optimole-wp' ),
@@ -1713,6 +1736,14 @@ The root cause might be either a security plugin which blocks this feature or so
 				'configure_settings'    => __( 'Configure settings', 'optimole-wp' ),
 			],
 			'options_strings'                => [
+				'watermark_media_desc'           => __( 'Protect your brand by adding a watermark to your images. Configure placement, opacity, and rules directly in your Optimole Dashboard.', 'optimole-wp' ),
+				'watermark_media_title'          => __( 'Watermarks', 'optimole-wp' ),
+				'learn_more'                      => __( 'Learn more', 'optimole-wp' ),
+				'open_optimole_dashboard'         => __( 'Open Optimole Dashboard', 'optimole-wp' ),
+				'watermark_footer'                => __( 'Watermark rules and exclusions are fully managed in your Optimole Dashboard.', 'optimole-wp' ),
+				'watermark_info_1' => __( 'Choose from multiple watermark positions and set opacity.', 'optimole-wp' ),
+				'watermark_info_2' => __( 'Set different watermarks for different image sizes.', 'optimole-wp' ),
+				'watermark_info_3' => __( 'Create rule-based targeting by filename, page URL, class, and more.', 'optimole-wp' ),
 				'compression_mode'               => __( 'Compression Mode', 'optimole-wp' ),
 				'compression_mode_speed_optimized'                => __( 'Speed Optimized', 'optimole-wp' ),
 				'compression_mode_quality_optimized'              => __( 'Quality Optimized', 'optimole-wp' ),
@@ -2114,17 +2145,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'big_optimization'      => __( '❤️❤️❤️ Our moles just nailed it, this one is <strong>{ratio}</strong> smaller.', 'optimole-wp' ),
 			],
 			'csat'                           => [
-				'title'                => __( 'Your opinion matters', 'optimole-wp' ),
 				'close'                => __( 'Close', 'optimole-wp' ),
-				'heading_one'          => __( 'How easy did you find to get started using Optimole, on a scale of 1 to 5?', 'optimole-wp' ),
-				'heading_two'          => __( 'Any specific feedback you would like to add?', 'optimole-wp' ),
-				'heading_three'        => __( 'Thank you!', 'optimole-wp' ),
-				'low'                  => __( 'Very Poor', 'optimole-wp' ),
-				'high'                 => __( 'Excellent', 'optimole-wp' ),
-				'feedback_placeholder' => __( 'Add your feedback here (optional)', 'optimole-wp' ),
-				'skip'                 => __( 'Skip', 'optimole-wp' ),
-				'submit'               => __( 'Submit', 'optimole-wp' ),
-				'thank_you'            => __( 'Your input is highly appreciated and helps us shape a better experience in Optimole.', 'optimole-wp' ),
 			],
 			'cron_error'                     => sprintf( /* translators: 1 is code to disable cron, 2 value of the constant */ __( 'It seems that you have the %1$s constant defined as %2$s. The offloading process uses cron events to offload the images in the background. Please remove the constant from your wp-config.php file in order for the offloading process to work.', 'optimole-wp' ), '<code>DISABLE_WP_CRON</code>', '<code>true</code>' ),
 			'cancel'                         => __( 'Cancel', 'optimole-wp' ),
@@ -2143,6 +2164,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'<a class="flex justify-center items-center font-semibold" href="https://docs.optimole.com/article/2238-optimization-tips" target="_blank"> ',
 				'<span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>'
 			),
+			// translators: %s is the date of the renewal.
+			'renew_date'                   => __( 'Renews %s', 'optimole-wp' ),
 		];
 	}
 
@@ -2278,5 +2301,37 @@ The root cause might be either a security plugin which blocks this feature or so
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get the number of active notices (not dismissed).
+	 *
+	 * @return int - Number of active notices
+	 */
+	private function get_active_notices_count() {
+		$conflicting_plugins = $this->conflicting_plugins->get_conflicting_plugins();
+		$conflicts_count = 0;
+
+		foreach ( $conflicting_plugins as $key => $plugin ) {
+			$key = str_replace( 'wp-', '', $key );
+			$class_name = 'Optml_' . ucfirst( $key );
+
+			if ( ! class_exists( $class_name ) ) {
+				continue;
+			}
+			$conflict_instance = new $class_name();
+
+			if ( ! is_a( $conflict_instance, 'Optml_Abstract_Conflict' ) ) {
+				continue;
+			}
+
+			if ( $conflict_instance->is_conflict_valid() ) {
+				++$conflicts_count;
+			}
+		}
+
+		$dismissed_notices = get_option( 'optml_dismissed_conflicts', [] );
+
+		return $conflicts_count - count( $dismissed_notices );
 	}
 }

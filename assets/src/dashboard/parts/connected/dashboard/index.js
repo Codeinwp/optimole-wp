@@ -8,11 +8,14 @@ import classNames from 'classnames';
  */
 import {
 	Button,
-	Icon
+	Icon,
+	Tooltip
 } from '@wordpress/components';
 
+import { sprintf } from '@wordpress/i18n';
+
 import { useSelect } from '@wordpress/data';
-import { warning } from '@wordpress/icons';
+import { warning, help } from '@wordpress/icons';
 
 import { clearCache } from '../../../utils/api';
 
@@ -30,6 +33,7 @@ import ProgressBar from '../../components/ProgressBar';
 import DashboardMetricBox from '../../components/DashboardMetricBox';
 
 import LastImages from './LastImages';
+import { useMemo } from 'react';
 
 const cardClasses = 'flex p-6 bg-light-blue border border-blue-300 rounded-md';
 
@@ -138,6 +142,17 @@ const Dashboard = () => {
 
 	const visitorsLimitPercent = ( ( userData.visitors / userData.visitors_limit ) * 100 ).toFixed( 0 );
 
+	const renewalDate = useMemo( () => {
+		const timestamp = userData.renews_on;
+
+		if ( ! timestamp ) {
+			return 'N/A';
+		}
+
+		const date = new Date( timestamp * 1000 );
+		return date.toLocaleDateString( undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+	}, [ userData.renews_on ]);
+
 	const formatMetric = ( type, value ) => {
 		let formattedValue = 0;
 		let unit = '';
@@ -202,11 +217,37 @@ const Dashboard = () => {
 							{ optimoleDashboardApp.strings.dashboard_title }
 						</div>
 						<div className="flex items-center gap-2">
-							<div className="text-gray-600 text-base">
+							<div className="text-gray-600 text-base flex items-center gap-1">
 								{ optimoleDashboardApp.strings.quota }
-								<span className="pl-2 text-gray-800 font-bold">
+								<span className="text-gray-800 font-bold">
 									{ userData.visitors_pretty } / { userData.visitors_limit_pretty }
 								</span>
+								<Tooltip
+									text={
+										<div className="p-2.5 max-w-[320px]">
+											<div className="font-bold mb-2">
+												{ optimoleDashboardApp.strings.tooltip_visits_title }
+											</div>
+											<div>
+												{
+													sprintf(
+														optimoleDashboardApp.strings.tooltip_visits_description,
+														renewalDate
+													)
+												}
+											</div>
+										</div>
+									}
+									placement="bottom"
+								>
+									<span className="inline-flex items-center cursor-help ml-1">
+										<Icon
+											icon={ help }
+											size={ 18 }
+											className="text-gray-400 hover:text-gray-600"
+										/>
+									</span>
+								</Tooltip>
 							</div>
 							<div className='md:w-20 grow md:grow-0'>
 								<ProgressBar
@@ -215,6 +256,14 @@ const Dashboard = () => {
 								/>
 							</div>
 							<span>{ visitorsLimitPercent }%</span>
+							<span className="text-gray-500 text-sm ml-2">
+								{
+									sprintf(
+										optimoleDashboardApp.strings.renew_date,
+										renewalDate
+									)
+								}
+							</span>
 						</div>
 					</div>
 				</div>

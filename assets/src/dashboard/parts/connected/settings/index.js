@@ -10,6 +10,7 @@ import Lazyload from './Lazyload';
 import Exclusions from './Exclusions';
 import OffloadMedia from './OffloadMedia';
 import CloudLibrary from './CloudLibrary';
+import Watermark from './Watermark';
 import { saveSettings } from '../../../utils/api';
 import { toggleDamSidebarLink } from '../../../utils/helpers';
 
@@ -48,16 +49,6 @@ const Settings = ({
 	useEffect( () => {
 		toggleDamSidebarLink( 'enabled' === damEnabled );
 	}, [ damEnabled ]);
-
-	useEffect( () => {
-		const visits = localStorage.getItem( 'optimole_settings_visits' );
-
-		if ( 3 < visits ) {
-			return;
-		}
-
-		localStorage.setItem( 'optimole_settings_visits', visits ? parseInt( visits ) + 1 : 1 );
-	}, [ tab ]);
 
 	const toggleShowSample = () => {
 		setShowSample( ! showSample );
@@ -139,16 +130,23 @@ const Settings = ({
 					/>
 				) }
 
+				{ 'watermark' === tab && (
+					<Watermark
+					/>
+				) }
+
 				<div className="flex justify-start items-center gap-5 mt-8">
-					<Button
-						variant="primary"
-						isBusy={ isLoading }
-						disabled={ ! canSave }
-						className="optml__button flex w-full justify-center rounded font-bold min-h-40 basis-1/5"
-						onClick={ onSaveSettings }
-					>
-						{ optimoleDashboardApp.strings.options_strings.save_changes }
-					</Button>
+					{ 'watermark' !== tab && (
+						<Button
+							variant="primary"
+							isBusy={ isLoading }
+							disabled={ ! canSave }
+							className="optml__button flex w-full justify-center rounded font-bold min-h-40 basis-1/5"
+							onClick={ onSaveSettings }
+						>
+							{ optimoleDashboardApp.strings.options_strings.save_changes }
+						</Button>
+					) }
 
 					{ ( 'disabled' === settings.autoquality && 'compression' === tab ) && (
 						<Button

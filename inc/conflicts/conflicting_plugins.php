@@ -51,6 +51,10 @@ class Optml_Conflicting_Plugins {
 			'ewww-cloud'   => 'ewww-image-optimizer-cloud/ewww-image-optimizer-cloud.php',
 			'imagerecycle' => 'imagerecycle-pdf-image-compression/wp-image-recycle.php',
 			'imagify'      => 'imagify/imagify.php',
+			'litespeed'    => 'litespeed-cache/litespeed-cache.php',
+			'autoptimize'  => 'autoptimize/autoptimize.php',
+			'perfmatters'  => 'perfmatters/perfmatters.php',
+			'jetpack_Photon'      => 'jetpack/jetpack.php',
 			// 'plugin-slug' => 'plugin-folder/plugin-file.php'
 		];
 
@@ -158,7 +162,7 @@ class Optml_Conflicting_Plugins {
 	 * @return bool Should show?
 	 */
 	public function should_show_notice() {
-		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+		if ( wp_doing_ajax() ) {
 			return false;
 		}
 
