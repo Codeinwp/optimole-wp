@@ -292,7 +292,7 @@ class Optml_Settings {
 					$sanitized_value = is_string( $value ) ? sanitize_text_field( $value ) : '';
 					break;
 				case 'lazyload_type':
-					$sanitized_value = $this->to_map_values( $value, [ 'fixed', 'viewport', 'all' ], 'fixed' );
+					$sanitized_value = $this->to_map_values( $value, [ 'fixed', 'viewport', 'all', 'fixed|viewport' ], 'fixed' );
 					break;
 				case 'compression_mode':
 					$sanitized_value = $this->to_map_values( $value, [ 'speed_optimized', 'quality_optimized', 'custom' ], 'custom' );
@@ -796,7 +796,7 @@ class Optml_Settings {
 	 * @return bool
 	 */
 	public function is_lazyload_type_viewport() {
-		return $this->get( 'lazyload_type' ) === 'viewport';
+		return false !== strpos( $this->get( 'lazyload_type' ), 'viewport' );
 	}
 
 	/**
@@ -814,7 +814,7 @@ class Optml_Settings {
 	 * @return bool
 	 */
 	public function is_lazyload_type_fixed() {
-		return $this->get( 'lazyload_type' ) === 'fixed';
+		return false !== strpos( $this->get( 'lazyload_type' ), 'fixed' );
 	}
 	/**
 	 * Utility to check if offload is enabled.

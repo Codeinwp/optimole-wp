@@ -428,27 +428,37 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$new_tag = $is_slashed ? str_replace( 'loading=\"lazy\"', 'loading=\"eager\"', $new_tag ) : str_replace( 'loading="lazy"', 'loading="eager"', $new_tag );
 			}
 		}
-		if ( $this->settings->is_lazyload_type_viewport() && Optml_Manager::instance()->page_profiler->is_in_all_viewports( $image_id ) ) {
+
+		$no_viewport_data_available = true;
+
+		if ( $this->settings->is_lazyload_type_viewport() ) {
+			$image_id                   = $this->get_id_by_url( $original_url );
+			$is_in_all_viewports        = Optml_Manager::instance()->page_profiler->is_in_all_viewports( $image_id );
+			$is_lcp_image               = Optml_Manager::instance()->page_profiler->is_lcp_image_in_all_viewports( $image_id );
+			$no_viewport_data_available = ! Optml_Manager::instance()->page_profiler->check_data_availability();
+
 			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', 'Adding preload priority for image ' . $original_url . '|' . $image_id );
-			}
-			$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img fetchpriority=\"high\"' : '<img fetchpriority="high"', $new_tag );
-			// collect ID for preload.
-			Links::add_id( $image_id, 'high' );
-		}
-		if ( $this->settings->is_lazyload_type_viewport() && Optml_Manager::instance()->page_profiler->is_lcp_image_in_all_viewports( $image_id ) ) {
-			if ( OPTML_DEBUG ) {
-				do_action( 'optml_log', 'Adding preload image is LCP ' . $original_url . '|' . $image_id );
+				if ( $is_in_all_viewports ) {
+					do_action( 'optml_log', 'Adding preload priority for image ' . $original_url . '|' . $image_id );
+				} elseif ( $is_lcp_image ) {
+					do_action( 'optml_log', 'Adding preload image is LCP ' . $original_url . '|' . $image_id );
+				}
 			}
 
-			$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img fetchpriority=\"high\"' : '<img fetchpriority="high"', $new_tag );
-			Links::add_id( $image_id, 'high' );
-		}
-		// // If the image is between the first images we add the fetchpriority attribute to improve the LCP.
-		if ( $this->settings->is_lazyload_type_fixed() && self::$lazyload_skipped_images < Optml_Lazyload_Replacer::get_skip_lazyload_limit() ) {
-			if ( strpos( $new_tag, 'fetchpriority=' ) === false ) {
+			if ( $is_in_all_viewports || $is_lcp_image ) {
 				$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img fetchpriority=\"high\"' : '<img fetchpriority="high"', $new_tag );
+				Links::add_id( $image_id, 'high' ); // collect ID for preload.
 			}
+		}
+
+		// If the image is between the first images we add the fetchpriority attribute to improve the LCP.
+		if (
+			$no_viewport_data_available &&
+			$this->settings->is_lazyload_type_fixed() &&
+			self::$lazyload_skipped_images < Optml_Lazyload_Replacer::get_skip_lazyload_limit() &&
+			false === strpos( $new_tag, 'fetchpriority=' )
+		) {
+			$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img fetchpriority=\"high\"' : '<img fetchpriority="high"', $new_tag );
 		}
 
 		++self::$lazyload_skipped_images;

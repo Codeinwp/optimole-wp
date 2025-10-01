@@ -1345,6 +1345,13 @@ class Optml_Admin {
 		];
 		$lang_code = isset( $available_languages[ $language ] ) ? 'de' : 'en';
 
+		$site_settings = $this->settings->get_site_settings();
+		// Migrate settings if needed.
+		if ( isset( $site_settings['lazyload_type'] ) && 'all' === $site_settings['lazyload_type'] ) {
+			$site_settings['lazyload_type']        = 'fixed';
+			$site_settings['skip_lazyload_images'] = 0;
+		}
+
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',
@@ -1362,7 +1369,7 @@ class Optml_Admin {
 			'current_user'               => [
 				'email' => $user->user_email,
 			],
-			'site_settings'              => $this->settings->get_site_settings(),
+			'site_settings'              => $site_settings,
 			'offload_limit'              => $this->settings->get( 'offload_limit' ),
 			'home_url'                   => home_url(),
 			'optimoleHome'               => tsdk_translate_link( 'https://optimole.com/' ),
@@ -1382,6 +1389,15 @@ class Optml_Admin {
 			'bf_notices'                 => $this->get_bf_notices(),
 			'spc_banner'                 => $this->get_spc_banner(),
 			'show_exceed_plan_quota_notice' => $this->should_show_exceed_quota_warning(),
+			'report_issue_url' => add_query_arg(
+				[
+					'utm_source'   => 'plugin',
+					'utm_medium'   => 'wp_dashboard',
+					'utm_campaign' => 'report_issue',
+					'contact_website' => home_url(),
+				],
+				tsdk_translate_link( 'https://optimole.com/contact/' )
+			),
 		];
 	}
 
@@ -1791,27 +1807,18 @@ The root cause might be either a security plugin which blocks this feature or so
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1943-avif-conversion">',
 					'</a>'
 				),
-				'enable_bg_lazyload_desc'             => sprintf(
-				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
-					__( 'Enable this to lazy-load images set as CSS backgrounds. If Optimole misses any, you can directly target specific CSS selectors to ensure all background images are optimized. %1$sLearn more%2$s', 'optimole-wp' ),
-					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1169-how-to-enable-the-background-lazyload-feature-for-certain-background-images">',
-					'</a>'
-				),
+				'enable_bg_lazyload_desc'             => __( 'Apply lazy loading to CSS background images. The toggle below enables it globally. The selector list is optional and only needed to extend coverage if certain elements are missed.', 'optimole-wp' ),
 				'enable_bg_lazyload_title'            => __( 'CSS Background Lazy Load', 'optimole-wp' ),
-				'enable_video_lazyload_desc'          => sprintf(
-				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
-					__( 'By default, lazy loading does not work for embedded videos and iframes. Enable this option to activate the lazy-load on these elements. %1$sLearn more%2$s', 'optimole-wp' ),
-					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1952-lazy-loading-for-embedded-videos-and-iframes">',
-					'</a>'
-				),
-				'enable_video_lazyload_title'         => __( 'Lazy Loading for Embedded Videos and Iframes', 'optimole-wp' ),
+				'enable_video_lazyload_desc'          => __( 'Lazy load embedded videos and iframe content', 'optimole-wp' ),
+				'enable_video_lazyload_title'         => __( 'Video & iframes', 'optimole-wp' ),
 				'enable_noscript_desc'                => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
 					__( 'Enables fallback images for browsers that can\'t handle JavaScript-based lazy loading or related features. Disabling it may resolve conflicts with other plugins or configurations and decrease HTML page size. %1$sLearn more%2$s', 'optimole-wp' ),
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1959-noscript-tag">',
 					'</a>'
 				),
-				'enable_noscript_title'               => __( 'Noscript Tag', 'optimole-wp' ),
+				// translators: %s is the name of the html tag (e.g: <noscript> );
+				'enable_noscript_title'               => sprintf( __( 'Enable %s fallback', 'optimole-wp' ), '<custom_component/>' ),
 				'enable_gif_replace_title'            => __( 'GIF to Video Conversion', 'optimole-wp' ),
 				'enable_offload_media_title'          => __( 'Store Your Images in Optimole Cloud', 'optimole-wp' ),
 				'enable_offload_media_desc'           => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Free up space on your server by transferring your images to Optimole Cloud; you can transfer them back anytime. Once moved, the images will still be visible in the Media Library and can be used as before. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1967-store-your-images-in-optimole-cloud">', '</a>' ),
@@ -1830,7 +1837,7 @@ The root cause might be either a security plugin which blocks this feature or so
 					'</a>'
 				),
 
-				'lazyload_behaviour_title'            => __( 'Lazy Loading Behaviour', 'optimole-wp' ),
+				'lazyload_behaviour_title'            => __( 'Loading Method', 'optimole-wp' ),
 				'lazyload_behaviour_desc'             => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
 					__( 'Choose how Optimole will handle lazy loading for images on your website. %1$sLearn more%2$s', 'optimole-wp' ),
@@ -1839,12 +1846,11 @@ The root cause might be either a security plugin which blocks this feature or so
 				),
 				'lazyload_behaviour_all'             => __( 'Lazy Load All Images', 'optimole-wp' ),
 				'lazyload_behaviour_all_desc'        => __( 'All images will use lazy loading regardless of position.', 'optimole-wp' ),
-				'lazyload_behaviour_viewport'          => __( 'Skip Lazy Loading for Initial Viewport', 'optimole-wp' ),
+				'lazyload_behaviour_viewport'          => __( 'Enable viewport-based loading', 'optimole-wp' ),
 				'lazyload_behaviour_viewport_desc'   => __( 'Automatically detects and immediately loads images visible in the initial viewport. Detection is done with a lightweight client-side script that identifies what\'s visible on each user\'s screen. All other images will lazy load.', 'optimole-wp' ),
-				/* translators: 1 is the placeholder for the number of images */
-				'lazyload_behaviour_fixed'           => sprintf( __( 'Skip Lazy Loading for First %s Images', 'optimole-wp' ), '[N]' ),
+				'lazyload_behaviour_fixed'           => __( 'Skip lazy loading for first images', 'optimole-wp' ),
 				'lazyload_behaviour_fixed_desc'      => __( 'Indicate how many images at the top of each page should bypass lazy loading, ensuring they\'re instantly visible.', 'optimole-wp' ),
-				'enable_lazyload_placeholder_title'   => __( 'Lazy Load with Generic Placeholder', 'optimole-wp' ),
+				'enable_lazyload_placeholder_title'   => __( 'Enable generic placeholder color', 'optimole-wp' ),
 				'enable_network_opt_desc'             => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
 					__( 'When enabled, Optimole will automatically reduce the image quality when it detects a slower network, making your images load faster on low-speed internet connections. %1$sLearn more%2$s', 'optimole-wp' ),
@@ -1956,13 +1962,13 @@ The root cause might be either a security plugin which blocks this feature or so
 				'high_q_title'                        => __( 'High', 'optimole-wp' ),
 				'image_1_label'                       => __( 'Original', 'optimole-wp' ),
 				'image_2_label'                       => __( 'Optimized', 'optimole-wp' ),
-				'lazyload_desc'                       => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Scales large images to fit their display space, ensuring your website runs fast. With lazy loading, images appear when needed while scrolling, making navigation smoother. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1939-scale-images-lazy-load">', '</a>' ),
+				'lazyload_desc'                       => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Images load only when they\'re about to enter the viewport. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1948-bypass-lazy-load-for-first-images">', '</a>' ),
 				'filter_length_error'                 => __( 'The filter should be at least 3 characters long.', 'optimole-wp' ),
-				'scale_desc'                          => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Enable this to allow Optimole to resize lazy-loaded images for optimal display on your screen. Keep it disabled to retain the original image size, though it may result in slower page loads. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1950-image-scaling">', '</a>' ),
+				'scale_desc'                          => __( 'Automatically resize the images based on device and viewport', 'optimole-wp' ),
 				'low_q_title'                         => __( 'Low', 'optimole-wp' ),
 				'medium_q_title'                      => __( 'Medium', 'optimole-wp' ),
 				'no_images_found'                     => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
-				'native_desc'                         => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Enable to use the browser\'s built-in lazy loading feature. Enabling this will disable the auto scale feature, meaning images will not be automatically resized to fit the screen dimensions. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1949-browser-native-lazy-load">', '</a>' ),
+				'native_desc'                         => __( 'Uses the browser\'s build-in "lazy" behavior', 'optimole-wp' ),
 				'option_saved'                        => __( 'Option saved.', 'optimole-wp' ),
 				'ml_quality_desc'                     => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Optimole ML algorithms will predict the optimal image quality to get the smallest possible size with minimum perceived quality losses. When disabled, you can control the quality manually. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1016-what-is-the-difference-between-the-auto-high-medium-low-compression-levels">', '</a>' ),
 				'quality_desc'                        => __( 'Lower image quality might boost your loading speed by lowering the size. However, the low image quality may negatively impact the visual appearance of the images. Try experimenting with the setting, then click the View sample image link to see what option works best for you.', 'optimole-wp' ),
@@ -1983,15 +1989,29 @@ The root cause might be either a security plugin which blocks this feature or so
 				'cloud_site_title'                    => __( 'Show images only from these sites:', 'optimole-wp' ),
 				'cloud_site_desc'                     => __( 'Browse images only from the specified websites. Otherwise, images from all websites will appear in the library.', 'optimole-wp' ),
 				'toggle_ab_item'                      => __( 'Admin bar status', 'optimole-wp' ),
-				'toggle_lazyload'                     => __( 'Scale Images & Lazy loading', 'optimole-wp' ),
-				'toggle_scale'                        => __( 'Image Scaling', 'optimole-wp' ),
-				'toggle_native'                       => __( 'Browser Native Lazy Load', 'optimole-wp' ),
+				'toggle_lazyload'                     => __( 'Enable Lazy Loading & Scaling', 'optimole-wp' ),
+				'toggle_scale'                        => __( 'Smart Image Scaling', 'optimole-wp' ),
+				'toggle_native'                       => __( 'Native Browser Loading', 'optimole-wp' ),
 				'on_toggle'                           => __( 'On', 'optimole-wp' ),
 				'off_toggle'                          => __( 'Off', 'optimole-wp' ),
 				'view_sample_image'                   => __( 'View sample image', 'optimole-wp' ),
-				'watch_placeholder_lazyload'          => __( 'Add each CSS selector on a new line or separated by comma(,)', 'optimole-wp' ),
-				'watch_desc_lazyload'                 => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Enter CSS selectors for any background images not covered by the default lazy loading. This ensures those images also benefit from the optimized loading process. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1169-how-to-enable-the-background-lazyload-feature-for-certain-background-images">', '</a>' ),
-				'watch_title_lazyload'                => __( 'Extend CSS Background Lazy Loading', 'optimole-wp' ),
+				'watch_placeholder_lazyload'          => __( 'Optional selectors to extend coverage (one per line or comma-separated)', 'optimole-wp' ),
+				// translators: %s is the example selector list.
+				'watch_placeholder_lazyload_example'  => sprintf( __( 'Example: %s', 'optimole-wp' ), '.hero-bg, #banner-image, .lazy-bg, .footer-bg' ),
+				'watch_desc_lazyload'                 => __( 'If everything is covered out of the box, leave this empty.', 'optimole-wp' ),
+				'smart_loading_title'                       => __( 'Smart Loading', 'optimole-wp' ),
+				'smart_loading_desc'                  => __( 'JavaScript-driven with advanced controls', 'optimole-wp' ),
+				'browser_native_lazy'                 => __( 'Uses the browser\'s built-in lazy loading feature', 'optimole-wp' ),
+				// translators: viewport is the visible area of a web page on a display device.
+				'viewport_detection'                  => __( 'Viewport detection', 'optimole-wp' ),
+				// translators: set the colors for the placeholder image.
+				'placeholders_color'                  => __( 'Placeholders', 'optimole-wp' ),
+				// translators: it can handle many images without slowing down the site.
+				'auto_scaling'                        => __( 'Auto Scaling', 'optimole-wp' ),
+				// translators: it uses the browser's built-in lazy loading feature without any additional scripts.
+				'lightweight_native'                  => __( 'Lightweight', 'optimole-wp' ),
+
+				'watch_title_lazyload'                => __( 'Extend CSS Background Images', 'optimole-wp' ),
 				'width_field'                         => __( 'Width', 'optimole-wp' ),
 				'crop'                                => __( 'crop', 'optimole-wp' ),
 				'toggle_cdn'                          => __( 'Serve CSS & JS Through Optimole', 'optimole-wp' ),
@@ -2065,6 +2085,21 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exceed_plan_quota_notice_description' => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Based on this trend, you are likely to exceed your free quota before the month ends. To avoid any disruption in service, we strongly recommend %1$supgrading%2$s your plan or waiting until your traffic stabilizes before offloading your images. Do you still wish to proceed?', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://dashboard.optimole.com/settings/billing/">', '</a>' ),
 				'exceed_plan_quota_notice_start_action' => __( 'Yes, Transfer to Optimole Cloud', 'optimole-wp' ),
 				'exceed_plan_quota_notice_secondary_action' => __( 'No, keep images on my website', 'optimole-wp' ),
+				'visual_settings'                           => __( 'Visual Settings', 'optimole-wp' ),
+				'extended_features'                         => __( 'Extended Features', 'optimole-wp' ),
+				// translators: mark that the options are aplied globally.
+				'global_option'                             => __( 'Global', 'optimole-wp' ),
+				// translators: This option is discouraged from being used.
+				'not_recommended'                           => __( 'Not recommended', 'optimole-wp' ),
+				// translators: %1$s is the starting bold tag, %2$s is the ending bold tag.
+				'viewport_skip_images_notice'               => sprintf( __( 'When %1$sviewport-based loading%2$s and %1$sskip first images%2$s are both enabled: the skip rule applies on a user\'s first page view. On subsequent views, once viewport data exists, the skip rule is ignored in favor of the viewport data.', 'optimole-wp' ), '<strong>', '</strong>' ),
+				// translators: %1$s is the starting bold tag, %2$s is the ending bold tag.
+				'native_lazy_load_warning'                  => sprintf( __( 'Native browser loading works with viewport detection, but it does not support smart image scaling. It can offer better cross-browser compatibility. Still, we do %1$snot recommend%2$s it for most sites due to fewer controls and features compared to Smart Loading.', 'optimole-wp' ), '<strong>', '</strong>' ),
+				'performance_impact_alert_title'            => __( 'Performance Impact Alert', 'optimole-wp' ),
+				'performance_impact_alert_lazy_desc'         => __( 'Disabling Lazy Load may significantly impact your site\'s loading speed and Core Web Vitals scores.', 'optimole-wp' ),
+				'performance_impact_alert_scale_desc'         => __( 'Disabling Image Scaling may significantly impact your site\'s loading speed and Core Web Vitals scores.', 'optimole-wp' ),
+				'performance_impact_alert_action_label'      => __( 'Continue with disabling', 'optimole-wp' ),
+				'performance_impact_alert_secondary_action_label' => __( 'Keep enabled and get help', 'optimole-wp' ),
 			],
 			'help'                           => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),
@@ -2164,6 +2199,13 @@ The root cause might be either a security plugin which blocks this feature or so
 				'<a class="flex justify-center items-center font-semibold" href="https://docs.optimole.com/article/2238-optimization-tips" target="_blank"> ',
 				'<span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>'
 			),
+			'contact_support' => [
+				// translators: %s is the email main subject.
+				'title_prefix'              => __( '[Lazy Load Issue] %s', 'optimole-wp' ),
+				'disable_lazy_load_scaling' => __( 'Disable Lazy Load & Scaling' ),
+				'disable_image_scaling'     => __( 'Disable Image Scaling' ),
+				'enable_native_lazy_load'   => __( 'Enable Native Lazy Load' ),
+			],
 			// translators: %s is the date of the renewal.
 			'renew_date'                   => __( 'Renews %s', 'optimole-wp' ),
 		];
@@ -2206,7 +2248,7 @@ The root cause might be either a security plugin which blocks this feature or so
 		}
 
 		$data = [
-			'environmentId' => 'clo8wxwzj44orpm0gjchurujm',
+			'environmentId' => 'clo8wxwy044olpm0gn83ihta6',
 			'attributes'    => [
 				'plan'                => $user_data['plan'],
 				'status'              => $user_data['status'],

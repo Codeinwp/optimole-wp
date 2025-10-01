@@ -459,3 +459,14 @@ $mango-yellow: #FBBF24;
 		@apply text-xs rounded-sm bg-gray-100/50;
 	}
 }
+
+
+textarea#optml-css-watchers {
+    border-color: rgb(229 231 235);
+	border-radius: 0.25rem;
+	color: gray;
+
+	&::placeholder {
+		color: #6B7280;
+	}
+}

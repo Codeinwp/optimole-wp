@@ -11,7 +11,7 @@
 		"ecmaVersion": 2021,
 		"sourceType": "module"
 	},
-	"ignorePatterns": [ "node_modules", "assets/js"  ],
+	"ignorePatterns": [ "node_modules", "assets/js", "**/*.d.ts"  ],
 	"rules": {
 		"camelcase" : "off",
 		"indent": [
