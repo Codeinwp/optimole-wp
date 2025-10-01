@@ -1751,7 +1751,9 @@ The root cause might be either a security plugin which blocks this feature or so
 				'metricsSubtitle4' => __( 'This month', 'optimole-wp' ),
 				'metricsTitle5'    => __( 'Offloaded images', 'optimole-wp' ),
 				'metricsSubtitle5' => __( 'Offloaded to cloud', 'optimole-wp' ),
+				// translators: is used as singular when the number of images is 1 for a unit label.
 				'image'            => __( 'image', 'optimole-wp' ),
+				// translators: is used as plural when the number of images is more than 1 for a unit label.
 				'images'           => __( 'images', 'optimole-wp' ),
 				'view_analytics'   => __( 'View Analytics', 'optimole-wp' ),
 				'adjust_compression' => __( 'Adjust Compression', 'optimole-wp' ),
