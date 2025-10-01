@@ -24,6 +24,30 @@ class Optml_Attachment_Edit {
 		add_action( 'wp_ajax_optml_replace_file', [ $this, 'replace_file' ] );
 
 		add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_scripts' ] );
+		add_filter( 'media_row_actions', [ $this, 'add_replace_rename_action' ], 10, 2 );
+	}
+
+	/**
+	 * Add Replace or Rename action in media library list view.
+	 *
+	 * @param string[] $actions Array of row action links.
+	 * @param WP_Post  $post The post object.
+	 * @return string[]
+	 */
+	public function add_replace_rename_action( $actions, $post ) {
+		if ( get_post_type( $post->ID ) !== 'attachment' ) {
+			return $actions;
+		}
+
+		$edit_url = admin_url( 'post.php?post=' . $post->ID . '&action=edit' );
+		$actions['replace_rename'] = sprintf(
+			'<a href="%s" aria-label="%s">%s</a>',
+			esc_url( $edit_url ),
+			esc_attr__( 'Replace or Rename', 'optimole-wp' ),
+			esc_html__( 'Replace or Rename', 'optimole-wp' )
+		);
+
+		return $actions;
 	}
 
 	/**
@@ -32,48 +56,69 @@ class Optml_Attachment_Edit {
 	 * @param string $hook The hook.
 	 */
 	public function enqueue_scripts( $hook ) {
-		if ( $hook !== 'post.php' ) {
+		if ( $hook !== 'post.php' && $hook !== 'upload.php' ) {
 			return;
 		}
 
-		$id = (int) sanitize_text_field( $_GET['post'] );
+		if ( $hook === 'post.php' ) {
+			$id = (int) sanitize_text_field( $_GET['post'] );
 
-		if ( ! $id ) {
-			return;
+			if ( ! $id ) {
+				return;
+			}
+
+			if ( ! current_user_can( 'edit_post', $id ) ) {
+				return;
+			}
+
+			if ( get_post_type( $id ) !== 'attachment' ) {
+				return;
+			}
+
+			$mime_type = get_post_mime_type( $id );
+
+			$max_file_size = wp_max_upload_size();
+			// translators: %s is the max file size in MB.
+			$max_file_size_error = sprintf( __( 'File size is too large. Max file size is %sMB', 'optimole-wp' ), $max_file_size / 1024 / 1024 );
+
+			wp_enqueue_style( 'optml-attachment-edit', OPTML_URL . 'assets/css/single-attachment.css', [], OPTML_VERSION );
+
+			wp_register_script( 'optml-attachment-edit', OPTML_URL . 'assets/js/single-attachment.js', [ 'jquery' ], OPTML_VERSION, true );
+			wp_localize_script(
+				'optml-attachment-edit',
+				'OMAttachmentEdit',
+				[
+					'ajaxURL'      => admin_url( 'admin-ajax.php' ),
+					'maxFileSize'  => $max_file_size,
+					'attachmentId' => $id,
+					'mimeType'     => $mime_type,
+					'i18n'         => [
+						'maxFileSizeError' => $max_file_size_error,
+						'replaceFileError' => __( 'Error replacing file', 'optimole-wp' ),
+					],
+				]
+			);
+			wp_enqueue_script( 'optml-attachment-edit' );
+		} elseif ( $hook === 'upload.php' ) {
+			wp_enqueue_script(
+				'optml-modal-attachment',
+				OPTML_URL . 'assets/js/modal-attachment.js',
+				[ 'jquery', 'media-views', 'media-models' ],
+				OPTML_VERSION,
+				true
+			);
+
+			wp_localize_script(
+				'optml-modal-attachment',
+				'OptimoleModalAttachment',
+				[
+					'editPostURL' => admin_url( 'post.php' ),
+					'i18n' => [
+						'replaceOrRename' => __( 'Replace or Rename', 'optimole-wp' ),
+					],
+				]
+			);
 		}
-
-		if ( ! current_user_can( 'edit_post', $id ) ) {
-			return;
-		}
-
-		if ( get_post_type( $id ) !== 'attachment' ) {
-			return;
-		}
-
-		$mime_type = get_post_mime_type( $id );
-
-		$max_file_size = wp_max_upload_size();
-		// translators: %s is the max file size in MB.
-		$max_file_size_error = sprintf( __( 'File size is too large. Max file size is %sMB', 'optimole-wp' ), $max_file_size / 1024 / 1024 );
-
-		wp_enqueue_style( 'optml-attachment-edit', OPTML_URL . 'assets/css/single-attachment.css', [], OPTML_VERSION );
-
-		wp_register_script( 'optml-attachment-edit', OPTML_URL . 'assets/js/single-attachment.js', [ 'jquery' ], OPTML_VERSION, true );
-		wp_localize_script(
-			'optml-attachment-edit',
-			'OMAttachmentEdit',
-			[
-				'ajaxURL'      => admin_url( 'admin-ajax.php' ),
-				'maxFileSize'  => $max_file_size,
-				'attachmentId' => $id,
-				'mimeType'     => $mime_type,
-				'i18n'         => [
-					'maxFileSizeError' => $max_file_size_error,
-					'replaceFileError' => __( 'Error replacing file', 'optimole-wp' ),
-				],
-			]
-		);
-		wp_enqueue_script( 'optml-attachment-edit' );
 	}
 
 	/**
