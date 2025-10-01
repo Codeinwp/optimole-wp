@@ -206,9 +206,9 @@ export const optmlSrcsetDetector = {
     const naturalAspectRatio = naturalWidth / naturalHeight;
     const currentAspectRatio = currentWidth / currentHeight;
     
-    // Determine if image requires cropping based on aspect ratio difference
+    // Determine if image requires cropping based on object-fit and aspect ratio difference
     const aspectRatioDifference = Math.abs(naturalAspectRatio - currentAspectRatio);
-    const requiresCropping = this._requiresCropping(aspectRatioDifference, naturalAspectRatio, currentAspectRatio);
+    const requiresCropping = this._requiresCropping(img, aspectRatioDifference, naturalAspectRatio, currentAspectRatio);
     
     // Get current device type
     const currentDeviceType = optmlDevice.getDeviceType();
@@ -252,7 +252,7 @@ export const optmlSrcsetDetector = {
     });
 
     // Additional debug logging for aspect ratio analysis
-    optmlLogger.log(`[Optimole Debug] Image ${imageId} aspect ratio analysis:`, {
+    optmlLogger.info(`[Optimole Debug] Image ${imageId} aspect ratio analysis:`, {
       natural: `${naturalWidth}x${naturalHeight} (${Math.round(naturalAspectRatio * 1000) / 1000}:1)`,
       current: `${currentWidth}x${currentHeight} (${Math.round(currentAspectRatio * 1000) / 1000}:1)`,
       difference: Math.round(aspectRatioDifference * 1000) / 1000,
@@ -275,14 +275,28 @@ export const optmlSrcsetDetector = {
   },
 
   /**
-   * Determine if an image requires cropping based on aspect ratio differences
+   * Determine if an image requires cropping based on object-fit and aspect ratio differences
+   * Requires BOTH object-fit: cover AND significant aspect ratio difference to return true
    * @private
+   * @param {HTMLImageElement} img - Image element to analyze
    * @param {number} aspectRatioDifference - Absolute difference between natural and current aspect ratios
    * @param {number} naturalAspectRatio - Natural image aspect ratio
    * @param {number} currentAspectRatio - Current displayed aspect ratio
-   * @returns {boolean} True if the image requires cropping
+   * @returns {boolean} True if the image requires cropping (both conditions must be true)
    */
-  _requiresCropping: function(aspectRatioDifference, naturalAspectRatio, currentAspectRatio) {
+  _requiresCropping: function(img, aspectRatioDifference, naturalAspectRatio, currentAspectRatio) {
+    // First check if the image has object-fit: cover
+    let hasObjectFitCover = false;
+    try {
+      const computedStyle = window.getComputedStyle(img);
+      hasObjectFitCover = computedStyle.objectFit === 'cover';
+      if (hasObjectFitCover) {
+        optmlLogger.info(`Image has object-fit: cover`);
+      }
+    } catch (error) {
+      optmlLogger.warn('Could not get computed style for object-fit check:', error);
+    }
+    
     // Define thresholds for determining when cropping is needed
     const ASPECT_RATIO_TOLERANCE = 0.05; // 5% tolerance for minor differences
     const SIGNIFICANT_DIFFERENCE_THRESHOLD = 0.15; // 15% for significant differences
@@ -292,17 +306,29 @@ export const optmlSrcsetDetector = {
       return false;
     }
     
+    // Check aspect ratio conditions
+    let aspectRatioRequiresCropping = false;
+    
     // If the difference is significant, definitely needs cropping
     if (aspectRatioDifference >= SIGNIFICANT_DIFFERENCE_THRESHOLD) {
-      return true;
+      aspectRatioRequiresCropping = true;
+    } else {
+      // For moderate differences, check if the current aspect ratio is significantly different
+      // from the natural one (indicating intentional resizing that would require cropping)
+      const ratioChange = Math.abs(currentAspectRatio - naturalAspectRatio) / naturalAspectRatio;
+      
+      // If the current aspect ratio is more than 10% different from natural, likely needs cropping
+      aspectRatioRequiresCropping = ratioChange > 0.1;
     }
     
-    // For moderate differences, check if the current aspect ratio is significantly different
-    // from the natural one (indicating intentional resizing that would require cropping)
-    const ratioChange = Math.abs(currentAspectRatio - naturalAspectRatio) / naturalAspectRatio;
+    // Both object-fit: cover AND aspect ratio difference must be true to require cropping
+    const requiresCropping = hasObjectFitCover && aspectRatioRequiresCropping;
     
-    // If the current aspect ratio is more than 10% different from natural, likely needs cropping
-    return ratioChange > 0.1;
+    if (requiresCropping) {
+      optmlLogger.info(`Image requires cropping: object-fit cover=${hasObjectFitCover}, aspect ratio=${aspectRatioRequiresCropping}`);
+    }
+    
+    return requiresCropping;
   },
 
   /**
