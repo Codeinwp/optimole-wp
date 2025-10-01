@@ -455,4 +455,50 @@ class Profile {
 
 		return $has_data;
 	}
+
+	/**
+	 * Generate HTML comment with profile data and performance metrics.
+	 *
+	 * @return string HTML comment with profile data and metrics.
+	 */
+	public function get_current_profile_html_comment(): string {
+		$profile_data = self::get_current_profile_data();
+
+		if ( empty( $profile_data ) ) {
+			return '<!-- plugin=optimole-wp: No profile ID available -->';
+		}
+
+		// Format the HTML comment
+		$comment_parts = [
+			'plugin=optimole-wp',
+		];
+
+		// Add device-specific metrics
+		foreach ( $profile_data as $device_type => $device_data ) {
+			$device_name = $this->get_device_name( $device_type );
+			$comment_parts[] = 'measurement#device-' . $device_name . '#' . json_encode( $device_data );
+		}
+
+		return '<!-- ' . implode( ' ', $comment_parts ) . ' -->';
+	}
+
+
+	/**
+	 * Get device name from device type constant.
+	 *
+	 * @param int $device_type The device type constant.
+	 * @return string Device name.
+	 */
+	private function get_device_name( int $device_type ): string {
+		switch ( $device_type ) {
+			case self::DEVICE_TYPE_MOBILE:
+				return 'mobile';
+			case self::DEVICE_TYPE_DESKTOP:
+				return 'desktop';
+			case self::DEVICE_TYPE_GLOBAL:
+				return 'global';
+			default:
+				return 'unknown';
+		}
+	}
 }

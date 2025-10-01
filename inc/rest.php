@@ -950,7 +950,7 @@ class Optml_Rest {
 		if ( empty( $origin ) || ! is_allowed_http_origin( $origin ) ) {
 			return $this->response( 'Invalid origin', 'error' );
 		}
-		if ( empty( $device_type ) || empty( $above_fold_images ) || empty( $url ) || ! is_array( $above_fold_images ) ) {
+		if ( empty( $device_type ) || empty( $url ) || ! is_array( $above_fold_images ) ) {
 			return $this->response( 'Missing required parameters', 'error' );
 		}
 		if ( count( $above_fold_images ) > 20 ) {

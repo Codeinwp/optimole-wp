@@ -432,6 +432,7 @@ final class Optml_Manager {
 		}
 		if ( self::should_load_profiler( $partial ) ) {
 			$profile_id = Profile::generate_id( $html );
+			$should_show_comment = false;
 			// We disable the optimizer for logged in users.
 			if ( ! is_user_logged_in() || ! apply_filters( 'optml_force_page_profiler', false ) !== true ) {
 				$js_optimizer = Optml_Admin::get_optimizer_script( false );
@@ -449,11 +450,16 @@ final class Optml_Manager {
 					if ( ! headers_sent() ) {
 						header( 'Cache-Control: max-age=300' ); // Attempt to cache the page just for 5 mins until the optimizer is done. Once the optimizer is done, the page will load optimized.
 					}
+				} else {
+					$should_show_comment = isset( $_GET['optml_debug'] ) && $_GET['optml_debug'] === 'true';
 				}
 			}
 
 			Profile::set_current_profile_id( $profile_id );
 			$this->page_profiler->set_current_profile_data();
+			if ( $should_show_comment ) {
+				$html = str_replace( '</html>', '</html>' . $this->page_profiler->get_current_profile_html_comment(), $html );
+			}
 		}
 		if ( ! $partial ) {
 			$html = $this->add_html_class( $html );
