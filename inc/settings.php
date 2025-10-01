@@ -60,7 +60,7 @@ class Optml_Settings {
 		'admin_bar_item'             => 'enabled',
 		'lazyload'                   => 'disabled',
 		'scale'                      => 'disabled',
-		'network_optimization'       => 'disabled',
+		'network_optimization'       => 'enabled',
 		'lazyload_placeholder'       => 'enabled',
 		'bg_replacer'                => 'enabled',
 		'video_lazyload'             => 'enabled',
