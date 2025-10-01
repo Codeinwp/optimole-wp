@@ -113,7 +113,7 @@ class Optml_Admin {
 		}
 
 		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
-		add_action( 'admin_init', [ $this, 'mark_free_user_with_offload' ] );
+		add_action( 'admin_init', [ $this, 'mark_user_with_offload' ] );
 	}
 
 	/**
@@ -1399,7 +1399,7 @@ class Optml_Admin {
 			'bf_notices'                 => $this->get_bf_notices(),
 			'spc_banner'                 => $this->get_spc_banner(),
 			'show_exceed_plan_quota_notice' => $this->should_show_exceed_quota_warning(),
-			'show_free_user_with_offload_notice' => get_option( 'optml_free_user_with_offload', 'no' ),
+			'show_free_user_with_offload_notice' => get_option( 'optml_has_offloading_enabled_on_upgrade', 'no' ),
 			'report_issue_url' => add_query_arg(
 				[
 					'utm_source'   => 'plugin',
@@ -1637,7 +1637,7 @@ If you still want to disconnect click the button below.',
 				' <a href="' . esc_url( tsdk_translate_link( 'https://dashboard.optimole.com/register', 'query' ) ) . '" target="_blank">optimole.com</a>'
 			),
 			'account_needed_subtitle_1'      => sprintf(
-			/* translators: 1 is starting bold tag, 2 is ending bold tag, 3 is the starting bold tag, 4 is the limit number, 5 is ending bold tag, 6 is the starting anchor tag for the docs link on how we count visits, 7 is the ending anchor tag. */
+			/* translators: 1 is the starting bold tag, 2 is the ending bold tag, 3 is the starting bold tag, 4 is the limit number, 5 is ending bold tag, 6 is the starting anchor tag for the docs link on how we count visits, 7 is the ending anchor tag. */
 				__( '%1$sOptimize unlimited images%2$s for up to %3$s monthly %4$svisitors%5$s - completely FREE.', 'optimole-wp' ),
 				'<strong>',
 				'</strong>',
@@ -2097,7 +2097,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exceed_plan_quota_notice_start_action' => __( 'Yes, Transfer to Optimole Cloud', 'optimole-wp' ),
 				'exceed_plan_quota_notice_secondary_action' => __( 'No, keep images on my website', 'optimole-wp' ),
 				'plan_update_notice_title'                  => __( 'Plan Update', 'optimole-wp' ),
-				'plan_update_notice_desc'                   => __( 'We\'ve changed how plans work. Users on Optimole Free plan can not offload new image. Existing images that are already offloaded will remain offloaded.', 'optimole-wp' ),
+				'plan_update_notice_desc'                   => __( 'We\'ve changed how plans work. Users on the Optimole Free plan cannot offload new images. Existing images that are already offloaded will remain offloaded.', 'optimole-wp' ),
 				'upgrade_to_use_offloading_notice_desc'     => __( 'Offloading images is a PRO feature. Please upgrade your plan to enable image transfer to Optimole Cloud.', 'optimole-wp' ),
 				'visual_settings'                           => __( 'Visual Settings', 'optimole-wp' ),
 				'extended_features'                         => __( 'Extended Features', 'optimole-wp' ),
@@ -2392,21 +2392,21 @@ The root cause might be either a security plugin which blocks this feature or so
 	}
 
 	/**
-	 * Mark the users that are on free plan and have offload enabled.
+	 * Mark if the user had offloading enabled on first run.
 	 *
-	 * Used for displaying a notice after plugin update about offload restrictions.
+	 * If it is an old free user that had offloading enabled, we will use the mark to show a notice about the plan changes.
 	 *
 	 * @return void
 	 */
-	public function mark_free_user_with_offload() {
+	public function mark_user_with_offload() {
 		if ( ! $this->settings->is_connected() ) {
 			return;
 		}
 
-		if ( false !== get_option( 'optml_free_user_with_offload', false ) ) {
+		if ( false !== get_option( 'optml_has_offloading_enabled_on_upgrade', false ) ) {
 			return;
 		}
 
-		update_option( 'optml_free_user_with_offload', $this->settings->is_offload_enabled() ? 'yes' : 'no' );
+		update_option( 'optml_has_offloading_enabled_on_upgrade', $this->settings->is_offload_enabled() ? 'yes' : 'no' );
 	}
 }
