@@ -48,6 +48,7 @@ export default function RadioBoxes({ options, value, onChange, label, disabled =
 							id={buttonValue}
 							className="!opacity-0 !w-0 !h-0 !overflow-hidden !absolute !pointer-events-none"
 							disabled={disabled}
+							checked={isActive}
 						/>
 					</label>
 				);
