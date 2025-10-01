@@ -174,12 +174,6 @@ const Compression = ({
 		}
 	}, [ showSample ]);
 
-	useEffect( () => {
-		if ( 'speed_optimized' === compressionMode || 'quality_optimized' === compressionMode ) {
-			transformCompressionMode( compressionMode );
-		}
-	}, []);
-
 	return (
 		<>
 
