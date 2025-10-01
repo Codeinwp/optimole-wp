@@ -23,6 +23,8 @@ import {
 
 import { useSelect } from '@wordpress/data';
 
+import { useEffect, useRef } from '@wordpress/element';
+
 /**
  * Internal dependencies.
  */
@@ -38,6 +40,31 @@ const Compression = ({
 	isSampleLoading,
 	setIsSampleLoading
 }) => {
+	const getQuality = value => {
+		if ( 'number' === typeof value ) {
+			return value;
+		}
+
+		if ( 'auto' === value ) {
+			return 80;
+		}
+
+		if ( 'high_c' === value ) {
+			return 90;
+		}
+
+		if ( 'medium_c' === value ) {
+			return 75;
+		}
+
+		if ( 'low_c' === value ) {
+			return 55;
+		}
+
+		return 80;
+	};
+
+	const manualQualityRef = useRef( getQuality( settings.quality ) );
 	const {
 		sampleImages,
 		isLoading
@@ -61,10 +88,33 @@ const Compression = ({
 	const isBestFormatEnabled = 'disabled' !== settings[ 'best_format' ];
 	const compressionMode = settings[ 'compression_mode' ];
 	const isRetinaEnabled = 'disabled' !== settings[ 'retina_images' ];
+
+	useEffect( () => {
+		if ( isAutoQualityEnabled ) {
+			return;
+		}
+
+		manualQualityRef.current = getQuality( settings.quality );
+	}, [ isAutoQualityEnabled, settings.quality ] );
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
 		const data = { ...settings };
 		data[ option ] = value ? 'enabled' : 'disabled';
+		setSettings( data );
+	};
+
+	const handleAutoQualityToggle = value => {
+		setCanSave( true );
+		const data = { ...settings };
+		data.autoquality = value ? 'enabled' : 'disabled';
+		if ( value ) {
+			manualQualityRef.current = getQuality( settings.quality );
+			data.quality = 'mauto';
+		} else {
+			const manualQuality = manualQualityRef.current ?? getQuality( settings.quality );
+			manualQualityRef.current = manualQuality;
+			data.quality = manualQuality;
+		}
 		setSettings( data );
 	};
 
@@ -80,34 +130,11 @@ const Compression = ({
 		);
 	};
 
-	const getQuality = value => {
-		if ( 'number' === typeof value ) {
-			return value;
-		}
-
-		if ( 'auto' === value ) {
-			return 90;
-		}
-
-		if ( 'high_c' === value ) {
-			return 90;
-		}
-
-		if ( 'medium_c' === value ) {
-			return 75;
-		}
-
-		if ( 'low_c' === value ) {
-			return 55;
-		}
-
-		return 90;
-	};
-
 	const updateQuality = value => {
 		setCanSave( true );
 		const data = { ...settings };
 		data.quality = value;
+		manualQualityRef.current = value;
 		setSettings( data );
 	};
 
@@ -306,18 +333,18 @@ const Compression = ({
 					<BaseControl
 						help={ ! isAutoQualityEnabled && optimoleDashboardApp.strings.options_strings.quality_desc }
 					>
-						<ToggleControl
-							label={ optimoleDashboardApp.strings.options_strings.quality_title }
-							help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.ml_quality_desc } } /> }
-							checked={ isAutoQualityEnabled }
-							disabled={ isLoading }
-							className={ classnames(
-								{
-									'is-disabled': isLoading
-								}
-							) }
-							onChange={ value => updateOption( 'autoquality', value ) }
-						/>
+					<ToggleControl
+						label={ optimoleDashboardApp.strings.options_strings.quality_title }
+						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.ml_quality_desc } } /> }
+						checked={ isAutoQualityEnabled }
+						disabled={ isLoading }
+						className={ classnames(
+							{
+								'is-disabled': isLoading
+							}
+						) }
+						onChange={ handleAutoQualityToggle }
+					/>
 					</BaseControl>
 
 					{ ! isAutoQualityEnabled && (
