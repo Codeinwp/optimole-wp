@@ -379,4 +379,22 @@ class Profile {
 			self::DEVICE_TYPE_DESKTOP,
 		];
 	}
+
+	/**
+	 * Check if there is any profile data available for the current profile.
+	 *
+	 * @return bool
+	 */
+	public function check_data_availability(): bool {
+		$has_data = false;
+
+		foreach ( self::get_active_devices() as $device ) {
+			if ( empty( self::$current_profile_data[ $device ] ) ) {
+				$has_data = true;
+				break;
+			}
+		}
+
+		return $has_data;
+	}
 }
