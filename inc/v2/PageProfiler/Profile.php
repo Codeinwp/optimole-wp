@@ -171,7 +171,7 @@ class Profile {
 	 *                                                                   'bgUrls' is an array of URLs
 	 *                                                                   'type' is the type of the LCP element.
 	 * @param array<int, array{w: int, h: int}>                                                   $missing_dimensions Array of missing dimensions.
-	 * @param array<int, array{w: int, h: int, d: int, s: string, b: int}>                        $missing_srcsets Array of missing srcsets.
+	 * @param array<int, array<int, array{w: int, h: int, d: int, s: string, b: int}>>            $missing_srcsets Array of missing srcsets.
 	 * @param array<int, bool>                                                                    $crop_status Array of crop status for images.
 	 * @return void
 	 */
@@ -225,7 +225,7 @@ class Profile {
 	 *
 	 * @param int $image_id The image ID to get the missing srcsets for.
 	 *
-	 * @return array{w: int, h: int, d: int, s: string, b: int}|array{} The missing srcsets.
+	 * @return array<int, array{w: int, h: int, d: int, s: string, b: int}>|array{} The missing srcsets.
 	 */
 	public function get_missing_srcsets( int $image_id ): array {
 		return self::$current_profile_data[ self::DEVICE_TYPE_GLOBAL ]['s'][ $image_id ] ?? [];

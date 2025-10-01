@@ -1002,9 +1002,8 @@ class Optml_Rest {
 					if ( ! isset( $size['w'], $size['h'], $size['d'], $size['s'], $size['b'] ) ) {
 						continue;
 					}
-					$sanitized_missing_srcsets[ intval( $id ) ][ intval( $size['w'] ) ] = [ 'h' => intval( $size['h'] ), 'd' => intval( $size['d'] ), 's' => sanitize_text_field( $size['s'] ), 'b' => intval( $size['b'] ) ];
+					$sanitized_missing_srcsets[ intval( $id ) ][ intval( $size['w'] ) ] = [ 'h' => intval( $size['h'] ), 'w' => intval( $size['w'] ), 'd' => intval( $size['d'] ), 's' => sanitize_text_field( $size['s'] ), 'b' => intval( $size['b'] ) ];
 				}
-				$sanitized_missing_srcsets[ intval( $id ) ] = $srcset;
 			}
 		}
 		$sanitized_crop_status = [];

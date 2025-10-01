@@ -456,10 +456,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	/**
 	 * Add or enhance srcset attributes to an image tag based on measurements from JavaScript module.
 	 *
-	 * @param string $tag The image tag.
-	 * @param array  $missing_srcsets Array of missing srcset data from JavaScript module.
-	 * @param string $new_url The new image URL.
-	 * @param bool   $is_slashed Whether the URL needs to be slashed.
+	 * @param string                                                  $tag The image tag.
+	 * @param array<array{w: int, h: int, s: string, d: int, b: int}> $missing_srcsets Array of missing srcset data from JavaScript module.
+	 * @param string                                                  $new_url The new image URL.
+	 * @param bool                                                    $is_slashed Whether the URL needs to be slashed.
 	 *
 	 * @return string The modified image tag with enhanced srcset attributes.
 	 */
@@ -580,9 +580,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	/**
 	 * Enhance existing srcset attribute by adding new entries.
 	 *
-	 * @param string $tag The image tag.
-	 * @param array  $new_srcset_entries Array of new srcset entries to add.
-	 * @param bool   $is_slashed Whether the URL needs to be slashed.
+	 * @param string             $tag The image tag.
+	 * @param array<int, string> $new_srcset_entries Array of new srcset entries to add.
+	 * @param bool               $is_slashed Whether the URL needs to be slashed.
 	 *
 	 * @return string The modified image tag with enhanced srcset.
 	 */
@@ -621,9 +621,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	/**
 	 * Enhance existing sizes attribute by adding new breakpoint entries.
 	 *
-	 * @param string $tag The image tag.
-	 * @param array  $new_sizes_entries Array of new sizes entries to add.
-	 * @param bool   $is_slashed Whether the URL needs to be slashed.
+	 * @param string             $tag The image tag.
+	 * @param array<int, string> $new_sizes_entries Array of new sizes entries to add.
+	 * @param bool               $is_slashed Whether the URL needs to be slashed.
 	 *
 	 * @return string The modified image tag with enhanced sizes.
 	 */
@@ -699,10 +699,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * Filter sizes entries to ensure they're appropriate for the container size.
 	 * This prevents oversized images from being selected for small containers.
 	 *
-	 * @param array  $sizes_entries Array of sizes entries from JavaScript module.
-	 * @param string $tag The image tag to extract container dimensions from.
+	 * @param array<int, string> $sizes_entries Array of sizes entries from JavaScript module.
+	 * @param string             $tag The image tag to extract container dimensions from.
 	 *
-	 * @return array Filtered sizes entries appropriate for the container.
+	 * @return array<int, string> Filtered sizes entries appropriate for the container.
 	 */
 	public function filter_sizes_entries_for_container( $sizes_entries, $tag ) {
 		if ( empty( $sizes_entries ) ) {

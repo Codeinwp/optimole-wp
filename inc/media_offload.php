@@ -858,7 +858,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 
 			// Account for scaled images.
-			$source_file = isset( $current_meta['original_image'] ) ? $current_meta['original_image'] : $current_meta['file']; // @phpstan-ignore-line - this exists for scaled images.
+			$source_file = isset( $current_meta['original_image'] ) ? $current_meta['original_image'] : $current_meta['file'];
 			$filename    = pathinfo( $source_file, PATHINFO_BASENAME );
 			$image_id = preg_match( '/\/' . self::KEYS['uploaded_flag'] . '([^\/]*)\//', $current_meta['file'], $matches ) ? $matches[1] : null;
 
@@ -2172,7 +2172,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$image_url,
 			$sizes['width'],
 			$sizes['height'],
-			$size === 'full',
+			$size === 'full', // @phpstan-ignore-line
 		];
 	}
 
