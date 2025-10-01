@@ -768,7 +768,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * @param int    $height The target height.
 	 * @param int    $dpr The device pixel ratio.
 	 *
-	 * @return string|false The optimized URL or false on failure.
+	 * @return string The optimized URL or false on failure.
 	 */
 	public function change_url_for_size( $original_url, $width, $height, $dpr = 1 ) {
 		// Assume w and h are always present - just replace them
