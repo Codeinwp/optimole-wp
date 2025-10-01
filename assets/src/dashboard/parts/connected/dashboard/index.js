@@ -172,13 +172,15 @@ const Dashboard = () => {
 
 		// Fallback for missing data
 		if ( undefined === value ) {
-			value = 'saved_size' === type ?
-				Math.floor( Math.random() * 2500000 ) + 500000 : // Mock KB
-				'traffic' === type ?
-					Math.floor( Math.random() * 2500 ) + 500 : // Mock MB
-					'offloaded_images' === type ?
-						Math.floor( Math.random() * 500 ) + 50 : // Mock images count
-						Math.floor( Math.random() * 40 ) + 10; // Mock Percentage
+			if ( 'saved_size' === type ) {
+				value = Math.floor( Math.random() * 2500000 ) + 500000; // Mock KB
+			} else if ( 'traffic' === type ) {
+				value = Math.floor( Math.random() * 2500 ) + 500; // Mock MB
+			} else if ( 'offloaded_images' === type ) {
+				value = Math.floor( Math.random() * 500 ) + 50; // Mock images count
+			} else {
+				value = Math.floor( Math.random() * 40 ) + 10; // Mock Percentage
+			}
 		}
 
 		switch ( type ) {
