@@ -278,7 +278,7 @@ class Optml_Settings {
 					$sanitized_value = $this->to_bound_integer( $value, 100, 5000 );
 					break;
 				case 'quality':
-					$sanitized_value = $this->to_bound_integer( $value, 1, 100 );
+					$sanitized_value = $this->to_bound_integer( $value, 50, 100 );
 					break;
 				case 'wm_id':
 					$sanitized_value = intval( $value );
