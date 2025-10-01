@@ -77,21 +77,6 @@ const General = ({
 
 			<hr className="my-8 border-grayish-blue"/>
 
-			<ToggleControl
-				label={ optimoleDashboardApp.strings.options_strings.toggle_lazyload }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.lazyload_desc } } /> }
-				checked={ isLazyloadEnabled }
-				disabled={ ! isReplacerEnabled || isLoading }
-				className={ classnames(
-					{
-						'is-disabled': ! isReplacerEnabled || isLoading
-					}
-				) }
-				onChange={ value => updateOption( 'lazyload', value ) }
-			/>
-
-			<hr className="my-8 border-grayish-blue"/>
-
 			{ isUserActive && <>
 				<ToggleControl
 					label={ optimoleDashboardApp.strings.options_strings.enable_badge_title }

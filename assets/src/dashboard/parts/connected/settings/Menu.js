@@ -59,16 +59,12 @@ const menuItems = [
 const SubMenu = ({
 	children,
 	tab,
-	settings,
 	setTab
 }) => {
 	return (
 		<ul className="flex flex-col gap-1 m-0 mt-1">
 			{children.map( item => {
 				const { value, label } = item;
-				if ( 'lazyload' === item.value && 'disabled' === settings.lazyload ) {
-					return;
-				}
 				const classes = classnames(
 					{
 						'bg-light-blue hover:text-purple-gray': tab === value,
