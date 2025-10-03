@@ -75,7 +75,7 @@ class Optml_Settings {
 		'compression_mode'           => 'custom',
 		'cloud_sites'                => [ 'all' => 'true' ],
 		'watchers'                   => '',
-		'quality'                    => 'auto',
+		'quality'                    => 80,
 		'wm_id'                      => - 1,
 		'wm_opacity'                 => 1,
 		'wm_position'                => Position::SOUTH_EAST,
