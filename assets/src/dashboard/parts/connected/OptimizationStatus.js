@@ -49,35 +49,33 @@ const OptimizationStatus = ({ settings, setSettings, setCanSave, setTab }) => {
 		}
 	};
 
+	const {
+		optimization_status
+	} = optimoleDashboardApp.strings;
 
 	const statuses = [
 		{
+			settingType: 'image_replacer',
 			active: imageHandlingEnabled,
-			label: optimoleDashboardApp.strings.optimization_status.statusTitle1,
-			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle1,
-			buttonText: imageHandlingEnabled ? optimoleDashboardApp.strings.optimization_status.manage : optimoleDashboardApp.strings.optimization_status.enable,
-			settingType: 'image_replacer'
+			label: optimization_status.statusTitle1,
+			description: optimization_status.statusSubTitle1,
+			buttonText: imageHandlingEnabled ? optimization_status.manage : optimization_status.enable
 		},
 		{
-			active: lazyloadEnabled,
-			label: optimoleDashboardApp.strings.optimization_status.statusTitle2,
-			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle2,
-			buttonText: lazyloadEnabled ? optimoleDashboardApp.strings.optimization_status.disable : optimoleDashboardApp.strings.optimization_status.enable,
-			settingType: 'lazyload'
+			settingType: 'lazyload',
+			active: lazyloadEnabled && imageHandlingEnabled,
+			label: optimization_status.statusTitle2,
+			description: optimization_status.statusSubTitle2,
+			buttonText: imageHandlingEnabled ? ( lazyloadEnabled ? optimization_status.disable : optimization_status.enable ) : ''
 		},
 		{
-			active: lazyloadEnabled && 'disabled' === settings?.scale,
-			label: optimoleDashboardApp.strings.optimization_status.statusTitle3,
-			description: optimoleDashboardApp.strings.optimization_status.statusSubTitle3,
-			buttonText: ( lazyloadEnabled && 'disabled' === settings?.scale ) ? optimoleDashboardApp.strings.optimization_status.disable : optimoleDashboardApp.strings.optimization_status.enable,
-			settingType: 'scale'
+			settingType: 'scale',
+			active: ( lazyloadEnabled && 'disabled' === settings?.scale ) && imageHandlingEnabled,
+			label: optimization_status.statusTitle3,
+			description: optimization_status.statusSubTitle3,
+			buttonText: imageHandlingEnabled ? ( ( lazyloadEnabled && 'disabled' === settings?.scale ) ? optimization_status.disable : optimization_status.enable ) : ''
 		}
-	].map( el => ({
-		...el, active: imageHandlingEnabled && el.active,
-		buttonText: 'image_replacer' === el.settingType ?
-			( imageHandlingEnabled ? el.buttonText : optimoleDashboardApp.strings.optimization_status.enable ) :
-			( imageHandlingEnabled ? el.buttonText : optimoleDashboardApp.strings.optimization_status.block )
-	}) );
+	];
 
 	return (
 		<div className="bg-white flex flex-col text-gray-700 border-0 rounded-lg shadow-md p-8">
@@ -95,7 +93,7 @@ const OptimizationStatus = ({ settings, setSettings, setCanSave, setTab }) => {
 								<Icon icon={closeSmall} className="fill-danger bg-danger/20 rounded-full" size={20} />
 							)}
 							<div>
-								<span className='text-gray-700 font-normal font-semibold'>
+								<span className='text-gray-700 font-semibold'>
 									{status.label}
 								</span>
 								<p className="m-0">{status.description}</p>

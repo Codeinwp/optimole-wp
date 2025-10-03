@@ -2195,7 +2195,6 @@ The root cause might be either a security plugin which blocks this feature or so
 				'disable'         => __( 'Disable', 'optimole-wp' ),
 				'enable'          => __( 'Enable', 'optimole-wp' ),
 				'manage'          => __( 'Manage', 'optimole-wp' ),
-				'block'           => __( 'Block', 'optimole-wp' ),
 			],
 			'optimization_tips'              => sprintf(
 			/* translators: 1 is the opening anchor tag, 2 is the closing anchor tag */
