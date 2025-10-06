@@ -13,7 +13,7 @@ import {
 } from '@wordpress/components';
 
 import { sprintf } from '@wordpress/i18n';
-
+import { useMemo } from '@wordpress/element';
 import { useSelect } from '@wordpress/data';
 import { warning, external, help } from '@wordpress/icons';
 
@@ -36,49 +36,8 @@ import {
 import ProgressBar from '../../components/ProgressBar';
 
 import LastImages from './LastImages';
-import { useMemo } from 'react';
 
 const cardClasses = 'flex p-6 bg-light-blue border border-blue-300 rounded-md';
-
-const metrics = [
-	{
-		icon: arrowDownToLine,
-		label: optimoleDashboardApp.strings.metrics.metricsTitle2,
-		description: optimoleDashboardApp.strings.metrics.metricsSubtitle2,
-		value: 'saved_size',
-		hasButton: true,
-		buttonText: optimoleDashboardApp.strings.metrics.adjust_compression
-	},
-	{
-		icon: chartBarDecreasing,
-		label: optimoleDashboardApp.strings.metrics.metricsTitle3,
-		description: optimoleDashboardApp.strings.metrics.metricsSubtitle3,
-		value: 'compression_percentage',
-		hasButton: true,
-		buttonText: optimoleDashboardApp.strings.metrics.adjust_compression
-	},
-	{
-		icon: globe,
-		label: optimoleDashboardApp.strings.metrics.metricsTitle4,
-		description: optimoleDashboardApp.strings.metrics.metricsSubtitle4,
-		value: 'traffic',
-		hasButton: true,
-		buttonText: optimoleDashboardApp.strings.metrics.view_analytics
-	}
-];
-
-if ( optimoleDashboardApp.user_data?.can_use_offloading ) {
-	metrics.push(
-		{
-			icon: cloudDownload,
-			label: optimoleDashboardApp.strings.metrics.metricsTitle5,
-			description: optimoleDashboardApp.strings.metrics.metricsSubtitle5,
-			value: 'offloaded_images',
-			hasButton: true,
-			buttonText: optimoleDashboardApp.strings.metrics.manage_offloading
-		}
-	);
-}
 
 const settingsTab = {
 	offload_image: 1,
@@ -165,6 +124,50 @@ const Dashboard = () => {
 			userStatus: getUserStatus()
 		};
 	});
+
+	const availableMetrics = useMemo( () => {
+		const metrics = [
+			{
+				icon: arrowDownToLine,
+				label: optimoleDashboardApp.strings.metrics.metricsTitle2,
+				description: optimoleDashboardApp.strings.metrics.metricsSubtitle2,
+				value: 'saved_size',
+				hasButton: true,
+				buttonText: optimoleDashboardApp.strings.metrics.adjust_compression
+			},
+			{
+				icon: chartBarDecreasing,
+				label: optimoleDashboardApp.strings.metrics.metricsTitle3,
+				description: optimoleDashboardApp.strings.metrics.metricsSubtitle3,
+				value: 'compression_percentage',
+				hasButton: true,
+				buttonText: optimoleDashboardApp.strings.metrics.adjust_compression
+			},
+			{
+				icon: globe,
+				label: optimoleDashboardApp.strings.metrics.metricsTitle4,
+				description: optimoleDashboardApp.strings.metrics.metricsSubtitle4,
+				value: 'traffic',
+				hasButton: true,
+				buttonText: optimoleDashboardApp.strings.metrics.view_analytics
+			}
+		];
+
+		if ( userData?.can_use_offloading ) {
+			metrics.push(
+				{
+					icon: cloudDownload,
+					label: optimoleDashboardApp.strings.metrics.metricsTitle5,
+					description: optimoleDashboardApp.strings.metrics.metricsSubtitle5,
+					value: 'offloaded_images',
+					hasButton: true,
+					buttonText: optimoleDashboardApp.strings.metrics.manage_offloading
+				}
+			);
+		}
+
+		return metrics;
+	}, [ userData ]);
 
 	const visitorsLimitPercent = ( ( userData.visitors / userData.visitors_limit ) * 100 ).toFixed( 0 );
 
@@ -332,7 +335,7 @@ const Dashboard = () => {
 				</div>
 
 				<div className="flex pt-5 gap-5 flex-col md:flex-row">
-					{ metrics.map( metric => {
+					{ availableMetrics.map( metric => {
 						const rawValue = userData[ metric.value ];
 						const { formattedValue, unit } = formatMetric( metric.value, rawValue );
 						const buttonAction = getMetricButtonAction( metric.value );
