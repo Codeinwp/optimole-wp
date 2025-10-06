@@ -60,7 +60,7 @@ class Optml_Settings {
 		'admin_bar_item'             => 'enabled',
 		'lazyload'                   => 'disabled',
 		'scale'                      => 'disabled',
-		'network_optimization'       => 'disabled',
+		'network_optimization'       => 'enabled',
 		'lazyload_placeholder'       => 'enabled',
 		'bg_replacer'                => 'enabled',
 		'video_lazyload'             => 'enabled',
@@ -86,7 +86,7 @@ class Optml_Settings {
 		'img_to_video'               => 'disabled',
 		'css_minify'                 => 'enabled',
 		'js_minify'                  => 'disabled',
-		'avif'                       => 'enabled',
+		'avif'                       => 'enabled', // legacy setting, is no longer used in the UI
 		'autoquality'                => 'enabled',
 		'native_lazyload'            => 'disabled',
 		'offload_media'              => 'disabled',
