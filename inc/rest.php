@@ -930,6 +930,7 @@ class Optml_Rest {
 		}
 		$time = $request->get_param( 't' );
 		$hmac = $request->get_param( 'h' );
+		$current_url = $request->get_param( 'pu' );
 		if ( empty( $time ) || empty( $hmac ) ) {
 			return $this->response( 'Missing required parameters', 'error' );
 		}
@@ -940,7 +941,7 @@ class Optml_Rest {
 		if ( $time < time() - 300 ) {
 			return $this->response( 'Invalid Signature.', 'error' );
 		}
-		if ( wp_hash( $url . $time, 'nonce' ) !== $hmac ) {
+		if ( wp_hash( $url . $time . $current_url, 'nonce' ) !== $hmac ) {
 			return $this->response( 'Invalid Signature.', 'error' );
 		}
 		$bg_selectors = $request->get_param( 'b' );
@@ -1034,7 +1035,16 @@ class Optml_Rest {
 		}
 		$profile = new Profile();
 		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data, $sanitized_missing_dimensions, $sanitized_missing_srcsets, $sanitized_crop_status );
-		return $this->response( 'Above fold data stored successfully' );
+
+		if ( $profile->exists_all( $url ) ) {
+			/**
+			 * Clear cache when storing profile data.
+			 *
+			 * @var string $url The url to clear the cache for.
+			 */
+			do_action( 'optml_clear_cache', $current_url );
+		}
+		return $this->response( 'Optimization data stored successfully' );
 	}
 
 	/**

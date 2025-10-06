@@ -35,6 +35,11 @@ class Profile {
 	const PLACEHOLDER_MISSING = '###pageprofileidmissing###';
 
 	/**
+	 * Placeholder used to identify where a profile request url should be inserted.
+	 */
+	const PLACEHOLDER_URL = '###pageprofileurl###';
+
+	/**
 	 * Device type constant for mobile devices.
 	 */
 	const DEVICE_TYPE_MOBILE = 1;

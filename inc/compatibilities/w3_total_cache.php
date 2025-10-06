@@ -26,16 +26,24 @@ class Optml_w3_total_cache extends Optml_compatibility {
 			add_filter( 'w3tc_minify_processed', [ Optml_Main::instance()->manager, 'replace_content' ], 10 );
 		}
 
-		add_action(
-			'optml_settings_updated',
-			function () {
-				if ( function_exists( 'w3tc_flush_all' ) ) {
-					w3tc_flush_all();
-				}
-			}
-		);
+		add_action( 'optml_clear_cache', [ $this, 'add_clear_cache_action' ], 10, 1 );
 	}
+	/**
+	 * Clear cache on w3 total cache.
+	 *
+	 * @param string|bool $location The location to clear the cache for. If true, clear the cache globally. If a string, clear the cache for a particular url.
+	 * @return void
+	 */
+	public function add_clear_cache_action( $location ) {
 
+		if ( $location === true && function_exists( 'w3tc_flush_all' ) ) {
+			w3tc_flush_all();
+		}
+
+		if ( is_string( $location ) && function_exists( 'w3tc_flush_url' ) ) {
+			w3tc_flush_url( $location );
+		}
+	}
 	/**
 	 * Should we early load the compatibility?
 	 *

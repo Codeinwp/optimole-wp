@@ -1105,12 +1105,6 @@ parameters:
 			path: inc/compatibilities/revslider.php
 
 		-
-			message: '#^Method Optml_sg_optimizer\:\:register\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: inc/compatibilities/sg_optimizer.php
-
-		-
 			message: '#^Method Optml_shortcode_ultimate\:\:alter_shortcode_output\(\) has parameter \$attr with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1

@@ -102,6 +102,13 @@ final class Optml_Manager {
 		'wpsp',
 		'jetengine',
 		'jetpack',
+		'wp_rocket',
+		'wp_super_cache',
+		'breeze',
+		'litespeed_cache',
+		'autoptimize_cache',
+		'endurance_cache',
+		'speedycache',
 	];
 	/**
 	 * The current state of the buffer.
@@ -440,10 +447,10 @@ final class Optml_Manager {
 				if ( ! $this->page_profiler->exists_all( $profile_id ) ) {
 					$missing = $this->page_profiler->missing_devices( $profile_id );
 					$time = time();
-					$hmac = wp_hash( $profile_id . $time, 'nonce' );
+					$hmac = wp_hash( $profile_id . $time . $this->get_current_url(), 'nonce' );
 					$js_optimizer = str_replace(
-						[ Profile::PLACEHOLDER, Profile::PLACEHOLDER_MISSING, Profile::PLACEHOLDER_TIME, Profile::PLACEHOLDER_HMAC ],
-						[ $profile_id, implode( ',', $missing ), strval( $time ), $hmac ],
+						[ Profile::PLACEHOLDER, Profile::PLACEHOLDER_MISSING, Profile::PLACEHOLDER_TIME, Profile::PLACEHOLDER_HMAC, Profile::PLACEHOLDER_URL ],
+						[ $profile_id, implode( ',', $missing ), strval( $time ), $hmac, $this->get_current_url() ],
 						$js_optimizer
 					);
 					$html = str_replace( Optml_Admin::get_optimizer_script( true ), $js_optimizer, $html );
@@ -519,6 +526,15 @@ final class Optml_Manager {
 		return $html;
 	}
 
+	/**
+	 * Get the current url.
+	 *
+	 * @return string The current url.
+	 */
+	private function get_current_url() {
+		global $wp;
+		return home_url( add_query_arg( [], $wp->request ) );
+	}
 	/**
 	 * Adds a filter that allows adding classes to the HTML tag.
 	 *

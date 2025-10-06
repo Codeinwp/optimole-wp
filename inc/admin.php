@@ -965,6 +965,7 @@ class Optml_Admin {
 				'nonce' => esc_js( wp_create_nonce( 'wp_rest' ) ),
 				'missingDevices' => esc_js( Profile::PLACEHOLDER_MISSING ),
 				'pageProfileId' => esc_js( Profile::PLACEHOLDER ),
+				'pageProfileUrl' => esc_js( Profile::PLACEHOLDER_URL ),
 				'_t' => esc_js( Profile::PLACEHOLDER_TIME ),
 				'hmac' => esc_js( Profile::PLACEHOLDER_HMAC ),
 				'bgSelectors' => array_values( Optml_Lazyload_Replacer::get_background_lazyload_selectors() ),

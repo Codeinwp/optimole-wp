@@ -174,6 +174,7 @@ export const optmlMain = {
         u: url,
         t: window.optimoleDataOptimizer ? window.optimoleDataOptimizer._t : null,
         h: window.optimoleDataOptimizer ? window.optimoleDataOptimizer.hmac : null,
+        pu: window.optimoleDataOptimizer ? window.optimoleDataOptimizer.pageProfileUrl : null,
         l: { 
           i: lcpData.imageId,
           s: lcpData.bgSelector, 

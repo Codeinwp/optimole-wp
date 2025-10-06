@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Class Optml_wp_fastest_cache.
+ * Class Optml_breeze.
  *
- * @reason Wp fastest cache stores the content of the page before Optimole starts replacing url's for the minified css/js files
+ * @reason Clear cache on breeze.
  */
-class Optml_wp_fastest_cache extends Optml_compatibility {
+class Optml_breeze extends Optml_compatibility {
 
 
 	/**
@@ -15,16 +15,19 @@ class Optml_wp_fastest_cache extends Optml_compatibility {
 	 */
 	public function should_load() {
 		include_once ABSPATH . 'wp-admin/includes/plugin.php';
-		return is_plugin_active( 'wp-fastest-cache/wpFastestCache.php' );
+
+		return is_plugin_active( 'breeze/breeze.php' );
 	}
 
 	/**
 	 * Register integration details.
+	 *
+	 * @return void
 	 */
 	public function register() {
 		add_action( 'optml_clear_cache', [ $this, 'add_clear_cache_action' ], 10, 1 );
-		add_filter( 'wpfc_buffer_callback_filter', [ Optml_Main::instance()->manager, 'replace_content' ], 10 );
 	}
+
 
 	/**
 	 * Should we early load the compatibility?
@@ -35,18 +38,19 @@ class Optml_wp_fastest_cache extends Optml_compatibility {
 		return true;
 	}
 	/**
-	 * Clear cache on wp fastest cache.
+	 * Clear cache on breeze.
 	 *
 	 * @param string|bool $location The location to clear the cache for. If true, clear the cache globally. If a string, clear the cache for a particular url.
 	 * @return void
 	 */
 	public function add_clear_cache_action( $location ) {
 		if ( $location === true ) {
-			do_action( 'wpfc_clear_all_cache', true );
+			do_action( 'breeze_clear_all_cache' );
 		}
 
-		if ( is_string( $location ) ) {
-			// TODO Right now the plugin doesn't support clearing cache for a particular url.
+		if ( is_string( $location ) && class_exists( 'Breeze_CloudFlare_Helper' ) && function_exists( 'breeze_varnish_purge_cache' ) ) {
+			Breeze_CloudFlare_Helper::purge_cloudflare_cache_urls( [ $location ] );
+			breeze_varnish_purge_cache( $location );
 		}
 	}
 }
