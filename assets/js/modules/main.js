@@ -58,6 +58,13 @@ export const optmlMain = {
       return null;
     }
 
+    // Check if user is at the top of the page
+    const isAtTopOfPage = window.pageYOffset === 0 || document.documentElement.scrollTop === 0;
+    if (!isAtTopOfPage) {
+      optmlLogger.info('User is not at the top of the page, skipping image detection');
+      return null;
+    }
+
     // Wait until the resources on the page have fully loaded
     if (!pageConditions.isComplete && window.optmlDomUtils) {
       optmlLogger.info('Waiting for page to fully load...');
