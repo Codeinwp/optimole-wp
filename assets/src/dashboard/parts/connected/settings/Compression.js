@@ -278,8 +278,6 @@ const Compression = ({
 					<hr className="my-8 border-grayish-blue"/>
 
 
-
-
 					<ToggleControl
 						label={ optimoleDashboardApp.strings.options_strings.strip_meta_title }
 						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.strip_meta_desc } } /> }
