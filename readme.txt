@@ -12,7 +12,7 @@ Automatically optimize images: bulk compression, lazy loading, WebP/AVIF convers
 
 == Description ==
 
-Optimole is the complete image optimization powerhouse that helps you compress images automatically, resize them, and deliver your images via lightning-fast CDN from 450+ locations. With WebP and AVIF conversion, intelligent lazy loading, and ML-powered optimization, Optimole dramatically improves page speed, Core Web Vitals, and SEO rankings—all with zero configuration required. Say goodbye to slow-loading images and hello to a faster website that visitors and search engines will love.
+Optimole is the complete image optimization powerhouse that helps you compress images automatically, resize them, and deliver your images via lightning-fast CDN from 450+ locations. From product images to portfolio photos, Optimole handles it all. With WebP and AVIF conversion, intelligent lazy loading, and ML-powered optimization, Optimole dramatically improves page speed, Core Web Vitals, and SEO rankings—all with zero configuration required. Say goodbye to slow-loading images and hello to a faster website that visitors and search engines will love.
 
 ### ⚡ Quick Links
 
@@ -125,10 +125,10 @@ Optimole goes beyond just images. Our cloud dashboard supports uploading and man
 #### 🛍️ E-commerce Success Story
 
 **Challenge**  
-An online store owner with thousands of product images was experiencing slow loading times—especially on mobile—leading to high bounce rates and abandoned carts.
+An online store owner with thousands of product photos was experiencing slow loading times—especially on mobile—leading to high bounce rates and abandoned carts.
 
 **Solution**  
-After installing **Optimole**, product images were automatically compressed and served in **WebP** format from the global **CDN**. Mobile shoppers now see perfectly sized images for their devices.
+After installing **Optimole**, product photos were automatically compressed and served in **WebP** format from the global **CDN**. Mobile shoppers now see perfectly sized images for their devices.
 
 **Results**  
 - Significantly reduced page load times  
@@ -141,14 +141,14 @@ After installing **Optimole**, product images were automatically compressed and 
 #### 📸 Photography Portfolio Transformation
 
 **Challenge**  
-A professional photographer needed to showcase a high-resolution portfolio online without sacrificing image quality or website performance.
+A professional photographer needed to showcase a high-resolution portfolio online without sacrificing photos quality or website performance.
 
 **Solution**  
 **Optimole’s** lossless compression preserved the fine details in their work while substantially reducing file sizes. The built-in watermarking protected the images, and adaptive sizing ensured visitors on all devices could appreciate the work.
 
 **Results**  
 - Noticeably faster portfolio page loading  
-- Maintained premium image quality  
+- Maintained premium photo quality  
 - Prevented unauthorized use with watermarking  
 - Freed up server space via cloud storage
 
@@ -190,7 +190,7 @@ Optimole works seamlessly with:
 
 - Supports all major page builders: Elementor, Divi, Beaver Builder, WPBakery, Otter Blocks, Gutenberg, and more
 - Compatible with popular WordPress themes: Neve, Hestia, Astra, GeneratePress, Kadence, and others
-- Built for e-commerce: Seamless integration with WooCommerce and other major e-commerce plugins
+- Built for e-commerce: Seamless integration with WooCommerce to optimize product photos and galleries
 - Works flawlessly with caching plugins: Super Page Cache, WP Rocket, W3 Total Cache, LiteSpeed Cache, and more
 
 Your security is our top priority - we don't store stripped EXIF data on our service. Optimole works behind the scenes and won't interact with your site's visitors or collect their data. Our privacy-first approach means we only process what's needed for optimization. [Terms of Service](https://optimole.com/terms/)
@@ -207,7 +207,7 @@ Premium plans start from support for 40,000 monthly visits and scale up to 3 mil
 
 All images are delivered via AWS CloudFront, using a global network of 450+ edge locations for lightning-fast load times, anywhere in the world.
 
-As a Pro user, you’ll get priority support and the option to use a custom CNAME—so your image URLs reflect your brand while being served at top speed. [Get Optimole Pro](https://optimole.com/pricing/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole).
+Pro is ideal for photographers, agencies, and businesses managing large volumes of photos online. As a Pro user, you’ll get priority support and the option to use a custom CNAME—so your image URLs reflect your brand while being served at top speed. [Get Optimole Pro](https://optimole.com/pricing/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole).
 
 ### What Our Users Say About Optimole
 

@@ -226,6 +226,22 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$args['resize']['gravity'] = GravityProperty::SMART;
 		}
 
+		$is_retina_enabled = $this->settings->get( 'retina_images' ) !== 'disabled';
+		if ( ! $is_retina_enabled ) {
+			$max_dimension = max( $args['width'], $args['height'] );
+			$should_apply_dpr = false;
+
+			if ( $max_dimension > 0 && $max_dimension < 150 ) {
+				$should_apply_dpr = true;
+			}
+
+			$should_apply_dpr = apply_filters( 'optml_should_apply_dpr', $should_apply_dpr, $args, $url );
+
+			if ( $should_apply_dpr && ! isset( $args['dpr'] ) ) {
+				$args['dpr'] = 2;
+			}
+		}
+
 		$args = apply_filters( 'optml_image_args', $args, $original_url );
 		$image = Optimole::image( apply_filters( 'optml_processed_url', $url ), self::get_active_cache_booster( $url, $this->active_cache_buster ) );
 
