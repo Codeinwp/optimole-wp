@@ -55,7 +55,6 @@ const Compression = ({
 
 	const isNetworkOptimizationEnabled = 'disabled' !== settings[ 'network_optimization' ];
 	const isCDNEnabled = 'disabled' !== settings.cdn;
-	const isAVIFEnabled = 'disabled' !== settings.avif;
 	const isStripMetadataEnabled = 'disabled' !== settings[ 'strip_metadata' ];
 	const isAutoQualityEnabled = 'disabled' !== settings.autoquality;
 	const isBestFormatEnabled = 'disabled' !== settings[ 'best_format' ];
@@ -143,7 +142,7 @@ const Compression = ({
 			data[ 'best_format' ] = 'enabled';
 			data[ 'retina_images' ] = 'disabled';
 			data[ 'network_optimization' ] = 'enabled';
-			data.avif = 'mauto';
+			data.avif = 'enabled';
 			data.autoquality = 'enabled';
 			data[ 'strip_metadata' ] = 'enabled';
 		}
@@ -160,7 +159,6 @@ const Compression = ({
 			data[ 'best_format' ] = ( customSettings.best_format ?? isBestFormatEnabled ) ? 'enabled' : 'disabled';
 			data[ 'retina_images' ] = ( customSettings.retina_images ?? isRetinaEnabled ) ? 'enabled' : 'disabled';
 			data[ 'network_optimization' ] = ( customSettings.network_optimization ?? isNetworkOptimizationEnabled ) ? 'enabled' : 'disabled';
-			data.avif = ( customSettings.avif ?? isAVIFEnabled ) ? 'enabled' : 'disabled';
 			data.autoquality = ( customSettings.autoquality ?? isAutoQualityEnabled ) ? 'enabled' : 'disabled';
 			data[ 'strip_metadata' ] = ( customSettings.strip_metadata ?? isStripMetadataEnabled ) ? 'enabled' : 'disabled';
 		}
@@ -280,24 +278,6 @@ const Compression = ({
 					<hr className="my-8 border-grayish-blue"/>
 
 
-					{ optimoleDashboardApp?.enableAVIF && (
-						<>
-
-							<ToggleControl
-								label={ optimoleDashboardApp.strings.options_strings.enable_avif_title }
-								help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_avif_desc } } /> }
-								checked={ isAVIFEnabled }
-								disabled={ isLoading }
-								className={ classnames(
-									{
-										'is-disabled': isLoading
-									}
-								) }
-								onChange={ value => updateOption( 'avif', value ) }
-							/>
-							<hr className="my-8 border-grayish-blue"/>
-						</>
-					) }
 
 
 					<ToggleControl

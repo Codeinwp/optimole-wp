@@ -86,7 +86,7 @@ class Optml_Settings {
 		'img_to_video'               => 'disabled',
 		'css_minify'                 => 'enabled',
 		'js_minify'                  => 'disabled',
-		'avif'                       => 'enabled',
+		'avif'                       => 'enabled', // legacy setting, is no longer used in the UI
 		'autoquality'                => 'enabled',
 		'native_lazyload'            => 'disabled',
 		'offload_media'              => 'disabled',
