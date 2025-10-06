@@ -12,9 +12,9 @@ const OptimizationStatus = ({ settings, setSettings, setCanSave, setTab }) => {
 		};
 	}, []);
 
-	const userStatus = optimoleDashboardApp.user_status ? optimoleDashboardApp.user_status : 'inactive';
-	const lazyloadEnabled = 'enabled' === settings?.lazyload && 'active' === userStatus;
-	const imageHandlingEnabled = 'enabled' === settings?.image_replacer && 'active' === userStatus;
+	const lazyloadEnabled = 'enabled' === settings?.lazyload;
+	const imageHandlingEnabled = 'enabled' === settings?.image_replacer;
+
 	const directUpdate = ( option, value ) => {
 		if ( setCanSave && setSettings ) {
 			setCanSave( true );
