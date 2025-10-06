@@ -26,7 +26,11 @@ import {
 	bolt,
 	update,
 	offloadImage,
-	settings
+	settings,
+	globe,
+	arrowDownToLine,
+	cloudDownload,
+	chartBarDecreasing
 } from '../../../utils/icons';
 
 import ProgressBar from '../../components/ProgressBar';
@@ -38,6 +42,7 @@ const cardClasses = 'flex p-6 bg-light-blue border border-blue-300 rounded-md';
 
 const metrics = [
 	{
+		icon: arrowDownToLine,
 		label: optimoleDashboardApp.strings.metrics.metricsTitle2,
 		description: optimoleDashboardApp.strings.metrics.metricsSubtitle2,
 		value: 'saved_size',
@@ -45,6 +50,7 @@ const metrics = [
 		buttonText: optimoleDashboardApp.strings.metrics.adjust_compression
 	},
 	{
+		icon: chartBarDecreasing,
 		label: optimoleDashboardApp.strings.metrics.metricsTitle3,
 		description: optimoleDashboardApp.strings.metrics.metricsSubtitle3,
 		value: 'compression_percentage',
@@ -52,20 +58,27 @@ const metrics = [
 		buttonText: optimoleDashboardApp.strings.metrics.adjust_compression
 	},
 	{
+		icon: globe,
 		label: optimoleDashboardApp.strings.metrics.metricsTitle4,
 		description: optimoleDashboardApp.strings.metrics.metricsSubtitle4,
 		value: 'traffic',
 		hasButton: true,
 		buttonText: optimoleDashboardApp.strings.metrics.view_analytics
-	},
-	{
-		label: optimoleDashboardApp.strings.metrics.metricsTitle5,
-		description: optimoleDashboardApp.strings.metrics.metricsSubtitle5,
-		value: 'offloaded_images',
-		hasButton: true,
-		buttonText: optimoleDashboardApp.strings.metrics.manage_offloading
 	}
 ];
+
+if ( optimoleDashboardApp.user_data?.can_use_offloading ) {
+	metrics.push(
+		{
+			icon: cloudDownload,
+			label: optimoleDashboardApp.strings.metrics.metricsTitle5,
+			description: optimoleDashboardApp.strings.metrics.metricsSubtitle5,
+			value: 'offloaded_images',
+			hasButton: true,
+			buttonText: optimoleDashboardApp.strings.metrics.manage_offloading
+		}
+	);
+}
 
 const settingsTab = {
 	offload_image: 1,
@@ -333,8 +346,11 @@ const Dashboard = () => {
 								) }
 							>
 								<div className="flex w-full flex-col">
-									<div className="text-sm text-gray-500">
-										{ metric.label }
+									<div className='flex flex-row items-center gap-2 mb-2'>
+										<Icon icon={ metric.icon } size={ 16 } className="text-info" />
+										<div className="text-sm text-gray-500">
+											{ metric.label }
+										</div>
 									</div>
 
 									<div className='flex items-end gap-1'>
