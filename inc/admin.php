@@ -2191,6 +2191,9 @@ The root cause might be either a security plugin which blocks this feature or so
 				'statusSubTitle2' => __( 'Images load as visitors scroll', 'optimole-wp' ),
 				'statusTitle3'    => __( 'Image Scalling', 'optimole-wp' ),
 				'statusSubTitle3' => __( 'All images are perfectly sized for devices', 'optimole-wp' ),
+				'disable'         => __( 'Disable', 'optimole-wp' ),
+				'enable'          => __( 'Enable', 'optimole-wp' ),
+				'manage'          => __( 'Manage', 'optimole-wp' ),
 			],
 			'optimization_tips'              => sprintf(
 			/* translators: 1 is the opening anchor tag, 2 is the closing anchor tag */
