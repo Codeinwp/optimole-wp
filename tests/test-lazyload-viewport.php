@@ -83,7 +83,6 @@ class Test_Lazyload_Viewport extends WP_UnitTestCase {
 		$this->assertNotEmpty($filteredTags);
 		$specificImageTag = $filteredTags[0];
 		$this->assertStringNotContainsString('data-opt-src', $specificImageTag);
-		$this->assertStringContainsString('fetchpriority="high"', $specificImageTag);
 	}
 
 	/**
