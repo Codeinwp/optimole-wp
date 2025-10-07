@@ -788,7 +788,7 @@ class Optml_Rest {
 					$status_code = $response['response']['code'];
 					if ( $status_code === 301 ) {
 						$status = 'deactivated';
-						$result = '<li>❌ ' . sprintf( /* translators: 1 is starting anchor tag, 2 is the ending anchor tag. */ __( 'Your account is currently disabled due to exceeding quota and Optimole is no longer able to optimize the images. In order to fix this you will need to %1$supgrade%2$s.', 'optimole-wp' ), '<a target="_blank" href="' . esc_url( tsdk_translate_link( 'https://optimole.com/pricing' ) ) . '">', '</a>' ) . '</li>';
+						$result = '<li>❌ ' . sprintf( /* translators: 1 is starting anchor tag, 2 is the ending anchor tag. */ __( 'Your account is currently disabled due to exceeding quota and Optimole is no longer able to optimize the images. In order to fix this you will need to %1$supgrade%2$s.', 'optimole-wp' ), '<a target="_blank" href="' . esc_url( tsdk_translate_link( Optml_Admin::get_upgrade_base_link() ) ) . '">', '</a>' ) . '</li>';
 						break;
 					}
 					if ( $status_code === 302 ) {
