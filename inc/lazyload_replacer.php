@@ -12,6 +12,7 @@ use OptimoleWP\Preload\Links;
 final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	use Optml_Normalizer;
 	use Optml_Validator;
+	use Optml_Dam_Offload_Utils;
 
 	const IFRAME_PLACEHOLDER_CLASS = '
 			iframe[data-opt-src]:not([data-opt-lazy-loaded]) {
@@ -523,12 +524,20 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				$filepath = WP_CONTENT_DIR . $filepath;
 				if ( is_file( $filepath ) ) {
 					$sizes = getimagesize( $filepath );
+					error_log( 'get_svg_for: ' . var_export( $sizes, true ) . ' ' . $url );
 					wp_cache_add( $key, [ $sizes[0], $sizes[1] ], 'optml_sources', DAY_IN_SECONDS );
 				}
 			}
 			list( $width, $height ) = $sizes;
 		}
-
+		// If the width is not found the url might be an offloaded attachment so we can get the width and height from the metadata.
+		if( ! is_numeric( $width ) ) {
+			$attachment_id = $this->attachment_url_to_post_id( $url );
+			$meta = wp_get_attachment_metadata( $attachment_id );
+			$width = $meta['width'] ?? false;
+			$height = $meta['height'] ?? false;
+		}
+		
 		$width  = ! is_numeric( $width ) ? '100%' : $width;
 		$height = ! is_numeric( $height ) ? '100%' : $height;
 		$fill = $this->settings->get( 'placeholder_color' );
@@ -536,7 +545,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( empty( $fill ) ) {
 			$fill = 'transparent';
 		}
-
+		
 		return str_replace(
 			[ '#width#', '#height#', '#fill#' ],
 			[
