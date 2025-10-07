@@ -22,6 +22,27 @@ export const optmlImageDetector = {
         const id = parseInt(img.getAttribute('data-opt-id'), 10);
         if (isNaN(id)) return;
         
+        const hasOptSrc = img.hasAttribute('data-opt-src');
+        const hasOptLazyLoaded = img.hasAttribute('data-opt-lazy-loaded');
+        
+        // If image has data-opt-src and data-opt-lazy-loaded, use optimized dimensions to fix https://github.com/Codeinwp/optimole-service/issues/1588#issuecomment-3373656185
+        if (hasOptSrc && hasOptLazyLoaded) {
+          const optimizedWidth = parseInt(img.getAttribute('data-opt-optimized-width'), 10);
+          const optimizedHeight = parseInt(img.getAttribute('data-opt-optimized-height'), 10);
+          
+          if (!isNaN(optimizedWidth) && !isNaN(optimizedHeight) && optimizedWidth > 0 && optimizedHeight > 0) {
+            imageDimensions[id] = {
+              w: optimizedWidth,
+              h: optimizedHeight
+            };
+            
+            optmlLogger.info(`Image ${id} using optimized dimensions:`, {
+              optimizedDimensions: `${optimizedWidth}x${optimizedHeight}`
+            });
+            return; // Skip further processing for this image
+          }
+        }
+        
         const hasWidth = img.hasAttribute('width') && img.getAttribute('width') !== '';
         const hasHeight = img.hasAttribute('height') && img.getAttribute('height') !== '';
         
