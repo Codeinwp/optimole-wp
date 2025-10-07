@@ -10,9 +10,5 @@
 - Use descriptive variable names and avoid abbreviations
 
 ## Testing instructions
-- Test modules individually by importing them in browser console
-- Use `optmlLogger.isDebug()` to enable debug logging for testing
-- Verify API calls work with both `sendBeacon` and `fetch` fallback
-- Check storage functionality with different URL/device combinations
-- Test error handling by simulating network failures
+- Use only unit tests
  

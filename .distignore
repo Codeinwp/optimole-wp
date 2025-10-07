@@ -8,6 +8,7 @@
 .gitignore
 .travis.yml
 .stylelintrc
+.babelrc
 docker-compose.yml
 Gruntfile.js
 webpack.config.js
@@ -17,6 +18,8 @@ phpcs.xml
 phpunit.xml
 phpunit-cc.xml
 phpmd.xml
+jest.config.js
+jest.setup.js
 package.json
 package-lock.json
 composer.json
@@ -31,6 +34,8 @@ tests
 dist
 artifact
 assets/src
+assets/js/modules/__tests__
+coverage
 .wporg
 .nvmrc
 .github
