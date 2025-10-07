@@ -41,7 +41,6 @@ class Lazyload {
 				do_action( 'optml_log', 'LCP data: ' . $device . ' ' . print_r( $lcp_data, true ) );
 			}
 			$css_selectors[ $device ] = [];
-			$preload_urls[ $device ] = [];
 			foreach ( $personalized_selectors as $selector => $above_fold_selectors ) {
 				if ( ! isset( $lazyload_selectors[ $selector ] ) ) {
 					continue;
@@ -51,12 +50,12 @@ class Lazyload {
 				} else {
 					foreach ( $above_fold_selectors as $above_fold_selector => $bg_urls ) {
 						$css_selectors[ $device ][] = 'html ' . strip_tags( $selector ) . ':not(' . strip_tags( $above_fold_selector ) . '):not(.optml-bg-lazyloaded)';
-						$preload_urls[ $device ] = array_merge( $preload_urls[ $device ], $bg_urls );
 					}
 				}
 			}
+
+			$preload_urls[ $device ] = [];
 			$css_selectors[ $device ] = array_unique( $css_selectors[ $device ] );
-			$preload_urls[ $device ] = array_unique( $preload_urls[ $device ] );
 			if ( isset( $lcp_data['type'] ) && $lcp_data['type'] === 'bg' ) {
 				if ( ! empty( $lcp_data['bgSelector'] ) ) {
 					$css_selectors[ $device ] = array_map(
