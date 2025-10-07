@@ -515,19 +515,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/app_replacer.php
-
-		-
-			message: '#^Method Optml_App_Replacer\:\:get_all_image_sizes\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/app_replacer.php
-
-		-
-			message: '#^Method Optml_App_Replacer\:\:get_altered_metadata_for_remote_images\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/app_replacer.php
-
 		-
 			message: '#^Method Optml_App_Replacer\:\:get_media_optimized_url\(\) has parameter \$resize with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -557,13 +544,6 @@ parameters:
 			identifier: missingType.return
 			count: 1
 			path: inc/app_replacer.php
-
-		-
-			message: '#^Method Optml_App_Replacer\:\:parse_dimension_from_optimized_url\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/app_replacer.php
-
 		-
 			message: '#^Method Optml_App_Replacer\:\:parse_dimensions_from_filename\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -1541,19 +1521,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/dam.php
-
-		-
-			message: '#^Method Optml_Dam\:\:get_all_image_sizes\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/dam.php
-
-		-
-			message: '#^Method Optml_Dam\:\:get_altered_metadata_for_remote_images\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/dam.php
-
 		-
 			message: '#^Method Optml_Dam\:\:get_dam_imported_attachments\(\) has parameter \$images with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -1601,13 +1568,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/dam.php
-
-		-
-			message: '#^Method Optml_Dam\:\:parse_dimension_from_optimized_url\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/dam.php
-
 		-
 			message: '#^Method Optml_Dam\:\:replace_dam_url_args\(\) has parameter \$args with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -1773,43 +1733,43 @@ parameters:
 		-
 			message: '#^Method Optml_Lazyload_Replacer\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
+			count: 2
 			path: inc/lazyload_replacer.php
 
 		-
 			message: '#^Method Optml_Lazyload_Replacer\:\:size_to_dimension\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
+			count: 2
 			path: inc/lazyload_replacer.php
 
 		-
 			message: '#^Method Optml_Lazyload_Replacer\:\:to_map_values\(\) has parameter \$map with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
+			count: 2
 			path: inc/lazyload_replacer.php
 
 		-
 			message: '#^Method Optml_Lazyload_Replacer\:\:to_optml_crop\(\) has parameter \$crop_args with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
+			count: 2
 			path: inc/lazyload_replacer.php
 
 		-
 			message: '#^Method Optml_Lazyload_Replacer\:\:to_optml_crop\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
+			count: 2
 			path: inc/lazyload_replacer.php
 
 		-
 			message: '#^Method Optml_Lazyload_Replacer\:\:to_optml_watermark\(\) has parameter \$watermark_args with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
+			count: 2
 			path: inc/lazyload_replacer.php
 
 		-
 			message: '#^Method Optml_Lazyload_Replacer\:\:to_optml_watermark\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
+			count: 2
 			path: inc/lazyload_replacer.php
 
 		-
@@ -1821,7 +1781,7 @@ parameters:
 		-
 			message: '#^Property Optml_Lazyload_Replacer\:\:\$dimension_cache type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 1
+			count: 2
 			path: inc/lazyload_replacer.php
 
 		-
@@ -2159,19 +2119,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/media_offload.php
-
-		-
-			message: '#^Method Optml_Media_Offload\:\:get_all_image_sizes\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/media_offload.php
-
-		-
-			message: '#^Method Optml_Media_Offload\:\:get_altered_metadata_for_remote_images\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/media_offload.php
-
 		-
 			message: '#^Method Optml_Media_Offload\:\:get_image_id_from_content\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -2339,13 +2286,6 @@ parameters:
 			identifier: missingType.parameter
 			count: 1
 			path: inc/media_offload.php
-
-		-
-			message: '#^Method Optml_Media_Offload\:\:parse_dimension_from_optimized_url\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/media_offload.php
-
 		-
 			message: '#^Method Optml_Media_Offload\:\:pre_filter_rest_content\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
 			identifier: missingType.generics
@@ -2561,13 +2501,6 @@ parameters:
 			identifier: missingType.return
 			count: 1
 			path: inc/media_rename/attachment_edit.php
-
-		-
-			message: '#^Method Optml_Attachment_Model\:\:get_all_image_sizes\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/media_rename/attachment_model.php
-
 		-
 			message: '#^Method Optml_Attachment_Model\:\:get_all_image_sizes_paths\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -2579,13 +2512,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/media_rename/attachment_model.php
-
-		-
-			message: '#^Method Optml_Attachment_Model\:\:get_altered_metadata_for_remote_images\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/media_rename/attachment_model.php
-
 		-
 			message: '#^Method Optml_Attachment_Model\:\:get_attachment_metadata\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -2603,13 +2529,6 @@ parameters:
 			identifier: missingType.return
 			count: 1
 			path: inc/media_rename/attachment_model.php
-
-		-
-			message: '#^Method Optml_Attachment_Model\:\:parse_dimension_from_optimized_url\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/media_rename/attachment_model.php
-
 		-
 			message: '#^Method Optml_Attachment_Model\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -3041,19 +2960,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/tag_replacer.php
-
-		-
-			message: '#^Method Optml_Tag_Replacer\:\:get_all_image_sizes\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/tag_replacer.php
-
-		-
-			message: '#^Method Optml_Tag_Replacer\:\:get_altered_metadata_for_remote_images\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/tag_replacer.php
-
 		-
 			message: '#^Method Optml_Tag_Replacer\:\:init\(\) has no return type specified\.$#'
 			identifier: missingType.return
@@ -3065,13 +2971,6 @@ parameters:
 			identifier: missingType.parameter
 			count: 1
 			path: inc/tag_replacer.php
-
-		-
-			message: '#^Method Optml_Tag_Replacer\:\:parse_dimension_from_optimized_url\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/tag_replacer.php
-
 		-
 			message: '#^Method Optml_Tag_Replacer\:\:parse_dimensions_from_tag\(\) has parameter \$args with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -3173,19 +3072,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/url_replacer.php
-
-		-
-			message: '#^Method Optml_Url_Replacer\:\:get_all_image_sizes\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/url_replacer.php
-
-		-
-			message: '#^Method Optml_Url_Replacer\:\:get_altered_metadata_for_remote_images\(\) has parameter \$metadata with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/url_replacer.php
-
 		-
 			message: '#^Method Optml_Url_Replacer\:\:init\(\) has no return type specified\.$#'
 			identifier: missingType.return
@@ -3215,13 +3101,6 @@ parameters:
 			identifier: missingType.parameter
 			count: 1
 			path: inc/url_replacer.php
-
-		-
-			message: '#^Method Optml_Url_Replacer\:\:parse_dimension_from_optimized_url\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/url_replacer.php
-
 		-
 			message: '#^Method Optml_Url_Replacer\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue

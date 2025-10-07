@@ -2470,7 +2470,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$height = $size[1];
 			} else {
 				// In case of an image size, we need to calculate the new dimensions for the proper file path.
-				$constrained = wp_constrain_dimensions( $metadata['width'], $metadata['height'], $size[0], $size[1] );
+				$constrained = wp_constrain_dimensions( $metadata['width'], $metadata['height'], (int) $size[0], (int) $size[1] );
 
 				$width  = $constrained[0];
 				$height = $constrained[1];
