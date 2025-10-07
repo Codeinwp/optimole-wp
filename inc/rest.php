@@ -954,7 +954,7 @@ class Optml_Rest {
 		if ( empty( $device_type ) || empty( $url ) || ! is_array( $above_fold_images ) ) {
 			return $this->response( 'Missing required parameters', 'error' );
 		}
-		//save just the first 6 images, see https://github.com/Codeinwp/optimole-service/issues/1588#issuecomment-3357110865
+		// save just the first 6 images, see https://github.com/Codeinwp/optimole-service/issues/1588#issuecomment-3357110865
 		$above_fold_images = array_slice( $above_fold_images, 0, 6 );
 		if ( count( $bg_selectors ) > 100 ) {
 			return $this->response( 'Background selectors limit exceeded', 'error' );
