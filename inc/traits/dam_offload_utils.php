@@ -154,7 +154,7 @@ trait Optml_Dam_Offload_Utils {
 	 * Used to filter the image metadata. Adds optimized image url for all image sizes.
 	 *
 	 * @param array<string, mixed> $metadata The attachment metadata.
-	 * @param int   $id The attachment id.
+	 * @param int                  $id The attachment id.
 	 *
 	 * @return array<string, mixed>
 	 */
