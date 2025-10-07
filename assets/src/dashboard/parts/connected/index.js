@@ -121,7 +121,12 @@ const ConnectedLayout = ({
 					{ 'help' === tab && <Help /> }
 				</div>
 
-				<Sidebar settings={settings}/>
+				<Sidebar
+					settings={settings}
+					setSettings={setSettings}
+					setCanSave={setCanSave}
+					setTab={setTab}
+				/>
 			</div>
 		</div>
 	);
