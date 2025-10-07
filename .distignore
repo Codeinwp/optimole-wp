@@ -8,7 +8,6 @@
 .gitignore
 .travis.yml
 .stylelintrc
-.babelrc
 docker-compose.yml
 Gruntfile.js
 webpack.config.js
