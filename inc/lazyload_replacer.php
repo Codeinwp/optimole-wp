@@ -460,17 +460,19 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		if ( $this->settings->is_lazyload_type_viewport() ) {
 			$image_id                   = $this->get_id_by_url( $url );
+			$is_in_all_viewports        = Optml_Manager::instance()->page_profiler->is_in_all_viewports( $image_id );
 			$is_lcp_image               = Optml_Manager::instance()->page_profiler->is_lcp_image_in_all_viewports( $image_id );
 			$no_viewport_data_available = ! Optml_Manager::instance()->page_profiler->is_data_available();
 
 			if ( OPTML_DEBUG ) {
-				if ( $is_lcp_image ) {
+				if ( $is_in_all_viewports ) {
+					do_action( 'optml_log', 'Lazyload skipped image is in all viewports ' . $url . '|' . $image_id );
+				} elseif ( $is_lcp_image ) {
 					do_action( 'optml_log', 'Lazyload skipped image is LCP ' . $url . '|' . $image_id );
 				}
 			}
 
-			if ( $is_lcp_image ) {
-				Links::add_id( $image_id, 'high' ); // collect ID for preload.
+			if ( $is_in_all_viewports || $is_lcp_image ) {
 				return false;
 			}
 		}
