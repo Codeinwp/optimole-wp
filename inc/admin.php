@@ -1382,6 +1382,7 @@ class Optml_Admin {
 			'optimoleHome'               => tsdk_translate_link( 'https://optimole.com/' ),
 			'optimoleDashHome'           => tsdk_translate_link( 'https://dashboard.optimole.com/', 'query' ),
 			'optimoleDashBilling'        => tsdk_translate_link( 'https://dashboard.optimole.com/settings/billing', 'query' ),
+			'optimoleDashMetrics'        => tsdk_translate_link( tsdk_utmify( 'https://dashboard.optimole.com/metrics', 'wp-plugin', 'shortcut' ) ),
 			'offload_upgrade_url'        => tsdk_translate_link( tsdk_utmify( 'https://optimole.com/pricing/', 'offload' ) ),
 			'days_since_install'         => round( ( time() - get_option( 'optimole_wp_install', 0 ) ) / DAY_IN_SECONDS ),
 			'is_offload_media_available' => $is_offload_media_available,
@@ -1748,6 +1749,15 @@ The root cause might be either a security plugin which blocks this feature or so
 				'metricsSubtitle3' => __( 'Average Reduction', 'optimole-wp' ),
 				'metricsTitle4'    => __( 'CDN Traffic', 'optimole-wp' ),
 				'metricsSubtitle4' => __( 'This month', 'optimole-wp' ),
+				'metricsTitle5'    => __( 'Offloaded images', 'optimole-wp' ),
+				'metricsSubtitle5' => __( 'Offloaded to cloud', 'optimole-wp' ),
+				// translators: is used as singular when the number of images is 1 for a unit label.
+				'image'            => __( 'image', 'optimole-wp' ),
+				// translators: is used as plural when the number of images is more than 1 for a unit label.
+				'images'           => __( 'images', 'optimole-wp' ),
+				'view_analytics'   => __( 'View Analytics', 'optimole-wp' ),
+				'adjust_compression' => __( 'Adjust Compression', 'optimole-wp' ),
+				'manage_offloading' => __( 'Manage image offloading', 'optimole-wp' ),
 			],
 			'quick_actions'                  => [
 				'speed_test_title'      => __( 'Test Your Site Speed', 'optimole-wp' ),

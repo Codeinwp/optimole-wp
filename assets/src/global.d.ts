@@ -577,6 +577,7 @@ export interface UserData {
   is_cname_assigned: string
   extra_visits: boolean
   renews_on: number
+  can_use_offloading: boolean
 }
 
 export interface AvailableApp2 {
