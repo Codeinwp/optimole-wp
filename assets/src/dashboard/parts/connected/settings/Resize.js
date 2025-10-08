@@ -93,7 +93,7 @@ const Resize = ({
 		<>
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_resize_smart_title }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_resize_smart_desc } } /> }
+				help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_resize_smart_desc } } /> }
 				checked={ isSmartResizeEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -108,7 +108,7 @@ const Resize = ({
 
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_title }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_desc } } /> }
+				help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_desc } } /> }
 				checked={ isLimitDimensionsEnabled }
 				disabled={ isLoading }
 				className={ classnames(

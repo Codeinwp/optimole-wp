@@ -1354,7 +1354,7 @@ class Optml_Admin {
 		$lang_code = isset( $available_languages[ $language ] ) ? 'de' : 'en';
 
 		$site_settings = $this->settings->get_site_settings();
-
+		$service_data['domain_dns'] = ltrim( Optml_Config::$service_url, 'https://' );
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',

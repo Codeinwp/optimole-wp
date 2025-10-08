@@ -578,6 +578,7 @@ export interface UserData {
   extra_visits: boolean
   renews_on: number
   can_use_offloading: boolean
+  domain_dns: string
 }
 
 export interface AvailableApp2 {
