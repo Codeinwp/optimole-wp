@@ -461,7 +461,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			$image_id                   = $this->get_id_by_url( $url );
 			$is_in_all_viewports        = Optml_Manager::instance()->page_profiler->is_in_all_viewports( $image_id );
 			$is_lcp_image               = Optml_Manager::instance()->page_profiler->is_lcp_image_in_all_viewports( $image_id );
-			$no_viewport_data_available = ! Optml_Manager::instance()->page_profiler->check_data_availability();
+			$no_viewport_data_available = ! Optml_Manager::instance()->page_profiler->is_data_available();
 
 			if ( OPTML_DEBUG ) {
 				if ( $is_in_all_viewports ) {
@@ -531,7 +531,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			list( $width, $height ) = $sizes;
 		}
 		// If the width is not found the url might be an offloaded attachment so we can get the width and height from the metadata.
-		if ( ! is_numeric( $width ) ) {
+		if ( ! is_numeric( $width ) && ! empty( $url ) ) {
 			$attachment_id = $this->attachment_url_to_post_id( $url );
 			$meta = wp_get_attachment_metadata( $attachment_id );
 			$width = $meta['width'] ?? false;

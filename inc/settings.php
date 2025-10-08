@@ -93,7 +93,7 @@ class Optml_Settings {
 		'transfer_status'            => 'disabled',
 		'cloud_images'               => 'enabled',
 		'strip_metadata'             => 'enabled',
-		'skip_lazyload_images'       => 3,
+		'skip_lazyload_images'       => 2,
 		'defined_image_sizes'        => [],
 		'banner_frontend'            => 'disabled',
 		'offloading_status'          => 'disabled',
