@@ -24,8 +24,6 @@ import {
 import { useSelect } from '@wordpress/data';
 import { useEffect } from '@wordpress/element';
 
-import { useRef } from '@wordpress/element';
-
 /**
  * Internal dependencies.
  */
@@ -46,7 +44,7 @@ const Compression = ({
 			return value;
 		}
 
-		if ( 'auto' === value ) {
+		if ( 'auto' === value || 'mauto' === value ) {
 			return 80;
 		}
 
@@ -65,7 +63,6 @@ const Compression = ({
 		return 80;
 	};
 
-	const manualQualityRef = useRef( getQuality( settings.quality ) );
 	const {
 		sampleImages,
 		isLoading
@@ -88,32 +85,10 @@ const Compression = ({
 	const compressionMode = settings[ 'compression_mode' ];
 	const isRetinaEnabled = 'disabled' !== settings[ 'retina_images' ];
 
-	useEffect( () => {
-		if ( isAutoQualityEnabled ) {
-			return;
-		}
-
-		manualQualityRef.current = getQuality( settings.quality );
-	}, [ isAutoQualityEnabled, settings.quality ]);
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
 		const data = { ...settings };
 		data[ option ] = value ? 'enabled' : 'disabled';
-		setSettings( data );
-	};
-
-	const handleAutoQualityToggle = value => {
-		setCanSave( true );
-		const data = { ...settings };
-		data.autoquality = value ? 'enabled' : 'disabled';
-		if ( value ) {
-			manualQualityRef.current = getQuality( settings.quality );
-			data.quality = 'mauto';
-		} else {
-			const manualQuality = manualQualityRef.current ?? getQuality( settings.quality );
-			manualQualityRef.current = manualQuality;
-			data.quality = manualQuality;
-		}
 		setSettings( data );
 	};
 
@@ -133,7 +108,6 @@ const Compression = ({
 		setCanSave( true );
 		const data = { ...settings };
 		data.quality = value;
-		manualQualityRef.current = value;
 		setSettings( data );
 	};
 
@@ -333,7 +307,7 @@ const Compression = ({
 									'is-disabled': isLoading
 								}
 							) }
-							onChange={ handleAutoQualityToggle }
+							onChange={ value => updateOption( 'autoquality', value ) }
 						/>
 					</BaseControl>
 
