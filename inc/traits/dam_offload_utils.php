@@ -49,7 +49,7 @@ trait Optml_Dam_Offload_Utils {
 	/**
 	 * Get all registered image sizes.
 	 *
-	 * @return array
+	 * @return array<string, array{width: int, height: int, crop: bool|array<int, string>}>
 	 */
 	private function get_all_image_sizes() {
 		$additional_sizes = wp_get_additional_image_sizes();
@@ -87,7 +87,7 @@ trait Optml_Dam_Offload_Utils {
 	 *
 	 * @param string $url The image url.
 	 *
-	 * @return array Contains the width and height values in this order.
+	 * @return array{0: string|false, 1: string|false} Contains the width and height values in this order.
 	 */
 	private function parse_dimension_from_optimized_url( $url ) {
 		$catch  = [];
@@ -153,10 +153,10 @@ trait Optml_Dam_Offload_Utils {
 	/**
 	 * Used to filter the image metadata. Adds optimized image url for all image sizes.
 	 *
-	 * @param array $metadata The attachment metadata.
-	 * @param int   $id The attachment id.
+	 * @param array<string, mixed> $metadata The attachment metadata.
+	 * @param int                  $id The attachment id.
 	 *
-	 * @return mixed
+	 * @return array<string, mixed>
 	 */
 	private function get_altered_metadata_for_remote_images( $metadata, $id ) {
 

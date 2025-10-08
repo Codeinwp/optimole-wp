@@ -8,6 +8,12 @@ namespace OptimoleWP\Preload;
  */
 class Links {
 	/**
+	 * The maximum number of links to preload.
+	 *
+	 * @var int $MAX_LINKS The maximum number of links to preload.
+	 */
+	const MAX_LINKS = 10;
+	/**
 	 * Links map that contains the url as the key and the url data as the value.
 	 *
 	 * @var array $links The array of links to preload.
@@ -152,7 +158,9 @@ class Links {
 			}
 			// Complete the preload tag
 			$preload .= 'as="image">';
-
+			if ( count( $links ) >= self::MAX_LINKS ) {
+				break;
+			}
 			$links[] = $preload;
 		}
 		return implode( "\n", $links ) . "\n";

@@ -59,7 +59,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	 *
 	 * @param string $url The url which should be signed.
 	 * @param array  $args Dimension params; Supports `width` and `height`.
-	 *
+	 * @param bool   $retried Whether the url has been retried.
 	 * @return string
 	 */
 	public function build_url(
@@ -67,12 +67,16 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		$args = [
 			'width'  => 'auto',
 			'height' => 'auto',
-		]
+		],
+		$retried = false
 	) {
 		if ( apply_filters( 'optml_dont_replace_url', false, $url ) ) {
 			return $url;
 		}
 
+		if ( OPTML_DEBUG ) {
+			do_action( 'optml_log', 'building url: ' . $url . ' args: ' . print_r( $args, true ) );
+		}
 		$original_url = $url;
 
 		$is_slashed = strpos( $url, '\/' ) !== false;
@@ -112,7 +116,18 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 				$url = $unoptimized_url;
 			}
 		}
-		if ( strpos( $url, Optml_Config::$service_url ) !== false && ! $this->url_has_dam_flag( $url ) ) {
+		if ( isset( $args['force'] ) && $args['force'] === true && strpos( $url, Optml_Config::$service_url ) !== false && ! $this->url_has_dam_flag( $url ) ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', 'url is already using optimole: ' . $url );
+			}
+			if ( $retried === true ) {
+				return $original_url;
+			}
+			// We retry because the url is already using optimole, but we need to rebuild it because the args might be different.
+			$pos = strpos( $url, 'http', 8 ); // skip 'https://' or 'http://'
+			if ( $pos !== false ) {
+				return $this->build_url( substr( $url, $pos ), $args, true );
+			}
 			return $original_url;
 		}
 

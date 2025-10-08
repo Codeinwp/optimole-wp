@@ -468,9 +468,30 @@ class Optml_Settings {
 			self::$options = $opt;
 		}
 		if ( apply_filters( 'optml_dont_trigger_settings_updated', false ) === false ) {
+			/**
+			 * Fires when Optimole settings are updated.
+			 *
+			 * This action is triggered after settings have been successfully updated
+			 * and provides an opportunity for other plugins or themes to react to
+			 * Optimole configuration changes.
+			 */
 			do_action( 'optml_settings_updated' );
+			static $cleared = false;
+			if ( $cleared ) {
+				return $update;
+			}
+			$cleared = true;
+			/**
+			 * Fires when Optimole cache needs to be cleared after settings update.
+			 *
+			 * This action is triggered after settings are updated to ensure that
+			 * any cached data is refreshed with the new configuration.
+			 *
+			 * @param bool|string $location Whether to clear the cache globally or just for a particular request.
+			 *                              You can pass a string with the URL to clear the cache for a particular URL only.
+			 */
+			do_action( 'optml_clear_cache', true );
 		}
-
 		return $update;
 	}
 

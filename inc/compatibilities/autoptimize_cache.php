@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Class Optml_wp_fastest_cache.
+ * Class Optml_autoptimize_cache.
  *
- * @reason Wp fastest cache stores the content of the page before Optimole starts replacing url's for the minified css/js files
+ * @reason Clear cache on autoptimize.
  */
-class Optml_wp_fastest_cache extends Optml_compatibility {
+class Optml_autoptimize_cache extends Optml_compatibility {
 
 
 	/**
@@ -15,16 +15,19 @@ class Optml_wp_fastest_cache extends Optml_compatibility {
 	 */
 	public function should_load() {
 		include_once ABSPATH . 'wp-admin/includes/plugin.php';
-		return is_plugin_active( 'wp-fastest-cache/wpFastestCache.php' );
+
+		return is_plugin_active( 'autoptimize/autoptimize.php' );
 	}
 
 	/**
 	 * Register integration details.
+	 *
+	 * @return void
 	 */
 	public function register() {
 		add_action( 'optml_clear_cache', [ $this, 'add_clear_cache_action' ], 10, 1 );
-		add_filter( 'wpfc_buffer_callback_filter', [ Optml_Main::instance()->manager, 'replace_content' ], 10 );
 	}
+
 
 	/**
 	 * Should we early load the compatibility?
@@ -35,18 +38,15 @@ class Optml_wp_fastest_cache extends Optml_compatibility {
 		return true;
 	}
 	/**
-	 * Clear cache on wp fastest cache.
+	 * Clear cache on autoptimize.
 	 *
 	 * @param string|bool $location The location to clear the cache for. If true, clear the cache globally. If a string, clear the cache for a particular url.
 	 * @return void
 	 */
 	public function add_clear_cache_action( $location ) {
-		if ( $location === true ) {
-			do_action( 'wpfc_clear_all_cache', true );
+		if ( $location === true && class_exists( 'autoptimizeCache' ) ) {
+			autoptimizeCache::clearall();
 		}
-
-		if ( is_string( $location ) ) {
-			// TODO Right now the plugin doesn't support clearing cache for a particular url.
-		}
+		// todo: add support for clearing cache for a particular url, not supported yet.
 	}
 }
