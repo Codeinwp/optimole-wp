@@ -31,7 +31,8 @@ const DEFAULT_STATE = {
 	logs: {
 		offload: '',
 		rollback: ''
-	}
+	},
+	canShowFreeUserWithOffloadNotice: 'yes' === optimoleDashboardApp?.show_free_user_with_offload_notice
 };
 
 const reducer = ( state = DEFAULT_STATE, action ) => {

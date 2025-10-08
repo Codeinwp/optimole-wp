@@ -96,6 +96,9 @@ const selectors = {
 	},
 	isSubApiKey( state ) {
 		return state.apiKey && state.apiKey.startsWith( 'optml-s' );
+	},
+	canShowFreeUserWithOffloadNotice( state ) {
+		return Boolean( state?.canShowFreeUserWithOffloadNotice );
 	}
 };
 
