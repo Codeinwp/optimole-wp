@@ -108,6 +108,7 @@ final class Optml_Manager {
 		'litespeed_cache',
 		'autoptimize_cache',
 		'endurance_cache',
+		'kinsta',
 		'speedycache',
 	];
 	/**
