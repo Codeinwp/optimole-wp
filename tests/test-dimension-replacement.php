@@ -46,7 +46,7 @@ class Test_Dimension_Replacement extends WP_UnitTestCase {
 		
 		// Store this data in the profile system
 		$profile = Optml_Manager::instance()->page_profiler;
-		$profile->store( 'test-profile', '1', [], [], [], $mock_dimensions );
+		$profile->store( 'test-profile', Profile::DEVICE_TYPE_DESKTOP, [], [], [], $mock_dimensions );
 		
 		// Set the current profile context
 		Profile::set_current_profile_id( 'test-profile' );

@@ -198,7 +198,7 @@ class Profile {
 				$global_data['m'] = $missing_dimensions;
 			}
 			if ( ! empty( $crop_status ) ) {
-					$global_data['c'] = $crop_status;
+				$global_data['c'] = $crop_status;
 			}
 			if ( ! empty( $global_data ) ) {
 				// those measurements are not device specific, so we store them in on a global profile scope.
