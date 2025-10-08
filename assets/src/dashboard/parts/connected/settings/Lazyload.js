@@ -15,7 +15,8 @@ import {
 	ColorIndicator,
 	Button,
 	Popover,
-	CheckboxControl
+	CheckboxControl,
+	Tooltip
 } from '@wordpress/components';
 import { sprintf } from '@wordpress/i18n';
 
@@ -39,6 +40,7 @@ import {
 	DescriptionWithTags,
 	TextWithWarningBadge
 } from '../../components/Miscellaneous';
+import { Icon, help } from '@wordpress/icons';
 
 const { options_strings } = optimoleDashboardApp.strings;
 
@@ -325,6 +327,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 									onChange={( value ) =>
 										updateValue( 'skip_lazyload_images', value )
 									}
+									disabled={! isFixedSkipLazyEnabled}
 									__nextHasNoMarginBottom={true}
 								/>
 							</div>
@@ -354,7 +357,8 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 							{options_strings.visual_settings}
 						</GroupSettingsTitle>
 						<GroupSettingsOption>
-							<div className="grow" htmlFor="optml-lazyload-placeholder">
+
+							<div className="grow flex flex-row gap-1" htmlFor="optml-lazyload-placeholder">
 								<CheckboxControl
 									label={options_strings.enable_lazyload_placeholder_title}
 									checked={isLazyLoadPlaceholderEnabled}
@@ -364,8 +368,21 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 									disabled={isLoading}
 									__nextHasNoMarginBottom={true}
 								/>
+								<Tooltip
+									text={<p
+										className=""
+										dangerouslySetInnerHTML={{
+											__html: options_strings.enable_lazyload_placeholder_desc
+										}}
+									/>}
+								>
+									<Icon
+										icon={ help }
+										size={ 18 }
+										className="text-gray-400 hover:text-gray-600"
+									/>
+								</Tooltip>
 							</div>
-
 							{isLazyLoadPlaceholderEnabled && (
 								<div className="relative inline-block">
 									<Button

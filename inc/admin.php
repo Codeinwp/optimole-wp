@@ -1816,7 +1816,12 @@ The root cause might be either a security plugin which blocks this feature or so
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1943-avif-conversion">',
 					'</a>'
 				),
-				'enable_bg_lazyload_desc'             => __( 'Apply lazy loading to CSS background images. The toggle below enables it globally. The selector list is optional and only needed to extend coverage if certain elements are missed.', 'optimole-wp' ),
+				'enable_bg_lazyload_desc'             => sprintf(
+				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
+					__( 'Apply lazy loading to CSS background images. The toggle below enables it globally. The selector list is optional and only needed to extend coverage if certain elements are missed. %1$sLearn more%2$s', 'optimole-wp' ),
+					'<a class="inline-block text-purple-gray underline" target="_blank" href="https://docs.optimole.com/article/1169-how-to-enable-the-background-lazyload-feature-for-certain-background-images">',
+					'</a>'
+				),
 				'enable_bg_lazyload_title'            => __( 'CSS Background Lazy Load', 'optimole-wp' ),
 				'enable_video_lazyload_desc'          => __( 'Lazy load embedded videos and iframe content', 'optimole-wp' ),
 				'enable_video_lazyload_title'         => __( 'Video & iframes', 'optimole-wp' ),
@@ -1841,8 +1846,8 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_image_replace'                => __( 'Enable Optimole Image Handling', 'optimole-wp' ),
 				'enable_lazyload_placeholder_desc'    => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
-					__( 'Enable this to use a generic transparent placeholder instead of the blurry images during lazy loading. Enhance the visual experience by selecting a custom color for the placeholder. %1$sLearn more%2$s', 'optimole-wp' ),
-					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1192-lazy-load-generic-placeholder">',
+					__( 'Enable this to use a generic transparent placeholder instead of the blurry images during lazy loading. %1$sLearn more%2$s', 'optimole-wp' ),
+					'<a class="inline-block underline text-white" target=”_blank” href="https://docs.optimole.com/article/1192-lazy-load-generic-placeholder">',
 					'</a>'
 				),
 
@@ -1855,7 +1860,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				),
 				'lazyload_behaviour_all'             => __( 'Lazy Load All Images', 'optimole-wp' ),
 				'lazyload_behaviour_all_desc'        => __( 'All images will use lazy loading regardless of position.', 'optimole-wp' ),
-				'lazyload_behaviour_viewport'          => __( 'Enable viewport-based loading', 'optimole-wp' ),
+				'lazyload_behaviour_viewport'          => __( 'Skip images above the fold', 'optimole-wp' ),
 				'lazyload_behaviour_viewport_desc'   => __( 'Automatically detects and immediately loads images visible in the initial viewport. Detection is done with a lightweight client-side script that identifies what\'s visible on each user\'s screen. All other images will lazy load.', 'optimole-wp' ),
 				'lazyload_behaviour_fixed'           => __( 'Skip lazy loading for first images', 'optimole-wp' ),
 				'lazyload_behaviour_fixed_desc'      => __( 'Indicate how many images at the top of each page should bypass lazy loading, ensuring they\'re instantly visible.', 'optimole-wp' ),
@@ -1977,7 +1982,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'low_q_title'                         => __( 'Low', 'optimole-wp' ),
 				'medium_q_title'                      => __( 'Medium', 'optimole-wp' ),
 				'no_images_found'                     => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
-				'native_desc'                         => __( 'Uses the browser\'s build-in "lazy" behavior', 'optimole-wp' ),
+				'native_desc'                         => __( 'Uses the browser\'s built-in lazy loading feature. Enabling this will disable the auto scale.', 'optimole-wp' ),
 				'option_saved'                        => __( 'Option saved.', 'optimole-wp' ),
 				'ml_quality_desc'                     => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Optimole ML algorithms will predict the optimal image quality to get the smallest possible size with minimum perceived quality losses. When disabled, you can control the quality manually. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1016-what-is-the-difference-between-the-auto-high-medium-low-compression-levels">', '</a>' ),
 				'quality_desc'                        => __( 'Lower image quality might boost your loading speed by lowering the size. However, the low image quality may negatively impact the visual appearance of the images. Try experimenting with the setting, then click the View sample image link to see what option works best for you.', 'optimole-wp' ),
