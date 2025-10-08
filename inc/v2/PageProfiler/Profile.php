@@ -452,7 +452,7 @@ class Profile {
 	 *
 	 * @return bool
 	 */
-	public function is_data_available(): bool { 
+	public function is_data_available(): bool {
 		foreach ( self::get_active_devices() as $device ) {
 			if ( empty( self::$current_profile_data[ $device ] ) ) {
 				return false;
