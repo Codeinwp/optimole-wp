@@ -65,7 +65,7 @@ class Optml_Settings {
 		'bg_replacer'                => 'enabled',
 		'video_lazyload'             => 'enabled',
 		'retina_images'              => 'disabled',
-		'lazyload_type'              => 'fixed',
+		'lazyload_type'              => 'fixed|viewport',
 		'limit_dimensions'           => 'enabled',
 		'limit_height'               => 4000,
 		'limit_width'                => 1920,
