@@ -237,7 +237,9 @@ class Optml_Settings {
 	 * @return array
 	 */
 	public function parse_settings( $new_settings ) {
-		$sanitized = [];
+		$sanitized       = [];
+		$sanitized_value = '';
+
 		foreach ( $new_settings as $key => $value ) {
 			switch ( $key ) {
 				case 'admin_bar_item':
