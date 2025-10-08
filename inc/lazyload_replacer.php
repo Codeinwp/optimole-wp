@@ -171,6 +171,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		if ( self::$skip_lazyload_images !== null ) {
 			return self::$skip_lazyload_images;
 		}
+
 		self::$skip_lazyload_images = apply_filters( 'optml_lazyload_images_skip', self::instance()->settings->get( 'skip_lazyload_images' ) );
 		return self::$skip_lazyload_images;
 	}

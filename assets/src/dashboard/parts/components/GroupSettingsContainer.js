@@ -18,7 +18,7 @@ export const GroupSettingsTitle = ({ children, className = '' }) => {
 
 export const GroupSettingsOption = ({ children, className = '' }) => {
 	return (
-		<div className={classNames( 'text-sm text-gray-600 px-4 py-2 bg-white flex items-center rounded', className )}>
+		<div className={classNames( 'text-sm text-gray-600 px-4 py-2 bg-white flex flex-wrap items-center rounded', className )}>
 			{ children }
 		</div>
 	);
