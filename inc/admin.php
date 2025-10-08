@@ -1353,11 +1353,6 @@ class Optml_Admin {
 		$lang_code = isset( $available_languages[ $language ] ) ? 'de' : 'en';
 
 		$site_settings = $this->settings->get_site_settings();
-		// Migrate settings if needed.
-		if ( isset( $site_settings['lazyload_type'] ) && 'all' === $site_settings['lazyload_type'] ) {
-			$site_settings['lazyload_type']        = 'fixed';
-			$site_settings['skip_lazyload_images'] = 0;
-		}
 
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
@@ -2109,7 +2104,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				// translators: This option is discouraged from being used.
 				'not_recommended'                           => __( 'Not recommended', 'optimole-wp' ),
 				// translators: %1$s is the starting bold tag, %2$s is the ending bold tag.
-				'viewport_skip_images_notice'               => sprintf( __( 'When %1$sviewport-based loading%2$s and %1$sskip first images%2$s are both enabled: the skip rule applies on a user\'s first page view. On subsequent views, once viewport data exists, the skip rule is ignored in favor of the viewport data.', 'optimole-wp' ), '<strong>', '</strong>' ),
+				'viewport_skip_images_notice'               => sprintf( __( 'When %1$sskip above the fold%2$s and %1$sskip first images%2$s are both enabled: the skip rule applies on a user\'s first page view. On subsequent views, once viewport data exists, the skip rule is ignored in favor of the viewport data.', 'optimole-wp' ), '<strong>', '</strong>' ),
 				// translators: %1$s is the starting bold tag, %2$s is the ending bold tag.
 				'native_lazy_load_warning'                  => sprintf( __( 'Native browser loading works with viewport detection, but it does not support smart image scaling. It can offer better cross-browser compatibility. Still, we do %1$snot recommend%2$s it for most sites due to fewer controls and features compared to Smart Loading.', 'optimole-wp' ), '<strong>', '</strong>' ),
 				'performance_impact_alert_title'            => __( 'Performance Impact Alert', 'optimole-wp' ),

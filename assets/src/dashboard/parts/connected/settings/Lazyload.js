@@ -152,19 +152,20 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 
 	const toggleLoadingBehavior = useCallback(
 		( value, slug ) => {
-			const setting = new Set(
+			const lazyLoadValue = new Set(
 				( settings?.lazyload_type ?? '' )
 					?.split( '|' )
 					.filter( ( i ) => 'viewport' === i || 'fixed' === i ) ?? []
 			);
 			if ( value ) {
-				setting.add( slug );
+				lazyLoadValue.add( slug );
 			} else {
-				setting.delete( slug );
+				lazyLoadValue.delete( slug );
 			}
-			updateValue( 'lazyload_type', Array.from( setting ).toSorted().join( '|' ) );
+			const updatedValue = Array.from( lazyLoadValue ).toSorted().join( '|' ) || 'all';
+			updateValue( 'lazyload_type', updatedValue );
 		},
-		[ settings?.lazyload_type ]
+		[ settings?.lazyload_type, updateValue ]
 	);
 
 	if ( ! isLazyLoadEnabled ) {
