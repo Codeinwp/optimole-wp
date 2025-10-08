@@ -935,7 +935,7 @@ class Optml_Rest {
 			return $this->response( 'Missing required parameters', 'error' );
 		}
 
-		$device_type = $request->get_param( 'd' );
+		$device_type = (int) $request->get_param( 'd' );
 		$above_fold_images = $request->get_param( 'a' );
 		$url = $request->get_param( 'u' );
 		if ( $time < time() - 300 ) {

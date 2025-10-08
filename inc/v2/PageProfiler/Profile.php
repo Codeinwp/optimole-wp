@@ -155,7 +155,7 @@ class Profile {
 	 * Stores above-fold image data for a specific profile ID and device type.
 	 *
 	 * @param string                                                                              $id The profile ID.
-	 * @param string                                                                              $device_type The device type constant.
+	 * @param int                                                                                 $device_type The device type constant.
 	 * @param array<string>                                                                       $above_fold_images Array of above-fold images.
 	 * @param array<string, array<string, array<int, string>>>                                    $af_bg_selectors Array of above-fold background selectors.
 	 *                                        Array structure:
@@ -180,29 +180,33 @@ class Profile {
 	 * @param array<int, bool>                                                                    $crop_status Array of crop status for images.
 	 * @return void
 	 */
-	public function store( string $id, string $device_type, array $above_fold_images, $af_bg_selectors = [], $lcp_data = [], $missing_dimensions = [], $missing_srcsets = [], $crop_status = [] ) {
+	public function store( string $id, int $device_type, array $above_fold_images, $af_bg_selectors = [], $lcp_data = [], $missing_dimensions = [], $missing_srcsets = [], $crop_status = [] ) {
 		if ( ! in_array( (int) $device_type, self::get_active_devices(), true ) ) {
 			return;
 		}
 
 		// store $above_fold_images as image_id => true to faster access.
 		$above_fold_images = array_fill_keys( $above_fold_images, true );
-		$global_data = [];
-		if ( ! empty( $missing_srcsets ) ) {
-			$global_data['s'] = $missing_srcsets;
-		}
-		if ( ! empty( $missing_dimensions ) ) {
-			$global_data['m'] = $missing_dimensions;
-		}
-		if ( ! empty( $crop_status ) ) {
-			$global_data['c'] = $crop_status;
-		}
-		if ( ! empty( $global_data ) ) {
-			// those measurements are not device specific, so we store them in on a global profile scope.
-			$this->storage->store(
-				$id,
-				$global_data
-			);
+		// Store missing dimensions only from desktop device to avoid using mobile dimensions on desktop.
+		// Mobile will rely on srcset for proper dimensions.
+		if ( $device_type === self::DEVICE_TYPE_DESKTOP ) {
+			$global_data = [];
+			if ( ! empty( $missing_srcsets ) ) {
+				$global_data['s'] = $missing_srcsets;
+			}
+			if ( ! empty( $missing_dimensions ) ) {
+				$global_data['m'] = $missing_dimensions;
+			}
+			if ( ! empty( $crop_status ) ) {
+					$global_data['c'] = $crop_status;
+			}
+			if ( ! empty( $global_data ) ) {
+				// those measurements are not device specific, so we store them in on a global profile scope.
+				$this->storage->store(
+					$id,
+					$global_data
+				);
+			}
 		}
 		$this->storage->store(
 			$id . '_' . $device_type,

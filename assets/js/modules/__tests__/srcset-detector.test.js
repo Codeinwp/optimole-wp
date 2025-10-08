@@ -54,7 +54,6 @@ describe('optmlSrcsetDetector', () => {
 
   describe('CONFIG', () => {
     test('should have default configuration values', () => {
-      expect(optmlSrcsetDetector.CONFIG.WIDTH_STEP_SIZE).toBe(100);
       expect(optmlSrcsetDetector.CONFIG.MIN_SIZE).toBe(200);
       expect(optmlSrcsetDetector.CONFIG.MAX_VARIATIONS).toBe(8);
       expect(optmlSrcsetDetector.CONFIG.SIZE_TOLERANCE).toBe(50);
@@ -64,20 +63,17 @@ describe('optmlSrcsetDetector', () => {
   describe('configure', () => {
     test('should update configuration values', () => {
       optmlSrcsetDetector.configure({
-        widthStepSize: 150,
         minSize: 300,
         maxVariations: 10,
         sizeTolerance: 75
       });
 
-      expect(optmlSrcsetDetector.CONFIG.WIDTH_STEP_SIZE).toBe(150);
       expect(optmlSrcsetDetector.CONFIG.MIN_SIZE).toBe(300);
       expect(optmlSrcsetDetector.CONFIG.MAX_VARIATIONS).toBe(10);
       expect(optmlSrcsetDetector.CONFIG.SIZE_TOLERANCE).toBe(75);
 
       // Reset to defaults
       optmlSrcsetDetector.configure({
-        widthStepSize: 100,
         minSize: 200,
         maxVariations: 8,
         sizeTolerance: 50
@@ -88,11 +84,16 @@ describe('optmlSrcsetDetector', () => {
       const originalMinSize = optmlSrcsetDetector.CONFIG.MIN_SIZE;
       
       optmlSrcsetDetector.configure({
-        widthStepSize: 200
+        maxVariations: 12
       });
 
-      expect(optmlSrcsetDetector.CONFIG.WIDTH_STEP_SIZE).toBe(200);
+      expect(optmlSrcsetDetector.CONFIG.MAX_VARIATIONS).toBe(12);
       expect(optmlSrcsetDetector.CONFIG.MIN_SIZE).toBe(originalMinSize);
+      
+      // Reset
+      optmlSrcsetDetector.configure({
+        maxVariations: 8
+      });
     });
   });
 
@@ -218,6 +219,9 @@ describe('optmlSrcsetDetector', () => {
     });
 
     test('should return true at boundaries', () => {
+      // Ensure MIN_SIZE is at default
+      optmlSrcsetDetector.configure({ minSize: 200 });
+      
       expect(optmlSrcsetDetector._isValidSize(200, 200, 800, 600)).toBe(true);
       expect(optmlSrcsetDetector._isValidSize(800, 600, 800, 600)).toBe(true);
     });

@@ -558,7 +558,15 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 					} else {
 						// Add new sizes attribute
 						$sizes_entries = array_unique( $filtered_sizes_entries );
-						rsort( $sizes_entries ); // Sort descending by breakpoint
+						// Sort ascending by breakpoint value (numeric)
+						usort(
+							$sizes_entries,
+							function ( $a, $b ) {
+								preg_match( '/max-width:\s*(\d+)/', $a, $ma );
+								preg_match( '/max-width:\s*(\d+)/', $b, $mb );
+								return ( $ma[1] ?? 0 ) - ( $mb[1] ?? 0 );
+							}
+						);
 
 						$sizes_value = implode( ', ', $sizes_entries );
 						$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $sizes_value, '"' ) . '\"' : 'sizes="' . $sizes_value . '"';

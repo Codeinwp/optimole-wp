@@ -41,9 +41,6 @@ export const optmlSrcsetDetector = {
    * Configuration for srcset generation
    */
   CONFIG: {
-    // Step size for width variations (in pixels) - not used in responsive mode
-    WIDTH_STEP_SIZE: 100,
-    
     // Minimum image size to consider (in pixels)
     MIN_SIZE: 200,
     
@@ -57,13 +54,11 @@ export const optmlSrcsetDetector = {
   /**
    * Configure srcset generation settings
    * @param {Object} config - Configuration options
-   * @param {number} config.widthStepSize - Step size for width variations (default: 100)
-   * @param {number} config.minSize - Minimum image size to consider (default: 100)
+   * @param {number} config.minSize - Minimum image size to consider (default: 200)
    * @param {number} config.maxVariations - Maximum srcset variations per image (default: 8)
    * @param {number} config.sizeTolerance - Tolerance for existing sizes (default: 50)
    */
   configure: function(config) {
-    if (config.widthStepSize) this.CONFIG.WIDTH_STEP_SIZE = config.widthStepSize;
     if (config.minSize) this.CONFIG.MIN_SIZE = config.minSize;
     if (config.maxVariations) this.CONFIG.MAX_VARIATIONS = config.maxVariations;
     if (config.sizeTolerance) this.CONFIG.SIZE_TOLERANCE = config.sizeTolerance;
@@ -241,6 +236,7 @@ export const optmlSrcsetDetector = {
     optmlLogger.info(`Image ${imageId} srcset analysis:`, {
       currentSize: { w: currentWidth, h: currentHeight },
       naturalSize: { w: naturalWidth, h: naturalHeight },
+      requiredSizes: requiredSizes,
       naturalAspectRatio: Math.round(naturalAspectRatio * 1000) / 1000,
       currentAspectRatio: Math.round(currentAspectRatio * 1000) / 1000,
       aspectRatioDifference: Math.round(aspectRatioDifference * 1000) / 1000,
@@ -401,7 +397,8 @@ export const optmlSrcsetDetector = {
   },
 
   /**
-   * Generate responsive sizes based on real-world viewport usage patterns
+   * Generate responsive sizes based on the current image ratio
+   * Device-aware approach: generates sizes for different viewports while maintaining the current ratio
    * @private
    * @param {number} currentWidth - Current displayed width
    * @param {number} currentHeight - Current displayed height
@@ -413,90 +410,55 @@ export const optmlSrcsetDetector = {
   _generateResponsiveSizes: function(currentWidth, currentHeight, aspectRatio, naturalWidth, naturalHeight) {
     const sizes = [];
     
-    // Container-based size generation: Generate sizes relative to the actual container size
-    // This prevents oversized images from being selected for small containers
+    // Calculate the current ratio: what percentage of viewport width does this image occupy?
+    const viewportWidth = window.innerWidth;
+    const currentRatio = Math.min(currentWidth / viewportWidth, 1.0);
     
-    // Calculate maximum reasonable size for this container
-    // Use a multiplier to allow for some flexibility while staying close to container size
-    const maxSizeMultiplier = 1.5; // Allow up to 1.5x the container size
-    const maxReasonableWidth = Math.min(
-      Math.round(currentWidth * maxSizeMultiplier),
-      naturalWidth
-    );
+    optmlLogger.info(`Generating srcset for current ratio: ${Math.round(currentRatio * 100)}% of viewport`);
     
-    // Define size ranges based on container size
-    let sizeRanges = [];
+    // Use configured device breakpoints
+    const breakpoints = Object.entries(this.DEVICE_BREAKPOINTS).map(([key, viewport]) => ({
+      viewport,
+      label: key.toLowerCase().replace('_', '-'),
+      dpr: this.DPR_MULTIPLIERS
+    }));
     
-    if (currentWidth <= 300) {
-      // Small containers (thumbnails, icons, etc.)
-      sizeRanges = [
-        { min: Math.max(200, Math.round(currentWidth * 0.8)), max: Math.round(currentWidth * 1.2), step: 25, dpr: [1], category: 'small' },
-        { min: Math.round(currentWidth * 1.2), max: maxReasonableWidth, step: 50, dpr: [1, 2], category: 'small-retina' }
-      ];
-    } else if (currentWidth <= 600) {
-      // Medium containers (cards, medium images)
-      sizeRanges = [
-        { min: Math.max(200, Math.round(currentWidth * 0.8)), max: Math.round(currentWidth * 1.2), step: 50, dpr: [1], category: 'medium' },
-        { min: Math.round(currentWidth * 1.2), max: maxReasonableWidth, step: 100, dpr: [1, 2], category: 'medium-retina' }
-      ];
-    } else if (currentWidth <= 1000) {
-      // Large containers (featured images, banners)
-      sizeRanges = [
-        { min: Math.max(200, Math.round(currentWidth * 0.8)), max: Math.round(currentWidth * 1.2), step: 100, dpr: [1], category: 'large' },
-        { min: Math.round(currentWidth * 1.2), max: maxReasonableWidth, step: 200, dpr: [1, 2], category: 'large-retina' }
-      ];
-    } else {
-      // Very large containers (full-width images)
-      sizeRanges = [
-        { min: Math.max(200, Math.round(currentWidth * 0.8)), max: Math.round(currentWidth * 1.2), step: 200, dpr: [1], category: 'xlarge' },
-        { min: Math.round(currentWidth * 1.2), max: maxReasonableWidth, step: 400, dpr: [1, 2], category: 'xlarge-retina' }
-      ];
-    }
-    
-    // Generate sizes for each range
-    sizeRanges.forEach(range => {
-      for (let width = range.min; width <= range.max; width += range.step) {
-        range.dpr.forEach(dprValue => {
-          const targetWidth = Math.round(width * dprValue);
-          const targetHeight = Math.round(targetWidth / aspectRatio);
-          
-          // Only include if within reasonable bounds
-          if (this._isValidSize(targetWidth, targetHeight, naturalWidth, naturalHeight) &&
-              targetWidth >= this.CONFIG.MIN_SIZE) {
-            
-            // Determine breakpoint based on container size, not image size
-            // Use viewport-based breakpoints that make sense for the container
-            let breakpoint = null;
-            if (currentWidth <= 300) {
-              // Small containers: use smaller breakpoints
-              if (targetWidth <= currentWidth * 1.1) breakpoint = 480;
-              else if (targetWidth <= currentWidth * 1.3) breakpoint = 768;
-              else breakpoint = 1024;
-            } else if (currentWidth <= 600) {
-              // Medium containers: use medium breakpoints
-              if (targetWidth <= currentWidth * 1.1) breakpoint = 768;
-              else if (targetWidth <= currentWidth * 1.3) breakpoint = 1024;
-              else breakpoint = 1440;
-            } else {
-              // Large containers: use larger breakpoints
-              if (targetWidth <= currentWidth * 1.1) breakpoint = 1024;
-              else if (targetWidth <= currentWidth * 1.3) breakpoint = 1440;
-              else breakpoint = 1920;
-            }
-            
-            sizes.push({
-              w: targetWidth,
-              h: targetHeight,
-              dpr: dprValue,
-              breakpoint: breakpoint,
-              descriptor: `${targetWidth}w`,
-              source: 'responsive',
-              category: range.category,
-              label: `${range.category}-${targetWidth}w${dprValue > 1 ? `-${dprValue}x` : ''}`
-            });
-          }
-        });
+    // Generate sizes for each viewport using the current ratio
+    breakpoints.forEach(bp => {
+      const baseWidth = Math.round(bp.viewport * currentRatio);
+      
+      // Skip if the calculated width is too small or too large
+      if (baseWidth < this.CONFIG.MIN_SIZE || baseWidth > naturalWidth * 1.2) {
+        return;
       }
+      
+      // Generate for each DPR
+      bp.dpr.forEach(dprValue => {
+        const targetWidth = Math.round(baseWidth * dprValue);
+        const targetHeight = Math.round(targetWidth / aspectRatio);
+        
+        // Don't generate 1x DPR variations larger than current size
+        // But allow 2x DPR variations for retina displays
+        if (dprValue === 1 && targetWidth > currentWidth) {
+          return;
+        }
+        
+        // Only include if within reasonable bounds
+        if (this._isValidSize(targetWidth, targetHeight, naturalWidth, naturalHeight) &&
+            targetWidth >= this.CONFIG.MIN_SIZE) {
+          
+          sizes.push({
+            w: targetWidth,
+            h: targetHeight,
+            dpr: dprValue,
+            breakpoint: bp.viewport,
+            descriptor: `${targetWidth}w`,
+            source: 'responsive',
+            category: `${bp.label}-${Math.round(currentRatio * 100)}`,
+            label: `${bp.label}-${targetWidth}w${dprValue > 1 ? `-${dprValue}x` : ''}`
+          });
+        }
+      });
     });
     
     // Add current size if not already covered
