@@ -102,6 +102,14 @@ final class Optml_Manager {
 		'wpsp',
 		'jetengine',
 		'jetpack',
+		'wp_rocket',
+		'wp_super_cache',
+		'breeze',
+		'litespeed_cache',
+		'autoptimize_cache',
+		'endurance_cache',
+		'kinsta',
+		'speedycache',
 	];
 	/**
 	 * The current state of the buffer.
@@ -408,6 +416,16 @@ final class Optml_Manager {
 	}
 
 	/**
+	 * Check if we should load the profiler.
+	 *
+	 * @param bool $default_value Default value.
+	 *
+	 * @return bool Should load the profiler.
+	 */
+	public static function should_load_profiler( $default_value = false ) {
+		return ! $default_value && apply_filters( 'optml_page_profiler_disable', false ) === false;
+	}
+	/**
 	 * Filter raw HTML content for urls.
 	 *
 	 * @param string $html HTML to filter.
@@ -420,11 +438,9 @@ final class Optml_Manager {
 		if ( defined( 'REST_REQUEST' ) && REST_REQUEST && is_user_logged_in() && ( apply_filters( 'optml_force_replacement', false ) !== true ) ) {
 			return $html;
 		}
-		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', 'in Viewport: ' . var_export( $partial, true ) . wp_debug_backtrace_summary() );
-		}
-		if ( $this->settings->is_lazyload_type_viewport() && ! $partial ) {
+		if ( self::should_load_profiler( $partial ) ) {
 			$profile_id = Profile::generate_id( $html );
+			$should_show_comment = false;
 			// We disable the optimizer for logged in users.
 			if ( ! is_user_logged_in() || ! apply_filters( 'optml_force_page_profiler', false ) !== true ) {
 				$js_optimizer = Optml_Admin::get_optimizer_script( false );
@@ -432,21 +448,26 @@ final class Optml_Manager {
 				if ( ! $this->page_profiler->exists_all( $profile_id ) ) {
 					$missing = $this->page_profiler->missing_devices( $profile_id );
 					$time = time();
-					$hmac = wp_hash( $profile_id . $time, 'nonce' );
+					$hmac = wp_hash( $profile_id . $time . $this->get_current_url(), 'nonce' );
 					$js_optimizer = str_replace(
-						[ Profile::PLACEHOLDER, Profile::PLACEHOLDER_MISSING, Profile::PLACEHOLDER_TIME, Profile::PLACEHOLDER_HMAC ],
-						[ $profile_id, implode( ',', $missing ), strval( $time ), $hmac ],
+						[ Profile::PLACEHOLDER, Profile::PLACEHOLDER_MISSING, Profile::PLACEHOLDER_TIME, Profile::PLACEHOLDER_HMAC, Profile::PLACEHOLDER_URL ],
+						[ $profile_id, implode( ',', $missing ), strval( $time ), $hmac, $this->get_current_url() ],
 						$js_optimizer
 					);
 					$html = str_replace( Optml_Admin::get_optimizer_script( true ), $js_optimizer, $html );
 					if ( ! headers_sent() ) {
 						header( 'Cache-Control: max-age=300' ); // Attempt to cache the page just for 5 mins until the optimizer is done. Once the optimizer is done, the page will load optimized.
 					}
+				} else {
+					$should_show_comment = isset( $_GET['optml_debug'] ) && $_GET['optml_debug'] === 'true';
 				}
 			}
 
 			Profile::set_current_profile_id( $profile_id );
 			$this->page_profiler->set_current_profile_data();
+			if ( $should_show_comment ) {
+				$html = str_replace( '</html>', '</html>' . $this->page_profiler->get_current_profile_html_comment(), $html );
+			}
 		}
 		if ( ! $partial ) {
 			$html = $this->add_html_class( $html );
@@ -500,12 +521,21 @@ final class Optml_Manager {
 		$html = $this->process_urls_from_content( $html );
 
 		$html = apply_filters( 'optml_url_post_process', $html );
-		if ( $this->settings->is_lazyload_type_viewport() && ! $partial ) {
+		if ( self::should_load_profiler( $partial ) ) {
 			Profile::reset_current_profile();
 		}
 		return $html;
 	}
 
+	/**
+	 * Get the current url.
+	 *
+	 * @return string The current url.
+	 */
+	private function get_current_url() {
+		global $wp;
+		return home_url( add_query_arg( [], $wp->request ) );
+	}
 	/**
 	 * Adds a filter that allows adding classes to the HTML tag.
 	 *
@@ -776,7 +806,7 @@ final class Optml_Manager {
 					*
 					* This closure filters the call, forwarding only the captured HTML buffer.
 					*/
-				return $this->replace_content( $content );
+				return $this->replace_content( $content, self::is_ajax_request() );
 			}
 		);
 	}

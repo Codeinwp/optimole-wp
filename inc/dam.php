@@ -248,7 +248,7 @@ class Optml_Dam {
 			$image_url,
 			$sizes['width'],
 			$sizes['height'],
-			$size === 'full',
+			$size === 'full', // @phpstan-ignore-line
 		];
 	}
 

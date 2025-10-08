@@ -57,7 +57,7 @@ class Optml_Attachment_Db_Renamer {
 			return 0;
 		}
 
-		if ( ! is_string( $old_url ) || ! is_string( $new_url ) ) { // @phpstan-ignore-line docs require a string but it could be empty
+		if ( ! is_string( $old_url ) || ! is_string( $new_url ) ) {
 			return 0;
 		}
 

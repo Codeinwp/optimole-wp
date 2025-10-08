@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Class Optml_wp_fastest_cache.
+ * Class Optml_kinsta.
  *
- * @reason Wp fastest cache stores the content of the page before Optimole starts replacing url's for the minified css/js files
+ * @reason Clear cache on kinsta.
  */
-class Optml_wp_fastest_cache extends Optml_compatibility {
+class Optml_kinsta extends Optml_compatibility {
 
 
 	/**
@@ -14,17 +14,19 @@ class Optml_wp_fastest_cache extends Optml_compatibility {
 	 * @return bool Should we load.
 	 */
 	public function should_load() {
-		include_once ABSPATH . 'wp-admin/includes/plugin.php';
-		return is_plugin_active( 'wp-fastest-cache/wpFastestCache.php' );
+
+		return class_exists( '\CDN_Clear_Cache_Api' );
 	}
 
 	/**
 	 * Register integration details.
+	 *
+	 * @return void
 	 */
 	public function register() {
 		add_action( 'optml_clear_cache', [ $this, 'add_clear_cache_action' ], 10, 1 );
-		add_filter( 'wpfc_buffer_callback_filter', [ Optml_Main::instance()->manager, 'replace_content' ], 10 );
 	}
+
 
 	/**
 	 * Should we early load the compatibility?
@@ -35,18 +37,18 @@ class Optml_wp_fastest_cache extends Optml_compatibility {
 		return true;
 	}
 	/**
-	 * Clear cache on wp fastest cache.
+	 * Clear cache on kinsta.
 	 *
 	 * @param string|bool $location The location to clear the cache for. If true, clear the cache globally. If a string, clear the cache for a particular url.
 	 * @return void
 	 */
 	public function add_clear_cache_action( $location ) {
-		if ( $location === true ) {
-			do_action( 'wpfc_clear_all_cache', true );
+		if ( $location === true && class_exists( '\CDN_Clear_Cache_Api' ) && method_exists( '\CDN_Clear_Cache_Api', 'cache_api_call' ) ) { // @phpstan-ignore-line
+			\CDN_Clear_Cache_Api::cache_api_call( [], 'purge_everything' );
 		}
 
-		if ( is_string( $location ) ) {
-			// TODO Right now the plugin doesn't support clearing cache for a particular url.
+		if ( is_string( $location ) && class_exists( '\CDN_Clear_Cache_Api' ) && method_exists( '\CDN_Clear_Cache_Api', 'cache_api_call' ) ) { // @phpstan-ignore-line
+			\CDN_Clear_Cache_Api::cache_api_call( [ $location ], 'purge' );
 		}
 	}
 }

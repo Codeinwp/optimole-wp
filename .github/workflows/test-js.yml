@@ -1,4 +1,4 @@
-name: ESLint
+name: JavaScript Tests
 
 on:
   pull_request:
@@ -9,21 +9,36 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
   cancel-in-progress: true
+
 jobs:
-  run:
-    if: github.event.pull_request.draft == false
+  test:
+    if: github.event_name == 'push' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    name: ESLint
+    name: ESLint & Jest Tests
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v3
         with:
           persist-credentials: false
+
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 18
-      - name: Lint js files
+          cache: 'npm'
+
+      - name: Install dependencies
         run: |
-          npm install -g npm
           npm ci
+
+      - name: Run ESLint
+        run: |
           npm run lint
+
+      - name: Run unit tests
+        run: |
+          npm test
+
+      - name: Run tests with coverage
+        run: |
+          npm run test:coverage
+

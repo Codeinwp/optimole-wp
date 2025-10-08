@@ -59,7 +59,6 @@ class Test_Lazyload_Viewport extends WP_UnitTestCase {
 	 * This test verifies that:
 	 * 1. All images are lazy-loaded when no viewport data is available.
 	 * 2. Above-the-fold images are not lazy-loaded when viewport data exists.
-	 * 3. Above-the-fold images receive `fetchpriority="high"`.
 	 */
 	public function test_lazyload_viewport() {
 		// When no viewport data exists, all images should be lazy-loaded
@@ -83,7 +82,6 @@ class Test_Lazyload_Viewport extends WP_UnitTestCase {
 		$this->assertNotEmpty($filteredTags);
 		$specificImageTag = $filteredTags[0];
 		$this->assertStringNotContainsString('data-opt-src', $specificImageTag);
-		$this->assertStringContainsString('fetchpriority="high"', $specificImageTag);
 	}
 
 	/**

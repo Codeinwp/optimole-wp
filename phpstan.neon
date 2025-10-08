@@ -1,5 +1,6 @@
 parameters:
 	level: 6
+	treatPhpDocTypesAsCertain: false
 	paths:
 		- %currentWorkingDirectory%/optimole-wp.php
 		- %currentWorkingDirectory%/inc
