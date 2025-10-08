@@ -148,11 +148,11 @@ const LastImages = () => {
 			{ ( ! isInitialLoading && ! isLoaded ) && (
 				<>
 					<div className="flex justify-between mt-5 gap-5">
-						{ [ ...Array( 4 ) ].map( () => <ImagePlaceholder/> ) }
+						{ [ ...Array( 4 ) ].map( ( _, index ) => <ImagePlaceholder key={ index }/> ) }
 					</div>
 
 					<div className="flex justify-between mt-5 gap-5">
-						{ [ ...Array( 4 ) ].map( () => <ImagePlaceholder/> ) }
+						{ [ ...Array( 4 ) ].map( ( _, index ) => <ImagePlaceholder key={ `placeholder-2-${ index }` }/> ) }
 					</div>
 				</>
 			) }
@@ -169,6 +169,7 @@ const LastImages = () => {
 						{ [ ...Array( 4 ) ].map( ( i, key ) => {
 							return (
 								<Image
+									key={ key }
 									src={ images[ key ].url }
 									oldSize={ images[ key ].ex_size_raw }
 									newSize={ images[ key ].new_size_raw }
@@ -184,6 +185,7 @@ const LastImages = () => {
 
 								return (
 									<Image
+										key={ key }
 										src={ images[ key ].url }
 										oldSize={ images[ key ].ex_size_raw }
 										newSize={ images[ key ].new_size_raw }

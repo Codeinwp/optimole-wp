@@ -38,6 +38,10 @@ const Sidebar = ({ settings, setSettings, setCanSave, setTab }) => {
 			domain = user?.domain;
 		}
 
+		if ( user?.domain_dns !== undefined && '' !== user?.domain_dns ) {
+			domain = user?.domain_dns;
+		}
+
 		return {
 			name: user?.display_name,
 			domain,
