@@ -123,7 +123,7 @@ class Optml_Config {
 		self::$service_url = sprintf( 'https://%s.%s', self::$key, self::$base_domain );
 		if ( defined( 'OPTML_CUSTOM_DOMAIN' ) ) {
 			self::$service_url = constant( 'OPTML_CUSTOM_DOMAIN' );
-		}elseif ( isset( $service_settings['domain'] ) && ! empty( $service_settings['domain'] ) ) {
+		} elseif ( isset( $service_settings['domain'] ) && ! empty( $service_settings['domain'] ) ) {
 			self::$service_url = sprintf( 'https://%s', $service_settings['domain'] );
 		}
 
