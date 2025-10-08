@@ -7,7 +7,7 @@ final class Optml_Main {
 	/**
 	 * Optml_Main The single instance of Starter_Plugin.
 	 *
-	 * @var    object
+	 * @var      Optml_Main|null
 	 * @access   private
 	 * @since    1.0.0
 	 */

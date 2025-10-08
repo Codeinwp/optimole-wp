@@ -4,7 +4,7 @@ import { close } from '@wordpress/icons';
 import { useViewportMatch } from '@wordpress/compose';
 import { Button, Icon, Modal as CoreModal } from '@wordpress/components';
 
-export default function Modal({	icon, labels = {}, onRequestClose = () => {}, onConfirm = () => {}, variant = 'default', onSecondaryAction = () => {} }) {
+export default function Modal({	icon, labels = {}, onRequestClose = () => {}, onConfirm = () => {}, variant = 'default', onSecondaryAction = () => {}, afterContentChildren = null }) {
 
 	const isMobileViewport = useViewportMatch( 'small', '<' );
 
@@ -53,7 +53,8 @@ export default function Modal({	icon, labels = {}, onRequestClose = () => {}, on
 					className="text-center mx-0 my-4 text-gray-700"
 					dangerouslySetInnerHTML={ { __html: labels.description } }
 				/>
-				<div class="flex gap-4">
+				{ afterContentChildren }
+				<div className="flex gap-4">
 					<Button variant="primary" className={ actionButtonClasses } onClick={ onConfirm }>
 						{ labels.action }
 					</Button>
