@@ -433,7 +433,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		if ( $this->settings->is_lazyload_type_viewport() ) {
 			$image_id                   = $this->get_id_by_url( $original_url );
-			$is_lcp_image               = Optml_Manager::instance()->page_profiler->is_lcp_image_in_all_viewports( $image_id ); 
+			$is_lcp_image               = Optml_Manager::instance()->page_profiler->is_lcp_image_in_all_viewports( $image_id );
 			$no_viewport_data_available = ! Optml_Manager::instance()->page_profiler->is_data_available();
 			if ( OPTML_DEBUG ) {
 					do_action( 'optml_log', 'Adding fetchpriority image is LCP ' . $original_url . '|' . $image_id );
