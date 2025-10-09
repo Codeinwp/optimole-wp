@@ -1,11 +1,11 @@
 <?php
 
 /**
- * Class Optml_kinsta.
+ * Class Optml_rocketnet.
  *
- * @reason Clear cache on kinsta.
+ * @reason Clear cache on rocketnet.
  */
-class Optml_kinsta extends Optml_compatibility {
+class Optml_rocketnet extends Optml_compatibility {
 
 
 	/**
@@ -24,7 +24,7 @@ class Optml_kinsta extends Optml_compatibility {
 	 * @return void
 	 */
 	public function register() {
-		add_action( 'optml_clear_cache', [ $this, 'add_clear_cache_action' ], 10, 1 );
+		add_action( 'optml_clear_cache', [ $this, 'add_clear_cache_action' ], 99, 1 );
 	}
 
 
@@ -37,7 +37,7 @@ class Optml_kinsta extends Optml_compatibility {
 		return true;
 	}
 	/**
-	 * Clear cache on kinsta.
+	 * Clear cache on rocketnet.
 	 *
 	 * @param string|bool $location The location to clear the cache for. If true, clear the cache globally. If a string, clear the cache for a particular url.
 	 * @return void
@@ -48,6 +48,11 @@ class Optml_kinsta extends Optml_compatibility {
 		}
 
 		if ( is_string( $location ) && class_exists( '\CDN_Clear_Cache_Api' ) && method_exists( '\CDN_Clear_Cache_Api', 'cache_api_call' ) ) { // @phpstan-ignore-line
+			$url_parts = parse_url( $location );
+			$location  = ( isset( $url_parts['path'] ) ) ? rtrim( $url_parts['path'], '/' ) : '/';
+			if ( ! empty( $url_parts['query'] ) ) {
+				$location .= '?' . $url_parts['query'];
+			}
 			\CDN_Clear_Cache_Api::cache_api_call( [ $location ], 'purge' );
 		}
 	}
