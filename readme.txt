@@ -34,7 +34,7 @@ Optimole is the complete image optimization powerhouse that helps you compress i
 - **Support for all file types** - Images, video, audio, documents
 - **Automatic watermarking** - Protect your visual content
 - **Zero configuration needed** - Install and forget
-- **Free plan with all features** - For sites with up to 1K [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors)/month
+- **Free plan with all features** - For sites with up to 2000 [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors)/month
 
 ### Why Choose Optimole Over Other Image Optimization Plugins?
 
@@ -60,7 +60,7 @@ When someone visits your site, Optimole instantly **detects their device type, s
 
 ### How Many Images Can Be Optimized? (Unlimited)
 
-We offer an unlimited number of image optimizations in both Free and Pro plans, you will be able to optimize an unlimited number of images for up to 1K [monthly visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All are delivered from more than **450+ locations** around the globe.
+We offer an unlimited number of image optimizations in both Free and Pro plans, you will be able to optimize an unlimited number of images for up to 2000 [monthly visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All are delivered from more than **450+ locations** around the globe.
 
 ### Features That Make Optimole The Ultimate Image Solution:
 
