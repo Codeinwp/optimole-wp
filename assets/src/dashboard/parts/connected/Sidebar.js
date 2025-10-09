@@ -23,7 +23,7 @@ const reasons = [
 	optimoleDashboardApp.strings.upgrade.reason_4
 ];
 
-const Sidebar = ({ settings }) => {
+const Sidebar = ({ settings, setSettings, setCanSave, setTab }) => {
 	const {
 		name,
 		domain,
@@ -36,6 +36,10 @@ const Sidebar = ({ settings }) => {
 		let domain = user?.cdn_key + '.i.optimole.com';
 		if ( user?.domain !== undefined && '' !== user?.domain ) {
 			domain = user?.domain;
+		}
+
+		if ( user?.domain_dns !== undefined && '' !== user?.domain_dns ) {
+			domain = user?.domain_dns;
 		}
 
 		return {
@@ -121,7 +125,12 @@ const Sidebar = ({ settings }) => {
 				</Button>
 			) }
 
-			<OptimizationStatus settings={settings} />
+			<OptimizationStatus
+				settings={settings}
+				setSettings={setSettings}
+				setCanSave={setCanSave}
+				setTab={setTab}
+			/>
 
 			{ showSPCRecommendation && (
 				<SPCRecommendation />

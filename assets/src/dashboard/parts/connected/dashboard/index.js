@@ -8,11 +8,14 @@ import classNames from 'classnames';
  */
 import {
 	Button,
-	Icon
+	Icon,
+	Tooltip
 } from '@wordpress/components';
 
+import { sprintf } from '@wordpress/i18n';
+import { useMemo } from '@wordpress/element';
 import { useSelect } from '@wordpress/data';
-import { warning } from '@wordpress/icons';
+import { warning, external, help } from '@wordpress/icons';
 
 import { clearCache } from '../../../utils/api';
 
@@ -23,38 +26,24 @@ import {
 	bolt,
 	update,
 	offloadImage,
-	settings
+	settings,
+	globe,
+	arrowDownToLine,
+	cloudDownload,
+	chartBarDecreasing
 } from '../../../utils/icons';
 
 import ProgressBar from '../../components/ProgressBar';
-import DashboardMetricBox from '../../components/DashboardMetricBox';
 
 import LastImages from './LastImages';
 
 const cardClasses = 'flex p-6 bg-light-blue border border-blue-300 rounded-md';
 
-const metrics = [
-	{
-		label: optimoleDashboardApp.strings.metrics.metricsTitle2,
-		description: optimoleDashboardApp.strings.metrics.metricsSubtitle2,
-		value: 'saved_size'
-	},
-	{
-		label: optimoleDashboardApp.strings.metrics.metricsTitle3,
-		description: optimoleDashboardApp.strings.metrics.metricsSubtitle3,
-		value: 'compression_percentage'
-	},
-	{
-		label: optimoleDashboardApp.strings.metrics.metricsTitle4,
-		description: optimoleDashboardApp.strings.metrics.metricsSubtitle4,
-		value: 'traffic'
-	}
-];
-
 const settingsTab = {
 	offload_image: 1,
 	advance: 2
 };
+
 
 const navigate = ( tabId ) => {
 	const links = window.optimoleDashboardApp.submenu_links;
@@ -136,7 +125,62 @@ const Dashboard = () => {
 		};
 	});
 
+	const availableMetrics = useMemo( () => {
+		const metrics = [
+			{
+				icon: arrowDownToLine,
+				label: optimoleDashboardApp.strings.metrics.metricsTitle2,
+				description: optimoleDashboardApp.strings.metrics.metricsSubtitle2,
+				value: 'saved_size',
+				hasButton: true,
+				buttonText: optimoleDashboardApp.strings.metrics.adjust_compression
+			},
+			{
+				icon: chartBarDecreasing,
+				label: optimoleDashboardApp.strings.metrics.metricsTitle3,
+				description: optimoleDashboardApp.strings.metrics.metricsSubtitle3,
+				value: 'compression_percentage',
+				hasButton: true,
+				buttonText: optimoleDashboardApp.strings.metrics.adjust_compression
+			},
+			{
+				icon: globe,
+				label: optimoleDashboardApp.strings.metrics.metricsTitle4,
+				description: optimoleDashboardApp.strings.metrics.metricsSubtitle4,
+				value: 'traffic',
+				hasButton: true,
+				buttonText: optimoleDashboardApp.strings.metrics.view_analytics
+			}
+		];
+
+		if ( userData?.can_use_offloading ) {
+			metrics.push(
+				{
+					icon: cloudDownload,
+					label: optimoleDashboardApp.strings.metrics.metricsTitle5,
+					description: optimoleDashboardApp.strings.metrics.metricsSubtitle5,
+					value: 'offloaded_images',
+					hasButton: true,
+					buttonText: optimoleDashboardApp.strings.metrics.manage_offloading
+				}
+			);
+		}
+
+		return metrics;
+	}, [ userData ]);
+
 	const visitorsLimitPercent = ( ( userData.visitors / userData.visitors_limit ) * 100 ).toFixed( 0 );
+
+	const renewalDate = useMemo( () => {
+		const timestamp = userData.renews_on;
+
+		if ( ! timestamp ) {
+			return 'N/A';
+		}
+
+		const date = new Date( timestamp * 1000 );
+		return date.toLocaleDateString( undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+	}, [ userData.renews_on ]);
 
 	const formatMetric = ( type, value ) => {
 		let formattedValue = 0;
@@ -144,11 +188,15 @@ const Dashboard = () => {
 
 		// Fallback for missing data
 		if ( undefined === value ) {
-			value = 'saved_size' === type ?
-				Math.floor( Math.random() * 2500000 ) + 500000 : // Mock KB
-				'traffic' === type ?
-					Math.floor( Math.random() * 2500 ) + 500 : // Mock MB
-					Math.floor( Math.random() * 40 ) + 10; // Mock Percentage
+			if ( 'saved_size' === type ) {
+				value = Math.floor( Math.random() * 2500000 ) + 500000; // Mock KB
+			} else if ( 'traffic' === type ) {
+				value = Math.floor( Math.random() * 2500 ) + 500; // Mock MB
+			} else if ( 'offloaded_images' === type ) {
+				value = Math.floor( Math.random() * 500 ) + 50; // Mock images count
+			} else {
+				value = Math.floor( Math.random() * 40 ) + 10; // Mock Percentage
+			}
 		}
 
 		switch ( type ) {
@@ -181,12 +229,29 @@ const Dashboard = () => {
 				unit = 'TB';
 			}
 			break;
+		case 'offloaded_images':
+			formattedValue = parseInt( value );
+			unit = 1 === formattedValue ? optimoleDashboardApp.strings.metrics.image : optimoleDashboardApp.strings.metrics.images;
+			break;
 		default:
 			formattedValue = parseFloat( value ).toFixed( 2 );
 			unit = '';
 		}
 
 		return { formattedValue, unit };
+	};
+
+	const getMetricButtonAction = ( metricValue ) => {
+		switch ( metricValue ) {
+		case 'saved_size':
+			return { onClick: () => navigate( settingsTab.advance ) };
+		case 'compression_percentage':
+			return { onClick: () => navigate( settingsTab.advance ) };
+		case 'traffic':
+			return { href: window.optimoleDashboardApp.optimoleDashMetrics, target: '_blank' };
+		case 'offloaded_images':
+			return { onClick: () => navigate( settingsTab.offload_image ) };
+		}
 	};
 
 	return (
@@ -202,11 +267,37 @@ const Dashboard = () => {
 							{ optimoleDashboardApp.strings.dashboard_title }
 						</div>
 						<div className="flex items-center gap-2">
-							<div className="text-gray-600 text-base">
+							<div className="text-gray-600 text-base flex items-center gap-1">
 								{ optimoleDashboardApp.strings.quota }
-								<span className="pl-2 text-gray-800 font-bold">
+								<span className="text-gray-800 font-bold">
 									{ userData.visitors_pretty } / { userData.visitors_limit_pretty }
 								</span>
+								<Tooltip
+									text={
+										<div className="p-2.5 max-w-[320px]">
+											<div className="font-bold mb-2">
+												{ optimoleDashboardApp.strings.tooltip_visits_title }
+											</div>
+											<div>
+												{
+													sprintf(
+														optimoleDashboardApp.strings.tooltip_visits_description,
+														renewalDate
+													)
+												}
+											</div>
+										</div>
+									}
+									placement="bottom"
+								>
+									<span className="inline-flex items-center cursor-help ml-1">
+										<Icon
+											icon={ help }
+											size={ 18 }
+											className="text-gray-400 hover:text-gray-600"
+										/>
+									</span>
+								</Tooltip>
 							</div>
 							<div className='md:w-20 grow md:grow-0'>
 								<ProgressBar
@@ -215,6 +306,14 @@ const Dashboard = () => {
 								/>
 							</div>
 							<span>{ visitorsLimitPercent }%</span>
+							<span className="text-gray-500 text-sm ml-2">
+								{
+									sprintf(
+										optimoleDashboardApp.strings.renew_date,
+										renewalDate
+									)
+								}
+							</span>
 						</div>
 					</div>
 				</div>
@@ -236,9 +335,11 @@ const Dashboard = () => {
 				</div>
 
 				<div className="flex pt-5 gap-5 flex-col md:flex-row">
-					{ metrics.map( metric => {
+					{ availableMetrics.map( metric => {
 						const rawValue = userData[ metric.value ];
 						const { formattedValue, unit } = formatMetric( metric.value, rawValue );
+						const buttonAction = getMetricButtonAction( metric.value );
+						const showButton = 'free' !== userData.plan && metric.hasButton;
 
 						return (
 							<div
@@ -248,8 +349,11 @@ const Dashboard = () => {
 								) }
 							>
 								<div className="flex w-full flex-col">
-									<div className="text-sm text-gray-500">
-										{ metric.label }
+									<div className='flex flex-row items-center gap-2 mb-2'>
+										<Icon icon={ metric.icon } size={ 16 } className="text-info" />
+										<div className="text-sm text-gray-500">
+											{ metric.label }
+										</div>
 									</div>
 
 									<div className='flex items-end gap-1'>
@@ -257,9 +361,23 @@ const Dashboard = () => {
 										<span className='text-sm text-gray-500'>{unit}</span>
 									</div>
 
-									<div className="font-normal text-gray-600">
+									<div className={ `font-normal text-gray-600 ${ showButton ? 'mb-3' : '' }` }>
 										{ metric.description }
 									</div>
+
+									{ showButton && (
+										<Button
+											variant="secondary"
+											size="small"
+											className="mt-auto font-semibold rounded-md w-fit px-3 flex items-center gap-1"
+											{ ...buttonAction }
+										>
+											{ metric.buttonText }
+											{ ( 'traffic' === metric.value ) && (
+												<Icon icon={ external } size={ 16 } />
+											) }
+										</Button>
+									) }
 								</div>
 							</div>
 						);

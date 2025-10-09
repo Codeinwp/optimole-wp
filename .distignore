@@ -17,6 +17,8 @@ phpcs.xml
 phpunit.xml
 phpunit-cc.xml
 phpmd.xml
+jest.config.js
+jest.setup.js
 package.json
 package-lock.json
 composer.json
@@ -31,6 +33,8 @@ tests
 dist
 artifact
 assets/src
+assets/js/modules/__tests__
+coverage
 .wporg
 .nvmrc
 .github
@@ -38,6 +42,7 @@ assets/src
 postcss.config.js
 tailwind.config.js
 phpstan.neon
+phpstan-baseline.neon
 development.php
 playwright.config.ts
 test-results

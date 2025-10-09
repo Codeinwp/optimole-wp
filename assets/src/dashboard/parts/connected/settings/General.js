@@ -64,7 +64,7 @@ const General = ({
 		<>
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_image_replace }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.replacer_desc } } /> }
+				help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.replacer_desc } } /> }
 				checked={ isReplacerEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -77,25 +77,10 @@ const General = ({
 
 			<hr className="my-8 border-grayish-blue"/>
 
-			<ToggleControl
-				label={ optimoleDashboardApp.strings.options_strings.toggle_lazyload }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.lazyload_desc } } /> }
-				checked={ isLazyloadEnabled }
-				disabled={ ! isReplacerEnabled || isLoading }
-				className={ classnames(
-					{
-						'is-disabled': ! isReplacerEnabled || isLoading
-					}
-				) }
-				onChange={ value => updateOption( 'lazyload', value ) }
-			/>
-
-			<hr className="my-8 border-grayish-blue"/>
-
 			{ isUserActive && <>
 				<ToggleControl
 					label={ optimoleDashboardApp.strings.options_strings.enable_badge_title }
-					help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_badge_description } } /> }
+					help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_badge_description } } /> }
 					checked={ isBannerEnabled }
 					disabled={ isLoading }
 					className={ classnames(
@@ -128,9 +113,9 @@ const General = ({
 							/>
 						</Button>
 						{ showBadgeSettings && (
-							<div class="mt-4 space-y-4 pl-4 pt-2">
-								<div class="flex items-center justify-between mb-4">
-									<label class="text-gray-600 font-medium">{ optimoleDashboardApp.strings.options_strings.enable_badge_show_icon }</label>
+							<div className="mt-4 space-y-4 pl-4 pt-2">
+								<div className="flex items-center justify-between mb-4">
+									<label className="text-gray-600 font-medium">{ optimoleDashboardApp.strings.options_strings.enable_badge_show_icon }</label>
 									<ToggleControl
 										label=""
 										checked={ isShowBadgeIcon }
@@ -144,9 +129,9 @@ const General = ({
 										onChange={ value => updateOption( 'show_badge_icon', value ) }
 									/>
 								</div>
-								<div class="flex items-center justify-between">
-									<label class="text-gray-600 font-medium">{ optimoleDashboardApp.strings.options_strings.enable_badge_position }</label>
-									<div class="flex space-x-2">
+								<div className="flex items-center justify-between">
+									<label className="text-gray-600 font-medium">{ optimoleDashboardApp.strings.options_strings.enable_badge_position }</label>
+									<div className="flex space-x-2">
 										<Button
 											className={ classnames(
 												'px-4 py-2 border rounded border-[1px]',

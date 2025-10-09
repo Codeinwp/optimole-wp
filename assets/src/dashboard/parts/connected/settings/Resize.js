@@ -17,7 +17,6 @@ import {
 import { useSelect } from '@wordpress/data';
 
 import { useState } from '@wordpress/element';
-import Notice from '../../components/Notice';
 
 const Resize = ({
 	settings,
@@ -38,8 +37,6 @@ const Resize = ({
 	const isSmartResizeEnabled = 'disabled' !== settings[ 'resize_smart' ];
 	const isLimitDimensionsEnabled = 'disabled' !== settings[ 'limit_dimensions' ];
 
-	const isLazyloadEnabled = 'disabled' !== settings.lazyload;
-	const isScaleEnabled = 'disabled' === settings.scale;
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
 		const data = { ...settings };
@@ -96,7 +93,7 @@ const Resize = ({
 		<>
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_resize_smart_title }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_resize_smart_desc } } /> }
+				help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_resize_smart_desc } } /> }
 				checked={ isSmartResizeEnabled }
 				disabled={ isLoading }
 				className={ classnames(
@@ -109,28 +106,9 @@ const Resize = ({
 
 			<hr className="my-8 border-grayish-blue"/>
 
-
-			{isLazyloadEnabled && (
-				<>
-					<ToggleControl
-						label={ optimoleDashboardApp.strings.options_strings.toggle_scale }
-						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.scale_desc } } /> }
-						checked={ isScaleEnabled }
-						disabled={ isLoading }
-						className={ classnames(
-							{
-								'is-disabled': isLoading
-							}
-						) }
-						onChange={ value => updateOption( 'scale', ! value ) }
-					/>
-					<hr className="my-8 border-grayish-blue"/> </>
-			)  }
-
-
 			<ToggleControl
 				label={ optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_title }
-				help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_desc } } /> }
+				help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_limit_dimensions_desc } } /> }
 				checked={ isLimitDimensionsEnabled }
 				disabled={ isLoading }
 				className={ classnames(

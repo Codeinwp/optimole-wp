@@ -490,7 +490,7 @@ abstract class Optml_App_Replacer {
 	/**
 	 * Extract domains and use them as keys for fast processing.
 	 *
-	 * @param array $urls Input urls.
+	 * @param array|null $urls Input urls.
 	 *
 	 * @return array Array of domains as keys.
 	 */
@@ -529,7 +529,7 @@ abstract class Optml_App_Replacer {
 	/**
 	 * Check if we can replace the url.
 	 *
-	 * @param string $url Url to change.
+	 * @param string|mixed $url Url to change.
 	 *
 	 * @return bool Either we can replace this url or not.
 	 */
@@ -668,7 +668,7 @@ abstract class Optml_App_Replacer {
 			->width( $width )
 			->height( $height );
 
-		if ( is_array( $resize ) && ! empty( $resize['type'] ) ) {
+		if ( ! empty( $resize['type'] ) ) {
 			$optimized_image->resize( $resize['type'], $resize['gravity'] ?? Position::CENTER, $resize['enlarge'] ?? false );
 
 		}
@@ -685,7 +685,7 @@ abstract class Optml_App_Replacer {
 	 *
 	 * @return int
 	 */
-	protected function get_id_by_url( $url ) {
+	public function get_id_by_url( $url ) {
 		$url = $this->get_unoptimized_url( $url );
 		srand( crc32( $url ) );
 		$random_id = rand();

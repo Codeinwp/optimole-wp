@@ -60,14 +60,14 @@ class Optml_Settings {
 		'admin_bar_item'             => 'enabled',
 		'lazyload'                   => 'disabled',
 		'scale'                      => 'disabled',
-		'network_optimization'       => 'disabled',
+		'network_optimization'       => 'enabled',
 		'lazyload_placeholder'       => 'enabled',
 		'bg_replacer'                => 'enabled',
 		'video_lazyload'             => 'enabled',
 		'retina_images'              => 'disabled',
-		'lazyload_type'              => 'fixed',
+		'lazyload_type'              => 'fixed|viewport',
 		'limit_dimensions'           => 'enabled',
-		'limit_height'               => 1080,
+		'limit_height'               => 4000,
 		'limit_width'                => 1920,
 		'resize_smart'               => 'disabled',
 		'no_script'                  => 'disabled',
@@ -75,7 +75,7 @@ class Optml_Settings {
 		'compression_mode'           => 'custom',
 		'cloud_sites'                => [ 'all' => 'true' ],
 		'watchers'                   => '',
-		'quality'                    => 'auto',
+		'quality'                    => 80,
 		'wm_id'                      => - 1,
 		'wm_opacity'                 => 1,
 		'wm_position'                => Position::SOUTH_EAST,
@@ -86,14 +86,14 @@ class Optml_Settings {
 		'img_to_video'               => 'disabled',
 		'css_minify'                 => 'enabled',
 		'js_minify'                  => 'disabled',
-		'avif'                       => 'enabled',
+		'avif'                       => 'enabled', // legacy setting, is no longer used in the UI
 		'autoquality'                => 'enabled',
 		'native_lazyload'            => 'disabled',
 		'offload_media'              => 'disabled',
 		'transfer_status'            => 'disabled',
 		'cloud_images'               => 'enabled',
 		'strip_metadata'             => 'enabled',
-		'skip_lazyload_images'       => 3,
+		'skip_lazyload_images'       => 2,
 		'defined_image_sizes'        => [],
 		'banner_frontend'            => 'disabled',
 		'offloading_status'          => 'disabled',
@@ -172,8 +172,6 @@ class Optml_Settings {
 				}
 			}
 		}
-
-		add_action( 'init', [ $this, 'register_settings' ] );
 	}
 
 	/**
@@ -239,7 +237,9 @@ class Optml_Settings {
 	 * @return array
 	 */
 	public function parse_settings( $new_settings ) {
-		$sanitized = [];
+		$sanitized       = [];
+		$sanitized_value = '';
+
 		foreach ( $new_settings as $key => $value ) {
 			switch ( $key ) {
 				case 'admin_bar_item':
@@ -280,7 +280,9 @@ class Optml_Settings {
 					$sanitized_value = $this->to_bound_integer( $value, 100, 5000 );
 					break;
 				case 'quality':
-					$sanitized_value = $this->to_bound_integer( $value, 1, 100 );
+					if ( 'mauto' !== $value ) {
+						$sanitized_value = $this->to_bound_integer( $value, 50, 100 );
+					}
 					break;
 				case 'wm_id':
 					$sanitized_value = intval( $value );
@@ -294,7 +296,7 @@ class Optml_Settings {
 					$sanitized_value = is_string( $value ) ? sanitize_text_field( $value ) : '';
 					break;
 				case 'lazyload_type':
-					$sanitized_value = $this->to_map_values( $value, [ 'fixed', 'viewport', 'all' ], 'fixed' );
+					$sanitized_value = $this->to_map_values( $value, [ 'fixed', 'viewport', 'all', 'fixed|viewport' ], 'fixed' );
 					break;
 				case 'compression_mode':
 					$sanitized_value = $this->to_map_values( $value, [ 'speed_optimized', 'quality_optimized', 'custom' ], 'custom' );
@@ -470,9 +472,30 @@ class Optml_Settings {
 			self::$options = $opt;
 		}
 		if ( apply_filters( 'optml_dont_trigger_settings_updated', false ) === false ) {
+			/**
+			 * Fires when Optimole settings are updated.
+			 *
+			 * This action is triggered after settings have been successfully updated
+			 * and provides an opportunity for other plugins or themes to react to
+			 * Optimole configuration changes.
+			 */
 			do_action( 'optml_settings_updated' );
+			static $cleared = false;
+			if ( $cleared ) {
+				return $update;
+			}
+			$cleared = true;
+			/**
+			 * Fires when Optimole cache needs to be cleared after settings update.
+			 *
+			 * This action is triggered after settings are updated to ensure that
+			 * any cached data is refreshed with the new configuration.
+			 *
+			 * @param bool|string $location Whether to clear the cache globally or just for a particular request.
+			 *                              You can pass a string with the URL to clear the cache for a particular URL only.
+			 */
+			do_action( 'optml_clear_cache', true );
 		}
-
 		return $update;
 	}
 
@@ -691,12 +714,12 @@ class Optml_Settings {
 			return '';
 		}
 
-		if ( isset( $service_data['is_cname_assigned'] ) && $service_data['is_cname_assigned'] === 'yes' && ! empty( $service_data['domain'] ) ) {
-			return strtolower( $service_data['domain'] );
-		}
-
 		if ( defined( 'OPTML_CUSTOM_DOMAIN' ) && constant( 'OPTML_CUSTOM_DOMAIN' ) ) {
 			return parse_url( strtolower( OPTML_CUSTOM_DOMAIN ), PHP_URL_HOST );
+		}
+
+		if ( isset( $service_data['is_cname_assigned'] ) && $service_data['is_cname_assigned'] === 'yes' && ! empty( $service_data['domain'] ) ) {
+			return strtolower( $service_data['domain'] );
 		}
 
 		return sprintf(
@@ -732,24 +755,6 @@ class Optml_Settings {
 	 */
 	public function get_raw_settings() {
 		return get_option( $this->namespace, false );
-	}
-
-	/**
-	 * Get settings for CSAT.
-	 *
-	 * @return void
-	 */
-	public function register_settings() {
-		register_setting(
-			'optml_settings',
-			'optml_csat',
-			[
-				'type'              => 'string',
-				'sanitize_callback' => 'sanitize_text_field',
-				'show_in_rest'      => true,
-				'default'           => '{}',
-			]
-		);
 	}
 
 
@@ -816,7 +821,7 @@ class Optml_Settings {
 	 * @return bool
 	 */
 	public function is_lazyload_type_viewport() {
-		return $this->get( 'lazyload_type' ) === 'viewport';
+		return false !== strpos( $this->get( 'lazyload_type' ), 'viewport' );
 	}
 
 	/**
@@ -834,7 +839,7 @@ class Optml_Settings {
 	 * @return bool
 	 */
 	public function is_lazyload_type_fixed() {
-		return $this->get( 'lazyload_type' ) === 'fixed';
+		return false !== strpos( $this->get( 'lazyload_type' ), 'fixed' );
 	}
 	/**
 	 * Utility to check if offload is enabled.

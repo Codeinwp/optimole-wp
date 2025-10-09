@@ -113,6 +113,7 @@ class Optml_Admin {
 		}
 
 		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
+		add_action( 'admin_init', [ $this, 'mark_user_with_offload' ] );
 	}
 
 	/**
@@ -391,9 +392,7 @@ class Optml_Admin {
 
 		$this->settings->update( 'limit_dimensions', 'enabled' );
 		$this->settings->update( 'lazyload', 'enabled' );
-		$this->settings->update( 'best_format', 'disabled' );
 		$this->settings->update( 'skip_lazyload_images', '2' );
-		$this->settings->update( 'avif', 'disabled' );
 		$this->settings->update( 'compression_mode', 'speed_optimized' );
 
 		update_option( self::NEW_USER_DEFAULTS_UPDATED, 'yes' );
@@ -576,15 +575,11 @@ class Optml_Admin {
 	/**
 	 * Add settings links in the plugin listing page.
 	 *
-	 * @param array $links Old plugin links.
+	 * @param string[] $links Old plugin links.
 	 *
-	 * @return array Altered links.
+	 * @return string[] Altered links.
 	 */
 	public function add_action_links( $links ) {
-		if ( ! is_array( $links ) ) {
-			return $links;
-		}
-
 		return array_merge(
 			$links,
 			[
@@ -599,7 +594,7 @@ class Optml_Admin {
 	 * @return bool Should show?
 	 */
 	public function should_show_notice() {
-		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ) {
+		if ( wp_doing_ajax() ) {
 			return false;
 		}
 
@@ -648,7 +643,7 @@ class Optml_Admin {
 					/* translators: 1 - opening strong tag, 2 - visits limit, 3 - closing strong tag, 4 - opening strong tag, 5 - closing strong tag, 6 -  br tag */
 						__( '%1$sIt seems you are close to the %2$s visits limit with %3$sOptimole%4$s for this month.%5$s %6$s For a larger quota you may want to check the upgrade plans. If you exceed the quota we will need to deliver back your original, un-optimized images, which might decrease your site speed performance.', 'optimole-wp' ),
 						'<strong>',
-						number_format_i18n( 1000 ),
+						number_format_i18n( 2000 ),
 						'</strong>',
 						'<strong>',
 						'</strong>',
@@ -657,7 +652,7 @@ class Optml_Admin {
 					?>
 				</p>
 				<p style="margin: 1.5% 0;">
-					<a href="<?php echo esc_url( tsdk_translate_link( 'https://optimole.com/pricing' ) ); ?>"
+					<a href="<?php echo esc_url( tsdk_translate_link( self::get_upgrade_base_link() ) ); ?>"
 						target="_blank"
 						style="border-radius: 4px;padding: 9px 10px;border: 2px solid #FFF;color: white;text-decoration: none;"><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 					</a>
@@ -676,7 +671,7 @@ class Optml_Admin {
 	 */
 	public function should_show_upgrade() {
 		$current_screen = get_current_screen();
-		if ( ( defined( 'DOING_AJAX' ) && DOING_AJAX ) ||
+		if ( wp_doing_ajax() ||
 			is_network_admin() ||
 			! current_user_can( 'manage_options' ) ||
 			! $this->settings->is_connected() ||
@@ -707,6 +702,41 @@ class Optml_Admin {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Build upgrade URL with current user's encoded email.
+	 *
+	 * @return string Upgrade URL.
+	 */
+	public static function get_upgrade_base_link() {
+		$base_url = 'https://optimole.com/upgrade';
+		$email    = self::get_account_email();
+
+		if ( ! empty( $email ) ) {
+			$base_url = add_query_arg( 'email', base64_encode( $email ), $base_url );
+		}
+
+		return $base_url;
+	}
+
+	/**
+	 * Retrieve Optimole account email.
+	 *
+	 * @return string
+	 */
+	private static function get_account_email() {
+		$settings     = new Optml_Settings();
+		$service_data = $settings->get( 'service_data' );
+
+		if ( isset( $service_data['user_email'] ) && is_string( $service_data['user_email'] ) ) {
+			$email = sanitize_email( $service_data['user_email'] );
+			if ( ! empty( $email ) ) {
+				return $email;
+			}
+		}
+
+		return '';
 	}
 
 	/**
@@ -940,7 +970,7 @@ class Optml_Admin {
 								 ';
 			wp_add_inline_script( 'optml-print', $script );
 		}
-		if ( $this->settings->is_lazyload_type_viewport() ) {
+		if ( Optml_Manager::should_load_profiler() ) {
 			add_action(
 				'wp_footer',
 				function () {
@@ -971,6 +1001,7 @@ class Optml_Admin {
 				'nonce' => esc_js( wp_create_nonce( 'wp_rest' ) ),
 				'missingDevices' => esc_js( Profile::PLACEHOLDER_MISSING ),
 				'pageProfileId' => esc_js( Profile::PLACEHOLDER ),
+				'pageProfileUrl' => esc_js( Profile::PLACEHOLDER_URL ),
 				'_t' => esc_js( Profile::PLACEHOLDER_TIME ),
 				'hmac' => esc_js( Profile::PLACEHOLDER_HMAC ),
 				'bgSelectors' => array_values( Optml_Lazyload_Replacer::get_background_lazyload_selectors() ),
@@ -1003,7 +1034,7 @@ class Optml_Admin {
 			return;
 		}
 
-		if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+		if ( wp_doing_ajax() ) {
 			return;
 		}
 
@@ -1074,8 +1105,16 @@ class Optml_Admin {
 		if ( isset( $data['extra_visits'] ) ) {
 			$this->settings->update_frontend_banner_from_remote( $data['extra_visits'] );
 		}
+
 		// Here the account got deactivated, in this case we check if the user is using offloaded images and we roll them back.
-		if ( isset( $data['status'] ) && $data['status'] === 'inactive' ) {
+		$should_revert_offloading = isset( $data['status'] ) && $data['status'] === 'inactive';
+
+		// The user is now on a plan without offloading and the grace period is over.
+		if ( isset( $data['should_revert_offload'] ) && (bool) $data['should_revert_offload'] ) {
+			$should_revert_offloading = true;
+		}
+
+		if ( $should_revert_offloading ) {
 			// We check if the user has images offloaded.
 			if ( $this->settings->get( 'offload_media' ) === 'disabled' ) {
 				return;
@@ -1145,7 +1184,29 @@ class Optml_Admin {
 	 * @return void
 	 */
 	public function menu_icon_style() {
-		echo '<style>#toplevel_page_optimole img{ max-width:22px;padding-top:6px!important;opacity:.9!important;} #toplevel_page_optimole li.wp-first-item{ display:none }</style>';
+		$conflicts_count = $this->get_active_notices_count();
+		$badge_html = '';
+
+		if ( $conflicts_count > 0 ) {
+			$badge_html = sprintf(
+				'<style>
+				#toplevel_page_optimole .wp-menu-name::after { 
+					content: "%d";
+					background: #d63638;
+					border-radius: 10px;
+					padding: 1.5px 1px;
+					font-size: 11px;
+					margin-left: 5px; 
+					min-width: 18px;
+					display: inline-block;
+					text-align: center;
+				}
+				</style>',
+				$conflicts_count
+			);
+		}
+
+		echo '<style>#toplevel_page_optimole img{ max-width:22px;padding-top:6px!important;opacity:.9!important;} #toplevel_page_optimole li.wp-first-item{ display:none }</style>' . $badge_html;
 	}
 
 	/**
@@ -1327,6 +1388,10 @@ class Optml_Admin {
 		];
 		$lang_code = isset( $available_languages[ $language ] ) ? 'de' : 'en';
 
+		$site_settings = $this->settings->get_site_settings();
+		if ( ! empty( $service_data ) ) {
+			$service_data['domain_dns'] = $this->settings->get_cdn_url();
+		}
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',
@@ -1344,12 +1409,14 @@ class Optml_Admin {
 			'current_user'               => [
 				'email' => $user->user_email,
 			],
-			'site_settings'              => $this->settings->get_site_settings(),
+			'site_settings'              => $site_settings,
 			'offload_limit'              => $this->settings->get( 'offload_limit' ),
 			'home_url'                   => home_url(),
 			'optimoleHome'               => tsdk_translate_link( 'https://optimole.com/' ),
 			'optimoleDashHome'           => tsdk_translate_link( 'https://dashboard.optimole.com/', 'query' ),
 			'optimoleDashBilling'        => tsdk_translate_link( 'https://dashboard.optimole.com/settings/billing', 'query' ),
+			'optimoleDashMetrics'        => tsdk_translate_link( tsdk_utmify( 'https://dashboard.optimole.com/metrics', 'wp-plugin', 'shortcut' ) ),
+			'offload_upgrade_url'        => tsdk_translate_link( tsdk_utmify( 'https://optimole.com/pricing/', 'offload' ) ),
 			'days_since_install'         => round( ( time() - get_option( 'optimole_wp_install', 0 ) ) / DAY_IN_SECONDS ),
 			'is_offload_media_available' => $is_offload_media_available,
 			'auto_connect'               => $auto_connect,
@@ -1364,6 +1431,16 @@ class Optml_Admin {
 			'bf_notices'                 => $this->get_bf_notices(),
 			'spc_banner'                 => $this->get_spc_banner(),
 			'show_exceed_plan_quota_notice' => $this->should_show_exceed_quota_warning(),
+			'show_free_user_with_offload_notice' => get_option( 'optml_has_offloading_enabled_on_upgrade', 'no' ),
+			'report_issue_url' => add_query_arg(
+				[
+					'utm_source'   => 'plugin',
+					'utm_medium'   => 'wp_dashboard',
+					'utm_campaign' => 'report_issue',
+					'contact_website' => home_url(),
+				],
+				tsdk_translate_link( 'https://optimole.com/contact/' )
+			),
 		];
 	}
 
@@ -1480,7 +1557,7 @@ class Optml_Admin {
 					'<span class="border-b border-0 border-white border-dashed text-promo-orange">BFCM2425</span>',
 					'<span class="text-promo-orange uppercase">' . __( '25% off', 'optimole-wp' ) . '</span>'
 				),
-				'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( 'https://optimole.com/pricing' ), 'bfcm24', 'sidebarnotice' ) ),
+				'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm24', 'sidebarnotice' ) ),
 			],
 		];
 
@@ -1500,7 +1577,7 @@ class Optml_Admin {
 				'<span class="text-promo-orange">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 			),
 			'cta_text' => __( 'Claim now', 'optimole-wp' ),
-			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( 'https://optimole.com/pricing' ), 'bfcm24', 'dismissiblenotice' ) ),
+			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm24', 'dismissiblenotice' ) ),
 			'dismiss_key' => self::BF_PROMO_DISMISS_KEY,
 		];
 
@@ -1539,6 +1616,7 @@ class Optml_Admin {
 			'account_needed_sub_heading'     => __( 'Stop sacrificing image quality for page speed. Optimole delivers both.', 'optimole-wp' ),
 			'account_needed_trust_badge'     => __( 'TRUSTED BY 200,000+ HAPPY USERS', 'optimole-wp' ),
 			'account_needed_setup_time'      => __( 'Setup is instant - just click connect', 'optimole-wp' ),
+			'account_needed_benefits_toggle' => __( 'See what you\'ll get', 'optimole-wp' ),
 			'invalid_key'                    => __( 'Invalid API Key', 'optimole-wp' ),
 			'keep_connected'                 => __( 'Ok, keep me connected', 'optimole-wp' ),
 			'cloud_library'                  => __( 'Cloud Library', 'optimole-wp' ),
@@ -1577,6 +1655,9 @@ If you still want to disconnect click the button below.',
 			'not_connected'                  => __( 'NOT CONNECTED', 'optimole-wp' ),
 			'usage'                          => __( 'Monthly Usage', 'optimole-wp' ),
 			'quota'                          => __( 'Monthly visits:', 'optimole-wp' ),
+			'tooltip_visits_title'           => __( 'What are visits?', 'optimole-wp' ),
+			/* translators: 1 is the day when the visits reset, for example 1st of each month */
+			'tooltip_visits_description'     => __( 'Each visitor to your site is counted as a unique daily user, regardless of their actions or return visits on the same day. Your visit count resets on %s.', 'optimole-wp' ),
 			'logged_in_as'                   => __( 'LOGGED IN AS', 'optimole-wp' ),
 			'private_cdn_url'                => __( 'IMAGES DOMAIN', 'optimole-wp' ),
 			'existing_user'                  => __( 'Existing user?', 'optimole-wp' ),
@@ -1588,11 +1669,11 @@ If you still want to disconnect click the button below.',
 				' <a href="' . esc_url( tsdk_translate_link( 'https://dashboard.optimole.com/register', 'query' ) ) . '" target="_blank">optimole.com</a>'
 			),
 			'account_needed_subtitle_1'      => sprintf(
-			/* translators: 1 is starting bold tag, 2 is ending bold tag, 3 is the starting bold tag, 4 is the limit number, 5 is ending bold tag, 6 is the starting anchor tag for the docs link on how we count visits, 7 is the ending anchor tag. */
+			/* translators: 1 is the starting bold tag, 2 is the ending bold tag, 3 is the starting bold tag, 4 is the limit number, 5 is ending bold tag, 6 is the starting anchor tag for the docs link on how we count visits, 7 is the ending anchor tag. */
 				__( '%1$sOptimize unlimited images%2$s for up to %3$s monthly %4$svisitors%5$s - completely FREE.', 'optimole-wp' ),
 				'<strong>',
 				'</strong>',
-				number_format_i18n( 1000 ),
+				number_format_i18n( 2000 ),
 				'<a href="https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors" target="_blank">',
 				'</a>'
 			),
@@ -1643,7 +1724,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			'notice_disabled_account'        => sprintf(
 			/* translators: 1 anchor tag to pricing, 2 is the ending endin anchor tag, 3 is the bold tag start, 4 ending bold tag, 5 new line tag */
 				__( '%3$sYour account has been disabled due to exceeding quota.%4$s All images are being redirected to the original unoptimized URL. %5$sPlease %1$supgrade%2$s to re-activate the account.', 'optimole-wp' ),
-				'<b><a href="' . esc_url( tsdk_translate_link( 'https://optimole.com/pricing' ) ) . '">',
+				'<b><a href="' . esc_url( tsdk_translate_link( self::get_upgrade_base_link() ) ) . '">',
 				'</a></b>',
 				'<b>',
 				'</b>',
@@ -1659,6 +1740,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			'dashboard_menu_item'            => __( 'Dashboard', 'optimole-wp' ),
 			'settings_menu_item'             => __( 'Settings', 'optimole-wp' ),
 			'help_menu_item'                 => __( 'Help', 'optimole-wp' ),
+			'settings_watermark_menu_item'   => __( 'Watermark', 'optimole-wp' ),
 			'settings_exclusions_menu_item'  => __( 'Exclusions', 'optimole-wp' ),
 			'settings_resize_menu_item'      => __( 'Resize', 'optimole-wp' ),
 			'settings_compression_menu_item' => __( 'Compression', 'optimole-wp' ),
@@ -1700,6 +1782,15 @@ The root cause might be either a security plugin which blocks this feature or so
 				'metricsSubtitle3' => __( 'Average Reduction', 'optimole-wp' ),
 				'metricsTitle4'    => __( 'CDN Traffic', 'optimole-wp' ),
 				'metricsSubtitle4' => __( 'This month', 'optimole-wp' ),
+				'metricsTitle5'    => __( 'Offloaded images', 'optimole-wp' ),
+				'metricsSubtitle5' => __( 'Offloaded to cloud', 'optimole-wp' ),
+				// translators: is used as singular when the number of images is 1 for a unit label.
+				'image'            => __( 'image', 'optimole-wp' ),
+				// translators: is used as plural when the number of images is more than 1 for a unit label.
+				'images'           => __( 'images', 'optimole-wp' ),
+				'view_analytics'   => __( 'View Analytics', 'optimole-wp' ),
+				'adjust_compression' => __( 'Adjust Compression', 'optimole-wp' ),
+				'manage_offloading' => __( 'Manage image offloading', 'optimole-wp' ),
 			],
 			'quick_actions'                  => [
 				'speed_test_title'      => __( 'Test Your Site Speed', 'optimole-wp' ),
@@ -1713,6 +1804,14 @@ The root cause might be either a security plugin which blocks this feature or so
 				'configure_settings'    => __( 'Configure settings', 'optimole-wp' ),
 			],
 			'options_strings'                => [
+				'watermark_media_desc'           => __( 'Protect your brand by adding a watermark to your images. Configure placement, opacity, and rules directly in your Optimole Dashboard.', 'optimole-wp' ),
+				'watermark_media_title'          => __( 'Watermarks', 'optimole-wp' ),
+				'learn_more'                      => __( 'Learn more', 'optimole-wp' ),
+				'open_optimole_dashboard'         => __( 'Open Optimole Dashboard', 'optimole-wp' ),
+				'watermark_footer'                => __( 'Watermark rules and exclusions are fully managed in your Optimole Dashboard.', 'optimole-wp' ),
+				'watermark_info_1' => __( 'Choose from multiple watermark positions and set opacity.', 'optimole-wp' ),
+				'watermark_info_2' => __( 'Set different watermarks for different image sizes.', 'optimole-wp' ),
+				'watermark_info_3' => __( 'Create rule-based targeting by filename, page URL, class, and more.', 'optimole-wp' ),
 				'compression_mode'               => __( 'Compression Mode', 'optimole-wp' ),
 				'compression_mode_speed_optimized'                => __( 'Speed Optimized', 'optimole-wp' ),
 				'compression_mode_quality_optimized'              => __( 'Quality Optimized', 'optimole-wp' ),
@@ -1724,7 +1823,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'best_format_title'                   => __( 'Automatic Best Image Format Selection', 'optimole-wp' ),
 				'best_format_desc'                    => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
-					__( 'When enabled, Optimole picks the ideal format for your images, balancing quality and speed. It tests different formats, like AVIF and WebP, ensuring images look good and load quickly. %1$sLearn more%2$s.', 'optimole-wp' ),
+					__( 'When enabled, Optimole chooses the best format for your images, balancing quality with speed. It tries options like AVIF and WebP to keep visuals sharp and pages fast, though uncached images may take a bit longer to process. %1$sLearn more%2$s.', 'optimole-wp' ),
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1942-best-format">',
 					'</a>'
 				),
@@ -1762,25 +1861,21 @@ The root cause might be either a security plugin which blocks this feature or so
 				),
 				'enable_bg_lazyload_desc'             => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
-					__( 'Enable this to lazy-load images set as CSS backgrounds. If Optimole misses any, you can directly target specific CSS selectors to ensure all background images are optimized. %1$sLearn more%2$s', 'optimole-wp' ),
-					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1169-how-to-enable-the-background-lazyload-feature-for-certain-background-images">',
+					__( 'Apply lazy loading to CSS background images. The toggle below enables it globally. The selector list is optional and only needed to extend coverage if certain elements are missed. %1$sLearn more%2$s', 'optimole-wp' ),
+					'<a class="inline-block text-purple-gray underline" target="_blank" href="https://docs.optimole.com/article/1169-how-to-enable-the-background-lazyload-feature-for-certain-background-images">',
 					'</a>'
 				),
 				'enable_bg_lazyload_title'            => __( 'CSS Background Lazy Load', 'optimole-wp' ),
-				'enable_video_lazyload_desc'          => sprintf(
-				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
-					__( 'By default, lazy loading does not work for embedded videos and iframes. Enable this option to activate the lazy-load on these elements. %1$sLearn more%2$s', 'optimole-wp' ),
-					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1952-lazy-loading-for-embedded-videos-and-iframes">',
-					'</a>'
-				),
-				'enable_video_lazyload_title'         => __( 'Lazy Loading for Embedded Videos and Iframes', 'optimole-wp' ),
+				'enable_video_lazyload_desc'          => __( 'Lazy load embedded videos and iframe content', 'optimole-wp' ),
+				'enable_video_lazyload_title'         => __( 'Video & iframes', 'optimole-wp' ),
 				'enable_noscript_desc'                => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
 					__( 'Enables fallback images for browsers that can\'t handle JavaScript-based lazy loading or related features. Disabling it may resolve conflicts with other plugins or configurations and decrease HTML page size. %1$sLearn more%2$s', 'optimole-wp' ),
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1959-noscript-tag">',
 					'</a>'
 				),
-				'enable_noscript_title'               => __( 'Noscript Tag', 'optimole-wp' ),
+				// translators: %s is the name of the html tag (e.g: <noscript> );
+				'enable_noscript_title'               => sprintf( __( 'Enable %s fallback', 'optimole-wp' ), '<custom_component/>' ),
 				'enable_gif_replace_title'            => __( 'GIF to Video Conversion', 'optimole-wp' ),
 				'enable_offload_media_title'          => __( 'Store Your Images in Optimole Cloud', 'optimole-wp' ),
 				'enable_offload_media_desc'           => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Free up space on your server by transferring your images to Optimole Cloud; you can transfer them back anytime. Once moved, the images will still be visible in the Media Library and can be used as before. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1967-store-your-images-in-optimole-cloud">', '</a>' ),
@@ -1794,12 +1889,12 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_image_replace'                => __( 'Enable Optimole Image Handling', 'optimole-wp' ),
 				'enable_lazyload_placeholder_desc'    => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
-					__( 'Enable this to use a generic transparent placeholder instead of the blurry images during lazy loading. Enhance the visual experience by selecting a custom color for the placeholder. %1$sLearn more%2$s', 'optimole-wp' ),
-					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1192-lazy-load-generic-placeholder">',
+					__( 'Enable this to use a generic transparent placeholder instead of the blurry images during lazy loading. %1$sLearn more%2$s', 'optimole-wp' ),
+					'<a class="inline-block underline text-white" target=”_blank” href="https://docs.optimole.com/article/1192-lazy-load-generic-placeholder">',
 					'</a>'
 				),
 
-				'lazyload_behaviour_title'            => __( 'Lazy Loading Behaviour', 'optimole-wp' ),
+				'lazyload_behaviour_title'            => __( 'Loading Method', 'optimole-wp' ),
 				'lazyload_behaviour_desc'             => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
 					__( 'Choose how Optimole will handle lazy loading for images on your website. %1$sLearn more%2$s', 'optimole-wp' ),
@@ -1808,12 +1903,11 @@ The root cause might be either a security plugin which blocks this feature or so
 				),
 				'lazyload_behaviour_all'             => __( 'Lazy Load All Images', 'optimole-wp' ),
 				'lazyload_behaviour_all_desc'        => __( 'All images will use lazy loading regardless of position.', 'optimole-wp' ),
-				'lazyload_behaviour_viewport'          => __( 'Skip Lazy Loading for Initial Viewport', 'optimole-wp' ),
+				'lazyload_behaviour_viewport'          => __( 'Skip images above the fold', 'optimole-wp' ),
 				'lazyload_behaviour_viewport_desc'   => __( 'Automatically detects and immediately loads images visible in the initial viewport. Detection is done with a lightweight client-side script that identifies what\'s visible on each user\'s screen. All other images will lazy load.', 'optimole-wp' ),
-				/* translators: 1 is the placeholder for the number of images */
-				'lazyload_behaviour_fixed'           => sprintf( __( 'Skip Lazy Loading for First %s Images', 'optimole-wp' ), '[N]' ),
+				'lazyload_behaviour_fixed'           => __( 'Skip lazy loading for first images', 'optimole-wp' ),
 				'lazyload_behaviour_fixed_desc'      => __( 'Indicate how many images at the top of each page should bypass lazy loading, ensuring they\'re instantly visible.', 'optimole-wp' ),
-				'enable_lazyload_placeholder_title'   => __( 'Lazy Load with Generic Placeholder', 'optimole-wp' ),
+				'enable_lazyload_placeholder_title'   => __( 'Enable generic placeholder color', 'optimole-wp' ),
 				'enable_network_opt_desc'             => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
 					__( 'When enabled, Optimole will automatically reduce the image quality when it detects a slower network, making your images load faster on low-speed internet connections. %1$sLearn more%2$s', 'optimole-wp' ),
@@ -1830,7 +1924,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'enable_resize_smart_title'           => __( 'Smart Cropping', 'optimole-wp' ),
 				'enable_retina_desc'                  => sprintf(
 				/* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */
-					__( 'Enable this feature to optimize your images for Retina displays. Retina-ready images are optimized to look sharp on screens with higher pixel density, offering viewers enhanced visual quality. %1$sLearn more%2$s', 'optimole-wp' ),
+					__( 'Optimizes images for Retina (high-DPI) screens for sharper results. Always enabled for images under 150px wide. %1$sLearn more%2$s', 'optimole-wp' ),
 					'<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1391-what-is-a-retina-image">',
 					'</a>'
 				),
@@ -1925,13 +2019,13 @@ The root cause might be either a security plugin which blocks this feature or so
 				'high_q_title'                        => __( 'High', 'optimole-wp' ),
 				'image_1_label'                       => __( 'Original', 'optimole-wp' ),
 				'image_2_label'                       => __( 'Optimized', 'optimole-wp' ),
-				'lazyload_desc'                       => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Scales large images to fit their display space, ensuring your website runs fast. With lazy loading, images appear when needed while scrolling, making navigation smoother. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1939-scale-images-lazy-load">', '</a>' ),
+				'lazyload_desc'                       => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Images load only when they\'re about to enter the viewport. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1948-bypass-lazy-load-for-first-images">', '</a>' ),
 				'filter_length_error'                 => __( 'The filter should be at least 3 characters long.', 'optimole-wp' ),
-				'scale_desc'                          => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Enable this to allow Optimole to resize lazy-loaded images for optimal display on your screen. Keep it disabled to retain the original image size, though it may result in slower page loads. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1950-image-scaling">', '</a>' ),
+				'scale_desc'                          => __( 'Automatically resize the images based on device and viewport', 'optimole-wp' ),
 				'low_q_title'                         => __( 'Low', 'optimole-wp' ),
 				'medium_q_title'                      => __( 'Medium', 'optimole-wp' ),
 				'no_images_found'                     => __( 'You dont have any images in your Media Library. Add one and check how the Optimole will perform.', 'optimole-wp' ),
-				'native_desc'                         => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Enable to use the browser\'s built-in lazy loading feature. Enabling this will disable the auto scale feature, meaning images will not be automatically resized to fit the screen dimensions. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1949-browser-native-lazy-load">', '</a>' ),
+				'native_desc'                         => __( 'Uses the browser\'s built-in lazy loading feature. Enabling this will disable the auto scale.', 'optimole-wp' ),
 				'option_saved'                        => __( 'Option saved.', 'optimole-wp' ),
 				'ml_quality_desc'                     => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Optimole ML algorithms will predict the optimal image quality to get the smallest possible size with minimum perceived quality losses. When disabled, you can control the quality manually. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1016-what-is-the-difference-between-the-auto-high-medium-low-compression-levels">', '</a>' ),
 				'quality_desc'                        => __( 'Lower image quality might boost your loading speed by lowering the size. However, the low image quality may negatively impact the visual appearance of the images. Try experimenting with the setting, then click the View sample image link to see what option works best for you.', 'optimole-wp' ),
@@ -1952,15 +2046,29 @@ The root cause might be either a security plugin which blocks this feature or so
 				'cloud_site_title'                    => __( 'Show images only from these sites:', 'optimole-wp' ),
 				'cloud_site_desc'                     => __( 'Browse images only from the specified websites. Otherwise, images from all websites will appear in the library.', 'optimole-wp' ),
 				'toggle_ab_item'                      => __( 'Admin bar status', 'optimole-wp' ),
-				'toggle_lazyload'                     => __( 'Scale Images & Lazy loading', 'optimole-wp' ),
-				'toggle_scale'                        => __( 'Image Scaling', 'optimole-wp' ),
-				'toggle_native'                       => __( 'Browser Native Lazy Load', 'optimole-wp' ),
+				'toggle_lazyload'                     => __( 'Enable Lazy Loading & Scaling', 'optimole-wp' ),
+				'toggle_scale'                        => __( 'Smart Image Scaling', 'optimole-wp' ),
+				'toggle_native'                       => __( 'Native Browser Loading', 'optimole-wp' ),
 				'on_toggle'                           => __( 'On', 'optimole-wp' ),
 				'off_toggle'                          => __( 'Off', 'optimole-wp' ),
 				'view_sample_image'                   => __( 'View sample image', 'optimole-wp' ),
-				'watch_placeholder_lazyload'          => __( 'Add each CSS selector on a new line or separated by comma(,)', 'optimole-wp' ),
-				'watch_desc_lazyload'                 => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Enter CSS selectors for any background images not covered by the default lazy loading. This ensures those images also benefit from the optimized loading process. %1$sLearn more%2$s', 'optimole-wp' ), '<a class="inline-block text-purple-gray underline" target=”_blank” href="https://docs.optimole.com/article/1169-how-to-enable-the-background-lazyload-feature-for-certain-background-images">', '</a>' ),
-				'watch_title_lazyload'                => __( 'Extend CSS Background Lazy Loading', 'optimole-wp' ),
+				'watch_placeholder_lazyload'          => __( 'Optional selectors to extend coverage (one per line or comma-separated)', 'optimole-wp' ),
+				// translators: %s is the example selector list.
+				'watch_placeholder_lazyload_example'  => sprintf( __( 'Example: %s', 'optimole-wp' ), '.hero-bg, #banner-image, .lazy-bg, .footer-bg' ),
+				'watch_desc_lazyload'                 => __( 'If everything is covered out of the box, leave this empty.', 'optimole-wp' ),
+				'smart_loading_title'                       => __( 'Smart Loading', 'optimole-wp' ),
+				'smart_loading_desc'                  => __( 'JavaScript-driven with advanced controls', 'optimole-wp' ),
+				'browser_native_lazy'                 => __( 'Uses the browser\'s built-in lazy loading feature', 'optimole-wp' ),
+				// translators: viewport is the visible area of a web page on a display device.
+				'viewport_detection'                  => __( 'Viewport detection', 'optimole-wp' ),
+				// translators: set the colors for the placeholder image.
+				'placeholders_color'                  => __( 'Placeholders', 'optimole-wp' ),
+				// translators: it can handle many images without slowing down the site.
+				'auto_scaling'                        => __( 'Auto Scaling', 'optimole-wp' ),
+				// translators: it uses the browser's built-in lazy loading feature without any additional scripts.
+				'lightweight_native'                  => __( 'Lightweight', 'optimole-wp' ),
+
+				'watch_title_lazyload'                => __( 'Extend CSS Background Images', 'optimole-wp' ),
 				'width_field'                         => __( 'Width', 'optimole-wp' ),
 				'crop'                                => __( 'crop', 'optimole-wp' ),
 				'toggle_cdn'                          => __( 'Serve CSS & JS Through Optimole', 'optimole-wp' ),
@@ -2034,6 +2142,24 @@ The root cause might be either a security plugin which blocks this feature or so
 				'exceed_plan_quota_notice_description' => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'Based on this trend, you are likely to exceed your free quota before the month ends. To avoid any disruption in service, we strongly recommend %1$supgrading%2$s your plan or waiting until your traffic stabilizes before offloading your images. Do you still wish to proceed?', 'optimole-wp' ), '<a style="white-space: nowrap;" target=”_blank” href="https://dashboard.optimole.com/settings/billing/">', '</a>' ),
 				'exceed_plan_quota_notice_start_action' => __( 'Yes, Transfer to Optimole Cloud', 'optimole-wp' ),
 				'exceed_plan_quota_notice_secondary_action' => __( 'No, keep images on my website', 'optimole-wp' ),
+				'plan_update_notice_title'                  => __( 'Plan Update', 'optimole-wp' ),
+				'plan_update_notice_desc'                   => __( 'We\'ve changed how plans work. Users on the Optimole Free plan cannot offload new images. Existing images that are already offloaded will remain offloaded.', 'optimole-wp' ),
+				'upgrade_to_use_offloading_notice_desc'     => __( 'Offloading images is a PRO feature. Please upgrade your plan to enable image transfer to Optimole Cloud.', 'optimole-wp' ),
+				'visual_settings'                           => __( 'Visual Settings', 'optimole-wp' ),
+				'extended_features'                         => __( 'Extended Features', 'optimole-wp' ),
+				// translators: mark that the options are aplied globally.
+				'global_option'                             => __( 'Global', 'optimole-wp' ),
+				// translators: This option is discouraged from being used.
+				'not_recommended'                           => __( 'Not recommended', 'optimole-wp' ),
+				// translators: %1$s is the starting bold tag, %2$s is the ending bold tag.
+				'viewport_skip_images_notice'               => sprintf( __( 'When %1$sskip above the fold%2$s and %1$sskip first images%2$s are both enabled: the skip rule applies on a user\'s first page view. On subsequent views, once viewport data exists, the skip rule is ignored in favor of the viewport data.', 'optimole-wp' ), '<strong>', '</strong>' ),
+				// translators: %1$s is the starting bold tag, %2$s is the ending bold tag.
+				'native_lazy_load_warning'                  => sprintf( __( 'Native browser loading works with viewport detection, but it does not support smart image scaling. It can offer better cross-browser compatibility. Still, we do %1$snot recommend%2$s it for most sites due to fewer controls and features compared to Smart Loading.', 'optimole-wp' ), '<strong>', '</strong>' ),
+				'performance_impact_alert_title'            => __( 'Performance Impact Alert', 'optimole-wp' ),
+				'performance_impact_alert_lazy_desc'         => __( 'Disabling Lazy Load may significantly impact your site\'s loading speed and Core Web Vitals scores.', 'optimole-wp' ),
+				'performance_impact_alert_scale_desc'         => __( 'Disabling Image Scaling may significantly impact your site\'s loading speed and Core Web Vitals scores.', 'optimole-wp' ),
+				'performance_impact_alert_action_label'      => __( 'Continue with disabling', 'optimole-wp' ),
+				'performance_impact_alert_secondary_action_label' => __( 'Keep enabled and get help', 'optimole-wp' ),
 			],
 			'help'                           => [
 				'section_one_title'           => __( 'Help and Support', 'optimole-wp' ),
@@ -2114,17 +2240,7 @@ The root cause might be either a security plugin which blocks this feature or so
 				'big_optimization'      => __( '❤️❤️❤️ Our moles just nailed it, this one is <strong>{ratio}</strong> smaller.', 'optimole-wp' ),
 			],
 			'csat'                           => [
-				'title'                => __( 'Your opinion matters', 'optimole-wp' ),
 				'close'                => __( 'Close', 'optimole-wp' ),
-				'heading_one'          => __( 'How easy did you find to get started using Optimole, on a scale of 1 to 5?', 'optimole-wp' ),
-				'heading_two'          => __( 'Any specific feedback you would like to add?', 'optimole-wp' ),
-				'heading_three'        => __( 'Thank you!', 'optimole-wp' ),
-				'low'                  => __( 'Very Poor', 'optimole-wp' ),
-				'high'                 => __( 'Excellent', 'optimole-wp' ),
-				'feedback_placeholder' => __( 'Add your feedback here (optional)', 'optimole-wp' ),
-				'skip'                 => __( 'Skip', 'optimole-wp' ),
-				'submit'               => __( 'Submit', 'optimole-wp' ),
-				'thank_you'            => __( 'Your input is highly appreciated and helps us shape a better experience in Optimole.', 'optimole-wp' ),
 			],
 			'cron_error'                     => sprintf( /* translators: 1 is code to disable cron, 2 value of the constant */ __( 'It seems that you have the %1$s constant defined as %2$s. The offloading process uses cron events to offload the images in the background. Please remove the constant from your wp-config.php file in order for the offloading process to work.', 'optimole-wp' ), '<code>DISABLE_WP_CRON</code>', '<code>true</code>' ),
 			'cancel'                         => __( 'Cancel', 'optimole-wp' ),
@@ -2136,6 +2252,9 @@ The root cause might be either a security plugin which blocks this feature or so
 				'statusSubTitle2' => __( 'Images load as visitors scroll', 'optimole-wp' ),
 				'statusTitle3'    => __( 'Image Scalling', 'optimole-wp' ),
 				'statusSubTitle3' => __( 'All images are perfectly sized for devices', 'optimole-wp' ),
+				'disable'         => __( 'Disable', 'optimole-wp' ),
+				'enable'          => __( 'Enable', 'optimole-wp' ),
+				'manage'          => __( 'Manage', 'optimole-wp' ),
 			],
 			'optimization_tips'              => sprintf(
 			/* translators: 1 is the opening anchor tag, 2 is the closing anchor tag */
@@ -2143,6 +2262,15 @@ The root cause might be either a security plugin which blocks this feature or so
 				'<a class="flex justify-center items-center font-semibold" href="https://docs.optimole.com/article/2238-optimization-tips" target="_blank"> ',
 				'<span style="text-decoration:none; font-size:15px; margin-top:2px;" class="dashicons dashicons-external"></span></a>'
 			),
+			'contact_support' => [
+				// translators: %s is the email main subject.
+				'title_prefix'              => __( '[Lazy Load Issue] %s', 'optimole-wp' ),
+				'disable_lazy_load_scaling' => __( 'Disable Lazy Load & Scaling' ),
+				'disable_image_scaling'     => __( 'Disable Image Scaling' ),
+				'enable_native_lazy_load'   => __( 'Enable Native Lazy Load' ),
+			],
+			// translators: %s is the date of the renewal.
+			'renew_date'                   => __( 'Renews %s', 'optimole-wp' ),
 		];
 	}
 
@@ -2278,5 +2406,56 @@ The root cause might be either a security plugin which blocks this feature or so
 		}
 
 		return true;
+	}
+
+	/**
+	 * Get the number of active notices (not dismissed).
+	 *
+	 * @return int - Number of active notices
+	 */
+	private function get_active_notices_count() {
+		$conflicting_plugins = $this->conflicting_plugins->get_conflicting_plugins();
+		$conflicts_count = 0;
+
+		foreach ( $conflicting_plugins as $key => $plugin ) {
+			$key = str_replace( 'wp-', '', $key );
+			$class_name = 'Optml_' . ucfirst( $key );
+
+			if ( ! class_exists( $class_name ) ) {
+				continue;
+			}
+			$conflict_instance = new $class_name();
+
+			if ( ! is_a( $conflict_instance, 'Optml_Abstract_Conflict' ) ) {
+				continue;
+			}
+
+			if ( $conflict_instance->is_conflict_valid() ) {
+				++$conflicts_count;
+			}
+		}
+
+		$dismissed_notices = get_option( 'optml_dismissed_conflicts', [] );
+
+		return $conflicts_count - count( $dismissed_notices );
+	}
+
+	/**
+	 * Mark if the user had offloading enabled on first run.
+	 *
+	 * If it is an old free user that had offloading enabled, we will use the mark to show a notice about the plan changes.
+	 *
+	 * @return void
+	 */
+	public function mark_user_with_offload() {
+		if ( ! $this->settings->is_connected() ) {
+			return;
+		}
+
+		if ( false !== get_option( 'optml_has_offloading_enabled_on_upgrade', false ) ) {
+			return;
+		}
+
+		update_option( 'optml_has_offloading_enabled_on_upgrade', $this->settings->is_offload_enabled() ? 'yes' : 'no' );
 	}
 }

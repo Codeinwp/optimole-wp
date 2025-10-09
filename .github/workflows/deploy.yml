@@ -25,3 +25,24 @@ jobs:
         env:
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+      - name: Make dist
+        run: npm run dist
+      - name: Upload Latest Version to S3
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read --follow-symlinks --delete
+        env:
+          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET_DOWNLOADS }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_DOWNLOADS_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DOWNLOADS_AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "us-west-1" # optional: defaults to us-east-1
+          SOURCE_DIR: "artifact" # optional: defaults to entire repository
+          DEST_DIR: products/optimole-wp/latest
+      - name: Clear Cloudfront Cache
+        uses: chetan/invalidate-cloudfront-action@v2
+        env:
+          DISTRIBUTION: ${{ secrets.API_DIST_ID }}
+          PATHS: "/download/optimole/*"
+          AWS_REGION: "us-east-1"
+          AWS_ACCESS_KEY_ID: ${{ secrets.S3_DOWNLOADS_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_DOWNLOADS_AWS_SECRET_ACCESS_KEY }}

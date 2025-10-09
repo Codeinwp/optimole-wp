@@ -1,7 +1,7 @@
 /* global optimoleDashboardApp */
 
 import classnames from 'classnames';
-import { useEffect, useState } from '@wordpress/element';
+import { useEffect, useState, useMemo } from '@wordpress/element';
 import { useDispatch, useSelect } from '@wordpress/data';
 import { Icon } from '@wordpress/icons';
 
@@ -37,7 +37,9 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 		processedImages,
 		offloadFinishNotice,
 		offloadLimitReached,
-		offloadLimit
+		offloadLimit,
+		canUseMediaOffloadingFlag,
+		canShowFreeUserWithOffloadNoticeFlag
 	} = useSelect( select => {
 		const {
 			getOffloadConflicts,
@@ -51,8 +53,12 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 			getQueryArgs,
 			isLoading,
 			getSiteSettings,
-			getOffloadLimit
+			getOffloadLimit,
+			getUserData,
+			canShowFreeUserWithOffloadNotice
 		} = select( 'optimole' );
+
+		const userData = getUserData();
 
 		return {
 			offloadConflicts: getOffloadConflicts(),
@@ -67,7 +73,9 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 			processedImages: getProcessedImages(),
 			offloadFinishNotice: getSiteSettings( 'show_offload_finish_notice' ),
 			offloadLimitReached: 'enabled' === getSiteSettings( 'offload_limit_reached' ),
-			offloadLimit: getOffloadLimit()
+			offloadLimit: getOffloadLimit(),
+			canUseMediaOffloadingFlag: Boolean( userData?.can_use_offloading ),
+			canShowFreeUserWithOffloadNoticeFlag: canShowFreeUserWithOffloadNotice()
 		};
 	}, []);
 
@@ -80,10 +88,14 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 	} = useDispatch( 'optimole' );
 
 	const [ modal, setModal ] = useState( null );
+	const [ initialRadioValue, setInitialRadioValue ] = useState( null );
 
 	const isOffloadingInProgress = 'disabled' !== settings['offloading_status'];
 	const isRollbackInProgress = 'disabled' !== settings['rollback_status'];
 
+	const showDisabledOffloadingNotice = useMemo( () => {
+		return 'enabled' === settings?.['offload_media'] && ! canUseMediaOffloadingFlag && canShowFreeUserWithOffloadNoticeFlag;
+	}, [ settings, canUseMediaOffloadingFlag, canShowFreeUserWithOffloadNoticeFlag ]);
 
 	useEffect( () => {
 		if ( isOffloadingInProgress ) {
@@ -108,6 +120,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 		const nextSettings = { ...settings };
 		nextSettings['show_offload_finish_notice'] = '';
 		nextSettings['offloading_status'] = 'enabled';
+		nextSettings['offload_media'] = 'enabled';
 		setSettings( nextSettings );
 		saveSettings( nextSettings, false, true, () => {
 			setErrorMedia( false );
@@ -131,6 +144,7 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 				const nextSettings = { ...settings };
 				nextSettings['show_offload_finish_notice'] = '';
 				nextSettings['rollback_status'] = 'enabled';
+				nextSettings['offload_media'] = 'disabled';
 				saveSettings( nextSettings, false, true, () => {
 					setErrorMedia( false );
 					setProcessedImages( 0 );
@@ -161,38 +175,59 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 	const radioBoxValue = 'enabled' === settings['offload_media'] ? 'offload' : 'rollback';
 
 	const updateRadioBoxValue = value => {
+		setInitialRadioValue( radioBoxValue );
+
 		const offloadEnabled = 'offload' === value;
-		const nextSettings = { ...settings };
-		nextSettings['offload_media'] = offloadEnabled ? 'enabled' : 'disabled';
-		setSettings( nextSettings );
-		setCanSave( true );
 
 		if ( offloadEnabled ) {
-			setModal( show_exceed_plan_quota_notice ? MODAL_STATE_EXCEED_PLAN_QUOTA_NOTICE : MODAL_STATE_OFFLOAD );
+			setModal({
+				type: show_exceed_plan_quota_notice ? MODAL_STATE_EXCEED_PLAN_QUOTA_NOTICE : MODAL_STATE_OFFLOAD,
+				optionValue: value
+			});
 
 			return;
 		}
 
-		setModal( MODAL_STATE_ROLLBACK );
+		setModal({ type: MODAL_STATE_ROLLBACK, optionValue: value });
 	};
 
-	const getModalProps = ( type ) => {
+	const getModalProps = ({ type, optionValue }) => {
+		const nextSettings = { ...settings };
+
 		const props = {
 			[MODAL_STATE_OFFLOAD]: {
 				icon: offload,
 				onConfirm: () => {
-					onOffloadMedia();
+					if ( canUseMediaOffloadingFlag ) {
+						nextSettings['offload_media'] = 'offload' === optionValue ? 'enabled' : 'disabled';
+						setSettings( nextSettings );
+						setCanSave( true );
+
+						onOffloadMedia();
+					} else {
+						window.open( optimoleDashboardApp?.offload_upgrade_url, '_blank' );
+					}
 					setModal( null );
 				},
 				labels: {
 					title: options_strings.offloading_start_title,
 					description: options_strings.offloading_start_description,
-					action: options_strings.offloading_start_action
-				}
+					action: canUseMediaOffloadingFlag ? options_strings.offloading_start_action : optimoleDashboardApp.strings.upgrade.title_long
+				},
+				afterContentChildren: ! canUseMediaOffloadingFlag && (
+					<Notice
+						type="warning"
+						text={options_strings.upgrade_to_use_offloading_notice_desc}
+					/>
+				)
 			},
 			[MODAL_STATE_ROLLBACK]: {
 				icon: rollbackIcon,
 				onConfirm: () => {
+					nextSettings['offload_media'] = 'offload' === optionValue ? 'enabled' : 'disabled';
+					setSettings( nextSettings );
+					setCanSave( true );
+
 					onRollbackdMedia();
 					setModal( null );
 				},
@@ -210,7 +245,9 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 					setModal( null );
 					const options = settings;
 					options.offloading_status = 'disabled';
+					options.offload_media = 'offload' === initialRadioValue ? 'enabled' : 'disabled';
 					saveSettings( options );
+					setInitialRadioValue( null );
 				},
 				labels: {
 					title: options_strings.offloading_stop_title,
@@ -225,7 +262,9 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 					setModal( null );
 					const options = settings;
 					options.rollback_status = 'disabled';
+					options.offload_media = 'offload' === initialRadioValue ? 'enabled' : 'disabled';
 					saveSettings( options );
+					setInitialRadioValue( null );
 				},
 				labels: {
 					title: options_strings.rollback_stop_title,
@@ -237,6 +276,10 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 				variant: 'warning',
 				icon: warningAlt,
 				onConfirm: () => {
+					nextSettings['offload_media'] = 'offload' === optionValue ? 'enabled' : 'disabled';
+					setSettings( nextSettings );
+					setCanSave( true );
+
 					onOffloadMedia();
 					setModal( null );
 				},
@@ -268,11 +311,11 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 
 	const onCancelProgress = () => {
 		if ( loadingSync ) {
-			setModal( MODAL_STATE_STOP_OFFLOAD );
+			setModal({ type: MODAL_STATE_STOP_OFFLOAD, optionValue: initialRadioValue });
 		}
 
 		if ( loadingRollback ) {
-			setModal( MODAL_STATE_STOP_ROLLBACK );
+			setModal({ type: MODAL_STATE_STOP_ROLLBACK, optionValue: initialRadioValue });
 		}
 	};
 
@@ -280,11 +323,14 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 		e.preventDefault();
 
 		if ( 'offload' === radioBoxValue ) {
-			setModal( show_exceed_plan_quota_notice ? MODAL_STATE_EXCEED_PLAN_QUOTA_NOTICE : MODAL_STATE_OFFLOAD );
+			setModal({
+				type: show_exceed_plan_quota_notice ? MODAL_STATE_EXCEED_PLAN_QUOTA_NOTICE : MODAL_STATE_OFFLOAD,
+				optionValue: radioBoxValue
+			});
 		}
 
 		if ( 'rollback' === radioBoxValue ) {
-			setModal( MODAL_STATE_ROLLBACK );
+			setModal({ type: MODAL_STATE_ROLLBACK, optionValue: radioBoxValue });
 		}
 	};
 
@@ -296,6 +342,16 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 		<div>
 			<h1 className="text-xl font-bold">{options_strings.enable_offload_media_title}</h1>
 			<p dangerouslySetInnerHTML={{ __html: options_strings.enable_offload_media_desc }}/>
+
+			{
+				showDisabledOffloadingNotice && (
+					<Notice
+						type="warning"
+						title={options_strings.plan_update_notice_title}
+						text={options_strings.plan_update_notice_desc}
+					/>
+				)
+			}
 
 			{offloadFinishNotice && (
 				<Notice

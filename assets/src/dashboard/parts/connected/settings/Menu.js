@@ -29,6 +29,10 @@ const menuItems = [
 		value: 'compression',
 		children: [
 			{
+				label: strings.settings_watermark_menu_item,
+				value: 'watermark'
+			},
+			{
 				label: strings.settings_compression_menu_item,
 				value: 'compression'
 			},
@@ -55,16 +59,12 @@ const menuItems = [
 const SubMenu = ({
 	children,
 	tab,
-	settings,
 	setTab
 }) => {
 	return (
 		<ul className="flex flex-col gap-1 m-0 mt-1">
 			{children.map( item => {
 				const { value, label } = item;
-				if ( 'lazyload' === item.value && 'disabled' === settings.lazyload ) {
-					return;
-				}
 				const classes = classnames(
 					{
 						'bg-light-blue hover:text-purple-gray': tab === value,

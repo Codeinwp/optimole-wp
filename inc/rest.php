@@ -631,7 +631,6 @@ class Optml_Rest {
 	/**
 	 * Disconnect from optimole service.
 	 *
-	 * @SuppressWarnings(PHPMD.UnusedFormalParameter)
 	 * @param WP_REST_Request $request disconnect rest request.
 	 */
 	public function disconnect( WP_REST_Request $request ) {
@@ -784,12 +783,12 @@ class Optml_Rest {
 
 			if ( $processed_images > 0 ) {
 				$response = wp_remote_get( $value['src'][ rand( 0, $processed_images - 1 ) ], $args );
-				if ( ! is_wp_error( $response ) && is_array( $response ) ) {
+				if ( ! is_wp_error( $response ) ) {
 					$headers     = $response['headers']; // array of http header lines
 					$status_code = $response['response']['code'];
 					if ( $status_code === 301 ) {
 						$status = 'deactivated';
-						$result = '<li>❌ ' . sprintf( /* translators: 1 is starting anchor tag, 2 is the ending anchor tag. */ __( 'Your account is currently disabled due to exceeding quota and Optimole is no longer able to optimize the images. In order to fix this you will need to %1$supgrade%2$s.', 'optimole-wp' ), '<a target="_blank" href="' . esc_url( tsdk_translate_link( 'https://optimole.com/pricing' ) ) . '">', '</a>' ) . '</li>';
+						$result = '<li>❌ ' . sprintf( /* translators: 1 is starting anchor tag, 2 is the ending anchor tag. */ __( 'Your account is currently disabled due to exceeding quota and Optimole is no longer able to optimize the images. In order to fix this you will need to %1$supgrade%2$s.', 'optimole-wp' ), '<a target="_blank" href="' . esc_url( tsdk_translate_link( Optml_Admin::get_upgrade_base_link() ) ) . '">', '</a>' ) . '</li>';
 						break;
 					}
 					if ( $status_code === 302 ) {
@@ -926,36 +925,37 @@ class Optml_Rest {
 	 */
 	public function optimizations( WP_REST_Request $request ) {
 		$settings = new Optml_Settings();
-		if ( ! $settings->is_lazyload_type_viewport() ) {
+		if ( ! Optml_Manager::should_load_profiler() ) {
 			return $this->response( 'Optimization is not enabled', 'error' );
 		}
 		$time = $request->get_param( 't' );
 		$hmac = $request->get_param( 'h' );
+		$current_url = $request->get_param( 'pu' );
 		if ( empty( $time ) || empty( $hmac ) ) {
 			return $this->response( 'Missing required parameters', 'error' );
 		}
 
-		$device_type = $request->get_param( 'd' );
+		$device_type = (int) $request->get_param( 'd' );
 		$above_fold_images = $request->get_param( 'a' );
 		$url = $request->get_param( 'u' );
 		if ( $time < time() - 300 ) {
 			return $this->response( 'Invalid Signature.', 'error' );
 		}
-		if ( wp_hash( $url . $time, 'nonce' ) !== $hmac ) {
+		if ( wp_hash( $url . $time . $current_url, 'nonce' ) !== $hmac ) {
 			return $this->response( 'Invalid Signature.', 'error' );
 		}
 		$bg_selectors = $request->get_param( 'b' );
 		$lcp_data = $request->get_param( 'l' );
+		$crop_status = $request->get_param( 'c' );
 		$origin = $request->get_header( 'origin' );
 		if ( empty( $origin ) || ! is_allowed_http_origin( $origin ) ) {
 			return $this->response( 'Invalid origin', 'error' );
 		}
-		if ( empty( $device_type ) || empty( $above_fold_images ) || empty( $url ) || ! is_array( $above_fold_images ) ) {
+		if ( empty( $device_type ) || empty( $url ) || ! is_array( $above_fold_images ) ) {
 			return $this->response( 'Missing required parameters', 'error' );
 		}
-		if ( count( $above_fold_images ) > 20 ) {
-			return $this->response( 'Above fold images limit exceeded', 'error' );
-		}
+		// save just the first 6 images, see https://github.com/Codeinwp/optimole-service/issues/1588#issuecomment-3357110865
+		$above_fold_images = array_slice( $above_fold_images, 0, 6 );
 		if ( count( $bg_selectors ) > 100 ) {
 			return $this->response( 'Background selectors limit exceeded', 'error' );
 		}
@@ -987,6 +987,31 @@ class Optml_Rest {
 				);
 			}
 		}
+		$missing_dimensions = $request->get_param( 'm' );
+		$sanitized_missing_dimensions = [];
+		if ( ! empty( $missing_dimensions ) ) {
+			foreach ( $missing_dimensions as $id => $dimension ) {
+				$sanitized_missing_dimensions[ intval( $id ) ] = [ 'w' => intval( $dimension['w'] ), 'h' => intval( $dimension['h'] ) ];
+			}
+		}
+		$missing_srcsets = $request->get_param( 's' );
+		$sanitized_missing_srcsets = [];
+		if ( ! empty( $missing_srcsets ) ) {
+			foreach ( $missing_srcsets as $id => $srcset ) {
+				foreach ( $srcset as $size ) {
+					if ( ! isset( $size['w'], $size['h'], $size['d'], $size['s'], $size['b'] ) ) {
+						continue;
+					}
+					$sanitized_missing_srcsets[ intval( $id ) ][ intval( $size['w'] ) ] = [ 'h' => intval( $size['h'] ), 'w' => intval( $size['w'] ), 'd' => intval( $size['d'] ), 's' => sanitize_text_field( $size['s'] ), 'b' => intval( $size['b'] ) ];
+				}
+			}
+		}
+		$sanitized_crop_status = [];
+		if ( ! empty( $crop_status ) ) {
+			foreach ( $crop_status as $id => $crop ) {
+				$sanitized_crop_status[ intval( $id ) ] = (bool) $crop;
+			}
+		}
 		$sanitized_lcp_data = [];
 		if ( ! empty( $lcp_data ) ) {
 			$sanitized_lcp_data['imageId'] = sanitize_text_field( $lcp_data['i'] ?? '' );
@@ -1005,11 +1030,20 @@ class Optml_Rest {
 		}
 
 		if ( OPTML_DEBUG ) {
-			do_action( 'optml_log', 'Storing: ' . $url . ' - ' . $device_type . ' - ' . print_r( $above_fold_images, true ) . print_r( $sanitized_selectors, true ) . print_r( $sanitized_lcp_data, true ) );
+			do_action( 'optml_log', 'Storing profile data: ' . $url . ' - ' . $device_type . ' - ' . print_r( $above_fold_images, true ) . print_r( $sanitized_selectors, true ) . print_r( $sanitized_lcp_data, true ) . print_r( $sanitized_missing_dimensions, true ) . print_r( $sanitized_missing_srcsets, true ) . print_r( $sanitized_crop_status, true ) );
 		}
 		$profile = new Profile();
-		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data );
-		return $this->response( 'Above fold data stored successfully' );
+		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data, $sanitized_missing_dimensions, $sanitized_missing_srcsets, $sanitized_crop_status );
+
+		if ( $profile->exists_all( $url ) ) {
+			/**
+			 * Clear cache when storing profile data.
+			 *
+			 * @var string $url The url to clear the cache for.
+			 */
+			do_action( 'optml_clear_cache', $current_url );
+		}
+		return $this->response( 'Optimization data stored successfully' );
 	}
 
 	/**

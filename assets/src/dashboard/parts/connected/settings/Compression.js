@@ -22,6 +22,7 @@ import {
 } from '@wordpress/components';
 
 import { useSelect } from '@wordpress/data';
+import { useEffect } from '@wordpress/element';
 
 /**
  * Internal dependencies.
@@ -38,6 +39,30 @@ const Compression = ({
 	isSampleLoading,
 	setIsSampleLoading
 }) => {
+	const getQuality = value => {
+		if ( 'number' === typeof value ) {
+			return value;
+		}
+
+		if ( 'auto' === value || 'mauto' === value ) {
+			return 80;
+		}
+
+		if ( 'high_c' === value ) {
+			return 90;
+		}
+
+		if ( 'medium_c' === value ) {
+			return 75;
+		}
+
+		if ( 'low_c' === value ) {
+			return 55;
+		}
+
+		return 80;
+	};
+
 	const {
 		sampleImages,
 		isLoading
@@ -46,7 +71,6 @@ const Compression = ({
 			getSampleRate,
 			isLoading
 		} = select( 'optimole' );
-
 		return {
 			sampleImages: getSampleRate(),
 			isLoading: isLoading()
@@ -55,12 +79,12 @@ const Compression = ({
 
 	const isNetworkOptimizationEnabled = 'disabled' !== settings[ 'network_optimization' ];
 	const isCDNEnabled = 'disabled' !== settings.cdn;
-	const isAVIFEnabled = 'disabled' !== settings.avif;
 	const isStripMetadataEnabled = 'disabled' !== settings[ 'strip_metadata' ];
 	const isAutoQualityEnabled = 'disabled' !== settings.autoquality;
 	const isBestFormatEnabled = 'disabled' !== settings[ 'best_format' ];
 	const compressionMode = settings[ 'compression_mode' ];
 	const isRetinaEnabled = 'disabled' !== settings[ 'retina_images' ];
+
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
 		const data = { ...settings };
@@ -78,30 +102,6 @@ const Compression = ({
 			},
 			() => setIsSampleLoading( false )
 		);
-	};
-
-	const getQuality = value => {
-		if ( 'number' === typeof value ) {
-			return value;
-		}
-
-		if ( 'auto' === value ) {
-			return 90;
-		}
-
-		if ( 'high_c' === value ) {
-			return 90;
-		}
-
-		if ( 'medium_c' === value ) {
-			return 75;
-		}
-
-		if ( 'low_c' === value ) {
-			return 55;
-		}
-
-		return 90;
 	};
 
 	const updateQuality = value => {
@@ -140,10 +140,10 @@ const Compression = ({
 		setCanSave( true );
 		const data = { ...settings };
 		if ( 'speed_optimized' === value ) {
-			data[ 'best_format' ] = 'disabled';
+			data[ 'best_format' ] = 'enabled';
 			data[ 'retina_images' ] = 'disabled';
 			data[ 'network_optimization' ] = 'enabled';
-			data.avif = 'mauto';
+			data.avif = 'enabled';
 			data.autoquality = 'enabled';
 			data[ 'strip_metadata' ] = 'enabled';
 		}
@@ -160,13 +160,19 @@ const Compression = ({
 			data[ 'best_format' ] = ( customSettings.best_format ?? isBestFormatEnabled ) ? 'enabled' : 'disabled';
 			data[ 'retina_images' ] = ( customSettings.retina_images ?? isRetinaEnabled ) ? 'enabled' : 'disabled';
 			data[ 'network_optimization' ] = ( customSettings.network_optimization ?? isNetworkOptimizationEnabled ) ? 'enabled' : 'disabled';
-			data.avif = ( customSettings.avif ?? isAVIFEnabled ) ? 'enabled' : 'disabled';
 			data.autoquality = ( customSettings.autoquality ?? isAutoQualityEnabled ) ? 'enabled' : 'disabled';
 			data[ 'strip_metadata' ] = ( customSettings.strip_metadata ?? isStripMetadataEnabled ) ? 'enabled' : 'disabled';
 		}
 		data.compression_mode = value;
 		setSettings( data );
 	};
+
+	useEffect( () => {
+		if ( showSample ) {
+			loadSample();
+		}
+	}, [ showSample ]);
+
 	return (
 		<>
 
@@ -216,7 +222,7 @@ const Compression = ({
 					<hr className="my-8 border-grayish-blue"/>
 					<ToggleControl
 						label={ optimoleDashboardApp.strings.options_strings.best_format_title }
-						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.best_format_desc } } /> }
+						help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.best_format_desc } } /> }
 						checked={ isBestFormatEnabled }
 						disabled={ isLoading }
 						className={ classnames(
@@ -231,7 +237,7 @@ const Compression = ({
 
 					<ToggleControl
 						label={ optimoleDashboardApp.strings.options_strings.enable_retina_title }
-						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_retina_desc } } /> }
+						help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_retina_desc } } /> }
 						checked={ isRetinaEnabled }
 						disabled={ isLoading }
 						className={ classnames(
@@ -244,7 +250,7 @@ const Compression = ({
 					<hr className="my-8 border-grayish-blue"/>
 					<ToggleControl
 						label={ optimoleDashboardApp.strings.options_strings.enable_network_opt_title }
-						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_network_opt_desc } } /> }
+						help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_network_opt_desc } } /> }
 						checked={ isNetworkOptimizationEnabled }
 						disabled={ isLoading }
 						className={ classnames(
@@ -259,7 +265,7 @@ const Compression = ({
 
 					<ToggleControl
 						label={ optimoleDashboardApp.strings.options_strings.toggle_cdn }
-						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.cdn_desc } } /> }
+						help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.cdn_desc } } /> }
 						checked={ isCDNEnabled }
 						disabled={ isLoading }
 						className={ classnames(
@@ -274,23 +280,8 @@ const Compression = ({
 
 
 					<ToggleControl
-						label={ optimoleDashboardApp.strings.options_strings.enable_avif_title }
-						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.enable_avif_desc } } /> }
-						checked={ isAVIFEnabled }
-						disabled={ isLoading }
-						className={ classnames(
-							{
-								'is-disabled': isLoading
-							}
-						) }
-						onChange={ value => updateOption( 'avif', value ) }
-					/>
-
-					<hr className="my-8 border-grayish-blue"/>
-
-					<ToggleControl
 						label={ optimoleDashboardApp.strings.options_strings.strip_meta_title }
-						help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.strip_meta_desc } } /> }
+						help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.strip_meta_desc } } /> }
 						checked={ isStripMetadataEnabled }
 						disabled={ isLoading }
 						className={ classnames(
@@ -308,7 +299,7 @@ const Compression = ({
 					>
 						<ToggleControl
 							label={ optimoleDashboardApp.strings.options_strings.quality_title }
-							help={ () => <p dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.ml_quality_desc } } /> }
+							help={ () => <span dangerouslySetInnerHTML={ { __html: optimoleDashboardApp.strings.options_strings.ml_quality_desc } } /> }
 							checked={ isAutoQualityEnabled }
 							disabled={ isLoading }
 							className={ classnames(

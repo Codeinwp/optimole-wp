@@ -233,13 +233,13 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['portrait'] );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
-		$this->assertStringContainsString( '/w:720/', $replaced_content );
-		$this->assertStringContainsString( '/h:1080/', $replaced_content );
+		$this->assertStringContainsString( '/w:1920/', $replaced_content );
+		$this->assertStringContainsString( '/h:2880/', $replaced_content ); // the height is 1.5 times the width because the original image is 2:3 ratio
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['landscape'] );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
-		$this->assertStringContainsString( '/w:1620/', $replaced_content );
-		$this->assertStringContainsString( '/h:1080/', $replaced_content );
+		$this->assertStringContainsString( '/w:1920/', $replaced_content );
+		$this->assertStringContainsString( '/h:1280/', $replaced_content );
 
 		$replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_LIMIT_DIMENSIONS['equal'] );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
@@ -346,7 +346,7 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/http://example.org/wp-content/plugins/divi-bars/assets/js/snap.svg-min.js', $replaced_content );
 		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:css/q:mauto/m:1/http://example.org/wp-includes/js/hoverintent-js.min.png-random.css', $replaced_content );
 		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/f:js/q:mauto/m:0/http://example.org/wp-includes/js/assets/whatever.jpg.png.css.js', $replaced_content );
-		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/w:auto/h:auto/q:mauto/ig:avif/https://example.org/wp-includes/js/assets/whatever.jpg.jpg', $replaced_content );
+		$this->assertStringContainsString( 'https://test123.i.optimole.com/cb:eFRn.20eff/w:auto/h:auto/q:mauto/f:best/https://example.org/wp-includes/js/assets/whatever.jpg.jpg', $replaced_content );
 
 		$settings = new Optml_Settings();
 		$settings->update( 'css_minify', 'disabled' );

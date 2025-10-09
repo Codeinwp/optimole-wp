@@ -7,7 +7,7 @@ final class Optml_Main {
 	/**
 	 * Optml_Main The single instance of Starter_Plugin.
 	 *
-	 * @var    object
+	 * @var      Optml_Main|null
 	 * @access   private
 	 * @since    1.0.0
 	 */
@@ -136,10 +136,13 @@ final class Optml_Main {
 			$conflicts_to_register,
 			[
 				'Optml_Jetpack_Photon',
-				'Optml_Jetpack_Lazyload',
 				'Optml_Wprocket',
 				'Optml_Divi',
 				'Optml_w3_total_cache_cdn',
+				'Optml_Smush',
+				'Optml_Litespeed',
+				'Optml_Autoptimize',
+				'Optml_Perfmatters',
 			]
 		);
 

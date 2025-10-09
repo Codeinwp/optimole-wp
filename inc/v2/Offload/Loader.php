@@ -25,6 +25,9 @@ class Loader {
 	 * Adds filters to integrate the custom image editor into WordPress.
 	 */
 	public function register_hooks() {
+		if ( has_filter( 'wp_image_editors', 'photon_subsizes_override_image_editors' ) ) {
+			return;
+		}
 		add_filter( 'wp_image_editors', [ $this, 'register_image_editor' ] );
 	}
 

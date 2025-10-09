@@ -376,15 +376,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Replace image URLs in the srcset attributes.
 	 *
-	 * @param array  $sources Array of image sources.
-	 * @param array  $size_array Array of width and height values in pixels (in that order).
-	 * @param string $image_src The 'src' of the image.
-	 * @param array  $image_meta The image meta data as returned by 'wp_get_attachment_metadata()'.
-	 * @param int    $attachment_id Image attachment ID.
+	 * @param mixed|array<int, array{url: string, descriptor: string, value: int}> $sources Array of image sources.
+	 * @param array{0: int, 1: int}                                                $size_array Array of width and height values in pixels (in that order).
+	 * @param string                                                               $image_src The 'src' of the image.
+	 * @param array<string, mixed>                                                 $image_meta The image meta data as returned by 'wp_get_attachment_metadata()'.
+	 * @param int                                                                  $attachment_id Image attachment ID or 0.
 	 *
-	 * @return array
+	 * @return array<int, array{url: string, descriptor: string, value: int}>|mixed
 	 */
 	public function calculate_image_srcset( $sources, $size_array, $image_src, $image_meta, $attachment_id ) {
+
 		if ( ! is_array( $sources ) ) {
 			return $sources;
 		}
@@ -857,7 +858,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			}
 
 			// Account for scaled images.
-			$source_file = isset( $current_meta['original_image'] ) ? $current_meta['original_image'] : $current_meta['file']; // @phpstan-ignore-line - this exists for scaled images.
+			$source_file = isset( $current_meta['original_image'] ) ? $current_meta['original_image'] : $current_meta['file'];
 			$filename    = pathinfo( $source_file, PATHINFO_BASENAME );
 			$image_id = preg_match( '/\/' . self::KEYS['uploaded_flag'] . '([^\/]*)\//', $current_meta['file'], $matches ) ? $matches[1] : null;
 
@@ -2171,7 +2172,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$image_url,
 			$sizes['width'],
 			$sizes['height'],
-			$size === 'full',
+			$size === 'full', // @phpstan-ignore-line
 		];
 	}
 
@@ -2469,7 +2470,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				$height = $size[1];
 			} else {
 				// In case of an image size, we need to calculate the new dimensions for the proper file path.
-				$constrained = wp_constrain_dimensions( $metadata['width'], $metadata['height'], $size[0], $size[1] );
+				$constrained = wp_constrain_dimensions( $metadata['width'], $metadata['height'], (int) $size[0], (int) $size[1] );
 
 				$width  = $constrained[0];
 				$height = $constrained[1];
