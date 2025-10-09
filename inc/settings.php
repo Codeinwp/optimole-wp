@@ -714,12 +714,12 @@ class Optml_Settings {
 			return '';
 		}
 
-		if ( isset( $service_data['is_cname_assigned'] ) && $service_data['is_cname_assigned'] === 'yes' && ! empty( $service_data['domain'] ) ) {
-			return strtolower( $service_data['domain'] );
-		}
-
 		if ( defined( 'OPTML_CUSTOM_DOMAIN' ) && constant( 'OPTML_CUSTOM_DOMAIN' ) ) {
 			return parse_url( strtolower( OPTML_CUSTOM_DOMAIN ), PHP_URL_HOST );
+		}
+
+		if ( isset( $service_data['is_cname_assigned'] ) && $service_data['is_cname_assigned'] === 'yes' && ! empty( $service_data['domain'] ) ) {
+			return strtolower( $service_data['domain'] );
 		}
 
 		return sprintf(
