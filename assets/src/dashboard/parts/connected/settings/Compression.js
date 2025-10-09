@@ -39,6 +39,30 @@ const Compression = ({
 	isSampleLoading,
 	setIsSampleLoading
 }) => {
+	const getQuality = value => {
+		if ( 'number' === typeof value ) {
+			return value;
+		}
+
+		if ( 'auto' === value || 'mauto' === value ) {
+			return 80;
+		}
+
+		if ( 'high_c' === value ) {
+			return 90;
+		}
+
+		if ( 'medium_c' === value ) {
+			return 75;
+		}
+
+		if ( 'low_c' === value ) {
+			return 55;
+		}
+
+		return 80;
+	};
+
 	const {
 		sampleImages,
 		isLoading
@@ -60,6 +84,7 @@ const Compression = ({
 	const isBestFormatEnabled = 'disabled' !== settings[ 'best_format' ];
 	const compressionMode = settings[ 'compression_mode' ];
 	const isRetinaEnabled = 'disabled' !== settings[ 'retina_images' ];
+
 	const updateOption = ( option, value ) => {
 		setCanSave( true );
 		const data = { ...settings };
@@ -77,30 +102,6 @@ const Compression = ({
 			},
 			() => setIsSampleLoading( false )
 		);
-	};
-
-	const getQuality = value => {
-		if ( 'number' === typeof value ) {
-			return value;
-		}
-
-		if ( 'auto' === value ) {
-			return 90;
-		}
-
-		if ( 'high_c' === value ) {
-			return 90;
-		}
-
-		if ( 'medium_c' === value ) {
-			return 75;
-		}
-
-		if ( 'low_c' === value ) {
-			return 55;
-		}
-
-		return 90;
 	};
 
 	const updateQuality = value => {

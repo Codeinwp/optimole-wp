@@ -75,7 +75,7 @@ class Optml_Settings {
 		'compression_mode'           => 'custom',
 		'cloud_sites'                => [ 'all' => 'true' ],
 		'watchers'                   => '',
-		'quality'                    => 'auto',
+		'quality'                    => 80,
 		'wm_id'                      => - 1,
 		'wm_opacity'                 => 1,
 		'wm_position'                => Position::SOUTH_EAST,
@@ -237,7 +237,9 @@ class Optml_Settings {
 	 * @return array
 	 */
 	public function parse_settings( $new_settings ) {
-		$sanitized = [];
+		$sanitized       = [];
+		$sanitized_value = '';
+
 		foreach ( $new_settings as $key => $value ) {
 			switch ( $key ) {
 				case 'admin_bar_item':
@@ -278,7 +280,9 @@ class Optml_Settings {
 					$sanitized_value = $this->to_bound_integer( $value, 100, 5000 );
 					break;
 				case 'quality':
-					$sanitized_value = $this->to_bound_integer( $value, 1, 100 );
+					if ( 'mauto' !== $value ) {
+						$sanitized_value = $this->to_bound_integer( $value, 50, 100 );
+					}
 					break;
 				case 'wm_id':
 					$sanitized_value = intval( $value );
