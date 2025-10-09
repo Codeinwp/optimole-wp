@@ -652,7 +652,7 @@ class Optml_Admin {
 					?>
 				</p>
 				<p style="margin: 1.5% 0;">
-					<a href="<?php echo esc_url( tsdk_translate_link( 'https://optimole.com/pricing' ) ); ?>"
+					<a href="<?php echo esc_url( tsdk_translate_link( self::get_upgrade_base_link() ) ); ?>"
 						target="_blank"
 						style="border-radius: 4px;padding: 9px 10px;border: 2px solid #FFF;color: white;text-decoration: none;"><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 					</a>
@@ -702,6 +702,41 @@ class Optml_Admin {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Build upgrade URL with current user's encoded email.
+	 *
+	 * @return string Upgrade URL.
+	 */
+	public static function get_upgrade_base_link() {
+		$base_url = 'https://optimole.com/upgrade';
+		$email    = self::get_account_email();
+
+		if ( ! empty( $email ) ) {
+			$base_url = add_query_arg( 'email', base64_encode( $email ), $base_url );
+		}
+
+		return $base_url;
+	}
+
+	/**
+	 * Retrieve Optimole account email.
+	 *
+	 * @return string
+	 */
+	private static function get_account_email() {
+		$settings     = new Optml_Settings();
+		$service_data = $settings->get( 'service_data' );
+
+		if ( isset( $service_data['user_email'] ) && is_string( $service_data['user_email'] ) ) {
+			$email = sanitize_email( $service_data['user_email'] );
+			if ( ! empty( $email ) ) {
+				return $email;
+			}
+		}
+
+		return '';
 	}
 
 	/**
@@ -1520,7 +1555,7 @@ class Optml_Admin {
 					'<span class="border-b border-0 border-white border-dashed text-promo-orange">BFCM2425</span>',
 					'<span class="text-promo-orange uppercase">' . __( '25% off', 'optimole-wp' ) . '</span>'
 				),
-				'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( 'https://optimole.com/pricing' ), 'bfcm24', 'sidebarnotice' ) ),
+				'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm24', 'sidebarnotice' ) ),
 			],
 		];
 
@@ -1540,7 +1575,7 @@ class Optml_Admin {
 				'<span class="text-promo-orange">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 			),
 			'cta_text' => __( 'Claim now', 'optimole-wp' ),
-			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( 'https://optimole.com/pricing' ), 'bfcm24', 'dismissiblenotice' ) ),
+			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm24', 'dismissiblenotice' ) ),
 			'dismiss_key' => self::BF_PROMO_DISMISS_KEY,
 		];
 
@@ -1687,7 +1722,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			'notice_disabled_account'        => sprintf(
 			/* translators: 1 anchor tag to pricing, 2 is the ending endin anchor tag, 3 is the bold tag start, 4 ending bold tag, 5 new line tag */
 				__( '%3$sYour account has been disabled due to exceeding quota.%4$s All images are being redirected to the original unoptimized URL. %5$sPlease %1$supgrade%2$s to re-activate the account.', 'optimole-wp' ),
-				'<b><a href="' . esc_url( tsdk_translate_link( 'https://optimole.com/pricing' ) ) . '">',
+				'<b><a href="' . esc_url( tsdk_translate_link( self::get_upgrade_base_link() ) ) . '">',
 				'</a></b>',
 				'<b>',
 				'</b>',
