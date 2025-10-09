@@ -643,7 +643,7 @@ class Optml_Admin {
 					/* translators: 1 - opening strong tag, 2 - visits limit, 3 - closing strong tag, 4 - opening strong tag, 5 - closing strong tag, 6 -  br tag */
 						__( '%1$sIt seems you are close to the %2$s visits limit with %3$sOptimole%4$s for this month.%5$s %6$s For a larger quota you may want to check the upgrade plans. If you exceed the quota we will need to deliver back your original, un-optimized images, which might decrease your site speed performance.', 'optimole-wp' ),
 						'<strong>',
-						number_format_i18n( 1000 ),
+						number_format_i18n( 2000 ),
 						'</strong>',
 						'<strong>',
 						'</strong>',
@@ -1673,7 +1673,7 @@ If you still want to disconnect click the button below.',
 				__( '%1$sOptimize unlimited images%2$s for up to %3$s monthly %4$svisitors%5$s - completely FREE.', 'optimole-wp' ),
 				'<strong>',
 				'</strong>',
-				number_format_i18n( 1000 ),
+				number_format_i18n( 2000 ),
 				'<a href="https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors" target="_blank">',
 				'</a>'
 			),
