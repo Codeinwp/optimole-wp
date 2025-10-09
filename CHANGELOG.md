@@ -1,3 +1,30 @@
+#### [Version 4.1.0](https://github.com/Codeinwp/optimole-wp/compare/v4.0.4...v4.1.0) (2025-10-09)
+
+### New Features
+
+- **Increased free plan limit** to **2,000 monthly visitors** (previously 1,000) for more optimization power at no cost.
+- **Added offload metrics dashboard** with quick access shortcuts for tracking image optimization performance.
+- **Enhanced srcset detection and handling** for better responsive image optimization across all device sizes.
+
+###  Enhancements
+
+- **Improved lazy loading** to prioritize above-the-fold images and limit preloading to LCP (Largest Contentful Paint) elements only.
+- **Enhanced background image detection** with support for additional CSS selectors and properties.
+- **Added compatibility** with major caching plugins & hosting.
+- **Optimized image preloading logic** to detect and prioritize only the most critical images for faster page loads.
+- **Enhanced debug logging** capabilities for easier troubleshooting and issue diagnosis.
+- **Improved placeholder dimension calculations** for offloaded images to prevent layout shifts.
+- **Added accessibility improvements** with proper aria-labels and rel attributes on anchor tags.
+- **Removed intrusive customer satisfaction prompts** for a cleaner user experience.
+
+###  Bug Fixes
+
+- **Fixed incompatibility** with JetEngine Listing Grid “Load More” feature that prevented images from loading correctly.
+- **Fixed Jetpack newsletters** not displaying Optimole offloaded images, ensuring proper email rendering.
+- **Fixed image quality sampling issues** that prevented accurate preview of optimization settings.
+- **Fixed placeholder width and height calculations** when images are offloaded to the cloud.
+- **Resolved image storage selection issues** that could cause incorrect optimization paths.
+
 ##### [Version 4.0.4](https://github.com/Codeinwp/optimole-wp/compare/v4.0.3...v4.0.4) (2025-08-20)
 
 - Fix DAM image selection issue in Gallery Block
