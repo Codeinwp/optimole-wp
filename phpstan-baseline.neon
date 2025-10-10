@@ -515,6 +515,7 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/app_replacer.php
+
 		-
 			message: '#^Method Optml_App_Replacer\:\:get_media_optimized_url\(\) has parameter \$resize with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -544,6 +545,7 @@ parameters:
 			identifier: missingType.return
 			count: 1
 			path: inc/app_replacer.php
+
 		-
 			message: '#^Method Optml_App_Replacer\:\:parse_dimensions_from_filename\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -1521,6 +1523,7 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/dam.php
+
 		-
 			message: '#^Method Optml_Dam\:\:get_dam_imported_attachments\(\) has parameter \$images with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -1568,6 +1571,7 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/dam.php
+
 		-
 			message: '#^Method Optml_Dam\:\:replace_dam_url_args\(\) has parameter \$args with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -2119,6 +2123,7 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/media_offload.php
+
 		-
 			message: '#^Method Optml_Media_Offload\:\:get_image_id_from_content\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -2286,6 +2291,7 @@ parameters:
 			identifier: missingType.parameter
 			count: 1
 			path: inc/media_offload.php
+
 		-
 			message: '#^Method Optml_Media_Offload\:\:pre_filter_rest_content\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
 			identifier: missingType.generics
@@ -2501,6 +2507,7 @@ parameters:
 			identifier: missingType.return
 			count: 1
 			path: inc/media_rename/attachment_edit.php
+
 		-
 			message: '#^Method Optml_Attachment_Model\:\:get_all_image_sizes_paths\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -2512,6 +2519,7 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/media_rename/attachment_model.php
+
 		-
 			message: '#^Method Optml_Attachment_Model\:\:get_attachment_metadata\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -2529,6 +2537,7 @@ parameters:
 			identifier: missingType.return
 			count: 1
 			path: inc/media_rename/attachment_model.php
+
 		-
 			message: '#^Method Optml_Attachment_Model\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -2614,32 +2623,8 @@ parameters:
 			path: inc/media_rename/attachment_replace.php
 
 		-
-			message: '#^Method Optml_Rest\:\:check_redirects\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:clear_cache_request\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
 			message: '#^Method Optml_Rest\:\:clear_offload_errors\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
 			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:connect\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:disconnect\(\) has no return type specified\.$#'
-			identifier: missingType.return
 			count: 1
 			path: inc/rest.php
 
@@ -2650,55 +2635,7 @@ parameters:
 			path: inc/rest.php
 
 		-
-			message: '#^Method Optml_Rest\:\:dismiss_conflict\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:dismiss_notice\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:fetch_sample_image\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/rest.php
-
-		-
 			message: '#^Method Optml_Rest\:\:get_offload_conflicts\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:get_sample_rate\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:insert_images\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:move_image\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:number_of_images_and_pages\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:optimizations\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
 			identifier: missingType.generics
 			count: 1
 			path: inc/rest.php
@@ -2710,104 +2647,8 @@ parameters:
 			path: inc/rest.php
 
 		-
-			message: '#^Method Optml_Rest\:\:poll_optimized_images\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:register\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:register_cache_routes\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:register_conflict_routes\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:register_image_routes\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:register_media_offload_routes\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:register_optimization_routes\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:register_service\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:register_service_routes\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:reqister_route\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:reqister_route\(\) has parameter \$args with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/rest.php
-
-		-
 			message: '#^Method Optml_Rest\:\:request_update\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
 			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:response\(\) has parameter \$code with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:select_application\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:update_option\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Method Optml_Rest\:\:upload_onboard_images\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
-			identifier: missingType.generics
-			count: 1
-			path: inc/rest.php
-
-		-
-			message: '#^Property Optml_Rest\:\:\$rest_routes type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
 			count: 1
 			path: inc/rest.php
 
@@ -2960,6 +2801,7 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/tag_replacer.php
+
 		-
 			message: '#^Method Optml_Tag_Replacer\:\:init\(\) has no return type specified\.$#'
 			identifier: missingType.return
@@ -2971,6 +2813,7 @@ parameters:
 			identifier: missingType.parameter
 			count: 1
 			path: inc/tag_replacer.php
+
 		-
 			message: '#^Method Optml_Tag_Replacer\:\:parse_dimensions_from_tag\(\) has parameter \$args with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
@@ -3072,6 +2915,7 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/url_replacer.php
+
 		-
 			message: '#^Method Optml_Url_Replacer\:\:init\(\) has no return type specified\.$#'
 			identifier: missingType.return
@@ -3101,6 +2945,7 @@ parameters:
 			identifier: missingType.parameter
 			count: 1
 			path: inc/url_replacer.php
+
 		-
 			message: '#^Method Optml_Url_Replacer\:\:size_to_dimension\(\) has parameter \$image_meta with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue

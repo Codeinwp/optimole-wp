@@ -164,6 +164,8 @@ class Optml_Rest {
 
 	/**
 	 * Optml_Rest constructor.
+	 *
+	 * @return void
 	 */
 	public function __construct() {
 		$this->namespace = OPTML_NAMESPACE . '/v1';
@@ -233,6 +235,8 @@ class Optml_Rest {
 
 	/**
 	 * Register rest routes.
+	 *
+	 * @return void
 	 */
 	public function register() {
 
@@ -249,6 +253,8 @@ class Optml_Rest {
 
 	/**
 	 * Method to register service specific routes.
+	 *
+	 * @return void
 	 */
 	public function register_service_routes() {
 		foreach ( self::$rest_routes['service_routes'] as $route => $details ) {
@@ -262,6 +268,8 @@ class Optml_Rest {
 
 	/**
 	 * Method to register image specific routes.
+	 *
+	 * @return void
 	 */
 	public function register_image_routes() {
 		foreach ( self::$rest_routes['image_routes'] as $route => $details ) {
@@ -274,6 +282,8 @@ class Optml_Rest {
 	}
 	/**
 	 * Method to register media offload specific routes.
+	 *
+	 * @return void
 	 */
 	public function register_media_offload_routes() {
 		foreach ( self::$rest_routes['media_cloud_routes'] as $route => $details ) {
@@ -287,6 +297,8 @@ class Optml_Rest {
 
 	/**
 	 * Method to register conflicts specific routes.
+	 *
+	 * @return void
 	 */
 	public function register_conflict_routes() {
 		foreach ( self::$rest_routes['conflict_routes'] as $route => $details ) {
@@ -296,6 +308,8 @@ class Optml_Rest {
 
 	/**
 	 * Method to register cache specific routes.
+	 *
+	 * @return void
 	 */
 	public function register_cache_routes() {
 		foreach ( self::$rest_routes['cache_routes'] as $route => $details ) {
@@ -331,6 +345,7 @@ class Optml_Rest {
 	 * Clear Cache request.
 	 *
 	 * @param WP_REST_Request $request clear cache rest request.
+	 * @phpstan-param WP_REST_Request<array{type?: string}> $request
 	 *
 	 * @return WP_Error|WP_REST_Response
 	 */
@@ -350,6 +365,7 @@ class Optml_Rest {
 	 * Connect to optimole service.
 	 *
 	 * @param WP_REST_Request $request connect rest request.
+	 * @phpstan-param WP_REST_Request<array{api_key: string, application?: string}> $request
 	 *
 	 * @return WP_Error|WP_REST_Response
 	 */
@@ -392,6 +408,7 @@ class Optml_Rest {
 	 * Select application.
 	 *
 	 * @param WP_REST_Request $request Rest request.
+	 * @phpstan-param WP_REST_Request<array{api_key: string, application?: string}> $request
 	 *
 	 * @return WP_REST_Response
 	 */
@@ -420,7 +437,8 @@ class Optml_Rest {
 	/**
 	 * Wrapper for api response.
 	 *
-	 * @param mixed $data data from api.
+	 * @param mixed      $data data from api.
+	 * @param string|int $code Response code.
 	 *
 	 * @return WP_REST_Response
 	 */
@@ -432,6 +450,7 @@ class Optml_Rest {
 	 * Connect to optimole service.
 	 *
 	 * @param WP_REST_Request $request connect rest request.
+	 * @phpstan-param WP_REST_Request<array{email: string, auto_connect?: string}> $request
 	 *
 	 * @return WP_Error|WP_REST_Response
 	 */
@@ -510,6 +529,7 @@ class Optml_Rest {
 	 * Return image samples.
 	 *
 	 * @param WP_REST_Request $request Rest request.
+	 * @phpstan-param WP_REST_Request<array{quality?: int, force?: string}> $request
 	 *
 	 * @return WP_REST_Response Image urls.
 	 */
@@ -557,6 +577,9 @@ class Optml_Rest {
 
 	/**
 	 * Crawl & upload initial load.
+	 *
+	 * @param WP_REST_Request $request Rest request.
+	 * @phpstan-param WP_REST_Request<array{offset?: int}> $request
 	 *
 	 * @return WP_REST_Response If there are more posts left to receive.
 	 */
@@ -615,7 +638,7 @@ class Optml_Rest {
 	/**
 	 * Return sample image data.
 	 *
-	 * @return array Image data.
+	 * @return array{url: string, width: string|int, height: string|int, id: int} Image data.
 	 */
 	private function fetch_sample_image() {
 		$accepted_mimes = [ 'image/jpeg' ];
@@ -666,6 +689,8 @@ class Optml_Rest {
 	 * Disconnect from optimole service.
 	 *
 	 * @param WP_REST_Request $request disconnect rest request.
+	 *
+	 * @return void
 	 */
 	public function disconnect( WP_REST_Request $request ) {
 		$settings = new Optml_Settings();
@@ -677,6 +702,7 @@ class Optml_Rest {
 	 * Get optimized images from API.
 	 *
 	 * @param WP_REST_Request $request rest request.
+	 * @phpstan-param WP_REST_Request<array{api_key?: string}> $request
 	 *
 	 * @return WP_REST_Response
 	 */
@@ -732,6 +758,7 @@ class Optml_Rest {
 	 * Dismiss conflict.
 	 *
 	 * @param WP_REST_Request $request rest request.
+	 * @phpstan-param WP_REST_Request<array{conflictID?: string}> $request
 	 *
 	 * @return WP_REST_Response
 	 */
@@ -770,6 +797,7 @@ class Optml_Rest {
 	 * Update options method.
 	 *
 	 * @param WP_REST_Request $request option update rest request.
+	 * @phpstan-param WP_REST_Request<array{settings?: array<string, mixed>}> $request
 	 *
 	 * @return WP_REST_Response
 	 */
@@ -790,6 +818,7 @@ class Optml_Rest {
 	 * Update options method.
 	 *
 	 * @param WP_REST_Request $request option update rest request.
+	 * @phpstan-param WP_REST_Request<array{images?: array<string, array{src?: list<string>, ignoredUrls?: int}>}> $request
 	 *
 	 * @return WP_REST_Response
 	 */
@@ -852,6 +881,7 @@ class Optml_Rest {
 	 * Get total number of images.
 	 *
 	 * @param WP_REST_Request $request rest request object.
+	 * @phpstan-param WP_REST_Request<array{action?: string, refresh?: bool}> $request
 	 *
 	 * @return WP_REST_Response
 	 */
@@ -912,6 +942,7 @@ class Optml_Rest {
 	 * Insert images request.
 	 *
 	 * @param WP_REST_Request $request insert images rest request.
+	 * @phpstan-param WP_REST_Request<array{images?: array<mixed>}> $request
 	 *
 	 * @return WP_REST_Response
 	 */
@@ -931,6 +962,7 @@ class Optml_Rest {
 	 * Dismiss a notification (set the notification key to 'yes').
 	 *
 	 * @param WP_REST_Request $request the incoming request.
+	 * @phpstan-param WP_REST_Request<array{key?: string}> $request
 	 *
 	 * @return WP_REST_Response
 	 */
@@ -954,6 +986,7 @@ class Optml_Rest {
 	 * Store optimization data.
 	 *
 	 * @param WP_REST_Request $request Rest request.
+	 * @phpstan-param WP_REST_Request<array{d: int, a: array<mixed>, u: string, t?: int, h?: string, pu?: string, b?: array<string, array<string, list<string>>>, l?: array{i?: string, s?: string, u?: list<string>}, m?: array<int, array{w: int, h: int}>, s?: array<int, list<array{w: int, h: int, d: int, s: string, b: int}>>, c?: array<int, bool>}> $request
 	 *
 	 * @return WP_REST_Response
 	 */
@@ -1082,6 +1115,8 @@ class Optml_Rest {
 
 	/**
 	 * Method to register above fold data routes.
+	 *
+	 * @return void
 	 */
 	public function register_optimization_routes() {
 		foreach ( self::$rest_routes['optimization_routes'] as $route => $details ) {
@@ -1093,6 +1128,7 @@ class Optml_Rest {
 	 * Move image.
 	 *
 	 * @param WP_REST_Request $request Rest request.
+	 * @phpstan-param WP_REST_Request<array{id: int, action: string, status?: string}> $request
 	 *
 	 * @return WP_REST_Response
 	 */

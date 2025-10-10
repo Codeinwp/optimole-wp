@@ -221,6 +221,12 @@ class Optml_Settings {
 	 * Auto connect action.
 	 */
 	public function auto_connect() {
+
+		/**
+		 * Connect rest request.
+		 *
+		 * @var WP_REST_Request<array{api_key: string, application?: string}>
+		 */
 		$request = new WP_REST_Request( 'POST' );
 		$request->set_param( 'api_key', constant( 'OPTIML_API_KEY' ) );
 		Optml_Main::instance()->rest->connect( $request );
