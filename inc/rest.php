@@ -28,53 +28,67 @@ class Optml_Rest {
 	/**
 	 * Upload conflicts api.
 	 *
-	 * @var array upload_conflicts_api.
+	 * @var array{
+	 *     service_routes: RestRouteMap,
+	 *     image_routes: RestRouteMap,
+	 *     media_cloud_routes: RestRouteMap,
+	 *     conflict_routes: SimpleRouteMap,
+	 *     cache_routes: SimpleRouteMap,
+	 *     dam_routes: RestRouteMap,
+	 *     notification_dismiss_routes: RestRouteMap,
+	 *     optimization_routes: RestRouteMap
+	 * }
 	 */
 	public static $rest_routes = [
 		'service_routes' => [
-			'update_option' => 'POST', 'request_update' => 'GET', 'check_redirects' => 'POST_PUT_PATCH',
-				'connect' => [
-		'POST', 'args'  => [
-							'api_key' => [
-								'type'     => 'string',
-								'required' => true,
-							],
-						],
+			'update_option' => 'POST',
+			'request_update' => 'GET',
+			'check_redirects' => 'POST_PUT_PATCH',
+			'connect' => [
+				'POST',
+				'args'  => [
+					'api_key' => [
+						'type'     => 'string',
+						'required' => true,
 					],
-				'select_application' => [
-			'POST', 'args'  => [
-						'api_key' => [
-							'type'     => 'string',
-							'required' => true,
-						],
-						'application' => [
-							'type'     => 'string',
-							'required' => true,
-						],
 				],
-				],
-				'register_service' => [
-			'POST', 'args' => [
-						'email' => [
-							'type'     => 'string',
-							'required' => true,
-						],
+			],
+			'select_application' => [
+				'POST',
+				'args'  => [
+					'api_key' => [
+						'type'     => 'string',
+						'required' => true,
 					],
-
+					'application' => [
+						'type'     => 'string',
+						'required' => true,
+					],
 				],
-				'disconnect' => 'GET',
+			],
+			'register_service' => [
+				'POST',
+				'args' => [
+					'email' => [
+						'type'     => 'string',
+						'required' => true,
+					],
+				],
+			],
+			'disconnect' => 'GET',
 		],
 		'image_routes' => [
 			'poll_optimized_images' => 'GET',
 			'get_sample_rate' => 'POST',
 			'upload_onboard_images' => [
-				'POST', 'args'  => [
-						'offset' => [
-							'type'     => 'number',
-							'required' => false,
-							'default'  => 0,
-						],
+				'POST',
+				'args'  => [
+					'offset' => [
+						'type'     => 'number',
+						'required' => false,
+						'default'  => 0,
 					],
+				],
 			],
 		],
 		'media_cloud_routes' => [
@@ -93,7 +107,7 @@ class Optml_Rest {
 						'required' => true,
 					],
 				],
-				'permission_callback' => 'upload_files',
+				'permission_callback' => [ __CLASS__, 'can_move_image' ],
 			],
 		],
 		'conflict_routes' => [
@@ -158,43 +172,63 @@ class Optml_Rest {
 	}
 
 	/**
-	 * Method to register a specific rest route.
+	 * Method to register a specific REST route.
 	 *
-	 * @param string $route The route name.
-	 * @param string $method The route access method GET, POST, POST_PUT_PATCH.
-	 * @param array  $args Optional argument to include required args.
-	 * @param string $permission_callback Optional permission callback.
+	 * @param string          $route                The route name.
+	 * @param string          $method               The route access method: GET, POST, POST_PUT_PATCH.
+	 * @param array           $args                 Optional arguments for route parameters.
+	 * @param string|callable $permission_callback Permission callback function or capability.
+	 *
+	 * @phpstan-param RestArgs $args                 Optional arguments for route parameters.
+	 *
+	 * @throws \InvalidArgumentException If method is invalid.
+	 *
+	 * @return void
 	 */
-	private function reqister_route( $route, $method = 'GET', $args = [], $permission_callback = 'manage_options' ) {
-		$wp_method_constant = false;
-		if ( $method === 'GET' ) {
-			$wp_method_constant = \WP_REST_Server::READABLE;
+	private function register_route( $route, $method = 'GET', $args = [], $permission_callback = 'manage_options' ) {
+		if ( empty( $route ) ) {
+			return;
 		}
-		if ( $method === 'POST' ) {
-			$wp_method_constant = \WP_REST_Server::CREATABLE;
-		}
-		if ( $method === 'POST_PUT_PATCH' ) {
-			$wp_method_constant = \WP_REST_Server::EDITABLE;
-		}
-		if ( $wp_method_constant !== false ) {
-			$params = [
-				'methods'             => $wp_method_constant,
-				'permission_callback' => function_exists( $permission_callback ) ? $permission_callback : function () use ( $permission_callback ) {
-					return current_user_can( $permission_callback );
-				},
-				'callback'            => [ $this, $route ],
-			];
-			if ( ! empty( $args ) ) {
-				$params['args'] = $args;
-			}
-			register_rest_route(
-				$this->namespace,
-				'/' . $route,
-				[
-					$params,
-				]
+
+		$method_map = [
+			'GET'            => \WP_REST_Server::READABLE,
+			'POST'           => \WP_REST_Server::CREATABLE,
+			'POST_PUT_PATCH' => \WP_REST_Server::EDITABLE,
+		];
+
+		if ( ! isset( $method_map[ $method ] ) ) {
+			_doing_it_wrong(
+				__METHOD__,
+				sprintf( 'Invalid REST method: %s', esc_html( $method ) ),
+				'1.0.0'
 			);
+			return;
 		}
+
+		$permission = is_callable( $permission_callback )
+			? $permission_callback
+			: function () use ( $permission_callback ) {
+				if ( ! is_string( $permission_callback ) ) {
+					return false;
+				}
+				return current_user_can( $permission_callback );
+			};
+
+		$params = [
+			'methods'             => $method_map[ $method ],
+			'permission_callback' => $permission,
+			'callback'            => [ $this, $route ],
+		];
+
+		if ( ! empty( $args ) ) {
+			$params['args'] = $args;
+		}
+
+		register_rest_route(
+			$this->namespace,
+			'/' . $route,
+			[ $params ]
+		);
 	}
 
 	/**
@@ -219,9 +253,9 @@ class Optml_Rest {
 	public function register_service_routes() {
 		foreach ( self::$rest_routes['service_routes'] as $route => $details ) {
 			if ( is_array( $details ) ) {
-				$this->reqister_route( $route, $details[0], $details['args'] );
+				$this->register_route( $route, $details[0], $details['args'] );
 			} else {
-				$this->reqister_route( $route, $details );
+				$this->register_route( $route, $details );
 			}
 		}
 	}
@@ -232,9 +266,9 @@ class Optml_Rest {
 	public function register_image_routes() {
 		foreach ( self::$rest_routes['image_routes'] as $route => $details ) {
 			if ( is_array( $details ) ) {
-				$this->reqister_route( $route, $details[0], $details['args'] );
+				$this->register_route( $route, $details[0], $details['args'] );
 			} else {
-				$this->reqister_route( $route, $details );
+				$this->register_route( $route, $details );
 			}
 		}
 	}
@@ -246,7 +280,7 @@ class Optml_Rest {
 
 			$permission = isset( $details['permission_callback'] ) ? $details['permission_callback'] : 'manage_options';
 			$args       = isset( $details['args'] ) ? $details['args'] : [];
-			$this->reqister_route( $route, is_array( $details ) ? $details[0] : $details, $args, $permission );
+			$this->register_route( $route, is_array( $details ) ? $details[0] : $details, $args, $permission );
 		}
 	}
 
@@ -256,7 +290,7 @@ class Optml_Rest {
 	 */
 	public function register_conflict_routes() {
 		foreach ( self::$rest_routes['conflict_routes'] as $route => $details ) {
-			$this->reqister_route( $route, $details );
+			$this->register_route( $route, $details );
 		}
 	}
 
@@ -265,7 +299,7 @@ class Optml_Rest {
 	 */
 	public function register_cache_routes() {
 		foreach ( self::$rest_routes['cache_routes'] as $route => $details ) {
-			$this->reqister_route( $route, $details );
+			$this->register_route( $route, $details );
 		}
 	}
 
@@ -278,7 +312,7 @@ class Optml_Rest {
 		foreach ( self::$rest_routes['dam_routes'] as $route => $details ) {
 			$permission = isset( $details['permission_callback'] ) ? $details['permission_callback'] : 'manage_options';
 			$args       = isset( $details['args'] ) ? $details['args'] : [];
-			$this->reqister_route( $route, $details[0], $args, $permission );
+			$this->register_route( $route, $details[0], $args, $permission );
 		}
 	}
 
@@ -289,7 +323,7 @@ class Optml_Rest {
 	 */
 	public function register_notification_routes() {
 		foreach ( self::$rest_routes['notification_dismiss_routes'] as $route => $details ) {
-			$this->reqister_route( $route, $details[0], isset( $details['args'] ) ? $details['args'] : [] );
+			$this->register_route( $route, $details[0], isset( $details['args'] ) ? $details['args'] : [] );
 		}
 	}
 
@@ -1051,7 +1085,7 @@ class Optml_Rest {
 	 */
 	public function register_optimization_routes() {
 		foreach ( self::$rest_routes['optimization_routes'] as $route => $details ) {
-			$this->reqister_route( $route, $details[0], $details['args'], $details['permission_callback'] );
+			$this->register_route( $route, $details[0], $details['args'], $details['permission_callback'] );
 		}
 	}
 
@@ -1063,7 +1097,7 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function move_image( WP_REST_Request $request ) {
-		$id = $request->get_param( 'id' );
+		$id     = $request->get_param( 'id' );
 		$action = $request->get_param( 'action' );
 
 		if ( $request->get_param( 'status' ) === 'start' ) {
@@ -1086,5 +1120,26 @@ class Optml_Rest {
 		}
 
 		return $this->response( [ $id,$action ], $result );
+	}
+
+	/**
+	 * Check if user can move image to/from cloud.
+	 *
+	 * @param WP_REST_Request $request Rest request.
+	 * @phpstan-param WP_REST_Request<array{id: int, action: string}> $request Rest request.
+	 * @return bool True if user can move image, false otherwise.
+	 */
+	public static function can_move_image( WP_REST_Request $request ) {
+
+		if ( ! current_user_can( 'upload_files' ) ) {
+			return false;
+		}
+
+		$id = $request->get_param( 'id' );
+		if ( ! current_user_can( 'edit_post', $id ) ) {
+			return false;
+		}
+
+		return true;
 	}
 }
