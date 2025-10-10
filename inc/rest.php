@@ -1172,7 +1172,11 @@ class Optml_Rest {
 		}
 
 		$id = $request->get_param( 'id' );
-		if ( ! current_user_can( 'edit_post', $id ) ) {
+
+		if (
+			get_post_type( $id ) !== 'attachment' ||
+			! current_user_can( 'edit_post', $id )
+		) {
 			return false;
 		}
 
