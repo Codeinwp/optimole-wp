@@ -27,7 +27,7 @@ Optimole is the complete image optimization powerhouse that helps you compress i
 - **Compress images without quality loss** - ML-powered technology preserves details
 - **Global AWS CloudFront CDN** - 450+ locations for instant loading
 - **WebP & AVIF conversion** - Up to 80% smaller file sizes
-- **Complete image offloading** - Store images in the cloud and free up server space with one-click restoration
+- **[PRO] Complete image offloading** - Store images in the cloud and free up server space with one-click restoration
 - **jQuery-free lazy loading** - Improves Core Web Vitals
 - **Adaptive image sizing** - Perfect fit for every device
 - **Cloud media library** - Manage assets across multiple sites
@@ -68,7 +68,7 @@ We offer an unlimited number of image optimizations in both Free and Pro plans, 
 
 Optimize your entire media library with a single click. Optimole processes your images in the background, so you don't need to keep your browser open during optimization. Perfect for existing websites with large image collections.
 
-#### 🚀 One-Click Image Offloading
+#### 🚀 One-Click Image Offloading [PRO]
 
 Free up valuable server space by offloading your entire media library to Optimole's secure cloud storage. All your images are safely stored and delivered from our optimized CDN, reducing your hosting costs and server load. Need your images back on your server? Our seamless one-click restoration process makes it easy to transfer everything back 
 whenever you want, giving you complete flexibility and control over your media assets.
