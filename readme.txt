@@ -239,11 +239,13 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Screenshots ==
 
-1. Connect API
-2. General Settings
-3. Advance Settings
-4. Cloud Library
-5. Cloud Storage
+1. Dashboard Overview
+2. Get 20K extra free visits by enabling the Optimole badge
+3. Compression Mode: Adjust for speed, quality, or custom settings
+4. Resize Settings: Limit image size and enable smart cropping
+5. Image Exclusions: Filters to skip optimization & lazy loading
+6. Image Protection: Add branded watermarks to your images
+7. Lazy Loading: Load images only when visible
 
 == Changelog ==
 
