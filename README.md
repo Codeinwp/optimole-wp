@@ -4,7 +4,7 @@
 **Requires at least:** 5.5  
 **Tested up to:** 6.8  
 **Requires PHP:** 7.4  
-**Stable tag:** 4.1.0  
+**Stable tag:** 4.1.1  
 **License:** GPLv3  
 **License URI:** https://www.gnu.org/licenses/gpl-3.0.en.html  
 
@@ -27,14 +27,14 @@ Optimole is the complete image optimization powerhouse that helps you compress i
 - **Compress images without quality loss** - ML-powered technology preserves details
 - **Global AWS CloudFront CDN** - 450+ locations for instant loading
 - **WebP & AVIF conversion** - Up to 80% smaller file sizes
-- **Complete image offloading** - Store images in the cloud and free up server space with one-click restoration
+- **[PRO] Complete image offloading** - Store images in the cloud and free up server space with one-click restoration
 - **jQuery-free lazy loading** - Improves Core Web Vitals
 - **Adaptive image sizing** - Perfect fit for every device
 - **Cloud media library** - Manage assets across multiple sites
 - **Support for all file types** - Images, video, audio, documents
 - **Automatic watermarking** - Protect your visual content
 - **Zero configuration needed** - Install and forget
-- **Free plan with all features** - For sites with up to 1K [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors)/month
+- **Free plan with all features** - For sites with up to 2000 [visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors)/month
 
 ### Why Choose Optimole Over Other Image Optimization Plugins?
 
@@ -60,7 +60,7 @@ When someone visits your site, Optimole instantly **detects their device type, s
 
 ### How Many Images Can Be Optimized? (Unlimited)
 
-We offer an unlimited number of image optimizations in both Free and Pro plans, you will be able to optimize an unlimited number of images for up to 1K [monthly visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All are delivered from more than **450+ locations** around the globe.
+We offer an unlimited number of image optimizations in both Free and Pro plans, you will be able to optimize an unlimited number of images for up to 2000 [monthly visits](https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors). All are delivered from more than **450+ locations** around the globe.
 
 ### Features That Make Optimole The Ultimate Image Solution:
 
@@ -68,7 +68,7 @@ We offer an unlimited number of image optimizations in both Free and Pro plans, 
 
 Optimize your entire media library with a single click. Optimole processes your images in the background, so you don't need to keep your browser open during optimization. Perfect for existing websites with large image collections.
 
-#### 🚀 One-Click Image Offloading
+#### 🚀 One-Click Image Offloading [PRO]
 
 Free up valuable server space by offloading your entire media library to Optimole's secure cloud storage. All your images are safely stored and delivered from our optimized CDN, reducing your hosting costs and server load. Need your images back on your server? Our seamless one-click restoration process makes it easy to transfer everything back 
 whenever you want, giving you complete flexibility and control over your media assets.
@@ -239,40 +239,19 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 ## Screenshots ##
 
-1. Connect API
-2. General Settings
-3. Advance Settings
-4. Cloud Library
-5. Cloud Storage
+1. Dashboard Overview
+2. Get 20K extra free visits by enabling the Optimole badge
+3. Compression Mode: Adjust for speed, quality, or custom settings
+4. Resize Settings: Limit image size and enable smart cropping
+5. Image Exclusions: Filters to skip optimization & lazy loading
+6. Image Protection: Add branded watermarks to your images
+7. Lazy Loading: Load images only when visible
 
 ## Changelog ##
 
-#### [Version 4.1.0](https://github.com/Codeinwp/optimole-wp/compare/v4.0.4...v4.1.0) (2025-10-09)
+##### [Version 4.1.1](https://github.com/Codeinwp/optimole-wp/compare/v4.1.0...v4.1.1) (2025-10-15)
 
-### New Features
-
-- **Increased free plan limit** to **2,000 monthly visitors** (previously 1,000) for more optimization power at no cost.
-- **Added offload metrics dashboard** with quick access shortcuts for tracking image optimization performance.
-- **Enhanced srcset detection and handling** for better responsive image optimization across all device sizes.
-
-###  Enhancements
-
-- **Improved lazy loading** to prioritize above-the-fold images and limit preloading to LCP (Largest Contentful Paint) elements only.
-- **Enhanced background image detection** with support for additional CSS selectors and properties.
-- **Added compatibility** with major caching plugins & hosting.
-- **Optimized image preloading logic** to detect and prioritize only the most critical images for faster page loads.
-- **Enhanced debug logging** capabilities for easier troubleshooting and issue diagnosis.
-- **Improved placeholder dimension calculations** for offloaded images to prevent layout shifts.
-- **Added accessibility improvements** with proper aria-labels and rel attributes on anchor tags.
-- **Removed intrusive customer satisfaction prompts** for a cleaner user experience.
-
-###  Bug Fixes
-
-- **Fixed incompatibility** with JetEngine Listing Grid “Load More” feature that prevented images from loading correctly.
-- **Fixed Jetpack newsletters** not displaying Optimole offloaded images, ensuring proper email rendering.
-- **Fixed image quality sampling issues** that prevented accurate preview of optimization settings.
-- **Fixed placeholder width and height calculations** when images are offloaded to the cloud.
-- **Resolved image storage selection issues** that could cause incorrect optimization paths.
+- Enhanced security
 
 
 
