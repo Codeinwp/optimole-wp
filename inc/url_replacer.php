@@ -267,6 +267,9 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 		if ( ! empty( $args['resize'] ) ) {
 			$this->apply_resize( $image, $args['resize'] );
+		} elseif ( $this->settings->is_smart_cropping() ) {
+			// If smart cropping is enabled and no resize is set, we apply smart focus since the resize can be triggered from the JS library.
+			$image->smartFocus();
 		}
 
 		if ( apply_filters( 'optml_apply_watermark_for', true, $url ) ) {
