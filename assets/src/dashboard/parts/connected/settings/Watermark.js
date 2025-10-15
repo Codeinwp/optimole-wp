@@ -50,7 +50,7 @@ const Watermark = () => {
 						className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium flex items-center gap-2 hover:bg-blue-700"
 						target="_blank"
 						rel="noopener noreferrer"
-						href="https://dashboard.optimole.com/dashboard"
+						href="https://dashboard.optimole.com/watermark"
 					>
 						<Icon
 							icon={external}
