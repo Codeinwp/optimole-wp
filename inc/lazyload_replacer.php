@@ -524,7 +524,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				$filepath = WP_CONTENT_DIR . $filepath;
 				if ( is_file( $filepath ) ) {
 					$sizes = getimagesize( $filepath );
-					error_log( 'get_svg_for: ' . var_export( $sizes, true ) . ' ' . $url );
 					wp_cache_add( $key, [ $sizes[0], $sizes[1] ], 'optml_sources', DAY_IN_SECONDS );
 				}
 			}
