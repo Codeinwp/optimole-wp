@@ -52,7 +52,15 @@
     <!-- Disallow long array syntax -->
     <rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
     <rule ref="WordPress-Docs">
+    </rule>
+    <rule ref="WordPress.WP.I18n.MissingTranslatorsComment"/>
 
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="optimole-wp"/>
+            </property>
+        </properties>
     </rule>
     <rule ref="Squiz.Commenting.FunctionComment.ScalarTypeHintMissing">
         <severity>0</severity>

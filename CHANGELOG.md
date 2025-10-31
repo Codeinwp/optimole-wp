@@ -1,3 +1,8 @@
+##### [Version 4.1.2](https://github.com/Codeinwp/optimole-wp/compare/v4.1.1...v4.1.2) (2025-10-30)
+
+- Remove redundant error log messages
+- Fix Smart Crop persistence on auto resize images.
+
 ##### [Version 4.1.1](https://github.com/Codeinwp/optimole-wp/compare/v4.1.0...v4.1.1) (2025-10-15)
 
 - Enhanced security

@@ -172,14 +172,7 @@ const Dashboard = () => {
 	const visitorsLimitPercent = ( ( userData.visitors / userData.visitors_limit ) * 100 ).toFixed( 0 );
 
 	const renewalDate = useMemo( () => {
-		const timestamp = userData.renews_on;
-
-		if ( ! timestamp ) {
-			return 'N/A';
-		}
-
-		const date = new Date( timestamp * 1000 );
-		return date.toLocaleDateString( undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+		return userData.renews_on_formatted;
 	}, [ userData.renews_on ]);
 
 	const formatMetric = ( type, value ) => {
