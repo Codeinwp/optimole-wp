@@ -528,7 +528,6 @@ export interface AvailableApp {
 export interface Routes {
   update_option: string
   request_update: string
-  check_redirects: string
   connect: string
   select_application: string
   register_service: string
