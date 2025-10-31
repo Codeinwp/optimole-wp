@@ -275,7 +275,7 @@ const FilterControl = ({
 						) : (
 							<TextControl
 								value={ filterValue }
-								placeholder={ 'matches' === filterMatchType ? 'path' : 'word' }
+								placeholder={ 'matches' === filterMatchType ? optimoleDashboardApp.strings.path : optimoleDashboardApp.strings.word }
 								onChange={ updateFilterValue }
 								className="optml__input"
 							/>

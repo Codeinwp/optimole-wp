@@ -35,7 +35,7 @@ class Optml_Dashboard_Widget {
 			return;
 		}
 
-		wp_add_dashboard_widget( $this->handle, sprintf( 'Optimole - %s', __( 'Image Optimization Stats', 'optimole' ) ), [ $this, 'render_widget' ] );
+		wp_add_dashboard_widget( $this->handle, sprintf( 'Optimole - %s', __( 'Image Optimization Stats', 'optimole-wp' ) ), [ $this, 'render_widget' ] );
 	}
 
 	/**

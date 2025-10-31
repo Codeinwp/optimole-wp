@@ -528,7 +528,6 @@ export interface AvailableApp {
 export interface Routes {
   update_option: string
   request_update: string
-  check_redirects: string
   connect: string
   select_application: string
   register_service: string
@@ -577,6 +576,7 @@ export interface UserData {
   is_cname_assigned: string
   extra_visits: boolean
   renews_on: number
+  renews_on_formatted: string
   can_use_offloading: boolean
   domain_dns: string
 }

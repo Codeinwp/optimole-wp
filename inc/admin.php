@@ -1392,6 +1392,10 @@ class Optml_Admin {
 		if ( ! empty( $service_data ) ) {
 			$service_data['domain_dns'] = $this->settings->get_cdn_url();
 		}
+		if ( isset( $service_data['renews_on'] ) ) {
+			$service_data['renews_on_formatted'] = date_i18n( get_option( 'date_format' ), $service_data['renews_on'] );
+
+		}
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',
@@ -1569,7 +1573,7 @@ class Optml_Admin {
 			/* translators: number of days left */
 			'urgency'  => sprintf( __( 'Hurry up! only %s left', 'optimole-wp' ), human_time_diff( $end, $now ) ),
 			/* translators: private sale */
-			'title'    => sprintf( __( 'Black Friday %s', 'optimole-wp' ), '<span class="text-promo-orange">' . __( 'private sale' ) . '</span>' ),
+			'title'    => sprintf( __( 'Black Friday %s', 'optimole-wp' ), '<span class="text-promo-orange">' . __( 'private sale', 'optimole-wp' ) . '</span>' ),
 			'subtitle' => sprintf(
 			/* translators: 1 is the promo code, 2 is the discount amount ('25 off') */
 				__( 'Use coupon code %1$s for an instant %2$s on Optimole yearly plans', 'optimole-wp' ),
@@ -1601,7 +1605,7 @@ class Optml_Admin {
 			'dashboard_title'                => __( 'Image Optimization Overview', 'optimole-wp' ),
 			'banner_title'                   => __( 'All images are automatically optimized!', 'optimole-wp' ),
 			'banner_description'             => __( 'Optimole is handling all your images in real-time with our CloudFront CDN (450+ locations worldwide)', 'optimole-wp' ),
-			'quick_action_title'             => __( 'Quick Actions' ),
+			'quick_action_title'             => __( 'Quick Actions', 'optimole-wp' ),
 			'connect_btn'                    => __( 'Connect to Optimole', 'optimole-wp' ),
 			'disconnect_btn'                 => __( 'Disconnect', 'optimole-wp' ),
 			'select'                         => __( 'Select', 'optimole-wp' ),
@@ -1621,6 +1625,8 @@ class Optml_Admin {
 			'keep_connected'                 => __( 'Ok, keep me connected', 'optimole-wp' ),
 			'cloud_library'                  => __( 'Cloud Library', 'optimole-wp' ),
 			'image_storage'                  => __( 'Image Storage', 'optimole-wp' ),
+			'word' => __( 'word', 'optimole-wp' ),
+			'path' => __( 'path', 'optimole-wp' ),
 			'disconnect_title'               => __( 'You are about to disconnect from the Optimole API', 'optimole-wp' ),
 			'disconnect_desc'                => __(
 				'Please note that disconnecting your site from the Optimole API will impact your website performance.
@@ -2265,9 +2271,9 @@ The root cause might be either a security plugin which blocks this feature or so
 			'contact_support' => [
 				// translators: %s is the email main subject.
 				'title_prefix'              => __( '[Lazy Load Issue] %s', 'optimole-wp' ),
-				'disable_lazy_load_scaling' => __( 'Disable Lazy Load & Scaling' ),
-				'disable_image_scaling'     => __( 'Disable Image Scaling' ),
-				'enable_native_lazy_load'   => __( 'Enable Native Lazy Load' ),
+				'disable_lazy_load_scaling' => __( 'Disable Lazy Load & Scaling', 'optimole-wp' ),
+				'disable_image_scaling'     => __( 'Disable Image Scaling', 'optimole-wp' ),
+				'enable_native_lazy_load'   => __( 'Enable Native Lazy Load', 'optimole-wp' ),
 			],
 			// translators: %s is the date of the renewal.
 			'renew_date'                   => __( 'Renews %s', 'optimole-wp' ),
