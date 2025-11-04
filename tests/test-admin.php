@@ -178,13 +178,16 @@ class Test_Admin extends WP_UnitTestCase {
 		
 		// Check subtitle contains discount information for free users
 		$this->assertStringContainsString( '25', $sidebar['subtitle'] );
-		$this->assertStringContainsString( 'BFCM2425', $sidebar['subtitle'] );
+		$this->assertStringContainsString( 'BFCM2525', $sidebar['subtitle'] );
+		$this->assertStringContainsString( 'Use code', $sidebar['subtitle'] );
 		
 		// Check CTA link is not empty
 		$this->assertNotEmpty( $sidebar['cta_link'] );
 		
-		// Check banner CTA text
+		// Check banner CTA text and message
 		$this->assertNotEmpty( $banner['cta_text'] );
+		$this->assertStringContainsString( 'Use coupon code', $banner['subtitle'] );
+		$this->assertStringContainsString( 'BFCM2525', $banner['subtitle'] );
 	}
 	
 	/**
@@ -201,14 +204,15 @@ class Test_Admin extends WP_UnitTestCase {
 			$result = $this->admin->get_bf_notices( $plan );
 			
 			$this->assertIsArray( $result, "Failed for plan: $plan" );
-			$this->assertArrayHasKey( 'sidebar', $result, "Missing sidebar for plan: $plan" );
+			// Monthly plans should NOT have sidebar, only banner
+			$this->assertArrayNotHasKey( 'sidebar', $result, "Unexpected sidebar for monthly plan: $plan" );
 			$this->assertArrayHasKey( 'banner', $result, "Missing banner for plan: $plan" );
 			
 			$banner = $result['banner'];
 			
 			// Check banner subtitle contains discount information for monthly users
 			$this->assertStringContainsString( '15', $banner['subtitle'], "Missing 15% discount for plan: $plan" );
-			$this->assertStringContainsString( 'yearly', $banner['subtitle'], "Missing yearly mention for plan: $plan" );
+			$this->assertStringContainsString( 'yearly plan', $banner['subtitle'], "Missing yearly mention for plan: $plan" );
 			
 			// Check CTA for monthly users
 			$this->assertStringContainsString( 'Contact us', $banner['cta_text'], "Wrong CTA for plan: $plan" );
@@ -309,6 +313,24 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->assertArrayHasKey( 'title', $result['banner'] );
 		$this->assertStringContainsString( 'Black Friday', $result['banner']['title'] );
 		$this->assertStringContainsString( 'private sale', $result['banner']['title'] );
+	}
+
+	/**
+	 * Test get_bf_notices with different date scenarios.
+	 */
+	public function test_get_bf_notices_monthly_plan_contact_link() {
+		$this->setup_black_friday_sale_period();
+		$this->mock_date_to( clone $this->black_friday );
+		
+		$result = $this->admin->get_bf_notices( 'starter' );
+		
+		$this->assertArrayHasKey( 'banner', $result );
+		$banner = $result['banner'];
+		
+		// Verify monthly plan contact link includes query parameters
+		$this->assertStringContainsString( 'contact_subject', $banner['cta_link'] );
+		$this->assertStringContainsString( 'contact_website', $banner['cta_link'] );
+		$this->assertStringContainsString( 'Upgrade', $banner['cta_link'] );
 	}
 
 	/**

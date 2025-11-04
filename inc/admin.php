@@ -23,7 +23,7 @@ class Optml_Admin {
 
 	const IMAGE_DATA_COLLECTED_BATCH = 100;
 
-	const BF_PROMO_DISMISS_KEY = 'optml_bf24_notice_dismiss';
+	const BF_PROMO_DISMISS_KEY = 'optml_bf25_notice_dismiss';
 
 	const SPC_BANNER_DISMISS_KEY = 'optml_spc_banner_dismiss';
 
@@ -711,6 +711,7 @@ class Optml_Admin {
 	 */
 	public static function get_upgrade_base_link() {
 		$base_url = 'https://optimole.com/upgrade';
+		$base_url = tsdk_translate_link( $base_url );
 		$email    = self::get_account_email();
 
 		if ( ! empty( $email ) ) {
@@ -1553,11 +1554,12 @@ class Optml_Admin {
 	 */
 	public function get_bf_notices( $user_plan ) {
 
+		$notices = [];
 		$has_free_plan = 'free' === $user_plan;
 		$has_monthly_plan = strpos( $user_plan, '-yearly' ) === false && ! $has_free_plan;
 
 		if ( ! $has_free_plan && ! $has_monthly_plan ) {
-			return [];
+			return $notices;
 		}
 
 		/**
@@ -1568,7 +1570,7 @@ class Optml_Admin {
 		$is_black_friday = apply_filters( 'themeisle_sdk_is_black_friday_sale', false );
 
 		if ( ! $is_black_friday ) {
-			return [];
+			return $notices;
 		}
 
 		/**
@@ -1588,45 +1590,56 @@ class Optml_Admin {
 		$end->modify( '+7 days' );
 		$end->setTime( 23, 59, 59 );
 
+		$promo_code = 'BFCM2525';
+		
+		if ( $has_free_plan ) {
+			$notices['sidebar'] = [
+				'title'    => sprintf(
+					'<span class="text-promo-orange">%1$s:</span> %2$s - %3$s',
+					__( 'Private Sale', 'optimole-wp' ),
+					$sale_start->format( 'j M' ),
+					$end->format( 'j M' )
+				),
+				'subtitle' => sprintf(
+				/* translators: %1$s is the promo code, %2$s is the discount amount ('25 off') */
+					__( 'Use code %1$s for an instant %2$s', 'optimole-wp' ),
+					'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code .'</span>',
+					'<span class="text-promo-orange uppercase">' . __( '25% off', 'optimole-wp' ) . '</span>'
+				),
+				'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm25', 'sidebarnotice' ) ),
+			];
+		}
+
+		if ( get_option( self::BF_PROMO_DISMISS_KEY ) === 'yes' ) {
+			return $notices;
+		}
+
 		$message = sprintf(
-			/* translators: 1 is the promo code, 2 is the discount amount ('25 off') */
+			// translators: $1$s is the promo code, $2$s is the discount amount ('25% off')
 			__( 'Use coupon code %1$s for an instant %2$s on your first billing cycle on Optimole plan.', 'optimole-wp' ),
-			'<span class="border-b border-0 border-white border-dashed text-promo-orange">BFCM2525</span>',
+			'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 			'<span class="text-promo-orange uppercase">' . __( '25% off', 'optimole-wp' ) . '</span>'
 		);
-		$cta_link = esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm25', 'notice' ) );
+		$cta_link = esc_url_raw( tsdk_utmify( self::get_upgrade_base_link(), 'bfcm25', 'notice' ) );
 		$cta_text = __( 'Claim now', 'optimole-wp' );
 
 		if ( $has_monthly_plan ) {
 			$message = sprintf(
-				/* translators: 1 is the promo code, 2 is the discount amount ('25 off') */
+				// translators: %1$s is opening span tag, %2$s is closing span tag, %3$s is the discount amount ('15% off') 
 				__( '%1$sSwitch to a yearly plan%2$s and get an instant %3$s on your payment. Contact us to reedem your deal', 'optimole-wp' ),
 				'<span class=" text-promo-orange">',
 				'</span>',
 				'<span class="text-promo-orange uppercase">' . __( '15% off', 'optimole-wp' ) . '</span>'
 			);
-			$cta_link = esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_contact_base_link() ), 'bfcm25', 'notice' ) );
+			$cta_link = esc_url_raw( tsdk_utmify( self::get_contact_base_link(), 'bfcm25', 'notice' ) );
+			$cta_link = add_query_arg(
+				[
+					'contact_subject' => rawurlencode( 'Upgrade to yearly plan - Black Friday offer' ),
+					'contact_website' => rawurlencode( home_url() ),
+				],
+				$cta_link
+			);
 			$cta_text = __( 'Contact us', 'optimole-wp' );
-		}
-
-		$notices = [
-			'sidebar' => [
-				'title'    => sprintf(
-					'<span class="text-promo-orange">%1$s:</span>',
-					__( 'Private Sale', 'optimole-wp' ),
-				),
-				'subtitle' => sprintf(
-				/* translators: 1 is the promo code, 2 is the discount amount ('25 off') */
-					__( 'Use code %1$s for %2$s on yearly plans.', 'optimole-wp' ),
-					'<span class="border-b border-0 border-white border-dashed text-promo-orange">BFCM2425</span>',
-					'<span class="text-promo-orange uppercase">' . __( '25% off', 'optimole-wp' ) . '</span>'
-				),
-				'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm24', 'sidebarnotice' ) ),
-			],
-		];
-
-		if ( get_option( self::BF_PROMO_DISMISS_KEY ) === 'yes' ) {
-			return $notices;
 		}
 
 		$notices['banner'] = [
