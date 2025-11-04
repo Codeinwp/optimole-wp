@@ -721,6 +721,15 @@ class Optml_Admin {
 	}
 
 	/**
+	 * Get contact URL.
+	 *
+	 * @return string Contact URL.
+	 */
+	public static function get_contact_base_link() {
+		return tsdk_translate_link( 'https://optimole.com/contact' );
+	}
+
+	/**
 	 * Retrieve Optimole account email.
 	 *
 	 * @return string
@@ -1396,6 +1405,9 @@ class Optml_Admin {
 			$service_data['renews_on_formatted'] = date_i18n( get_option( 'date_format' ), $service_data['renews_on'] );
 
 		}
+
+		$user_plan = isset( $service_data['plan'] ) ? $service_data['plan'] : 'free';
+
 		return [
 			'strings'                    => $this->get_dashboard_strings(),
 			'assets_url'                 => OPTML_URL . 'assets/',
@@ -1432,7 +1444,7 @@ class Optml_Admin {
 					'hash' => '#settings',
 				],
 			],
-			'bf_notices'                 => $this->get_bf_notices(),
+			'bf_notices'                 => $this->get_bf_notices( $user_plan ),
 			'spc_banner'                 => $this->get_spc_banner(),
 			'show_exceed_plan_quota_notice' => $this->should_show_exceed_quota_warning(),
 			'show_free_user_with_offload_notice' => get_option( 'optml_has_offloading_enabled_on_upgrade', 'no' ),
@@ -1443,7 +1455,7 @@ class Optml_Admin {
 					'utm_campaign' => 'report_issue',
 					'contact_website' => home_url(),
 				],
-				tsdk_translate_link( 'https://optimole.com/contact/' )
+				self::get_contact_base_link()
 			),
 		];
 	}
@@ -1535,25 +1547,73 @@ class Optml_Admin {
 	/**
 	 * Get the black friday notices.
 	 *
-	 * @return array
+	 * @param non-empty-string $user_plan User plan.
+	 *
+	 * @return array<string, mixed> Notice data.
 	 */
-	public function get_bf_notices() {
-		$date = new DateTime();
+	public function get_bf_notices( $user_plan ) {
 
-		$now   = time();
-		$start = strtotime( '2024-11-25 00:00:00' );
-		$end   = strtotime( '2024-12-03 23:59:59' );
+		$has_free_plan = 'free' === $user_plan;
+		$has_monthly_plan = strpos( $user_plan, '-yearly' ) === false && ! $has_free_plan;
 
-		if ( $now < $start || $now > $end ) {
+		if ( ! $has_free_plan && ! $has_monthly_plan ) {
 			return [];
+		}
+
+		/**
+		 * The black friday sale period flag.
+		 *
+		 * @var bool $is_black_friday Whether is black friday sale period or not.
+		 */
+		$is_black_friday = apply_filters( 'themeisle_sdk_is_black_friday_sale', false );
+
+		if ( ! $is_black_friday ) {
+			return [];
+		}
+
+		/**
+		 * The current date.
+		 *
+		 * @var DateTime $now Current date.
+		 */
+		$now = apply_filters( 'themeisle_sdk_current_date', new \DateTime( 'now' ) );
+		$current_year = $now->format( 'Y' );
+
+		$black_friday_day = new DateTime( "last Friday of November $current_year" );
+		$sale_start = clone $black_friday_day;
+		$sale_start->modify( 'monday this week' );
+		$sale_start->setTime( 0, 0 );
+
+		$end = clone $sale_start;
+		$end->modify( '+7 days' );
+		$end->setTime( 23, 59, 59 );
+
+		$message = sprintf(
+			/* translators: 1 is the promo code, 2 is the discount amount ('25 off') */
+			__( 'Use coupon code %1$s for an instant %2$s on your first billing cycle on Optimole plan.', 'optimole-wp' ),
+			'<span class="border-b border-0 border-white border-dashed text-promo-orange">BFCM2525</span>',
+			'<span class="text-promo-orange uppercase">' . __( '25% off', 'optimole-wp' ) . '</span>'
+		);
+		$cta_link = esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm25', 'notice' ) );
+		$cta_text = __( 'Claim now', 'optimole-wp' );
+
+		if ( $has_monthly_plan ) {
+			$message = sprintf(
+				/* translators: 1 is the promo code, 2 is the discount amount ('25 off') */
+				__( '%1$sSwitch to a yearly plan%2$s and get an instant %3$s on your payment. Contact us to reedem your deal', 'optimole-wp' ),
+				'<span class=" text-promo-orange">',
+				'</span>',
+				'<span class="text-promo-orange uppercase">' . __( '15% off', 'optimole-wp' ) . '</span>'
+			);
+			$cta_link = esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_contact_base_link() ), 'bfcm25', 'notice' ) );
+			$cta_text = __( 'Contact us', 'optimole-wp' );
 		}
 
 		$notices = [
 			'sidebar' => [
 				'title'    => sprintf(
-					'<span class="text-promo-orange">%1$s:</span> %2$s',
+					'<span class="text-promo-orange">%1$s:</span>',
 					__( 'Private Sale', 'optimole-wp' ),
-					__( '25 Nov - 03 Dec', 'optimole-wp' )
 				),
 				'subtitle' => sprintf(
 				/* translators: 1 is the promo code, 2 is the discount amount ('25 off') */
@@ -1571,17 +1631,12 @@ class Optml_Admin {
 
 		$notices['banner'] = [
 			/* translators: number of days left */
-			'urgency'  => sprintf( __( 'Hurry up! only %s left', 'optimole-wp' ), human_time_diff( $end, $now ) ),
+			'urgency'  => sprintf( __( 'Hurry up! only %s left', 'optimole-wp' ), human_time_diff( $end->getTimestamp(), $now->getTimestamp() ) ),
 			/* translators: private sale */
 			'title'    => sprintf( __( 'Black Friday %s', 'optimole-wp' ), '<span class="text-promo-orange">' . __( 'private sale', 'optimole-wp' ) . '</span>' ),
-			'subtitle' => sprintf(
-			/* translators: 1 is the promo code, 2 is the discount amount ('25 off') */
-				__( 'Use coupon code %1$s for an instant %2$s on Optimole yearly plans', 'optimole-wp' ),
-				'<span class="border-b border-0 border-white border-dashed text-promo-orange">BFCM2425</span>',
-				'<span class="text-promo-orange">' . __( '25% discount', 'optimole-wp' ) . '</span>'
-			),
-			'cta_text' => __( 'Claim now', 'optimole-wp' ),
-			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm24', 'dismissiblenotice' ) ),
+			'subtitle' => $message,
+			'cta_text' => $cta_text,
+			'cta_link' => $cta_link,
 			'dismiss_key' => self::BF_PROMO_DISMISS_KEY,
 		];
 

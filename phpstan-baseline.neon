@@ -169,12 +169,6 @@ parameters:
 			path: inc/admin.php
 
 		-
-			message: '#^Method Optml_Admin\:\:get_bf_notices\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/admin.php
-
-		-
 			message: '#^Method Optml_Admin\:\:get_dashboard_strings\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
