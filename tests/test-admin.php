@@ -411,4 +411,70 @@ class Test_Admin extends WP_UnitTestCase {
 		$result = $this->admin->get_bf_notices( 'free' );
 		$this->assertNotEmpty( $result, 'Should show notices at exact end time' );
 	}
+
+	/**
+	 * Test add_black_friday_data yearly plans.
+	 */
+	public function test_add_black_friday_data_yearly_plans() {
+		$base_config = [ 'default' => [ 'title' => 'Base', 'message' => 'Message' ] ];
+		// Mock settings to return a yearly plan
+		update_option( 'optml_settings', [ 'service_data' => [ 'plan' => 'starter-yearly' ] ] );
+		// Reinitialize admin to pick up the new settings
+		$this->admin = new Optml_Admin();
+		$result = $this->admin->add_black_friday_data( $base_config );
+		$this->assertEquals( $base_config, $result );
+		$this->assertArrayNotHasKey( 'optimole-wp', $result );
+	}
+
+	/**
+	 * Test add_black_friday_data free plan.
+	 */
+	public function test_add_black_friday_data_free_plan() {
+		$base_config = [ 'default' => [ 'title' => 'Base', 'message' => 'Message' ] ];
+		// Mock settings to return a free plan
+		update_option( 'optml_settings', [ 'service_data' => [ 'plan' => 'free' ] ] );
+		// Reinitialize admin to pick up the new settings
+		$this->admin = new Optml_Admin();
+		$result = $this->admin->add_black_friday_data( $base_config );
+		$this->assertArrayHasKey( 'optimole-wp', $result );
+		$config = $result['optimole-wp'];
+		$this->assertStringContainsString( 'Black Friday', $config['title'] );
+		$this->assertStringContainsString( 'BFCM2525', $config['message'] );
+		$this->assertStringContainsString( '25% OFF', $config['message'] );
+		$this->assertStringContainsString( 'upgrade', $config['sale_url'] );
+		$this->assertTrue( $config['dismiss'] );
+	}
+
+	/**
+	 * Test add_black_friday_data monthly plan.
+	 */
+	public function test_add_black_friday_data_monthly_plan() {
+		$base_config = [ 'default' => [ 'title' => 'Base', 'message' => 'Message' ] ];
+		// Mock settings to return a monthly plan
+		update_option( 'optml_settings', [ 'service_data' => [ 'plan' => 'starter' ] ] );
+		// Reinitialize admin to pick up the new settings
+		$this->admin = new Optml_Admin();
+		$result = $this->admin->add_black_friday_data( $base_config );
+		$this->assertArrayHasKey( 'optimole-wp', $result );
+		$config = $result['optimole-wp'];
+		$this->assertStringContainsString( 'Black Friday', $config['title'] );
+		$this->assertStringContainsString( 'Switch to a yearly plan', $config['message'] );
+		$this->assertStringContainsString( '15% OFF', $config['message'] );
+		$this->assertStringContainsString( 'contact', $config['sale_url'] );
+		$this->assertTrue( $config['dismiss'] );
+	}
+
+	/**
+	 * Test get_sale_url_for_monthly_plan.
+	 */
+	public function test_get_sale_url_for_monthly_plan() {
+		$reflection = new \ReflectionMethod( $this->admin, 'get_sale_url_for_monthly_plan' );
+		$reflection->setAccessible( true );
+		$url = $reflection->invoke( $this->admin );
+
+		$this->assertStringContainsString( 'contact_subject', $url );
+		$this->assertStringContainsString( 'contact_website', $url );
+		$this->assertStringContainsString( 'contact_description', $url );
+		$this->assertStringContainsString( 'Upgrade%20to%20yearly%20plan', $url );
+	}
 }

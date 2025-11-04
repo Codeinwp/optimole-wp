@@ -114,6 +114,7 @@ class Optml_Admin {
 
 		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
 		add_action( 'admin_init', [ $this, 'mark_user_with_offload' ] );
+		add_filter( 'themeisle_sdk_blackfriday_data', [ $this, 'add_black_friday_data' ] );
 	}
 
 	/**
@@ -1591,7 +1592,7 @@ class Optml_Admin {
 		$end->setTime( 23, 59, 59 );
 
 		$promo_code = 'BFCM2525';
-		
+
 		if ( $has_free_plan ) {
 			$notices['sidebar'] = [
 				'title'    => sprintf(
@@ -1603,7 +1604,7 @@ class Optml_Admin {
 				'subtitle' => sprintf(
 				/* translators: %1$s is the promo code, %2$s is the discount amount ('25 off') */
 					__( 'Use code %1$s for an instant %2$s', 'optimole-wp' ),
-					'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code .'</span>',
+					'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 					'<span class="text-promo-orange uppercase">' . __( '25% off', 'optimole-wp' ) . '</span>'
 				),
 				'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm25', 'sidebarnotice' ) ),
@@ -1625,20 +1626,13 @@ class Optml_Admin {
 
 		if ( $has_monthly_plan ) {
 			$message = sprintf(
-				// translators: %1$s is opening span tag, %2$s is closing span tag, %3$s is the discount amount ('15% off') 
-				__( '%1$sSwitch to a yearly plan%2$s and get an instant %3$s on your payment. Contact us to reedem your deal', 'optimole-wp' ),
-				'<span class=" text-promo-orange">',
+				// translators: %1$s is opening span tag, %2$s is closing span tag, %3$s is the discount amount ('15% off')
+				__( '%1$sSwitch to a yearly plan%2$s and get an instant %3$s on your payment. Contact us to redeem your deal', 'optimole-wp' ),
+				'<span class="text-promo-orange">',
 				'</span>',
 				'<span class="text-promo-orange uppercase">' . __( '15% off', 'optimole-wp' ) . '</span>'
 			);
-			$cta_link = esc_url_raw( tsdk_utmify( self::get_contact_base_link(), 'bfcm25', 'notice' ) );
-			$cta_link = add_query_arg(
-				[
-					'contact_subject' => rawurlencode( 'Upgrade to yearly plan - Black Friday offer' ),
-					'contact_website' => rawurlencode( home_url() ),
-				],
-				$cta_link
-			);
+			$cta_link = $this->get_sale_url_for_monthly_plan();
 			$cta_text = __( 'Contact us', 'optimole-wp' );
 		}
 
@@ -1654,6 +1648,77 @@ class Optml_Admin {
 		];
 
 		return $notices;
+	}
+
+	/**
+	 * Set the black friday data.
+	 *
+	 * @param array<string, mixed> $configs The configuration array for the loaded products.
+	 * @return array<string, mixed> The modified configuration array.
+	 */
+	public function add_black_friday_data( $configs ) {
+
+		$service_data = $this->settings->get( 'service_data' );
+		$user_plan    = isset( $service_data['plan'] ) ? $service_data['plan'] : 'free';
+
+		$is_free_plan = 'free' === $user_plan;
+		$is_monthly_plan = strpos( $user_plan, '-yearly' ) === false && ! $is_free_plan;
+
+		if ( ! $is_free_plan && ! $is_monthly_plan ) {
+			return $configs;
+		}
+
+		$config = $configs['default'];
+
+		$message = sprintf(
+			// translators: $1$s is the promo code, $2$s is the discount amount ('25% off')
+			__( 'Use coupon code %1$s for an instant %2$s on your first billing cycle on Optimole plan.', 'optimole-wp' ),
+			'<strong>BFCM2525</strong>',
+			'<strong>' . strtoupper( __( '25% off', 'optimole-wp' ) ) . '</strong>'
+		);
+		$title = __( 'Optimole Black Friday Private Sale is live!', 'optimole-wp' );
+		$sale_url = esc_url_raw( tsdk_utmify( self::get_upgrade_base_link(), 'bfcm25', 'global_notice' ) );
+
+		if ( $is_monthly_plan ) {
+			$message = sprintf(
+				// translators: %1$s is opening strong tag, %2$s is closing strong tag, %3$s is the discount amount ('15% off')
+				__( '%1$sSwitch to a yearly plan%2$s and get an instant %3$s on your payment. Contact us to redeem your deal', 'optimole-wp' ),
+				'<strong>',
+				'</strong>',
+				'<strong>' . strtoupper( __( '15% off', 'optimole-wp' ) ) . '</strong>'
+			);
+			$sale_url = $this->get_sale_url_for_monthly_plan();
+		}
+
+		$config['title'] = $title;
+		$config['message'] = $message;
+		$config['sale_url'] = $sale_url;
+		$config['dismiss'] = true;
+
+		$configs['optimole-wp'] = $config;
+
+		return $configs;
+	}
+
+	/**
+	 * Get the sale url for yearly plan.
+	 *
+	 * @return string
+	 */
+	private function get_sale_url_for_monthly_plan() {
+		$sale_url = esc_url_raw( tsdk_utmify( self::get_contact_base_link(), 'bfcm25', 'global_notice' ) );
+		$sale_url = add_query_arg(
+			[
+				'contact_subject' => rawurlencode( 'Upgrade to yearly plan - Black Friday offer' ),
+				'contact_website' => rawurlencode( home_url() ),
+				'contact_description' => rawurlencode(
+					'Hi, I saw the Black Friday offer about getting 15% OFF when switching from a monthly to a yearly plan. I would like to redeem this deal. Could you please help to switch my plan?'
+				),
+			],
+			$sale_url
+		);
+
+		return $sale_url;
 	}
 
 	/**
