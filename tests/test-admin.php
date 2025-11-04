@@ -113,38 +113,23 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->assertEmpty( $result );
 	}
 
-	/**
-	 * Test get_bf_notices returns empty array for yearly plans.
-	 */
-	public function test_get_bf_notices_returns_empty_for_yearly_plans() {
-		// Mock Black Friday status as true
-		add_filter( 'themeisle_sdk_is_black_friday_sale', '__return_true' );
-		
-		// Test various yearly plans
-		$yearly_plans = [ 'starter-yearly', 'growth-yearly', 'business-yearly', 'agency-yearly' ];
-		
-		foreach ( $yearly_plans as $plan ) {
-			$result = $this->admin->get_bf_notices( $plan );
-			$this->assertIsArray( $result, "Failed for plan: $plan" );
-			$this->assertEmpty( $result, "Expected empty array for yearly plan: $plan" );
-		}
-	}
+
 
 	/**
-	 * Test get_bf_notices returns empty array for empty or invalid plans.
+	 * Test get_bf_notices returns empty array for non-free plans.
 	 */
-	public function test_get_bf_notices_returns_empty_for_invalid_plans() {
+	public function test_get_bf_notices_returns_empty_for_non_free_plans() {
 		$this->setup_black_friday_sale_period();
 		$this->mock_date_to( clone $this->black_friday );
 		
-		// Test invalid plan (yearly suffix makes it invalid for BF notices)
-		$result = $this->admin->get_bf_notices( 'invalid-plan-yearly' );
-		$this->assertIsArray( $result );
-		$this->assertEmpty( $result );
+		// Test various non-free plans - all should return empty
+		$non_free_plans = [ 'starter', 'growth', 'business', 'agency', 'starter-yearly', 'invalid-plan' ];
 		
-		// Verify the plan is actually being evaluated, not just returning empty by default
-		$result_valid = $this->admin->get_bf_notices( 'starter' );
-		$this->assertNotEmpty( $result_valid, 'Valid plan should return notices' );
+		foreach ( $non_free_plans as $plan ) {
+			$result = $this->admin->get_bf_notices( $plan );
+			$this->assertIsArray( $result, "Failed for plan: $plan" );
+			$this->assertEmpty( $result, "Expected empty array for non-free plan: $plan" );
+		}
 	}
 
 	/**
@@ -188,69 +173,28 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->assertNotEmpty( $banner['cta_text'] );
 		$this->assertStringContainsString( 'Use coupon code', $banner['subtitle'] );
 		$this->assertStringContainsString( 'BFCM2525', $banner['subtitle'] );
+		$this->assertStringContainsString( '25', $banner['subtitle'] );
 	}
 	
-	/**
-	 * Test get_bf_notices returns correct structure for monthly plan during Black Friday.
-	 */
-	public function test_get_bf_notices_structure_for_monthly_plan() {
-		$this->setup_black_friday_sale_period();
-		$this->mock_date_to( clone $this->black_friday );
-		
-		// Test various monthly plans
-		$monthly_plans = [ 'starter', 'growth', 'business', 'agency' ];
-		
-		foreach ( $monthly_plans as $plan ) {
-			$result = $this->admin->get_bf_notices( $plan );
-			
-			$this->assertIsArray( $result, "Failed for plan: $plan" );
-			// Monthly plans should NOT have sidebar, only banner
-			$this->assertArrayNotHasKey( 'sidebar', $result, "Unexpected sidebar for monthly plan: $plan" );
-			$this->assertArrayHasKey( 'banner', $result, "Missing banner for plan: $plan" );
-			
-			$banner = $result['banner'];
-			
-			// Check banner subtitle contains discount information for monthly users
-			$this->assertStringContainsString( '15', $banner['subtitle'], "Missing 15% discount for plan: $plan" );
-			$this->assertStringContainsString( 'yearly plan', $banner['subtitle'], "Missing yearly mention for plan: $plan" );
-			
-			// Check CTA for monthly users
-			$this->assertStringContainsString( 'Contact us', $banner['cta_text'], "Wrong CTA for plan: $plan" );
-			$this->assertNotEmpty( $banner['cta_link'], "Empty link for plan: $plan" );
-		}
-	}
+
 
 	/**
-	 * Test get_bf_notices banner is hidden when dismissed.
+	 * Test get_bf_notices banner visibility based on dismissal status.
 	 */
-	public function test_get_bf_notices_banner_hidden_when_dismissed() {
+	public function test_get_bf_notices_banner_dismissal() {
 		$this->setup_black_friday_sale_period();
 		$this->mock_date_to( clone $this->black_friday );
 		
-		// Set dismissal option
+		// Test banner is hidden when dismissed
 		update_option( Optml_Admin::BF_PROMO_DISMISS_KEY, 'yes' );
-		
 		$result = $this->admin->get_bf_notices( 'free' );
-		
-		// Should only have sidebar, not banner
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'sidebar', $result );
 		$this->assertArrayNotHasKey( 'banner', $result );
-	}
-
-	/**
-	 * Test get_bf_notices banner appears when not dismissed.
-	 */
-	public function test_get_bf_notices_banner_appears_when_not_dismissed() {
-		$this->setup_black_friday_sale_period();
-		$this->mock_date_to( clone $this->black_friday );
 		
-		// Ensure option is not set
+		// Test banner appears when not dismissed
 		delete_option( Optml_Admin::BF_PROMO_DISMISS_KEY );
-		
 		$result = $this->admin->get_bf_notices( 'free' );
-		
-		// Should have both sidebar and banner
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'sidebar', $result );
 		$this->assertArrayHasKey( 'banner', $result );
@@ -315,23 +259,7 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'private sale', $result['banner']['title'] );
 	}
 
-	/**
-	 * Test get_bf_notices with different date scenarios.
-	 */
-	public function test_get_bf_notices_monthly_plan_contact_link() {
-		$this->setup_black_friday_sale_period();
-		$this->mock_date_to( clone $this->black_friday );
-		
-		$result = $this->admin->get_bf_notices( 'starter' );
-		
-		$this->assertArrayHasKey( 'banner', $result );
-		$banner = $result['banner'];
-		
-		// Verify monthly plan contact link includes query parameters
-		$this->assertStringContainsString( 'contact_subject', $banner['cta_link'] );
-		$this->assertStringContainsString( 'contact_website', $banner['cta_link'] );
-		$this->assertStringContainsString( 'Upgrade', $banner['cta_link'] );
-	}
+
 
 	/**
 	 * Test get_bf_notices with different date scenarios.
@@ -367,26 +295,20 @@ class Test_Admin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test get_bf_notices with non-'yes' dismissal values.
+	 * Test get_bf_notices banner appears with non-'yes' dismissal values.
 	 */
-	public function test_get_bf_notices_banner_appears_with_non_yes_dismissal() {
+	public function test_get_bf_notices_banner_dismissal_values() {
 		$this->setup_black_friday_sale_period();
 		$this->mock_date_to( clone $this->black_friday );
 		
-		// Test with 'no' value
-		update_option( Optml_Admin::BF_PROMO_DISMISS_KEY, 'no' );
-		$result = $this->admin->get_bf_notices( 'free' );
-		$this->assertArrayHasKey( 'banner', $result, "Banner should appear when dismiss key is 'no'" );
+		// Banner only hides when dismissal key is exactly 'yes'
+		$test_values = [ 'no', '0', '', 'dismissed' ];
 		
-		// Test with '0' value
-		update_option( Optml_Admin::BF_PROMO_DISMISS_KEY, '0' );
-		$result = $this->admin->get_bf_notices( 'free' );
-		$this->assertArrayHasKey( 'banner', $result, "Banner should appear when dismiss key is '0'" );
-		
-		// Test with empty string
-		update_option( Optml_Admin::BF_PROMO_DISMISS_KEY, '' );
-		$result = $this->admin->get_bf_notices( 'free' );
-		$this->assertArrayHasKey( 'banner', $result, "Banner should appear when dismiss key is empty string" );
+		foreach ( $test_values as $value ) {
+			update_option( Optml_Admin::BF_PROMO_DISMISS_KEY, $value );
+			$result = $this->admin->get_bf_notices( 'free' );
+			$this->assertArrayHasKey( 'banner', $result, "Banner should appear when dismiss key is '$value'" );
+		}
 	}
 
 	/**

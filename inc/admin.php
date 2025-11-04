@@ -1556,9 +1556,8 @@ class Optml_Admin {
 
 		$notices = [];
 		$has_free_plan = 'free' === $user_plan;
-		$has_monthly_plan = strpos( $user_plan, '-yearly' ) === false && ! $has_free_plan;
 
-		if ( ! $has_free_plan && ! $has_monthly_plan ) {
+		if ( ! $has_free_plan ) {
 			return $notices;
 		}
 
@@ -1592,23 +1591,21 @@ class Optml_Admin {
 
 		$promo_code = 'BFCM2525';
 
-		if ( $has_free_plan ) {
-			$notices['sidebar'] = [
-				'title'    => sprintf(
-					'<span class="text-promo-orange">%1$s:</span> %2$s - %3$s',
-					__( 'Private Sale', 'optimole-wp' ),
-					$sale_start->format( 'j M' ),
-					$end->format( 'j M' )
-				),
-				'subtitle' => sprintf(
-				/* translators: %1$s is the promo code, %2$s is the discount amount ('25 off') */
-					__( 'Use code %1$s for an instant %2$s', 'optimole-wp' ),
-					'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
-					'<span class="text-promo-orange uppercase">' . __( '25% off', 'optimole-wp' ) . '</span>'
-				),
-				'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm25', 'sidebarnotice' ) ),
-			];
-		}
+		$notices['sidebar'] = [
+			'title'    => sprintf(
+				'<span class="text-promo-orange">%1$s:</span> %2$s - %3$s',
+				__( 'Private Sale', 'optimole-wp' ),
+				wp_date( 'j M', $sale_start->getTimestamp() ),
+				wp_date( 'j M', $end->getTimestamp() )
+			),
+			'subtitle' => sprintf(
+			/* translators: %1$s is the promo code, %2$s is the discount amount ('25 off') */
+				__( 'Use code %1$s for an instant %2$s', 'optimole-wp' ),
+				'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
+				'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'
+			),
+			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm25', 'sidebarnotice' ) ),
+		];
 
 		if ( get_option( self::BF_PROMO_DISMISS_KEY ) === 'yes' ) {
 			return $notices;
@@ -1618,22 +1615,10 @@ class Optml_Admin {
 			// translators: $1$s is the promo code, $2$s is the discount amount ('25% off')
 			__( 'Use coupon code %1$s for an instant %2$s on your first billing cycle on Optimole plan.', 'optimole-wp' ),
 			'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
-			'<span class="text-promo-orange uppercase">' . __( '25% off', 'optimole-wp' ) . '</span>'
+			'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 		);
 		$cta_link = esc_url_raw( tsdk_utmify( self::get_upgrade_base_link(), 'bfcm25', 'notice' ) );
 		$cta_text = __( 'Claim now', 'optimole-wp' );
-
-		if ( $has_monthly_plan ) {
-			$message = sprintf(
-				// translators: %1$s is opening span tag, %2$s is closing span tag, %3$s is the discount amount ('15% off')
-				__( '%1$sSwitch to a yearly plan%2$s and get an instant %3$s on your payment. Contact us to redeem your deal', 'optimole-wp' ),
-				'<span class="text-promo-orange">',
-				'</span>',
-				'<span class="text-promo-orange uppercase">' . __( '15% off', 'optimole-wp' ) . '</span>'
-			);
-			$cta_link = $this->get_sale_url_for_monthly_plan();
-			$cta_text = __( 'Contact us', 'optimole-wp' );
-		}
 
 		$notices['banner'] = [
 			/* translators: number of days left */
@@ -1647,27 +1632,6 @@ class Optml_Admin {
 		];
 
 		return $notices;
-	}
-
-	/**
-	 * Get the sale url for yearly plan.
-	 *
-	 * @return string
-	 */
-	private function get_sale_url_for_monthly_plan() {
-		$sale_url = esc_url_raw( tsdk_utmify( self::get_contact_base_link(), 'bfcm25', 'global_notice' ) );
-		$sale_url = add_query_arg(
-			[
-				'contact_subject' => rawurlencode( 'Upgrade to yearly plan - Black Friday offer' ),
-				'contact_website' => rawurlencode( home_url() ),
-				'contact_description' => rawurlencode(
-					'Hi, I saw the Black Friday offer about getting 15% OFF when switching from a monthly to a yearly plan. I would like to redeem this deal. Could you please help to switch my plan?'
-				),
-			],
-			$sale_url
-		);
-
-		return $sale_url;
 	}
 
 	/**
