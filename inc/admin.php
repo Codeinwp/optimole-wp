@@ -1458,6 +1458,7 @@ class Optml_Admin {
 				],
 				self::get_contact_base_link()
 			),
+			'upgrade_url'                => esc_url( self::get_upgrade_base_link() ),
 		];
 	}
 

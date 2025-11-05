@@ -103,7 +103,7 @@ const Sidebar = ({ settings, setSettings, setCanSave, setTab }) => {
 						<Button
 							variant="link"
 							className="optml__button flex w-full justify-center font-bold min-h-40 !no-underline !text-white !bg-opaque-black !rounded"
-							href={ optimoleDashboardApp.optimoleHome +  'pricing' }
+							href={ optimoleDashboardApp.upgrade_url }
 							target="_blank"
 						>
 							{ optimoleDashboardApp.strings.upgrade.cta }
