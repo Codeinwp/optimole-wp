@@ -93,7 +93,7 @@ const ConnectedLayout = ({
 		}
 	}, [ canSave ]);
 
-	const showBFBanner = 'free' === plan && optimoleDashboardApp?.bf_notices?.banner;
+	const showBFBanner = Boolean( optimoleDashboardApp?.bf_notices?.banner );
 
 	return (
 		<div className="optml-connected 2xl:max-w-screen-xl max-w-screen px-4 mx-auto">
