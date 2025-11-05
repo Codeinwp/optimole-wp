@@ -1601,7 +1601,7 @@ class Optml_Admin {
 			),
 			'subtitle' => sprintf(
 			/* translators: %1$s is the promo code, %2$s is the discount amount ('25 off') */
-				__( 'Use code %1$s for an instant %2$s', 'optimole-wp' ),
+				__( 'Use code %1$s for %2$s on yearly plans.', 'optimole-wp' ),
 				'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 				'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 			),
@@ -1614,7 +1614,7 @@ class Optml_Admin {
 
 		$message = sprintf(
 			// translators: %1$s is the promo code, %2$s is the discount amount ('25% off')
-			__( 'Use coupon code %1$s for an instant %2$s on your first billing cycle on Optimole plan.', 'optimole-wp' ),
+			__( 'Use coupon code %1$s for an instant %2$s on Optimole yearly plans', 'optimole-wp' ),
 			'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 			'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 		);
