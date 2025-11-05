@@ -59,6 +59,6 @@
     "php": ">=7.4",
     "codeinwp/themeisle-sdk": "^3.3",
     "codeinwp/optimole-sdk": "^1.2",
-    "enshrined/svg-sanitize": "^0.21.0"
+    "enshrined/svg-sanitize": "^0.22.0"
   }
 }
