@@ -43,7 +43,6 @@ class Optml_Rest {
 		'service_routes' => [
 			'update_option' => 'POST',
 			'request_update' => 'GET',
-			'check_redirects' => 'POST_PUT_PATCH',
 			'connect' => [
 				'POST',
 				'args'  => [
@@ -812,69 +811,6 @@ class Optml_Rest {
 		$sanitized = $settings->parse_settings( $new_settings );
 
 		return $this->response( $sanitized );
-	}
-
-	/**
-	 * Update options method.
-	 *
-	 * @param WP_REST_Request $request option update rest request.
-	 * @phpstan-param WP_REST_Request<array{images?: array<string, array{src?: list<string>, ignoredUrls?: int}>}> $request
-	 *
-	 * @return WP_REST_Response
-	 */
-	public function check_redirects( WP_REST_Request $request ) {
-		if ( empty( $request->get_param( 'images' ) ) ) {
-			return $this->response( __( 'No images available on the current page.' ), 'noImagesFound' );
-		}
-		// 'ok' if no issues found, 'log' is there are issues we need to notify, 'deactivated' if the user's account is disabled
-		$status = 'ok';
-		$result = '';
-		foreach ( $request->get_param( 'images' ) as $domain => $value ) {
-			$args             = [
-				'method'      => 'GET',
-				'redirection' => 0,
-			];
-			$processed_images = 0;
-			if ( isset( $value['src'] ) ) {
-				$processed_images = count( $value['src'] );
-			}
-			if ( isset( $value['ignoredUrls'] ) && $value['ignoredUrls'] > $processed_images ) {
-				$result .= '<li>❌ ' . sprintf( /* translators: 1 is the domain name, 2 is starting anchor tag, 3 is the ending anchor tag. */__( 'The images from: %1$s are not optimized by Optimole. If you would like to do so, you can follow this: %2$sWhy Optimole does not optimize all the images from my site?%3$s.', 'optimole-wp' ), $domain, '<a target="_blank" href="https://docs.optimole.com/article/1290-how-to-optimize-images-using-optimole-from-my-domain">', '</a>' ) . '</li>';
-				$status = 'log';
-				continue;
-			}
-
-			if ( $processed_images > 0 ) {
-				$response = wp_remote_get( $value['src'][ rand( 0, $processed_images - 1 ) ], $args );
-				if ( ! is_wp_error( $response ) ) {
-					$headers     = $response['headers']; // array of http header lines
-					$status_code = $response['response']['code'];
-					if ( $status_code === 301 ) {
-						$status = 'deactivated';
-						$result = '<li>❌ ' . sprintf( /* translators: 1 is starting anchor tag, 2 is the ending anchor tag. */ __( 'Your account is currently disabled due to exceeding quota and Optimole is no longer able to optimize the images. In order to fix this you will need to %1$supgrade%2$s.', 'optimole-wp' ), '<a target="_blank" href="' . esc_url( tsdk_translate_link( Optml_Admin::get_upgrade_base_link() ) ) . '">', '</a>' ) . '</li>';
-						break;
-					}
-					if ( $status_code === 302 ) {
-						if ( isset( $headers['x-redirect-o'] ) ) {
-							$optimole_code = (int) $headers['x-redirect-o'];
-							if ( $optimole_code === 1 ) {
-								$status = 'log';
-								$result .= '<li>❌ ' . sprintf( /* translators: 1 is the domain, 2 is starting anchor tag, 3 is the ending anchor tag. */ __( 'The domain: %1$s is not allowed to optimize images using your Optimole account. You can add this to the allowed list %2$shere%3$s.', 'optimole-wp' ), '<b>' . $domain . '</b>', '<a target="_blank" href="' . esc_url( tsdk_translate_link( 'https://dashboard.optimole.com/whitelist', 'query' ) ) . '">', '</a>' ) . '</li>';
-							}
-							if ( $optimole_code === 4 ) {
-								$status = 'log';
-								$result .= '<li>❌ ' . sprintf( /* translators: 1 is the domain, 2 is starting anchor tag, 3 is the ending anchor tag. */ __( 'We are not able to download the images from %1$s. Please check %2$sthis%3$s document for a more advanced guide on how to solve this.', 'optimole-wp' ), '<b>' . $domain . '</b>', '<a target="_blank" href="https://docs.optimole.com/article/1291-why-optimole-is-not-able-to-download-the-images-from-my-site">', '</a>' ) . '<br />' . '</li>';
-							}
-						}
-					}
-				}
-			}
-		}
-		if ( $result === '' ) {
-			$result = __( 'No issues detected, everything is running smoothly.', 'optimole-wp' );
-		}
-
-		return $this->response( '<ul>' . $result . '</ul>', $status );
 	}
 
 	/**
