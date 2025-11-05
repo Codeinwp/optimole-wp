@@ -1580,7 +1580,7 @@ class Optml_Admin {
 		$now = apply_filters( 'themeisle_sdk_current_date', new \DateTime( 'now' ) );
 		$current_year = $now->format( 'Y' );
 
-		$black_friday_day = new DateTime( "last Friday of November $current_year" );
+		$black_friday_day = new \DateTime( "last Friday of November $current_year" );
 		$sale_start = clone $black_friday_day;
 		$sale_start->modify( 'monday this week' );
 		$sale_start->setTime( 0, 0 );
@@ -1612,7 +1612,7 @@ class Optml_Admin {
 		}
 
 		$message = sprintf(
-			// translators: $1$s is the promo code, $2$s is the discount amount ('25% off')
+			// translators: %1$s is the promo code, %2$s is the discount amount ('25% off')
 			__( 'Use coupon code %1$s for an instant %2$s on your first billing cycle on Optimole plan.', 'optimole-wp' ),
 			'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 			'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'

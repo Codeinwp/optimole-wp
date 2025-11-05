@@ -54,7 +54,7 @@ class Test_Admin extends WP_UnitTestCase {
 		$now = new \DateTime( 'now' );
 		$current_year = $now->format( 'Y' );
 
-		$this->black_friday = new DateTime( "last Friday of November $current_year" );
+		$this->black_friday = new \DateTime( "last Friday of November $current_year" );
 		$this->sale_start = clone $this->black_friday;
 		$this->sale_start->modify( 'monday this week' );
 		$this->sale_start->setTime( 0, 0 );
