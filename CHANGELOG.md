@@ -1,3 +1,8 @@
+##### [Version 4.1.3](https://github.com/Codeinwp/optimole-wp/compare/v4.1.2...v4.1.3) (2025-11-05)
+
+- Fixed internationalization and localization issues.
+- Updated dependencies.
+
 ##### [Version 4.1.2](https://github.com/Codeinwp/optimole-wp/compare/v4.1.1...v4.1.2) (2025-10-30)
 
 - Remove redundant error log messages
