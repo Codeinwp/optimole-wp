@@ -1,3 +1,7 @@
+##### [Version 4.1.4](https://github.com/Codeinwp/optimole-wp/compare/v4.1.3...v4.1.4) (2025-11-14)
+
+- Fixed an issue where the signature validation logic in the offloading process was not working correctly.
+
 ##### [Version 4.1.3](https://github.com/Codeinwp/optimole-wp/compare/v4.1.2...v4.1.3) (2025-11-05)
 
 - Fixed internationalization and localization issues.
