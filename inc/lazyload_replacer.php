@@ -115,6 +115,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return self::$background_lazyload_selectors;
 		}
 
+		if ( self::instance()->settings === null ) {
+			self::$background_lazyload_selectors = [];
+
+			return self::$background_lazyload_selectors;
+		}
 		if ( self::instance()->settings->get( 'bg_replacer' ) === 'disabled' ) {
 			self::$background_lazyload_selectors = [];
 			return self::$background_lazyload_selectors;

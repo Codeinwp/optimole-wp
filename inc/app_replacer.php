@@ -654,10 +654,10 @@ abstract class Optml_App_Replacer {
 	/**
 	 * Get the optimized image url for the image url.
 	 *
-	 * @param string $url    The image URL.
-	 * @param mixed  $width  The image width.
-	 * @param mixed  $height The image height.
-	 * @param array  $resize The resize properties.
+	 * @param string                     $url    The image URL.
+	 * @param mixed                      $width  The image width.
+	 * @param mixed                      $height The image height.
+	 * @param array<string, mixed>|mixed $resize The resize properties.
 	 *
 	 * @return string
 	 */
@@ -668,7 +668,7 @@ abstract class Optml_App_Replacer {
 			->width( $width )
 			->height( $height );
 
-		if ( ! empty( $resize['type'] ) ) {
+		if ( is_array( $resize ) && ! empty( $resize['type'] ) ) {
 			$optimized_image->resize( $resize['type'], $resize['gravity'] ?? Position::CENTER, $resize['enlarge'] ?? false );
 
 		}
