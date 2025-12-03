@@ -41,7 +41,7 @@ jobs:
         - name: Setup PHP version
           uses: shivammathur/setup-php@v2
           with:
-            php-version: ${{ matrix.php-version }}
+            php-version: ${{ matrix.php-versions }}
             extensions: simplexml, mysql
             tools: phpunit-polyfills:1.1
         - name: Checkout source code
