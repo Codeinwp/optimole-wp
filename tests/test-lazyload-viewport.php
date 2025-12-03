@@ -489,7 +489,7 @@ class Test_Lazyload_Viewport extends WP_UnitTestCase {
 		$deviceType,
 		$above_fold_images = [],
 		$bgSelectors = [],
-		$lcpData = [],
+		$lcpData = []
 	) {
 		Optml_Manager::instance()->page_profiler->store(
 			$profileId,
