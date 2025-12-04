@@ -409,16 +409,6 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 		return $url;
 	}
 
-	/**
-	 * Check if this contains the DAM flag.
-	 *
-	 * @param string $url The URL to check.
-	 *
-	 * @return bool
-	 */
-	private function is_dam_url( $url ) {
-		return strpos( $url, Optml_Dam::URL_DAM_FLAG ) !== false;
-	}
 
 	/**
 	 * Check if the URL is offloaded.

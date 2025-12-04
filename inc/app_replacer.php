@@ -664,6 +664,9 @@ abstract class Optml_App_Replacer {
 	protected function get_optimized_image_url( $url, $width, $height, $resize = [] ) {
 		$width  = is_int( $width ) ? $width : 'auto';
 		$height = is_int( $height ) ? $height : 'auto';
+		// If the image is already using Optimole URL, we extract the source to rebuild it.
+		$url = $this->get_unoptimized_url( $url );
+
 		$optimized_image = Optimole::image( $url, $this->settings->get( 'cache_buster' ) )
 			->width( $width )
 			->height( $height );

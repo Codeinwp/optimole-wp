@@ -53,6 +53,10 @@ trait Optml_Normalizer {
 		}
 		// If the url is an uploaded image, return the url
 		if ( Optml_Media_Offload::is_uploaded_image( $url ) ) {
+			$pattern = '#/id:([^/]+)/((?:https?|http)://\S+)#';
+			if ( preg_match( $pattern, $url, $matches ) ) {
+				$url = $matches[0];
+			}
 			return $url;
 		}
 
