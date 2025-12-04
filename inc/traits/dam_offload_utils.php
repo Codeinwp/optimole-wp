@@ -288,43 +288,45 @@ trait Optml_Dam_Offload_Utils {
 			return (int) $cached;
 		}
 
-		if ( $this->is_dam_url( $input_url ) ) {
+		if ( Optml_Media_Offload::is_uploaded_image( $input_url ) ) {
 			// The DAM are stored as attachments of format /id:<attachment_id>/<original_url>
 			$pattern = '#/' . Optml_Media_Offload::KEYS['uploaded_flag'] . '([^/]+)#';
 			if ( preg_match( $pattern, $input_url, $m ) ) {
 				$attachment_id = $this->get_attachement_id_from_optimole_id( $m[1] );
-			} else {
-				$attachment_id = 0;
+				if ( $attachment_id !== 0 ) {
+					Optml_Attachment_Cache::set_cached_attachment_id( $input_url, $attachment_id );
+
+					return $attachment_id;
+				}
 			}
-		} else {
+		}
 
-			$url = $this->strip_image_size( $input_url );
+		$url = $this->strip_image_size( $input_url );
 
-			$attachment_id = attachment_url_to_postid( $url );
+		$attachment_id = attachment_url_to_postid( $url );
 
-			if ( $attachment_id === 0 && ! $this->is_scaled_url( $url ) ) {
-				$scaled_url = $this->get_scaled_url( $url );
+		if ( $attachment_id === 0 && ! $this->is_scaled_url( $url ) ) {
+			$scaled_url = $this->get_scaled_url( $url );
+
+			$attachment_id = attachment_url_to_postid( $scaled_url );
+		}
+
+		/*
+		* TODO: The logic is a mess, we need to refactor at some point.
+		* Websites may transition between 'www' subdomains and apex domains, potentially breaking references to hosted images. This can cause issues when attempting to match attachment IDs if images are linked using outdated domains. The logic is checking for alternative domains and consider the use of 'scaled' prefixes in image URLs for large images, which might affect ID matching.
+		*/
+		if ( $attachment_id === 0 ) {
+			if ( strpos( $url, 'www.' ) !== false ) {
+				$variant_url   = str_replace( 'www.', '', $url );
+				$attachment_id = attachment_url_to_postid( $variant_url );
+			} else {
+				$variant_url   = str_replace( '://', '://www.', $url );
+				$attachment_id = attachment_url_to_postid( $variant_url );
+			}
+			if ( $attachment_id === 0 && ! $this->is_scaled_url( $variant_url ) ) {
+				$scaled_url = $this->get_scaled_url( $variant_url );
 
 				$attachment_id = attachment_url_to_postid( $scaled_url );
-			}
-
-			/*
-			* TODO: The logic is a mess, we need to refactor at some point.
-			* Websites may transition between 'www' subdomains and apex domains, potentially breaking references to hosted images. This can cause issues when attempting to match attachment IDs if images are linked using outdated domains. The logic is checking for alternative domains and consider the use of 'scaled' prefixes in image URLs for large images, which might affect ID matching.
-			*/
-			if ( $attachment_id === 0 ) {
-				if ( strpos( $url, 'www.' ) !== false ) {
-					$variant_url   = str_replace( 'www.', '', $url );
-					$attachment_id = attachment_url_to_postid( $variant_url );
-				} else {
-					$variant_url   = str_replace( '://', '://www.', $url );
-					$attachment_id = attachment_url_to_postid( $variant_url );
-				}
-				if ( $attachment_id === 0 && ! $this->is_scaled_url( $variant_url ) ) {
-					$scaled_url = $this->get_scaled_url( $variant_url );
-
-					$attachment_id = attachment_url_to_postid( $scaled_url );
-				}
 			}
 		}
 		Optml_Attachment_Cache::set_cached_attachment_id( $input_url, $attachment_id );
