@@ -1021,6 +1021,12 @@ parameters:
 			path: inc/compatibilities/metaslider.php
 
 		-
+			message: '#^Method Optml_otter_blocks\:\:maybe_init_replacer_for_rest\(\) has parameter \$request with generic class WP_REST_Request but does not specify its types\: T$#'
+			identifier: missingType.generics
+			count: 1
+			path: inc/compatibilities/otter_blocks.php
+
+		-
 			message: '#^Method Optml_otter_blocks\:\:register\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
