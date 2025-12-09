@@ -40,15 +40,29 @@ class Optml_aruba_hsc extends Optml_compatibility {
 	/**
 	 * Clear cache for Aruba Hispeed Cache.
 	 *
+	 * @param string|bool $location The location to clear the cache for. If true, clear the cache globally. If a string, clear the cache for a particular url.
 	 * @return void
 	 */
-	public function add_clear_cache_action() {
+	public function add_clear_cache_action( $location ) {
 		if ( ! class_exists( '\ArubaSPA\HiSpeedCache\Purger\WpPurger' ) || ! defined( 'AHSC_PURGER' ) ) {
 			return;
 		}
 
+		// Initialize the purger.
 		$purge = new \ArubaSPA\HiSpeedCache\Purger\WpPurger();
 		$purge->setPurger( AHSC_PURGER );
-		$purge->purgeAll();
+
+		// Purge all cache when no location is provided.
+		if ( $location === true && method_exists( $purge, 'purgeAll' ) ) {
+			$purge->purgeAll();
+			return;
+		}
+
+		// Purge single URL based on the location parameter.
+		if ( ! method_exists( $purge, 'purgeUrl' ) ) {
+			return;
+		}
+
+		$purge->purgeUrl( $location );
 	}
 }

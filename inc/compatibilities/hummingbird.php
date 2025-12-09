@@ -40,9 +40,34 @@ class Optml_hummingbird extends Optml_compatibility {
 	/**
 	 * Clear cache for Hummingbird.
 	 *
+	 * @param string|bool $location The location to clear the cache for. If true, clear the cache globally. If a string, clear the cache for a particular url.
 	 * @return void
 	 */
-	public function add_clear_cache_action() {
-		do_action( 'wphb_clear_page_cache' );
+	public function add_clear_cache_action( $location ) {
+		if ( ! class_exists( '\Hummingbird\Core\Utils' ) || ! method_exists( '\Hummingbird\Core\Utils', 'get_module' ) ) {
+			return;
+		}
+
+		$page_cache = \Hummingbird\Core\Utils::get_module( 'page_cache' );
+
+		if ( ! $page_cache ) {
+			return;
+		}
+
+		// Clear all cache
+		if ( true === $location ) {
+			$page_cache->clear_cache();
+			return;
+		}
+
+		// Clear specific URL
+		if ( ! is_string( $location ) || empty( $location ) ) {
+			return;
+		}
+
+		$url_path = wp_parse_url( $location, PHP_URL_PATH );
+		if ( $url_path ) {
+			$page_cache->clear_cache( trailingslashit( $url_path ), true );
+		}
 	}
 }
