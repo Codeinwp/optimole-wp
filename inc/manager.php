@@ -110,6 +110,7 @@ final class Optml_Manager {
 		'endurance_cache',
 		'rocketnet',
 		'speedycache',
+		'hummingbird',
 	];
 	/**
 	 * The current state of the buffer.
