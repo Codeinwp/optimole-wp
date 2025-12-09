@@ -111,6 +111,7 @@ final class Optml_Manager {
 		'rocketnet',
 		'speedycache',
 		'hummingbird',
+		'aruba_hsc',
 	];
 	/**
 	 * The current state of the buffer.
