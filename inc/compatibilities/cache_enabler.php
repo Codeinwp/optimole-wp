@@ -26,12 +26,17 @@ class Optml_cache_enabler extends Optml_compatibility {
 
 		add_filter( 'cache_enabler_page_contents_before_store', [ Optml_Main::instance()->manager, 'replace_content' ], PHP_INT_MAX, 1 );
 
-		add_action(
-			'optml_settings_updated',
-			function () {
-				do_action( 'cache_enabler_clear_site_cache' );
-			}
-		);
+		add_action( 'optml_settings_updated', [ $this, 'add_clear_cache_action' ] );
+		add_action( 'optml_clear_cache', [ $this, 'add_clear_cache_action' ] );
+	}
+
+	/**
+	 * Clear cache for Cache Enabler.
+	 *
+	 * @return void
+	 */
+	public function add_clear_cache_action() {
+		do_action( 'cache_enabler_clear_site_cache' );
 	}
 
 	/**
