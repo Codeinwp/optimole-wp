@@ -112,6 +112,7 @@ final class Optml_Manager {
 		'speedycache',
 		'hummingbird',
 		'aruba_hsc',
+		'spc',
 	];
 	/**
 	 * The current state of the buffer.
