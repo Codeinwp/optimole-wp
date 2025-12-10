@@ -2,7 +2,7 @@
 Contributors: optimole
 Tags: image optimization, convert webp, image optimizer, lazy load, optimize images
 Requires at least: 5.5
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
 Stable tag: 4.1.4
 License: GPLv3
