@@ -44,7 +44,8 @@ class Optml_hummingbird extends Optml_compatibility {
 	 * @return void
 	 */
 	public function add_clear_cache_action( $location ) {
-		if ( ! class_exists( '\Hummingbird\Core\Utils' ) || ! method_exists( '\Hummingbird\Core\Utils', 'get_module' ) ) {
+		// @phpstan-ignore-next-line - we need to check that method exists explicitly as it might change in the future.
+		if ( ! class_exists( '\Hummingbird\Core\Utils' ) || ! method_exists( '\Hummingbird\Core\Utils', 'get_module' ) ) { // @phpstan-ignore-line
 			return;
 		}
 
