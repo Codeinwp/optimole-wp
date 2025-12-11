@@ -635,22 +635,17 @@ class Optml_Admin {
 		}
 		?>
 		<div class="notice optml-notice-optin"
-			style="background-color: #577BF9; color:white; border: none !important; display: flex;">
+			style="background-color: #577BF9; color:white; border: none !important; display: flex; align-items: center;">
 			<div style="margin: 1% 2%;">
-				<img src='<?php echo OPTML_URL . 'assets/img/upgrade_icon.png'; ?>'>
+				<img style="max-width: 100px;" src='<?php echo OPTML_URL . 'assets/img/upgrade_icon.png'; ?>'>
 			</div>
-			<div style="margin-top: 0.7%;">
+			<div style="display: grid; gap: 10px;">
 				<p style="font-size: 16px !important;">
 					<?php
 					printf(
-					/* translators: 1 - opening strong tag, 2 - visits limit, 3 - closing strong tag, 4 - opening strong tag, 5 - closing strong tag, 6 -  br tag */
-						__( '%1$sIt seems you are close to the %2$s visits limit with %3$sOptimole%4$s for this month.%5$s %6$s For a larger quota you may want to check the upgrade plans. If you exceed the quota we will need to deliver back your original, un-optimized images, which might decrease your site speed performance.', 'optimole-wp' ),
-						'<strong>',
-						number_format_i18n( 2000 ),
-						'</strong>',
-						'<strong>',
-						'</strong>',
-						'<br/><br/>'
+					/* translators: 1 - visits limit */
+						__( 'You\'re nearing your %1$s-visit monthly cap on Optimole. If you exceed it, we\'ll serve original (unoptimized) images - expect slower pages.', 'optimole-wp' ),
+						'<strong>' . number_format_i18n( 2000 ) . '</strong>'
 					);
 					?>
 				</p>
