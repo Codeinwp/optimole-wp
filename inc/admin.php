@@ -859,7 +859,7 @@ class Optml_Admin {
 					</p>
 					<div class="actions">
 						<a href="<?php echo esc_url( admin_url( 'admin.php?page=optimole' ) ); ?>"
-							class="button button-primary button-hero"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?>
+							class="button button-primary button-hero"><?php _e( 'Connect to Optimole', 'optimole-wp' ); ?>
 						</a>
 						<a class="button button-secondary button-hero"
 							href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_optin' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?>
@@ -2281,10 +2281,11 @@ The root cause might be either a security plugin which blocks this feature or so
 				'no_images_found'       => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'We are currently optimizing your images. Meanwhile you can visit your %1$shomepage%2$s and check how our plugin performs.', 'optimole-wp' ), '<a href="' . esc_url( home_url() ) . '" target="_blank" >', '</a>' ),
 				'compression'           => __( 'Optimization', 'optimole-wp' ),
 				'loading_latest_images' => __( 'Loading your optimized images...', 'optimole-wp' ),
-				'last'                  => __( 'Last', 'optimole-wp' ),
-				'saved'                 => __( 'Saved', 'optimole-wp' ),
-				'smaller'               => __( 'smaller', 'optimole-wp' ),
-				'optimized_images'      => __( 'optimized images', 'optimole-wp' ),
+				'last_optimized_images' => __( 'Last optimized images', 'optimole-wp' ),
+				// translators: %s is the percentage (e.g. 10%).
+				'percentage_saved'      => sprintf( __( '%s Saved', 'optimole-wp' ), '{ratio}%' ),
+				// translators: %s is the percentage (e.g. 10%).
+				'percentage_smaller'    => sprintf( __( '%s smaller', 'optimole-wp' ), '{ratio}%' ),
 				'same_size'             => __( '🙉 We couldn\'t do better, this image is already optimized at maximum.', 'optimole-wp' ),
 				'small_optimization'    => __( '😬 Not that much, just <strong>{ratio}</strong> smaller.', 'optimole-wp' ),
 				'medium_optimization'   => __( '🤓 We are on the right track, <strong>{ratio}</strong> squeezed.', 'optimole-wp' ),

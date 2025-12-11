@@ -260,12 +260,12 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 
 ## Installation ##
-The following are the steps to install the OptiMole plugin
+The following are the steps to install the Optimole plugin
 
 1. In your WordPress Administration Panels, click on Add New option under Plugins from the menu.
 Click on upload at the top.
-2. Browse the location and select the OptiMole Plugin and click install now.
-3. Go to Media -> OptiMole and follow in the instructions on how to enable the service.
+2. Browse the location and select the Optimole Plugin and click install now.
+3. Go to Media -> Optimole and follow in the instructions on how to enable the service.
 
 ## Frequently Asked Questions ##
 

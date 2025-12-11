@@ -992,7 +992,7 @@ Fix edge cases for auto allowing domain on site migration.
 
 **Documentation**
 
-* improve readme description of the OptiMole service ([e020300](https://github.com/Codeinwp/optimole-wp/commit/e020300))
+* improve readme description of the Optimole service ([e020300](https://github.com/Codeinwp/optimole-wp/commit/e020300))
 
 
 

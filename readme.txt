@@ -70,8 +70,7 @@ Optimize your entire media library with a single click. Optimole processes your 
 
 #### 🚀 One-Click Image Offloading [PRO]
 
-Free up valuable server space by offloading your entire media library to Optimole's secure cloud storage. All your images are safely stored and delivered from our optimized CDN, reducing your hosting costs and server load. Need your images back on your server? Our seamless one-click restoration process makes it easy to transfer everything back 
-whenever you want, giving you complete flexibility and control over your media assets.
+Free up valuable server space by offloading your entire media library to Optimole's secure cloud storage. All your images are safely stored and delivered from our optimized CDN, reducing your hosting costs and server load. Need your images back on your server? Our seamless one-click restoration process makes it easy to transfer everything back whenever you want, giving you complete flexibility and control over your media assets.
 
 #### 🌎 CDN
 
@@ -260,12 +259,12 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 
 == Installation ==
-The following are the steps to install the OptiMole plugin
+The following are the steps to install the Optimole plugin
 
-1. In your WordPress Administration Panels, click on Add New option under Plugins from the menu.
+1. In your WordPress Dashboard, click on Add New option under Plugins from the menu.
 Click on upload at the top.
-2. Browse the location and select the OptiMole Plugin and click install now.
-3. Go to Media -> OptiMole and follow in the instructions on how to enable the service.
+2. Browse the location, select the Optimole plugin and click "Install now".
+3. Go to Media -> Optimole and follow in the instructions on how to enable the service.
 
 == Frequently Asked Questions ==
 
@@ -305,7 +304,7 @@ We use your original images as sources when deliver the optimized images. Unless
 
 A higher compression might result in a small loss of image quality. Selecting the auto level will let Optimole choose the minimum size with no loss in the quality of your picture.
 
-= I used Kraken, Shortpixel, Optimus, EWWW or WP Smush, Imagify will Optimole further optimize my images? =
+= I used Kraken, Shortpixel, Optimus, EWWW or WP Smush, Imagify. Will Optimole further optimize my images? =
 
 Yes, Optimole will also take care of serving your image at the RIGHT size for your visitors and optimize them to the best possible format for their browser.
 
