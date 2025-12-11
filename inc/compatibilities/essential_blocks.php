@@ -20,6 +20,8 @@ class Optml_essential_blocks extends Optml_compatibility {
 
 	/**
 	 * Register integration details.
+	 *
+	 * @return void
 	 */
 	public function register() {
 		add_filter(
