@@ -2,7 +2,7 @@
 Contributors: optimole
 Tags: image optimization, convert webp, image optimizer, lazy load, optimize images
 Requires at least: 5.5
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
 Stable tag: 4.1.4
 License: GPLv3
@@ -16,11 +16,11 @@ Optimole is the complete image optimization powerhouse that helps you compress i
 
 ### ⚡ Quick Links
 
-- [Test Your Site](https://optimole.com/test-drive/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole) - See how much faster we can make your site
+- [Test Your Site](https://optimole.com/test-drive/?utm_source=wordpressorg&utm_medium=readme&utm_campaign=optimole) - See how much faster we can make your site
 - [Documentation](https://docs.optimole.com/) - Learn how to use all features
 - [Support Forum](https://wordpress.org/support/plugin/optimole-wp/) - Get help from our team
-- [How to Speed Up WordPress](https://optimole.com/how-to-speed-up-wordpress/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole) - Essential optimization tips
-- [Go Pro](https://optimole.com/pricing/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole) - Upgrade for more monthly visits
+- [How to Speed Up WordPress](https://optimole.com/how-to-speed-up-wordpress/?utm_source=wordpressorg&utm_medium=readme&utm_campaign=optimole) - Essential optimization tips
+- [Go Pro](https://optimole.com/pricing/?utm_source=wordpressorg&utm_medium=readme&utm_campaign=optimole) - Upgrade for more monthly visits
 
 ### 🚀 Summary of What Optimole Does
 
@@ -207,7 +207,7 @@ Premium plans start from support for 40,000 monthly visits and scale up to 3 mil
 
 All images are delivered via AWS CloudFront, using a global network of 450+ edge locations for lightning-fast load times, anywhere in the world.
 
-Pro is ideal for photographers, agencies, and businesses managing large volumes of photos online. As a Pro user, you’ll get priority support and the option to use a custom CNAME—so your image URLs reflect your brand while being served at top speed. [Get Optimole Pro](https://optimole.com/pricing/?utm_source=wpadmin&utm_medium=readme&utm_campaign=optimole).
+Pro is ideal for photographers, agencies, and businesses managing large volumes of photos online. As a Pro user, you’ll get priority support and the option to use a custom CNAME—so your image URLs reflect your brand while being served at top speed. [Get Optimole Pro](https://optimole.com/pricing/?utm_source=wordpressorg&utm_medium=readme&utm_campaign=optimole).
 
 ### What Our Users Say About Optimole
 

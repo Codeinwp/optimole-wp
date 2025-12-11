@@ -66,6 +66,10 @@ function _manually_load_plugin() {
 		}
 	}
 	require dirname( dirname( __FILE__ ) ) . '/optimole-wp.php';
+	
+	// Prevent cache clearing actions during tests to avoid errors from cache compatibility classes
+	// This filter prevents optml_settings_updated and optml_clear_cache from being triggered
+	add_filter( 'optml_dont_trigger_settings_updated', '__return_true' );
 }
 
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
@@ -82,6 +86,7 @@ if ( ! function_exists( 'tsdk_translate_link' ) ) {
 
 // Activate Optimole plugin
 activate_plugin( 'optimole-wp/optimole-wp.php' );
+
 
 // Set up the current logged in user
 global $current_user;
