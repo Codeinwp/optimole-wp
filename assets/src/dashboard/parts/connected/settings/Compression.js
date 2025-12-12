@@ -352,7 +352,7 @@ const Compression = ({
 											{ ( sampleImages.id && 0 < sampleImages.original_size ) && (
 												<div>
 													{ 0 < getCompressionRatio() ? (
-														<p className="text-base">{ 100 - getCompressionRatio() }% { optimoleDashboardApp.strings.latest_images.smaller }</p>
+														<p className="text-base">{ optimoleDashboardApp.strings.latest_images.percentage_smaller.replace( '{ratio}', 100 - getCompressionRatio() ) }</p>
 													) : (
 														<p className="text-base">{ optimoleDashboardApp.strings.latest_images.same_size }</p>
 													) }

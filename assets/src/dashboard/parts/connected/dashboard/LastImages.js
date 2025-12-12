@@ -55,7 +55,7 @@ const Image = ({
 				} }
 				ref={ squareRef }
 			/>
-			<p className="optml__bullet w-full h-4">{ getSize() }% { optimoleDashboardApp.strings.latest_images.saved } </p>
+			<p className="optml__bullet w-full h-4">{ optimoleDashboardApp.strings.latest_images.percentage_saved.replace( '{ratio}', getSize() ) } </p>
 		</div>
 	);
 };
@@ -136,7 +136,7 @@ const LastImages = () => {
 
 	return (
 		<div>
-			<h3 className="text-gray-800 text-xl font-semibold mb-5 m-0">{ optimoleDashboardApp.strings.latest_images.last } { optimoleDashboardApp.strings.latest_images.optimized_images }</h3>
+			<h3 className="text-gray-800 text-xl font-semibold mb-5 m-0">{ optimoleDashboardApp.strings.latest_images.last_optimized_images }</h3>
 
 			{ ( isInitialLoading && ! isLoaded ) && (
 				<div className="flex items-center flex-col py-2">
