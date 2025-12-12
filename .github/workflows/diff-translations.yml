@@ -27,7 +27,7 @@ jobs:
           composer install --no-dev --prefer-dist --no-progress --no-suggest
           npm ci
           npm run build
-          # TODO: when is merged to master, switch to npm run build:make-pot
+          # TODO: when is merged to master, switch to npm run make-pot
           docker run --user root --rm --volume $(pwd):/var/www/html/optimole-wp wordpress:cli bash -c 'php -d memory_limit=512M $(which wp) --version --allow-root && wp i18n make-pot optimole-wp ./optimole-wp/languages/optimole-wp.pot --include=inc,assets/src --allow-root --domain=optimole-wp'
           ls languages/
       - name: Checkout PR Branch (Head)
@@ -40,7 +40,7 @@ jobs:
           composer install --no-dev --prefer-dist --no-progress --no-suggest
           npm ci
           npm run build
-          npm run build:make-pot
+          npm run make-pot
           ls languages/
       - name: Compare POT files
         uses: Codeinwp/action-i18n-string-reviewer@main
