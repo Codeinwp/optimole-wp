@@ -33,6 +33,11 @@ class Optml_elementor_builder extends Optml_compatibility {
 			function ( $all_watchers ) {
 				$all_watchers[] = '.elementor-widget-container';
 				$all_watchers[] = '.elementor-background-slideshow__slide__image';
+				$all_watchers[] = '.elementor-section[data-settings*="background_background"]';
+				$all_watchers[] = '.elementor-column[data-settings*="background_background"] > .elementor-widget-wrap';
+				$all_watchers[] = '.elementor-element[data-settings*="background_background"]';
+				$all_watchers[] = '.elementor-section > .elementor-background-overlay';
+
 				return $all_watchers;
 			}
 		);
