@@ -4,7 +4,7 @@ Tags: image optimization, convert webp, image optimizer, lazy load, optimize ima
 Requires at least: 5.5
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 4.1.4
+Stable tag: 4.1.5
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -249,9 +249,11 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 4.1.4](https://github.com/Codeinwp/optimole-wp/compare/v4.1.3...v4.1.4) (2025-11-14)
+##### [Version 4.1.5](https://github.com/Codeinwp/optimole-wp/compare/v4.1.4...v4.1.5) (2025-12-12)
 
-- Fixed an issue where the signature validation logic in the offloading process was not working correctly.
+- Improved type annotations and added runtime type checks in several methods to prevent errors when non-array values are encountered. 
+- Fixed an edge case where background lazyload selectors could be accessed before settings were initialized.
+- Improved logic to better extract the original URL from Optimole offloaded images, including offloading patterns and custom CDN domains.
 
 
 

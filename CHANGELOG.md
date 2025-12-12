@@ -1,3 +1,9 @@
+##### [Version 4.1.5](https://github.com/Codeinwp/optimole-wp/compare/v4.1.4...v4.1.5) (2025-12-12)
+
+- Improved type annotations and added runtime type checks in several methods to prevent errors when non-array values are encountered. 
+- Fixed an edge case where background lazyload selectors could be accessed before settings were initialized.
+- Improved logic to better extract the original URL from Optimole offloaded images, including offloading patterns and custom CDN domains.
+
 ##### [Version 4.1.4](https://github.com/Codeinwp/optimole-wp/compare/v4.1.3...v4.1.4) (2025-11-14)
 
 - Fixed an issue where the signature validation logic in the offloading process was not working correctly.
