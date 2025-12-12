@@ -46,7 +46,7 @@
     "e2e:open": "playwright test --ui",
     "e2e:run": "playwright test",
     "dist": "./bin/dist.sh",
-    "build:make-pot": "docker run --user root --rm --volume \"$(pwd):/var/www/html/optimole-wp\" wordpress:cli bash -c 'php -d memory_limit=512M \"$(which wp)\" --version --allow-root && wp i18n make-pot optimole-wp ./optimole-wp/languages/optimole-wp.pot --include=inc,assets/src --allow-root --domain=optimole-wp'"
+    "build:make-pot": "docker run --user root --rm --volume $(pwd):/var/www/html/optimole-wp wordpress:cli bash -c 'php -d memory_limit=512M $(which wp) --version --allow-root && wp i18n make-pot optimole-wp ./optimole-wp/languages/optimole-wp.pot --include=inc,assets/src --allow-root --domain=optimole-wp'"
   },
   "devDependencies": {
     "@playwright/test": "^1.50.1",
