@@ -575,11 +575,14 @@ class Optml_Admin {
 	/**
 	 * Add settings links in the plugin listing page.
 	 *
-	 * @param string[] $links Old plugin links.
+	 * @param string[]|mixed $links Old plugin links.
 	 *
-	 * @return string[] Altered links.
+	 * @return string[]|mixed Altered links.
 	 */
 	public function add_action_links( $links ) {
+		if ( ! is_array( $links ) ) {
+			return $links;
+		}
 		return array_merge(
 			$links,
 			[

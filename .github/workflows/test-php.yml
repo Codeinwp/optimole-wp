@@ -28,7 +28,7 @@ jobs:
       strategy:
         fail-fast: false
         matrix:
-          php-versions: [ '7.4', '8.0', '8.1', '8.2', '8.3' ]
+          php-versions: [ '8.0', '8.1', '8.2', '8.3' ]
       services:
         database:
           image: mysql:latest
@@ -41,7 +41,7 @@ jobs:
         - name: Setup PHP version
           uses: shivammathur/setup-php@v2
           with:
-            php-version: ${{ matrix.php-version }}
+            php-version: ${{ matrix.php-versions }}
             extensions: simplexml, mysql
             tools: phpunit-polyfills:1.1
         - name: Checkout source code
