@@ -32,10 +32,11 @@ class Optml_Cli_Setting extends WP_CLI_Command {
 		if ( $data === false || is_wp_error( $data ) ) {
 			$extra = '';
 			if ( is_wp_error( $data ) ) {
-				$extra = sprintf( 
+				$extra = sprintf(
 					/* translators: Error details */
-					__( '. ERROR details: %s', 'optimole-wp' ), 
-					$data->get_error_message() );
+					__( '. ERROR details: %s', 'optimole-wp' ),
+					$data->get_error_message()
+				);
 			}
 
 			return \WP_CLI::error( __( 'Can not connect to Optimole service', 'optimole-wp' ) . $extra );
