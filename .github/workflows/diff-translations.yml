@@ -1,0 +1,53 @@
+name: Translations Diff
+
+on:
+  pull_request_review:
+  pull_request:
+    types: [opened, edited, synchronize, ready_for_review]
+    branches:
+      - development
+      - master
+
+jobs:
+  translation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Base Branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.base_ref }}
+          path: optimole-base
+      - name: Setup node 16
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16.x
+      - name: Build POT for Base Branch
+        run: |
+          cd optimole-base
+          composer install --no-dev --prefer-dist --no-progress --no-suggest
+          npm ci
+          npm run build
+          # TODO: when is merged to master, switch to npm run build:make-pot
+          docker run --user root --rm --volume \"$(pwd):/var/www/html/optimole-wp\" wordpress:cli bash -c 'php -d memory_limit=512M \"$(which wp)\" --version --allow-root && wp i18n make-pot optimole-wp ./optimole-wp/languages/optimole-wp.pot --include=inc,assets/src --allow-root --domain=optimole-wp'
+          ls languages/
+      - name: Checkout PR Branch (Head)
+        uses: actions/checkout@v4
+        with:
+          path: optimole-head
+      - name: Build POT for PR Branch
+        run: |
+          cd optimole-head
+          composer install --no-dev --prefer-dist --no-progress --no-suggest
+          npm ci
+          npm run build
+          npm run build:make-pot
+          ls languages/
+      - name: Compare POT files
+        uses: Codeinwp/action-i18n-string-reviewer@main
+        with:
+          fail-on-changes: 'true'
+          openrouter-key: ${{ secrets.OPEN_ROUTER_API_KEY }}
+          openrouter-model: 'google/gemini-2.5-flash'
+          base-pot-file: 'optimole-base/languages/optimole-wp.pot'
+          target-pot-file: 'optimole-head/languages/optimole-wp.pot'
+          github-token: ${{ secrets.BOT_TOKEN }}
