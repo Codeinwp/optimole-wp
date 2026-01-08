@@ -153,7 +153,7 @@ export const connectAccount = ( data, callback = () => {}) => {
 				sendOnboardingImages();
 				toggleDashboardSidebarSubmenu( true );
 
-				console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
+				console.log( '%c Optimole API connection successful.', 'color: #59B278' );
 
 			} else {
 				setHasValidKey( false );
@@ -195,7 +195,7 @@ export const disconnectAccount = () => {
 				sethasDashboardLoaded( false );
 				setShowDisconnect( false );
 				toggleDashboardSidebarSubmenu( false );
-				console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
+				console.log( '%c Disconnected from Optimole API.', 'color: #59B278' );
 			} else {
 				console.error( response );
 			}
@@ -221,7 +221,7 @@ export const selectDomain = ( data, callback = () => {}) => {
 				setAPIKey( response.data.api_key );
 				setUserData( response.data );
 				setAvailableApps( response.data );
-				console.log( '%c OptiMole API connection successful.', 'color: #59B278' );
+				console.log( '%c Optimole API connection successful.', 'color: #59B278' );
 			} else {
 				setHasValidKey( false );
 				console.log( '%c Invalid API Key.', 'color: #E7602A' );
@@ -271,7 +271,7 @@ export const requestStatsUpdate = () => {
 			if ( 'disconnected' === response.code ) {
 				setIsConnected( false );
 				sethasDashboardLoaded( false );
-				console.log( '%c Disconnected from OptiMole API.', 'color: #59B278' );
+				console.log( '%c Disconnected from Optimole API.', 'color: #59B278' );
 			}
 		});
 };
