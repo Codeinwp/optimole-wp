@@ -69,6 +69,8 @@ final class Optml_Manager {
 	 * @var array Integrations classes.
 	 */
 	private $possible_compatibilities = [
+		'kadence_blocks',
+		'essential_blocks',
 		'shortcode_ultimate',
 		'foogallery',
 		'envira',
@@ -110,6 +112,9 @@ final class Optml_Manager {
 		'endurance_cache',
 		'rocketnet',
 		'speedycache',
+		'hummingbird',
+		'aruba_hsc',
+		'spc',
 	];
 	/**
 	 * The current state of the buffer.

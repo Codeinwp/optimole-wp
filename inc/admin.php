@@ -635,22 +635,17 @@ class Optml_Admin {
 		}
 		?>
 		<div class="notice optml-notice-optin"
-			style="background-color: #577BF9; color:white; border: none !important; display: flex;">
+			style="background-color: #577BF9; color:white; border: none !important; display: flex; align-items: center;">
 			<div style="margin: 1% 2%;">
-				<img src='<?php echo OPTML_URL . 'assets/img/upgrade_icon.png'; ?>'>
+				<img style="max-width: 100px;" src='<?php echo OPTML_URL . 'assets/img/upgrade_icon.png'; ?>'>
 			</div>
-			<div style="margin-top: 0.7%;">
+			<div style="display: grid; gap: 10px;">
 				<p style="font-size: 16px !important;">
 					<?php
 					printf(
-					/* translators: 1 - opening strong tag, 2 - visits limit, 3 - closing strong tag, 4 - opening strong tag, 5 - closing strong tag, 6 -  br tag */
-						__( '%1$sIt seems you are close to the %2$s visits limit with %3$sOptimole%4$s for this month.%5$s %6$s For a larger quota you may want to check the upgrade plans. If you exceed the quota we will need to deliver back your original, un-optimized images, which might decrease your site speed performance.', 'optimole-wp' ),
-						'<strong>',
-						number_format_i18n( 2000 ),
-						'</strong>',
-						'<strong>',
-						'</strong>',
-						'<br/><br/>'
+					/* translators: 1 - visits limit */
+						__( 'You\'re nearing your %1$s-visit monthly cap on Optimole. If you exceed it, we\'ll serve original (unoptimized) images - expect slower pages.', 'optimole-wp' ),
+						'<strong>' . number_format_i18n( 2000 ) . '</strong>'
 					);
 					?>
 				</p>
@@ -864,7 +859,7 @@ class Optml_Admin {
 					</p>
 					<div class="actions">
 						<a href="<?php echo esc_url( admin_url( 'admin.php?page=optimole' ) ); ?>"
-							class="button button-primary button-hero"><?php _e( 'Connect to OptiMole', 'optimole-wp' ); ?>
+							class="button button-primary button-hero"><?php _e( 'Connect to Optimole', 'optimole-wp' ); ?>
 						</a>
 						<a class="button button-secondary button-hero"
 							href="<?php echo wp_nonce_url( add_query_arg( [ 'optml_hide_optin' => 'yes' ] ), 'hide_nonce', 'optml_nonce' ); ?>"><?php _e( 'I will do it later', 'optimole-wp' ); ?>
@@ -2286,10 +2281,11 @@ The root cause might be either a security plugin which blocks this feature or so
 				'no_images_found'       => sprintf( /* translators: 1 is the starting anchor tag, 2 is the ending anchor tag */ __( 'We are currently optimizing your images. Meanwhile you can visit your %1$shomepage%2$s and check how our plugin performs.', 'optimole-wp' ), '<a href="' . esc_url( home_url() ) . '" target="_blank" >', '</a>' ),
 				'compression'           => __( 'Optimization', 'optimole-wp' ),
 				'loading_latest_images' => __( 'Loading your optimized images...', 'optimole-wp' ),
-				'last'                  => __( 'Last', 'optimole-wp' ),
-				'saved'                 => __( 'Saved', 'optimole-wp' ),
-				'smaller'               => __( 'smaller', 'optimole-wp' ),
-				'optimized_images'      => __( 'optimized images', 'optimole-wp' ),
+				'last_optimized_images' => __( 'Last optimized images', 'optimole-wp' ),
+				// translators: %s is the percentage (e.g. 10%).
+				'percentage_saved'      => sprintf( __( '%s Saved', 'optimole-wp' ), '{ratio}%' ),
+				// translators: %s is the percentage (e.g. 10%).
+				'percentage_smaller'    => sprintf( __( '%s smaller', 'optimole-wp' ), '{ratio}%' ),
 				'same_size'             => __( '🙉 We couldn\'t do better, this image is already optimized at maximum.', 'optimole-wp' ),
 				'small_optimization'    => __( '😬 Not that much, just <strong>{ratio}</strong> smaller.', 'optimole-wp' ),
 				'medium_optimization'   => __( '🤓 We are on the right track, <strong>{ratio}</strong> squeezed.', 'optimole-wp' ),

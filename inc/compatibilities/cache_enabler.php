@@ -32,6 +32,23 @@ class Optml_cache_enabler extends Optml_compatibility {
 				do_action( 'cache_enabler_clear_site_cache' );
 			}
 		);
+
+		add_action( 'optml_clear_cache', [ $this, 'add_clear_cache_action' ] );
+	}
+
+	/**
+	 * Clear cache for Super Page Cache for Cloudflare.
+	 *
+	 * @param string|bool $location The location to clear the cache for. If true, clear the cache globally. If a string, clear the cache for a particular url.
+	 * @return void
+	 */
+	public function add_clear_cache_action( $location ) {
+		if ( $location === true ) {
+			do_action( 'cache_enabler_clear_site_cache' );
+			return;
+		}
+
+		do_action( 'cache_enabler_clear_page_cache_by_url', $location );
 	}
 
 	/**

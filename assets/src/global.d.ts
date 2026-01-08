@@ -481,10 +481,9 @@ export interface LatestImages {
   no_images_found: string
   compression: string
   loading_latest_images: string
-  last: string
-  saved: string
-  smaller: string
-  optimized_images: string
+  last_optimized_images: string
+  percentage_saved: string
+  percentage_smaller: string
   same_size: string
   small_optimization: string
   medium_optimization: string
