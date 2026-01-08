@@ -69,6 +69,8 @@ final class Optml_Manager {
 	 * @var array Integrations classes.
 	 */
 	private $possible_compatibilities = [
+		'kadence_blocks',
+		'essential_blocks',
 		'shortcode_ultimate',
 		'foogallery',
 		'envira',
