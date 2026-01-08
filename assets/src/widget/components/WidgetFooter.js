@@ -1,7 +1,7 @@
 import { Icon, external } from '@wordpress/icons';
 
 export default function WidgetFooter() {
-	const { i18n, dashboardURL, adminPageURL } = optimoleDashboardWidget;
+	const { i18n, dashboardURL, dashboardMetricsURL } = optimoleDashboardWidget;
 
 	return (
 		<div className="flex justify-between gap-4 items-center px-4 py-2 bg-gray-50">
@@ -10,8 +10,9 @@ export default function WidgetFooter() {
 				<span className="text-base font-bold text-gray-800 group-hover:text-dark-blue transition-colors duration-300">Optimole</span>
 			</a>
 
-			<a href={ adminPageURL } className="text-sm text-info font-medium cursor-pointer hover:text-dark-blue no-underline transition-colors duration-300">
+			<a href={ dashboardMetricsURL } className="text-sm text-info font-medium cursor-pointer hover:text-dark-blue no-underline transition-colors duration-300 flex items-center gap-1">
 				{ i18n.viewAllStats }
+				<Icon icon={ external } className="w-5 h-5 fill-current transition-colors duration-300"/>
 			</a>
 		</div>
 	);
