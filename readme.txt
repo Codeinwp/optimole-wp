@@ -4,7 +4,7 @@ Tags: image optimization, convert webp, image optimizer, lazy load, optimize ima
 Requires at least: 5.5
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 4.1.5
+Stable tag: 4.2.0
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -248,11 +248,15 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 4.1.5](https://github.com/Codeinwp/optimole-wp/compare/v4.1.4...v4.1.5) (2025-12-12)
+#### [Version 4.2.0](https://github.com/Codeinwp/optimole-wp/compare/v4.1.5...v4.2.0) (2026-01-08)
 
-- Improved type annotations and added runtime type checks in several methods to prevent errors when non-array values are encountered. 
-- Fixed an edge case where background lazyload selectors could be accessed before settings were initialized.
-- Improved logic to better extract the original URL from Optimole offloaded images, including offloading patterns and custom CDN domains.
+- Better lazy loading for background images from page building plugins (Elementor, Otter Blocks, Kadence Blocks, Beaver Builder, Spectra Blocks, Essential Blocks)
+- Fixes issue with lazy-loading images using object-size: cover in CSS, not having the proper position
+- Added automatic cache clearing support for 4 popular caching plugins (Super Page Cache, Hummingbird, Aruba Hispeed Cache, Cache Enabler)
+- Updated View all stats link from the dashboard widget to go directly to the Optimole dashboard 
+- Clearer messaging for visit limit notifications
+- Better translation support and consistent casing of Optimole throughout
+- Updated dependencies
 
 
 
