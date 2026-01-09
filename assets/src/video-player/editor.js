@@ -29,7 +29,7 @@ registerBlockVariation( 'core/embed', {
 		return 'optimole' === blockAttributes.providerNameSlug;
 	},
 	patterns: [
-		`^https?:\\/\\/(?:www\\.)?${OMVideoPlayerBlock.domain}\\/.*$`
+		`^https?:\\/\\/(?:www\\.)?${OMVideoPlayerBlock.domain}\\/.*\\.(mp4|webm|ogg|mov|avi|mkv|m4v)$`
 	]
 });
 
