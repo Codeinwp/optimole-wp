@@ -4,7 +4,7 @@
 **Requires at least:** 5.5  
 **Tested up to:** 6.9  
 **Requires PHP:** 7.4  
-**Stable tag:** 4.2.0  
+**Stable tag:** 4.2.1  
 **License:** GPLv3  
 **License URI:** https://www.gnu.org/licenses/gpl-3.0.en.html  
 
@@ -248,15 +248,10 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 ## Changelog ##
 
-#### [Version 4.2.0](https://github.com/Codeinwp/optimole-wp/compare/v4.1.5...v4.2.0) (2026-01-08)
+##### [Version 4.2.1](https://github.com/Codeinwp/optimole-wp/compare/v4.2.0...v4.2.1) (2026-01-09)
 
-- Better lazy loading for background images from page building plugins (Elementor, Otter Blocks, Kadence Blocks, Beaver Builder, Spectra Blocks, Essential Blocks)
-- Fixes issue with lazy-loading images using object-size: cover in CSS, not having the proper position
-- Added automatic cache clearing support for 4 popular caching plugins (Super Page Cache, Hummingbird, Aruba Hispeed Cache, Cache Enabler)
-- Updated View all stats link from the dashboard widget to go directly to the Optimole dashboard 
-- Clearer messaging for visit limit notifications
-- Better translation support and consistent casing of Optimole throughout
-- Updated dependencies
+- Fixes invalid Optimole URLs being picked up for embed in the block editor 
+- Fixes issue where getting the unoptimized image URL didnt account for directly uploaded images to the Optimole Dashboard
 
 
 
