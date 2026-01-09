@@ -1,3 +1,8 @@
+##### [Version 4.2.1](https://github.com/Codeinwp/optimole-wp/compare/v4.2.0...v4.2.1) (2026-01-09)
+
+- Fixes invalid Optimole URLs being picked up for embed in the block editor 
+- Fixes issue where getting the unoptimized image URL didnt account for directly uploaded images to the Optimole Dashboard
+
 #### [Version 4.2.0](https://github.com/Codeinwp/optimole-wp/compare/v4.1.5...v4.2.0) (2026-01-08)
 
 - Better lazy loading for background images from page building plugins (Elementor, Otter Blocks, Kadence Blocks, Beaver Builder, Spectra Blocks, Essential Blocks)
