@@ -100,6 +100,32 @@ React-based, built with `@wordpress/scripts`:
 
 Built output goes to `assets/build/`. The `assets/js/optimizer.js` is the frontend lazy-loading script.
 
+## Task Routing (Where to Start)
+
+- Bootstrap/hooks: `optimole-wp.php`, `inc/main.php`, `inc/manager.php`, `inc/filters.php`.
+- URL/CDN rewriting: `inc/tag_replacer.php`, `inc/url_replacer.php`, `inc/app_replacer.php` + `tests/test-replacer.php`.
+- Lazyload: `inc/lazyload_replacer.php`, `inc/v2/BgOptimizer/Lazyload.php`, `assets/js/optimizer.js` + `tests/test-lazyload.php`.
+- Admin/REST/settings: `inc/admin.php`, `inc/rest.php`, `inc/settings.php`, `assets/src/dashboard/`.
+- Media/DAM: `inc/media_offload.php`, `inc/dam.php`, `assets/src/media/`.
+- Compat/conflicts: `inc/compatibilities/`, `inc/conflicts/`, related `tests/e2e/*.spec.ts`.
+- Video player: `inc/video_player.php`, `assets/src/video-player/`, `tests/test-video.php`.
+
+## Security Checklist (WordPress-Specific)
+
+- State-changing actions: capability check + nonce verification.
+- Input/output: sanitize on input, escape on output.
+- REST: always set strict `permission_callback` for write routes.
+- SQL: use `$wpdb->prepare()` for dynamic queries.
+- Safety: do not leak secrets/tokens; validate remote and file/media operations before mutate/delete.
+
+## Agent Execution Policy
+
+- Keep changes surgical; avoid unrelated refactors/cleanups.
+- Prefer `inc/v2/` for new logic unless legacy coupling forces `inc/*.php`.
+- Trace hooks and callsites before editing behavior.
+- Add/update the smallest relevant test and run targeted checks first.
+- Build only touched frontend targets; call out intentional build artifacts.
+
 ## Code Standards
 
 - **PHP**: WordPress-Core via PHPCS. Text domain: `optimole-wp`.
