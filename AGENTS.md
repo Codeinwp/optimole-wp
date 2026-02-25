@@ -58,7 +58,7 @@ npm run format                     # ESLint --fix
 # PHP
 composer phpcs                     # PHP CodeSniffer (WordPress-Core standard)
 composer format                    # Auto-fix with phpcbf
-composer phpstan                   # PHPStan level 2
+composer phpstan                   # PHPStan level 6
 ```
 
 ## Architecture
