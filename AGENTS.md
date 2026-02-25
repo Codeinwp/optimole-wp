@@ -88,7 +88,7 @@ optimole-wp.php → optml() → Optml_Main::instance() (singleton)
 - **Lazy loading** (`lazyload_replacer.php`, `inc/v2/BgOptimizer/`) — Viewport-based and background-image lazy loading. Frontend JS in `assets/js/optimizer.js`.
 - **Media offloading** (`media_offload.php`) — Moves media to/from Optimole cloud storage, handles bulk operations.
 - **Settings** (`settings.php`) — Central settings schema and management, stores in `wp_options`.
-- **Compatibility layer** (`inc/compatibilities/`) — 49+ integrations for page builders (Elementor, Divi, Beaver Builder), caching plugins (WP Rocket, LiteSpeed), WooCommerce, etc. Each extends `Optml_compatibility`.
+- **Compatibility layer** (`inc/compatibilities/`) — 47+ integrations for page builders (Elementor, Divi, Beaver Builder), caching plugins (WP Rocket, LiteSpeed), WooCommerce, etc. Each extends `Optml_compatibility`.
 
 ### Frontend assets (`assets/src/`)
 
