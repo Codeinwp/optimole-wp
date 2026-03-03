@@ -164,8 +164,8 @@ class Optml_Dam {
 		$metadata['file']      = '/id:' . $image['resourceS3'] . '/' . get_home_url() . '/' . $filename;
 		$metadata['mime-type'] = $image['mimeType'];
 
-		if ( isset( $image['filesize'] ) ) {
-			$metadata['filesize'] = $image['fileSize'];
+		if ( isset( $image['fileSize'] ) ) {
+			$metadata['fileSize'] = $image['fileSize'];
 		}
 
 		if ( isset( $image['originalWidth'] ) && isset( $image['originalHeight'] ) ) {
