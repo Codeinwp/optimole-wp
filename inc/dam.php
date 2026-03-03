@@ -112,8 +112,8 @@ class Optml_Dam {
 		$existing = $this->check_existing_attachments( $images );
 
 		foreach ( $images as $image ) {
-			if ( ! isset( $image['isEdit'] ) && array_key_exists( $image['meta']['resourceS3'], $existing ) ) {
-				$ids[] = $existing[ $image['meta']['resourceS3'] ];
+			if ( ! isset( $image['isEdit'] ) && array_key_exists( $image['resourceS3'], $existing ) ) {
+				$ids[] = $existing[ $image['resourceS3'] ];
 
 				continue;
 			}
@@ -143,7 +143,7 @@ class Optml_Dam {
 		$args = [
 			'post_title'     => $name,
 			'post_type'      => 'attachment',
-			'post_mime_type' => $image['meta']['mimeType'],
+			'post_mime_type' => $image['mimeType'],
 			'guid'           => $image['url'],
 		];
 
@@ -153,7 +153,7 @@ class Optml_Dam {
 			return $id;
 		}
 
-		update_post_meta( $id, self::OM_DAM_IMPORTED_FLAG, $image['meta']['resourceS3'] );
+		update_post_meta( $id, self::OM_DAM_IMPORTED_FLAG, $image['resourceS3'] );
 
 		if ( isset( $image['isEdit'] ) ) {
 			update_post_meta( $id, self::IS_EDIT_FLAG, true );
@@ -161,16 +161,16 @@ class Optml_Dam {
 
 		$metadata = [];
 
-		$metadata['file']      = '/id:' . $image['meta']['resourceS3'] . '/' . get_home_url() . '/' . $filename;
-		$metadata['mime-type'] = $image['meta']['mimeType'];
+		$metadata['file']      = '/id:' . $image['resourceS3'] . '/' . get_home_url() . '/' . $filename;
+		$metadata['mime-type'] = $image['mimeType'];
 
-		if ( isset( $image['meta']['filesize'] ) ) {
-			$metadata['filesize'] = $image['meta']['fileSize'];
+		if ( isset( $image['filesize'] ) ) {
+			$metadata['filesize'] = $image['fileSize'];
 		}
 
-		if ( isset( $image['meta']['originalWidth'] ) && isset( $image['meta']['originalHeight'] ) ) {
-			$metadata['width']  = $image['meta']['originalWidth'];
-			$metadata['height'] = $image['meta']['originalHeight'];
+		if ( isset( $image['originalWidth'] ) && isset( $image['originalHeight'] ) ) {
+			$metadata['width']  = $image['originalWidth'];
+			$metadata['height'] = $image['originalHeight'];
 		}
 
 		wp_update_attachment_metadata( $id, $metadata );
@@ -197,7 +197,6 @@ class Optml_Dam {
 	 * @return array $image.
 	 */
 	public function alter_attachment_image_src( $image, $attachment_id, $size, $icon ) {
-
 		// Skip if not DAM image.
 		if ( ! $this->is_dam_imported_image( $attachment_id ) ) {
 			return $image;
@@ -287,7 +286,7 @@ class Optml_Dam {
 		$remaining = array_filter(
 			$images,
 			function ( $image ) use ( $already_imported ) {
-				return ! array_key_exists( $image['meta']['resourceS3'], $already_imported );
+				return ! array_key_exists( $image['resourceS3'], $already_imported );
 			}
 		);
 
@@ -314,7 +313,7 @@ class Optml_Dam {
 		$s3_ids = [];
 
 		foreach ( $images as $image ) {
-			$s3_ids[] = esc_sql( strval( $image['meta']['resourceS3'] ) );
+			$s3_ids[] = esc_sql( strval( $image['resourceS3'] ) );
 		}
 
 		$meta_values_str = "'" . join( "', '", $s3_ids ) . "'";
@@ -364,7 +363,7 @@ class Optml_Dam {
 		$map = [];
 
 		foreach ( $images as $image ) {
-			$like = '%id:' . $image['meta']['resourceS3'] . '%';
+			$like = '%id:' . $image['resourceS3'] . '%';
 
 			$found_attachments = $wpdb->get_results(
 				$wpdb->prepare(
@@ -378,7 +377,7 @@ class Optml_Dam {
 				return [];
 			}
 
-			$map[ $image['meta']['resourceS3'] ] = (int) $found_attachments[0]->post_id;
+			$map[ $image['resourceS3'] ] = (int) $found_attachments[0]->post_id;
 		}
 
 		return $map;
