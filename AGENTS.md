@@ -43,7 +43,7 @@ npm test
 npm run test:watch
 npm run test:coverage
 
-# E2E tests (Playwright, base URL: http://testing.optimole.com)
+# E2E tests (Playwright — configure use.baseURL in playwright.config.ts to your local WP URL; do not run against the shared http://testing.optimole.com by default)
 npm run e2e:run
 npm run e2e:open                   # Interactive UI mode
 ```
