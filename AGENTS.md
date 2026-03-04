@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Optimole WordPress plugin — cloud-based image optimization with CDN delivery, lazy loading, WebP/AVIF conversion, media offloading, and a Digital Asset Management (DAM) interface. Version 4.2.1, requires PHP 7.4+, WordPress 5.5+.
+Optimole WordPress plugin — cloud-based image optimization with CDN delivery, lazy loading, WebP/AVIF conversion, media offloading, and a Digital Asset Management (DAM) interface. Requires a supported PHP and WordPress version; see the plugin header or readme for the current version and system requirements.
 
 ## Build & Dev Commands
 
