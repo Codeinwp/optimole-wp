@@ -33,10 +33,10 @@ composer phpunit
 composer install-wp-tests          # First-time setup
 
 # Run a specific PHP test file
-phpunit tests/test-replacer.php
+composer phpunit -- tests/test-replacer.php
 
 # Run a specific test method
-phpunit --filter="test_method_name"
+composer phpunit -- --filter="test_method_name"
 
 # JavaScript tests
 npm test
