@@ -17,18 +17,15 @@ class Test_Attachment_Model extends WP_UnitTestCase {
 
 	const MOCK_REMOTE_ATTACHMENT = [
 		'url'  => 'https://cloudUrlTest.test/w:auto/h:auto/q:auto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg',
-		'meta' =>
-			[
-				'originalHeight' => 1800,
-				'originalWidth'  => 1200,
-				'updateTime'     => 1688553629048,
-				'resourceS3'     => 'randomHashForImage1',
-				'mimeType'       => 'image/jpeg',
-				'userKey'        => 'mlckcuxuuuyb',
-				'fileSize'       => 171114,
-				'originURL'      => 'https://test-site.test/wp-content/uploads/2023/07/9.jpg',
-				'domain_hash'    => 'dWwtcG9sZWNhdC15dWtpLmluc3Rhd3AueHl6',
-			],
+		'originalHeight' => 1800,
+		'originalWidth'  => 1200,
+		'updateTime'     => 1688553629048,
+		'resourceS3'     => 'randomHashForImage1',
+		'mimeType'       => 'image/jpeg',
+		'userKey'        => 'mlckcuxuuuyb',
+		'fileSize'       => 171114,
+		'originURL'      => 'https://test-site.test/wp-content/uploads/2023/07/9.jpg',
+		'domain_hash'    => 'dWwtcG9sZWNhdC15dWtpLmluc3Rhd3AueHl6',
 	];
 
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
