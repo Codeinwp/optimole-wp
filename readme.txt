@@ -1,4 +1,4 @@
-=== Optimole – Optimize Images | Convert WebP & AVIF | CDN & Lazy Load | Image Optimization ===
+=== Optimole – Optimize Images in Real Time ===
 Contributors: optimole
 Tags: image optimization, convert webp, image optimizer, lazy load, optimize images
 Requires at least: 5.5
