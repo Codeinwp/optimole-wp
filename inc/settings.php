@@ -527,13 +527,18 @@ class Optml_Settings {
 	 * @return array Site settings.
 	 */
 	public function get_site_settings() {
+		static $cache = null;
+		if ( $cache !== null ) {
+			return $cache;
+		}
+
 		$service_data = $this->get( 'service_data' );
 		$whitelist    = [];
 		if ( isset( $service_data['whitelist'] ) ) {
 			$whitelist = $service_data['whitelist'];
 		}
 
-		return [
+		$cache = [
 			'quality'                    => $this->get_quality(),
 			'admin_bar_item'             => $this->get( 'admin_bar_item' ),
 			'lazyload'                   => $this->get( 'lazyload' ),
@@ -578,6 +583,7 @@ class Optml_Settings {
 			'show_badge_icon'            => $this->get( 'show_badge_icon' ),
 			'badge_position'             => $this->get( 'badge_position' ),
 		];
+		return $cache;
 	}
 
 	/**
