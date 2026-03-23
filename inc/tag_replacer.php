@@ -317,16 +317,16 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				}
 			}
 			if ( strpos( $image_tag, 'data-original-width=' ) === false || strpos( $image_tag, 'data-original-height=' ) === false ) {
-				$_image_id      = $this->get_image_id_from_url( $images['img_url'][ $index ] );
+				$_image_id      = $this->attachment_url_to_post_id( wp_unslash( $images['img_url'][ $index ] ) );
 				$image_metadata = wp_get_attachment_metadata( $_image_id );
-				if ( $image_metadata ) {
-					if ( strpos( $image_tag, 'data-original-width=' ) === false ) {
-						$image_tag = str_replace( 'data-opt-id=', 'data-original-width="' . $image_metadata['width'] . '" data-opt-id=', $image_tag );
+				if ( $image_metadata && is_array( $image_metadata ) ) {
+					if ( strpos( $image_tag, 'data-original-width=' ) === false && ! empty( $image_metadata['width'] ) ) {
+						$original_width = esc_attr( absint( $image_metadata['width'] ) );
+						$image_tag      = str_replace( 'data-opt-id=', 'data-original-width="' . $original_width . '" data-opt-id=', $image_tag );
 					}
-					if ( strpos( $image_tag, 'data-original-height=' ) === false ) {
-						$image_tag = str_replace( 'data-opt-id=', 'data-original-height="' . $image_metadata['height'] . '" data-opt-id=', $image_tag );
-					}
-				}
+					if ( strpos( $image_tag, 'data-original-height=' ) === false && ! empty( $image_metadata['height'] ) ) {
+						$original_height = esc_attr( absint( $image_metadata['height'] ) );
+						$image_tag       = str_replace( 'data-opt-id=', 'data-original-height="' . $original_height . '" data-opt-id=', $image_tag );
 			}
 			$content = str_replace( $images['img_tag'][ $index ], $image_tag, $content );
 		}
