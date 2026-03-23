@@ -183,8 +183,8 @@ export const optmlSrcsetDetector = {
     // Get current image dimensions
     const currentWidth = img.offsetWidth || img.clientWidth;
     const currentHeight = img.offsetHeight || img.clientHeight;
-    const naturalWidth = img.naturalWidth || 0;
-    const naturalHeight = img.naturalHeight || 0;
+    const naturalWidth = img.hasAttribute('data-original-width') ? parseInt(img.getAttribute('data-original-width'), 10) : 0;
+    const naturalHeight = img.hasAttribute('data-original-height') ? parseInt(img.getAttribute('data-original-height'), 10) : 0;
     
     // Skip if we can't determine dimensions
     if (!currentWidth || !currentHeight || !naturalWidth || !naturalHeight) {

@@ -316,6 +316,18 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 					}
 				}
 			}
+			if ( strpos( $image_tag, 'data-original-width=' ) === false || strpos( $image_tag, 'data-original-height=' ) === false ) {
+				$_image_id      = $this->get_image_id_from_url( $images['img_url'][ $index ] );
+				$image_metadata = wp_get_attachment_metadata( $_image_id );
+				if ( $image_metadata ) {
+					if ( strpos( $image_tag, 'data-original-width=' ) === false ) {
+						$image_tag = str_replace( 'data-opt-id=', 'data-original-width="' . $image_metadata['width'] . '" data-opt-id=', $image_tag );
+					}
+					if ( strpos( $image_tag, 'data-original-height=' ) === false ) {
+						$image_tag = str_replace( 'data-opt-id=', 'data-original-height="' . $image_metadata['height'] . '" data-opt-id=', $image_tag );
+					}
+				}
+			}
 			$content = str_replace( $images['img_tag'][ $index ], $image_tag, $content );
 		}
 		return $content;
@@ -955,6 +967,23 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$sizes['height'],
 			$size === 'full',
 		];
+	}
+
+	/**
+	 * Get the attachment ID from the image URL.
+	 *
+	 * @param string $image_url The URL of the image.
+	 * @return int The attachment ID or 0 if not found.
+	 */
+	private function get_image_id_from_url( $image_url ) {
+		// Remove the image size suffix from the URL (e.g., -150x150) to get the original image URL.
+		$image_url = preg_replace(
+			'/-\d+x\d+(?=\.(jpg|jpeg|png|gif|webp)$)/i',
+			'',
+			$image_url
+		);
+
+		return attachment_url_to_postid( $image_url );
 	}
 
 	/**
