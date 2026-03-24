@@ -30,27 +30,33 @@ class Test_Dam extends WP_UnitTestCase {
 	const MOCK_ATTACHMENTS = [
 		[
 			'url'  => 'https://cloudUrlTest.test/w:auto/h:auto/q:auto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/9.jpg',
-			'originalHeight' => 1800,
-			'originalWidth'  => 1200,
-			'updateTime'     => 1688553629048,
-			'resourceS3'     => 'randomHashForImage1',
-			'mimeType'       => 'image/jpeg',
-			'userKey'        => 'mlckcuxuuuyb',
-			'fileSize'       => 171114,
-			'originURL'      => 'https://test-site.test/wp-content/uploads/2023/07/9.jpg',
-			'domain_hash'    => 'dWwtcG9sZWNhdC15dWtpLmluc3Rhd3AueHl6',
+			'meta' =>
+				[
+					'originalHeight' => 1800,
+					'originalWidth'  => 1200,
+					'updateTime'     => 1688553629048,
+					'resourceS3'     => 'randomHashForImage1',
+					'mimeType'       => 'image/jpeg',
+					'userKey'        => 'mlckcuxuuuyb',
+					'fileSize'       => 171114,
+					'originURL'      => 'https://test-site.test/wp-content/uploads/2023/07/9.jpg',
+					'domain_hash'    => 'dWwtcG9sZWNhdC15dWtpLmluc3Rhd3AueHl6',
+				],
 		],
 		[
 			'url'  => 'https://cloudUrlTest.test/w:auto/h:auto/q:auto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/10.jpg',
-			'originalHeight' => 1800,
-			'originalWidth'  => 1200,
-			'updateTime'     => 1688553629048,
-			'resourceS3'     => 'randomHashForImage2',
-			'mimeType'       => 'image/jpeg',
-			'userKey'        => 'mlckcuxuuuyb',
-			'fileSize'       => 171114,
-			'originURL'      => 'https://test-site.test/wp-content/uploads/2023/07/10.jpg',
-			'domain_hash'    => 'dWwtcG9sZWNhdC15dWtpLmluc3Rhd3AueHl6',
+			'meta' =>
+				[
+					'originalHeight' => 1800,
+					'originalWidth'  => 1200,
+					'updateTime'     => 1688553629048,
+					'resourceS3'     => 'randomHashForImage2',
+					'mimeType'       => 'image/jpeg',
+					'userKey'        => 'mlckcuxuuuyb',
+					'fileSize'       => 171114,
+					'originURL'      => 'https://test-site.test/wp-content/uploads/2023/07/10.jpg',
+					'domain_hash'    => 'dWwtcG9sZWNhdC15dWtpLmluc3Rhd3AueHl6',
+				],
 		],
 	];
 
@@ -138,7 +144,7 @@ class Test_Dam extends WP_UnitTestCase {
 			$attachment = get_post( $id );
 
 			$this->assertEquals( self::MOCK_ATTACHMENTS[ $index ]['url'], $attachment->guid );
-			$this->assertEquals( self::MOCK_ATTACHMENTS[ $index ]['mimeType'], $attachment->post_mime_type );
+			$this->assertEquals( self::MOCK_ATTACHMENTS[ $index ]['meta']['mimeType'], $attachment->post_mime_type );
 		}
 	}
 
@@ -159,15 +165,18 @@ class Test_Dam extends WP_UnitTestCase {
 			[
 				[
 					'url'  => 'https://cloudUrlTest.test/w:auto/h:auto/q:auto/id:b1b12ee03bf3945d9d9bb963ce79cd4f/https://test-site.test/11.jpg',
-					'originalHeight' => 1800,
-					'originalWidth'  => 1200,
-					'updateTime'     => 1688553629048,
-					'resourceS3'     => 'randomHashForImage3',
-					'mimeType'       => 'image/jpeg',
-					'userKey'        => 'mlckcuxuuuyb',
-					'fileSize'       => 171114,
-					'originURL'      => 'https://test-site.test/wp-content/uploads/2023/07/11.jpg',
-					'domain_hash'    => 'dWwtcG9sZWNhdC15dWtpLmluc3Rhd3AueHl6',
+					'meta' =>
+						[
+							'originalHeight' => 1800,
+							'originalWidth'  => 1200,
+							'updateTime'     => 1688553629048,
+							'resourceS3'     => 'randomHashForImage3',
+							'mimeType'       => 'image/jpeg',
+							'userKey'        => 'mlckcuxuuuyb',
+							'fileSize'       => 171114,
+							'originURL'      => 'https://test-site.test/wp-content/uploads/2023/07/11.jpg',
+							'domain_hash'    => 'dWwtcG9sZWNhdC15dWtpLmluc3Rhd3AueHl6',
+						],
 				],
 			],
 		);
