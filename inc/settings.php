@@ -120,6 +120,13 @@ class Optml_Settings {
 	private static $options;
 
 	/**
+	 * Cache for site settings to avoid multiple calls to get_option on the same request.
+	 *
+	 * @var array<string, mixed>|null Cached site settings.
+	 */
+	private static $site_settings_cache = null;
+
+	/**
 	 * Optml_Settings constructor.
 	 */
 	public function __construct() {
@@ -440,6 +447,7 @@ class Optml_Settings {
 
 		if ( $update ) {
 			self::$options = $opts;
+			$this->set_settings_cache( 'banner_frontend', $opts['banner_frontend'] );
 		}
 
 		return $update;
@@ -476,6 +484,7 @@ class Optml_Settings {
 
 		if ( $update ) {
 			self::$options = $opt;
+			$this->set_settings_cache( $key, $value );
 		}
 		if ( apply_filters( 'optml_dont_trigger_settings_updated', false ) === false ) {
 			/**
@@ -527,13 +536,17 @@ class Optml_Settings {
 	 * @return array Site settings.
 	 */
 	public function get_site_settings() {
+		if ( self::$site_settings_cache !== null ) {
+			return self::$site_settings_cache;
+		}
+
 		$service_data = $this->get( 'service_data' );
 		$whitelist    = [];
 		if ( isset( $service_data['whitelist'] ) ) {
 			$whitelist = $service_data['whitelist'];
 		}
 
-		return [
+		self::$site_settings_cache = [
 			'quality'                    => $this->get_quality(),
 			'admin_bar_item'             => $this->get( 'admin_bar_item' ),
 			'lazyload'                   => $this->get( 'lazyload' ),
@@ -578,6 +591,7 @@ class Optml_Settings {
 			'show_badge_icon'            => $this->get( 'show_badge_icon' ),
 			'badge_position'             => $this->get( 'badge_position' ),
 		];
+		return self::$site_settings_cache;
 	}
 
 	/**
@@ -747,6 +761,7 @@ class Optml_Settings {
 		$update = update_option( $this->namespace, $reset_schema );
 		if ( $update ) {
 			self::$options = $reset_schema;
+			$this->set_settings_cache( 'filters', $reset_schema['filters'] );
 		}
 		wp_unschedule_hook( Optml_Admin::SYNC_CRON );
 		wp_unschedule_hook( Optml_Admin::ENRICH_CRON );
@@ -871,5 +886,18 @@ class Optml_Settings {
 			'all'     => 'false',
 			$site_url => 'true',
 		];
+	}
+
+	/**
+	 * Set settings cache value.
+	 *
+	 * @param string $key Cache key.
+	 * @param mixed  $value Cache value.
+	 * @return void
+	 */
+	private function set_settings_cache( $key, $value ) {
+		if ( self::$site_settings_cache !== null && isset( self::$site_settings_cache[ $key ] ) ) {
+			self::$site_settings_cache[ $key ] = $value;
+		}
 	}
 }
