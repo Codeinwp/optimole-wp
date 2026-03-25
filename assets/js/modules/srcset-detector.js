@@ -437,9 +437,10 @@ export const optmlSrcsetDetector = {
         const targetWidth = Math.round(baseWidth * dprValue);
         const targetHeight = Math.round(targetWidth / aspectRatio);
         
-        // Don't generate 1x DPR variations larger than current size
+        // Don't generate 1x DPR variations larger than natural image size
         // But allow 2x DPR variations for retina displays
-        if (dprValue === 1 && targetWidth > currentWidth) {
+        // Fixes: srcset capped at profiling container width (issue #1030)
+        if (dprValue === 1 && targetWidth > naturalWidth) {
           return;
         }
         
