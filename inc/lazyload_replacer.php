@@ -529,7 +529,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 					wp_cache_add( $key, [ $sizes[0], $sizes[1] ], 'optml_sources', DAY_IN_SECONDS );
 				}
 			}
-			list( $width, $height ) = $sizes;
+			// Check if $sizes is an array before list() assignment to prevent fatal error on PHP 8.2+
+			// when the image file is missing (e.g., offloaded to CDN or deleted).
+			if ( is_array( $sizes ) ) {
+				list( $width, $height ) = $sizes;
+			}
 		}
 		// If the width is not found the url might be an offloaded attachment so we can get the width and height from the metadata.
 		if ( ! is_numeric( $width ) && ! empty( $url ) ) {

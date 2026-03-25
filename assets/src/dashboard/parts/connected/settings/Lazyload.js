@@ -204,7 +204,7 @@ const Lazyload = ({ settings, setSettings, setCanSave }) => {
 					labels={{
 						title: options_strings.performance_impact_alert_title,
 						description:
-							'scale' === showModal ?
+							DISABLE_OPTION_MODAL_TYPE.scale === showModal ?
 								options_strings.performance_impact_alert_scale_desc :
 								options_strings.performance_impact_alert_lazy_desc,
 						action: options_strings.performance_impact_alert_action_label,

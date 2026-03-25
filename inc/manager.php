@@ -407,7 +407,7 @@ final class Optml_Manager {
 		);
 		add_action( 'template_redirect', [ $this, 'register_after_setup' ] );
 		add_action( 'rest_api_init', [ $this, 'process_template_redirect_content' ], PHP_INT_MIN );
-		add_action( 'shutdown', [ $this, 'close_buffer' ] );
+		add_action( 'shutdown', [ $this, 'close_buffer' ], PHP_INT_MIN );
 		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
 			$registered_compatibility->register();
 		}
