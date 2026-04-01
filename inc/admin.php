@@ -147,7 +147,7 @@ class Optml_Admin {
 		$parts       = [];
 		$service_url = esc_url( Optml_Config::$service_url );
 
-		if ( $this->settings->get( 'scale' ) === 'enabled' ) {
+		if ( $this->settings->is_scale_enabled() ) {
 			$parts[] = sprintf( 'ch-viewport-width=(self "%s")', $service_url );
 		}
 		if ( $this->settings->get( 'network_optimization' ) === 'enabled' ) {
