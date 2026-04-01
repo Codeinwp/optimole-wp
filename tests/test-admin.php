@@ -407,6 +407,99 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'test123.i.optimole.com', $policy );
 	}
 
+	// -------------------------------------------------------------------------
+	// get_accept_ch_hints() tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * All three settings off → empty string.
+	 * Note: for the scale setting, 'enabled' = scale IS off (legacy inversion).
+	 */
+	public function test_accept_ch_hints_empty_when_all_off() {
+		$admin = $this->make_admin_with_policy_settings( 'enabled', 'disabled', 'disabled' );
+		$this->assertSame( '', $admin->get_accept_ch_hints() );
+	}
+
+	/**
+	 * Scale ON → Viewport-Width present; DPR and ECT absent.
+	 * Note: 'disabled' raw value = scale IS on (legacy inversion).
+	 */
+	public function test_accept_ch_hints_viewport_width_when_scale_on() {
+		$admin = $this->make_admin_with_policy_settings( 'disabled', 'disabled', 'disabled' );
+		$hints = $admin->get_accept_ch_hints();
+		$this->assertStringContainsString( 'Viewport-Width', $hints );
+		$this->assertStringNotContainsString( 'DPR', $hints );
+		$this->assertStringNotContainsString( 'ECT', $hints );
+	}
+
+	/**
+	 * Scale OFF → Viewport-Width absent.
+	 * Note: 'enabled' raw value = scale IS off (legacy inversion).
+	 */
+	public function test_accept_ch_hints_no_viewport_width_when_scale_off() {
+		$admin = $this->make_admin_with_policy_settings( 'enabled', 'disabled', 'disabled' );
+		$this->assertStringNotContainsString( 'Viewport-Width', $admin->get_accept_ch_hints() );
+	}
+
+	/**
+	 * Retina ON → DPR present; Viewport-Width absent (scale kept off).
+	 */
+	public function test_accept_ch_hints_dpr_when_retina_on() {
+		$admin = $this->make_admin_with_policy_settings( 'enabled', 'disabled', 'enabled' );
+		$hints = $admin->get_accept_ch_hints();
+		$this->assertStringContainsString( 'DPR', $hints );
+		$this->assertStringNotContainsString( 'Viewport-Width', $hints );
+	}
+
+	/**
+	 * Retina OFF → DPR absent.
+	 */
+	public function test_accept_ch_hints_no_dpr_when_retina_off() {
+		$admin = $this->make_admin_with_policy_settings( 'enabled', 'disabled', 'disabled' );
+		$this->assertStringNotContainsString( 'DPR', $admin->get_accept_ch_hints() );
+	}
+
+	/**
+	 * Network optimization ON → ECT present.
+	 */
+	public function test_accept_ch_hints_ect_when_network_optimization_on() {
+		$admin = $this->make_admin_with_policy_settings( 'enabled', 'enabled', 'disabled' );
+		$this->assertStringContainsString( 'ECT', $admin->get_accept_ch_hints() );
+	}
+
+	/**
+	 * All three ON → all three tokens present.
+	 * Note: 'disabled' raw value = scale IS on (legacy inversion).
+	 */
+	public function test_accept_ch_hints_all_features_on() {
+		$admin = $this->make_admin_with_policy_settings( 'disabled', 'enabled', 'enabled' );
+		$hints = $admin->get_accept_ch_hints();
+		$this->assertStringContainsString( 'Viewport-Width', $hints );
+		$this->assertStringContainsString( 'ECT', $hints );
+		$this->assertStringContainsString( 'DPR', $hints );
+	}
+
+	/**
+	 * Hints and policy directives stay in sync: each setting contributes
+	 * to both get_accept_ch_hints() and get_permissions_policy().
+	 * Note: scale uses legacy inversion — 'disabled' raw = scale ON.
+	 */
+	public function test_accept_ch_and_policy_are_in_sync() {
+		foreach ( [ 'scale', 'network_optimization', 'retina_images' ] as $setting ) {
+			// Legacy: 'disabled' = scale ON, 'enabled' = scale OFF.
+			$scale   = $setting === 'scale' ? 'disabled' : 'enabled';
+			$net_opt = $setting === 'network_optimization' ? 'enabled' : 'disabled';
+			$retina  = $setting === 'retina_images' ? 'enabled' : 'disabled';
+
+			$admin  = $this->make_admin_with_policy_settings( $scale, $net_opt, $retina );
+			$hints  = $admin->get_accept_ch_hints();
+			$policy = $admin->get_permissions_policy();
+
+			$this->assertNotEmpty( $hints, "Expected non-empty hints for setting: $setting" );
+			$this->assertNotEmpty( $policy, "Expected non-empty policy for setting: $setting" );
+		}
+	}
+
 	/**
 	 * Test get_bf_notices at exact boundary conditions.
 	 */
