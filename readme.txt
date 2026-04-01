@@ -4,7 +4,7 @@ Tags: image optimization, convert webp, image optimizer, lazy load, optimize ima
 Requires at least: 5.5
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 4.2.2
+Stable tag: 4.2.3
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -248,12 +248,10 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 4.2.2](https://github.com/Codeinwp/optimole-wp/compare/v4.2.1...v4.2.2) (2026-03-25)
+##### [Version 4.2.3](https://github.com/Codeinwp/optimole-wp/compare/v4.2.2...v4.2.3) (2026-04-01)
 
-- Added a static cache (Optml_Settings) to avoid repeated get_option calls within a single request, improving performance and consistency.
-- Fixed a potential PHP 8.2+ fatal error in get_svg_for by ensuring  is always an array before destructuring (e.g. when images are missing or offloaded). Props to [[@fuleinist](https://github.com/fuleinist)](https://github.com/fuleinist) for the contribution.
-- Improved optmlSrcsetDetector logic to prevent generating 1x DPR images larger than the original size, fixing incorrect srcset capping. Props to [[@fuleinist](https://github.com/fuleinist)](https://github.com/fuleinist) for the contribution.
-- Fixed incorrect notice display when disabling the scaling option.
+- Refactored Permissions-Policy and Accept-CH headers. The hints value is now dynamically generated based on the current Retina, Smart Scaling, and Network Optimization settings, ensuring that only relevant device-specific optimizations are applied.
+- Enhance security.
 
 
 
