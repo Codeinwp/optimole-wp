@@ -504,7 +504,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$optimized_url = $this->change_url_for_size( $new_url, $width, $height, $dpr );
 
 			if ( $optimized_url ) {
-				$new_srcset_entries[] = $optimized_url . ' ' . $descriptor;
+				$escaped_url = esc_url( $optimized_url );
+				if ( empty( $escaped_url ) ) {
+					continue;
+				}
+				$new_srcset_entries[] = $escaped_url . ' ' . esc_attr( $descriptor );
 
 				// Add sizes attribute entry for responsive breakpoints
 				if ( $breakpoint > 0 ) {
