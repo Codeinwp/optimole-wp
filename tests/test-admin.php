@@ -311,6 +311,102 @@ class Test_Admin extends WP_UnitTestCase {
 		}
 	}
 
+	// -------------------------------------------------------------------------
+	// get_permissions_policy() tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Helper: set scale, network_optimization and retina_images settings, then
+	 * return a fresh Optml_Admin instance that reads those values.
+	 *
+	 * @param string $scale              'enabled' or 'disabled'.
+	 * @param string $network_opt        'enabled' or 'disabled'.
+	 * @param string $retina             'enabled' or 'disabled'.
+	 * @return Optml_Admin
+	 */
+	private function make_admin_with_policy_settings( string $scale, string $network_opt, string $retina ): Optml_Admin {
+		$settings = new Optml_Settings();
+		$settings->update( 'scale', $scale );
+		$settings->update( 'network_optimization', $network_opt );
+		$settings->update( 'retina_images', $retina );
+		Optml_Config::$service_url = 'https://test123.i.optimole.com';
+		return new Optml_Admin();
+	}
+
+	/**
+	 * All three settings off → empty string.
+	 */
+	public function test_permissions_policy_empty_when_all_off() {
+		$admin = $this->make_admin_with_policy_settings( 'disabled', 'disabled', 'disabled' );
+		$this->assertSame( '', $admin->get_permissions_policy() );
+	}
+
+	/**
+	 * Scale ON → ch-viewport-width present; ch-dpr and ch-ect absent.
+	 */
+	public function test_permissions_policy_ch_viewport_width_when_scale_on() {
+		$admin  = $this->make_admin_with_policy_settings( 'enabled', 'disabled', 'disabled' );
+		$policy = $admin->get_permissions_policy();
+		$this->assertStringContainsString( 'ch-viewport-width', $policy );
+		$this->assertStringNotContainsString( 'ch-dpr', $policy );
+		$this->assertStringNotContainsString( 'ch-ect', $policy );
+	}
+
+	/**
+	 * Scale OFF → ch-viewport-width absent.
+	 */
+	public function test_permissions_policy_no_ch_viewport_width_when_scale_off() {
+		$admin = $this->make_admin_with_policy_settings( 'disabled', 'disabled', 'disabled' );
+		$this->assertStringNotContainsString( 'ch-viewport-width', $admin->get_permissions_policy() );
+	}
+
+	/**
+	 * Retina ON → ch-dpr present; ch-viewport-width absent.
+	 */
+	public function test_permissions_policy_ch_dpr_when_retina_on() {
+		$admin  = $this->make_admin_with_policy_settings( 'disabled', 'disabled', 'enabled' );
+		$policy = $admin->get_permissions_policy();
+		$this->assertStringContainsString( 'ch-dpr', $policy );
+		$this->assertStringNotContainsString( 'ch-viewport-width', $policy );
+	}
+
+	/**
+	 * Retina OFF → ch-dpr absent.
+	 */
+	public function test_permissions_policy_no_ch_dpr_when_retina_off() {
+		$admin = $this->make_admin_with_policy_settings( 'disabled', 'disabled', 'disabled' );
+		$this->assertStringNotContainsString( 'ch-dpr', $admin->get_permissions_policy() );
+	}
+
+	/**
+	 * Network optimization ON → ch-ect present.
+	 */
+	public function test_permissions_policy_ch_ect_when_network_optimization_on() {
+		$admin  = $this->make_admin_with_policy_settings( 'disabled', 'enabled', 'disabled' );
+		$policy = $admin->get_permissions_policy();
+		$this->assertStringContainsString( 'ch-ect', $policy );
+	}
+
+	/**
+	 * All three ON → all three directives present in a single string.
+	 */
+	public function test_permissions_policy_all_features_on() {
+		$admin  = $this->make_admin_with_policy_settings( 'enabled', 'enabled', 'enabled' );
+		$policy = $admin->get_permissions_policy();
+		$this->assertStringContainsString( 'ch-viewport-width', $policy );
+		$this->assertStringContainsString( 'ch-ect', $policy );
+		$this->assertStringContainsString( 'ch-dpr', $policy );
+	}
+
+	/**
+	 * Service URL is embedded in the policy when any feature is ON.
+	 */
+	public function test_permissions_policy_service_url_embedded() {
+		$admin  = $this->make_admin_with_policy_settings( 'enabled', 'disabled', 'disabled' );
+		$policy = $admin->get_permissions_policy();
+		$this->assertStringContainsString( 'test123.i.optimole.com', $policy );
+	}
+
 	/**
 	 * Test get_bf_notices at exact boundary conditions.
 	 */
