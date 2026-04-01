@@ -1,3 +1,10 @@
+##### [Version 4.2.2](https://github.com/Codeinwp/optimole-wp/compare/v4.2.1...v4.2.2) (2026-03-25)
+
+- Added a static cache (Optml_Settings) to avoid repeated get_option calls within a single request, improving performance and consistency.
+- Fixed a potential PHP 8.2+ fatal error in get_svg_for by ensuring $sizes is always an array before destructuring (e.g. when images are missing or offloaded). Props to [[@fuleinist](https://github.com/fuleinist)](https://github.com/fuleinist) for the contribution.
+- Improved optmlSrcsetDetector logic to prevent generating 1x DPR images larger than the original size, fixing incorrect srcset capping. Props to [[@fuleinist](https://github.com/fuleinist)](https://github.com/fuleinist) for the contribution.
+- Fixed incorrect notice display when disabling the scaling option.
+
 ##### [Version 4.2.1](https://github.com/Codeinwp/optimole-wp/compare/v4.2.0...v4.2.1) (2026-01-09)
 
 - Fixes invalid Optimole URLs being picked up for embed in the block editor 
