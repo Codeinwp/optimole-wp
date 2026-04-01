@@ -131,11 +131,33 @@ class Optml_Admin {
 		if ( headers_sent() ) {
 			return;
 		}
-		$policy = 'ch-viewport-width=(self "%1$s")';
-		if ( $this->settings->get( 'network_optimization' ) === 'enabled' ) {
-			$policy .= ', ch-ect=(self "%1$s")';
+		$policy = $this->get_permissions_policy();
+		if ( empty( $policy ) ) {
+			return;
 		}
-		header( sprintf( 'Permissions-Policy: %s', sprintf( $policy, esc_url( Optml_Config::$service_url ) ) ), false );
+		header( sprintf( 'Permissions-Policy: %s', $policy ), false );
+	}
+
+	/**
+	 * Build the Permissions-Policy header value based on active settings.
+	 *
+	 * @return string Comma-separated policy directives, or empty string when none apply.
+	 */
+	public function get_permissions_policy(): string {
+		$parts       = [];
+		$service_url = esc_url( Optml_Config::$service_url );
+
+		if ( $this->settings->is_scale_enabled() ) {
+			$parts[] = sprintf( 'ch-viewport-width=(self "%s")', $service_url );
+		}
+		if ( $this->settings->get( 'network_optimization' ) === 'enabled' ) {
+			$parts[] = sprintf( 'ch-ect=(self "%s")', $service_url );
+		}
+		if ( $this->settings->get( 'retina_images' ) === 'enabled' ) {
+			$parts[] = sprintf( 'ch-dpr=(self "%s")', $service_url );
+		}
+
+		return implode( ', ', $parts );
 	}
 	/**
 	 * Function that purges the image cache for a specific file.
@@ -1071,11 +1093,35 @@ class Optml_Admin {
 			return;
 		}
 
-		$hints = 'Viewport-Width';
-		if ( $this->settings->get( 'network_optimization' ) === 'enabled' ) {
-			$hints .= ', ECT';
+		$hints = $this->get_accept_ch_hints();
+		if ( empty( $hints ) ) {
+			return;
 		}
 		echo sprintf( '<meta http-equiv="Accept-CH" content="%s" />', esc_attr( $hints ) );
+	}
+
+	/**
+	 * Build the Accept-CH meta content value based on active settings.
+	 *
+	 * Mirrors the directives used in get_permissions_policy() so both
+	 * the Permissions-Policy header and the Accept-CH meta stay in sync.
+	 *
+	 * @return string Comma-separated hint tokens, or empty string when none apply.
+	 */
+	public function get_accept_ch_hints(): string {
+		$hints = [];
+
+		if ( $this->settings->is_scale_enabled() ) {
+			$hints[] = 'Viewport-Width';
+		}
+		if ( $this->settings->get( 'network_optimization' ) === 'enabled' ) {
+			$hints[] = 'ECT';
+		}
+		if ( $this->settings->get( 'retina_images' ) === 'enabled' ) {
+			$hints[] = 'DPR';
+		}
+
+		return implode( ', ', $hints );
 	}
 
 	/**
