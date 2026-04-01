@@ -337,7 +337,7 @@ class Test_Admin extends WP_UnitTestCase {
 	 * All three settings off → empty string.
 	 */
 	public function test_permissions_policy_empty_when_all_off() {
-		$admin = $this->make_admin_with_policy_settings( 'disabled', 'disabled', 'disabled' );
+		$admin = $this->make_admin_with_policy_settings( 'enabled', 'disabled', 'disabled' );
 		$this->assertSame( '', $admin->get_permissions_policy() );
 	}
 
@@ -345,7 +345,7 @@ class Test_Admin extends WP_UnitTestCase {
 	 * Scale ON → ch-viewport-width present; ch-dpr and ch-ect absent.
 	 */
 	public function test_permissions_policy_ch_viewport_width_when_scale_on() {
-		$admin  = $this->make_admin_with_policy_settings( 'enabled', 'disabled', 'disabled' );
+		$admin  = $this->make_admin_with_policy_settings( 'disabled', 'disabled', 'disabled' );
 		$policy = $admin->get_permissions_policy();
 		$this->assertStringContainsString( 'ch-viewport-width', $policy );
 		$this->assertStringNotContainsString( 'ch-dpr', $policy );
@@ -356,7 +356,7 @@ class Test_Admin extends WP_UnitTestCase {
 	 * Scale OFF → ch-viewport-width absent.
 	 */
 	public function test_permissions_policy_no_ch_viewport_width_when_scale_off() {
-		$admin = $this->make_admin_with_policy_settings( 'disabled', 'disabled', 'disabled' );
+		$admin = $this->make_admin_with_policy_settings( 'enabled', 'disabled', 'disabled' );
 		$this->assertStringNotContainsString( 'ch-viewport-width', $admin->get_permissions_policy() );
 	}
 
@@ -364,7 +364,7 @@ class Test_Admin extends WP_UnitTestCase {
 	 * Retina ON → ch-dpr present; ch-viewport-width absent.
 	 */
 	public function test_permissions_policy_ch_dpr_when_retina_on() {
-		$admin  = $this->make_admin_with_policy_settings( 'disabled', 'disabled', 'enabled' );
+		$admin  = $this->make_admin_with_policy_settings( 'enabled', 'disabled', 'enabled' );
 		$policy = $admin->get_permissions_policy();
 		$this->assertStringContainsString( 'ch-dpr', $policy );
 		$this->assertStringNotContainsString( 'ch-viewport-width', $policy );
@@ -374,7 +374,7 @@ class Test_Admin extends WP_UnitTestCase {
 	 * Retina OFF → ch-dpr absent.
 	 */
 	public function test_permissions_policy_no_ch_dpr_when_retina_off() {
-		$admin = $this->make_admin_with_policy_settings( 'disabled', 'disabled', 'disabled' );
+		$admin = $this->make_admin_with_policy_settings( 'enabled', 'disabled', 'disabled' );
 		$this->assertStringNotContainsString( 'ch-dpr', $admin->get_permissions_policy() );
 	}
 
@@ -382,7 +382,7 @@ class Test_Admin extends WP_UnitTestCase {
 	 * Network optimization ON → ch-ect present.
 	 */
 	public function test_permissions_policy_ch_ect_when_network_optimization_on() {
-		$admin  = $this->make_admin_with_policy_settings( 'disabled', 'enabled', 'disabled' );
+		$admin  = $this->make_admin_with_policy_settings( 'enabled', 'enabled', 'disabled' );
 		$policy = $admin->get_permissions_policy();
 		$this->assertStringContainsString( 'ch-ect', $policy );
 	}
@@ -391,7 +391,7 @@ class Test_Admin extends WP_UnitTestCase {
 	 * All three ON → all three directives present in a single string.
 	 */
 	public function test_permissions_policy_all_features_on() {
-		$admin  = $this->make_admin_with_policy_settings( 'enabled', 'enabled', 'enabled' );
+		$admin  = $this->make_admin_with_policy_settings( 'disabled', 'enabled', 'enabled' );
 		$policy = $admin->get_permissions_policy();
 		$this->assertStringContainsString( 'ch-viewport-width', $policy );
 		$this->assertStringContainsString( 'ch-ect', $policy );
@@ -402,7 +402,7 @@ class Test_Admin extends WP_UnitTestCase {
 	 * Service URL is embedded in the policy when any feature is ON.
 	 */
 	public function test_permissions_policy_service_url_embedded() {
-		$admin  = $this->make_admin_with_policy_settings( 'enabled', 'disabled', 'disabled' );
+		$admin  = $this->make_admin_with_policy_settings( 'disabled', 'disabled', 'disabled' );
 		$policy = $admin->get_permissions_policy();
 		$this->assertStringContainsString( 'test123.i.optimole.com', $policy );
 	}
