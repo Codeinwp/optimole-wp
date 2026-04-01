@@ -59,7 +59,7 @@ class Optml_Settings {
 		'cdn'                        => 'disabled',
 		'admin_bar_item'             => 'enabled',
 		'lazyload'                   => 'disabled',
-		'scale'                      => 'disabled',
+		'scale'                      => 'disabled', // Due to legacy reasons the disabled state means that the scale is enabled and the enabled state means that the scale is disabled.
 		'network_optimization'       => 'enabled',
 		'lazyload_placeholder'       => 'enabled',
 		'bg_replacer'                => 'enabled',
@@ -661,6 +661,14 @@ class Optml_Settings {
 	 */
 	public function is_best_format() {
 		return $this->get( 'best_format' ) === 'enabled';
+	}
+	/**
+	 * Check if scale is enabled.
+	 *
+	 * @return bool Scale enabled
+	 */
+	public function is_scale_enabled() {
+		return $this->get( 'scale' ) === 'disabled'; // Due to legacy reasons the disabled state means that the scale is enabled and the enabled state means that the scale is disabled.
 	}
 
 	/**
