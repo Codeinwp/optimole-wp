@@ -456,7 +456,7 @@ final class Optml_Manager {
 					$hmac = wp_hash( $profile_id . $time . $this->get_current_url(), 'nonce' );
 					$js_optimizer = str_replace(
 						[ Profile::PLACEHOLDER, Profile::PLACEHOLDER_MISSING, Profile::PLACEHOLDER_TIME, Profile::PLACEHOLDER_HMAC, Profile::PLACEHOLDER_URL ],
-						[ $profile_id, implode( ',', $missing ), strval( $time ), $hmac, $this->get_current_url() ],
+						[ $profile_id, implode( ',', $missing ), strval( $time ), $hmac, esc_url( esc_js( $this->get_current_url() ) ) ],
 						$js_optimizer
 					);
 					$html = str_replace( Optml_Admin::get_optimizer_script( true ), $js_optimizer, $html );
