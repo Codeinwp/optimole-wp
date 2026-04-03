@@ -131,6 +131,11 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			return $original_url;
 		}
 
+		if ( substr( $url, 0, 2 ) === '//' ) {
+			$url = ltrim( $url, '/' );
+			$url = sprintf( '%s://%s', is_ssl() ? 'https' : 'http', $url );
+		}
+
 		if ( ! $this->can_replace_url( $url ) ) {
 			return $original_url;
 		}
