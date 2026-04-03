@@ -4,7 +4,7 @@ Tags: image optimization, convert webp, image optimizer, lazy load, optimize ima
 Requires at least: 5.5
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 4.2.3
+Stable tag: 4.2.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -248,10 +248,10 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 4.2.3](https://github.com/Codeinwp/optimole-wp/compare/v4.2.2...v4.2.3) (2026-04-01)
+##### [Version 4.2.4](https://github.com/Codeinwp/optimole-wp/compare/v4.2.3...v4.2.4) (2026-04-03)
 
-- Refactored Permissions-Policy and Accept-CH headers. The hints value is now dynamically generated based on the current Retina, Smart Scaling, and Network Optimization settings, ensuring that only relevant device-specific optimizations are applied.
-- Enhance security.
+- Enhanced security
+- Updated dependencies
 
 
 
