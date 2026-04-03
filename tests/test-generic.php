@@ -170,6 +170,34 @@ class Test_Generic extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test add_schema() prepends http: for protocol-relative URLs on non-SSL.
+	 */
+	function test_add_schema_non_ssl() {
+		$this->assertEquals( 'http://example.org/image.jpg', $this->add_schema( '//example.org/image.jpg' ) );
+	}
+
+	/**
+	 * Test add_schema() prepends https: for protocol-relative URLs on SSL.
+	 * Regression: operator-precedence bug caused https: to be returned bare instead of https://example.org/...
+	 */
+	function test_add_schema_ssl() {
+		$_SERVER['HTTPS'] = 'on';
+		$result = $this->add_schema( '//example.org/image.jpg' );
+		unset( $_SERVER['HTTPS'] );
+
+		$this->assertEquals( 'https://example.org/image.jpg', $result );
+		$this->assertStringNotEquals( 'https:', $result );
+	}
+
+	/**
+	 * Test add_schema() leaves already-schemed URLs unchanged.
+	 */
+	function test_add_schema_already_schemed() {
+		$this->assertEquals( 'http://example.org/image.jpg', $this->add_schema( 'http://example.org/image.jpg' ) );
+		$this->assertEquals( 'https://example.org/image.jpg', $this->add_schema( 'https://example.org/image.jpg' ) );
+	}
+
+	/**
 	 * Test get_unoptimized_url with custom domain configuration.
 	 */
 	function test_get_unoptimized_url_custom_domain() {

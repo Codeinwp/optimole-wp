@@ -450,6 +450,21 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'http://www.example.org', $replaced_content );
 	}
 
+	/**
+	 * Regression test: triple-slash URLs (///host/path) must be normalized to
+	 * http(s)://host/path before CDN embedding — never produce https:///host/path.
+	 */
+	public function test_replacement_triple_slash_url() {
+		$content          = '<div class="codeinwp-container">
+				<img src="///www.example.org/wp-content/uploads/2018/05/brands.png"> 
+			</div>';
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+
+		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
+		$this->assertStringNotContainsString( ':///', $replaced_content );
+		$this->assertStringContainsString( 'http://www.example.org', $replaced_content );
+	}
+
 	public function test_non_allowed_extensions() {
 		$replaced_content = Optml_Manager::instance()->replace_content( ( self::CSS_STYLE . self::IMG_TAGS . self::WRONG_EXTENSION ) );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );
