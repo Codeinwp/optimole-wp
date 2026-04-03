@@ -1,3 +1,8 @@
+##### [Version 4.2.4](https://github.com/Codeinwp/optimole-wp/compare/v4.2.3...v4.2.4) (2026-04-03)
+
+- Enhanced security
+- Updated dependencies
+
 ##### [Version 4.2.3](https://github.com/Codeinwp/optimole-wp/compare/v4.2.2...v4.2.3) (2026-04-01)
 
 - Refactored Permissions-Policy and Accept-CH headers. The hints value is now dynamically generated based on the current Retina, Smart Scaling, and Network Optimization settings, ensuring that only relevant device-specific optimizations are applied.

@@ -131,6 +131,11 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			return $original_url;
 		}
 
+		if ( substr( $url, 0, 2 ) === '//' ) {
+			$url = ltrim( $url, '/' );
+			$url = sprintf( '%s://%s', is_ssl() ? 'https' : 'http', $url );
+		}
+
 		if ( ! $this->can_replace_url( $url ) ) {
 			return $original_url;
 		}
@@ -154,7 +159,8 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$url = str_replace( array_keys( $this->site_mappings ), array_values( $this->site_mappings ), $url );
 		}
 		if ( substr( $url, 0, 2 ) === '//' ) {
-			$url = sprintf( '%s:%s', is_ssl() ? 'https' : 'http', $url );
+			$url = ltrim( $url, '/' );
+			$url = sprintf( '%s://%s', is_ssl() ? 'https' : 'http', $url );
 		}
 		$normalized_ext = strtolower( $ext );
 		if ( isset( Optml_Config::$image_extensions[ $normalized_ext ] ) ) {
