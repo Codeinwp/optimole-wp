@@ -181,11 +181,21 @@ class Test_Generic extends WP_UnitTestCase {
 	 * Regression: operator-precedence bug caused https: to be returned bare instead of https://example.org/...
 	 */
 	function test_add_schema_ssl() {
-		$_SERVER['HTTPS'] = 'on';
-		$result = $this->add_schema( '//example.org/image.jpg' );
-		unset( $_SERVER['HTTPS'] );
+		$had_https      = array_key_exists( 'HTTPS', $_SERVER );
+		$previous_https = $had_https ? $_SERVER['HTTPS'] : null;
 
-		$this->assertEquals( 'https://example.org/image.jpg', $result );
+		try {
+			$_SERVER['HTTPS'] = 'on';
+			$result           = $this->add_schema( '//example.org/image.jpg' );
+
+			$this->assertEquals( 'https://example.org/image.jpg', $result );
+		} finally {
+			if ( $had_https ) {
+				$_SERVER['HTTPS'] = $previous_https;
+			} else {
+				unset( $_SERVER['HTTPS'] );
+			}
+		}
 	}
 
 	/**
