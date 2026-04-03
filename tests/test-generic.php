@@ -186,7 +186,6 @@ class Test_Generic extends WP_UnitTestCase {
 		unset( $_SERVER['HTTPS'] );
 
 		$this->assertEquals( 'https://example.org/image.jpg', $result );
-		$this->assertStringNotEquals( 'https:', $result );
 	}
 
 	/**
