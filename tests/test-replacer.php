@@ -450,6 +450,28 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertStringContainsString( 'http://www.example.org', $replaced_content );
 	}
 
+	/**
+	 * Regression test: build_url() must normalize protocol-relative and
+	 * triple-slash URLs to http(s)://host/path — never produce https:///host/path.
+	 */
+	public function test_build_url_normalizes_triple_slash() {
+		// Protocol-relative URL (//host/path) should be normalized correctly.
+		$url    = '//www.example.org/wp-content/uploads/2018/05/brands.png';
+		$result = Optml_Url_Replacer::instance()->build_url( $url );
+
+		$this->assertStringContainsString( 'i.optimole.com', $result );
+		$this->assertStringNotContainsString( ':///', $result );
+		$this->assertStringContainsString( 'http://www.example.org', $result );
+
+		// Triple-slash URL (///host/path) should also be normalized correctly.
+		$url    = '///www.example.org/wp-content/uploads/2018/05/brands.png';
+		$result = Optml_Url_Replacer::instance()->build_url( $url );
+
+		$this->assertStringContainsString( 'i.optimole.com', $result );
+		$this->assertStringNotContainsString( ':///', $result );
+		$this->assertStringContainsString( 'http://www.example.org', $result );
+	}
+
 	public function test_non_allowed_extensions() {
 		$replaced_content = Optml_Manager::instance()->replace_content( ( self::CSS_STYLE . self::IMG_TAGS . self::WRONG_EXTENSION ) );
 		$this->assertStringContainsString( 'i.optimole.com', $replaced_content );

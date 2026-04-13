@@ -372,7 +372,7 @@ trait Optml_Normalizer {
 			$should_add_schema = substr( $schema_url, 0, strlen( '//' ) ) === '//';
 		}
 		if ( $should_add_schema ) {
-			$schema_url = is_ssl() ? 'https:' : 'http:' . $schema_url;
+			$schema_url = ( is_ssl() ? 'https:' : 'http:' ) . $schema_url;
 		}
 		return $schema_url;
 	}
