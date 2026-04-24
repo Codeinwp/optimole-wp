@@ -1416,7 +1416,7 @@ class Optml_Admin {
 		$api_key        = $this->settings->get( 'api_key' );
 		$service_data   = $this->settings->get( 'service_data' );
 		if ( ! is_array( $service_data ) ) {
-			$service_data = '';
+			$service_data = [];
 		}
 		$user           = get_userdata( get_current_user_id() );
 		$user_status    = 'inactive';
