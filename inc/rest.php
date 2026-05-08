@@ -718,7 +718,7 @@ class Optml_Rest {
 		foreach ( $final_images as $index => $value ) {
 			$final_images[ $index ]['url'] = Optml_Media_Offload::instance()->get_media_optimized_url(
 				$value['url'],
-				$value['key'],
+				strtolower( $value['key'] ),
 				140,
 				140,
 				[
