@@ -1,14 +1,14 @@
-=== Optimole – Optimize Images in Real Time ===
+=== Optimole – Optimize Images | Convert WebP & AVIF | CDN & Lazy Load | Image Optimization ===
 Contributors: optimole
-Tags: image optimization, convert webp, image optimizer, lazy load, optimize images
+Tags: image optimization, optimize images, compress images, webp, avif
 Requires at least: 5.5
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 4.2.4
+Stable tag: 4.2.5
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
-Automatically optimize images: bulk compression, lazy loading, WebP/AVIF conversion. With CloudFront image CDN to boost Core Web Vitals & conversions!
+Automatically optimize images with bulk compression, lazy loading, WebP/AVIF conversion & CloudFront image CDN. Boost Core Web Vitals & conversions.
 
 == Description ==
 
@@ -248,10 +248,9 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 4.2.4](https://github.com/Codeinwp/optimole-wp/compare/v4.2.3...v4.2.4) (2026-04-03)
+##### [Version 4.2.5](https://github.com/Codeinwp/optimole-wp/compare/v4.2.4...v4.2.5) (2026-05-07)
 
-- Enhanced security
-- Updated dependencies
+- Fixes mixed content errors and broken images in some AJAX contexts.
 
 
 
