@@ -1,3 +1,9 @@
+##### [Version 4.2.6](https://github.com/Codeinwp/optimole-wp/compare/v4.2.5...v4.2.6) (2026-05-19)
+
+- Fixed broken preview for last optimized images
+- Improved PHP 8+ compatibility
+- Updated dependencies
+
 ##### [Version 4.2.5](https://github.com/Codeinwp/optimole-wp/compare/v4.2.4...v4.2.5) (2026-05-07)
 
 - Fixes mixed content errors and broken images in some AJAX contexts.
