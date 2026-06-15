@@ -125,6 +125,7 @@ jQuery(document).ready(function($) {
   function uploadFile() {
     var formData = new FormData();
     formData.append("action", "optml_replace_file");
+    formData.append("optml_replace_nonce", OMAttachmentEdit.nonce);
     formData.append("attachment_id", OMAttachmentEdit.attachmentId);
     formData.append("file", $("#optml-replace-file-field")[0].files[0]);
 
