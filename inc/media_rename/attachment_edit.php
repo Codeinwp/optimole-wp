@@ -330,7 +330,9 @@ class Optml_Attachment_Edit {
 	 * Replace the file
 	 */
 	public function replace_file() {
-		check_ajax_referer( 'optml_replace_media_nonce', 'optml_replace_nonce' );
+		if ( ! check_ajax_referer( 'optml_replace_media_nonce', 'optml_replace_nonce', false ) ) {
+			wp_send_json_error( __( 'Security check failed', 'optimole-wp' ) );
+		}
 
 		$id = absint( $_POST['attachment_id'] ?? 0 );
 

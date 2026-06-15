@@ -139,11 +139,12 @@ jQuery(document).ready(function($) {
       contentType: false,
       success: function(response) {
         $(".optml-svg-loader").hide();
-        if(response.success) {
+        if (response && response.success) {
           window.location.reload();
         } else {
+          var msg = (response && (response.data || response.message)) || OMAttachmentEdit.i18n.replaceFileError;
           $(".optml-replace-file-error").removeClass("hidden");
-          $(".optml-replace-file-error").text(response.message);
+          $(".optml-replace-file-error").text(msg);
         }
       },
       error: function(response) {
