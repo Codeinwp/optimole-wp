@@ -92,6 +92,7 @@ class Optml_Attachment_Edit {
 					'maxFileSize'  => $max_file_size,
 					'attachmentId' => $id,
 					'mimeType'     => $mime_type,
+					'nonce'        => wp_create_nonce( 'optml_replace_media_nonce' ),
 					'i18n'         => [
 						'maxFileSizeError' => $max_file_size_error,
 						'replaceFileError' => __( 'Error replacing file', 'optimole-wp' ),
@@ -329,7 +330,19 @@ class Optml_Attachment_Edit {
 	 * Replace the file
 	 */
 	public function replace_file() {
-		$id = (int) sanitize_text_field( $_POST['attachment_id'] );
+		if ( ! check_ajax_referer( 'optml_replace_media_nonce', 'optml_replace_nonce', false ) ) {
+			wp_send_json_error( __( 'Security check failed', 'optimole-wp' ) );
+		}
+
+		$id = absint( $_POST['attachment_id'] ?? 0 );
+
+		if ( ! $id ) {
+			wp_send_json_error( __( 'Invalid attachment ID', 'optimole-wp' ) );
+		}
+
+		if ( get_post_type( $id ) !== 'attachment' ) {
+			wp_send_json_error( __( 'Invalid attachment ID', 'optimole-wp' ) );
+		}
 
 		if ( ! current_user_can( 'edit_post', $id ) ) {
 			wp_send_json_error( __( 'You are not allowed to replace this file', 'optimole-wp' ) );
@@ -337,6 +350,17 @@ class Optml_Attachment_Edit {
 
 		if ( ! isset( $_FILES['file'] ) ) {
 			wp_send_json_error( __( 'No file uploaded', 'optimole-wp' ) );
+		}
+
+		$file_info = wp_check_filetype_and_ext( $_FILES['file']['tmp_name'], $_FILES['file']['name'] );
+
+		if ( empty( $file_info['type'] ) ) {
+			wp_send_json_error( __( 'Could not determine uploaded file type', 'optimole-wp' ) );
+		}
+
+		$original_mime = get_post_mime_type( $id );
+		if ( $file_info['type'] !== $original_mime ) {
+			wp_send_json_error( __( 'The uploaded file type does not match the original file type.', 'optimole-wp' ) );
 		}
 
 		$replacer = new Optml_Attachment_Replace( $id, $_FILES['file'] );
