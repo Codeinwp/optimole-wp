@@ -360,7 +360,7 @@ class Optml_Attachment_Edit {
 
 		$original_mime = get_post_mime_type( $id );
 		if ( $file_info['type'] !== $original_mime ) {
-			wp_send_json_error( __( 'Uploaded file type does not match the original attachment', 'optimole-wp' ) );
+			wp_send_json_error( __( 'The uploaded file type does not match the original file type.', 'optimole-wp' ) );
 		}
 
 		$replacer = new Optml_Attachment_Replace( $id, $_FILES['file'] );
