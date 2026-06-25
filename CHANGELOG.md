@@ -1,3 +1,7 @@
+##### [Version 4.2.7](https://github.com/Codeinwp/optimole-wp/compare/v4.2.6...v4.2.7) (2026-06-16)
+
+- Enhanced security
+
 ##### [Version 4.2.6](https://github.com/Codeinwp/optimole-wp/compare/v4.2.5...v4.2.6) (2026-05-19)
 
 - Fixed broken preview for last optimized images
