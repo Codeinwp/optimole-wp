@@ -1,3 +1,8 @@
+##### [Version 4.2.8](https://github.com/Codeinwp/optimole-wp/compare/v4.2.7...v4.2.8) (2026-06-26)
+
+- Enhanced security
+- Updated dependencies
+
 ##### [Version 4.2.7](https://github.com/Codeinwp/optimole-wp/compare/v4.2.6...v4.2.7) (2026-06-16)
 
 - Enhanced security
