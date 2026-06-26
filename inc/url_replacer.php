@@ -163,6 +163,10 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$url = sprintf( '%s://%s', is_ssl() ? 'https' : 'http', $url );
 		}
 		$normalized_ext = strtolower( $ext );
+		$url = esc_url( $url );
+		if ( empty( $url ) ) {
+			return $original_url;
+		}
 		if ( isset( Optml_Config::$image_extensions[ $normalized_ext ] ) ) {
 			$new_url = $this->normalize_image( $url, $original_url, $args, $is_uploaded, $normalized_ext );
 			if ( $is_uploaded ) {
