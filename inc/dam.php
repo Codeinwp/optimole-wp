@@ -429,7 +429,7 @@ class Optml_Dam {
 					display: none !important;
 				}
 			</style>
-		<iframe id="om-dam" style="display: none;" src="<?php echo( $this->build_iframe_url() ); ?>"></iframe>
+		<iframe id="om-dam" style="display: none;" src="<?php echo( $this->build_iframe_url() ); ?>" allow="clipboard-read; clipboard-write"></iframe>
 		<div class="om-dam-loader">
 			<img src="<?php echo esc_url( OPTML_URL . 'assets/img/logo.png' ); ?>" alt="Optimole Logo"
 				class="om-dam-logo">
