@@ -1,3 +1,7 @@
+##### [Version 4.2.9](https://github.com/Codeinwp/optimole-wp/compare/v4.2.8...v4.2.9) (2026-07-06)
+
+- Fixed issue with broken copy link button inside Cloud Library DAM integration
+
 ##### [Version 4.2.8](https://github.com/Codeinwp/optimole-wp/compare/v4.2.7...v4.2.8) (2026-06-26)
 
 - Enhanced security
