@@ -2706,8 +2706,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			wp_cache_delete( (int) $post_id, 'post_meta' );
 		}
 
-		// Bump the post meta last_changed so cached meta queries are recomputed.
-		wp_cache_set( 'last_changed', microtime(), 'post_meta' );
+		// Bump the posts last_changed so cached WP_Query results (which are keyed
+		// on it) are recomputed on the next query. The raw DELETE above does not
+		// touch the object cache, so without this the retried rollback/offload
+		// query could return a stale set that still excludes the cleared posts.
+		wp_cache_set( 'last_changed', microtime(), 'posts' );
 
 		return $result;
 	}
