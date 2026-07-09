@@ -2035,18 +2035,6 @@ parameters:
 			path: inc/media_offload.php
 
 		-
-			message: '#^Method Optml_Media_Offload\:\:clear_offload_errors_meta\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: inc/media_offload.php
-
-		-
-			message: '#^Method Optml_Media_Offload\:\:clear_rollback_errors_meta\(\) has no return type specified\.$#'
-			identifier: missingType.return
-			count: 1
-			path: inc/media_offload.php
-
-		-
 			message: '#^Method Optml_Media_Offload\:\:delete_attachment_from_server\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
