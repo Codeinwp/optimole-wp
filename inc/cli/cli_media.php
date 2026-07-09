@@ -48,6 +48,9 @@ class Optml_Cli_Media extends WP_CLI_Command {
 		}
 
 		Optml_Media_Offload::clear_offload_errors_meta();
+		if ( $action === 'rollback' ) {
+			Optml_Media_Offload::clear_rollback_errors_meta();
+		}
 		WP_CLI::line( $strings[ $action ]['info'] );
 		$number_of_images_for = 'offload_images';
 		if ( $action === 'rollback' ) {

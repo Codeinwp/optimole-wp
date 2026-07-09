@@ -139,8 +139,10 @@ const OffloadMedia = ({ settings, canSave, setSettings, setCanSave }) => {
 		setCheckedOffloadConflicts( false );
 		setOffloadConflicts([]);
 
-		checkOffloadConflicts( response => {
+		checkOffloadConflicts( async response => {
 			if ( 0 === response.data.length ) {
+				await clearOffloadErrors( 'rollback_images' );
+
 				const nextSettings = { ...settings };
 				nextSettings['show_offload_finish_notice'] = '';
 				nextSettings['rollback_status'] = 'enabled';

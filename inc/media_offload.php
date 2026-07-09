@@ -2673,15 +2673,35 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 	/**
 	 * Cleanup the offload errors meta.
+	 *
+	 * @param string $meta_key The meta key to delete. Defaults to the offload error key.
+	 *
+	 * @return int|bool Number of rows affected/selected or false on error.
 	 */
-	public static function clear_offload_errors_meta() {
+	public static function clear_offload_errors_meta( $meta_key = '' ) {
 		global $wpdb;
+
+		if ( empty( $meta_key ) ) {
+			$meta_key = self::META_KEYS['offload_error'];
+		}
 
 		return $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s",
-				self::META_KEYS['offload_error']
+				$meta_key
 			)
 		);
+	}
+
+	/**
+	 * Cleanup the rollback errors meta.
+	 *
+	 * Used when the user retries the rollback process so previously errored
+	 * attachments are considered again for restore.
+	 *
+	 * @return int|bool Number of rows affected/selected or false on error.
+	 */
+	public static function clear_rollback_errors_meta() {
+		return self::clear_offload_errors_meta( self::META_KEYS['rollback_error'] );
 	}
 }
