@@ -359,25 +359,37 @@ class Test_Media extends WP_UnitTestCase {
 
 	public function test_rollback_retry_clears_errors() {
 
-		// Ensure the sample attachment is marked as offloaded.
-		update_post_meta( self::$sample_attachement, 'optimole_offload', 'true' );
+		// Use a dedicated attachment with fully controlled meta so the assertions do
+		// not depend on the offload state produced during setUp.
+		$attachment_id = self::factory()->post->create(
+			[
+				'post_type'      => 'attachment',
+				'post_mime_type' => 'image/jpeg',
+				'post_status'    => 'inherit',
+			]
+		);
 
-		// Simulate a failed rollback attempt.
-		update_post_meta( self::$sample_attachement, 'optimole_rollback_error', 'true' );
+		// Mark it as offloaded so it is eligible for rollback.
+		update_post_meta( $attachment_id, Optml_Media_Offload::META_KEYS['offloaded'], 'true' );
 
-		$args = Optml_Media_Offload::get_images_or_pages_query_args( -1, 'rollback_images', true );
-		$args['post__in'] = [ self::$sample_attachement ];
-		$query = new WP_Query( $args );
-		$this->assertNotContains( self::$sample_attachement, $query->posts );
+		$rollback_query = function () use ( $attachment_id ) {
+			$args             = Optml_Media_Offload::get_images_or_pages_query_args( -1, 'rollback_images', true );
+			$args['post__in'] = [ $attachment_id ];
+
+			return ( new WP_Query( $args ) )->posts;
+		};
+
+		// Without a rollback error the attachment is eligible for restore.
+		$this->assertContains( $attachment_id, $rollback_query() );
+
+		// Simulate a failed rollback attempt which should exclude it from selection.
+		update_post_meta( $attachment_id, Optml_Media_Offload::META_KEYS['rollback_error'], 'true' );
+		$this->assertNotContains( $attachment_id, $rollback_query() );
 
 		// Retrying the rollback should clear the rollback errors so the attachment is eligible again.
 		Optml_Media_Offload::clear_rollback_errors_meta();
-		$this->assertEmpty( get_post_meta( self::$sample_attachement, 'optimole_rollback_error', true ) );
-
-		$args = Optml_Media_Offload::get_images_or_pages_query_args( -1, 'rollback_images', true );
-		$args['post__in'] = [ self::$sample_attachement ];
-		$query = new WP_Query( $args );
-		$this->assertContains( self::$sample_attachement, $query->posts );
+		$this->assertEmpty( get_post_meta( $attachment_id, Optml_Media_Offload::META_KEYS['rollback_error'], true ) );
+		$this->assertContains( $attachment_id, $rollback_query() );
 	}
 	public function test_custom_post_image_extraction () {
 		$content = '[fusion_builder_container type="flex" hundred_percent="no" hundred_percent_height="no" hundred_percent_height_scroll="no" align_content="stretch" flex_align_items="flex-start" flex_justify_content="flex-start" hundred_percent_height_center_content="yes" equal_height_columns="no" container_tag="div" hide_on_mobile="small-visibility,medium-visibility,large-visibility" status="published" border_style="solid" box_shadow="no" box_shadow_blur="0" box_shadow_spread="0" gradient_start_position="0" gradient_end_position="100" gradient_type="linear" radial_direction="center center" linear_angle="180" background_position="center center" background_repeat="no-repeat" fade="no" background_parallax="none" enable_mobile="no" parallax_speed="0.3" background_blend_mode="none" video_aspect_ratio="16:9" video_loop="yes" video_mute="yes" absolute="off" absolute_devices="small,medium,large" sticky="off" sticky_devices="small-visibility,medium-visibility,large-visibility" sticky_transition_offset="0" scroll_offset="0" animation_direction="left" animation_speed="0.3" filter_hue="0" filter_saturation="100" filter_brightness="100" filter_contrast="100" filter_invert="0" filter_sepia="0" filter_opacity="100" filter_blur="0" filter_hue_hover="0" filter_saturation_hover="100" filter_brightness_hover="100" filter_contrast_hover="100" filter_invert_hover="0" filter_sepia_hover="0" filter_opacity_hover="100" filter_blur_hover="0"][fusion_builder_row][fusion_builder_column type="1_3" type="1_3" align_self="auto" content_layout="column" align_content="flex-start" valign_content="flex-start" content_wrap="wrap" spacing="" center_content="no" link="" target="_self" min_height="" hide_on_mobile="small-visibility,medium-visibility,large-visibility" sticky_display="normal,sticky" class="" id="" type_medium="" type_small="" order_medium="0" order_small="0" dimension_spacing_medium="" dimension_spacing_small="" dimension_spacing="" dimension_margin_medium="" dimension_margin_small="" margin_top="" margin_bottom="" padding_medium="" padding_small="" padding_top="" padding_right="" padding_bottom="" padding_left="" hover_type="none" border_sizes="" border_color="" border_style="solid" border_radius="" box_shadow="no" dimension_box_shadow="" box_shadow_blur="0" box_shadow_spread="0" box_shadow_color="" box_shadow_style="" background_type="single" gradient_start_color="" gradient_end_color="" gradient_start_position="0" gradient_end_position="100" gradient_type="linear" radial_direction="center center" linear_angle="180" background_color="" background_image="" background_image_id="" background_position="left top" background_repeat="no-repeat" background_blend_mode="none" render_logics="" filter_type="regular" filter_hue="0" filter_saturation="100" filter_brightness="100" filter_contrast="100" filter_invert="0" filter_sepia="0" filter_opacity="100" filter_blur="0" filter_hue_hover="0" filter_saturation_hover="100" filter_brightness_hover="100" filter_contrast_hover="100" filter_invert_hover="0" filter_sepia_hover="0" filter_opacity_hover="100" filter_blur_hover="0" animation_type="" animation_direction="left" animation_speed="0.3" animation_offset="" last="no" border_position="all"][fusion_imageframe image_id="144|full" max_width="" sticky_max_width="" style_type="" blur="" stylecolor="" hover_type="none" bordersize="" bordercolor="" borderradius="" align_medium="none" align_small="none" align="none" margin_top="" margin_right="" margin_bottom="" margin_left="" lightbox="no" gallery_id="" lightbox_image="" lightbox_image_id="" alt="" link="" linktarget="_self" hide_on_mobile="small-visibility,medium-visibility,large-visibility" sticky_display="normal,sticky" class="" id="" animation_type="" animation_direction="left" animation_speed="0.3" animation_offset="" filter_hue="0" filter_saturation="100" filter_brightness="100" filter_contrast="100" filter_invert="0" filter_sepia="0" filter_opacity="100" filter_blur="0" filter_hue_hover="0" filter_saturation_hover="100" filter_brightness_hover="100" filter_contrast_hover="100" filter_invert_hover="0" filter_sepia_hover="0" filter_opacity_hover="100"
