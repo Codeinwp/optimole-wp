@@ -2673,15 +2673,57 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 	/**
 	 * Cleanup the offload errors meta.
+	 *
+	 * @param string $meta_key The meta key to delete. Defaults to the offload error key.
+	 *
+	 * @return int|bool Number of rows affected/selected or false on error.
 	 */
-	public static function clear_offload_errors_meta() {
+	public static function clear_offload_errors_meta( $meta_key = '' ) {
 		global $wpdb;
 
-		return $wpdb->query(
+		if ( empty( $meta_key ) ) {
+			$meta_key = self::META_KEYS['offload_error'];
+		}
+
+		// Collect the affected attachments before the bulk delete so their object
+		// caches can be invalidated. A raw DELETE bypasses the meta/query caches,
+		// which would otherwise leave stale WP_Query results for subsequent queries.
+		$post_ids = $wpdb->get_col(
 			$wpdb->prepare(
-				"DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s",
-				self::META_KEYS['offload_error']
+				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s",
+				$meta_key
 			)
 		);
+
+		$result = $wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s",
+				$meta_key
+			)
+		);
+
+		foreach ( $post_ids as $post_id ) {
+			wp_cache_delete( (int) $post_id, 'post_meta' );
+		}
+
+		// Bump the posts last_changed so cached WP_Query results (which are keyed
+		// on it) are recomputed on the next query. The raw DELETE above does not
+		// touch the object cache, so without this the retried rollback/offload
+		// query could return a stale set that still excludes the cleared posts.
+		wp_cache_set( 'last_changed', microtime(), 'posts' );
+
+		return $result;
+	}
+
+	/**
+	 * Cleanup the rollback errors meta.
+	 *
+	 * Used when the user retries the rollback process so previously errored
+	 * attachments are considered again for restore.
+	 *
+	 * @return int|bool Number of rows affected/selected or false on error.
+	 */
+	public static function clear_rollback_errors_meta() {
+		return self::clear_offload_errors_meta( self::META_KEYS['rollback_error'] );
 	}
 }

@@ -844,7 +844,13 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function clear_offload_errors( WP_REST_Request $request ) {
-		$delete_count = Optml_Media_Offload::clear_offload_errors_meta();
+		$action = $request->get_param( 'action' );
+
+		if ( 'rollback_images' === $action ) {
+			$delete_count = Optml_Media_Offload::clear_rollback_errors_meta();
+		} else {
+			$delete_count = Optml_Media_Offload::clear_offload_errors_meta();
+		}
 
 		return $this->response( [ 'success' => $delete_count ] );
 	}
