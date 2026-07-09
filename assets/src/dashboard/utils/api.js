@@ -589,10 +589,10 @@ export const callSync = ( data ) => {
 		});
 };
 
-export const clearOffloadErrors = async() => {
+export const clearOffloadErrors = async( action = 'offload_images' ) => {
 	try {
 		return await apiFetch({
-			path: optimoleDashboardApp.routes['clear_offload_errors'],
+			path: addQueryArgs( optimoleDashboardApp.routes['clear_offload_errors'], { action }),
 			method: 'GET'
 		});
 	} catch ( error ) {
