@@ -41,7 +41,7 @@ jobs:
           coverage: none
 
       - name: Install WordPress test suite prerequisites
-        run: sudo apt-get update && sudo apt-get install -y subversion default-mysql-client
+        run: sudo apt-get update --allow-releaseinfo-change && sudo apt-get install -y subversion default-mysql-client
 
       - name: Install WordPress Test Suite
         run: composer install-wp-tests
