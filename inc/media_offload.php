@@ -2685,12 +2685,31 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$meta_key = self::META_KEYS['offload_error'];
 		}
 
-		return $wpdb->query(
+		// Collect the affected attachments before the bulk delete so their object
+		// caches can be invalidated. A raw DELETE bypasses the meta/query caches,
+		// which would otherwise leave stale WP_Query results for subsequent queries.
+		$post_ids = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = %s",
+				$meta_key
+			)
+		);
+
+		$result = $wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$wpdb->postmeta} WHERE meta_key = %s",
 				$meta_key
 			)
 		);
+
+		foreach ( $post_ids as $post_id ) {
+			wp_cache_delete( (int) $post_id, 'post_meta' );
+		}
+
+		// Bump the post meta last_changed so cached meta queries are recomputed.
+		wp_cache_set( 'last_changed', microtime(), 'post_meta' );
+
+		return $result;
 	}
 
 	/**
