@@ -11,9 +11,11 @@ test.describe('Check gutenberg page', () => {
   });
 
   test('Gutenberg images should have data-opt-src attribute', async ({ page }) => {
-    if (typeof HTMLImageElement !== 'undefined' && 'loading' in HTMLImageElement.prototype) {
-      test.skip();
-    }
+    test.skip(
+      await page.evaluate(() => 'loading' in HTMLImageElement.prototype),
+      'Native lazy loading does not use Optimole placeholder attributes.'
+    );
+
     const image = await page.locator('.wp-block-media-text__media > img');
     await expect(image).toHaveAttribute('data-opt-src', /i\.optimole\.com/);
   });
@@ -29,4 +31,4 @@ test.describe('Check gutenberg page', () => {
     await cover.scrollIntoViewIfNeeded();
     await expect(cover).toHaveCSS('background-image', /i\.optimole\.com/);
   });
-}); 
+});

@@ -27,9 +27,10 @@ test.describe('Check gif page', () => {
 
   test('Images with gifs has proper tags', async ({ page }) => {
     // Skip if browser has native lazy loading
-    if (typeof HTMLImageElement !== 'undefined' && 'loading' in HTMLImageElement.prototype) {
-      test.skip();
-    }
+    test.skip(
+      await page.evaluate(() => 'loading' in HTMLImageElement.prototype),
+      'Native lazy loading does not use Optimole placeholder attributes.'
+    );
 
     const images = await page.locator('.wp-block-image img').all();
     for (const image of images) {
@@ -38,4 +39,4 @@ test.describe('Check gif page', () => {
       await expect(image).toHaveAttribute('data-opt-src', /i\.optimole\.com/);
     }
   });
-}); 
+});

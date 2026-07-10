@@ -21,12 +21,12 @@ test.describe('Check Homepage', () => {
   });
 
   test('After scroll the background images should be loaded', async ({ page }) => {
-    await page.evaluate(() => window.scrollTo(0, 2500));
-
     const column = page.locator('.entry-content .fl-col-content').nth(4);
+    await column.scrollIntoViewIfNeeded();
     await expect(column).toHaveClass(/optml-bg-lazyloaded/);
 
     const row = page.locator('.entry-content .fl-row-bg-photo > .fl-row-content-wrap').nth(1);
+    await row.scrollIntoViewIfNeeded();
     await expect(row).toHaveClass(/optml-bg-lazyloaded/);
   });
-}); 
+});
