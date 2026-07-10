@@ -27,15 +27,16 @@ test.describe('Check Divi Background Page', () => {
   });
 
   test('After scroll backgrounds should be loaded', async ({ page }) => {
-    await page.evaluate(() => window.scrollTo(0, 4250));
-
     const slide = page.locator('.entry-content .et_pb_slides > .et_pb_slide_3').first();
+    await slide.scrollIntoViewIfNeeded();
     await expect(slide).toHaveClass(/optml-bg-lazyloaded/);
 
     const module = page.locator('.entry-content .et_pb_module').nth(4);
+    await module.scrollIntoViewIfNeeded();
     await expect(module).toHaveClass(/optml-bg-lazyloaded/);
 
     const row = page.locator('.entry-content .et_pb_row_3').first();
+    await row.scrollIntoViewIfNeeded();
     await expect(row).toHaveClass(/optml-bg-lazyloaded/);
   });
-}); 
+});

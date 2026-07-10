@@ -18,9 +18,8 @@ test.describe('Check Otter Background Lazyload', () => {
   });
 
   test('Otter Section Block should have background lazyloaded', async ({ page }) => {
-    await page.evaluate(() => window.scrollTo(0, 500));
-    
     const section = page.locator('#wp-block-themeisle-blocks-advanced-columns-e62611eb').first();
+    await section.scrollIntoViewIfNeeded();
     await expect(section).toHaveClass(/optml-bg-lazyloaded/);
     await expect(section).toHaveCSS('background-image', /url\(.*\.i\.optimole\.com.*\)/);
 
@@ -28,4 +27,4 @@ test.describe('Check Otter Background Lazyload', () => {
     await expect(overlay).toHaveClass(/optml-bg-lazyloaded/);
     await expect(overlay).toHaveCSS('background-image', /url\(.*\.i\.optimole\.com.*\)/);
   });
-}); 
+});

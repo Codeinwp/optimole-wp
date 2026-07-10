@@ -5,22 +5,20 @@ test.describe('Sassy Social Share', () => {
     await page.goto('/sassy-social-share/');
   });
 
-  test('click on button', async ({ page }) => {
-    const buttons = await page.locator('.heateorSssSharing.heateorSssPinterestBackground').all();
-    for (const button of buttons) {
-      await button.click({ force: true });
-    }
+  test('Pinterest share controls are available', async ({ page }) => {
+    const buttons = page.locator('.heateorSssSharing.heateorSssPinterestBackground');
+    await expect(buttons).not.toHaveCount(0);
+    await expect(buttons.first()).toBeVisible();
   });
 
   test('images should not have quality:eco', async ({ page }) => {
-    await page.evaluate(() => window.scrollTo(0, 2500));
-    
-    const images = await page.locator('img').all();
-    expect(images.length).toBe(5);
-    await page.waitForTimeout(2000);
+    const images = page.locator('img');
+    await expect(images).toHaveCount(5);
+
     for (let i = 0; i < 4; i++) {
-      const src = await images[i].getAttribute('src');
-      expect(src).not.toMatch(/eco/);
+      const image = images.nth(i);
+      await image.scrollIntoViewIfNeeded();
+      await expect(image).toHaveAttribute('src', /^(?!.*eco).+$/);
     }
   });
-}); 
+});

@@ -42,7 +42,8 @@ test.describe('Check Elementor Background Page', () => {
 
     for (let i = 6; i < 12; i++) {
       const item = page.locator('.elementor-inner .elementor-background-slideshow__slide__image').nth(i);
+      await item.scrollIntoViewIfNeeded();
       await expect(item).toHaveClass(/optml-bg-lazyloaded/);
     }
   });
-}); 
+});
