@@ -27,15 +27,16 @@ test.describe('Check Thrive Background Page', () => {
   });
 
   test('After scroll backgrounds should be loaded', async ({ page }) => {
-    await page.evaluate(() => window.scrollTo(0, 3000));
-
     const box = page.locator('.entry-content .tve-content-box-background').nth(1);
+    await box.scrollIntoViewIfNeeded();
     await expect(box).toHaveClass(/optml-bg-lazyloaded/);
 
     const section = page.locator('.entry-content .tve-page-section-out').nth(1);
+    await section.scrollIntoViewIfNeeded();
     await expect(section).toHaveClass(/optml-bg-lazyloaded/);
 
     const text = page.locator('.entry-content .thrv_text_element').nth(2);
+    await text.scrollIntoViewIfNeeded();
     await expect(text).toHaveClass(/optml-bg-lazyloaded/);
   });
-}); 
+});

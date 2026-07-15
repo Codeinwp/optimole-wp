@@ -4,8 +4,10 @@ on:
   pull_request:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
-  cancel-in-progress: true
+  # Every run deploys to the same QA host, so separate PRs must not overwrite
+  # one another while their E2E suites are running.
+  group: e2e-testing-optimole-qa
+  cancel-in-progress: false
 
 jobs:
   e2e:
@@ -16,13 +18,13 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 22
           cache: 'npm'
       - name: Install dependencies
         run: |
           npm ci
           composer install --no-dev --prefer-dist --no-progress --no-suggest
-          npx playwright install
+          npx playwright install --with-deps chromium firefox
       - name: Make build
         run: |
           npm run build
@@ -39,9 +41,21 @@ jobs:
         run: ./bin/run-e2e-tests.sh
       - name: Run E2E tests
         id: run_tests
+        env:
+          E2E_BASE_URL: http://testing.optimole.com
         run: |
           npm run e2e:run
         continue-on-error: false
       - name: Check test results
         if: steps.run_tests.outcome != 'success'
         run: exit 1
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 7

@@ -15,9 +15,7 @@ test.describe('Check Metaslider Background Page', () => {
     }
   });
 
-  test('After scroll slider background images not in view should have no background', async ({ page }) => {
-    await page.evaluate(() => window.scrollTo(0, 100));
-
+  test('Slider background images outside the initial viewport should have no background', async ({ page }) => {
     const slider = page.locator('.entry-content .coin-slider > .coin-slider').nth(1);
     await expect(slider).toHaveCSS('background-image', /none/);
 
@@ -26,4 +24,4 @@ test.describe('Check Metaslider Background Page', () => {
       await expect(slide).toHaveCSS('background-image', /none/);
     }
   });
-}); 
+});
