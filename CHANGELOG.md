@@ -1,3 +1,7 @@
+##### [Version 4.2.10](https://github.com/Codeinwp/optimole-wp/compare/v4.2.9...v4.2.10) (2026-07-15)
+
+- Improve rollback stability for offloaded images
+
 ##### [Version 4.2.9](https://github.com/Codeinwp/optimole-wp/compare/v4.2.8...v4.2.9) (2026-07-06)
 
 - Fixed issue with broken copy link button inside Cloud Library DAM integration
