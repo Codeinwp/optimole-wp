@@ -1899,18 +1899,21 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					'action' => $type,
 				];
 			}
-			$total = ceil( $count / $batch );
-			self::schedule_action(
-				time(),
-				'optml_start_processing_images',
-				[
-					$action,
-					$batch,
-					1,
-					$total,
-					$step,
-				]
-			);
+
+			if ( ! self::is_scheduled( 'optml_start_processing_images' ) ) {
+				$total = ceil( $count / $batch );
+				self::schedule_action(
+					time(),
+					'optml_start_processing_images',
+					[
+						$action,
+						$batch,
+						1,
+						$total,
+						$step,
+					]
+				);
+			}
 		}
 
 		$response = [
