@@ -2024,58 +2024,49 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public static function acquire_transfer_lock( $action ) {
 		global $wpdb;
 
-		for ( $attempt = 0; $attempt < 2; $attempt++ ) {
-			$token = wp_generate_uuid4();
-			$value = [
-				'token'   => $token,
-				'action'  => $action,
-				'expires' => time() + self::TRANSFER_LOCK_TTL,
-			];
+		$existing = self::get_transfer_lock();
 
-			$suppress = $wpdb->suppress_errors( true );
-
-			// Attempt to insert a new lock row. If another worker has already inserted one, this will fail.
-			$inserted = $wpdb->insert(
+		if ( null !== $existing && $existing['expires'] < time() ) {
+			$wpdb->delete(
 				$wpdb->options,
-				[
-					'option_name'  => self::TRANSFER_LOCK_OPTION,
-					'option_value' => maybe_serialize( $value ),
-					'autoload'     => 'no',
-				]
-			);
-			$wpdb->suppress_errors( $suppress );
-
-			if ( $inserted ) {
-				wp_cache_delete( self::TRANSFER_LOCK_OPTION, 'options' );
-				return $token;
-			}
-
-			$existing = self::get_transfer_lock();
-
-			if ( null === $existing ) {
-				continue;
-			}
-
-			if ( $existing['expires'] >= time() ) {
-				return false;
-			}
-
-			$updated = $wpdb->update(
-				$wpdb->options,
-				[ 'option_value' => maybe_serialize( $value ) ],
 				[
 					'option_name'  => self::TRANSFER_LOCK_OPTION,
 					'option_value' => maybe_serialize( $existing ),
 				]
 			);
-
-			if ( $updated ) {
-				wp_cache_delete( self::TRANSFER_LOCK_OPTION, 'options' );
-				return $token;
-			}
+			wp_cache_delete( self::TRANSFER_LOCK_OPTION, 'options' );
 		}
 
-		return false;
+		$token = wp_generate_uuid4();
+		$value = [
+			'token'   => $token,
+			'action'  => $action,
+			'expires' => time() + self::TRANSFER_LOCK_TTL,
+		];
+
+		$inserted = $wpdb->query( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+			$wpdb->prepare(
+				"INSERT IGNORE INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`) VALUES (%s, %s, 'no')",
+				self::TRANSFER_LOCK_OPTION,
+				maybe_serialize( $value )
+			)
+		);
+
+		if ( ! $inserted ) {
+			return false;
+		}
+
+		wp_cache_delete( self::TRANSFER_LOCK_OPTION, 'options' );
+
+		// Clear the `notoptions` cache so that get_option() will see
+		// the new lock immediately instead of waiting for the next cache refresh.
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+		if ( is_array( $notoptions ) && isset( $notoptions[ self::TRANSFER_LOCK_OPTION ] ) ) {
+			unset( $notoptions[ self::TRANSFER_LOCK_OPTION ] );
+			wp_cache_set( 'notoptions', $notoptions, 'options' );
+		}
+
+		return $token;
 	}
 
 	/**
@@ -2099,7 +2090,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$value['action']   = $action;
 		$value['expires']  = time() + self::TRANSFER_LOCK_TTL;
 
-		$updated = $wpdb->update(
+		$wpdb->update(
 			$wpdb->options,
 			[ 'option_value' => maybe_serialize( $value ) ],
 			[
@@ -2108,12 +2099,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			]
 		);
 
-		if ( $updated ) {
-			wp_cache_delete( self::TRANSFER_LOCK_OPTION, 'options' );
-			return true;
-		}
+		wp_cache_delete( self::TRANSFER_LOCK_OPTION, 'options' );
 
-		return false;
+		$current = self::get_transfer_lock();
+
+		return null !== $current && $current['token'] === $token;
 	}
 
 	/**
