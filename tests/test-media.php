@@ -639,4 +639,104 @@ class Test_Media extends WP_UnitTestCase {
 			}
 		}
 	}
+
+	/**
+	 * Two overlapping "start transfer" requests must not be able to claim the transfer lock.
+	 */
+	public function test_acquire_transfer_lock_blocks_concurrent_start() {
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+
+		$first  = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
+		$second = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
+
+		$this->assertNotFalse( $first );
+		$this->assertFalse( $second );
+
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
+	 * A lock left behind by a worker that died mid-batch (fatal error, killed process) must
+	 * eventually become reclaimable, otherwise a crashed transfer would be stuck forever.
+	 */
+	public function test_acquire_transfer_lock_reclaims_expired_lock() {
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+
+		$first = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
+		$this->assertNotFalse( $first );
+
+		// Simulate a worker that died mid-batch: force the transient's timeout into the past.
+		update_option( '_transient_timeout_' . Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT, time() - 10 );
+
+		$this->assertFalse( false !== get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT ) );
+
+		$second = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
+
+		$this->assertNotFalse( $second );
+		$this->assertNotEquals( $first, $second );
+
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
+	 * Only the current lock owner (matching token) may renew it - otherwise a worker that
+	 * already lost the lock to a reclaiming worker could revive its stale ownership.
+	 */
+	public function test_renew_transfer_lock_requires_owned_token() {
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+
+		$token = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
+		$this->assertNotFalse( $token );
+
+		$this->assertFalse( Optml_Media_Offload::renew_transfer_lock( 'not-the-owner', 'offload_images' ) );
+
+		$this->assertTrue( Optml_Media_Offload::renew_transfer_lock( $token, 'offload_images' ) );
+
+		$lock_after = get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+		$this->assertSame( $token, $lock_after['token'] );
+
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
+	 * Only the current lock owner (matching token) may release it - a stray/late release call
+	 * from a worker that already lost ownership must not tear down another worker's lock.
+	 */
+	public function test_release_transfer_lock_only_releases_owned_lock() {
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+
+		$token = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
+		$this->assertNotFalse( $token );
+
+		Optml_Media_Offload::release_transfer_lock( 'not-the-owner' );
+		$this->assertTrue( false !== get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT ) );
+
+		Optml_Media_Offload::release_transfer_lock( $token );
+		$this->assertFalse( false !== get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT ) );
+	}
+
+	/**
+	 * Test that two overlapping move_images() calls do not schedule two processing chains for the same transfer.
+	 */
+	public function test_move_images_does_not_schedule_duplicate_processing_chain() {
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+
+		Optml_Media_Offload::instance()->settings->update( 'rollback_status', 'enabled' );
+		Optml_Media_Offload::instance()->settings->update( 'offloading_status', 'disabled' );
+
+		Optml_Media_Offload::move_images( 'rollback_images', false );
+		Optml_Media_Offload::move_images( 'rollback_images', false );
+
+		// Count the number of scheduled processing chains for the transfer. There should be exactly one.
+		$scheduled_count = 0;
+		foreach ( _get_cron_array() as $timestamp => $hooks ) {
+			if ( isset( $hooks['optml_start_processing_images'] ) ) {
+				$scheduled_count += count( $hooks['optml_start_processing_images'] );
+			}
+		}
+
+		$this->assertEquals( 1, $scheduled_count );
+
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
 }

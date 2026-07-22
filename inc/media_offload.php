@@ -56,6 +56,17 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	const POST_OFFLOADED_FLAG = 'optimole_offload_post';
 	const POST_ROLLBACK_FLAG = 'optimole_rollback_post';
 	const RETRYABLE_META_COUNTER = '_optimole_retryable_errors';
+
+	/**
+	 * Transient name for the transfer lock.
+	 */
+	const TRANSFER_LOCK_TRANSIENT = 'optml_transfer_lock';
+
+	/**
+	 * Time to live for the transfer lock, in seconds.
+	 */
+	const TRANSFER_LOCK_TTL = 600;
+
 	/**
 	 * Flag used inside wp_get_attachment url filter.
 	 *
@@ -173,7 +184,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					add_filter( 'wp_insert_attachment_data', [ self::$instance, 'insert' ], 10, 4 );
 				}
 
-				add_action( 'optml_start_processing_images', [ self::$instance, 'start_processing_images' ], 10, 5 );
+				add_action( 'optml_start_processing_images', [ self::$instance, 'start_processing_images' ], 10, 6 );
 				add_action(
 					'optml_move_images_by_id',
 					[
@@ -200,8 +211,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return void
 	 */
 	public function maybe_reschedule() {
+		$lock = get_transient( self::TRANSFER_LOCK_TRANSIENT );
 		// If this is in pending, we do nothing.
-		if ( self::is_scheduled( 'optml_start_processing_images' ) ) {
+		if ( false !== $lock ) {
 			return;
 		}
 		// If there is no transfer in progress, we do nothing.
@@ -1899,18 +1911,25 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					'action' => $type,
 				];
 			}
-			$total = ceil( $count / $batch );
-			self::schedule_action(
-				time(),
-				'optml_start_processing_images',
-				[
-					$action,
-					$batch,
-					1,
-					$total,
-					$step,
-				]
-			);
+
+			// We acquire a lock to prevent multiple workers from running the same action concurrently.
+			$lock_token = self::acquire_transfer_lock( $action );
+
+			if ( false !== $lock_token ) {
+				$total = ceil( $count / $batch );
+				self::schedule_action(
+					time(),
+					'optml_start_processing_images',
+					[
+						$action,
+						$batch,
+						1,
+						$total,
+						$step,
+						$lock_token,
+					]
+				);
+			}
 		}
 
 		$response = [
@@ -1968,6 +1987,77 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		} else {
 			return wp_next_scheduled( $hook ) !== false;
 		}
+	}
+
+	/**
+	 * Attempt to acquire the transfer lock for a given action.
+	 *
+	 * @param string $action The transfer action ('offload_images'|'rollback_images').
+	 *
+	 * @return string|false The lock token on success, false if another worker already holds the lock.
+	 */
+	public static function acquire_transfer_lock( $action ) {
+		$lock = get_transient( self::TRANSFER_LOCK_TRANSIENT );
+		if ( false !== $lock ) {
+			return false;
+		}
+
+		$token = wp_generate_uuid4();
+
+		set_transient(
+			self::TRANSFER_LOCK_TRANSIENT,
+			[
+				'token'  => $token,
+				'action' => $action,
+			],
+			self::TRANSFER_LOCK_TTL
+		);
+
+		return $token;
+	}
+
+	/**
+	 * Renew the transfer lock if we still own it, extending its expiration.
+	 *
+	 * @param string $token The lock token this worker was given when it started the chain.
+	 * @param string $action The transfer action currently being processed.
+	 *
+	 * @return bool True if we still own the lock and renewed it, false if ownership was lost.
+	 */
+	public static function renew_transfer_lock( $token, $action ) {
+		$lock = get_transient( self::TRANSFER_LOCK_TRANSIENT );
+
+		if ( ! is_array( $lock ) || ! isset( $lock['token'] ) || $lock['token'] !== $token ) {
+			return false;
+		}
+
+		set_transient(
+			self::TRANSFER_LOCK_TRANSIENT,
+			[
+				'token'  => $token,
+				'action' => $action,
+			],
+			self::TRANSFER_LOCK_TTL
+		);
+
+		return true;
+	}
+
+	/**
+	 * Release the transfer lock if we still own it, allowing another worker to acquire it.
+	 *
+	 * @param string $token The lock token to release.
+	 *
+	 * @return void
+	 */
+	public static function release_transfer_lock( $token ) {
+		$lock = get_transient( self::TRANSFER_LOCK_TRANSIENT );
+
+		if ( ! is_array( $lock ) || ! isset( $lock['token'] ) || $lock['token'] !== $token ) {
+			return;
+		}
+
+		delete_transient( self::TRANSFER_LOCK_TRANSIENT );
 	}
 
 	/**
@@ -2029,14 +2119,21 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param int    $page The page of images to process.
 	 * @param int    $total The total number of pages.
 	 * @param int    $step The current step.
+	 * @param string $lock_token The transfer lock token owned by this processing chain.
 	 *
 	 * @return void
 	 */
-	public function start_processing_images( $action, $batch, $page, $total, $step ) {
+	public function start_processing_images( $action, $batch, $page, $total, $step, $lock_token = '' ) {
 		$option = 'offload_images' === $action ? 'offloading_status' : 'rollback_status';
 		$type   = 'offload_images' === $action ? 'offload' : 'rollback';
 
 		if ( self::$instance->settings->get( $option ) === 'disabled' ) {
+			self::release_transfer_lock( $lock_token );
+			return;
+		}
+
+		// If we don't own the lock anymore, stop processing.
+		if ( ! self::renew_transfer_lock( $lock_token, $action ) ) {
 			return;
 		}
 
@@ -2047,6 +2144,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			self::$instance->settings->update( $option, 'disabled' );
 
 			self::$instance->settings->update( 'show_offload_finish_notice', $type );
+
+			// Transfer completed successfully: release the lock.
+			self::release_transfer_lock( $lock_token );
 
 			return;
 		}
@@ -2080,10 +2180,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$page,
 					$total,
 					$step,
+					$lock_token,
 				]
 			);
 		} catch ( Exception $e ) {
 			// Reschedule the cron to run again after a delay. Sometimes memory limit is exausted.
+			// This is a retryable error, so the lock is kept rather than released.
 			$delay_in_seconds = 10;
 			self::$instance->logger->add_log( $type, $e->getMessage() );
 
@@ -2096,6 +2198,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$page,
 					$total,
 					$step,
+					$lock_token,
 				]
 			);
 		}
