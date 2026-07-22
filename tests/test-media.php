@@ -668,7 +668,7 @@ class Test_Media extends WP_UnitTestCase {
 		// Simulate a worker that died mid-batch: force the transient's timeout into the past.
 		update_option( '_transient_timeout_' . Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT, time() - 10 );
 
-		$this->assertFalse( Optml_Media_Offload::is_transfer_lock_active() );
+		$this->assertFalse( false !== get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT ) );
 
 		$second = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
 
@@ -709,10 +709,10 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertNotFalse( $token );
 
 		Optml_Media_Offload::release_transfer_lock( 'not-the-owner' );
-		$this->assertTrue( Optml_Media_Offload::is_transfer_lock_active() );
+		$this->assertTrue( false !== get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT ) );
 
 		Optml_Media_Offload::release_transfer_lock( $token );
-		$this->assertFalse( Optml_Media_Offload::is_transfer_lock_active() );
+		$this->assertFalse( false !== get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT ) );
 	}
 
 	/**

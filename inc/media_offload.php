@@ -211,8 +211,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return void
 	 */
 	public function maybe_reschedule() {
+		$lock = get_transient( self::TRANSFER_LOCK_TRANSIENT );
 		// If this is in pending, we do nothing.
-		if ( self::is_transfer_lock_active() ) {
+		if ( false !== $lock ) {
 			return;
 		}
 		// If there is no transfer in progress, we do nothing.
