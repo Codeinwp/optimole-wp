@@ -58,9 +58,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	const RETRYABLE_META_COUNTER = '_optimole_retryable_errors';
 
 	/**
-	 * Option name for the transfer lock.
+	 * Transient name for the transfer lock.
 	 */
-	const TRANSFER_LOCK_OPTION = 'optml_transfer_lock';
+	const TRANSFER_LOCK_TRANSIENT = 'optml_transfer_lock';
 
 	/**
 	 * Time to live for the transfer lock, in seconds.
@@ -1989,82 +1989,28 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
-	 * Get the current transfer lock, if any.
-	 *
-	 * @return array{token: string, action: string, expires: int}|null Null if no lock is currently held.
-	 */
-	private static function get_transfer_lock() {
-		$value = get_option( self::TRANSFER_LOCK_OPTION );
-
-		if ( ! is_array( $value ) || ! isset( $value['token'], $value['expires'] ) ) {
-			return null;
-		}
-
-		return $value;
-	}
-
-	/**
-	 * Check if the transfer lock is currently active (held by some worker and not expired).
-	 *
-	 * @return bool
-	 */
-	public static function is_transfer_lock_active() {
-		$lock = self::get_transfer_lock();
-
-		return null !== $lock && $lock['expires'] >= time();
-	}
-
-	/**
 	 * Attempt to acquire the transfer lock for a given action.
 	 *
 	 * @param string $action The transfer action ('offload_images'|'rollback_images').
 	 *
-	 * @return string|false The lock token on success, false if another worker holds it.
+	 * @return string|false The lock token on success, false if another worker already holds the lock.
 	 */
 	public static function acquire_transfer_lock( $action ) {
-		global $wpdb;
-
-		$existing = self::get_transfer_lock();
-
-		if ( null !== $existing && $existing['expires'] < time() ) {
-			$wpdb->delete(
-				$wpdb->options,
-				[
-					'option_name'  => self::TRANSFER_LOCK_OPTION,
-					'option_value' => maybe_serialize( $existing ),
-				]
-			);
-			wp_cache_delete( self::TRANSFER_LOCK_OPTION, 'options' );
-		}
-
-		$token = wp_generate_uuid4();
-		$value = [
-			'token'   => $token,
-			'action'  => $action,
-			'expires' => time() + self::TRANSFER_LOCK_TTL,
-		];
-
-		$inserted = $wpdb->query( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-			$wpdb->prepare(
-				"INSERT IGNORE INTO `$wpdb->options` (`option_name`, `option_value`, `autoload`) VALUES (%s, %s, 'no')",
-				self::TRANSFER_LOCK_OPTION,
-				maybe_serialize( $value )
-			)
-		);
-
-		if ( ! $inserted ) {
+		$lock = get_transient( self::TRANSFER_LOCK_TRANSIENT );
+		if ( false !== $lock ) {
 			return false;
 		}
 
-		wp_cache_delete( self::TRANSFER_LOCK_OPTION, 'options' );
+		$token = wp_generate_uuid4();
 
-		// Clear the `notoptions` cache so that get_option() will see
-		// the new lock immediately instead of waiting for the next cache refresh.
-		$notoptions = wp_cache_get( 'notoptions', 'options' );
-		if ( is_array( $notoptions ) && isset( $notoptions[ self::TRANSFER_LOCK_OPTION ] ) ) {
-			unset( $notoptions[ self::TRANSFER_LOCK_OPTION ] );
-			wp_cache_set( 'notoptions', $notoptions, 'options' );
-		}
+		set_transient(
+			self::TRANSFER_LOCK_TRANSIENT,
+			[
+				'token'  => $token,
+				'action' => $action,
+			],
+			self::TRANSFER_LOCK_TTL
+		);
 
 		return $token;
 	}
@@ -2078,32 +2024,22 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return bool True if we still own the lock and renewed it, false if ownership was lost.
 	 */
 	public static function renew_transfer_lock( $token, $action ) {
-		global $wpdb;
+		$lock = get_transient( self::TRANSFER_LOCK_TRANSIENT );
 
-		$existing = self::get_transfer_lock();
-
-		if ( null === $existing || $existing['token'] !== $token ) {
+		if ( ! is_array( $lock ) || ! isset( $lock['token'] ) || $lock['token'] !== $token ) {
 			return false;
 		}
 
-		$value             = $existing;
-		$value['action']   = $action;
-		$value['expires']  = time() + self::TRANSFER_LOCK_TTL;
-
-		$wpdb->update(
-			$wpdb->options,
-			[ 'option_value' => maybe_serialize( $value ) ],
+		set_transient(
+			self::TRANSFER_LOCK_TRANSIENT,
 			[
-				'option_name'  => self::TRANSFER_LOCK_OPTION,
-				'option_value' => maybe_serialize( $existing ),
-			]
+				'token'  => $token,
+				'action' => $action,
+			],
+			self::TRANSFER_LOCK_TTL
 		);
 
-		wp_cache_delete( self::TRANSFER_LOCK_OPTION, 'options' );
-
-		$current = self::get_transfer_lock();
-
-		return null !== $current && $current['token'] === $token;
+		return true;
 	}
 
 	/**
@@ -2114,27 +2050,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return void
 	 */
 	public static function release_transfer_lock( $token ) {
-		global $wpdb;
+		$lock = get_transient( self::TRANSFER_LOCK_TRANSIENT );
 
-		if ( empty( $token ) ) {
+		if ( ! is_array( $lock ) || ! isset( $lock['token'] ) || $lock['token'] !== $token ) {
 			return;
 		}
 
-		$existing = self::get_transfer_lock();
-
-		if ( null === $existing || $existing['token'] !== $token ) {
-			return;
-		}
-
-		$wpdb->delete(
-			$wpdb->options,
-			[
-				'option_name'  => self::TRANSFER_LOCK_OPTION,
-				'option_value' => maybe_serialize( $existing ),
-			]
-		);
-
-		wp_cache_delete( self::TRANSFER_LOCK_OPTION, 'options' );
+		delete_transient( self::TRANSFER_LOCK_TRANSIENT );
 	}
 
 	/**

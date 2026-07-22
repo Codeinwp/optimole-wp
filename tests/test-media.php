@@ -644,7 +644,7 @@ class Test_Media extends WP_UnitTestCase {
 	 * Two overlapping "start transfer" requests must not be able to claim the transfer lock.
 	 */
 	public function test_acquire_transfer_lock_blocks_concurrent_start() {
-		delete_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
 
 		$first  = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
 		$second = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
@@ -652,7 +652,7 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertNotFalse( $first );
 		$this->assertFalse( $second );
 
-		delete_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
 	}
 
 	/**
@@ -660,15 +660,13 @@ class Test_Media extends WP_UnitTestCase {
 	 * eventually become reclaimable, otherwise a crashed transfer would be stuck forever.
 	 */
 	public function test_acquire_transfer_lock_reclaims_expired_lock() {
-		delete_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
 
 		$first = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
 		$this->assertNotFalse( $first );
 
-		// Simulate a worker that died mid-batch: force the lock's expiry into the past.
-		$stale             = get_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION );
-		$stale['expires']  = time() - 10;
-		update_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION, $stale, false );
+		// Simulate a worker that died mid-batch: force the transient's timeout into the past.
+		update_option( '_transient_timeout_' . Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT, time() - 10 );
 
 		$this->assertFalse( Optml_Media_Offload::is_transfer_lock_active() );
 
@@ -677,7 +675,7 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertNotFalse( $second );
 		$this->assertNotEquals( $first, $second );
 
-		delete_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
 	}
 
 	/**
@@ -685,23 +683,19 @@ class Test_Media extends WP_UnitTestCase {
 	 * already lost the lock to a reclaiming worker could revive its stale ownership.
 	 */
 	public function test_renew_transfer_lock_requires_owned_token() {
-		delete_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
 
 		$token = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
 		$this->assertNotFalse( $token );
 
 		$this->assertFalse( Optml_Media_Offload::renew_transfer_lock( 'not-the-owner', 'offload_images' ) );
 
-		$lock_before = get_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION );
-
 		$this->assertTrue( Optml_Media_Offload::renew_transfer_lock( $token, 'offload_images' ) );
 
-		$lock_after = get_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION );
-		// >= rather than a strict >: a renewal computed within the same wall-clock second as the
-		// original acquire can legitimately land on the same expiry timestamp.
-		$this->assertGreaterThanOrEqual( $lock_before['expires'], $lock_after['expires'] );
+		$lock_after = get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+		$this->assertSame( $token, $lock_after['token'] );
 
-		delete_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
 	}
 
 	/**
@@ -709,7 +703,7 @@ class Test_Media extends WP_UnitTestCase {
 	 * from a worker that already lost ownership must not tear down another worker's lock.
 	 */
 	public function test_release_transfer_lock_only_releases_owned_lock() {
-		delete_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
 
 		$token = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
 		$this->assertNotFalse( $token );
@@ -725,7 +719,7 @@ class Test_Media extends WP_UnitTestCase {
 	 * Test that two overlapping move_images() calls do not schedule two processing chains for the same transfer.
 	 */
 	public function test_move_images_does_not_schedule_duplicate_processing_chain() {
-		delete_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
 
 		Optml_Media_Offload::instance()->settings->update( 'rollback_status', 'enabled' );
 		Optml_Media_Offload::instance()->settings->update( 'offloading_status', 'disabled' );
@@ -743,6 +737,6 @@ class Test_Media extends WP_UnitTestCase {
 
 		$this->assertEquals( 1, $scheduled_count );
 
-		delete_option( Optml_Media_Offload::TRANSFER_LOCK_OPTION );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
 	}
 }
