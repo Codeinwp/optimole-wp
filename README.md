@@ -4,7 +4,7 @@
 **Requires at least:** 5.5  
 **Tested up to:** 7.0  
 **Requires PHP:** 7.4  
-**Stable tag:** 4.2.9  
+**Stable tag:** 4.2.10  
 **License:** GPLv3  
 **License URI:** https://www.gnu.org/licenses/gpl-3.0.en.html  
 
@@ -248,9 +248,9 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 ## Changelog ##
 
-##### [Version 4.2.9](https://github.com/Codeinwp/optimole-wp/compare/v4.2.8...v4.2.9) (2026-07-06)
+##### [Version 4.2.10](https://github.com/Codeinwp/optimole-wp/compare/v4.2.9...v4.2.10) (2026-07-15)
 
-- Fixed issue with broken copy link button inside Cloud Library DAM integration
+- Improve rollback stability for offloaded images
 
 
 
