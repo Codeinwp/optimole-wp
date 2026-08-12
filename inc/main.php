@@ -157,6 +157,8 @@ final class Optml_Main {
 	 * @return array
 	 */
 	public static function add_settings( $data ): array {
+		$data = is_array( $data ) ? $data : [];
+
 		$saved_data = ( new Optml_Settings() )->get_raw_settings();
 		unset( $saved_data['service_data'] );
 		unset( $saved_data['api_key'] );
