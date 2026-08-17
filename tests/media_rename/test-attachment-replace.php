@@ -109,6 +109,40 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 		$this->do_replace_test( self::$unscaled_unscaled_id, $replace_file, false, false );
 	}
 
+	/**
+	 * A 0600 upload tmp file must not leave the replaced attachment unreadable to the web server.
+	 */
+	public function test_replace_normalizes_permissions_of_restricted_tmp_file() {
+		global $wp_filesystem;
+
+		$id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+
+		$tmp_file = self::FILESTASH . 'replace-restricted.jpg';
+		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
+		chmod( $tmp_file, 0600 );
+
+		$model     = new Optml_Attachment_Model( $id );
+		$file_path = $model->get_source_file_path();
+
+		$replacer = new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-restricted.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => $tmp_file,
+			]
+		);
+
+		$result = $replacer->replace();
+
+		clearstatcache( true, $file_path );
+
+		$this->assertTrue( $result, 'Replacement operation failed.' );
+		$this->assertSame( FS_CHMOD_FILE & 0777, fileperms( $file_path ) & 0777, 'Replaced file kept the restrictive tmp file permissions.' );
+
+		wp_delete_post( $id, true );
+	}
+
 	private function do_replace_test( $id_to_replace, $replace_file, $source_scaled, $result_scaled ) {
 		// Removed var_dump
 

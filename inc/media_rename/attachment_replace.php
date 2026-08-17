@@ -83,7 +83,7 @@ class Optml_Attachment_Replace {
 			return new WP_Error( 'file_error', __( 'Could not move file.', 'optimole-wp' ) );
 		}
 
-		$wp_filesystem->chmod( $original_file, FS_CHMOD_FILE );
+		$permissions_normalized = $this->normalize_file_permissions( $original_file );
 
 		$this->remove_all_image_sizes();
 
@@ -102,7 +102,73 @@ class Optml_Attachment_Replace {
 
 		do_action( 'optml_attachment_replaced', $this->attachment_id );
 
+		if ( ! $permissions_normalized ) {
+			return new WP_Error(
+				'file_permissions_error',
+				__( 'File replaced successfully', 'optimole-wp' ) . ' ' . __( 'The permissions may not be updated, so it isn\'t publicly accessible. Please update the permissions.', 'optimole-wp' )
+			);
+		}
+
 		return true;
+	}
+
+	/**
+	 * Normalize the permissions of the replaced file.
+	 *
+	 * @param string $file File path.
+	 *
+	 * @return bool Whether the file ended up with the expected permissions.
+	 */
+	private function normalize_file_permissions( $file ) {
+		global $wp_filesystem;
+
+		$mode = defined( 'FS_CHMOD_FILE' ) ? FS_CHMOD_FILE : 0644;
+
+		$applied = $wp_filesystem->chmod( $file, $mode );
+
+		$reason = '';
+
+		if ( ! $applied || ! $this->has_permissions( $file, $mode ) ) {
+			// Fallback for transports where the filesystem abstraction can't chmod.
+			set_error_handler(
+				function ( $errno, $errstr ) use ( &$reason ) {
+					$reason = $errstr;
+
+					return true;
+				}
+			);
+
+			$applied = chmod( $file, $mode );
+
+			restore_error_handler();
+		}
+
+		if ( $applied && $this->has_permissions( $file, $mode ) ) {
+			return true;
+		}
+
+		do_action(
+			'optml_log',
+			sprintf( 'Could not normalize permissions to %o for replaced file %s. %s', $mode, $file, $reason )
+		);
+
+		return false;
+	}
+
+	/**
+	 * Check the current permissions of a file against an expected mode.
+	 *
+	 * @param string $file File path.
+	 * @param int    $mode Expected mode.
+	 *
+	 * @return bool
+	 */
+	private function has_permissions( $file, $mode ) {
+		clearstatcache( true, $file );
+
+		$perms = fileperms( $file );
+
+		return false !== $perms && ( $perms & 0777 ) === ( $mode & 0777 );
 	}
 
 	/**
