@@ -159,8 +159,6 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
 		chmod( $tmp_file, 0600 );
 
-		$wp_filesystem = self::failing_chmod_filesystem();
-
 		$replacer = new Optml_Attachment_Replace(
 			$id,
 			[
@@ -169,6 +167,9 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 				'tmp_name' => $tmp_file,
 			]
 		);
+
+		// After the constructor: it calls WP_Filesystem(), which reassigns the global.
+		$wp_filesystem = self::failing_chmod_filesystem();
 
 		try {
 			$result = $replacer->replace();
@@ -200,8 +201,6 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
 		chmod( $tmp_file, 0600 );
 
-		$wp_filesystem = self::failing_chmod_filesystem();
-
 		$replacer = new Optml_Attachment_Replace(
 			$id,
 			[
@@ -211,18 +210,24 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 			]
 		);
 
+		// After the constructor: it calls WP_Filesystem(), which reassigns the global.
+		$wp_filesystem = self::unfixable_filesystem();
+
+		// The metadata step warns about the intentionally missing file; PHPUnit turns that into an error.
+		set_error_handler( '__return_true' );
+
 		try {
 			$result = $replacer->replace();
 		} finally {
+			restore_error_handler();
 			$wp_filesystem = $real_filesystem;
-			remove_all_actions( 'optml_log' );
 		}
 
 		clearstatcache( true, $file_path );
 
 		$this->assertWPError( $result, 'Replacement was reported as a success.' );
 		$this->assertSame( 'file_permissions_error', $result->get_error_code() );
-		$this->assertSame( 0600, fileperms( $file_path ) & 0777, 'The test did not exercise an unfixable file.' );
+		$this->assertFileDoesNotExist( $file_path, 'The test did not exercise an unfixable file.' );
 
 		wp_delete_post( $id, true );
 	}
@@ -234,6 +239,29 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 	 */
 	private static function failing_chmod_filesystem() {
 		return new class( null ) extends WP_Filesystem_Direct {
+			public function chmod( $file, $mode = false, $recursive = false ) {
+				return false;
+			}
+		};
+	}
+
+	/**
+	 * A filesystem that reports a successful move but leaves nothing at the destination.
+	 *
+	 * Both chmod attempts then fail with ENOENT, which is the only way to reach the failure
+	 * branch without root: a file the test user owns can always be chmod'ed natively.
+	 *
+	 * @return WP_Filesystem_Direct
+	 */
+	private static function unfixable_filesystem() {
+		return new class( null ) extends WP_Filesystem_Direct {
+			public function move( $source, $destination, $overwrite = false ) {
+				@unlink( $source );
+				@unlink( $destination );
+
+				return true;
+			}
+
 			public function chmod( $file, $mode = false, $recursive = false ) {
 				return false;
 			}
