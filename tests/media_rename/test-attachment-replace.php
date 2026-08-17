@@ -143,6 +143,103 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 		wp_delete_post( $id, true );
 	}
 
+	/**
+	 * When the filesystem abstraction can't chmod, the native fallback must still fix the file.
+	 */
+	public function test_replace_falls_back_to_native_chmod() {
+		global $wp_filesystem;
+
+		$real_filesystem = $wp_filesystem;
+
+		$id        = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$model     = new Optml_Attachment_Model( $id );
+		$file_path = $model->get_source_file_path();
+
+		$tmp_file = self::FILESTASH . 'replace-fallback.jpg';
+		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
+		chmod( $tmp_file, 0600 );
+
+		$wp_filesystem = self::failing_chmod_filesystem();
+
+		$replacer = new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-fallback.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => $tmp_file,
+			]
+		);
+
+		try {
+			$result = $replacer->replace();
+		} finally {
+			$wp_filesystem = $real_filesystem;
+		}
+
+		clearstatcache( true, $file_path );
+
+		$this->assertTrue( $result, 'Replacement operation failed.' );
+		$this->assertSame( FS_CHMOD_FILE & 0777, fileperms( $file_path ) & 0777, 'The native chmod fallback did not normalize the permissions.' );
+
+		wp_delete_post( $id, true );
+	}
+
+	/**
+	 * With both chmod attempts failing, the replacement must not be reported as a plain success.
+	 */
+	public function test_replace_reports_error_when_permissions_cannot_be_normalized() {
+		global $wp_filesystem;
+
+		$real_filesystem = $wp_filesystem;
+
+		$id        = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$model     = new Optml_Attachment_Model( $id );
+		$file_path = $model->get_source_file_path();
+
+		$tmp_file = self::FILESTASH . 'replace-unfixable.jpg';
+		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
+		chmod( $tmp_file, 0600 );
+
+		$wp_filesystem = self::failing_chmod_filesystem();
+
+		$replacer = new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-unfixable.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => $tmp_file,
+			]
+		);
+
+		try {
+			$result = $replacer->replace();
+		} finally {
+			$wp_filesystem = $real_filesystem;
+			remove_all_actions( 'optml_log' );
+		}
+
+		clearstatcache( true, $file_path );
+
+		$this->assertWPError( $result, 'Replacement was reported as a success.' );
+		$this->assertSame( 'file_permissions_error', $result->get_error_code() );
+		$this->assertSame( 0600, fileperms( $file_path ) & 0777, 'The test did not exercise an unfixable file.' );
+
+		wp_delete_post( $id, true );
+	}
+
+	/**
+	 * A direct filesystem whose chmod always fails, as an FTP/SSH transport can.
+	 *
+	 * @return WP_Filesystem_Direct
+	 */
+	private static function failing_chmod_filesystem() {
+		return new class( null ) extends WP_Filesystem_Direct {
+			public function chmod( $file, $mode = false, $recursive = false ) {
+				return false;
+			}
+		};
+	}
+
 	private function do_replace_test( $id_to_replace, $replace_file, $source_scaled, $result_scaled ) {
 		// Removed var_dump
 

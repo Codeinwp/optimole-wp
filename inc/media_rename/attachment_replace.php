@@ -105,7 +105,7 @@ class Optml_Attachment_Replace {
 		if ( ! $permissions_normalized ) {
 			return new WP_Error(
 				'file_permissions_error',
-				__( 'File replaced successfully', 'optimole-wp' ) . ' ' . __( 'The permissions may not be updated, so it isn\'t publicly accessible. Please update the permissions.', 'optimole-wp' )
+				__( 'The permissions may not be updated, so it isn\'t publicly accessible. Please update the permissions.', 'optimole-wp' )
 			);
 		}
 
@@ -147,10 +147,12 @@ class Optml_Attachment_Replace {
 			return true;
 		}
 
-		do_action(
-			'optml_log',
-			sprintf( 'Could not normalize permissions to %o for replaced file %s. %s', $mode, $file, $reason )
-		);
+		if ( OPTML_DEBUG ) {
+			do_action(
+				'optml_log',
+				sprintf( 'Could not normalize permissions to %o for replaced file %s. %s', $mode, $file, $reason )
+			);
+		}
 
 		return false;
 	}
