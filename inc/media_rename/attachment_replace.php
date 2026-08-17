@@ -105,7 +105,7 @@ class Optml_Attachment_Replace {
 		if ( ! $permissions_normalized ) {
 			return new WP_Error(
 				'file_permissions_error',
-				__( 'The permissions may not be updated, so it isn\'t publicly accessible. Please update the permissions.', 'optimole-wp' )
+				__( 'The permissions may not have been updated, so the file isn\'t publicly accessible. Please update the permissions.', 'optimole-wp' )
 			);
 		}
 
