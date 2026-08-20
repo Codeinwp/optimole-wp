@@ -2,7 +2,7 @@
 Contributors: optimole
 Tags: image optimization, optimize images, compress images, webp, avif
 Requires at least: 5.5
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
 Stable tag: 4.2.10
 License: GPLv3
