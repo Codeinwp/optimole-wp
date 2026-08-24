@@ -156,7 +156,7 @@ class Profile {
 	 *
 	 * @param string                                                                              $id The profile ID.
 	 * @param int                                                                                 $device_type The device type constant.
-	 * @param array<string>                                                                       $above_fold_images Array of above-fold images.
+	 * @param array<int|string>                                                                   $above_fold_images Array of above-fold image ids.
 	 * @param array<string, array<string, array<int, string>>>                                    $af_bg_selectors Array of above-fold background selectors.
 	 *                                        Array structure:
 	 *                                        [
@@ -482,7 +482,7 @@ class Profile {
 		// Add device-specific metrics
 		foreach ( $profile_data as $device_type => $device_data ) {
 			$device_name = $this->get_device_name( $device_type );
-			$comment_parts[] = 'measurement#device-' . $device_name . '#' . json_encode( $device_data );
+			$comment_parts[] = 'measurement#device-' . $device_name . '#' . json_encode( $device_data, JSON_HEX_TAG | JSON_HEX_AMP );
 		}
 
 		return '<!-- ' . implode( ' ', $comment_parts ) . ' -->';
