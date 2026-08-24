@@ -965,7 +965,7 @@ class Optml_Rest {
 		}
 		// save just the first 6 images, see https://github.com/Codeinwp/optimole-service/issues/1588#issuecomment-3357110865
 		$above_fold_images = array_slice( $above_fold_images, 0, 6 );
-		$above_fold_images = array_values( array_filter( array_map( 'intval', $above_fold_images ) ) );
+		$above_fold_images = array_values( array_map( 'intval', array_filter( $above_fold_images, 'is_numeric' ) ) );
 		if ( count( $bg_selectors ) > 100 ) {
 			return $this->response( 'Background selectors limit exceeded', 'error' );
 		}
