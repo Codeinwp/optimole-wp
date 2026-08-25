@@ -467,6 +467,37 @@ class Test_Lazyload_Viewport extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The debug HTML comment must never be broken out of by stored profile data.
+	 *
+	 * Regression test for the unauthenticated stored XSS: a malicious above-fold
+	 * image key must not emit a raw `-->` or `<` inside the profiler debug comment.
+	 */
+	public function test_profile_html_comment_cannot_break_out() {
+		$payload = '--><img src=x onerror=alert(document.domain)><!--marker';
+
+		$this->storeMockProfileData(
+			self::mock_page_ids(),
+			Profile::DEVICE_TYPE_DESKTOP,
+			[ $payload ]
+		);
+		$this->storeMockProfileData(
+			self::mock_page_ids(),
+			Profile::DEVICE_TYPE_MOBILE,
+			[ $payload ]
+		);
+
+		$comment = Optml_Manager::instance()->page_profiler->get_current_profile_html_comment();
+
+		// Comment stays a single well-formed HTML comment.
+		$this->assertStringStartsWith('<!--', $comment);
+		$this->assertStringEndsWith('-->', $comment);
+		// Body between the delimiters must contain no raw < or > to break out with.
+		$body = substr($comment, 4, -3);
+		$this->assertStringNotContainsString('<', $body);
+		$this->assertStringNotContainsString('>', $body);
+	}
+
+	/**
 	 * Get sample HTML content for testing.
 	 *
 	 * @return string The sample HTML.
