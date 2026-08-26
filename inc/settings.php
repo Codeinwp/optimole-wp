@@ -783,7 +783,9 @@ class Optml_Settings {
 	 * @return  array
 	 */
 	public function get_raw_settings() {
-		return get_option( $this->namespace, false );
+		$raw_settings = get_option( $this->namespace, [] );
+
+		return is_array( $raw_settings ) ? $raw_settings : [];
 	}
 
 
