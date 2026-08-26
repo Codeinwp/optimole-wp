@@ -27,6 +27,8 @@ jobs:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
       - name: Make dist
         run: npm run dist
+      - name: Generate file checksums
+        uses: Codeinwp/action-release-checksums@main
       - name: Upload Latest Version to S3
         uses: jakejarvis/s3-sync-action@master
         with:
