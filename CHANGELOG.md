@@ -1,3 +1,10 @@
+##### [Version 4.2.11](https://github.com/Codeinwp/optimole-wp/compare/v4.2.10...v4.2.11) (2026-08-26)
+
+- Fixed an issue where offloading media could repeatedly start the same image processing task, making transfers more reliable.
+- Fixed an error that could occur when the plugin settings had not been saved yet.
+- Updated dependencies
+- Enhanced Security
+
 ##### [Version 4.2.10](https://github.com/Codeinwp/optimole-wp/compare/v4.2.9...v4.2.10) (2026-07-15)
 
 - Improve rollback stability for offloaded images
