@@ -202,7 +202,7 @@ Changed your mind? No problem. Optimole offers a clean uninstall process that re
 
 ### Ready to Scale? Go Pro
 
-Premium plans start from support for 40,000 monthly visits and scale up to 3 million visits. Need even more? We’re happy to help with custom plans tailored to your needs.
+Premium plans start from support for 48,000 monthly visits and scale up to 3.6 million visits. Need even more? We’re happy to help with custom plans tailored to your needs.
 
 All images are delivered via AWS CloudFront, using a global network of 450+ edge locations for lightning-fast load times, anywhere in the world.
 
