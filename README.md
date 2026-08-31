@@ -2,9 +2,9 @@
 **Contributors:** [optimole](https://profiles.wordpress.org/optimole/)  
 **Tags:** image optimization, optimize images, compress images, webp, avif  
 **Requires at least:** 5.5  
-**Tested up to:** 7.0  
+**Tested up to:** 7.1  
 **Requires PHP:** 7.4  
-**Stable tag:** 4.2.10  
+**Stable tag:** 4.2.11  
 **License:** GPLv3  
 **License URI:** https://www.gnu.org/licenses/gpl-3.0.en.html  
 
@@ -202,7 +202,7 @@ Changed your mind? No problem. Optimole offers a clean uninstall process that re
 
 ### Ready to Scale? Go Pro
 
-Premium plans start from support for 40,000 monthly visits and scale up to 3 million visits. Need even more? We’re happy to help with custom plans tailored to your needs.
+Premium plans start from support for 48,000 monthly visits and scale up to 3.6 million visits. Need even more? We’re happy to help with custom plans tailored to your needs.
 
 All images are delivered via AWS CloudFront, using a global network of 450+ edge locations for lightning-fast load times, anywhere in the world.
 
@@ -248,9 +248,12 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 ## Changelog ##
 
-##### [Version 4.2.10](https://github.com/Codeinwp/optimole-wp/compare/v4.2.9...v4.2.10) (2026-07-15)
+##### [Version 4.2.11](https://github.com/Codeinwp/optimole-wp/compare/v4.2.10...v4.2.11) (2026-08-26)
 
-- Improve rollback stability for offloaded images
+- Fixed an issue where offloading media could repeatedly start the same image processing task, making transfers more reliable.
+- Fixed an error that could occur when the plugin settings had not been saved yet.
+- Updated dependencies
+- Enhanced Security
 
 
 
