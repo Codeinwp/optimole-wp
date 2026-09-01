@@ -88,24 +88,28 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Inject current profile data, including object-shaped values.
+	 * Seed transients with object-shaped payloads and load them through storage.
 	 *
-	 * @param mixed $mobile  Mobile payload.
-	 * @param mixed $desktop Desktop payload.
-	 * @param mixed $global  Global payload.
+	 * @param mixed $mobile  Mobile payload, or false to skip.
+	 * @param mixed $desktop Desktop payload, or false to skip.
+	 * @param mixed $global  Global payload, or false to skip.
+	 * @return string Profile ID.
 	 */
-	private function injectCurrentProfileData( $mobile, $desktop, $global = false ) {
-		$reflection = new ReflectionClass( Profile::class );
-		$property     = $reflection->getProperty( 'current_profile_data' );
-		$property->setAccessible( true );
-		$property->setValue(
-			null,
-			[
-				Profile::DEVICE_TYPE_MOBILE  => $mobile,
-				Profile::DEVICE_TYPE_DESKTOP => $desktop,
-				Profile::DEVICE_TYPE_GLOBAL  => $global,
-			]
-		);
+	private function loadProfileFromStorage( $mobile, $desktop, $global = false ) {
+		$profile_id = 'shape_' . wp_generate_uuid4();
+		if ( false !== $mobile ) {
+			set_transient( Transients::PREFIX . $profile_id . '_' . Profile::DEVICE_TYPE_MOBILE, $mobile, HOUR_IN_SECONDS );
+		}
+		if ( false !== $desktop ) {
+			set_transient( Transients::PREFIX . $profile_id . '_' . Profile::DEVICE_TYPE_DESKTOP, $desktop, HOUR_IN_SECONDS );
+		}
+		if ( false !== $global ) {
+			set_transient( Transients::PREFIX . $profile_id, $global, HOUR_IN_SECONDS );
+		}
+		Profile::reset_current_profile();
+		Profile::set_current_profile_id( $profile_id );
+		Optml_Manager::instance()->page_profiler->set_current_profile_data();
+		return $profile_id;
 	}
 
 	/**
@@ -140,7 +144,7 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	 * Nested stdClass trees become associative arrays, including numeric keys.
 	 */
 	public function test_normalize_value_converts_nested_stdclass() {
-		$object   = $this->objectProfile();
+		$object     = $this->objectProfile();
 		$normalized = ProfilerStorage::normalize_value( $object );
 
 		$this->assertIsArray( $normalized );
@@ -156,7 +160,7 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	 * Top-level array with object-shaped members is still coerced.
 	 */
 	public function test_normalize_value_converts_object_members_inside_array() {
-		$payload = [
+		$payload    = [
 			'af'  => (object) [ (string) self::ABOVE_FOLD_IMAGE_ID => true ],
 			'bg'  => (object) [],
 			'lcp' => (object) [ 'type' => 'img', 'imageId' => self::ABOVE_FOLD_IMAGE_ID ],
@@ -238,7 +242,7 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	 * The reported crash: indexing object-shaped device data as an array.
 	 */
 	public function test_is_in_all_viewports_does_not_fatal_on_stdclass() {
-		$this->injectCurrentProfileData( $this->objectProfile(), $this->objectProfile() );
+		$this->loadProfileFromStorage( $this->objectProfile(), $this->objectProfile() );
 		$profiler = Optml_Manager::instance()->page_profiler;
 
 		$this->assertTrue( $profiler->is_in_all_viewports( self::ABOVE_FOLD_IMAGE_ID ) );
@@ -249,11 +253,11 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	 * Object-shaped above-fold map only (array wrapper, object `af`).
 	 */
 	public function test_is_in_all_viewports_with_object_shaped_af_member() {
-		$mobile  = $this->arrayProfile();
-		$desktop = $this->arrayProfile();
+		$mobile        = $this->arrayProfile();
+		$desktop       = $this->arrayProfile();
 		$mobile['af']  = (object) [ (string) self::ABOVE_FOLD_IMAGE_ID => true ];
 		$desktop['af'] = (object) [ (string) self::ABOVE_FOLD_IMAGE_ID => true ];
-		$this->injectCurrentProfileData( $mobile, $desktop );
+		$this->loadProfileFromStorage( $mobile, $desktop );
 		$profiler = Optml_Manager::instance()->page_profiler;
 
 		$this->assertTrue( $profiler->is_in_all_viewports( self::ABOVE_FOLD_IMAGE_ID ) );
@@ -263,7 +267,7 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	 * Missing or empty object-shaped device data is treated as unavailable.
 	 */
 	public function test_is_in_all_viewports_empty_object_is_unavailable() {
-		$this->injectCurrentProfileData( new stdClass(), $this->objectProfile() );
+		$this->loadProfileFromStorage( new stdClass(), $this->objectProfile() );
 		$profiler = Optml_Manager::instance()->page_profiler;
 
 		$this->assertFalse( $profiler->is_in_all_viewports( self::ABOVE_FOLD_IMAGE_ID ) );
@@ -274,7 +278,7 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	 * is_in_any_viewport must not fatal on object-shaped data.
 	 */
 	public function test_is_in_any_viewport_does_not_fatal_on_stdclass() {
-		$this->injectCurrentProfileData( $this->objectProfile(), false );
+		$this->loadProfileFromStorage( $this->objectProfile(), $this->objectProfile() );
 		$profiler = Optml_Manager::instance()->page_profiler;
 
 		$this->assertSame( Profile::DEVICE_TYPE_MOBILE, $profiler->is_in_any_viewport( self::ABOVE_FOLD_IMAGE_ID ) );
@@ -285,11 +289,23 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	 * LCP lookup must not fatal on object-shaped `lcp`.
 	 */
 	public function test_is_lcp_image_in_all_viewports_does_not_fatal_on_stdclass() {
-		$this->injectCurrentProfileData( $this->objectProfile(), $this->objectProfile() );
+		$this->loadProfileFromStorage( $this->objectProfile(), $this->objectProfile() );
 		$profiler = Optml_Manager::instance()->page_profiler;
 
 		$this->assertTrue( $profiler->is_lcp_image_in_all_viewports( self::ABOVE_FOLD_IMAGE_ID ) );
 		$this->assertFalse( $profiler->is_lcp_image_in_all_viewports( self::OTHER_IMAGE_ID ) );
+	}
+
+	/**
+	 * Missing LCP imageId must not warn or fatal.
+	 */
+	public function test_is_lcp_image_handles_missing_image_id() {
+		$payload        = $this->arrayProfile();
+		$payload['lcp'] = [ 'type' => 'img' ];
+		$this->loadProfileFromStorage( $payload, $payload );
+		$profiler = Optml_Manager::instance()->page_profiler;
+
+		$this->assertFalse( $profiler->is_lcp_image_in_all_viewports( self::ABOVE_FOLD_IMAGE_ID ) );
 	}
 
 	/**
@@ -313,7 +329,7 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 			],
 			'c' => (object) [ (string) self::ABOVE_FOLD_IMAGE_ID => true ],
 		];
-		$this->injectCurrentProfileData( false, false, $global );
+		$this->loadProfileFromStorage( $this->objectProfile(), $this->objectProfile(), $global );
 		$profiler = Optml_Manager::instance()->page_profiler;
 
 		$this->assertSame( [ 'w' => 100, 'h' => 80 ], $profiler->get_missing_dimensions( self::ABOVE_FOLD_IMAGE_ID ) );
@@ -327,22 +343,14 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	 * Loading current profile data from object-shaped transients yields arrays.
 	 */
 	public function test_set_current_profile_data_normalizes_transients() {
-		$profile_id = 'shape_load_' . wp_generate_uuid4();
-		foreach ( Profile::get_active_devices() as $device ) {
-			set_transient(
-				Transients::PREFIX . $profile_id . '_' . $device,
-				$this->objectProfile(),
-				HOUR_IN_SECONDS
-			);
-		}
-
-		Profile::set_current_profile_id( $profile_id );
-		$data = Optml_Manager::instance()->page_profiler->set_current_profile_data();
+		$this->loadProfileFromStorage( $this->objectProfile(), $this->objectProfile() );
+		$data     = Profile::get_current_profile_data();
+		$profiler = Optml_Manager::instance()->page_profiler;
 
 		$this->assertIsArray( $data[ Profile::DEVICE_TYPE_MOBILE ] );
 		$this->assertIsArray( $data[ Profile::DEVICE_TYPE_DESKTOP ] );
 		$this->assertTrue( $data[ Profile::DEVICE_TYPE_MOBILE ]['af'][ self::ABOVE_FOLD_IMAGE_ID ] );
-		$this->assertTrue( Optml_Manager::instance()->page_profiler->is_in_all_viewports( self::ABOVE_FOLD_IMAGE_ID ) );
+		$this->assertTrue( $profiler->is_in_all_viewports( self::ABOVE_FOLD_IMAGE_ID ) );
 	}
 
 	/**
@@ -365,9 +373,9 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	 * exists() is true after object-shaped data is normalized, false for scalars.
 	 */
 	public function test_exists_with_object_shaped_and_corrupt_storage() {
-		$profiler   = Optml_Manager::instance()->page_profiler;
-		$good_id    = 'shape_exists_good_' . wp_generate_uuid4();
-		$bad_id     = 'shape_exists_bad_' . wp_generate_uuid4();
+		$profiler = Optml_Manager::instance()->page_profiler;
+		$good_id  = 'shape_exists_good_' . wp_generate_uuid4();
+		$bad_id   = 'shape_exists_bad_' . wp_generate_uuid4();
 
 		set_transient(
 			Transients::PREFIX . $good_id . '_' . Profile::DEVICE_TYPE_DESKTOP,
@@ -386,15 +394,12 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Personalized background CSS must not fatal on object-shaped profile data.
+	 * Personalized background CSS must not fatal when current profile came from stdClass storage.
 	 */
 	public function test_personalized_css_does_not_fatal_on_stdclass() {
-		$data = [
-			Profile::DEVICE_TYPE_MOBILE  => $this->objectProfile(),
-			Profile::DEVICE_TYPE_DESKTOP => $this->objectProfile(),
-		];
+		$this->loadProfileFromStorage( $this->objectProfile(), $this->objectProfile() );
 
-		$css = Lazyload::get_personalized_css( $data );
+		$css = Lazyload::get_current_personalized_css();
 		$this->assertIsString( $css );
 	}
 
@@ -402,21 +407,13 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	 * Frontend HTML replacement must not fatal when transients hold stdClass profiles.
 	 */
 	public function test_replace_content_does_not_fatal_on_object_shaped_profile() {
-		$profile_id = 'shape_html_' . wp_generate_uuid4();
+		$profile_id = $this->loadProfileFromStorage( $this->objectProfile(), $this->objectProfile() );
 		add_filter(
 			'optml_page_profile_id',
 			function () use ( $profile_id ) {
 				return $profile_id;
 			}
 		);
-
-		foreach ( Profile::get_active_devices() as $device ) {
-			set_transient(
-				Transients::PREFIX . $profile_id . '_' . $device,
-				$this->objectProfile(),
-				HOUR_IN_SECONDS
-			);
-		}
 
 		$html = Optml_Manager::instance()->replace_content( Test_Lazyload_Viewport::get_sample_html() );
 		$this->assertNotEmpty( $html );
@@ -429,8 +426,7 @@ class Test_Page_Profiler_Shape extends WP_UnitTestCase {
 	 * can_lazyload_for() uses the viewport lookup and must not fatal.
 	 */
 	public function test_can_lazyload_for_does_not_fatal_on_stdclass() {
-		$this->injectCurrentProfileData( $this->objectProfile(), $this->objectProfile() );
-		Profile::set_current_profile_id( 'shape_can_lazy' );
+		$this->loadProfileFromStorage( $this->objectProfile(), $this->objectProfile() );
 
 		$replacer = Optml_Lazyload_Replacer::instance();
 		$url      = 'https://example.com/test-image.jpg';

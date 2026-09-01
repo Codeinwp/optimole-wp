@@ -3,7 +3,6 @@
 namespace OptimoleWP\BgOptimizer;
 
 use OptimoleWP\PageProfiler\Profile;
-use OptimoleWP\PageProfiler\Storage\Base as ProfilerStorage;
 use OptimoleWP\Preload\Links;
 use Optml_Lazyload_Replacer;
 
@@ -35,21 +34,8 @@ class Lazyload {
 		$css_selectors = [];
 		$preload_urls = [];
 		foreach ( Profile::get_active_devices() as $device ) {
-			$device_data = $data[ $device ] ?? [];
-			if ( ! is_array( $device_data ) ) {
-				$device_data = ProfilerStorage::normalize_value( $device_data );
-				$device_data = is_array( $device_data ) ? $device_data : [];
-			}
-			$personalized_selectors = $device_data['bg'] ?? [];
-			if ( ! is_array( $personalized_selectors ) ) {
-				$personalized_selectors = ProfilerStorage::normalize_value( $personalized_selectors );
-				$personalized_selectors = is_array( $personalized_selectors ) ? $personalized_selectors : [];
-			}
-			$lcp_data = $device_data['lcp'] ?? [];
-			if ( ! is_array( $lcp_data ) ) {
-				$lcp_data = ProfilerStorage::normalize_value( $lcp_data );
-				$lcp_data = is_array( $lcp_data ) ? $lcp_data : [];
-			}
+			$personalized_selectors = $data[ $device ]['bg'] ?? [];
+			$lcp_data = $data[ $device ]['lcp'] ?? [];
 			if ( OPTML_DEBUG ) {
 				do_action( 'optml_log', 'personalized_selectors: ' . $device . ' ' . print_r( $personalized_selectors, true ) );
 				do_action( 'optml_log', 'LCP data: ' . $device . ' ' . print_r( $lcp_data, true ) );

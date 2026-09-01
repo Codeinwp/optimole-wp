@@ -226,9 +226,7 @@ class Profile {
 	 * @return array{w: int, h: int}|array{} The missing dimensions.
 	 */
 	public function get_missing_dimensions( int $image_id ): array {
-		$dimensions = self::get_device_member( self::DEVICE_TYPE_GLOBAL, 'm' )[ $image_id ] ?? [];
-
-		return is_array( $dimensions ) ? $dimensions : [];
+		return self::$current_profile_data[ self::DEVICE_TYPE_GLOBAL ]['m'][ $image_id ] ?? [];
 	}
 
 	/**
@@ -239,9 +237,7 @@ class Profile {
 	 * @return array<int, array{w: int, h: int, d: int, s: string, b: int}>|array{} The missing srcsets.
 	 */
 	public function get_missing_srcsets( int $image_id ): array {
-		$srcsets = self::get_device_member( self::DEVICE_TYPE_GLOBAL, 's' )[ $image_id ] ?? [];
-
-		return is_array( $srcsets ) ? $srcsets : [];
+		return self::$current_profile_data[ self::DEVICE_TYPE_GLOBAL ]['s'][ $image_id ] ?? [];
 	}
 
 	/**
@@ -252,7 +248,7 @@ class Profile {
 	 * @return bool The crop status.
 	 */
 	public function get_crop_status( int $image_id ): bool {
-		return (bool) ( self::get_device_member( self::DEVICE_TYPE_GLOBAL, 'c' )[ $image_id ] ?? false );
+		return self::$current_profile_data[ self::DEVICE_TYPE_GLOBAL ]['c'][ $image_id ] ?? false;
 	}
 	/**
 	 * Checks if profile data exists for all active device types.
@@ -345,9 +341,9 @@ class Profile {
 			return self::$current_profile_data;
 		}
 		self::$current_profile_data = [
-			self::DEVICE_TYPE_MOBILE  => Storage\Base::normalize_value( $this->storage->get( self::get_current_profile_id() . '_' . self::DEVICE_TYPE_MOBILE ) ),
-			self::DEVICE_TYPE_DESKTOP => Storage\Base::normalize_value( $this->storage->get( self::get_current_profile_id() . '_' . self::DEVICE_TYPE_DESKTOP ) ),
-			self::DEVICE_TYPE_GLOBAL  => Storage\Base::normalize_value( $this->storage->get( self::get_current_profile_id() ) ),
+			self::DEVICE_TYPE_MOBILE  => $this->storage->get( self::get_current_profile_id() . '_' . self::DEVICE_TYPE_MOBILE ),
+			self::DEVICE_TYPE_DESKTOP => $this->storage->get( self::get_current_profile_id() . '_' . self::DEVICE_TYPE_DESKTOP ),
+			self::DEVICE_TYPE_GLOBAL  => $this->storage->get( self::get_current_profile_id() ),
 		];
 		if ( OPTML_DEBUG ) {
 			do_action( 'optml_log', 'Profile data: ' . print_r( self::$current_profile_data, true ) . ' for id: ' . self::get_current_profile_id() );
@@ -365,14 +361,12 @@ class Profile {
 	 */
 	public function is_in_all_viewports( int $image_id ): bool {
 		foreach ( self::get_active_devices() as $device ) {
-			$device_data = self::get_device_data( $device );
 			// If the data is not available for the device, return false.
-			if ( empty( $device_data ) ) {
+			if ( empty( self::$current_profile_data[ $device ] ?? null ) ) {
 				return false;
 			}
 			// If the image is not in the viewport of the device, return false.
-			$above_fold = self::get_device_member( $device, 'af' );
-			if ( empty( $above_fold[ $image_id ] ) ) {
+			if ( ! ( self::$current_profile_data[ $device ]['af'][ $image_id ] ?? false ) ) {
 				return false;
 			}
 		}
@@ -390,8 +384,7 @@ class Profile {
 	 */
 	public function is_lcp_image_in_all_viewports( int $image_id ): bool {
 		foreach ( self::get_active_devices() as $device ) {
-			$lcp = self::get_device_member( $device, 'lcp' );
-			if ( ( $lcp['type'] ?? '' ) === 'img' && ( $lcp['imageId'] ?? null ) === $image_id ) {
+			if ( ( ( self::$current_profile_data[ $device ]['lcp']['type'] ?? '' ) === 'img' ) && ( ( self::$current_profile_data[ $device ]['lcp']['imageId'] ?? null ) === $image_id ) ) {
 				return true;
 			}
 		}
@@ -408,8 +401,7 @@ class Profile {
 	 */
 	public function is_in_any_viewport( $image_id ) {
 		foreach ( self::get_active_devices() as $device ) {
-			$above_fold = self::get_device_member( $device, 'af' );
-			if ( ! empty( $above_fold[ $image_id ] ) ) {
+			if ( self::$current_profile_data[ $device ]['af'][ $image_id ] ?? false ) {
 				return $device;
 			}
 		}
@@ -427,7 +419,7 @@ class Profile {
 	public function get_profile_data( $id ) {
 		$profile_data = [];
 		foreach ( self::get_active_devices() as $device ) {
-			$profile_data[ $device ] = Storage\Base::normalize_value( $this->storage->get( $id . '_' . $device ) );
+			$profile_data[ $device ] = $this->storage->get( $id . '_' . $device );
 		}
 
 		return $profile_data;
@@ -462,45 +454,12 @@ class Profile {
 	 */
 	public function is_data_available(): bool {
 		foreach ( self::get_active_devices() as $device ) {
-			if ( empty( self::get_device_data( $device ) ) ) {
+			if ( empty( self::$current_profile_data[ $device ] ) ) {
 				return false;
 			}
 		}
 
 		return true;
-	}
-
-	/**
-	 * Get array-shaped profile data for a device.
-	 *
-	 * Object-shaped cache values are coerced to arrays so viewport lookups never fatal.
-	 *
-	 * @param int $device Device type constant.
-	 * @return array<string, mixed>
-	 */
-	private static function get_device_data( int $device ): array {
-		$data = self::$current_profile_data[ $device ] ?? [];
-		if ( ! is_array( $data ) ) {
-			$data = Storage\Base::normalize_value( $data );
-		}
-
-		return is_array( $data ) ? $data : [];
-	}
-
-	/**
-	 * Get an array member from a device profile.
-	 *
-	 * @param int    $device Device type constant.
-	 * @param string $key    Member key (af, bg, lcp, m, s, c).
-	 * @return array<string|int, mixed>
-	 */
-	private static function get_device_member( int $device, string $key ): array {
-		$member = self::get_device_data( $device )[ $key ] ?? [];
-		if ( ! is_array( $member ) ) {
-			$member = Storage\Base::normalize_value( $member );
-		}
-
-		return is_array( $member ) ? $member : [];
 	}
 
 	/**
