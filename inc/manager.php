@@ -802,14 +802,33 @@ final class Optml_Manager {
 		 * Replace all URLs in a single pass per chunk instead of one full-page
 		 * preg_replace() per URL, which allocated a new copy of the whole page
 		 * for every replaced URL and could exhaust memory on large pages.
-		 * Chunking keeps the compiled pattern size bounded.
+		 * Chunks are bounded by pattern size, not only count, so the compiled
+		 * regex stays within PCRE's ~64KB limit even for very long URLs
+		 * (e.g. signed CDN URLs with kilobyte-sized query strings).
 		 */
-		foreach ( array_chunk( $urls, 200, true ) as $chunk ) {
-			$quoted = [];
-			foreach ( $chunk as $origin => $replace ) {
-				$quoted[] = preg_quote( $origin, '/' );
+		$chunks      = [];
+		$chunk       = [];
+		$quoted      = [];
+		$quoted_size = 0;
+		foreach ( $urls as $origin => $replace ) {
+			$quoted_origin = preg_quote( $origin, '/' );
+			if ( ! empty( $chunk ) && ( count( $chunk ) >= 200 || $quoted_size + strlen( $quoted_origin ) > 24000 ) ) {
+				$chunks[]    = [ $chunk, $quoted ];
+				$chunk       = [];
+				$quoted      = [];
+				$quoted_size = 0;
 			}
-			$result = preg_replace_callback(
+			$chunk[ $origin ] = $replace;
+			$quoted[]         = $quoted_origin;
+			$quoted_size     += strlen( $quoted_origin ) + 1;
+		}
+		if ( ! empty( $chunk ) ) {
+			$chunks[] = [ $chunk, $quoted ];
+		}
+
+		foreach ( $chunks as $pair ) {
+			list( $chunk, $quoted ) = $pair;
+			$result                 = preg_replace_callback(
 				'/(?<![\/|:|\\w])(?:' . implode( '|', $quoted ) . ')/m',
 				function ( $matches ) use ( $chunk ) {
 					return $chunk[ $matches[0] ];
@@ -818,6 +837,8 @@ final class Optml_Manager {
 			);
 			if ( $result !== null ) {
 				$html = $result;
+			} else {
+				do_action( 'optml_log', 'URL replacement failed for a chunk of ' . count( $chunk ) . ' URLs, PCRE error ' . preg_last_error() );
 			}
 		}
 

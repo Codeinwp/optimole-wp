@@ -199,6 +199,31 @@ class Test_Buffer extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Very long URLs (e.g. signed CDN URLs) must not push a replacement
+	 * chunk's compiled pattern over PCRE's size limit.
+	 */
+	public function test_long_url_replacement_stays_within_pcre_limits() {
+		$manager = Optml_Manager::instance();
+		add_filter(
+			'optml_content_url',
+			function ( $url ) {
+				return 'https://replaced.test/marker';
+			}
+		);
+		$urls = [];
+		$html = '';
+		for ( $i = 0; $i < 250; $i ++ ) {
+			$url    = 'https://example.org/image-' . $i . '.jpg?X-Signature=' . str_repeat( 'a1b2c3d4', 180 ) . '&i=' . $i;
+			$urls[] = $url;
+			$html  .= '<img src="' . $url . '">';
+		}
+		$out = $manager->do_url_replacement( $html, $urls );
+
+		$this->assertSame( 250, substr_count( $out, 'https://replaced.test/marker' ) );
+		$this->assertStringNotContainsString( 'X-Signature', $out );
+	}
+
+	/**
 	 * The optml_capture_at_shutdown filter restores the legacy in-handler flow.
 	 */
 	public function test_legacy_in_handler_mode() {
