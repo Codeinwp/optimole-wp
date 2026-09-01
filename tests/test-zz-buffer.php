@@ -129,10 +129,11 @@ class Test_Buffer extends WP_UnitTestCase {
 
 	/**
 	 * When third-party code force-flushes our buffer before shutdown, the
-	 * fallback handler processes the content — matching the legacy behavior —
-	 * and close_buffer() detects the loss without side effects.
+	 * content is passed through UNPROCESSED: running the filter graph inside a
+	 * display handler would make any third-party ob_*() call an uncatchable
+	 * fatal. close_buffer() detects the loss without side effects.
 	 */
-	public function test_third_party_flush_falls_back_to_handler_processing() {
+	public function test_third_party_flush_passes_content_through() {
 		$manager = Optml_Manager::instance();
 		ob_start();
 		$manager->process_template_redirect_content();
@@ -143,8 +144,58 @@ class Test_Buffer extends WP_UnitTestCase {
 		$manager->close_final_buffer();
 		$out = ob_get_clean();
 
-		$this->assertSame( 1, substr_count( $out, 'i.optimole.com' ) );
+		$this->assertStringNotContainsString( 'i.optimole.com', $out );
+		$this->assertStringContainsString( 'themes/twentyseventeen/assets/images/header.jpg', $out );
 		$this->assertSame( $this->base_level, ob_get_level() );
+	}
+
+	/**
+	 * A third-party flush combined with an output-buffering filter callback
+	 * must not fatal. Processing inside the handler would terminate PHP with
+	 * "Cannot use output buffering in output buffering display handlers",
+	 * which catch ( Throwable ) cannot intercept.
+	 */
+	public function test_third_party_flush_with_ob_filter_does_not_fatal() {
+		$manager = Optml_Manager::instance();
+		add_filter(
+			'optml_url_pre_process',
+			function ( $html ) {
+				ob_start();
+				echo 'probe';
+				ob_get_clean();
+				return $html;
+			}
+		);
+		ob_start();
+		$manager->process_template_redirect_content();
+		echo self::IMG_TAGS; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		ob_end_flush(); // Would exit(255) if the handler ran the filter graph.
+		$manager->close_buffer();
+		$manager->close_final_buffer();
+		$out = ob_get_clean();
+
+		$this->assertStringContainsString( 'themes/twentyseventeen/assets/images/header.jpg', $out );
+		$this->assertSame( $this->base_level, ob_get_level() );
+	}
+
+	/**
+	 * A foreign buffer that ends up at our recorded nesting level is never
+	 * captured or closed: ownership requires our handler identity, not just
+	 * the level.
+	 */
+	public function test_foreign_buffer_at_same_level_is_not_consumed() {
+		$manager = Optml_Manager::instance();
+		$manager->process_template_redirect_content();
+		ob_end_clean(); // Third party discards our buffer...
+		ob_start();     // ...and opens its own at the same level.
+		echo 'FOREIGN';
+		$manager->close_buffer();
+		$manager->close_final_buffer();
+
+		$this->assertSame( $this->base_level + 1, ob_get_level() );
+		$this->assertSame( 'default output handler', ob_get_status()['name'] );
+		$this->assertStringContainsString( 'FOREIGN', ob_get_contents() );
+		ob_end_clean();
 	}
 
 	/**

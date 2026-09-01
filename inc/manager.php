@@ -877,35 +877,57 @@ final class Optml_Manager {
 	 * errors raised during processing keep their real message instead of being
 	 * masked by "Cannot use output buffering in output buffering display handlers".
 	 *
-	 * The attached handler is only a fallback for third-party code that flushes
-	 * our buffer before shutdown (streaming via ob_flush(), force-flush loops):
-	 * in that case it processes the flushed chunk in handler context, matching
-	 * the previous behavior.
+	 * The attached handler is only a fallback for buffers flushed outside of
+	 * close_buffer() — third-party force-flush loops, ob_flush() streaming, or
+	 * core's wp_ob_end_flush_all() reaching the re-armed buffer. A named method
+	 * is used instead of a closure so the buffer can be identified as ours via
+	 * ob_get_status()['name'].
 	 *
 	 * @return void
 	 */
 	private function start_capture_buffer() {
 		self::$ob_processed = false;
-		ob_start(
-			function ( $content ) {
-				/*
-				* The closure also shields replace_content() from PHP's second
-				* display-handler argument ($phase bitmask), which would be
-				* misinterpreted as the boolean $partial parameter.
-				*/
-				if ( self::$ob_processed || $content === '' ) {
-					return $content;
-				}
-				try {
-					return $this->replace_content( $content, self::is_ajax_request() );
-				} catch ( Throwable $t ) {
-					// Never break the page from inside a display handler.
-					do_action( 'optml_log', 'replace_content failed inside the output handler: ' . $t->getMessage() );
-					return $content;
-				}
-			}
-		);
+		ob_start( [ $this, 'handle_buffer_fallback' ] );
 		self::$ob_level = ob_get_level();
+	}
+
+	/**
+	 * The handler name PHP reports for our capture buffer in ob_get_status().
+	 */
+	const OB_HANDLER_NAME = 'Optml_Manager::handle_buffer_fallback';
+
+	/**
+	 * Output-buffer handler attached to our capture buffer.
+	 *
+	 * Runs only when the buffer is flushed outside of close_buffer(). Content is
+	 * passed through UNPROCESSED here: running the replacement filter graph
+	 * inside a PHP display handler would turn any third-party ob_*() call into
+	 * an uncatchable fatal ("Cannot use output buffering in output buffering
+	 * display handlers") — the very crash this rework removes. The only
+	 * exception is the legacy mode selected via the optml_capture_at_shutdown
+	 * filter, which explicitly restores the previous in-handler processing.
+	 *
+	 * @param string $content The buffered content.
+	 * @param int    $phase   PHP's output-handler phase bitmask (unused; keeps replace_content()'s $partial parameter shielded from it).
+	 *
+	 * @return string The content to output.
+	 */
+	public function handle_buffer_fallback( $content, $phase = 0 ) {
+		if ( self::$ob_processed || $content === '' ) {
+			return $content;
+		}
+		if ( apply_filters( 'optml_capture_at_shutdown', true ) === false ) {
+			try {
+				return $this->replace_content( $content, self::is_ajax_request() );
+			} catch ( Throwable $t ) {
+				// Never break the page from inside a display handler.
+				do_action( 'optml_log', 'replace_content failed inside the output handler: ' . $t->getMessage() );
+				return $content;
+			}
+		}
+		do_action( 'optml_log', 'Optimole buffer was flushed outside close_buffer(); content passed through unprocessed.' );
+
+		return $content;
 	}
 
 	/**
@@ -970,10 +992,18 @@ final class Optml_Manager {
 	/**
 	 * Capture our buffer, process it outside the display-handler context and echo the result.
 	 *
+	 * Ownership is verified by both nesting level and handler identity, so a
+	 * buffer another plugin opened at the same level after ours was closed is
+	 * never captured or closed by us.
+	 *
 	 * @return bool Whether our buffer was found and consumed.
 	 */
 	private function capture_and_process_buffer() {
 		if ( self::$ob_level === 0 || ob_get_level() !== self::$ob_level ) {
+			return false;
+		}
+		$status = ob_get_status();
+		if ( ( $status['name'] ?? '' ) !== self::OB_HANDLER_NAME ) {
 			return false;
 		}
 		$html = ob_get_contents();
