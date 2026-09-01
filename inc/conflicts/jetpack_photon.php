@@ -1,7 +1,5 @@
 <?php
 
-use OptimoleWP\Integrations\JetpackStatus;
-
 /**
  * Class Optml_Jetpack_Photon
  *
@@ -36,6 +34,8 @@ class Optml_Jetpack_Photon extends Optml_Abstract_Conflict {
 	 * @access  public
 	 */
 	public function is_conflict_valid() {
-		return JetpackStatus::is_photon_active();
+		$compatibility = new Optml_jetpack_photon_compatibility();
+
+		return $compatibility->should_load();
 	}
 }
