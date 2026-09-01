@@ -54,7 +54,7 @@ class Optml_Conflicting_Plugins {
 			'litespeed'    => 'litespeed-cache/litespeed-cache.php',
 			'autoptimize'  => 'autoptimize/autoptimize.php',
 			'perfmatters'  => 'perfmatters/perfmatters.php',
-			'jetpack_Photon'      => 'jetpack/jetpack.php',
+			'jetpack_Photon' => 'jetpack/jetpack.php',
 			// 'plugin-slug' => 'plugin-folder/plugin-file.php'
 		];
 
@@ -73,6 +73,14 @@ class Optml_Conflicting_Plugins {
 
 		$conflicting_plugins = $this->defined_plugins();
 		$conflicting_plugins = array_filter( $conflicting_plugins, 'is_plugin_active' );
+
+		if (
+			isset( $conflicting_plugins['jetpack_Photon'] ) &&
+			! ( new Optml_Jetpack_Photon() )->is_conflict_valid()
+		) {
+			unset( $conflicting_plugins['jetpack_Photon'] );
+		}
+
 		return apply_filters( 'optml_conflicting_active_plugins', $conflicting_plugins );
 	}
 
