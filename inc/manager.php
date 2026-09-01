@@ -800,20 +800,20 @@ final class Optml_Manager {
 
 		/*
 		 * Replace all URLs in a single pass per chunk instead of one full-page
-		 * preg_replace() per URL, which allocated a new copy of the whole page
-		 * for every replaced URL and could exhaust memory on large pages.
-		 * Chunks are bounded by pattern size, not only count, so the compiled
-		 * regex stays within PCRE's ~64KB limit even for very long URLs
-		 * (e.g. signed CDN URLs with kilobyte-sized query strings).
+		 * preg_replace() per URL, which scanned and rebuilt the whole page for
+		 * every replaced URL. Chunks are bounded by pattern size, not only
+		 * count, so the compiled regex stays within PCRE's ~64KB limit even
+		 * for very long URLs (e.g. signed CDN URLs with kilobyte-sized query
+		 * strings). Each chunk is applied as soon as it fills, so only one
+		 * chunk's bookkeeping is in memory at a time.
 		 */
-		$chunks      = [];
 		$chunk       = [];
 		$quoted      = [];
 		$quoted_size = 0;
 		foreach ( $urls as $origin => $replace ) {
 			$quoted_origin = preg_quote( $origin, '/' );
 			if ( ! empty( $chunk ) && ( count( $chunk ) >= 200 || $quoted_size + strlen( $quoted_origin ) > 24000 ) ) {
-				$chunks[]    = [ $chunk, $quoted ];
+				$html        = $this->replace_urls_chunk( $html, $chunk, $quoted );
 				$chunk       = [];
 				$quoted      = [];
 				$quoted_size = 0;
@@ -823,26 +823,34 @@ final class Optml_Manager {
 			$quoted_size     += strlen( $quoted_origin ) + 1;
 		}
 		if ( ! empty( $chunk ) ) {
-			$chunks[] = [ $chunk, $quoted ];
-		}
-
-		foreach ( $chunks as $pair ) {
-			list( $chunk, $quoted ) = $pair;
-			$result                 = preg_replace_callback(
-				'/(?<![\/|:|\\w])(?:' . implode( '|', $quoted ) . ')/m',
-				function ( $matches ) use ( $chunk ) {
-					return $chunk[ $matches[0] ];
-				},
-				$html
-			);
-			if ( $result !== null ) {
-				$html = $result;
-			} else {
-				do_action( 'optml_log', 'URL replacement failed for a chunk of ' . count( $chunk ) . ' URLs, PCRE error ' . preg_last_error() );
-			}
+			$html = $this->replace_urls_chunk( $html, $chunk, $quoted );
 		}
 
 		return $html;
+	}
+
+	/**
+	 * Replace one chunk of URLs in the content with a single combined pattern.
+	 *
+	 * @param string                $html Content to process.
+	 * @param array<string, string> $chunk Map of origin => replacement URLs.
+	 * @param string[]              $quoted The preg_quote()d origins, in the same order.
+	 *
+	 * @return string Processed content, unchanged when the pattern fails.
+	 */
+	private function replace_urls_chunk( $html, $chunk, $quoted ) {
+		$result = preg_replace_callback(
+			'/(?<![\/|:|\\w])(?:' . implode( '|', $quoted ) . ')/m',
+			function ( $matches ) use ( $chunk ) {
+				return $chunk[ $matches[0] ];
+			},
+			$html
+		);
+		if ( $result === null ) {
+			do_action( 'optml_log', 'URL replacement failed for a chunk of ' . count( $chunk ) . ' URLs, PCRE error ' . preg_last_error() );
+			return $html;
+		}
+		return $result;
 	}
 
 	/**
