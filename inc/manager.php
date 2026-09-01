@@ -430,6 +430,48 @@ final class Optml_Manager {
 	public static function should_load_profiler( $default_value = false ) {
 		return ! $default_value && apply_filters( 'optml_page_profiler_disable', false ) === false;
 	}
+
+	/**
+	 * Decide if the temporary Cache-Control header can be sent while page profiling is pending.
+	 *
+	 * The header must never be sent on non-cacheable pages: it would replace a
+	 * Cache-Control header already set by WordPress or another plugin (PHP's
+	 * header() replaces same-name headers by default), e.g. WooCommerce's
+	 * no-cache header on cart and checkout, letting proxies cache user-specific
+	 * pages. We back off when DONOTCACHEPAGE is set or when any Cache-Control
+	 * header exists already, and let developers override the decision.
+	 *
+	 * @param array<int, string>|null $sent_headers Headers already set for the response; defaults to headers_list().
+	 * @param bool|null               $do_not_cache Whether the page is flagged as non-cacheable; defaults to the DONOTCACHEPAGE constant.
+	 *
+	 * @return bool Whether the header can be sent.
+	 */
+	public function should_send_temporary_cache_header( $sent_headers = null, $do_not_cache = null ) {
+		if ( null === $do_not_cache ) {
+			$do_not_cache = defined( 'DONOTCACHEPAGE' ) && DONOTCACHEPAGE;
+		}
+		$send = ! $do_not_cache;
+
+		if ( $send ) {
+			if ( null === $sent_headers ) {
+				$sent_headers = headers_list();
+			}
+			foreach ( $sent_headers as $header ) {
+				if ( stripos( $header, 'cache-control:' ) === 0 ) {
+					$send = false;
+					break;
+				}
+			}
+		}
+
+		/**
+		 * Filters whether the temporary `Cache-Control: max-age=300` header is sent
+		 * while page profiling is pending for the current page.
+		 *
+		 * @param bool $send Computed decision: false when DONOTCACHEPAGE is set or a Cache-Control header exists already.
+		 */
+		return apply_filters( 'optml_send_temporary_cache_header', $send ) === true;
+	}
 	/**
 	 * Filter raw HTML content for urls.
 	 *
@@ -461,7 +503,7 @@ final class Optml_Manager {
 						$js_optimizer
 					);
 					$html = str_replace( Optml_Admin::get_optimizer_script( true ), $js_optimizer, $html );
-					if ( ! headers_sent() ) {
+					if ( ! headers_sent() && $this->should_send_temporary_cache_header() ) {
 						header( 'Cache-Control: max-age=300' ); // Attempt to cache the page just for 5 mins until the optimizer is done. Once the optimizer is done, the page will load optimized.
 					}
 				} else {
