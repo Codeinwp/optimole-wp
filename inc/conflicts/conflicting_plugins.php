@@ -1,4 +1,7 @@
 <?php
+
+use OptimoleWP\Integrations\JetpackStatus;
+
 /**
  * The Conflicting Plugins class, documents and displays dashboard notice for conflicting plugins.
  *
@@ -76,7 +79,7 @@ class Optml_Conflicting_Plugins {
 
 		if (
 			isset( $conflicting_plugins['jetpack_Photon'] ) &&
-			! ( new Optml_Jetpack_Photon() )->is_conflict_valid()
+			! JetpackStatus::is_photon_active()
 		) {
 			unset( $conflicting_plugins['jetpack_Photon'] );
 		}

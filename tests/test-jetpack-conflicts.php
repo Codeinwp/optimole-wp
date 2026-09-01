@@ -1,4 +1,7 @@
 <?php
+
+use OptimoleWP\Integrations\JetpackStatus;
+
 /**
  * Jetpack conflict tests.
  *
@@ -45,6 +48,7 @@ class Test_Jetpack_Conflicts extends WP_UnitTestCase {
 	public function test_jetpack_without_photon_is_not_a_generic_conflict() {
 		$conflicts = new Optml_Conflicting_Plugins();
 
+		$this->assertFalse( JetpackStatus::is_photon_active() );
 		$this->assertNotContains( 'jetpack/jetpack.php', $conflicts->get_conflicting_plugins( true ) );
 	}
 
@@ -55,6 +59,7 @@ class Test_Jetpack_Conflicts extends WP_UnitTestCase {
 		Jetpack::$photon_active = true;
 		$conflicts              = new Optml_Conflicting_Plugins();
 
+		$this->assertTrue( JetpackStatus::is_photon_active() );
 		$this->assertContains( 'jetpack/jetpack.php', $conflicts->get_conflicting_plugins( true ) );
 	}
 }
