@@ -709,7 +709,7 @@ class Optml_Rest {
 		$api_key = $request->get_param( 'api_key' );
 		$request = new Optml_Api();
 		$images  = $request->get_optimized_images( $api_key );
-		if ( ! isset( $images['list'] ) || empty( $images['list'] ) ) {
+		if ( is_wp_error( $images ) || ! is_array( $images ) || empty( $images['list'] ) ) {
 			return $this->response( [] );
 		}
 
