@@ -122,6 +122,23 @@ final class Optml_Manager {
 	 * @var boolean Buffer state.
 	 */
 	private static $ob_started = false;
+	/**
+	 * The output-buffer nesting level of our capture buffer.
+	 *
+	 * Used to make sure we only ever capture or close our own buffer and not
+	 * one started by a third party.
+	 *
+	 * @var int Buffer nesting level, 0 when no capture buffer is armed.
+	 */
+	private static $ob_level = 0;
+	/**
+	 * Whether the captured buffer was already processed at shutdown.
+	 *
+	 * When true, the fallback output handler passes content through untouched.
+	 *
+	 * @var boolean Processed state.
+	 */
+	private static $ob_processed = false;
 
 	/**
 	 * Class instance method.
@@ -408,6 +425,7 @@ final class Optml_Manager {
 		add_action( 'template_redirect', [ $this, 'register_after_setup' ] );
 		add_action( 'rest_api_init', [ $this, 'process_template_redirect_content' ], PHP_INT_MIN );
 		add_action( 'shutdown', [ $this, 'close_buffer' ], PHP_INT_MIN );
+		add_action( 'shutdown', [ $this, 'close_final_buffer' ], PHP_INT_MAX );
 		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
 			$registered_compatibility->register();
 		}
@@ -780,8 +798,27 @@ final class Optml_Manager {
 			$urls
 		);
 
-		foreach ( $urls as $origin => $replace ) {
-			$html = preg_replace( '/(?<![\/|:|\\w])' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
+		/*
+		 * Replace all URLs in a single pass per chunk instead of one full-page
+		 * preg_replace() per URL, which allocated a new copy of the whole page
+		 * for every replaced URL and could exhaust memory on large pages.
+		 * Chunking keeps the compiled pattern size bounded.
+		 */
+		foreach ( array_chunk( $urls, 200, true ) as $chunk ) {
+			$quoted = [];
+			foreach ( $chunk as $origin => $replace ) {
+				$quoted[] = preg_quote( $origin, '/' );
+			}
+			$result = preg_replace_callback(
+				'/(?<![\/|:|\\w])(?:' . implode( '|', $quoted ) . ')/m',
+				function ( $matches ) use ( $chunk ) {
+					return $chunk[ $matches[0] ];
+				},
+				$html
+			);
+			if ( $result !== null ) {
+				$html = $result;
+			}
 		}
 
 		return $html;
@@ -799,31 +836,125 @@ final class Optml_Manager {
 		// We no longer need this if the handler was started.
 		remove_filter( 'the_content', [ $this, 'process_images_from_content' ], PHP_INT_MAX );
 
+		$this->start_capture_buffer();
+	}
+
+	/**
+	 * Start an output buffer that captures the page HTML.
+	 *
+	 * On normal requests the buffer is captured and processed by close_buffer()
+	 * at shutdown, outside of PHP's display-handler context, so callbacks hooked
+	 * into our filters are free to use output buffering themselves and fatal
+	 * errors raised during processing keep their real message instead of being
+	 * masked by "Cannot use output buffering in output buffering display handlers".
+	 *
+	 * The attached handler is only a fallback for third-party code that flushes
+	 * our buffer before shutdown (streaming via ob_flush(), force-flush loops):
+	 * in that case it processes the flushed chunk in handler context, matching
+	 * the previous behavior.
+	 *
+	 * @return void
+	 */
+	private function start_capture_buffer() {
+		self::$ob_processed = false;
 		ob_start(
 			function ( $content ) {
-					/*
-					* Wrap the call to replace_content() so that PHP’s output-buffering system
-					* does not pass its own second argument ($phase bitmask) to our method.
-					*
-					* replace_content() expects the second parameter to be a boolean $partial,
-					* indicating whether the content is a partial replacement (e.g. for
-					* viewport lazy-load) or a full page. If PHP’s $phase integer is passed
-					* directly, it would be misinterpreted as $partial and break the logic.
-					*
-					* This closure filters the call, forwarding only the captured HTML buffer.
-					*/
-				return $this->replace_content( $content, self::is_ajax_request() );
+				/*
+				* The closure also shields replace_content() from PHP's second
+				* display-handler argument ($phase bitmask), which would be
+				* misinterpreted as the boolean $partial parameter.
+				*/
+				if ( self::$ob_processed || $content === '' ) {
+					return $content;
+				}
+				try {
+					return $this->replace_content( $content, self::is_ajax_request() );
+				} catch ( Throwable $t ) {
+					// Never break the page from inside a display handler.
+					do_action( 'optml_log', 'replace_content failed inside the output handler: ' . $t->getMessage() );
+					return $content;
+				}
 			}
 		);
+		self::$ob_level = ob_get_level();
 	}
 
 	/**
 	 * Close the buffer and flush the content.
 	 */
 	public function close_buffer() {
-		if ( self::$ob_started && ob_get_length() ) {
-			ob_end_flush();
+		if ( ! self::$ob_started ) {
+			return;
 		}
+
+		/**
+		 * Filters whether the captured page is processed at shutdown, outside of
+		 * PHP's display-handler context. Return false to restore the legacy
+		 * behavior of processing inside the output-buffer handler.
+		 *
+		 * @param bool $capture_at_shutdown Whether to process the buffer at shutdown.
+		 */
+		if ( apply_filters( 'optml_capture_at_shutdown', true ) === false ) {
+			if ( ob_get_length() ) {
+				ob_end_flush();
+			}
+			return;
+		}
+
+		/*
+		 * Flush the buffers other plugins stacked on top of ours so their
+		 * handlers still transform the page before we process it, preserving
+		 * the same order as a full top-down flush at request shutdown.
+		 */
+		while ( ob_get_level() > self::$ob_level ) {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a non-flushable buffer must not raise a notice; we stop on failure.
+			if ( ! @ob_end_flush() ) {
+				break;
+			}
+		}
+
+		if ( ! $this->capture_and_process_buffer() ) {
+			do_action( 'optml_log', 'Optimole buffer was closed earlier by third-party code.' );
+			return;
+		}
+
+		/*
+		 * Re-arm the capture so output echoed by later shutdown callbacks is
+		 * still processed and unguarded third-party flush calls find a buffer
+		 * to close instead of raising a notice.
+		 */
+		$this->start_capture_buffer();
+	}
+
+	/**
+	 * Close the re-armed buffer at the very end of shutdown.
+	 *
+	 * @return void
+	 */
+	public function close_final_buffer() {
+		if ( ! self::$ob_started ) {
+			return;
+		}
+		$this->capture_and_process_buffer();
+	}
+
+	/**
+	 * Capture our buffer, process it outside the display-handler context and echo the result.
+	 *
+	 * @return bool Whether our buffer was found and consumed.
+	 */
+	private function capture_and_process_buffer() {
+		if ( self::$ob_level === 0 || ob_get_level() !== self::$ob_level ) {
+			return false;
+		}
+		$html = ob_get_contents();
+		// Set before ob_end_clean() so our handler no-ops during buffer cleanup.
+		self::$ob_processed = true;
+		ob_end_clean();
+		if ( $html !== false && $html !== '' ) {
+			echo $this->replace_content( $html, self::is_ajax_request() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- full page HTML, escaping would break the page.
+		}
+		return true;
 	}
 	/**
 	 * Throw error on object clone
