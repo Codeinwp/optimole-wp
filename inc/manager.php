@@ -104,6 +104,7 @@ final class Optml_Manager {
 		'wpsp',
 		'jetengine',
 		'jetpack',
+		'jetpack_photon_compatibility',
 		'wp_rocket',
 		'wp_super_cache',
 		'breeze',
