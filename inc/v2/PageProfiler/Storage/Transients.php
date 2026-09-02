@@ -65,10 +65,10 @@ class Transients extends Base {
 	 * Retrieves data from a transient.
 	 *
 	 * @param string $key The key to retrieve data for.
-	 * @return mixed The stored data or false if the transient doesn't exist or has expired.
+	 * @return array<string, mixed>|false The stored data or false if the transient doesn't exist or has expired.
 	 */
 	public function get( string $key ) {
-		return get_transient( $this->get_key( $key ) );
+		return self::normalize_value( get_transient( $this->get_key( $key ) ) );
 	}
 
 	/**

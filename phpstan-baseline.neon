@@ -3073,12 +3073,6 @@ parameters:
 			path: inc/v2/PageProfiler/Storage/Base.php
 
 		-
-			message: '#^Method OptimoleWP\\PageProfiler\\Storage\\Base\:\:get\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/v2/PageProfiler/Storage/Base.php
-
-		-
 			message: '#^Method OptimoleWP\\PageProfiler\\Storage\\Base\:\:store\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1
@@ -3089,12 +3083,6 @@ parameters:
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/v2/PageProfiler/Storage/Base.php
-
-		-
-			message: '#^Method OptimoleWP\\PageProfiler\\Storage\\ObjectCache\:\:get\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/v2/PageProfiler/Storage/ObjectCache.php
 
 		-
 			message: '#^Method OptimoleWP\\PageProfiler\\Storage\\ObjectCache\:\:store\(\) has parameter \$data with no value type specified in iterable type array\.$#'
