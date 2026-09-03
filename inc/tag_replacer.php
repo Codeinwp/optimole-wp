@@ -530,7 +530,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$srcset_attr = $is_slashed ? 'srcset=\"' . addcslashes( $srcset_value, '"' ) . '\"' : 'srcset="' . $srcset_value . '"';
 
 			// Insert srcset attribute after the src attribute
-			$tag = preg_replace( '/(src=["\'][^"\']*["\'])/i', '$1 ' . $srcset_attr, $tag );
+			$tag = preg_replace( '/(src=["\'][^"\']*["\'])/i', '$1 ' . addcslashes( $srcset_attr, '\\$' ), $tag );
 		}
 
 		// Handle sizes attribute - skip if existing sizes contains calc() or complex formulas
@@ -575,7 +575,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 						$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $sizes_value, '"' ) . '\"' : 'sizes="' . $sizes_value . '"';
 
 						// Insert sizes attribute after srcset
-						$tag = preg_replace( '/(srcset=["\'][^"\']*["\'])/i', '$1 ' . $sizes_attr, $tag );
+						$tag = preg_replace( '/(srcset=["\'][^"\']*["\'])/i', '$1 ' . addcslashes( $sizes_attr, '\\$' ), $tag );
 					}
 				}
 			} else {
@@ -629,7 +629,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$srcset_attr = $is_slashed ? 'srcset=\"' . addcslashes( $enhanced_srcset, '"' ) . '\"' : 'srcset="' . $enhanced_srcset . '"';
 
 			// Replace existing srcset
-			$tag = preg_replace( '/srcset=["\'][^"\']*["\']/i', $srcset_attr, $tag );
+			$tag = preg_replace( '/srcset=["\'][^"\']*["\']/i', addcslashes( $srcset_attr, '\\$' ), $tag );
 		}
 
 		return $tag;
@@ -670,7 +670,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $enhanced_sizes, '"' ) . '\"' : 'sizes="' . $enhanced_sizes . '"';
 
 			// Replace existing sizes
-			$tag = preg_replace( '/sizes=["\'][^"\']*["\']/i', $sizes_attr, $tag );
+			$tag = preg_replace( '/sizes=["\'][^"\']*["\']/i', addcslashes( $sizes_attr, '\\$' ), $tag );
 		}
 
 		return $tag;

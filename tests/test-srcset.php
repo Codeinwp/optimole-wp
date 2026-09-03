@@ -465,10 +465,91 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 
 
 	/**
+	 * Test that a "$0" srcset descriptor cannot inject a real onload attribute
+	 */
+	public function test_add_missing_srcset_attributes_prevents_backreference_injection() {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" alt="Test" />';
+		$missing_srcsets = [
+			[ 'w' => 800, 'h' => 600, 'd' => 1, 's' => '$0 onload=alert(document.domain) x', 'b' => 0 ],
+		];
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, $missing_srcsets, 'https://example.com/image.jpg', false );
+		$img = $this->get_img_element( $result );
+
+		// The payload must stay inert literal text inside the srcset value, not become a real attribute
+		$this->assertFalse( $img->hasAttribute( 'onload' ) );
+		$this->assertStringContainsString( '$0 onload=alert(document.domain) x', $img->getAttribute( 'srcset' ) );
+	}
+
+	/**
+	 * Test that a "$1" srcset descriptor cannot inject a real onerror attribute
+	 */
+	public function test_add_missing_srcset_attributes_prevents_dollar_one_injection() {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" alt="Test" />';
+		$missing_srcsets = [
+			[ 'w' => 800, 'h' => 600, 'd' => 1, 's' => '$1 onerror=alert(1) x', 'b' => 0 ],
+		];
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, $missing_srcsets, 'https://example.com/image.jpg', false );
+		$img = $this->get_img_element( $result );
+
+		$this->assertFalse( $img->hasAttribute( 'onerror' ) );
+		$this->assertSame( 'https://example.com/image.jpg', $img->getAttribute( 'src' ) );
+	}
+
+	/**
+	 * Test that enhance_existing_srcset does not expand a "$0" entry into a real attribute
+	 */
+	public function test_enhance_existing_srcset_prevents_backreference_injection() {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" srcset="existing-300w.jpg 300w" alt="Test" />';
+		$new_entries = [ 'evil.jpg $0 onload=alert(document.domain) x' ];
+
+		$result = $tag_replacer->enhance_existing_srcset( $tag, $new_entries, false );
+		$img = $this->get_img_element( $result );
+
+		$this->assertFalse( $img->hasAttribute( 'onload' ) );
+		$this->assertStringContainsString( 'existing-300w.jpg 300w', $img->getAttribute( 'srcset' ) );
+	}
+
+	/**
+	 * Test that enhance_existing_sizes does not expand a "$0" entry into a real attribute
+	 */
+	public function test_enhance_existing_sizes_prevents_backreference_injection() {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" sizes="(max-width: 480px) 300px" alt="Test" />';
+		$new_entries = [ '$0 onload=alert(document.domain) x' ];
+
+		$result = $tag_replacer->enhance_existing_sizes( $tag, $new_entries, false );
+		$img = $this->get_img_element( $result );
+
+		$this->assertFalse( $img->hasAttribute( 'onload' ) );
+		$this->assertStringContainsString( '(max-width: 480px) 300px', $img->getAttribute( 'sizes' ) );
+	}
+
+	/**
+	 * Parse a single img tag string and return its DOM element
+	 */
+	private function get_img_element( $tag_html ) {
+		$dom = new DOMDocument();
+		$previous_setting = libxml_use_internal_errors( true );
+		$dom->loadHTML( $tag_html );
+		libxml_use_internal_errors( $previous_setting );
+
+		return $dom->getElementsByTagName( 'img' )->item( 0 );
+	}
+
+	/**
 	 * Set up test environment
 	 */
 	public function setUp(): void {
 		parent::setUp();
-		
+
 	}
 }
