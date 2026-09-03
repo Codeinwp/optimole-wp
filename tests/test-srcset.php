@@ -534,6 +534,78 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test that a backslash-form "\0" srcset descriptor cannot inject a real onload attribute
+	 */
+	public function test_add_missing_srcset_attributes_prevents_backslash_backreference_injection() {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" alt="Test" />';
+		$missing_srcsets = [
+			[ 'w' => 800, 'h' => 600, 'd' => 1, 's' => '\0 onload=alert(document.domain) x', 'b' => 0 ],
+		];
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, $missing_srcsets, 'https://example.com/image.jpg', false );
+		$img = $this->get_img_element( $result );
+
+		$this->assertFalse( $img->hasAttribute( 'onload' ) );
+		$this->assertStringContainsString( '\0 onload=alert(document.domain) x', $img->getAttribute( 'srcset' ) );
+	}
+
+	/**
+	 * Test that enhance_existing_srcset does not expand a "\1" entry into a real attribute
+	 */
+	public function test_enhance_existing_srcset_prevents_backslash_backreference_injection() {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" srcset="existing-300w.jpg 300w" alt="Test" />';
+		$new_entries = [ 'evil.jpg \1 onerror=alert(1) x' ];
+
+		$result = $tag_replacer->enhance_existing_srcset( $tag, $new_entries, false );
+		$img = $this->get_img_element( $result );
+
+		$this->assertFalse( $img->hasAttribute( 'onerror' ) );
+		$this->assertStringContainsString( 'existing-300w.jpg 300w', $img->getAttribute( 'srcset' ) );
+	}
+
+	/**
+	 * Test that the slashed srcset output keeps its required escaping while a "$0" payload stays inert
+	 */
+	public function test_add_missing_srcset_attributes_slashed_prevents_backreference_injection() {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" alt="Test" />';
+		$missing_srcsets = [
+			[ 'w' => 800, 'h' => 600, 'd' => 1, 's' => '$0 onload=alert(document.domain) x', 'b' => 0 ],
+		];
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, $missing_srcsets, 'https://example.com/image.jpg', true );
+
+		// The required slashed escaping around the srcset value must be preserved as-is (not doubled).
+		$this->assertStringContainsString( 'srcset=\"', $result );
+		$this->assertStringNotContainsString( 'srcset=\\\"', $result );
+		// The payload must stay inert literal text, not become a real attribute breakout.
+		$this->assertStringNotContainsString( '\" onload=', $result );
+		$this->assertStringContainsString( '$0 onload=alert(document.domain) x', $result );
+	}
+
+	/**
+	 * Test that enhance_existing_srcset's slashed output keeps its required escaping while a "\0" payload stays inert
+	 */
+	public function test_enhance_existing_srcset_slashed_prevents_backslash_backreference_injection() {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" srcset="existing-300w.jpg 300w" alt="Test" />';
+		$new_entries = [ 'evil.jpg \0 onload=alert(document.domain) x' ];
+
+		$result = $tag_replacer->enhance_existing_srcset( $tag, $new_entries, true );
+
+		$this->assertStringContainsString( 'srcset=\"', $result );
+		$this->assertStringNotContainsString( 'srcset=\\\"', $result );
+		$this->assertStringNotContainsString( '\" onload=', $result );
+		$this->assertStringContainsString( 'existing-300w.jpg 300w', $result );
+	}
+
+	/**
 	 * Parse a single img tag string and return its DOM element
 	 */
 	private function get_img_element( $tag_html ) {
