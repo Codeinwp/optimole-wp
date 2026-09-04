@@ -527,6 +527,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		} else {
 			// Add new srcset attribute
 			$srcset_value = implode( ', ', $new_srcset_entries );
+			// Escape backreference metacharacters so this value can't be expanded by preg_replace() below.
+			$srcset_value = addcslashes( $srcset_value, '\\$' );
 			$srcset_attr = $is_slashed ? 'srcset=\"' . addcslashes( $srcset_value, '"' ) . '\"' : 'srcset="' . $srcset_value . '"';
 
 			// Insert srcset attribute after the src attribute
@@ -572,6 +574,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 						);
 
 						$sizes_value = implode( ', ', $sizes_entries );
+						// Escape backreference metacharacters before wrapping, see add_missing_srcset_attributes() above.
+						$sizes_value = addcslashes( $sizes_value, '\\$' );
 						$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $sizes_value, '"' ) . '\"' : 'sizes="' . $sizes_value . '"';
 
 						// Insert sizes attribute after srcset
@@ -626,6 +630,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			);
 
 			$enhanced_srcset = implode( ', ', $all_entries );
+			// Escape backreference metacharacters so this value can't be expanded by preg_replace() below.
+			$enhanced_srcset = addcslashes( $enhanced_srcset, '\\$' );
 			$srcset_attr = $is_slashed ? 'srcset=\"' . addcslashes( $enhanced_srcset, '"' ) . '\"' : 'srcset="' . $enhanced_srcset . '"';
 
 			// Replace existing srcset
@@ -667,6 +673,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			);
 
 			$enhanced_sizes = implode( ', ', $all_entries );
+			// Escape backreference metacharacters before wrapping, see enhance_existing_srcset() above.
+			$enhanced_sizes = addcslashes( $enhanced_sizes, '\\$' );
 			$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $enhanced_sizes, '"' ) . '\"' : 'sizes="' . $enhanced_sizes . '"';
 
 			// Replace existing sizes
