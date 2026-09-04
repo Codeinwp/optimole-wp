@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The Conflicting Plugins class, documents and displays dashboard notice for conflicting plugins.
  *
@@ -54,7 +55,6 @@ class Optml_Conflicting_Plugins {
 			'litespeed'    => 'litespeed-cache/litespeed-cache.php',
 			'autoptimize'  => 'autoptimize/autoptimize.php',
 			'perfmatters'  => 'perfmatters/perfmatters.php',
-			'jetpack_Photon'      => 'jetpack/jetpack.php',
 			// 'plugin-slug' => 'plugin-folder/plugin-file.php'
 		];
 
@@ -73,6 +73,7 @@ class Optml_Conflicting_Plugins {
 
 		$conflicting_plugins = $this->defined_plugins();
 		$conflicting_plugins = array_filter( $conflicting_plugins, 'is_plugin_active' );
+
 		return apply_filters( 'optml_conflicting_active_plugins', $conflicting_plugins );
 	}
 

@@ -384,7 +384,7 @@ class Profile {
 	 */
 	public function is_lcp_image_in_all_viewports( int $image_id ): bool {
 		foreach ( self::get_active_devices() as $device ) {
-			if ( ( ( self::$current_profile_data[ $device ]['lcp']['type'] ?? '' ) === 'img' ) && ( self::$current_profile_data[ $device ]['lcp']['imageId'] === $image_id ) ) {
+			if ( ( ( self::$current_profile_data[ $device ]['lcp']['type'] ?? '' ) === 'img' ) && ( ( self::$current_profile_data[ $device ]['lcp']['imageId'] ?? null ) === $image_id ) ) {
 				return true;
 			}
 		}

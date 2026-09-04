@@ -104,6 +104,7 @@ final class Optml_Manager {
 		'wpsp',
 		'jetengine',
 		'jetpack',
+		'jetpack_photon_compatibility',
 		'wp_rocket',
 		'wp_super_cache',
 		'breeze',
@@ -122,6 +123,23 @@ final class Optml_Manager {
 	 * @var boolean Buffer state.
 	 */
 	private static $ob_started = false;
+	/**
+	 * The output-buffer nesting level of our capture buffer.
+	 *
+	 * Used to make sure we only ever capture or close our own buffer and not
+	 * one started by a third party.
+	 *
+	 * @var int Buffer nesting level, 0 when no capture buffer is armed.
+	 */
+	private static $ob_level = 0;
+	/**
+	 * Whether the captured buffer was already processed at shutdown.
+	 *
+	 * When true, the fallback output handler passes content through untouched.
+	 *
+	 * @var boolean Processed state.
+	 */
+	private static $ob_processed = false;
 
 	/**
 	 * Class instance method.
@@ -408,6 +426,7 @@ final class Optml_Manager {
 		add_action( 'template_redirect', [ $this, 'register_after_setup' ] );
 		add_action( 'rest_api_init', [ $this, 'process_template_redirect_content' ], PHP_INT_MIN );
 		add_action( 'shutdown', [ $this, 'close_buffer' ], PHP_INT_MIN );
+		add_action( 'shutdown', [ $this, 'close_final_buffer' ], PHP_INT_MAX );
 		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
 			$registered_compatibility->register();
 		}
@@ -429,6 +448,48 @@ final class Optml_Manager {
 	 */
 	public static function should_load_profiler( $default_value = false ) {
 		return ! $default_value && apply_filters( 'optml_page_profiler_disable', false ) === false;
+	}
+
+	/**
+	 * Decide if the temporary Cache-Control header can be sent while page profiling is pending.
+	 *
+	 * The header must never be sent on non-cacheable pages: it would replace a
+	 * Cache-Control header already set by WordPress or another plugin (PHP's
+	 * header() replaces same-name headers by default), e.g. WooCommerce's
+	 * no-cache header on cart and checkout, letting proxies cache user-specific
+	 * pages. We back off when DONOTCACHEPAGE is set or when any Cache-Control
+	 * header exists already, and let developers override the decision.
+	 *
+	 * @param array<int, string>|null $sent_headers Headers already set for the response; defaults to headers_list().
+	 * @param bool|null               $do_not_cache Whether the page is flagged as non-cacheable; defaults to the DONOTCACHEPAGE constant.
+	 *
+	 * @return bool Whether the header can be sent.
+	 */
+	public function should_send_temporary_cache_header( $sent_headers = null, $do_not_cache = null ) {
+		if ( null === $do_not_cache ) {
+			$do_not_cache = defined( 'DONOTCACHEPAGE' ) && DONOTCACHEPAGE;
+		}
+		$send = ! $do_not_cache;
+
+		if ( $send ) {
+			if ( null === $sent_headers ) {
+				$sent_headers = headers_list();
+			}
+			foreach ( $sent_headers as $header ) {
+				if ( stripos( $header, 'cache-control:' ) === 0 ) {
+					$send = false;
+					break;
+				}
+			}
+		}
+
+		/**
+		 * Filters whether the temporary `Cache-Control: max-age=300` header is sent
+		 * while page profiling is pending for the current page.
+		 *
+		 * @param bool $send Computed decision: false when DONOTCACHEPAGE is set or a Cache-Control header exists already.
+		 */
+		return apply_filters( 'optml_send_temporary_cache_header', $send ) === true;
 	}
 	/**
 	 * Filter raw HTML content for urls.
@@ -461,7 +522,7 @@ final class Optml_Manager {
 						$js_optimizer
 					);
 					$html = str_replace( Optml_Admin::get_optimizer_script( true ), $js_optimizer, $html );
-					if ( ! headers_sent() ) {
+					if ( ! headers_sent() && $this->should_send_temporary_cache_header() ) {
 						header( 'Cache-Control: max-age=300' ); // Attempt to cache the page just for 5 mins until the optimizer is done. Once the optimizer is done, the page will load optimized.
 					}
 				} else {
@@ -780,11 +841,59 @@ final class Optml_Manager {
 			$urls
 		);
 
+		/*
+		 * Replace all URLs in a single pass per chunk instead of one full-page
+		 * preg_replace() per URL, which scanned and rebuilt the whole page for
+		 * every replaced URL. Chunks are bounded by pattern size, not only
+		 * count, so the compiled regex stays within PCRE's ~64KB limit even
+		 * for very long URLs (e.g. signed CDN URLs with kilobyte-sized query
+		 * strings). Each chunk is applied as soon as it fills, so only one
+		 * chunk's bookkeeping is in memory at a time.
+		 */
+		$chunk       = [];
+		$quoted      = [];
+		$quoted_size = 0;
 		foreach ( $urls as $origin => $replace ) {
-			$html = preg_replace( '/(?<![\/|:|\\w])' . preg_quote( $origin, '/' ) . '/m', $replace, $html );
+			$quoted_origin = preg_quote( $origin, '/' );
+			if ( ! empty( $chunk ) && ( count( $chunk ) >= 200 || $quoted_size + strlen( $quoted_origin ) > 24000 ) ) {
+				$html        = $this->replace_urls_chunk( $html, $chunk, $quoted );
+				$chunk       = [];
+				$quoted      = [];
+				$quoted_size = 0;
+			}
+			$chunk[ $origin ] = $replace;
+			$quoted[]         = $quoted_origin;
+			$quoted_size     += strlen( $quoted_origin ) + 1;
+		}
+		if ( ! empty( $chunk ) ) {
+			$html = $this->replace_urls_chunk( $html, $chunk, $quoted );
 		}
 
 		return $html;
+	}
+
+	/**
+	 * Replace one chunk of URLs in the content with a single combined pattern.
+	 *
+	 * @param string                $html Content to process.
+	 * @param array<string, string> $chunk Map of origin => replacement URLs.
+	 * @param string[]              $quoted The preg_quote()d origins, in the same order.
+	 *
+	 * @return string Processed content, unchanged when the pattern fails.
+	 */
+	private function replace_urls_chunk( $html, $chunk, $quoted ) {
+		$result = preg_replace_callback(
+			'/(?<![\/|:|\\w])(?:' . implode( '|', $quoted ) . ')/m',
+			function ( $matches ) use ( $chunk ) {
+				return $chunk[ $matches[0] ];
+			},
+			$html
+		);
+		if ( $result === null ) {
+			do_action( 'optml_log', 'URL replacement failed for a chunk of ' . count( $chunk ) . ' URLs, PCRE error ' . preg_last_error() );
+			return $html;
+		}
+		return $result;
 	}
 
 	/**
@@ -799,31 +908,155 @@ final class Optml_Manager {
 		// We no longer need this if the handler was started.
 		remove_filter( 'the_content', [ $this, 'process_images_from_content' ], PHP_INT_MAX );
 
-		ob_start(
-			function ( $content ) {
-					/*
-					* Wrap the call to replace_content() so that PHP’s output-buffering system
-					* does not pass its own second argument ($phase bitmask) to our method.
-					*
-					* replace_content() expects the second parameter to be a boolean $partial,
-					* indicating whether the content is a partial replacement (e.g. for
-					* viewport lazy-load) or a full page. If PHP’s $phase integer is passed
-					* directly, it would be misinterpreted as $partial and break the logic.
-					*
-					* This closure filters the call, forwarding only the captured HTML buffer.
-					*/
+		$this->start_capture_buffer();
+	}
+
+	/**
+	 * Start an output buffer that captures the page HTML.
+	 *
+	 * On normal requests the buffer is captured and processed by close_buffer()
+	 * at shutdown, outside of PHP's display-handler context, so callbacks hooked
+	 * into our filters are free to use output buffering themselves and fatal
+	 * errors raised during processing keep their real message instead of being
+	 * masked by "Cannot use output buffering in output buffering display handlers".
+	 *
+	 * The attached handler is only a fallback for buffers flushed outside of
+	 * close_buffer() — third-party force-flush loops, ob_flush() streaming, or
+	 * core's wp_ob_end_flush_all() reaching the re-armed buffer. A named method
+	 * is used instead of a closure so the buffer can be identified as ours via
+	 * ob_get_status()['name'].
+	 *
+	 * @return void
+	 */
+	private function start_capture_buffer() {
+		self::$ob_processed = false;
+		ob_start( [ $this, 'handle_buffer_fallback' ] );
+		self::$ob_level = ob_get_level();
+	}
+
+	/**
+	 * The handler name PHP reports for our capture buffer in ob_get_status().
+	 */
+	const OB_HANDLER_NAME = 'Optml_Manager::handle_buffer_fallback';
+
+	/**
+	 * Output-buffer handler attached to our capture buffer.
+	 *
+	 * Runs only when the buffer is flushed outside of close_buffer(). Content is
+	 * passed through UNPROCESSED here: running the replacement filter graph
+	 * inside a PHP display handler would turn any third-party ob_*() call into
+	 * an uncatchable fatal ("Cannot use output buffering in output buffering
+	 * display handlers") — the very crash this rework removes. The only
+	 * exception is the legacy mode selected via the optml_capture_at_shutdown
+	 * filter, which explicitly restores the previous in-handler processing.
+	 *
+	 * @param string $content The buffered content.
+	 * @param int    $phase   PHP's output-handler phase bitmask (unused; keeps replace_content()'s $partial parameter shielded from it).
+	 *
+	 * @return string The content to output.
+	 */
+	public function handle_buffer_fallback( $content, $phase = 0 ) {
+		if ( self::$ob_processed || $content === '' ) {
+			return $content;
+		}
+		if ( apply_filters( 'optml_capture_at_shutdown', true ) === false ) {
+			try {
 				return $this->replace_content( $content, self::is_ajax_request() );
+			} catch ( Throwable $t ) {
+				// Never break the page from inside a display handler.
+				do_action( 'optml_log', 'replace_content failed inside the output handler: ' . $t->getMessage() );
+				return $content;
 			}
-		);
+		}
+		do_action( 'optml_log', 'Optimole buffer was flushed outside close_buffer(); content passed through unprocessed.' );
+
+		return $content;
 	}
 
 	/**
 	 * Close the buffer and flush the content.
 	 */
 	public function close_buffer() {
-		if ( self::$ob_started && ob_get_length() ) {
-			ob_end_flush();
+		if ( ! self::$ob_started ) {
+			return;
 		}
+
+		/**
+		 * Filters whether the captured page is processed at shutdown, outside of
+		 * PHP's display-handler context. Return false to restore the legacy
+		 * behavior of processing inside the output-buffer handler.
+		 *
+		 * @param bool $capture_at_shutdown Whether to process the buffer at shutdown.
+		 */
+		if ( apply_filters( 'optml_capture_at_shutdown', true ) === false ) {
+			if ( ob_get_length() ) {
+				ob_end_flush();
+			}
+			return;
+		}
+
+		/*
+		 * Flush the buffers other plugins stacked on top of ours so their
+		 * handlers still transform the page before we process it, preserving
+		 * the same order as a full top-down flush at request shutdown.
+		 */
+		while ( ob_get_level() > self::$ob_level ) {
+			// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a non-flushable buffer must not raise a notice; we stop on failure.
+			if ( ! @ob_end_flush() ) {
+				break;
+			}
+		}
+
+		if ( ! $this->capture_and_process_buffer() ) {
+			do_action( 'optml_log', 'Optimole buffer was closed earlier by third-party code.' );
+			return;
+		}
+
+		/*
+		 * Re-arm the capture so output echoed by later shutdown callbacks is
+		 * still processed and unguarded third-party flush calls find a buffer
+		 * to close instead of raising a notice.
+		 */
+		$this->start_capture_buffer();
+	}
+
+	/**
+	 * Close the re-armed buffer at the very end of shutdown.
+	 *
+	 * @return void
+	 */
+	public function close_final_buffer() {
+		if ( ! self::$ob_started ) {
+			return;
+		}
+		$this->capture_and_process_buffer();
+	}
+
+	/**
+	 * Capture our buffer, process it outside the display-handler context and echo the result.
+	 *
+	 * Ownership is verified by both nesting level and handler identity, so a
+	 * buffer another plugin opened at the same level after ours was closed is
+	 * never captured or closed by us.
+	 *
+	 * @return bool Whether our buffer was found and consumed.
+	 */
+	private function capture_and_process_buffer() {
+		if ( self::$ob_level === 0 || ob_get_level() !== self::$ob_level ) {
+			return false;
+		}
+		$status = ob_get_status();
+		if ( ( $status['name'] ?? '' ) !== self::OB_HANDLER_NAME ) {
+			return false;
+		}
+		$html = ob_get_contents();
+		// Set before ob_end_clean() so our handler no-ops during buffer cleanup.
+		self::$ob_processed = true;
+		ob_end_clean();
+		if ( $html !== false && $html !== '' ) {
+			echo $this->replace_content( $html, self::is_ajax_request() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- full page HTML, escaping would break the page.
+		}
+		return true;
 	}
 	/**
 	 * Throw error on object clone

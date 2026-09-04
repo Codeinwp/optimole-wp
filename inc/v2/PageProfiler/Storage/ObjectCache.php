@@ -55,10 +55,10 @@ class ObjectCache extends Base {
 	 * Retrieve data from the object cache.
 	 *
 	 * @param string $key The unique identifier for the data to retrieve.
-	 * @return array|false The stored data or false if not found.
+	 * @return array<string, mixed>|false The stored data or false if not found.
 	 */
 	public function get( string $key ) {
-		return wp_cache_get( $key, self::GROUP );
+		return self::normalize_value( wp_cache_get( $key, self::GROUP ) );
 	}
 
 	/**

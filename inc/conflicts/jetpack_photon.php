@@ -34,14 +34,8 @@ class Optml_Jetpack_Photon extends Optml_Abstract_Conflict {
 	 * @access  public
 	 */
 	public function is_conflict_valid() {
+		$compatibility = new Optml_jetpack_photon_compatibility();
 
-		if ( ! is_plugin_active( 'jetpack/jetpack.php' ) ) {
-			return false;
-		}
-		if ( ! class_exists( 'Jetpack', false ) ) {
-			return false;
-		}
-
-		return Jetpack::is_module_active( 'photon' );
+		return $compatibility->should_load();
 	}
 }
