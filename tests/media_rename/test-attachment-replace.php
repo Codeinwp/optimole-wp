@@ -109,6 +109,165 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 		$this->do_replace_test( self::$unscaled_unscaled_id, $replace_file, false, false );
 	}
 
+	/**
+	 * A 0600 upload tmp file must not leave the replaced attachment unreadable to the web server.
+	 */
+	public function test_replace_normalizes_permissions_of_restricted_tmp_file() {
+		global $wp_filesystem;
+
+		$id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+
+		$tmp_file = self::FILESTASH . 'replace-restricted.jpg';
+		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
+		chmod( $tmp_file, 0600 );
+
+		$model     = new Optml_Attachment_Model( $id );
+		$file_path = $model->get_source_file_path();
+
+		$replacer = new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-restricted.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => $tmp_file,
+			]
+		);
+
+		$result = $replacer->replace();
+
+		clearstatcache( true, $file_path );
+
+		$this->assertTrue( $result, 'Replacement operation failed.' );
+		$this->assertSame( FS_CHMOD_FILE & 0777, fileperms( $file_path ) & 0777, 'Replaced file kept the restrictive tmp file permissions.' );
+
+		wp_delete_post( $id, true );
+	}
+
+	/**
+	 * When the filesystem abstraction can't chmod, the native fallback must still fix the file.
+	 */
+	public function test_replace_falls_back_to_native_chmod() {
+		global $wp_filesystem;
+
+		$real_filesystem = $wp_filesystem;
+
+		$id        = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$model     = new Optml_Attachment_Model( $id );
+		$file_path = $model->get_source_file_path();
+
+		$tmp_file = self::FILESTASH . 'replace-fallback.jpg';
+		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
+		chmod( $tmp_file, 0600 );
+
+		$replacer = new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-fallback.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => $tmp_file,
+			]
+		);
+
+		// After the constructor: it calls WP_Filesystem(), which reassigns the global.
+		$wp_filesystem = self::failing_chmod_filesystem();
+
+		try {
+			$result = $replacer->replace();
+		} finally {
+			$wp_filesystem = $real_filesystem;
+		}
+
+		clearstatcache( true, $file_path );
+
+		$this->assertTrue( $result, 'Replacement operation failed.' );
+		$this->assertSame( FS_CHMOD_FILE & 0777, fileperms( $file_path ) & 0777, 'The native chmod fallback did not normalize the permissions.' );
+
+		wp_delete_post( $id, true );
+	}
+
+	/**
+	 * With both chmod attempts failing, the replacement must not be reported as a plain success.
+	 */
+	public function test_replace_reports_error_when_permissions_cannot_be_normalized() {
+		global $wp_filesystem;
+
+		$real_filesystem = $wp_filesystem;
+
+		$id        = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$model     = new Optml_Attachment_Model( $id );
+		$file_path = $model->get_source_file_path();
+
+		$tmp_file = self::FILESTASH . 'replace-unfixable.jpg';
+		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
+		chmod( $tmp_file, 0600 );
+
+		$replacer = new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-unfixable.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => $tmp_file,
+			]
+		);
+
+		// After the constructor: it calls WP_Filesystem(), which reassigns the global.
+		$wp_filesystem = self::unfixable_filesystem();
+
+		// The metadata step warns about the intentionally missing file; PHPUnit turns that into an error.
+		set_error_handler( '__return_true' );
+
+		try {
+			$result = $replacer->replace();
+		} finally {
+			restore_error_handler();
+			$wp_filesystem = $real_filesystem;
+		}
+
+		clearstatcache( true, $file_path );
+
+		$this->assertWPError( $result, 'Replacement was reported as a success.' );
+		$this->assertSame( 'file_permissions_error', $result->get_error_code() );
+		$this->assertFileDoesNotExist( $file_path, 'The test did not exercise an unfixable file.' );
+
+		wp_delete_post( $id, true );
+	}
+
+	/**
+	 * A direct filesystem whose chmod always fails, as an FTP/SSH transport can.
+	 *
+	 * @return WP_Filesystem_Direct
+	 */
+	private static function failing_chmod_filesystem() {
+		return new class( null ) extends WP_Filesystem_Direct {
+			public function chmod( $file, $mode = false, $recursive = false ) {
+				return false;
+			}
+		};
+	}
+
+	/**
+	 * A filesystem that reports a successful move but leaves nothing at the destination.
+	 *
+	 * Both chmod attempts then fail with ENOENT, which is the only way to reach the failure
+	 * branch without root: a file the test user owns can always be chmod'ed natively.
+	 *
+	 * @return WP_Filesystem_Direct
+	 */
+	private static function unfixable_filesystem() {
+		return new class( null ) extends WP_Filesystem_Direct {
+			public function move( $source, $destination, $overwrite = false ) {
+				@unlink( $source );
+				@unlink( $destination );
+
+				return true;
+			}
+
+			public function chmod( $file, $mode = false, $recursive = false ) {
+				return false;
+			}
+		};
+	}
+
 	private function do_replace_test( $id_to_replace, $replace_file, $source_scaled, $result_scaled ) {
 		// Removed var_dump
 
