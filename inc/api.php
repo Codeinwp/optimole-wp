@@ -166,16 +166,33 @@ final class Optml_Api {
 		return $original_image_url;
 	}
 	/**
-	 * Get user data from service.
+	 * Get the account context from the service.
 	 *
-	 * @return array|string|bool|WP_Error User data.
+	 * Returns the string "disconnect" when the service refuses the key or the site can no
+	 * longer be whitelisted, so callers drop the stored connection.
+	 *
+	 * @param string $api_key Api key.
+	 * @param string $application Unused, kept for callers passing the application key.
+	 *
+	 * @return array<string, mixed>|string|WP_Error User data, "disconnect", or an API error.
 	 */
 	public function get_user_data( $api_key = '', $application = '' ) {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
 
-		return $this->request( '/optml/v2/account/details', 'POST', [ 'application' => $application ] );
+		$response = $this->modern_request( 'integrations/wordpress/context', 'POST', [ 'site' => get_home_url() ] );
+
+		if ( is_wp_error( $response ) ) {
+			$status = $response->get_error_data();
+			$status = is_array( $status ) && isset( $status['status'] ) ? (int) $status['status'] : 0;
+
+			if ( 'whitelist_limit_reached' === $response->get_error_code() || in_array( $status, [ 401, 403 ], true ) ) {
+				return 'disconnect';
+			}
+		}
+
+		return $response;
 	}
 
 	/**
@@ -281,16 +298,6 @@ final class Optml_Api {
 				}
 			}
 
-			if ( $path === '/optml/v2/account/details'
-				&& isset( $response['code'] ) && $response['code'] === 'not_allowed' ) {
-				return 'disconnect';
-			}
-
-			if ( $path === '/optml/v2/account/details'
-				&& isset( $response['error'] ) && $response['error'] === 'whitelist_limit_reached' ) {
-				return 'disconnect';
-			}
-
 			return isset( $response['error'] ) ? new WP_Error(
 				'api_error',
 				wp_kses(
@@ -328,7 +335,7 @@ final class Optml_Api {
 	 * @param string               $method HTTP method.
 	 * @param array<string, mixed> $params JSON body for writes, query string for GET.
 	 *
-	 * @return array<string, mixed>|WP_Error The decoded body (empty for 204), or an error carrying the API error code.
+	 * @return array<string, mixed>|WP_Error The decoded body (empty for 204), or an error carrying the API error code and the HTTP status in its data.
 	 */
 	private function modern_request( $path, $method = 'GET', $params = [] ) {
 		$url = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
@@ -391,7 +398,8 @@ final class Optml_Api {
 						'target' => [],
 					],
 				]
-			)
+			),
+			[ 'status' => $status ]
 		);
 	}
 
