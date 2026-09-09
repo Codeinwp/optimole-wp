@@ -349,18 +349,6 @@ parameters:
 			path: inc/api.php
 
 		-
-			message: '#^Method Optml_Api\:\:call_data_enrich_api\(\) has parameter \$images with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/api.php
-
-		-
-			message: '#^Method Optml_Api\:\:call_data_enrich_api\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/api.php
-
-		-
 			message: '#^Method Optml_Api\:\:call_onboard_api\(\) has parameter \$images with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -368,12 +356,6 @@ parameters:
 
 		-
 			message: '#^Method Optml_Api\:\:call_onboard_api\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/api.php
-
-		-
-			message: '#^Method Optml_Api\:\:connect\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/api.php
@@ -399,18 +381,6 @@ parameters:
 		-
 			message: '#^Method Optml_Api\:\:get_cache_token\(\) has parameter \$type with no type specified\.$#'
 			identifier: missingType.parameter
-			count: 1
-			path: inc/api.php
-
-		-
-			message: '#^Method Optml_Api\:\:get_cache_token\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/api.php
-
-		-
-			message: '#^Method Optml_Api\:\:get_cloud_images\(\) has parameter \$domains with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
 			count: 1
 			path: inc/api.php
 
@@ -470,18 +440,6 @@ parameters:
 
 		-
 			message: '#^Method Optml_Api\:\:request\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/api.php
-
-		-
-			message: '#^Method Optml_Api\:\:update_extra_visits\(\) has parameter \$application with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: inc/api.php
-
-		-
-			message: '#^Method Optml_Api\:\:update_extra_visits\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: inc/api.php
