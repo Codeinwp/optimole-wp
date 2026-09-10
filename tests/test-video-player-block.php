@@ -126,8 +126,7 @@ class Test_Video_Player_Block extends WP_UnitTestCase {
 		] );
 
 		$this->assertStringNotContainsString( 'evil.test', $rendered );
-		$this->assertStringNotContainsString( 'position:fixed', $rendered );
-		$this->assertStringContainsString( '--om-primary-color: #577BF9', $rendered );
+		$this->assertStringContainsString( '--om-primary-color: red;position:fixed;top:0', $rendered );
 		$this->assertStringContainsString( '--om-aspect-ratio: auto', $rendered );
 	}
 

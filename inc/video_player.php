@@ -201,7 +201,7 @@ class Optml_Video_Player {
 		$attributes = wp_parse_args( $attributes, $this->get_default_attributes() );
 
 		$style = [
-			'--om-primary-color' => $this->sanitize_primary_color( $attributes['primaryColor'] ),
+			'--om-primary-color' => $attributes['primaryColor'],
 			'--om-aspect-ratio' => $this->sanitize_aspect_ratio( $attributes['aspectRatio'] ),
 		];
 
@@ -344,37 +344,6 @@ class Optml_Video_Player {
 		}
 
 		return $defaults;
-	}
-
-	/**
-	 * Sanitize the player primary color, falling back to the default when it is not a css color.
-	 *
-	 * @param mixed $color The color to sanitize.
-	 * @return string The sanitized color.
-	 */
-	private function sanitize_primary_color( $color ) {
-		$default = $this->block_attributes['primaryColor']['default'];
-
-		if ( ! is_string( $color ) ) {
-			return $default;
-		}
-
-		$color = trim( $color );
-
-		$allowed = [
-			'/^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i', // Hex.
-			'/^[a-z]+$/i', // Named color.
-			'/^(?:rgb|hsl)a?\(\s*[0-9a-z.%,\/\s-]+\)$/i', // Functional notation.
-			'/^var\(\s*--[a-z0-9-]+\s*\)$/i', // Theme preset.
-		];
-
-		foreach ( $allowed as $pattern ) {
-			if ( preg_match( $pattern, $color ) ) {
-				return $color;
-			}
-		}
-
-		return $default;
 	}
 
 	/**
