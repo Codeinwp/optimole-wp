@@ -15,6 +15,7 @@ class Optml_Video_Player {
 	private $block_attributes = [
 		'url' => [
 			'type' => 'string',
+			'default' => '',
 		],
 		'primaryColor' => [
 			'type' => 'string',
@@ -197,11 +198,11 @@ class Optml_Video_Player {
 	 * @since 4.0.0
 	 */
 	public function render_video_player_block( $attributes, $content, $block ) {
-		$attributes = wp_parse_args( $attributes, $this->block_attributes );
+		$attributes = wp_parse_args( $attributes, $this->get_default_attributes() );
 
 		$style = [
-			'--om-primary-color' => $attributes['primaryColor'],
-			'--om-aspect-ratio' => $attributes['aspectRatio'],
+			'--om-primary-color' => $this->sanitize_primary_color( $attributes['primaryColor'] ),
+			'--om-aspect-ratio' => $this->sanitize_aspect_ratio( $attributes['aspectRatio'] ),
 		];
 
 		if ( isset( $attributes['style'] ) ) {
@@ -231,17 +232,10 @@ class Optml_Video_Player {
 			$tag_attributes
 		);
 
-		$wrapper_attributes = array_filter(
-			$attributes,
-			function ( $key ) {
-				return ! in_array( $key, array_keys( $this->block_attributes ), true ) && $key !== 'style';
-			},
-			ARRAY_FILTER_USE_KEY
-		);
-
+		// Alignment and custom classes already come from block supports, so no attribute is forwarded here.
 		return sprintf(
 			'<div %s><optimole-video-player %s></optimole-video-player></div>',
-			get_block_wrapper_attributes( $wrapper_attributes ),
+			get_block_wrapper_attributes(),
 			implode( ' ', $tag_attributes ),
 		);
 	}
@@ -303,17 +297,114 @@ class Optml_Video_Player {
 	private function block_style_attributes_to_css_array( $attributes ) {
 		$css = [];
 
-		if ( isset( $attributes['spacing'] ) ) {
-			$spacing = $attributes['spacing'];
+		if ( ! isset( $attributes['spacing'] ) || ! is_array( $attributes['spacing'] ) ) {
+			return $css;
+		}
 
-			foreach ( $spacing as $css_prop_prefix => $values ) {
-				foreach ( $values as $direction => $value ) {
-					$css[ $css_prop_prefix . '-' . $direction ] = $this->core_var_to_css_var( $value );
+		$allowed_props      = [ 'margin', 'padding' ];
+		$allowed_directions = [ 'top', 'right', 'bottom', 'left' ];
+
+		foreach ( $attributes['spacing'] as $css_prop_prefix => $values ) {
+			if ( ! in_array( $css_prop_prefix, $allowed_props, true ) || ! is_array( $values ) ) {
+				continue;
+			}
+
+			foreach ( $values as $direction => $value ) {
+				if ( ! in_array( $direction, $allowed_directions, true ) || ! is_string( $value ) ) {
+					continue;
 				}
+
+				$value = $this->core_var_to_css_var( $value );
+
+				if ( ! $this->is_safe_css_length( $value ) ) {
+					continue;
+				}
+
+				$css[ $css_prop_prefix . '-' . $direction ] = $value;
 			}
 		}
 
 		return $css;
+	}
+
+	/**
+	 * Get the default value of every declared block attribute.
+	 *
+	 * @return array<string, mixed> The default attributes.
+	 */
+	private function get_default_attributes() {
+		$defaults = [];
+
+		foreach ( $this->block_attributes as $name => $schema ) {
+			if ( ! isset( $schema['default'] ) ) {
+				continue;
+			}
+
+			$defaults[ $name ] = $schema['default'];
+		}
+
+		return $defaults;
+	}
+
+	/**
+	 * Sanitize the player primary color, falling back to the default when it is not a css color.
+	 *
+	 * @param mixed $color The color to sanitize.
+	 * @return string The sanitized color.
+	 */
+	private function sanitize_primary_color( $color ) {
+		$default = $this->block_attributes['primaryColor']['default'];
+
+		if ( ! is_string( $color ) ) {
+			return $default;
+		}
+
+		$color = trim( $color );
+
+		$allowed = [
+			'/^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i', // Hex.
+			'/^[a-z]+$/i', // Named color.
+			'/^(?:rgb|hsl)a?\(\s*[0-9a-z.%,\/\s-]+\)$/i', // Functional notation.
+			'/^var\(\s*--[a-z0-9-]+\s*\)$/i', // Theme preset.
+		];
+
+		foreach ( $allowed as $pattern ) {
+			if ( preg_match( $pattern, $color ) ) {
+				return $color;
+			}
+		}
+
+		return $default;
+	}
+
+	/**
+	 * Sanitize the player aspect ratio, falling back to the default when it is not a known one.
+	 *
+	 * @param mixed $aspect_ratio The aspect ratio to sanitize.
+	 * @return string The sanitized aspect ratio.
+	 */
+	private function sanitize_aspect_ratio( $aspect_ratio ) {
+		$allowed = [ 'auto', '16/9', '4/3', '1/1', '9/16', '1/2', '2/1' ];
+
+		if ( is_string( $aspect_ratio ) && in_array( $aspect_ratio, $allowed, true ) ) {
+			return $aspect_ratio;
+		}
+
+		return $this->block_attributes['aspectRatio']['default'];
+	}
+
+	/**
+	 * Whether a value is a css length or a core preset variable.
+	 *
+	 * @param string $value The value to check.
+	 * @return bool Whether the value is safe to use as a css length.
+	 */
+	private function is_safe_css_length( $value ) {
+		if ( preg_match( '/^var\(--wp--[a-z0-9-]+\)$/i', $value ) ) {
+			return true;
+		}
+
+		return (bool) preg_match( '/^-?(?:\d+|\d*\.\d+)(?:px|em|rem|%|vh|vw|vmin|vmax|ch|ex|pt|pc|cm|mm|in)?$/i', $value );
 	}
 
 	/**
