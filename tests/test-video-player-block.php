@@ -131,6 +131,28 @@ class Test_Video_Player_Block extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Every unit WordPress's spacing control can offer survives sanitization.
+	 */
+	public function test_spacing_accepts_all_wordpress_units() {
+		$units = [
+			'%', 'px', 'em', 'rem', 'ch', 'ex', 'cm', 'mm', 'in', 'pt', 'pc',
+			'vw', 'vh', 'vmin', 'vmax',
+			'svw', 'svh', 'svi', 'svb', 'svmin', 'svmax',
+			'lvw', 'lvh', 'lvi', 'lvb', 'lvmin', 'lvmax',
+			'dvw', 'dvh', 'dvi', 'dvb', 'dvmin', 'dvmax',
+		];
+
+		foreach ( $units as $unit ) {
+			$rendered = $this->render( [
+				'url'   => 'https://example.com/video.mp4',
+				'style' => [ 'spacing' => [ 'margin' => [ 'top' => '10' . $unit ] ] ],
+			] );
+
+			$this->assertStringContainsString( 'margin-top: 10' . $unit, $rendered, '10' . $unit . ' should be preserved' );
+		}
+	}
+
+	/**
 	 * Spacing styles only render for known properties, directions and lengths.
 	 */
 	public function test_spacing_styles_are_sanitized() {

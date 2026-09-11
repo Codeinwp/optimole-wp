@@ -373,7 +373,8 @@ class Optml_Video_Player {
 			return true;
 		}
 
-		return (bool) preg_match( '/^-?(?:\d+|\d*\.\d+)(?:px|em|rem|%|vh|vw|vmin|vmax|ch|ex|pt|pc|cm|mm|in)?$/i', $value );
+		// Number plus an optional unit; no css separator can pass this shape.
+		return (bool) preg_match( '/^-?(?:\d+|\d*\.\d+)(?:%|[a-z]{1,6})?$/i', $value );
 	}
 
 	/**
