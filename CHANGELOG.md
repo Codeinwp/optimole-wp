@@ -1,3 +1,13 @@
+##### [Version 4.2.12](https://github.com/Codeinwp/optimole-wp/compare/v4.2.11...v4.2.12) (2026-09-08)
+
+- Fixed Jetpack conflict warnings when its image Site Accelerator is disabled.
+- Fixed unwanted cache headers on cart, checkout, and other non-cacheable pages.
+- Fixed viewport lazy loading crashes when saved page profiles use object data.
+- Fixed dashboard image polling when the image service returns an error.
+- Fixed replaced media files keeping restrictive permissions.
+- Fixed frontend fatal errors when Optimole rewrites image URLs.
+- Enhanced Security. Credits to Jakub Herman for responsibly reporting.
+
 ##### [Version 4.2.11](https://github.com/Codeinwp/optimole-wp/compare/v4.2.10...v4.2.11) (2026-08-26)
 
 - Fixed an issue where offloading media could repeatedly start the same image processing task, making transfers more reliable.
