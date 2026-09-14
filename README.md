@@ -4,7 +4,7 @@
 **Requires at least:** 5.5  
 **Tested up to:** 7.1  
 **Requires PHP:** 7.4  
-**Stable tag:** 4.2.12  
+**Stable tag:** 4.2.13  
 **License:** GPLv3  
 **License URI:** https://www.gnu.org/licenses/gpl-3.0.en.html  
 
@@ -248,15 +248,9 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 ## Changelog ##
 
-##### [Version 4.2.12](https://github.com/Codeinwp/optimole-wp/compare/v4.2.11...v4.2.12) (2026-09-08)
+##### [Version 4.2.13](https://github.com/Codeinwp/optimole-wp/compare/v4.2.12...v4.2.13) (2026-09-14)
 
-- Fixed Jetpack conflict warnings when its image Site Accelerator is disabled.
-- Fixed unwanted cache headers on cart, checkout, and other non-cacheable pages.
-- Fixed viewport lazy loading crashes when saved page profiles use object data.
-- Fixed dashboard image polling when the image service returns an error.
-- Fixed replaced media files keeping restrictive permissions.
-- Fixed frontend fatal errors when Optimole rewrites image URLs.
-- Enhanced Security. Credits to Jakub Herman for responsibly reporting.
+- Enhanced Security
 
 
 
