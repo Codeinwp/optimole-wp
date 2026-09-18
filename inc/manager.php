@@ -116,6 +116,7 @@ final class Optml_Manager {
 		'hummingbird',
 		'aruba_hsc',
 		'spc',
+		'groovy_menu',
 	];
 	/**
 	 * The current state of the buffer.
@@ -1029,7 +1030,7 @@ final class Optml_Manager {
 		if ( ! self::$ob_started ) {
 			return;
 		}
-		$this->capture_and_process_buffer();
+		$this->capture_and_process_buffer( false );
 	}
 
 	/**
@@ -1039,9 +1040,11 @@ final class Optml_Manager {
 	 * buffer another plugin opened at the same level after ours was closed is
 	 * never captured or closed by us.
 	 *
+	 * @param bool $is_page Whether this is the page capture (true) or the late shutdown output (false).
+	 *
 	 * @return bool Whether our buffer was found and consumed.
 	 */
-	private function capture_and_process_buffer() {
+	private function capture_and_process_buffer( $is_page = true ) {
 		if ( self::$ob_level === 0 || ob_get_level() !== self::$ob_level ) {
 			return false;
 		}
@@ -1054,6 +1057,18 @@ final class Optml_Manager {
 		self::$ob_processed = true;
 		ob_end_clean();
 		if ( $html !== false && $html !== '' ) {
+			if ( $is_page ) {
+				/**
+				 * Filters the captured page HTML before Optimole processes it.
+				 *
+				 * Runs once per request, on the buffer captured at shutdown, outside of
+				 * PHP's display-handler context. Late output echoed by other shutdown
+				 * callbacks is not passed through this filter.
+				 *
+				 * @param string $html The full page HTML.
+				 */
+				$html = apply_filters( 'optml_captured_page_html', $html );
+			}
 			echo $this->replace_content( $html, self::is_ajax_request() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- full page HTML, escaping would break the page.
 		}
 		return true;
