@@ -12,9 +12,15 @@ class Optml_Abilities {
 	const CATEGORY = 'optimole';
 
 	/**
-	 * Maximum number of attachments handled by a single call, same cap as the media library bulk handler.
+	 * Maximum number of attachments accepted by the batch abilities. The work is done in time limited chunks.
 	 */
-	const MAX_MEDIA_IDS = 20;
+	const MAX_MEDIA_IDS = 500;
+
+	/**
+	 * Default and maximum number of seconds a single call can spend on a batch.
+	 */
+	const DEFAULT_TIME_BUDGET = 20;
+	const MAX_TIME_BUDGET     = 60;
 
 	/**
 	 * Maximum number of attachments that can be inspected in a single status call.
@@ -191,9 +197,9 @@ class Optml_Abilities {
 			'optimole/offload-media',
 			[
 				'label'               => __( 'Offload media to Optimole', 'optimole-wp' ),
-				'description'         => __( 'Moves the selected media library images to Optimole Cloud and removes the local files, using the same process as the "Offload to Optimole" media library action. Requires the offload media option to be enabled.', 'optimole-wp' ),
+				'description'         => __( 'Moves the selected media library images to Optimole Cloud and removes the local files, using the same process as the "Offload to Optimole" media library action. Requires the offload media option to be enabled. Large batches are processed in chunks: when done is false, call again with the same media_ids and the returned cursor.', 'optimole-wp' ),
 				'category'            => self::CATEGORY,
-				'input_schema'        => $this->get_media_ids_schema( self::MAX_MEDIA_IDS, true ),
+				'input_schema'        => $this->get_media_ids_schema( self::MAX_MEDIA_IDS, true, true ),
 				'output_schema'       => $this->get_move_output_schema(),
 				'execute_callback'    => [ $this, 'offload_media' ],
 				'permission_callback' => [ $this, 'can_move_media' ],
@@ -204,6 +210,10 @@ class Optml_Abilities {
 						'idempotent'  => true,
 					],
 					'show_in_rest' => true,
+					'task'         => [
+						'mode'        => 'cursor',
+						'results_key' => 'results',
+					],
 				],
 			]
 		);
@@ -212,9 +222,9 @@ class Optml_Abilities {
 			'optimole/restore-media',
 			[
 				'label'               => __( 'Restore media from Optimole', 'optimole-wp' ),
-				'description'         => __( 'Restores the selected offloaded images from Optimole Cloud back to the media library, using the same process as the "Restore image to media library" action.', 'optimole-wp' ),
+				'description'         => __( 'Restores the selected offloaded images from Optimole Cloud back to the media library, using the same process as the "Restore image to media library" action. Large batches are processed in chunks: when done is false, call again with the same media_ids and the returned cursor.', 'optimole-wp' ),
 				'category'            => self::CATEGORY,
-				'input_schema'        => $this->get_media_ids_schema( self::MAX_MEDIA_IDS, true ),
+				'input_schema'        => $this->get_media_ids_schema( self::MAX_MEDIA_IDS, true, true ),
 				'output_schema'       => $this->get_move_output_schema(),
 				'execute_callback'    => [ $this, 'restore_media' ],
 				'permission_callback' => [ $this, 'can_move_media' ],
@@ -225,6 +235,10 @@ class Optml_Abilities {
 						'idempotent'  => true,
 					],
 					'show_in_rest' => true,
+					'task'         => [
+						'mode'        => 'cursor',
+						'results_key' => 'results',
+					],
 				],
 			]
 		);
@@ -283,39 +297,38 @@ class Optml_Abilities {
 			'optimole/purge-image-cache',
 			[
 				'label'               => __( 'Purge Optimole image cache', 'optimole-wp' ),
-				'description'         => __( 'Invalidates the optimized variants of the selected images. Pass all=true instead of media IDs to clear the cache for every optimized image (allowed once every 5 minutes).', 'optimole-wp' ),
+				'description'         => __( 'Invalidates the optimized variants of the selected images. Pass all=true instead of media IDs to clear the cache for every optimized image (allowed once every 5 minutes). Large batches are processed in chunks: when done is false, call again with the same media_ids and the returned cursor.', 'optimole-wp' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => [
 					'type'                 => 'object',
 					'default'              => [],
-					'properties'           => [
-						'media_ids' => [
-							'type'        => 'array',
-							'description' => __( 'Attachment IDs of the images to purge.', 'optimole-wp' ),
-							'items'       => [
-								'type'    => 'integer',
-								'minimum' => 1,
+					'properties'           => array_merge(
+						[
+							'media_ids' => [
+								'type'        => 'array',
+								'description' => __( 'Attachment IDs of the images to purge.', 'optimole-wp' ),
+								'items'       => [
+									'type'    => 'integer',
+									'minimum' => 1,
+								],
+								'maxItems'    => self::MAX_MEDIA_IDS,
 							],
-							'maxItems'    => self::MAX_MEDIA_IDS,
+							'all'       => [
+								'type'        => 'boolean',
+								'description' => __( 'Clear the cache for all optimized images. Ignored when media_ids is provided.', 'optimole-wp' ),
+								'default'     => false,
+							],
 						],
-						'all'       => [
-							'type'        => 'boolean',
-							'description' => __( 'Clear the cache for all optimized images. Ignored when media_ids is provided.', 'optimole-wp' ),
-							'default'     => false,
-						],
-					],
+						$this->get_chunk_input_properties()
+					),
 					'additionalProperties' => false,
 				],
 				'output_schema'       => [
 					'type'       => 'object',
-					'properties' => [
-						'scope'   => [ 'type' => 'string' ],
-						'purged'  => [
-							'type'  => 'array',
-							'items' => [ 'type' => 'integer' ],
-						],
-						'skipped' => $this->get_skipped_schema(),
-					],
+					'properties' => array_merge(
+						[ 'scope' => [ 'type' => 'string' ] ],
+						$this->get_chunk_output_properties( [ 'purged', 'skipped' ] )
+					),
 				],
 				'execute_callback'    => [ $this, 'purge_image_cache' ],
 				'permission_callback' => [ $this, 'can_manage' ],
@@ -326,6 +339,10 @@ class Optml_Abilities {
 						'idempotent'  => true,
 					],
 					'show_in_rest' => true,
+					'task'         => [
+						'mode'        => 'cursor',
+						'results_key' => 'results',
+					],
 				],
 			]
 		);
@@ -546,43 +563,54 @@ class Optml_Abilities {
 				return $response;
 			}
 
-			return [
-				'scope'   => 'all',
-				'purged'  => [],
-				'skipped' => [],
-			];
+			return array_merge( [ 'scope' => 'all' ], $this->chunk_output( [], 1, 1, '' ) );
 		}
 
-		$purged  = [];
-		$skipped = [];
-
-		foreach ( $ids as $id ) {
-			if ( get_post_type( $id ) !== 'attachment' ) {
-				$skipped[] = $this->skipped( $id, 'not_found' );
-				continue;
-			}
-
-			$meta = wp_get_attachment_metadata( $id );
-			if ( ! is_array( $meta ) || empty( $meta['file'] ) || ! is_string( $meta['file'] ) ) {
-				$skipped[] = $this->skipped( $id, 'not_an_image' );
-				continue;
-			}
-
-			// Same call as Optml_Admin::purge_image_cache().
-			$response = $settings->clear_cache( wp_basename( $meta['file'] ) );
-			if ( is_wp_error( $response ) ) {
-				$skipped[] = $this->skipped( $id, $response->get_error_code(), $response->get_error_message() );
-				continue;
-			}
-
-			$purged[] = $id;
+		$chunk = $this->parse_chunk_input( $input, 'purge', $ids );
+		if ( is_wp_error( $chunk ) ) {
+			return $chunk;
 		}
 
-		return [
-			'scope'   => 'media',
-			'purged'  => $purged,
-			'skipped' => $skipped,
-		];
+		$results = [];
+		$total   = count( $ids );
+		$offset  = $chunk['offset'];
+
+		while ( $offset < $total && ( empty( $results ) || microtime( true ) < $chunk['deadline'] ) ) {
+			$results[] = $this->purge_single_image( $settings, $ids[ $offset ] );
+			++$offset;
+		}
+
+		return array_merge(
+			[ 'scope' => 'media' ],
+			$this->chunk_output( $results, $offset, $total, $chunk['key'] )
+		);
+	}
+
+	/**
+	 * Purge the cache of a single image.
+	 *
+	 * @param Optml_Settings $settings Settings instance.
+	 * @param int            $id Attachment ID.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function purge_single_image( $settings, $id ) {
+		if ( get_post_type( $id ) !== 'attachment' ) {
+			return $this->item_result( $id, 'skipped', 'not_found' );
+		}
+
+		$meta = wp_get_attachment_metadata( $id );
+		if ( ! is_array( $meta ) || empty( $meta['file'] ) || ! is_string( $meta['file'] ) ) {
+			return $this->item_result( $id, 'skipped', 'not_an_image' );
+		}
+
+		// Same call as Optml_Admin::purge_image_cache().
+		$response = $settings->clear_cache( wp_basename( $meta['file'] ) );
+		if ( is_wp_error( $response ) ) {
+			return $this->item_result( $id, 'skipped', (string) $response->get_error_code(), $response->get_error_message() );
+		}
+
+		return $this->item_result( $id, 'purged' );
 	}
 
 	/**
@@ -607,60 +635,136 @@ class Optml_Abilities {
 			return new WP_Error( 'optimole_offload_disabled', __( 'The offload media option is not enabled in Optimole.', 'optimole-wp' ) );
 		}
 
+		$chunk = $this->parse_chunk_input( $input, $action, $ids );
+		if ( is_wp_error( $chunk ) ) {
+			return $chunk;
+		}
+
+		$results = [];
+		$total   = count( $ids );
+		$offset  = $chunk['offset'];
+
+		while ( $offset < $total && ( empty( $results ) || microtime( true ) < $chunk['deadline'] ) ) {
+			$results[] = $this->move_single_image( $action, $settings, $ids[ $offset ] );
+			++$offset;
+		}
+
+		return array_merge(
+			[ 'action' => $action === 'offload_images' ? 'offload' : 'restore' ],
+			$this->chunk_output( $results, $offset, $total, $chunk['key'] )
+		);
+	}
+
+	/**
+	 * Move a single image to or from the cloud.
+	 *
+	 * @param string         $action Either offload_images or rollback_images.
+	 * @param Optml_Settings $settings Settings instance.
+	 * @param int            $id Attachment ID.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function move_single_image( $action, $settings, $id ) {
 		$is_offload = $action === 'offload_images';
-		$error_key  = Optml_Media_Offload::META_KEYS[ $is_offload ? 'offload_error' : 'rollback_error' ];
-		$offload    = Optml_Media_Offload::instance();
-		$accepted   = [];
-		$skipped    = [];
 
-		foreach ( $ids as $id ) {
-			if ( get_post_type( $id ) !== 'attachment' ) {
-				$skipped[] = $this->skipped( $id, 'not_found' );
-				continue;
-			}
-			if ( ! current_user_can( 'edit_post', $id ) || ! current_user_can( 'delete_post', $id ) ) {
-				$skipped[] = $this->skipped( $id, 'forbidden' );
-				continue;
+		if ( get_post_type( $id ) !== 'attachment' ) {
+			return $this->item_result( $id, 'skipped', 'not_found' );
+		}
+		if ( ! current_user_can( 'edit_post', $id ) || ! current_user_can( 'delete_post', $id ) ) {
+			return $this->item_result( $id, 'skipped', 'forbidden' );
+		}
+
+		$meta = wp_get_attachment_metadata( $id );
+		if (
+			! is_array( $meta ) || empty( $meta['file'] ) || ! is_string( $meta['file'] ) ||
+			wp_check_filetype( $meta['file'], Optml_Config::$all_extensions )['ext'] === false
+		) {
+			return $this->item_result( $id, 'skipped', 'unsupported_file' );
+		}
+		if ( Optml_Media_Offload::is_uploaded_image( $meta['file'] ) === $is_offload ) {
+			return $this->item_result( $id, 'skipped', $is_offload ? 'already_offloaded' : 'not_offloaded' );
+		}
+
+		try {
+			Optml_Media_Offload::instance()->move_single_image( $action, $id );
+		} catch ( Exception $e ) {
+			return $this->item_result( $id, 'skipped', 'move_failed', wp_strip_all_tags( $e->getMessage() ) );
+		}
+
+		$meta  = wp_get_attachment_metadata( $id );
+		$moved = is_array( $meta ) && ! empty( $meta['file'] ) && Optml_Media_Offload::is_uploaded_image( $meta['file'] ) === $is_offload;
+		if ( ! $moved ) {
+			$error_key = Optml_Media_Offload::META_KEYS[ $is_offload ? 'offload_error' : 'rollback_error' ];
+			$reason    = ! empty( get_post_meta( $id, $error_key, true ) ) ? 'move_error' : 'not_moved';
+			if ( $is_offload && $settings->is_offload_limit_reached() ) {
+				$reason = 'offload_limit_reached';
 			}
 
-			$meta = wp_get_attachment_metadata( $id );
+			return $this->item_result( $id, 'skipped', $reason );
+		}
+
+		return $this->item_result( $id, 'moved' );
+	}
+
+	/**
+	 * Read the cursor and the time budget of a chunked call.
+	 *
+	 * The cursor is the offset into the media IDs plus a hash binding it to the same action and IDs.
+	 *
+	 * @param mixed  $input Ability input.
+	 * @param string $action Action the cursor belongs to.
+	 * @param int[]  $ids Media IDs of the batch.
+	 *
+	 * @return array{offset: int, deadline: float, key: string}|WP_Error
+	 */
+	private function parse_chunk_input( $input, $action, $ids ) {
+		$input  = is_array( $input ) ? $input : [];
+		$budget = isset( $input['time_budget'] ) && is_numeric( $input['time_budget'] ) ? (int) $input['time_budget'] : self::DEFAULT_TIME_BUDGET;
+		$budget = max( 1, min( self::MAX_TIME_BUDGET, $budget ) );
+		$key    = substr( md5( $action . ':' . implode( ',', $ids ) ), 0, 12 );
+		$offset = 0;
+
+		if ( isset( $input['cursor'] ) && $input['cursor'] !== '' ) {
+			$parts = is_string( $input['cursor'] ) ? explode( ':', $input['cursor'] ) : [];
 			if (
-				! is_array( $meta ) || empty( $meta['file'] ) || ! is_string( $meta['file'] ) ||
-				wp_check_filetype( $meta['file'], Optml_Config::$all_extensions )['ext'] === false
+				count( $parts ) !== 2 || ! ctype_digit( $parts[0] ) || $parts[1] !== $key ||
+				(int) $parts[0] > count( $ids )
 			) {
-				$skipped[] = $this->skipped( $id, 'unsupported_file' );
-				continue;
+				return new WP_Error( 'optimole_invalid_cursor', __( 'The cursor is not valid for these media IDs. Use the cursor returned by the previous call with the same media_ids.', 'optimole-wp' ) );
 			}
-			if ( Optml_Media_Offload::is_uploaded_image( $meta['file'] ) === $is_offload ) {
-				$skipped[] = $this->skipped( $id, $is_offload ? 'already_offloaded' : 'not_offloaded' );
-				continue;
-			}
-
-			try {
-				$offload->move_single_image( $action, $id );
-			} catch ( Exception $e ) {
-				$skipped[] = $this->skipped( $id, 'move_failed', wp_strip_all_tags( $e->getMessage() ) );
-				continue;
-			}
-
-			$meta  = wp_get_attachment_metadata( $id );
-			$moved = is_array( $meta ) && ! empty( $meta['file'] ) && Optml_Media_Offload::is_uploaded_image( $meta['file'] ) === $is_offload;
-			if ( ! $moved ) {
-				$reason = ! empty( get_post_meta( $id, $error_key, true ) ) ? 'move_error' : 'not_moved';
-				if ( $is_offload && $settings->is_offload_limit_reached() ) {
-					$reason = 'offload_limit_reached';
-				}
-				$skipped[] = $this->skipped( $id, $reason );
-				continue;
-			}
-
-			$accepted[] = $id;
+			$offset = (int) $parts[0];
 		}
 
 		return [
-			'action'   => $is_offload ? 'offload' : 'restore',
-			'accepted' => $accepted,
-			'skipped'  => $skipped,
+			'offset'   => $offset,
+			'deadline' => microtime( true ) + $budget,
+			'key'      => $key,
+		];
+	}
+
+	/**
+	 * Build the common output of a chunked call.
+	 *
+	 * @param array<int, array<string, mixed>> $results Items handled in this call.
+	 * @param int                              $offset Number of items handled so far.
+	 * @param int                              $total Total number of items.
+	 * @param string                           $key Hash binding the cursor to the input.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function chunk_output( $results, $offset, $total, $key ) {
+		$done = $offset >= $total;
+
+		return [
+			'results'  => $results,
+			'done'     => $done,
+			'cursor'   => $done ? '' : $offset . ':' . $key,
+			'progress' => [
+				'current' => $offset,
+				'total'   => $total,
+				/* translators: 1: number of processed images, 2: total number of images. */
+				'message' => sprintf( __( '%1$d of %2$d images processed.', 'optimole-wp' ), $offset, $total ),
+			],
 		];
 	}
 
@@ -812,17 +916,19 @@ class Optml_Abilities {
 	}
 
 	/**
-	 * Build a skipped item.
+	 * Build a per item result.
 	 *
 	 * @param int    $id Attachment ID.
-	 * @param string $reason Reason code.
+	 * @param string $status Item status.
+	 * @param string $reason Reason code when the item was skipped.
 	 * @param string $message Optional details.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function skipped( $id, $reason, $message = '' ) {
+	private function item_result( $id, $status, $reason = '', $message = '' ) {
 		return [
 			'media_id' => $id,
+			'status'   => $status,
 			'reason'   => $reason,
 			'message'  => $message,
 		];
@@ -952,10 +1058,11 @@ class Optml_Abilities {
 	 *
 	 * @param int  $max Maximum number of IDs.
 	 * @param bool $required Whether the list is required.
+	 * @param bool $chunked Whether the ability works in chunks.
 	 *
 	 * @return array<string, mixed>
 	 */
-	private function get_media_ids_schema( $max, $required ) {
+	private function get_media_ids_schema( $max, $required, $chunked = false ) {
 		$schema = [
 			'type'                 => 'object',
 			'properties'           => [
@@ -972,6 +1079,10 @@ class Optml_Abilities {
 			'additionalProperties' => false,
 		];
 
+		if ( $chunked ) {
+			$schema['properties'] = array_merge( $schema['properties'], $this->get_chunk_input_properties() );
+		}
+
 		if ( $required ) {
 			$schema['properties']['media_ids']['minItems'] = 1;
 			$schema['required']                            = [ 'media_ids' ];
@@ -983,6 +1094,68 @@ class Optml_Abilities {
 	}
 
 	/**
+	 * Input properties shared by the abilities that work in chunks.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function get_chunk_input_properties() {
+		return [
+			'cursor'      => [
+				'type'        => 'string',
+				'description' => __( 'Cursor returned by the previous call, to continue the same media_ids batch.', 'optimole-wp' ),
+			],
+			'time_budget' => [
+				'type'        => 'integer',
+				'description' => __( 'Maximum number of seconds to work before returning.', 'optimole-wp' ),
+				'minimum'     => 1,
+				'maximum'     => self::MAX_TIME_BUDGET,
+				'default'     => self::DEFAULT_TIME_BUDGET,
+			],
+		];
+	}
+
+	/**
+	 * Output properties shared by the abilities that work in chunks.
+	 *
+	 * @param string[] $statuses Possible item statuses.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function get_chunk_output_properties( $statuses ) {
+		return [
+			'results'  => [
+				'type'        => 'array',
+				'description' => __( 'Items handled in this call only.', 'optimole-wp' ),
+				'items'       => [
+					'type'       => 'object',
+					'properties' => [
+						'media_id' => [ 'type' => 'integer' ],
+						'status'   => [
+							'type' => 'string',
+							'enum' => $statuses,
+						],
+						'reason'   => [ 'type' => 'string' ],
+						'message'  => [ 'type' => 'string' ],
+					],
+				],
+			],
+			'done'     => [ 'type' => 'boolean' ],
+			'cursor'   => [
+				'type'        => 'string',
+				'description' => __( 'Empty when done.', 'optimole-wp' ),
+			],
+			'progress' => [
+				'type'       => 'object',
+				'properties' => [
+					'current' => [ 'type' => 'integer' ],
+					'total'   => [ 'type' => 'integer' ],
+					'message' => [ 'type' => 'string' ],
+				],
+			],
+		];
+	}
+
+	/**
 	 * Output schema for the offload and restore abilities.
 	 *
 	 * @return array<string, mixed>
@@ -990,33 +1163,10 @@ class Optml_Abilities {
 	private function get_move_output_schema() {
 		return [
 			'type'       => 'object',
-			'properties' => [
-				'action'   => [ 'type' => 'string' ],
-				'accepted' => [
-					'type'  => 'array',
-					'items' => [ 'type' => 'integer' ],
-				],
-				'skipped'  => $this->get_skipped_schema(),
-			],
-		];
-	}
-
-	/**
-	 * Schema for the skipped items list.
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function get_skipped_schema() {
-		return [
-			'type'  => 'array',
-			'items' => [
-				'type'       => 'object',
-				'properties' => [
-					'media_id' => [ 'type' => 'integer' ],
-					'reason'   => [ 'type' => 'string' ],
-					'message'  => [ 'type' => 'string' ],
-				],
-			],
+			'properties' => array_merge(
+				[ 'action' => [ 'type' => 'string' ] ],
+				$this->get_chunk_output_properties( [ 'moved', 'skipped' ] )
+			),
 		];
 	}
 }
