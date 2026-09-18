@@ -107,6 +107,7 @@ final class Optml_Main {
 			add_filter( 'optimole_wp_logger_heading', [ __CLASS__, 'change_review_message' ] );
 			add_filter( 'optml_register_conflicts', [ __CLASS__, 'register_conflicts' ] );
 			add_filter( 'optimole_wp_logger_data', [ __CLASS__, 'add_settings' ] );
+			add_filter( 'optimole_wp_ai_connect_metadata', [ __CLASS__, 'add_ai_connect_metadata' ] );
 			self::$_instance          = new self();
 			self::$_instance->manager = Optml_Manager::instance();
 			self::$_instance->rest    = new Optml_Rest();
@@ -175,6 +176,35 @@ final class Optml_Main {
 	 */
 	public static function change_review_message( $message ) {
 		return str_replace( '{product}', 'Optimole', $message );
+	}
+
+	/**
+	 * Opt in to the SDK AI Connect module.
+	 *
+	 * @return array<string, mixed> AI Connect metadata.
+	 */
+	public static function add_ai_connect_metadata() {
+		return [
+			'name'         => 'Optimole',
+			'notice_cases' => [
+				__( 'adjust image quality', 'optimole-wp' ),
+				__( 'purge cached images', 'optimole-wp' ),
+				__( 'offload media to the cloud', 'optimole-wp' ),
+			],
+			'prompts'      => [
+				__( 'Show me my Optimole delivery settings and explain what each one does.', 'optimole-wp' ),
+				__( 'Set image quality to 80 and turn on lazy loading for my images.', 'optimole-wp' ),
+				__( 'Clear the cached versions of every optimized image so visitors get fresh copies.', 'optimole-wp' ),
+			],
+			'abilities'    => [
+				'optimole/get-delivery-settings',
+				'optimole/update-delivery-settings',
+				'optimole/offload-media',
+				'optimole/restore-media',
+				'optimole/get-offload-job',
+				'optimole/purge-image-cache',
+			],
+		];
 	}
 
 	/**
