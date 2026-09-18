@@ -187,14 +187,14 @@ final class Optml_Main {
 		return [
 			'name'         => 'Optimole',
 			'notice_cases' => [
-				__( 'adjust image quality', 'optimole-wp' ),
+				__( 'make your images load faster', 'optimole-wp' ),
 				__( 'purge cached images', 'optimole-wp' ),
 				__( 'offload media to the cloud', 'optimole-wp' ),
 			],
 			'prompts'      => [
-				__( 'Show me my Optimole delivery settings and explain what each one does.', 'optimole-wp' ),
-				__( 'Set image quality to 80 and turn on lazy loading for my images.', 'optimole-wp' ),
-				__( 'Clear the cached versions of every optimized image so visitors get fresh copies.', 'optimole-wp' ),
+				__( 'My pages load slowly. Check my Optimole settings and turn on whatever would make my images load faster.', 'optimole-wp' ),
+				__( 'Turn on lazy loading and set image quality to 80.', 'optimole-wp' ),
+				__( 'Move my media library images to the Optimole cloud to free up disk space, and tell me when it is done.', 'optimole-wp' ),
 			],
 			'abilities'    => [
 				'optimole/get-delivery-settings',
