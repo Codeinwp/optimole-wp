@@ -114,6 +114,7 @@ final class Optml_Main {
 			self::$_instance->dam     = new Optml_Dam();
 			self::$_instance->media_offload = Optml_Media_Offload::instance();
 			self::$_instance->video_player = new Optml_Video_Player();
+			new Optml_Abilities();
 			if ( class_exists( 'WP_CLI' ) ) {
 				self::$_instance->cli = new Optml_Cli();
 			}
