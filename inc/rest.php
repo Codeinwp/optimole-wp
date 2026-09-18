@@ -416,14 +416,9 @@ class Optml_Rest {
 		$application = $request->get_param( 'application' );
 		$request = new Optml_Api();
 		$data    = $request->get_user_data( $api_key, $application );
-		if ( $data === false || is_wp_error( $data ) ) {
+		if ( ! is_array( $data ) ) {
 			$extra = '';
 			if ( is_wp_error( $data ) ) {
-				/**
-				 * Error from api.
-				 *
-				 * @var WP_Error $data Error object.
-				 */
 				$extra = sprintf( /* translators: Error details */ __( '. ERROR details: %s', 'optimole-wp' ), $data->get_error_message() );
 			}
 			wp_send_json_error( __( 'Can not connect to Optimole service', 'optimole-wp' ) . $extra );
