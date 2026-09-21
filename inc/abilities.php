@@ -196,7 +196,7 @@ class Optml_Abilities {
 		wp_register_ability(
 			'optimole/offload-media',
 			[
-				'label'               => __( 'Offload media to Optimole', 'optimole-wp' ),
+				'label'               => __( 'Offload to Optimole', 'optimole-wp' ),
 				'description'         => __( 'Moves the selected media library images to Optimole Cloud and removes the local files, using the same process as the "Offload to Optimole" media library action. Requires the offload media option to be enabled. Large batches are processed in chunks: when done is false, call again with the same media_ids and the returned cursor.', 'optimole-wp' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_media_ids_schema( self::MAX_MEDIA_IDS, true, true ),
@@ -221,7 +221,7 @@ class Optml_Abilities {
 		wp_register_ability(
 			'optimole/restore-media',
 			[
-				'label'               => __( 'Restore media from Optimole', 'optimole-wp' ),
+				'label'               => __( 'Restore Offloaded Images', 'optimole-wp' ),
 				'description'         => __( 'Restores the selected offloaded images from Optimole Cloud back to the media library, using the same process as the "Restore image to media library" action. Large batches are processed in chunks: when done is false, call again with the same media_ids and the returned cursor.', 'optimole-wp' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => $this->get_media_ids_schema( self::MAX_MEDIA_IDS, true, true ),
@@ -296,7 +296,7 @@ class Optml_Abilities {
 		wp_register_ability(
 			'optimole/purge-image-cache',
 			[
-				'label'               => __( 'Purge Optimole image cache', 'optimole-wp' ),
+				'label'               => __( 'Clear Cached Images', 'optimole-wp' ),
 				'description'         => __( 'Invalidates the optimized variants of the selected images. Pass all=true instead of media IDs to clear the cache for every optimized image (allowed once every 5 minutes). Large batches are processed in chunks: when done is false, call again with the same media_ids and the returned cursor.', 'optimole-wp' ),
 				'category'            => self::CATEGORY,
 				'input_schema'        => [
@@ -306,7 +306,7 @@ class Optml_Abilities {
 						[
 							'media_ids' => [
 								'type'        => 'array',
-								'description' => __( 'Attachment IDs of the images to purge.', 'optimole-wp' ),
+								'description' => __( 'Attachment IDs of the images.', 'optimole-wp' ),
 								'items'       => [
 									'type'    => 'integer',
 									'minimum' => 1,
@@ -459,7 +459,7 @@ class Optml_Abilities {
 		}
 
 		if ( empty( $changes ) ) {
-			return new WP_Error( 'optimole_no_changes', __( 'No settings to update were provided.', 'optimole-wp' ) );
+			return new WP_Error( 'optimole_no_changes', __( 'No setting to update', 'optimole-wp' ) );
 		}
 
 		$settings = new Optml_Settings();
@@ -632,7 +632,7 @@ class Optml_Abilities {
 			return $this->not_connected();
 		}
 		if ( ! $settings->is_offload_enabled() ) {
-			return new WP_Error( 'optimole_offload_disabled', __( 'The offload media option is not enabled in Optimole.', 'optimole-wp' ) );
+			return new WP_Error( 'optimole_offload_disabled', __( 'You need to have the offload_media option enabled in order to use this command', 'optimole-wp' ) );
 		}
 
 		$chunk = $this->parse_chunk_input( $input, $action, $ids );
