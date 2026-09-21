@@ -4,15 +4,16 @@
  *
  * @reason Groovy Menu's auto-integration opens its own output buffer on `init`
  * and, on `shutdown` at priority 0, calls ob_get_clean() on whichever buffer is
- * on top to insert the menu markup after <body>. Since 4.2.12 we capture and
- * process our buffer at `shutdown` (PHP_INT_MIN) and re-arm an empty one, so
- * Groovy Menu receives an empty string, finds no <body> and drops the menu.
+ * on top to insert the menu markup after <body>.
  *
- * We apply Groovy Menu's final-output filter to the page we capture, before
- * image replacement, and unhook its own shutdown step at that moment. The menu
- * is inserted regardless of buffer order and its images are optimized too. When
- * our capture does not run (legacy `optml_capture_at_shutdown` mode, or a
- * third-party flush of our buffer) Groovy Menu keeps its own shutdown step.
+ * When its buffer sits below ours, we capture and process the page at the start
+ * of shutdown. We apply Groovy Menu's final-output filter to that page first,
+ * before image replacement, and unhook its own shutdown step at that moment, so
+ * the menu images are optimized too. When its buffer sits above ours the capture
+ * is deferred, Groovy Menu's own shutdown step runs first and we only make sure
+ * the menu is not inserted twice. When our capture does not run at all (legacy
+ * `optml_capture_at_shutdown` mode, or a third-party flush of our buffer) Groovy
+ * Menu keeps its own shutdown step.
  */
 class Optml_groovy_menu extends Optml_compatibility {
 	/**
@@ -24,6 +25,13 @@ class Optml_groovy_menu extends Optml_compatibility {
 	 * Groovy Menu's filter that inserts the menu markup into the page HTML.
 	 */
 	const GROOVY_OUTPUT_FILTER = 'groovy_menu_final_output';
+
+	/**
+	 * Whether Groovy Menu's final-output filter already ran for this request.
+	 *
+	 * @var bool
+	 */
+	private $menu_inserted = false;
 
 	/**
 	 * Should we load the integration logic.
@@ -42,6 +50,23 @@ class Optml_groovy_menu extends Optml_compatibility {
 	 */
 	public function register() {
 		add_filter( 'optml_captured_page_html', [ $this, 'insert_menu' ] );
+		add_filter( self::GROOVY_OUTPUT_FILTER, [ $this, 'mark_menu_inserted' ], PHP_INT_MAX ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Groovy Menu's own filter.
+	}
+
+	/**
+	 * Remember that Groovy Menu's final-output filter already ran for this request.
+	 *
+	 * When third-party buffers sit above ours the capture is deferred, and Groovy
+	 * Menu's own shutdown step runs first. The menu must not be inserted twice.
+	 *
+	 * @param string $html The page HTML.
+	 *
+	 * @return string
+	 */
+	public function mark_menu_inserted( $html ) {
+		$this->menu_inserted = true;
+
+		return $html;
 	}
 
 	/**
@@ -53,7 +78,7 @@ class Optml_groovy_menu extends Optml_compatibility {
 	 */
 	public function insert_menu( $html ) {
 		$priority = has_action( 'shutdown', self::GROOVY_SHUTDOWN_CALLBACK );
-		if ( $priority === false ) {
+		if ( $priority === false || $this->menu_inserted ) {
 			return $html;
 		}
 		// Our capture ran, so Groovy Menu must not ob_get_clean() the re-armed empty buffer afterwards.

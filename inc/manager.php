@@ -427,7 +427,6 @@ final class Optml_Manager {
 		add_action( 'template_redirect', [ $this, 'register_after_setup' ] );
 		add_action( 'rest_api_init', [ $this, 'process_template_redirect_content' ], PHP_INT_MIN );
 		add_action( 'shutdown', [ $this, 'close_buffer' ], PHP_INT_MIN );
-		add_action( 'shutdown', [ $this, 'close_final_buffer' ], PHP_INT_MAX );
 		foreach ( self::$loaded_compatibilities as $registered_compatibility ) {
 			$registered_compatibility->register();
 		}
@@ -923,7 +922,7 @@ final class Optml_Manager {
 	 *
 	 * The attached handler is only a fallback for buffers flushed outside of
 	 * close_buffer() — third-party force-flush loops, ob_flush() streaming, or
-	 * core's wp_ob_end_flush_all() reaching the re-armed buffer. A named method
+	 * a request that exits before our shutdown capture runs. A named method
 	 * is used instead of a closure so the buffer can be identified as ours via
 	 * ob_get_status()['name'].
 	 *
@@ -997,6 +996,78 @@ final class Optml_Manager {
 		}
 
 		/*
+		 * Buffers stacked above ours belong to code that may still need them at
+		 * shutdown: FacetWP, Groovy Menu and others open a buffer early and call
+		 * ob_get_clean() on shutdown priority 0. Force-flushing those buffers now
+		 * would leave them with nothing, so we wait until the priority 0 callbacks
+		 * are done. Registering during the hook run places us after every callback
+		 * already queued on priority 0, and still ahead of core's
+		 * wp_ob_end_flush_all() on priority 1.
+		 */
+		if ( $this->has_foreign_buffers_above() ) {
+			add_action( 'shutdown', [ $this, 'close_deferred_buffer' ], 0 );
+			return;
+		}
+
+		$this->flush_and_capture_buffer();
+	}
+
+	/**
+	 * Close the buffer after the shutdown priority 0 callbacks, when third-party buffers were stacked above ours.
+	 *
+	 * @return void
+	 */
+	public function close_deferred_buffer() {
+		if ( ! self::$ob_started ) {
+			return;
+		}
+		$this->flush_and_capture_buffer();
+	}
+
+	/**
+	 * The output handlers that may sit above our buffer without delaying the capture.
+	 *
+	 * Core's template enhancement buffer (WordPress 6.9+) is opened on every
+	 * front-end request after ours and nothing reads it back at shutdown.
+	 */
+	const FLUSHABLE_OB_HANDLERS = [ 'wp_finalize_template_enhancement_output_buffer' ];
+
+	/**
+	 * Check whether third-party output buffers are stacked above ours.
+	 *
+	 * @return bool
+	 */
+	private function has_foreign_buffers_above() {
+		if ( self::$ob_level === 0 || ob_get_level() <= self::$ob_level ) {
+			return false;
+		}
+		/**
+		 * Filters the output handler names that can be flushed at the start of
+		 * shutdown without delaying the page capture.
+		 *
+		 * @param string[] $handlers Output handler names, as reported by ob_get_status().
+		 */
+		$flushable = (array) apply_filters( 'optml_flushable_ob_handlers', self::FLUSHABLE_OB_HANDLERS );
+		foreach ( array_slice( ob_get_status( true ), self::$ob_level ) as $buffer ) {
+			if ( ! in_array( $buffer['name'] ?? '', $flushable, true ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Flush the buffers stacked above ours, then capture and process our own.
+	 *
+	 * No buffer is opened afterwards: code that started buffering before us and
+	 * reads its buffer back later in shutdown must find its own buffer on top,
+	 * holding the processed page, not an empty one of ours.
+	 *
+	 * @return void
+	 */
+	private function flush_and_capture_buffer() {
+		/*
 		 * Flush the buffers other plugins stacked on top of ours so their
 		 * handlers still transform the page before we process it, preserving
 		 * the same order as a full top-down flush at request shutdown.
@@ -1010,27 +1081,7 @@ final class Optml_Manager {
 
 		if ( ! $this->capture_and_process_buffer() ) {
 			do_action( 'optml_log', 'Optimole buffer was closed earlier by third-party code.' );
-			return;
 		}
-
-		/*
-		 * Re-arm the capture so output echoed by later shutdown callbacks is
-		 * still processed and unguarded third-party flush calls find a buffer
-		 * to close instead of raising a notice.
-		 */
-		$this->start_capture_buffer();
-	}
-
-	/**
-	 * Close the re-armed buffer at the very end of shutdown.
-	 *
-	 * @return void
-	 */
-	public function close_final_buffer() {
-		if ( ! self::$ob_started ) {
-			return;
-		}
-		$this->capture_and_process_buffer( false );
 	}
 
 	/**
@@ -1040,11 +1091,9 @@ final class Optml_Manager {
 	 * buffer another plugin opened at the same level after ours was closed is
 	 * never captured or closed by us.
 	 *
-	 * @param bool $is_page Whether this is the page capture (true) or the late shutdown output (false).
-	 *
 	 * @return bool Whether our buffer was found and consumed.
 	 */
-	private function capture_and_process_buffer( $is_page = true ) {
+	private function capture_and_process_buffer() {
 		if ( self::$ob_level === 0 || ob_get_level() !== self::$ob_level ) {
 			return false;
 		}
@@ -1057,18 +1106,15 @@ final class Optml_Manager {
 		self::$ob_processed = true;
 		ob_end_clean();
 		if ( $html !== false && $html !== '' ) {
-			if ( $is_page ) {
-				/**
-				 * Filters the captured page HTML before Optimole processes it.
-				 *
-				 * Runs once per request, on the buffer captured at shutdown, outside of
-				 * PHP's display-handler context. Late output echoed by other shutdown
-				 * callbacks is not passed through this filter.
-				 *
-				 * @param string $html The full page HTML.
-				 */
-				$html = apply_filters( 'optml_captured_page_html', $html );
-			}
+			/**
+			 * Filters the captured page HTML before Optimole processes it.
+			 *
+			 * Runs once per request, on the buffer captured at shutdown, outside of
+			 * PHP's display-handler context.
+			 *
+			 * @param string $html The full page HTML.
+			 */
+			$html = apply_filters( 'optml_captured_page_html', $html );
 			echo $this->replace_content( $html, self::is_ajax_request() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- full page HTML, escaping would break the page.
 		}
 		return true;

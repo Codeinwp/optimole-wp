@@ -94,6 +94,8 @@ class Test_Groovy_Menu extends WP_UnitTestCase {
 		remove_action( 'shutdown', 'groovy_menu_pre_shutdown', 0 );
 		remove_filter( 'groovy_menu_final_output', 'groovy_menu_add_after_body' );
 		remove_filter( 'optml_captured_page_html', [ $this->compatibility, 'insert_menu' ] );
+		remove_filter( 'groovy_menu_final_output', [ $this->compatibility, 'mark_menu_inserted' ], PHP_INT_MAX );
+		remove_action( 'shutdown', [ Optml_Manager::instance(), 'close_deferred_buffer' ], 0 );
 		remove_filter( 'optml_capture_at_shutdown', '__return_false' );
 		parent::tearDown();
 	}
@@ -135,7 +137,6 @@ class Test_Groovy_Menu extends WP_UnitTestCase {
 
 		$this->assertFalse( has_action( 'shutdown', 'groovy_menu_pre_shutdown' ), 'Groovy Menu shutdown step is taken over.' );
 
-		$manager->close_final_buffer();
 		ob_end_flush(); // Core flushes Groovy Menu's buffer at shutdown.
 		$out = ob_get_clean();
 
@@ -147,9 +148,11 @@ class Test_Groovy_Menu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Groovy Menu buffer stacked above ours is flushed through, and the menu is still inserted.
+	 * Groovy Menu buffer stacked above ours (our buffer opened on init, e.g. with
+	 * SiteGround Optimizer): its own shutdown step runs first, the menu is
+	 * inserted once and then optimized by the deferred capture.
 	 */
-	public function test_menu_inserted_when_groovy_buffer_is_above_ours() {
+	public function test_menu_inserted_once_when_groovy_buffer_is_above_ours() {
 		$this->compatibility->register();
 		$manager = Optml_Manager::instance();
 		ob_start();
@@ -157,10 +160,14 @@ class Test_Groovy_Menu extends WP_UnitTestCase {
 		ob_start(); // Groovy Menu's buffer opened after ours.
 		echo self::PAGE; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		$manager->close_buffer();
-		$manager->close_final_buffer();
+
+		$this->assertSame( 0, has_action( 'shutdown', 'groovy_menu_pre_shutdown' ), 'Groovy Menu keeps its shutdown step while the capture is deferred.' );
+		groovy_menu_pre_shutdown(); // Groovy Menu at shutdown priority 0.
+
+		$manager->close_deferred_buffer();
 		$out = ob_get_clean();
 
-		$this->assertFalse( has_action( 'shutdown', 'groovy_menu_pre_shutdown' ) );
+		$this->assertSame( 1, $GLOBALS['gm_test_shutdown_calls'] );
 		$this->assertSame( 1, substr_count( $out, 'gm-navbar' ) );
 		$this->assertSame( 2, substr_count( $out, 'i.optimole.com' ) );
 		$this->assertSame( $this->base_level, ob_get_level() );
@@ -202,7 +209,6 @@ class Test_Groovy_Menu extends WP_UnitTestCase {
 		echo self::PAGE; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		ob_end_flush(); // Third-party force flush of our buffer.
 		$manager->close_buffer();
-		$manager->close_final_buffer();
 
 		$this->assertSame( 0, has_action( 'shutdown', 'groovy_menu_pre_shutdown' ) );
 
