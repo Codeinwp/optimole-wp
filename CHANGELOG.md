@@ -1,3 +1,9 @@
+##### [Version 4.2.14](https://github.com/Codeinwp/optimole-wp/compare/v4.2.13...v4.2.14) (2026-09-21)
+
+- Fixed AJAX requests that use an array action value.
+- Fixed compatibility with FacetWP, Groovy Menu, and other plugins that use output buffering, which broke filtering and menus since 4.2.12.
+- Updated dependencies
+
 ##### [Version 4.2.13](https://github.com/Codeinwp/optimole-wp/compare/v4.2.12...v4.2.13) (2026-09-14)
 
 - Enhanced Security

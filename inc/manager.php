@@ -116,6 +116,7 @@ final class Optml_Manager {
 		'hummingbird',
 		'aruba_hsc',
 		'spc',
+		'groovy_menu',
 	];
 	/**
 	 * The current state of the buffer.
@@ -912,19 +913,22 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Start an output buffer that captures the page HTML.
+	 * Start the output buffer that holds the page HTML.
 	 *
-	 * On normal requests the buffer is captured and processed by close_buffer()
-	 * at shutdown, outside of PHP's display-handler context, so callbacks hooked
-	 * into our filters are free to use output buffering themselves and fatal
-	 * errors raised during processing keep their real message instead of being
-	 * masked by "Cannot use output buffering in output buffering display handlers".
+	 * By default the page is processed by the attached handler when the buffer
+	 * is flushed, the way it worked up to 4.2.11. We never flush other buffers
+	 * and open no buffer at shutdown, so code that opens a buffer early and reads
+	 * it back with ob_get_clean() at shutdown (FacetWP, Groovy Menu) keeps working.
 	 *
-	 * The attached handler is only a fallback for buffers flushed outside of
-	 * close_buffer() — third-party force-flush loops, ob_flush() streaming, or
-	 * core's wp_ob_end_flush_all() reaching the re-armed buffer. A named method
-	 * is used instead of a closure so the buffer can be identified as ours via
-	 * ob_get_status()['name'].
+	 * When the optml_capture_at_shutdown filter returns true, close_buffer()
+	 * captures and processes the buffer at shutdown instead, outside of PHP's
+	 * display-handler context. Callbacks hooked into our filters can then use
+	 * output buffering themselves, and fatal errors raised during processing
+	 * keep their real message instead of being masked by "Cannot use output
+	 * buffering in output buffering display handlers".
+	 *
+	 * A named method is used instead of a closure so the buffer can be
+	 * identified as ours via ob_get_status()['name'].
 	 *
 	 * @return void
 	 */
@@ -940,15 +944,35 @@ final class Optml_Manager {
 	const OB_HANDLER_NAME = 'Optml_Manager::handle_buffer_fallback';
 
 	/**
-	 * Output-buffer handler attached to our capture buffer.
+	 * Whether the page is captured and processed at shutdown, outside of PHP's display-handler context.
 	 *
-	 * Runs only when the buffer is flushed outside of close_buffer(). Content is
-	 * passed through UNPROCESSED here: running the replacement filter graph
-	 * inside a PHP display handler would turn any third-party ob_*() call into
-	 * an uncatchable fatal ("Cannot use output buffering in output buffering
-	 * display handlers") — the very crash this rework removes. The only
-	 * exception is the legacy mode selected via the optml_capture_at_shutdown
-	 * filter, which explicitly restores the previous in-handler processing.
+	 * @return bool
+	 */
+	private function captures_at_shutdown() {
+		/**
+		 * Filters whether the page is captured and processed at shutdown, outside
+		 * of PHP's display-handler context, instead of inside the output-buffer
+		 * handler.
+		 *
+		 * Off by default: the shutdown capture flushes the buffers
+		 * stacked above ours and opens a new buffer afterwards, which breaks code
+		 * that reads its own buffer back at shutdown. Return true to opt in.
+		 *
+		 * @param bool $capture_at_shutdown Whether to process the buffer at shutdown.
+		 */
+		return apply_filters( 'optml_capture_at_shutdown', false ) === true;
+	}
+
+	/**
+	 * Output-buffer handler attached to our buffer.
+	 *
+	 * By default this is where the page is processed. An exception thrown by the
+	 * replacement never breaks the page: the content is returned untouched.
+	 *
+	 * With the optml_capture_at_shutdown opt-in the handler runs only when the
+	 * buffer is flushed outside of close_buffer(), and the content is passed
+	 * through unprocessed, because running the replacement filter graph inside a
+	 * display handler is what that mode exists to avoid.
 	 *
 	 * @param string $content The buffered content.
 	 * @param int    $phase   PHP's output-handler phase bitmask (unused; keeps replace_content()'s $partial parameter shielded from it).
@@ -959,7 +983,7 @@ final class Optml_Manager {
 		if ( self::$ob_processed || $content === '' ) {
 			return $content;
 		}
-		if ( apply_filters( 'optml_capture_at_shutdown', true ) === false ) {
+		if ( ! $this->captures_at_shutdown() ) {
 			try {
 				return $this->replace_content( $content, self::is_ajax_request() );
 			} catch ( Throwable $t ) {
@@ -981,14 +1005,7 @@ final class Optml_Manager {
 			return;
 		}
 
-		/**
-		 * Filters whether the captured page is processed at shutdown, outside of
-		 * PHP's display-handler context. Return false to restore the legacy
-		 * behavior of processing inside the output-buffer handler.
-		 *
-		 * @param bool $capture_at_shutdown Whether to process the buffer at shutdown.
-		 */
-		if ( apply_filters( 'optml_capture_at_shutdown', true ) === false ) {
+		if ( ! $this->captures_at_shutdown() ) {
 			if ( ob_get_length() ) {
 				ob_end_flush();
 			}
@@ -1026,10 +1043,10 @@ final class Optml_Manager {
 	 * @return void
 	 */
 	public function close_final_buffer() {
-		if ( ! self::$ob_started ) {
+		if ( ! self::$ob_started || ! $this->captures_at_shutdown() ) {
 			return;
 		}
-		$this->capture_and_process_buffer();
+		$this->capture_and_process_buffer( false );
 	}
 
 	/**
@@ -1039,9 +1056,11 @@ final class Optml_Manager {
 	 * buffer another plugin opened at the same level after ours was closed is
 	 * never captured or closed by us.
 	 *
+	 * @param bool $is_page Whether this is the page capture (true) or the late shutdown output (false).
+	 *
 	 * @return bool Whether our buffer was found and consumed.
 	 */
-	private function capture_and_process_buffer() {
+	private function capture_and_process_buffer( $is_page = true ) {
 		if ( self::$ob_level === 0 || ob_get_level() !== self::$ob_level ) {
 			return false;
 		}
@@ -1054,6 +1073,18 @@ final class Optml_Manager {
 		self::$ob_processed = true;
 		ob_end_clean();
 		if ( $html !== false && $html !== '' ) {
+			if ( $is_page ) {
+				/**
+				 * Filters the captured page HTML before Optimole processes it.
+				 *
+				 * Runs once per request, on the buffer captured at shutdown, outside of
+				 * PHP's display-handler context. Late output echoed by other shutdown
+				 * callbacks is not passed through this filter.
+				 *
+				 * @param string $html The full page HTML.
+				 */
+				$html = apply_filters( 'optml_captured_page_html', $html );
+			}
 			echo $this->replace_content( $html, self::is_ajax_request() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- full page HTML, escaping would break the page.
 		}
 		return true;
