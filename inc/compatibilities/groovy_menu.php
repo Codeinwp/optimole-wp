@@ -4,15 +4,14 @@
  *
  * @reason Groovy Menu's auto-integration opens its own output buffer on `init`
  * and, on `shutdown` at priority 0, calls ob_get_clean() on whichever buffer is
- * on top to insert the menu markup after <body>. Since 4.2.12 we capture and
- * process our buffer at `shutdown` (PHP_INT_MIN) and re-arm an empty one, so
- * Groovy Menu receives an empty string, finds no <body> and drops the menu.
+ * on top to insert the menu markup after <body>.
  *
- * We apply Groovy Menu's final-output filter to the page we capture, before
- * image replacement, and unhook its own shutdown step at that moment. The menu
- * is inserted regardless of buffer order and its images are optimized too. When
- * our capture does not run (legacy `optml_capture_at_shutdown` mode, or a
- * third-party flush of our buffer) Groovy Menu keeps its own shutdown step.
+ * This only matters with the `optml_capture_at_shutdown` opt-in, where we capture
+ * and process our buffer at `shutdown` (PHP_INT_MIN) and re-arm an empty one, so
+ * Groovy Menu would receive an empty string and drop the menu. In that mode we
+ * apply Groovy Menu's final-output filter to the page we capture, before image
+ * replacement, and unhook its own shutdown step at that moment. In the default
+ * in-handler mode our capture never runs and Groovy Menu keeps its own step.
  */
 class Optml_groovy_menu extends Optml_compatibility {
 	/**

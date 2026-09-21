@@ -39,6 +39,9 @@ class Test_Buffer extends WP_UnitTestCase {
 		Optml_Tag_Replacer::instance()->init();
 		Optml_Manager::instance()->init();
 
+		// The shutdown capture is opt-in; most tests below exercise it.
+		add_filter( 'optml_capture_at_shutdown', '__return_true' );
+
 		$this->reset_buffer_state();
 		$this->base_level = ob_get_level();
 	}
@@ -53,6 +56,8 @@ class Test_Buffer extends WP_UnitTestCase {
 			}
 		}
 		$this->reset_buffer_state();
+		remove_filter( 'optml_capture_at_shutdown', '__return_true' );
+		remove_filter( 'optml_capture_at_shutdown', '__return_false' );
 		parent::tearDown();
 	}
 
@@ -289,5 +294,70 @@ class Test_Buffer extends WP_UnitTestCase {
 
 		$this->assertSame( 1, substr_count( $out, 'i.optimole.com' ) );
 		$this->assertSame( $this->base_level, ob_get_level() );
+	}
+
+	/**
+	 * Without the opt-in the page is processed inside the output handler, as up to 4.2.11.
+	 */
+	public function test_default_processes_in_handler() {
+		remove_filter( 'optml_capture_at_shutdown', '__return_true' );
+		$manager = Optml_Manager::instance();
+		ob_start();
+		$manager->process_template_redirect_content();
+		echo self::IMG_TAGS; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		$manager->close_buffer();
+
+		$this->assertSame( $this->base_level + 1, ob_get_level(), 'No buffer is opened at shutdown.' );
+		$manager->close_final_buffer();
+		$out = ob_get_clean();
+
+		$this->assertSame( 1, substr_count( $out, 'i.optimole.com' ) );
+		$this->assertSame( $this->base_level, ob_get_level() );
+	}
+
+	/**
+	 * By default, code that opened a buffer before ours and reads it back on
+	 * shutdown priority 0 (FacetWP refresh, Groovy Menu) finds its own buffer on
+	 * top, holding the processed page.
+	 */
+	public function test_default_foreign_buffer_below_can_be_read_back() {
+		remove_filter( 'optml_capture_at_shutdown', '__return_true' );
+		$manager = Optml_Manager::instance();
+		ob_start();
+		ob_start(); // Third-party buffer opened on init, before ours.
+		$foreign_level = ob_get_level();
+		$manager->process_template_redirect_content();
+		echo self::IMG_TAGS; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		$manager->close_buffer();
+
+		$this->assertSame( $foreign_level, ob_get_level(), 'The foreign buffer is on top again.' );
+
+		// The third party reads its buffer back on shutdown priority 0.
+		$page = ob_get_clean();
+		$manager->close_final_buffer();
+
+		$this->assertSame( 1, substr_count( $page, 'i.optimole.com' ) );
+		$this->assertSame( '', ob_get_clean() );
+		$this->assertSame( $this->base_level, ob_get_level() );
+	}
+
+	/**
+	 * By default an exception thrown during the replacement never breaks the page.
+	 */
+	public function test_default_exception_passes_content_through() {
+		remove_filter( 'optml_capture_at_shutdown', '__return_true' );
+		$thrower = function () {
+			throw new RuntimeException( 'broken third-party callback' );
+		};
+		add_filter( 'optml_url_pre_process', $thrower );
+		$manager = Optml_Manager::instance();
+		ob_start();
+		$manager->process_template_redirect_content();
+		echo self::IMG_TAGS; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		$manager->close_buffer();
+		$out = ob_get_clean();
+		remove_filter( 'optml_url_pre_process', $thrower );
+
+		$this->assertSame( self::IMG_TAGS, $out );
 	}
 }
