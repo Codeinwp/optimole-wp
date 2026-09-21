@@ -192,9 +192,9 @@ final class Optml_Main {
 				__( 'offload media to the cloud', 'optimole-wp' ),
 			],
 			'prompts'      => [
-				__( 'My pages load slowly. Check my Optimole settings and turn on whatever would make my images load faster.', 'optimole-wp' ),
-				__( 'Turn on lazy loading and set image quality to 80.', 'optimole-wp' ),
-				__( 'Move my media library images to the Optimole cloud to free up disk space, and tell me when it is done.', 'optimole-wp' ),
+				__( 'Make my images load faster: turn on lazy loading and serve them at quality 80.', 'optimole-wp' ),
+				__( 'Offload my media library to the Optimole cloud to free up disk space.', 'optimole-wp' ),
+				__( 'I changed my logo. Purge the cached versions so visitors get the new one.', 'optimole-wp' ),
 			],
 			'ability_prefix'    => 'optimole',
 		];
