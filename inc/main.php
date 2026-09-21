@@ -196,14 +196,7 @@ final class Optml_Main {
 				__( 'Turn on lazy loading and set image quality to 80.', 'optimole-wp' ),
 				__( 'Move my media library images to the Optimole cloud to free up disk space, and tell me when it is done.', 'optimole-wp' ),
 			],
-			'abilities'    => [
-				'optimole/get-delivery-settings',
-				'optimole/update-delivery-settings',
-				'optimole/offload-media',
-				'optimole/restore-media',
-				'optimole/get-offload-job',
-				'optimole/purge-image-cache',
-			],
+			'ability_prefix'    => 'optimole',
 		];
 	}
 
