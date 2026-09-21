@@ -78,6 +78,9 @@ class Test_Groovy_Menu extends WP_UnitTestCase {
 		add_filter( 'groovy_menu_final_output', 'groovy_menu_add_after_body' );
 		$this->compatibility = new Optml_groovy_menu();
 
+		// The compatibility acts only with the shutdown capture opt-in.
+		add_filter( 'optml_capture_at_shutdown', '__return_true' );
+
 		$this->reset_buffer_state();
 		$this->base_level = ob_get_level();
 	}
@@ -95,6 +98,7 @@ class Test_Groovy_Menu extends WP_UnitTestCase {
 		remove_filter( 'groovy_menu_final_output', 'groovy_menu_add_after_body' );
 		remove_filter( 'optml_captured_page_html', [ $this->compatibility, 'insert_menu' ] );
 		remove_filter( 'optml_capture_at_shutdown', '__return_false' );
+		remove_filter( 'optml_capture_at_shutdown', '__return_true' );
 		parent::tearDown();
 	}
 
@@ -167,10 +171,10 @@ class Test_Groovy_Menu extends WP_UnitTestCase {
 	}
 
 	/**
-	 * In legacy in-handler mode Groovy Menu keeps its own shutdown step and still works.
+	 * In the default in-handler mode Groovy Menu keeps its own shutdown step and still works.
 	 */
-	public function test_legacy_mode_keeps_groovy_shutdown_step() {
-		add_filter( 'optml_capture_at_shutdown', '__return_false' );
+	public function test_default_mode_keeps_groovy_shutdown_step() {
+		remove_filter( 'optml_capture_at_shutdown', '__return_true' );
 		$this->compatibility->register();
 		$manager = Optml_Manager::instance();
 		ob_start();
