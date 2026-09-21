@@ -107,6 +107,7 @@ final class Optml_Main {
 			add_filter( 'optimole_wp_logger_heading', [ __CLASS__, 'change_review_message' ] );
 			add_filter( 'optml_register_conflicts', [ __CLASS__, 'register_conflicts' ] );
 			add_filter( 'optimole_wp_logger_data', [ __CLASS__, 'add_settings' ] );
+			add_filter( 'optimole_wp_ai_connect_metadata', [ __CLASS__, 'add_ai_connect_metadata' ] );
 			self::$_instance          = new self();
 			self::$_instance->manager = Optml_Manager::instance();
 			self::$_instance->rest    = new Optml_Rest();
@@ -114,6 +115,7 @@ final class Optml_Main {
 			self::$_instance->dam     = new Optml_Dam();
 			self::$_instance->media_offload = Optml_Media_Offload::instance();
 			self::$_instance->video_player = new Optml_Video_Player();
+			new Optml_Abilities();
 			if ( class_exists( 'WP_CLI' ) ) {
 				self::$_instance->cli = new Optml_Cli();
 			}
@@ -174,6 +176,28 @@ final class Optml_Main {
 	 */
 	public static function change_review_message( $message ) {
 		return str_replace( '{product}', 'Optimole', $message );
+	}
+
+	/**
+	 * Opt in to the SDK AI Connect module.
+	 *
+	 * @return array<string, mixed> AI Connect metadata.
+	 */
+	public static function add_ai_connect_metadata() {
+		return [
+			'name'         => 'Optimole',
+			'notice_cases' => [
+				__( 'make your images load faster', 'optimole-wp' ),
+				__( 'purge cached images', 'optimole-wp' ),
+				__( 'offload media to the cloud', 'optimole-wp' ),
+			],
+			'prompts'      => [
+				__( 'Make my images load faster: turn on lazy loading and serve them at quality 80.', 'optimole-wp' ),
+				__( 'Offload my media library to the Optimole cloud to free up disk space.', 'optimole-wp' ),
+				__( 'I changed my logo. Purge the cached versions so visitors get the new one.', 'optimole-wp' ),
+			],
+			'ability_prefix'    => 'optimole',
+		];
 	}
 
 	/**
