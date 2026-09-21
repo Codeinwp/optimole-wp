@@ -92,6 +92,8 @@ const Main = () => {
 
 	return (
 		<div className="antialiased">
+			{ /* Slot for the Themeisle SDK notices (sale, AI Connect); the dashboard hides the regular admin notices. */ }
+			<div id="tsdk_banner" />
 			<Header
 				tab={ tab }
 				setTab={ setTab }
