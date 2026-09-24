@@ -222,7 +222,7 @@ class Optml_Admin {
 	 *
 	 * @return bool|int
 	 */
-	protected function sanitize_svg( $file ) {
+	public function sanitize_svg( $file ) {
 		// We can ignore the phpcs warning here as we're reading and writing to the Temp file.
 		$dirty = file_get_contents( $file ); // phpcs:ignore
 
@@ -253,10 +253,11 @@ class Optml_Admin {
 			$clean = gzencode( $clean );
 		}
 
-		// We can ignore the phpcs warning here as we're reading and writing to the Temp file.
-		file_put_contents( $file, $clean ); // phpcs:ignore
+		// We handle the write result below; silence the warning on I/O failure. Reading/writing the temp file is intended.
+		$written = @file_put_contents( $file, $clean ); // phpcs:ignore WordPress.WP.AlternativeFunctions, WordPress.PHP.NoSilencedErrors
 
-		return true;
+		// A failed write leaves the dirty upload in place, so report it as unsanitized.
+		return is_string( $clean ) && strlen( $clean ) === $written;
 	}
 
 	/**
