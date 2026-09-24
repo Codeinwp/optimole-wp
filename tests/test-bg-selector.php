@@ -224,6 +224,25 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The mirror case: when desktop is voided, the surviving mobile rule stays mobile-scoped.
+	 */
+	public function test_personalized_css_scopes_surviving_mobile_device_to_media_query() {
+		$css = Lazyload::get_personalized_css(
+			[
+				Profile::DEVICE_TYPE_MOBILE  => [ 'bg' => [ self::WATCHER => [ '#hero' => [] ] ] ],
+				Profile::DEVICE_TYPE_DESKTOP => [ 'bg' => [ self::WATCHER => [ self::PAYLOAD => [] ] ] ],
+			]
+		);
+
+		$this->assertStringNotContainsString( 'background:red', $css );
+		$this->assertStringNotContainsString( self::PAYLOAD, $css );
+		// The surviving mobile rule must stay mobile-scoped and not apply on desktop.
+		$this->assertStringStartsWith( '@media (max-width: 600px) {', $css );
+		$this->assertStringNotContainsString( 'min-width', $css );
+		$this->assertStringContainsString( ':not(#hero):not(.optml-bg-lazyloaded)', $css );
+	}
+
+	/**
 	 * A watcher with no above-fold elements still hides all its matches (unchanged behaviour).
 	 */
 	public function test_personalized_css_hides_all_when_no_above_fold() {
