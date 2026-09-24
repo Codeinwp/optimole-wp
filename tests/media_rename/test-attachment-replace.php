@@ -323,6 +323,43 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 		wp_delete_post( $id, true );
 	}
 
+	/**
+	 * A failed sanitizer write must abort the replace and leave the original SVG untouched.
+	 */
+	public function test_replace_aborts_when_sanitizer_write_fails() {
+		if ( 0 === posix_getuid() ) {
+			$this->markTestSkipped( 'Running as root bypasses the file permission that forces the write to fail.' );
+		}
+
+		$id        = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample.svg' );
+		$file_path = ( new Optml_Attachment_Model( $id ) )->get_source_file_path();
+		$original  = file_get_contents( $file_path );
+
+		// Read-only tmp file: sanitize_svg() can read it but its file_put_contents() fails.
+		$tmp_file = self::FILESTASH . 'replace-readonly.svg';
+		file_put_contents( $tmp_file, '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>' );
+		chmod( $tmp_file, 0444 );
+
+		$replacer = new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-readonly.svg',
+				'type'     => 'image/svg+xml',
+				'tmp_name' => $tmp_file,
+			]
+		);
+
+		$result = $replacer->replace();
+
+		chmod( $tmp_file, 0644 );
+
+		$this->assertWPError( $result, 'A failed sanitizer write must abort the replace.' );
+		$this->assertSame( $original, file_get_contents( $file_path ), 'Original SVG was overwritten despite a failed sanitize.' );
+		$this->assertStringNotContainsString( '<script', file_get_contents( $file_path ) );
+
+		wp_delete_post( $id, true );
+	}
+
 	private function do_replace_test( $id_to_replace, $replace_file, $source_scaled, $result_scaled ) {
 		// Removed var_dump
 
