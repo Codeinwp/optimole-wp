@@ -257,7 +257,7 @@ class Optml_Admin {
 		$written = @file_put_contents( $file, $clean ); // phpcs:ignore WordPress.WP.AlternativeFunctions, WordPress.PHP.NoSilencedErrors
 
 		// A failed write leaves the dirty upload in place, so report it as unsanitized.
-		return false !== $written;
+		return is_string( $clean ) && strlen( $clean ) === $written;
 	}
 
 	/**
