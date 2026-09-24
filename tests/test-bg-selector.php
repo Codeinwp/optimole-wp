@@ -180,6 +180,50 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A safe selector followed by an unsafe one still voids the whole device rule.
+	 */
+	public function test_personalized_css_drops_rule_when_any_selector_unsafe() {
+		$device_data = [
+			'bg' => [
+				self::WATCHER => [
+					'#hero'       => [],
+					self::PAYLOAD => [],
+				],
+			],
+		];
+
+		$css = Lazyload::get_personalized_css(
+			[
+				Profile::DEVICE_TYPE_MOBILE  => $device_data,
+				Profile::DEVICE_TYPE_DESKTOP => $device_data,
+			]
+		);
+
+		$this->assertStringNotContainsString( 'background:red', $css );
+		$this->assertSame( '', $css );
+	}
+
+	/**
+	 * When only one device is voided, the surviving device stays scoped to its own media query
+	 * instead of leaking a media-query-less rule onto the voided device's viewport.
+	 */
+	public function test_personalized_css_scopes_surviving_device_to_media_query() {
+		$css = Lazyload::get_personalized_css(
+			[
+				Profile::DEVICE_TYPE_MOBILE  => [ 'bg' => [ self::WATCHER => [ self::PAYLOAD => [] ] ] ],
+				Profile::DEVICE_TYPE_DESKTOP => [ 'bg' => [ self::WATCHER => [ '#hero' => [] ] ] ],
+			]
+		);
+
+		$this->assertStringNotContainsString( 'background:red', $css );
+		$this->assertStringNotContainsString( self::PAYLOAD, $css );
+		// The surviving desktop rule must stay desktop-scoped and not apply on phones.
+		$this->assertStringStartsWith( '@media (min-width: 600px) {', $css );
+		$this->assertStringNotContainsString( '@media (max-width: 600px)', $css );
+		$this->assertStringContainsString( ':not(#hero):not(.optml-bg-lazyloaded)', $css );
+	}
+
+	/**
 	 * A watcher with no above-fold elements still hides all its matches (unchanged behaviour).
 	 */
 	public function test_personalized_css_hides_all_when_no_above_fold() {

@@ -52,55 +52,26 @@ class Lazyload {
 		$lazyload_selectors = array_fill_keys( $lazyload_selectors, true );
 		$css_selectors = [];
 		$preload_urls = [];
+		$tainted = [];
 		foreach ( Profile::get_active_devices() as $device ) {
 			$personalized_selectors = $data[ $device ]['bg'] ?? [];
 			$lcp_data = $data[ $device ]['lcp'] ?? [];
+			// Guard against malformed profile shapes (e.g. a non-normalizing custom storage backend).
+			$personalized_selectors = is_array( $personalized_selectors ) ? $personalized_selectors : [];
+			$lcp_data = is_array( $lcp_data ) ? $lcp_data : [];
 			if ( OPTML_DEBUG ) {
 				do_action( 'optml_log', 'personalized_selectors: ' . $device . ' ' . print_r( $personalized_selectors, true ) );
 				do_action( 'optml_log', 'LCP data: ' . $device . ' ' . print_r( $lcp_data, true ) );
 			}
-			$css_selectors[ $device ] = [];
-			// Discard the whole rule if a selector is unsafe.
-			$device_tainted = false;
-			foreach ( $personalized_selectors as $selector => $above_fold_selectors ) {
-				if ( ! isset( $lazyload_selectors[ $selector ] ) ) {
-					continue;
-				}
-				if ( empty( $above_fold_selectors ) ) {
-					$css_selectors[ $device ][] = 'html ' . strip_tags( $selector ) . ':not(.optml-bg-lazyloaded)';
-				} else {
-					foreach ( $above_fold_selectors as $above_fold_selector => $bg_urls ) {
-						if ( ! self::is_safe_selector( $above_fold_selector ) ) {
-							$device_tainted = true;
-							break 2;
-						}
-						$css_selectors[ $device ][] = 'html ' . strip_tags( $selector ) . ':not(' . $above_fold_selector . '):not(.optml-bg-lazyloaded)';
-					}
-				}
-			}
+
+			$selectors = self::collect_device_selectors( $personalized_selectors, $lcp_data, $lazyload_selectors );
+			// null means a client selector was unsafe, so the whole device rule is voided.
+			$tainted[ $device ] = null === $selectors;
+			$css_selectors[ $device ] = $tainted[ $device ] ? [] : $selectors;
 
 			$preload_urls[ $device ] = [];
-			$css_selectors[ $device ] = array_unique( $css_selectors[ $device ] );
-			if ( isset( $lcp_data['type'] ) && $lcp_data['type'] === 'bg' ) {
-				if ( ! empty( $lcp_data['bgSelector'] ) ) {
-					if ( self::is_safe_selector( $lcp_data['bgSelector'] ) ) {
-						$css_selectors[ $device ] = array_map(
-							function ( $selector ) use ( $lcp_data ) {
-								return $selector . ':not(' . $lcp_data['bgSelector'] . ')';
-							},
-							$css_selectors[ $device ]
-						);
-					} else {
-						$device_tainted = true;
-					}
-				}
-				if ( ! empty( $lcp_data['bgUrls'] ) ) {
-					$preload_urls[ $device ] = array_merge( $preload_urls[ $device ], $lcp_data['bgUrls'] );
-				}
-			}
-
-			if ( $device_tainted ) {
-				$css_selectors[ $device ] = [];
+			if ( isset( $lcp_data['type'] ) && $lcp_data['type'] === 'bg' && ! empty( $lcp_data['bgUrls'] ) ) {
+				$preload_urls[ $device ] = array_merge( $preload_urls[ $device ], $lcp_data['bgUrls'] );
 			}
 		}
 		if ( OPTML_DEBUG ) {
@@ -113,8 +84,19 @@ class Lazyload {
 		}
 
 		$hide_rule = ' { background-image: none !important; }';
-		$mobile_selectors = implode( ',', $css_selectors[ Profile::DEVICE_TYPE_MOBILE ] );
-		$desktop_selectors = implode( ',', $css_selectors[ Profile::DEVICE_TYPE_DESKTOP ] );
+		$mobile = $css_selectors[ Profile::DEVICE_TYPE_MOBILE ];
+		$desktop = $css_selectors[ Profile::DEVICE_TYPE_DESKTOP ];
+
+		// Keep the surviving rule scoped when the other device was voided.
+		if ( $tainted[ Profile::DEVICE_TYPE_MOBILE ] !== $tainted[ Profile::DEVICE_TYPE_DESKTOP ] ) {
+			if ( $tainted[ Profile::DEVICE_TYPE_MOBILE ] ) {
+				return empty( $desktop ) ? '' : '@media (min-width: 600px) { ' . implode( ',', $desktop ) . $hide_rule . ' }';
+			}
+			return empty( $mobile ) ? '' : '@media (max-width: 600px) { ' . implode( ',', $mobile ) . $hide_rule . ' }';
+		}
+
+		$mobile_selectors = implode( ',', $mobile );
+		$desktop_selectors = implode( ',', $desktop );
 
 		if ( $mobile_selectors === $desktop_selectors ) {
 				return empty( $mobile_selectors ) ? '' : $mobile_selectors . $hide_rule;
@@ -130,5 +112,48 @@ class Lazyload {
 		// generate media query for desktop and mobile
 		$media_query = '@media (max-width: 600px) { ' . $mobile_selectors . $hide_rule . ' } @media (min-width: 600px) { ' . $desktop_selectors . $hide_rule . ' }';
 		return $media_query;
+	}
+	/**
+	 * Build the background-hide selectors for one device.
+	 *
+	 * @param array<string, array<string, mixed>> $personalized_selectors Stored bg data: watcher => [ above-fold selector => urls ].
+	 * @param array<string, mixed>                $lcp_data               Stored LCP data for the device.
+	 * @param array<string, bool>                 $lazyload_selectors     Allowed watcher selectors as keys.
+	 *
+	 * @return array<int, string>|null Selector strings, or null when a client selector is unsafe (the device rule is voided).
+	 */
+	private static function collect_device_selectors( array $personalized_selectors, array $lcp_data, array $lazyload_selectors ) {
+		$css_selectors = [];
+		foreach ( $personalized_selectors as $selector => $above_fold_selectors ) {
+			if ( ! isset( $lazyload_selectors[ $selector ] ) ) {
+				continue;
+			}
+			if ( empty( $above_fold_selectors ) ) {
+				$css_selectors[] = 'html ' . strip_tags( $selector ) . ':not(.optml-bg-lazyloaded)';
+				continue;
+			}
+			foreach ( $above_fold_selectors as $above_fold_selector => $bg_urls ) {
+				if ( ! self::is_safe_selector( $above_fold_selector ) ) {
+					return null;
+				}
+				$css_selectors[] = 'html ' . strip_tags( $selector ) . ':not(' . $above_fold_selector . '):not(.optml-bg-lazyloaded)';
+			}
+		}
+
+		$css_selectors = array_unique( $css_selectors );
+
+		if ( isset( $lcp_data['type'] ) && $lcp_data['type'] === 'bg' && ! empty( $lcp_data['bgSelector'] ) ) {
+			if ( ! self::is_safe_selector( $lcp_data['bgSelector'] ) ) {
+				return null;
+			}
+			$css_selectors = array_map(
+				function ( $selector ) use ( $lcp_data ) {
+					return $selector . ':not(' . $lcp_data['bgSelector'] . ')';
+				},
+				$css_selectors
+			);
+		}
+
+		return array_values( $css_selectors );
 	}
 }
