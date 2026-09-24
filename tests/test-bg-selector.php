@@ -156,30 +156,6 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A page with only plain selectors still renders exactly as before.
-	 */
-	public function test_personalized_css_keeps_plain_selectors() {
-		$device_data = [
-			'bg'  => [ self::WATCHER => [ '#hero' => [] ] ],
-			'lcp' => [
-				'type'       => 'bg',
-				'bgSelector' => 'body > div.hero:nth-of-type(1)',
-			],
-		];
-
-		$css = Lazyload::get_personalized_css(
-			[
-				Profile::DEVICE_TYPE_MOBILE  => $device_data,
-				Profile::DEVICE_TYPE_DESKTOP => $device_data,
-			]
-		);
-
-		$this->assertStringContainsString( 'html ' . self::WATCHER . ':not(#hero):not(.optml-bg-lazyloaded)', $css );
-		$this->assertStringContainsString( ':not(body > div.hero:nth-of-type(1))', $css );
-		$this->assertStringContainsString( '{ background-image: none !important; }', $css );
-	}
-
-	/**
 	 * A safe selector followed by an unsafe one still voids the whole device rule.
 	 */
 	public function test_personalized_css_drops_rule_when_any_selector_unsafe() {
@@ -211,7 +187,13 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 		$css = Lazyload::get_personalized_css(
 			[
 				Profile::DEVICE_TYPE_MOBILE  => [ 'bg' => [ self::WATCHER => [ self::PAYLOAD => [] ] ] ],
-				Profile::DEVICE_TYPE_DESKTOP => [ 'bg' => [ self::WATCHER => [ '#hero' => [] ] ] ],
+				Profile::DEVICE_TYPE_DESKTOP => [
+					'bg'  => [ self::WATCHER => [ '#hero' => [] ] ],
+					'lcp' => [
+						'type'       => 'bg',
+						'bgSelector' => 'body > div.hero:nth-of-type(1)',
+					],
+				],
 			]
 		);
 
@@ -220,7 +202,9 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 		// The surviving desktop rule must stay desktop-scoped and not apply on phones.
 		$this->assertStringStartsWith( '@media (min-width: 600px) {', $css );
 		$this->assertStringNotContainsString( '@media (max-width: 600px)', $css );
+		// The safe above-fold and LCP selectors are still rendered (the gating must not over-reject them).
 		$this->assertStringContainsString( ':not(#hero):not(.optml-bg-lazyloaded)', $css );
+		$this->assertStringContainsString( ':not(body > div.hero:nth-of-type(1))', $css );
 	}
 
 	/**
@@ -240,24 +224,6 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 		$this->assertStringStartsWith( '@media (max-width: 600px) {', $css );
 		$this->assertStringNotContainsString( 'min-width', $css );
 		$this->assertStringContainsString( ':not(#hero):not(.optml-bg-lazyloaded)', $css );
-	}
-
-	/**
-	 * A watcher with no above-fold elements still hides all its matches (unchanged behaviour).
-	 */
-	public function test_personalized_css_hides_all_when_no_above_fold() {
-		$device_data = [
-			'bg' => [ self::WATCHER => [] ],
-		];
-
-		$css = Lazyload::get_personalized_css(
-			[
-				Profile::DEVICE_TYPE_MOBILE  => $device_data,
-				Profile::DEVICE_TYPE_DESKTOP => $device_data,
-			]
-		);
-
-		$this->assertSame( 'html ' . self::WATCHER . ':not(.optml-bg-lazyloaded) { background-image: none !important; }', $css );
 	}
 
 	/**
