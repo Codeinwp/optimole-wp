@@ -222,7 +222,7 @@ class Optml_Admin {
 	 *
 	 * @return bool|int
 	 */
-	protected function sanitize_svg( $file ) {
+	public function sanitize_svg( $file ) {
 		// We can ignore the phpcs warning here as we're reading and writing to the Temp file.
 		$dirty = file_get_contents( $file ); // phpcs:ignore
 

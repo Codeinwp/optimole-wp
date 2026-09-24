@@ -268,6 +268,61 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 		};
 	}
 
+	/**
+	 * Replacing an SVG must run the same sanitizer as a normal upload.
+	 */
+	public function test_replace_sanitizes_svg() {
+		$id        = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample.svg' );
+		$file_path = ( new Optml_Attachment_Model( $id ) )->get_source_file_path();
+
+		$tmp_file = self::FILESTASH . 'replace-scripted.svg';
+		file_put_contents( $tmp_file, '<svg xmlns="http://www.w3.org/2000/svg" onload="alert(1)"><script>alert(document.domain)</script><rect width="10" height="10"/></svg>' );
+
+		$replacer = new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-scripted.svg',
+				'type'     => 'image/svg+xml',
+				'tmp_name' => $tmp_file,
+			]
+		);
+
+		$this->assertTrue( $replacer->replace(), 'Replacement operation failed.' );
+
+		$contents = file_get_contents( $file_path );
+		$this->assertStringContainsString( '<rect', $contents );
+		$this->assertStringNotContainsString( '<script', $contents );
+		$this->assertStringNotContainsString( 'onload', $contents );
+
+		wp_delete_post( $id, true );
+	}
+
+	/**
+	 * An SVG the sanitizer cannot parse must not replace the original file.
+	 */
+	public function test_replace_rejects_unsanitizable_svg() {
+		$id        = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample.svg' );
+		$file_path = ( new Optml_Attachment_Model( $id ) )->get_source_file_path();
+		$original  = file_get_contents( $file_path );
+
+		$tmp_file = self::FILESTASH . 'replace-broken.svg';
+		file_put_contents( $tmp_file, 'not <svg an <<< xml document' );
+
+		$replacer = new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-broken.svg',
+				'type'     => 'image/svg+xml',
+				'tmp_name' => $tmp_file,
+			]
+		);
+
+		$this->assertWPError( $replacer->replace() );
+		$this->assertSame( $original, file_get_contents( $file_path ), 'Original SVG was overwritten.' );
+
+		wp_delete_post( $id, true );
+	}
+
 	private function do_replace_test( $id_to_replace, $replace_file, $source_scaled, $result_scaled ) {
 		// Removed var_dump
 
