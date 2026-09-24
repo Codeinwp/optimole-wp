@@ -56,7 +56,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	 *
 	 * @param string $selector Selector to check.
 	 */
-	public function test_is_safe_selector_accepts_generated_selectors( $selector ) {
+	public function test_is_safe_selector_accepts_generated_selectors( $selector ): void {
 		$this->assertTrue( Lazyload::is_safe_selector( $selector ) );
 	}
 
@@ -65,7 +65,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{string}>
 	 */
-	public function safe_selectors() {
+	public function safe_selectors(): array {
 		return [
 			'body'            => [ 'body' ],
 			'id'              => [ '#hero' ],
@@ -82,7 +82,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	 *
 	 * @param mixed $selector Selector to check.
 	 */
-	public function test_is_safe_selector_rejects_metacharacters( $selector ) {
+	public function test_is_safe_selector_rejects_metacharacters( $selector ): void {
 		$this->assertFalse( Lazyload::is_safe_selector( $selector ) );
 	}
 
@@ -91,7 +91,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	 *
 	 * @return array<string, array{mixed}>
 	 */
-	public function unsafe_selectors() {
+	public function unsafe_selectors(): array {
 		return [
 			'issue payload'    => [ self::PAYLOAD ],
 			'tailwind colon'   => [ 'body > div.md:flex' ],
@@ -111,7 +111,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	/**
 	 * An injected above-fold selector voids the device rule instead of leaking CSS.
 	 */
-	public function test_personalized_css_drops_injected_selectors() {
+	public function test_personalized_css_drops_injected_selectors(): void {
 		$device_data = [
 			'bg' => [
 				self::WATCHER => [
@@ -135,7 +135,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	/**
 	 * An injected LCP selector voids the device rule.
 	 */
-	public function test_personalized_css_drops_injected_lcp_selector() {
+	public function test_personalized_css_drops_injected_lcp_selector(): void {
 		$device_data = [
 			'bg'  => [ self::WATCHER => [ '#hero' => [] ] ],
 			'lcp' => [
@@ -158,7 +158,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	/**
 	 * A safe selector followed by an unsafe one still voids the whole device rule.
 	 */
-	public function test_personalized_css_drops_rule_when_any_selector_unsafe() {
+	public function test_personalized_css_drops_rule_when_any_selector_unsafe(): void {
 		$device_data = [
 			'bg' => [
 				self::WATCHER => [
@@ -183,7 +183,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	 * When only one device is voided, the surviving device stays scoped to its own media query
 	 * instead of leaking a media-query-less rule onto the voided device's viewport.
 	 */
-	public function test_personalized_css_scopes_surviving_device_to_media_query() {
+	public function test_personalized_css_scopes_surviving_device_to_media_query(): void {
 		$css = Lazyload::get_personalized_css(
 			[
 				Profile::DEVICE_TYPE_MOBILE  => [ 'bg' => [ self::WATCHER => [ self::PAYLOAD => [] ] ] ],
@@ -210,7 +210,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	/**
 	 * The mirror case: when desktop is voided, the surviving mobile rule stays mobile-scoped.
 	 */
-	public function test_personalized_css_scopes_surviving_mobile_device_to_media_query() {
+	public function test_personalized_css_scopes_surviving_mobile_device_to_media_query(): void {
 		$css = Lazyload::get_personalized_css(
 			[
 				Profile::DEVICE_TYPE_MOBILE  => [ 'bg' => [ self::WATCHER => [ '#hero' => [] ] ] ],
@@ -229,7 +229,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	/**
 	 * Reset the cached background lazyload selectors.
 	 */
-	private function reset_background_selectors() {
+	private function reset_background_selectors(): void {
 		$property = new ReflectionProperty( Optml_Lazyload_Replacer::class, 'background_lazyload_selectors' );
 		$property->setAccessible( true );
 		$property->setValue( null, null );
