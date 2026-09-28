@@ -77,6 +77,12 @@ class Optml_Attachment_Replace {
 			return new WP_Error( 'file_error', __( 'The uploaded file type does not match the original file type.', 'optimole-wp' ) );
 		}
 
+		if ( $uploaded_filetype['type'] === 'image/svg+xml' ) {
+			if ( ! Optml_Main::instance()->admin->sanitize_svg( $this->file['tmp_name'] ) ) {
+				return new WP_Error( 'file_error', __( 'Error uploading file.', 'optimole-wp' ) );
+			}
+		}
+
 		global $wp_filesystem;
 
 		if ( ! $wp_filesystem->move( $this->file['tmp_name'], $original_file, true ) ) {
