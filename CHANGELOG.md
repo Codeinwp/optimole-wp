@@ -1,3 +1,7 @@
+##### [Version 4.2.15](https://github.com/Codeinwp/optimole-wp/compare/v4.2.14...v4.2.15) (2026-09-28)
+
+- Enhanced Security
+
 ##### [Version 4.2.14](https://github.com/Codeinwp/optimole-wp/compare/v4.2.13...v4.2.14) (2026-09-21)
 
 - Fixed AJAX requests that use an array action value.
