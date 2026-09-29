@@ -57,7 +57,7 @@
   },
   "require": {
     "php": ">=7.4",
-    "codeinwp/themeisle-sdk": "^3.3.64",
+    "codeinwp/themeisle-sdk": "^3.3.65",
     "codeinwp/optimole-sdk": "^1.2",
     "enshrined/svg-sanitize": "^1.0.0"
   }
