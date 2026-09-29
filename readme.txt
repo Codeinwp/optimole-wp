@@ -4,7 +4,7 @@ Tags: image optimization, optimize images, compress images, webp, avif
 Requires at least: 5.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 4.2.13
+Stable tag: 4.2.15
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -248,7 +248,7 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 4.2.13](https://github.com/Codeinwp/optimole-wp/compare/v4.2.12...v4.2.13) (2026-09-14)
+##### [Version 4.2.15](https://github.com/Codeinwp/optimole-wp/compare/v4.2.14...v4.2.15) (2026-09-28)
 
 - Enhanced Security
 
