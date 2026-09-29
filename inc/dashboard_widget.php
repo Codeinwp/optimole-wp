@@ -31,7 +31,7 @@ class Optml_Dashboard_Widget {
 	 * Add the dashboard widget.
 	 */
 	public function add_dashboard_widget() {
-		if ( ! $this->has_at_least_ten_visits() ) {
+		if ( ! current_user_can( 'manage_options' ) || ! $this->has_at_least_ten_visits() ) {
 			return;
 		}
 
@@ -42,7 +42,7 @@ class Optml_Dashboard_Widget {
 	 * Enqueue the widget assets.
 	 */
 	public function enqueue_widget() {
-		if ( ! $this->is_main_dashboard_page() || ! $this->has_at_least_ten_visits() ) {
+		if ( ! current_user_can( 'manage_options' ) || ! $this->is_main_dashboard_page() || ! $this->has_at_least_ten_visits() ) {
 			return;
 		}
 
@@ -112,7 +112,7 @@ class Optml_Dashboard_Widget {
 			],
 			'skeletonLoader' => $this->get_skeleton_loader(),
 			'billingURL' => tsdk_translate_link( 'https://dashboard.optimole.com/settings/billing', 'query' ),
-			'serviceData' => $this->get_service_data(),
+			'serviceData' => $this->get_widget_service_data(),
 			'assetsURL' => OPTML_URL . 'assets/',
 			'dashboardMetricsURL' => esc_url( 'https://dashboard.optimole.com/metrics' ),
 			'dashboardURL' => esc_url( tsdk_translate_link( 'https://dashboard.optimole.com' ) ),
@@ -128,6 +128,24 @@ class Optml_Dashboard_Widget {
 		$settings = new Optml_Settings();
 
 		return $settings->get( 'service_data' );
+	}
+
+	/**
+	 * Get the service data fields the widget displays, keeping keys and secrets out of the page.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function get_widget_service_data() {
+		$service_data = $this->get_service_data();
+
+		if ( ! is_array( $service_data ) ) {
+			return [];
+		}
+
+		return array_intersect_key(
+			$service_data,
+			array_flip( [ 'visitors', 'visitors_pretty', 'visitors_limit', 'visitors_limit_pretty', 'compression_percentage', 'traffic' ] )
+		);
 	}
 
 	/**
