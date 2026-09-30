@@ -8,6 +8,8 @@
  * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
  */
 
+use WpOrg\Requests\Utility\CaseInsensitiveDictionary;
+
 /**
  * Class Test_Admin.
  *
@@ -531,7 +533,7 @@ class Test_Admin extends WP_UnitTestCase {
 	 */
 	public function test_svg_rest_body_upload_is_sanitized(): void {
 		$this->assertNotFalse(
-			has_filter( 'wp_handle_sideload_prefilter', [ Optml_Main::instance()->admin, 'check_svg_and_sanitize' ] ),
+			has_filter( 'wp_handle_sideload_prefilter', [ Optml_Main::instance()->admin, 'sanitize_sideloaded_svg' ] ),
 			'The sanitizer must run on the sideload path used by raw-body REST media uploads.'
 		);
 
@@ -561,5 +563,80 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( '<script', (string) file_get_contents( $stored_path ), 'The stored SVG kept its script.' );
 
 		wp_delete_attachment( $attachment_id, true );
+	}
+
+	/**
+	 * A background restore of an offloaded SVG runs without a user and must still succeed, sanitized.
+	 */
+	public function test_svg_background_restore_is_sanitized_without_user(): void {
+		$settings = new Optml_Settings();
+		$settings->update(
+			'service_data',
+			[
+				'cdn_key'    => 'example',
+				'cdn_secret' => 'test',
+				'whitelist'  => [ 'example.org' ],
+			]
+		);
+		$settings->update( 'offload_media', 'enabled' );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample.svg' );
+		$meta          = wp_get_attachment_metadata( $attachment_id );
+		$meta          = is_array( $meta ) ? $meta : [];
+		$meta['file']  = '/' . Optml_Media_Offload::KEYS['uploaded_flag'] . 'issue1805svg/2026/09/sample.svg';
+		wp_update_attachment_metadata( $attachment_id, $meta );
+
+		// Scheduled/CLI restores run with no logged-in user.
+		wp_set_current_user( 0 );
+
+		add_filter( 'pre_http_request', [ $this, 'mock_offloaded_svg_download' ], 10, 3 );
+		try {
+			$restored = Optml_Media_Offload::instance()->rollback_and_update_images( [ $attachment_id ] );
+		} finally {
+			remove_filter( 'pre_http_request', [ $this, 'mock_offloaded_svg_download' ], 10 );
+		}
+
+		$restored_file = (string) get_attached_file( $attachment_id );
+
+		$this->assertSame( 1, $restored, 'The SVG restore was rejected.' );
+		$this->assertEmpty( get_post_meta( $attachment_id, Optml_Media_Offload::META_KEYS['rollback_error'], true ) );
+		$this->assertFileExists( $restored_file );
+		$this->assertStringNotContainsString( '<script', (string) file_get_contents( $restored_file ), 'The restored SVG kept its script.' );
+
+		wp_delete_attachment( $attachment_id, true );
+	}
+
+	/**
+	 * Mock the cloud URL lookup and the download of a scripted SVG during a restore.
+	 *
+	 * @param false|array<string, mixed>|WP_Error $preempt Short-circuit response.
+	 * @param array<string, mixed>                $args    Request arguments.
+	 * @param string                              $url     Request URL.
+	 *
+	 * @return false|array<string, mixed>|WP_Error
+	 */
+	public function mock_offloaded_svg_download( $preempt, array $args, string $url ) {
+		$response = [
+			'headers'  => new CaseInsensitiveDictionary( [ 'content-type' => 'application/json' ] ),
+			'response' => [
+				'code'    => 200,
+				'message' => 'OK',
+			],
+			'cookies'  => [],
+			'filename' => '',
+			'body'     => '',
+		];
+
+		if ( 'https://generateurls-prod.i.optimole.com/upload' === $url ) {
+			$response['body'] = '{"getUrl": "getUrl"}';
+			return $response;
+		}
+
+		if ( 'getUrl' === $url ) {
+			file_put_contents( $args['filename'], '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</script><rect width="1" height="1"/></svg>' );
+			return $response;
+		}
+
+		return $preempt;
 	}
 }
