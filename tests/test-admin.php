@@ -539,20 +539,7 @@ class Test_Admin extends WP_UnitTestCase {
 
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'author' ] ) );
 
-		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
-		$request->set_header( 'Content-Type', 'image/svg+xml' );
-		$request->set_header( 'Content-Disposition', 'attachment; filename=rest.svg' );
-		$request->set_body( '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</script><rect width="1" height="1"/></svg>' );
-
-		// SVGs have no raster size; skip core sub-size generation, which warns on them.
-		add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
-		add_filter( 'wp_generate_attachment_metadata', '__return_empty_array', 0 );
-		try {
-			$response = rest_get_server()->dispatch( $request );
-		} finally {
-			remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
-			remove_filter( 'wp_generate_attachment_metadata', '__return_empty_array', 0 );
-		}
+		$response = $this->dispatch_svg_rest_upload( 'rest.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</script><rect width="1" height="1"/></svg>' );
 
 		$this->assertSame( 201, $response->get_status(), 'The SVG REST upload should be created.' );
 
@@ -573,26 +560,47 @@ class Test_Admin extends WP_UnitTestCase {
 	public function test_svg_rest_body_upload_rejects_unsanitizable_svg(): void {
 		wp_set_current_user( self::factory()->user->create( [ 'role' => 'author' ] ) );
 
-		$attachments_before = count( get_posts( [ 'post_type' => 'attachment', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids' ] ) );
+		$attachments_before = $this->count_attachments();
 
+		$response = $this->dispatch_svg_rest_upload( 'malformed.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</svg>' );
+
+		$this->assertSame( 500, $response->get_status(), 'The unsanitizable SVG was stored.' );
+		$this->assertSame( 'rest_upload_sideload_error', $response->get_data()['code'] );
+		$this->assertSame( $attachments_before, $this->count_attachments() );
+	}
+
+	/**
+	 * POST an SVG as the raw request body to the REST media endpoint.
+	 *
+	 * @param string $filename File name sent in Content-Disposition.
+	 * @param string $body     Raw SVG markup.
+	 *
+	 * @return WP_REST_Response
+	 */
+	private function dispatch_svg_rest_upload( string $filename, string $body ): WP_REST_Response {
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/svg+xml' );
-		$request->set_header( 'Content-Disposition', 'attachment; filename=malformed.svg' );
-		$request->set_body( '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</svg>' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=' . $filename );
+		$request->set_body( $body );
 
 		// SVGs have no raster size; skip core sub-size generation, which warns on them.
 		add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
 		add_filter( 'wp_generate_attachment_metadata', '__return_empty_array', 0 );
 		try {
-			$response = rest_get_server()->dispatch( $request );
+			return rest_get_server()->dispatch( $request );
 		} finally {
 			remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
 			remove_filter( 'wp_generate_attachment_metadata', '__return_empty_array', 0 );
 		}
+	}
 
-		$this->assertSame( 500, $response->get_status(), 'The unsanitizable SVG was stored.' );
-		$this->assertSame( 'rest_upload_sideload_error', $response->get_data()['code'] );
-		$this->assertCount( $attachments_before, get_posts( [ 'post_type' => 'attachment', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids' ] ) );
+	/**
+	 * Count all attachments, whatever their status.
+	 *
+	 * @return int
+	 */
+	private function count_attachments(): int {
+		return count( get_posts( [ 'post_type' => 'attachment', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids' ] ) );
 	}
 
 	/**
