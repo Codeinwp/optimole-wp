@@ -541,7 +541,7 @@ class Test_Admin extends WP_UnitTestCase {
 
 		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
 		$request->set_header( 'Content-Type', 'image/svg+xml' );
-		$request->set_header( 'Content-Disposition', 'attachment; filename=issue-1805-rest.svg' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=rest.svg' );
 		$request->set_body( '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</script><rect width="1" height="1"/></svg>' );
 
 		// SVGs have no raster size; skip core sub-size generation, which warns on them.
@@ -566,6 +566,36 @@ class Test_Admin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A malformed SVG the sanitizer cannot parse must be rejected on the sideload path, not stored as-is.
+	 *
+	 * Breaking the XML is how a scripted SVG would slip past the sanitizer, so the unparseable file is refused.
+	 */
+	public function test_svg_rest_body_upload_rejects_unsanitizable_svg(): void {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'author' ] ) );
+
+		$attachments_before = count( get_posts( [ 'post_type' => 'attachment', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids' ] ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/svg+xml' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=malformed.svg' );
+		$request->set_body( '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</svg>' );
+
+		// SVGs have no raster size; skip core sub-size generation, which warns on them.
+		add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
+		add_filter( 'wp_generate_attachment_metadata', '__return_empty_array', 0 );
+		try {
+			$response = rest_get_server()->dispatch( $request );
+		} finally {
+			remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
+			remove_filter( 'wp_generate_attachment_metadata', '__return_empty_array', 0 );
+		}
+
+		$this->assertSame( 500, $response->get_status(), 'The unsanitizable SVG was stored.' );
+		$this->assertSame( 'rest_upload_sideload_error', $response->get_data()['code'] );
+		$this->assertCount( $attachments_before, get_posts( [ 'post_type' => 'attachment', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids' ] ) );
+	}
+
+	/**
 	 * A background restore of an offloaded SVG runs without a user and must still succeed, sanitized.
 	 */
 	public function test_svg_background_restore_is_sanitized_without_user(): void {
@@ -583,7 +613,7 @@ class Test_Admin extends WP_UnitTestCase {
 		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample.svg' );
 		$meta          = wp_get_attachment_metadata( $attachment_id );
 		$meta          = is_array( $meta ) ? $meta : [];
-		$meta['file']  = '/' . Optml_Media_Offload::KEYS['uploaded_flag'] . 'issue1805svg/2026/09/sample.svg';
+		$meta['file']  = '/' . Optml_Media_Offload::KEYS['uploaded_flag'] . 'svg/2026/09/sample.svg';
 		wp_update_attachment_metadata( $attachment_id, $meta );
 
 		// Scheduled/CLI restores run with no logged-in user.
