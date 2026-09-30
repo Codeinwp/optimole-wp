@@ -522,4 +522,44 @@ class Test_Admin extends WP_UnitTestCase {
 		$result = $this->admin->get_bf_notices( 'free' );
 		$this->assertNotEmpty( $result, 'Should show notices at exact end time' );
 	}
+
+	/**
+	 * An Author POSTing a scripted SVG as the raw request body to the REST media endpoint must get it sanitized.
+	 *
+	 * Core stores a raw-body upload through wp_handle_sideload(), which fires wp_handle_sideload_prefilter
+	 * rather than wp_handle_upload_prefilter.
+	 */
+	public function test_svg_rest_body_upload_is_sanitized(): void {
+		$this->assertNotFalse(
+			has_filter( 'wp_handle_sideload_prefilter', [ Optml_Main::instance()->admin, 'check_svg_and_sanitize' ] ),
+			'The sanitizer must run on the sideload path used by raw-body REST media uploads.'
+		);
+
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'author' ] ) );
+
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/svg+xml' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=issue-1805-rest.svg' );
+		$request->set_body( '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</script><rect width="1" height="1"/></svg>' );
+
+		// SVGs have no raster size; skip core sub-size generation, which warns on them.
+		add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
+		add_filter( 'wp_generate_attachment_metadata', '__return_empty_array', 0 );
+		try {
+			$response = rest_get_server()->dispatch( $request );
+		} finally {
+			remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
+			remove_filter( 'wp_generate_attachment_metadata', '__return_empty_array', 0 );
+		}
+
+		$this->assertSame( 201, $response->get_status(), 'The SVG REST upload should be created.' );
+
+		$attachment_id = (int) $response->get_data()['id'];
+		$stored_path   = (string) get_attached_file( $attachment_id );
+
+		$this->assertFileExists( $stored_path );
+		$this->assertStringNotContainsString( '<script', (string) file_get_contents( $stored_path ), 'The stored SVG kept its script.' );
+
+		wp_delete_attachment( $attachment_id, true );
+	}
 }

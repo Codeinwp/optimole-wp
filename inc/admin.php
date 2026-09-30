@@ -110,6 +110,7 @@ class Optml_Admin {
 				]
 			); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
 			add_filter( 'wp_handle_upload_prefilter', [ $this, 'check_svg_and_sanitize' ] );
+			add_filter( 'wp_handle_sideload_prefilter', [ $this, 'check_svg_and_sanitize' ] );
 		}
 
 		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
