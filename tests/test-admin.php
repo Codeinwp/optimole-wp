@@ -8,6 +8,8 @@
  * @license     http://opensource.org/licenses/gpl-2.0.php GNU Public License
  */
 
+use WpOrg\Requests\Utility\CaseInsensitiveDictionary;
+
 /**
  * Class Test_Admin.
  *
@@ -521,5 +523,158 @@ class Test_Admin extends WP_UnitTestCase {
 		
 		$result = $this->admin->get_bf_notices( 'free' );
 		$this->assertNotEmpty( $result, 'Should show notices at exact end time' );
+	}
+
+	/**
+	 * An Author POSTing a scripted SVG as the raw request body to the REST media endpoint must get it sanitized.
+	 *
+	 * Core stores a raw-body upload through wp_handle_sideload(), which fires wp_handle_sideload_prefilter
+	 * rather than wp_handle_upload_prefilter.
+	 */
+	public function test_svg_rest_body_upload_is_sanitized(): void {
+		$this->assertNotFalse(
+			has_filter( 'wp_handle_sideload_prefilter', [ Optml_Main::instance()->admin, 'sanitize_sideloaded_svg' ] ),
+			'The sanitizer must run on the sideload path used by raw-body REST media uploads.'
+		);
+
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'author' ] ) );
+
+		$response = $this->dispatch_svg_rest_upload( 'rest.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</script><rect width="1" height="1"/></svg>' );
+
+		$this->assertSame( 201, $response->get_status(), 'The SVG REST upload should be created.' );
+
+		$attachment_id = (int) $response->get_data()['id'];
+		$stored_path   = (string) get_attached_file( $attachment_id );
+
+		$this->assertFileExists( $stored_path );
+		$this->assertStringNotContainsString( '<script', (string) file_get_contents( $stored_path ), 'The stored SVG kept its script.' );
+
+		wp_delete_attachment( $attachment_id, true );
+	}
+
+	/**
+	 * A malformed SVG the sanitizer cannot parse must be rejected on the sideload path, not stored as-is.
+	 *
+	 * Breaking the XML is how a scripted SVG would slip past the sanitizer, so the unparseable file is refused.
+	 */
+	public function test_svg_rest_body_upload_rejects_unsanitizable_svg(): void {
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'author' ] ) );
+
+		$attachments_before = $this->count_attachments();
+
+		$response = $this->dispatch_svg_rest_upload( 'malformed.svg', '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</svg>' );
+
+		$this->assertSame( 500, $response->get_status(), 'The unsanitizable SVG was stored.' );
+		$this->assertSame( 'rest_upload_sideload_error', $response->get_data()['code'] );
+		$this->assertSame( $attachments_before, $this->count_attachments() );
+	}
+
+	/**
+	 * POST an SVG as the raw request body to the REST media endpoint.
+	 *
+	 * @param string $filename File name sent in Content-Disposition.
+	 * @param string $body     Raw SVG markup.
+	 *
+	 * @return WP_REST_Response
+	 */
+	private function dispatch_svg_rest_upload( string $filename, string $body ): WP_REST_Response {
+		$request = new WP_REST_Request( 'POST', '/wp/v2/media' );
+		$request->set_header( 'Content-Type', 'image/svg+xml' );
+		$request->set_header( 'Content-Disposition', 'attachment; filename=' . $filename );
+		$request->set_body( $body );
+
+		// SVGs have no raster size; skip core sub-size generation, which warns on them.
+		add_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
+		add_filter( 'wp_generate_attachment_metadata', '__return_empty_array', 0 );
+		try {
+			return rest_get_server()->dispatch( $request );
+		} finally {
+			remove_filter( 'intermediate_image_sizes_advanced', '__return_empty_array' );
+			remove_filter( 'wp_generate_attachment_metadata', '__return_empty_array', 0 );
+		}
+	}
+
+	/**
+	 * Count all attachments, whatever their status.
+	 *
+	 * @return int
+	 */
+	private function count_attachments(): int {
+		return count( get_posts( [ 'post_type' => 'attachment', 'post_status' => 'any', 'numberposts' => -1, 'fields' => 'ids' ] ) );
+	}
+
+	/**
+	 * A background restore of an offloaded SVG runs without a user and must still succeed, sanitized.
+	 */
+	public function test_svg_background_restore_is_sanitized_without_user(): void {
+		$settings = new Optml_Settings();
+		$settings->update(
+			'service_data',
+			[
+				'cdn_key'    => 'example',
+				'cdn_secret' => 'test',
+				'whitelist'  => [ 'example.org' ],
+			]
+		);
+		$settings->update( 'offload_media', 'enabled' );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample.svg' );
+		$meta          = wp_get_attachment_metadata( $attachment_id );
+		$meta          = is_array( $meta ) ? $meta : [];
+		$meta['file']  = '/' . Optml_Media_Offload::KEYS['uploaded_flag'] . 'svg/2026/09/sample.svg';
+		wp_update_attachment_metadata( $attachment_id, $meta );
+
+		// Scheduled/CLI restores run with no logged-in user.
+		wp_set_current_user( 0 );
+
+		add_filter( 'pre_http_request', [ $this, 'mock_offloaded_svg_download' ], 10, 3 );
+		try {
+			$restored = Optml_Media_Offload::instance()->rollback_and_update_images( [ $attachment_id ] );
+		} finally {
+			remove_filter( 'pre_http_request', [ $this, 'mock_offloaded_svg_download' ], 10 );
+		}
+
+		$restored_file = (string) get_attached_file( $attachment_id );
+
+		$this->assertSame( 1, $restored, 'The SVG restore was rejected.' );
+		$this->assertEmpty( get_post_meta( $attachment_id, Optml_Media_Offload::META_KEYS['rollback_error'], true ) );
+		$this->assertFileExists( $restored_file );
+		$this->assertStringNotContainsString( '<script', (string) file_get_contents( $restored_file ), 'The restored SVG kept its script.' );
+
+		wp_delete_attachment( $attachment_id, true );
+	}
+
+	/**
+	 * Mock the cloud URL lookup and the download of a scripted SVG during a restore.
+	 *
+	 * @param false|array<string, mixed>|WP_Error $preempt Short-circuit response.
+	 * @param array<string, mixed>                $args    Request arguments.
+	 * @param string                              $url     Request URL.
+	 *
+	 * @return false|array<string, mixed>|WP_Error
+	 */
+	public function mock_offloaded_svg_download( $preempt, array $args, string $url ) {
+		$response = [
+			'headers'  => new CaseInsensitiveDictionary( [ 'content-type' => 'application/json' ] ),
+			'response' => [
+				'code'    => 200,
+				'message' => 'OK',
+			],
+			'cookies'  => [],
+			'filename' => '',
+			'body'     => '',
+		];
+
+		if ( 'https://generateurls-prod.i.optimole.com/upload' === $url ) {
+			$response['body'] = '{"getUrl": "getUrl"}';
+			return $response;
+		}
+
+		if ( 'getUrl' === $url ) {
+			file_put_contents( $args['filename'], '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(document.domain)</script><rect width="1" height="1"/></svg>' );
+			return $response;
+		}
+
+		return $preempt;
 	}
 }
