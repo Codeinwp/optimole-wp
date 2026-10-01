@@ -4,7 +4,7 @@
 **Requires at least:** 5.5  
 **Tested up to:** 7.1  
 **Requires PHP:** 7.4  
-**Stable tag:** 4.2.15  
+**Stable tag:** 4.2.16  
 **License:** GPLv3  
 **License URI:** https://www.gnu.org/licenses/gpl-3.0.en.html  
 
@@ -248,9 +248,10 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 ## Changelog ##
 
-##### [Version 4.2.15](https://github.com/Codeinwp/optimole-wp/compare/v4.2.14...v4.2.15) (2026-09-28)
+##### [Version 4.2.16](https://github.com/Codeinwp/optimole-wp/compare/v4.2.15...v4.2.16) (2026-10-01)
 
-- Enhanced Security
+- Updated dependencies
+- Added AI agent support: let AI assistants control your Optimole settings for you.
 
 
 
