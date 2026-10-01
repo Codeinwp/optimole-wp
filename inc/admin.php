@@ -1186,7 +1186,7 @@ class Optml_Admin {
 
 		$request = new Optml_Api();
 		$data    = $request->get_user_data( $api_key, $application );
-		if ( $data === false || is_wp_error( $data ) ) {
+		if ( is_wp_error( $data ) ) {
 			return;
 		}
 		if ( $data === 'disconnect' ) {
