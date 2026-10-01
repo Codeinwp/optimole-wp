@@ -110,6 +110,7 @@ class Optml_Admin {
 				]
 			); // phpcs:ignore WordPressVIPMinimum.Hooks.RestrictedHooks.upload_mimes
 			add_filter( 'wp_handle_upload_prefilter', [ $this, 'check_svg_and_sanitize' ] );
+			add_filter( 'wp_handle_sideload_prefilter', [ $this, 'sanitize_sideloaded_svg' ] );
 		}
 
 		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
@@ -192,24 +193,65 @@ class Optml_Admin {
 	 * @return mixed
 	 */
 	public function check_svg_and_sanitize( $file ) {
+		if ( ! is_array( $file ) || ! $this->is_svg_file( $file ) ) {
+			return $file;
+		}
+
+		if ( ! current_user_can( 'upload_files' ) ) {
+			$file['error'] = 'Invalid';
+			return $file;
+		}
+
+		return $this->sanitize_svg_file( $file );
+	}
+
+	/**
+	 * Sanitize an SVG stored through wp_handle_sideload().
+	 *
+	 * Sideload callers authorize themselves (the REST media endpoint checks upload_files) and
+	 * background restores run without a user, so only sanitization is applied here.
+	 *
+	 * @param array<string, mixed> $file An array of data for a single file.
+	 *
+	 * @return array<string, mixed>
+	 */
+	public function sanitize_sideloaded_svg( array $file ): array {
+		if ( ! $this->is_svg_file( $file ) ) {
+			return $file;
+		}
+
+		return $this->sanitize_svg_file( $file );
+	}
+
+	/**
+	 * Check whether an upload/sideload file array is an SVG.
+	 *
+	 * @param array<string, mixed> $file An array of data for a single file.
+	 *
+	 * @return bool
+	 */
+	private function is_svg_file( array $file ): bool {
 		// Ensure we have a proper file path before processing.
 		if ( ! isset( $file['tmp_name'] ) ) {
-			return $file;
+			return false;
 		}
 
 		$file_name   = isset( $file['name'] ) ? $file['name'] : '';
 		$wp_filetype = wp_check_filetype_and_ext( $file['tmp_name'], $file_name );
-		$type        = ! empty( $wp_filetype['type'] ) ? $wp_filetype['type'] : '';
 
-		if ( 'image/svg+xml' === $type ) {
-			if ( ! current_user_can( 'upload_files' ) ) {
-				$file['error'] = 'Invalid';
-				return $file;
-			}
+		return ! empty( $wp_filetype['type'] ) && 'image/svg+xml' === $wp_filetype['type'];
+	}
 
-			if ( ! $this->sanitize_svg( $file['tmp_name'] ) ) {
-				$file['error'] = 'Invalid';
-			}
+	/**
+	 * Sanitize the SVG temp file in place, flagging the upload when it cannot be sanitized.
+	 *
+	 * @param array<string, mixed> $file An array of data for a single file.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function sanitize_svg_file( array $file ): array {
+		if ( ! $this->sanitize_svg( $file['tmp_name'] ) ) {
+			$file['error'] = 'Invalid';
 		}
 
 		return $file;
