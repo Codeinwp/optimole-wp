@@ -1,3 +1,8 @@
+##### [Version 4.2.16](https://github.com/Codeinwp/optimole-wp/compare/v4.2.15...v4.2.16) (2026-10-01)
+
+- Updated dependencies
+- Added AI agent support: let AI assistants control your Optimole settings for you.
+
 ##### [Version 4.2.15](https://github.com/Codeinwp/optimole-wp/compare/v4.2.14...v4.2.15) (2026-09-28)
 
 - Enhanced Security
