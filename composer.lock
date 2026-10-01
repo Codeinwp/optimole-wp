@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9236121e91b49149c045b0f11d2dbc13",
+    "content-hash": "1c6cb28ea9cfac46761c17ca70f1a8d0",
     "packages": [
         {
             "name": "codeinwp/optimole-sdk",
