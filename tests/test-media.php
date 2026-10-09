@@ -345,6 +345,34 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertStringContainsString( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117', $image_medium_size[0] );
 	}
 
+	/**
+	 * "Transfer back" in the dashboard turns offload_media off and starts the rollback; WP-CLI
+	 * `wp optimole media rollback_images` must still be able to continue it.
+	 *
+	 * @dataProvider transfer_gate_provider
+	 */
+	public function test_can_transfer_images( $offload_media, $rollback_status, $action, $expected ) {
+		$settings = new Optml_Settings();
+		$settings->update( 'offload_media', $offload_media );
+		$settings->update( 'rollback_status', $rollback_status );
+
+		$this->assertSame( $expected, $settings->can_transfer_images( $action ) );
+	}
+
+	/**
+	 * @return array<string, array{0: string, 1: string, 2: string, 3: bool}>
+	 */
+	public function transfer_gate_provider() {
+		return [
+			'offload with offload on'            => [ 'enabled', 'disabled', 'offload', true ],
+			'rollback with offload on'           => [ 'enabled', 'disabled', 'rollback', true ],
+			'rollback while a rollback runs'     => [ 'disabled', 'enabled', 'rollback', true ],
+			'offload while a rollback runs'      => [ 'disabled', 'enabled', 'offload', false ],
+			'rollback with offload off and idle' => [ 'disabled', 'disabled', 'rollback', false ],
+			'offload with offload off and idle'  => [ 'disabled', 'disabled', 'offload', false ],
+		];
+	}
+
 	public function test_image_rollback() {
 
 		Optml_Media_Offload::instance()->rollback_images( 100 );
