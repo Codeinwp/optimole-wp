@@ -43,7 +43,7 @@ class Optml_Cli_Media extends WP_CLI_Command {
 			'limit_exceeded' => __( 'You have reached the maximum offloading limit of images. To increase the offload limit and for more information, contact our support.', 'optimole-wp' ),
 		];
 		$settings = new Optml_Settings();
-		if ( $settings->get( 'offload_media' ) === 'disabled' ) {
+		if ( ! $settings->can_transfer_images( $action ) ) {
 			return \WP_CLI::error( __( 'You need to have the offload_media option enabled in order to use this command', 'optimole-wp' ) );
 		}
 
@@ -88,7 +88,8 @@ class Optml_Cli_Media extends WP_CLI_Command {
 				$action === 'rollback' ? Optml_Media_Offload::instance()->rollback_images( $batch ) : Optml_Media_Offload::instance()->upload_images( $batch );
 			}
 
-			if ( Optml_Media_Offload::instance()->settings->is_offload_limit_reached() ) {
+			// The offload limit stops uploads only: moving images back lowers the usage.
+			if ( $action === 'offload' && Optml_Media_Offload::instance()->settings->is_offload_limit_reached() ) {
 				WP_CLI::error( $strings['limit_exceeded'], true );
 			}
 
