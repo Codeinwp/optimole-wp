@@ -1384,8 +1384,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$offload_manager = Optimole::offload();
 		$offload_usage = $offload_manager->getUsage();
 
+		// Images still to upload in a running bulk offload count toward the limit. The progress of a
+		// finished offload or of a rollback does not.
 		$current_run = self::get_process_meta();
-		$remaining = isset( $current_run['remaining'] ) ? absint( $current_run['remaining'] ) : 0;
+		$remaining   = 0;
+		if ( self::$instance->settings->get( 'offloading_status' ) !== 'disabled' && isset( $current_run['remaining'] ) ) {
+			$remaining = absint( $current_run['remaining'] );
+		}
 
 		if ( $remaining + $offload_usage->getCurrent() >= $offload_usage->getLimit() ) {
 			if ( OPTML_DEBUG_MEDIA ) {
@@ -1393,6 +1398,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', $offload_usage );
 			}
 
+			self::$instance->settings->update( 'offload_limit', $offload_usage->getLimit() );
 			self::$instance->settings->update( 'offload_limit_reached', 'enabled' );
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Offload stopped: offloading images would exceed limit.' );
