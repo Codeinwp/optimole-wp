@@ -706,6 +706,11 @@ class Optml_Rest {
 	 * @return WP_REST_Response
 	 */
 	public function poll_optimized_images( WP_REST_Request $request ) {
+		// The image URLs are built with the Optimole SDK, which is only initialized for a connected site.
+		if ( ! ( new Optml_Settings() )->is_connected() ) {
+			return $this->response( [] );
+		}
+
 		$api_key = $request->get_param( 'api_key' );
 		$request = new Optml_Api();
 		$images  = $request->get_optimized_images( $api_key );
