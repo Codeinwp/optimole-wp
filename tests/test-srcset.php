@@ -192,6 +192,67 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 	}
 
 	/**
+	 * With Retina enabled, the profiler sends a 1x and a 2x entry per breakpoint. The 2x entry
+	 * advertises its delivered width (824w); the CDN multiplies w by dpr, so its URL asks for the
+	 * CSS width (w:412/dpr:2), not w:824/dpr:2, which would deliver 1648px.
+	 */
+	public function test_add_missing_srcset_attributes_retina_entry_delivers_its_advertised_width() {
+		$tag_replacer = new Optml_Tag_Replacer();
+		$tag_replacer->settings = $this->retina_settings();
+
+		$result = $tag_replacer->add_missing_srcset_attributes(
+			'<img src="https://example.com/image.jpg" alt="Test" />',
+			[
+				[ 'w' => 412, 'h' => 300, 'd' => 1, 's' => '412w', 'b' => 768 ],
+				[ 'w' => 824, 'h' => 600, 'd' => 2, 's' => '824w', 'b' => 768 ],
+			],
+			'https://example.i.optimole.com/w:auto/h:auto/q:mauto/https://example.com/image.jpg',
+			false
+		);
+
+		$this->assertStringContainsString( 'w:412/h:300/q:mauto/https://example.com/image.jpg 412w', $result );
+		$this->assertStringContainsString( 'w:412/dpr:2/h:300/q:mauto/https://example.com/image.jpg 824w', $result );
+		$this->assertStringNotContainsString( 'w:824', $result );
+	}
+
+	/**
+	 * The 1x and 2x entries of a breakpoint share one slot: the sizes attribute gets one
+	 * condition for it, with the CSS width, not a second one with the doubled width.
+	 */
+	public function test_add_missing_srcset_attributes_retina_entries_share_one_sizes_condition() {
+		$tag_replacer = new Optml_Tag_Replacer();
+		$tag_replacer->settings = $this->retina_settings();
+
+		$result = $tag_replacer->add_missing_srcset_attributes(
+			'<img src="https://example.com/image.jpg" alt="Test" />',
+			[
+				[ 'w' => 300, 'h' => 200, 'd' => 1, 's' => '300w', 'b' => 480 ],
+				[ 'w' => 600, 'h' => 400, 'd' => 2, 's' => '600w', 'b' => 480 ],
+				[ 'w' => 412, 'h' => 300, 'd' => 1, 's' => '412w', 'b' => 768 ],
+				[ 'w' => 824, 'h' => 600, 'd' => 2, 's' => '824w', 'b' => 768 ],
+			],
+			'https://example.i.optimole.com/w:auto/h:auto/q:mauto/https://example.com/image.jpg',
+			false
+		);
+
+		$this->assertSame( 1, substr_count( $result, '(max-width: 480px)' ) );
+		$this->assertSame( 1, substr_count( $result, '(max-width: 768px)' ) );
+		$this->assertStringContainsString( 'sizes="(max-width: 480px) 300px, (max-width: 768px) 412px"', $result );
+	}
+
+	/**
+	 * Settings with Retina images enabled.
+	 *
+	 * @return Optml_Settings
+	 */
+	private function retina_settings() {
+		$settings = $this->getMockBuilder( 'Optml_Settings' )->getMock();
+		$settings->method( 'get' )->with( 'retina_images' )->willReturn( 'enabled' );
+
+		return $settings;
+	}
+
+	/**
 	 * Test enhance_existing_srcset method
 	 */
 	public function test_enhance_existing_srcset() {

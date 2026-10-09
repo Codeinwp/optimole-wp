@@ -500,8 +500,13 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 			$breakpoint = isset( $srcset_data['b'] ) ? (int) $srcset_data['b'] : 0;
 
+			// A dpr entry advertises its delivered width ("824w"): the CSS width times the dpr. The CDN
+			// multiplies w by dpr, so it gets the CSS width, which is also the slot in the sizes attribute.
+			$css_width  = $dpr > 1 ? (int) round( $width / $dpr ) : $width;
+			$css_height = $dpr > 1 ? (int) round( $height / $dpr ) : $height;
+
 			// Generate optimized URL for this size
-			$optimized_url = $this->change_url_for_size( $new_url, $width, $height, $dpr );
+			$optimized_url = $this->change_url_for_size( $new_url, $css_width, $css_height, $dpr );
 
 			if ( $optimized_url ) {
 				$escaped_url = esc_url( $optimized_url );
@@ -512,7 +517,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 				// Add sizes attribute entry for responsive breakpoints
 				if ( $breakpoint > 0 ) {
-					$new_sizes_entries[] = '(max-width: ' . $breakpoint . 'px) ' . $width . 'px';
+					$new_sizes_entries[] = '(max-width: ' . $breakpoint . 'px) ' . $css_width . 'px';
 				}
 			}
 		}
