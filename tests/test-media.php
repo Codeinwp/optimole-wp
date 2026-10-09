@@ -345,6 +345,31 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertStringContainsString( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117', $image_medium_size[0] );
 	}
 
+	/**
+	 * While a rollback runs (offload_media off, rollback_status on), offloaded images are still
+	 * served from Optimole, but a new upload stays in the media library.
+	 */
+	public function test_upload_during_rollback_stays_local() {
+		$settings = new Optml_Settings();
+		$settings->update( 'offload_media', 'disabled' );
+		$settings->update( 'rollback_status', 'enabled' );
+
+		// The hooks of this request, registered with the rollback state.
+		remove_all_filters( 'wp_generate_attachment_metadata' );
+		remove_all_filters( 'wp_insert_attachment_data' );
+		Optml_Media_Offload::instance();
+
+		$this->assertFalse( has_filter( 'wp_generate_attachment_metadata' ) );
+		$this->assertFalse( has_filter( 'wp_insert_attachment_data' ) );
+		$this->assertNotFalse( has_filter( 'wp_get_attachment_url' ), 'Offloaded images are still served from Optimole.' );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[0] . '.jpg' );
+		$meta          = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertFalse( Optml_Media_Offload::is_uploaded_image( $meta['file'] ) );
+		$this->assertFileExists( get_attached_file( $attachment_id ) );
+	}
+
 	public function test_image_rollback() {
 
 		Optml_Media_Offload::instance()->rollback_images( 100 );
