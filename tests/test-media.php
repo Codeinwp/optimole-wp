@@ -345,6 +345,43 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertStringContainsString( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117', $image_medium_size[0] );
 	}
 
+	/**
+	 * The account mock reports 50 of 5000 images offloaded. A rollback records how many images it
+	 * moves back as the "remaining" progress; once it is over, that number must not count toward
+	 * the limit of the next upload.
+	 */
+	public function test_stale_transfer_progress_does_not_trip_the_offload_limit() {
+		$settings = new Optml_Settings();
+		$settings->update( 'offloading_status', 'disabled' );
+		$settings->update( 'offload_limit_reached', 'disabled' );
+		Optml_Media_Offload::record_process_meta( 4990 );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[0] . '.jpg' );
+		$meta          = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( $meta['file'] ) );
+		$this->assertFalse( ( new Optml_Settings() )->is_offload_limit_reached() );
+	}
+
+	/**
+	 * During a bulk offload the images still to upload do count; when they would exceed the limit,
+	 * the limit of the account is stored with the warning (not the 50,000 default).
+	 */
+	public function test_offload_limit_check_stores_the_account_limit() {
+		$settings = new Optml_Settings();
+		$settings->update( 'offloading_status', 'enabled' );
+		$settings->update( 'offload_limit_reached', 'disabled' );
+		Optml_Media_Offload::record_process_meta( 4990 );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[0] . '.jpg' );
+		$meta          = wp_get_attachment_metadata( $attachment_id );
+		$settings      = new Optml_Settings();
+
+		$this->assertFalse( Optml_Media_Offload::is_uploaded_image( $meta['file'] ) );
+		$this->assertTrue( $settings->is_offload_limit_reached() );
+		$this->assertSame( 5000, (int) $settings->get( 'offload_limit' ) );
+	}
+
 	public function test_image_rollback() {
 
 		Optml_Media_Offload::instance()->rollback_images( 100 );
