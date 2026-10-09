@@ -586,6 +586,7 @@ export const callSync = ( data ) => {
 			setErrorMedia( data.action );
 			setLoadingSync( false );
 			setLoadingRollback( false );
+			setIsLoading( false );
 		});
 };
 
