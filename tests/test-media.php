@@ -555,6 +555,78 @@ class Test_Media extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A fatal error skips the cleanup of the run. The lock is then released when the request shuts
+	 * down, which matters on a persistent connection.
+	 */
+	public function test_moving_images_lock_is_also_released_at_shutdown(): void {
+		$this->assertTrue( Optml_Media_Offload::acquire_moving_images_lock() );
+
+		$this->assertNotFalse( has_action( 'shutdown', [ Optml_Media_Offload::class, 'release_moving_images_lock' ] ) );
+
+		Optml_Media_Offload::release_moving_images_lock();
+		$this->assert_moving_images_lock_is_free();
+	}
+
+	/**
+	 * With several database servers the lock must be asked from the primary by every run. HyperDB
+	 * and LudicrousDB route the following reads there with send_reads_to_masters().
+	 */
+	public function test_moving_images_lock_is_taken_on_the_primary_database_server(): void {
+		global $wpdb;
+
+		$original = $wpdb;
+		$wpdb     = new class( $original ) {
+			/**
+			 * @var string[] The calls, in order.
+			 */
+			public $calls = [];
+
+			/**
+			 * @var string
+			 */
+			public $prefix;
+
+			/**
+			 * @var wpdb
+			 */
+			private $db;
+
+			public function __construct( wpdb $db ) {
+				$this->db     = $db;
+				$this->prefix = $db->prefix;
+			}
+
+			public function send_reads_to_masters(): void {
+				$this->calls[] = 'send_reads_to_masters';
+			}
+
+			public function suppress_errors( $suppress = true ) {
+				return $this->db->suppress_errors( $suppress );
+			}
+
+			public function prepare( $query, ...$args ) {
+				return $this->db->prepare( $query, ...$args );
+			}
+
+			public function get_var( $query ) {
+				$this->calls[] = false !== strpos( $query, 'GET_LOCK' ) ? 'GET_LOCK' : 'query';
+
+				return $this->db->get_var( $query );
+			}
+		};
+
+		try {
+			$this->assertTrue( Optml_Media_Offload::acquire_moving_images_lock() );
+			$calls = $wpdb->calls;
+		} finally {
+			$wpdb = $original;
+			Optml_Media_Offload::release_moving_images_lock();
+		}
+
+		$this->assertSame( [ 'send_reads_to_masters', 'GET_LOCK' ], $calls );
+	}
+
+	/**
 	 * A database without advisory locks (the query fails): transfers run as before.
 	 */
 	public function test_moving_images_lock_is_granted_where_the_database_has_no_advisory_locks(): void {

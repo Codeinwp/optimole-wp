@@ -2058,9 +2058,19 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	public static function acquire_moving_images_lock(): bool {
 		global $wpdb;
 
+		// The lock lives on one database server. Where reads are spread over several (HyperDB,
+		// LudicrousDB), every run has to ask the same one: the primary.
+		if ( method_exists( $wpdb, 'send_reads_to_masters' ) ) {
+			$wpdb->send_reads_to_masters();
+		}
+
 		$suppress = $wpdb->suppress_errors();
 		$result   = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK( %s, 0 )', self::get_moving_images_lock_name() ) );
 		$wpdb->suppress_errors( $suppress );
+
+		// A fatal error skips the cleanup of the caller. On a persistent connection the lock would then
+		// outlive the request, so it is also released when the request shuts down.
+		add_action( 'shutdown', [ __CLASS__, 'release_moving_images_lock' ] );
 
 		return null === $result || 1 === (int) $result;
 	}
