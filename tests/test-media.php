@@ -750,8 +750,14 @@ class Test_Media extends WP_UnitTestCase {
 	 * @param array{count: int, remaining: int, start_time: int, action?: string, foreground?: int} $process_meta      The recorded transfer progress.
 	 * @param string                                                                                 $offloading_status The dashboard offload status.
 	 * @param bool                                                                                   $limit_reached     Whether the upload trips the limit.
+	 * @param int|null                                                                               $mark_age          Seconds since the last activity of a WP-CLI run, null without one.
 	 */
-	public function test_only_a_running_offload_counts_toward_the_offload_limit( array $process_meta, string $offloading_status, bool $limit_reached ): void {
+	public function test_only_a_running_offload_counts_toward_the_offload_limit( array $process_meta, string $offloading_status, bool $limit_reached, ?int $mark_age = null ): void {
+		// The providers run when the suite is built, long before this test: the mark is dated here.
+		if ( null !== $mark_age ) {
+			$process_meta['foreground'] = time() - $mark_age;
+		}
+
 		$settings = new Optml_Settings();
 		$settings->update( 'offloading_status', $offloading_status );
 		$settings->update( 'offload_limit_reached', 'disabled' );
@@ -786,9 +792,9 @@ class Test_Media extends WP_UnitTestCase {
 			'rollback, with a stale offload status'                    => [ $progress + [ 'action' => 'rollback_images' ], 'enabled', false ],
 			'dashboard offload that is running'                        => [ $offload + [ 'foreground' => 0 ], 'enabled', true ],
 			'dashboard offload that finished or stopped at the limit'  => [ $offload + [ 'foreground' => 0 ], 'disabled', false ],
-			'WP-CLI offload that is running'                           => [ $offload + [ 'foreground' => time() ], 'disabled', true ],
+			'WP-CLI offload that is running'                           => [ $offload, 'disabled', true, 0 ],
 			'WP-CLI offload that ended'                                => [ $offload + [ 'foreground' => 0 ], 'disabled', false ],
-			'WP-CLI offload interrupted an hour ago (Ctrl+C)'          => [ $offload + [ 'foreground' => time() - HOUR_IN_SECONDS ], 'disabled', false ],
+			'WP-CLI offload interrupted an hour ago (Ctrl+C)'          => [ $offload, 'disabled', false, HOUR_IN_SECONDS ],
 			'recorded before the transfer was stored, idle'            => [ $progress, 'disabled', false ],
 			'recorded before the transfer was stored, offload running' => [ $progress, 'enabled', true ],
 		];
