@@ -48,15 +48,9 @@ class Optml_Cli_Media extends WP_CLI_Command {
 			return \WP_CLI::error( __( 'You need to have the offload_media option enabled in order to use this command', 'optimole-wp' ) );
 		}
 
-		$number_of_images_for = 'offload_images';
-		if ( $action === 'rollback' ) {
-			$number_of_images_for = 'rollback_images';
-		}
-
-		// One run moves images at a time: this command replaces a background transfer that is only
-		// scheduled (for example where cron is stuck), and waits for one that is running.
-		$lock_token = Optml_Media_Offload::take_over_transfer_lock( $number_of_images_for );
-		if ( false === $lock_token ) {
+		// One run moves images at a time. A background step that is moving images right now holds this
+		// lock; while this command holds it, the background steps do nothing.
+		if ( ! Optml_Media_Offload::acquire_moving_images_lock() ) {
 			return \WP_CLI::error( $strings['transfer_running'] );
 		}
 
@@ -65,11 +59,15 @@ class Optml_Cli_Media extends WP_CLI_Command {
 			Optml_Media_Offload::clear_rollback_errors_meta();
 		}
 		WP_CLI::line( $strings[ $action ]['info'] );
+		$number_of_images_for = 'offload_images';
+		if ( $action === 'rollback' ) {
+			$number_of_images_for = 'rollback_images';
+		}
 		$number_of_images = Optml_Media_Offload::number_of_images_and_pages( $number_of_images_for );
 		Optml_Media_Offload::record_process_meta( $number_of_images );
 		$batch = 5;
 		if ( $number_of_images === 0 ) {
-			Optml_Media_Offload::release_transfer_lock( $lock_token );
+			Optml_Media_Offload::release_moving_images_lock();
 			WP_CLI::success( $strings[ $action ]['success'] );
 
 			return;
@@ -100,20 +98,15 @@ class Optml_Cli_Media extends WP_CLI_Command {
 
 			// The offload limit stops uploads only: moving images back lowers the usage.
 			if ( $action === 'offload' && Optml_Media_Offload::instance()->settings->is_offload_limit_reached() ) {
-				Optml_Media_Offload::release_transfer_lock( $lock_token );
+				Optml_Media_Offload::release_moving_images_lock();
 				WP_CLI::error( $strings['limit_exceeded'], true );
-			}
-
-			// Keep the lock while images are moved. It is lost when another run took it over.
-			if ( ! Optml_Media_Offload::renew_transfer_lock( $lock_token, $number_of_images_for ) ) {
-				WP_CLI::error( $strings['transfer_running'], true );
 			}
 
 			$progress->tick();
 			++$tick;
 		}
 		$progress->finish();
-		Optml_Media_Offload::release_transfer_lock( $lock_token );
+		Optml_Media_Offload::release_moving_images_lock();
 		WP_CLI::line( $strings[ $action ]['success'] );
 	}
 }
