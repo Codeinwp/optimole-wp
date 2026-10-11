@@ -349,7 +349,7 @@ class Test_Media extends WP_UnitTestCase {
 	 * While a rollback runs (offload_media off, rollback_status on), offloaded images are still
 	 * served from Optimole, but a new upload stays in the media library.
 	 */
-	public function test_upload_during_rollback_stays_local() {
+	public function test_upload_during_rollback_stays_local(): void {
 		$settings = new Optml_Settings();
 		$settings->update( 'offload_media', 'disabled' );
 		$settings->update( 'rollback_status', 'enabled' );
