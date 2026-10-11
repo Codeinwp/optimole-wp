@@ -1812,39 +1812,61 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Record process meta,
 	 *
-	 * @param int    $count  The number of images to process.
-	 * @param string $action The transfer the images belong to, 'offload_images' or 'rollback_images'.
+	 * @param int    $count      The number of images to process.
+	 * @param string $action     The transfer the images belong to, 'offload_images' or 'rollback_images'.
+	 * @param bool   $foreground Whether the transfer runs in the foreground (WP-CLI), without the
+	 *                           offloading or rollback status a dashboard transfer has.
 	 *
 	 * @return void
 	 */
-	public static function record_process_meta( $count, $action = 'offload_images' ) {
+	public static function record_process_meta( int $count, $action = 'offload_images', bool $foreground = false ): void {
 		$meta               = get_option( 'optml_process_meta', [] );
 		$meta['count']      = $count;
 		$meta['remaining']  = $count;
 		$meta['start_time'] = time();
 		$meta['action']     = $action;
+		$meta['foreground'] = $foreground;
 		update_option( 'optml_process_meta', $meta );
 	}
 
 	/**
-	 * Images a bulk offload still has to upload. They count toward the offload limit; the images a
-	 * rollback still has to move back do not.
+	 * Mark the transfer that runs in the foreground as over, see {@see self::record_process_meta()}.
+	 *
+	 * @return void
+	 */
+	public static function end_foreground_process_meta(): void {
+		$meta = get_option( 'optml_process_meta', [] );
+
+		if ( empty( $meta['foreground'] ) ) {
+			return;
+		}
+
+		$meta['foreground'] = false;
+		update_option( 'optml_process_meta', $meta );
+	}
+
+	/**
+	 * Images a bulk offload that is still going has to upload. They count toward the offload limit.
 	 *
 	 * @return int
 	 */
-	private static function get_pending_offload_count() {
+	private static function get_pending_offload_count(): int {
 		$meta = get_option( 'optml_process_meta', [] );
 
 		if ( ! isset( $meta['remaining'] ) ) {
 			return 0;
 		}
 
-		// Progress recorded before the transfer was stored: it counts while a dashboard offload runs.
-		$is_offload = isset( $meta['action'] )
-			? 'offload_images' === $meta['action']
-			: self::$instance->settings->get( 'offloading_status' ) !== 'disabled';
+		// A rollback records the images it still has to move back in the same place.
+		if ( isset( $meta['action'] ) && 'offload_images' !== $meta['action'] ) {
+			return 0;
+		}
 
-		return $is_offload ? absint( $meta['remaining'] ) : 0;
+		// "remaining" stays after an offload finished, was cancelled or stopped at the limit. A
+		// dashboard offload runs while its status is on; one from WP-CLI marks its own run.
+		$running = ! empty( $meta['foreground'] ) || self::$instance->settings->get( 'offloading_status' ) !== 'disabled';
+
+		return $running ? absint( $meta['remaining'] ) : 0;
 	}
 	/**
 	 * Update the process meta count.

@@ -742,16 +742,16 @@ class Test_Media extends WP_UnitTestCase {
 
 	/**
 	 * The account mock reports 50 of 5000 images offloaded, and 4990 images are recorded as still to
-	 * be moved. They count toward the limit of an upload only when they belong to an offload: a
-	 * rollback records the images it moves back in the same place.
+	 * be moved. They count toward the limit of an upload only while an offload is moving them: not
+	 * for a rollback, which records its progress in the same place, and not once the offload is over.
 	 *
 	 * @dataProvider pending_transfer_provider
 	 *
-	 * @param array{count: int, remaining: int, start_time: int, action?: string} $process_meta      The recorded transfer progress.
-	 * @param string                                                              $offloading_status The dashboard offload status.
-	 * @param bool                                                                $limit_reached     Whether the upload trips the limit.
+	 * @param array{count: int, remaining: int, start_time: int, action?: string, foreground?: bool} $process_meta      The recorded transfer progress.
+	 * @param string                                                                                 $offloading_status The dashboard offload status.
+	 * @param bool                                                                                   $limit_reached     Whether the upload trips the limit.
 	 */
-	public function test_only_a_pending_offload_counts_toward_the_offload_limit( array $process_meta, string $offloading_status, bool $limit_reached ): void {
+	public function test_only_a_running_offload_counts_toward_the_offload_limit( array $process_meta, string $offloading_status, bool $limit_reached ): void {
 		$settings = new Optml_Settings();
 		$settings->update( 'offloading_status', $offloading_status );
 		$settings->update( 'offload_limit_reached', 'disabled' );
@@ -771,7 +771,7 @@ class Test_Media extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @return array<string, array{0: array{count: int, remaining: int, start_time: int, action?: string}, 1: string, 2: bool}>
+	 * @return array<string, array{0: array{count: int, remaining: int, start_time: int, action?: string, foreground?: bool}, 1: string, 2: bool}>
 	 */
 	public function pending_transfer_provider(): array {
 		$progress = [
@@ -779,13 +779,29 @@ class Test_Media extends WP_UnitTestCase {
 			'remaining'  => 4990,
 			'start_time' => time(),
 		];
+		$offload  = $progress + [ 'action' => 'offload_images' ];
 
 		return [
-			'rollback'                                               => [ $progress + [ 'action' => 'rollback_images' ], 'disabled', false ],
-			'offload, also from WP-CLI (no dashboard status)'        => [ $progress + [ 'action' => 'offload_images' ], 'disabled', true ],
-			'recorded before the transfer was stored, idle'          => [ $progress, 'disabled', false ],
+			'rollback'                                                 => [ $progress + [ 'action' => 'rollback_images' ], 'disabled', false ],
+			'rollback, with a stale offload status'                    => [ $progress + [ 'action' => 'rollback_images' ], 'enabled', false ],
+			'dashboard offload that is running'                        => [ $offload + [ 'foreground' => false ], 'enabled', true ],
+			'dashboard offload that finished or stopped at the limit'  => [ $offload + [ 'foreground' => false ], 'disabled', false ],
+			'WP-CLI offload that is running'                           => [ $offload + [ 'foreground' => true ], 'disabled', true ],
+			'WP-CLI offload that ended'                                => [ $offload + [ 'foreground' => false ], 'disabled', false ],
+			'recorded before the transfer was stored, idle'            => [ $progress, 'disabled', false ],
 			'recorded before the transfer was stored, offload running' => [ $progress, 'enabled', true ],
 		];
+	}
+
+	public function test_a_wp_cli_run_marks_its_progress_until_it_ends(): void {
+		Optml_Media_Offload::record_process_meta( 12, 'offload_images', true );
+		$this->assertTrue( get_option( 'optml_process_meta' )['foreground'] );
+
+		Optml_Media_Offload::end_foreground_process_meta();
+
+		$meta = get_option( 'optml_process_meta' );
+		$this->assertFalse( $meta['foreground'] );
+		$this->assertSame( 12, $meta['remaining'] );
 	}
 
 	/**
@@ -794,7 +810,9 @@ class Test_Media extends WP_UnitTestCase {
 	public function test_a_bulk_transfer_records_which_transfer_its_progress_belongs_to( string $action ): void {
 		Optml_Media_Offload::move_images( $action, false );
 
-		$this->assertSame( $action, get_option( 'optml_process_meta' )['action'] );
+		$meta = get_option( 'optml_process_meta' );
+		$this->assertSame( $action, $meta['action'] );
+		$this->assertFalse( $meta['foreground'] );
 	}
 
 	/**
