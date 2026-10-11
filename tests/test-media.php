@@ -777,7 +777,7 @@ class Test_Media extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @return array<string, array{0: array{count: int, remaining: int, start_time: int, action?: string, foreground?: int}, 1: string, 2: bool}>
+	 * @return array<string, array{0: array{count: int, remaining: int, start_time: int, action?: string, foreground?: int}, 1: string, 2: bool, 3?: int}>
 	 */
 	public function pending_transfer_provider(): array {
 		$progress = [
