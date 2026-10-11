@@ -431,6 +431,66 @@ class Test_Media extends WP_UnitTestCase {
 		} finally {
 			self::$offloaded_images = 50;
 		}
+
+		$this->assertFalse( get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT ), 'The command released the transfer lock.' );
+	}
+
+	/**
+	 * The dashboard's background transfer is moving images: a step ran and renewed the lock. The
+	 * command must not move the same images at the same time.
+	 */
+	public function test_cli_rollback_waits_for_a_background_transfer_that_is_running() {
+		$token = Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' );
+		Optml_Media_Offload::renew_transfer_lock( $token, 'rollback_images' );
+		$offloaded = Optml_Media_Offload::number_of_images_and_pages( 'rollback_images' );
+		require_once __DIR__ . '/wp-cli-stub.php';
+
+		try {
+			$this->run_cli_media_command( 'rollback_images' );
+			$this->fail( 'The command ran while a background transfer was running.' );
+		} catch ( Optml_Test_WP_CLI_Error $error ) {
+			$this->assertStringContainsString( 'Another image transfer is running', $error->getMessage() );
+		}
+
+		$this->assertGreaterThan( 0, $offloaded );
+		$this->assertSame( $offloaded, Optml_Media_Offload::number_of_images_and_pages( 'rollback_images' ), 'The command moved no image.' );
+		$this->assertTrue( Optml_Media_Offload::renew_transfer_lock( $token, 'rollback_images' ), 'The background transfer keeps its lock.' );
+	}
+
+	/**
+	 * Where cron is stuck, the background transfer is scheduled (and holds the lock) but never
+	 * runs. The command replaces it, and releases the lock when it is done.
+	 */
+	public function test_cli_rollback_replaces_a_background_transfer_that_never_ran() {
+		$scheduled = Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' );
+
+		$lines = $this->run_cli_media_command( 'rollback_images' );
+
+		$this->assertContains( 'All images have been uploaded to your media library', $lines );
+		$this->assertStringNotContainsString( 'id:', wp_get_attachment_metadata( self::$sample_attachement )['file'] );
+		$this->assertFalse( get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT ) );
+		$this->assertFalse( Optml_Media_Offload::renew_transfer_lock( $scheduled, 'rollback_images' ) );
+	}
+
+	public function test_cli_releases_the_transfer_lock_when_there_is_nothing_to_move() {
+		// Every image is offloaded already.
+		$lines = $this->run_cli_media_command( 'move_to_optimole' );
+
+		$this->assertContains( 'All images have been uploaded to Optimole Cloud', $lines );
+		$this->assertFalse( get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT ) );
+	}
+
+	public function test_take_over_transfer_lock_stops_a_scheduled_background_step() {
+		$scheduled = Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' );
+
+		$foreground = Optml_Media_Offload::take_over_transfer_lock( 'rollback_images' );
+
+		$this->assertIsString( $foreground );
+		$this->assertNotSame( $scheduled, $foreground );
+		// The background step that fires later does not own the lock anymore, and a second run waits.
+		$this->assertFalse( Optml_Media_Offload::renew_transfer_lock( $scheduled, 'rollback_images' ) );
+		$this->assertFalse( Optml_Media_Offload::take_over_transfer_lock( 'rollback_images' ) );
+		$this->assertFalse( Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' ) );
 	}
 
 	public function test_cli_rollback_is_refused_when_nothing_was_offloaded() {

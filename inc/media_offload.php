@@ -2031,16 +2031,53 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return false;
 		}
 
+		// The time tells a transfer that is running from one that is only scheduled, see take_over_transfer_lock().
 		set_transient(
 			self::TRANSFER_LOCK_TRANSIENT,
 			[
 				'token'  => $token,
 				'action' => $action,
+				'time'   => time(),
 			],
 			self::TRANSFER_LOCK_TTL
 		);
 
 		return true;
+	}
+
+	/**
+	 * Take the transfer lock for a run in the foreground (WP-CLI), which replaces the background one.
+	 *
+	 * The background chain takes the lock when it is scheduled, and is scheduled again on every
+	 * request while a transfer is in progress, also where cron never runs it. So a held lock alone
+	 * does not mean images are being moved: only a lock renewed by a step that ran does. While that
+	 * is the case, this fails. Otherwise the lock gets a new token; a background step that fires
+	 * later cannot renew it and stops, and nothing is scheduled again while the lock is held.
+	 *
+	 * @param string $action The transfer action ('offload_images'|'rollback_images').
+	 *
+	 * @return string|false The lock token, or false while another run is moving images.
+	 */
+	public static function take_over_transfer_lock( $action ) {
+		$lock = get_transient( self::TRANSFER_LOCK_TRANSIENT );
+
+		if ( is_array( $lock ) && isset( $lock['time'] ) ) {
+			return false;
+		}
+
+		$token = wp_generate_uuid4();
+
+		set_transient(
+			self::TRANSFER_LOCK_TRANSIENT,
+			[
+				'token'  => $token,
+				'action' => $action,
+				'time'   => time(),
+			],
+			self::TRANSFER_LOCK_TTL
+		);
+
+		return $token;
 	}
 
 	/**
