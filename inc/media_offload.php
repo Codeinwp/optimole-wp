@@ -1815,7 +1815,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param int    $count      The number of images to process.
 	 * @param string $action     The transfer the images belong to, 'offload_images' or 'rollback_images'.
 	 * @param bool   $foreground Whether the transfer runs in the foreground (WP-CLI), without the
-	 *                           offloading or rollback status a dashboard transfer has.
+	 *                           offloading or rollback status a dashboard transfer has. The progress
+	 *                           then holds the time of the run's last activity.
 	 *
 	 * @return void
 	 */
@@ -1825,7 +1826,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$meta['remaining']  = $count;
 		$meta['start_time'] = time();
 		$meta['action']     = $action;
-		$meta['foreground'] = $foreground;
+		$meta['foreground'] = $foreground ? time() : 0;
 		update_option( 'optml_process_meta', $meta );
 	}
 
@@ -1841,7 +1842,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return;
 		}
 
-		$meta['foreground'] = false;
+		$meta['foreground'] = 0;
 		update_option( 'optml_process_meta', $meta );
 	}
 
@@ -1863,8 +1864,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		// "remaining" stays after an offload finished, was cancelled or stopped at the limit. A
-		// dashboard offload runs while its status is on; one from WP-CLI marks its own run.
-		$running = ! empty( $meta['foreground'] ) || self::$instance->settings->get( 'offloading_status' ) !== 'disabled';
+		// dashboard offload runs while its status is on. One from WP-CLI marks its last activity: the
+		// mark is cleared when the command ends, and goes stale when the command was interrupted.
+		$foreground_running = ! empty( $meta['foreground'] ) && ( time() - (int) $meta['foreground'] ) < self::TRANSFER_LOCK_TTL;
+		$running            = $foreground_running || self::$instance->settings->get( 'offloading_status' ) !== 'disabled';
 
 		return $running ? absint( $meta['remaining'] ) : 0;
 	}
@@ -1881,6 +1884,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		$meta['remaining'] = $meta['remaining'] - 1;
+		// A run in the foreground is alive as long as it keeps moving images.
+		if ( ! empty( $meta['foreground'] ) ) {
+			$meta['foreground'] = time();
+		}
 		update_option( 'optml_process_meta', $meta );
 	}
 

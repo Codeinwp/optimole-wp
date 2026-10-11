@@ -747,7 +747,7 @@ class Test_Media extends WP_UnitTestCase {
 	 *
 	 * @dataProvider pending_transfer_provider
 	 *
-	 * @param array{count: int, remaining: int, start_time: int, action?: string, foreground?: bool} $process_meta      The recorded transfer progress.
+	 * @param array{count: int, remaining: int, start_time: int, action?: string, foreground?: int} $process_meta      The recorded transfer progress.
 	 * @param string                                                                                 $offloading_status The dashboard offload status.
 	 * @param bool                                                                                   $limit_reached     Whether the upload trips the limit.
 	 */
@@ -771,7 +771,7 @@ class Test_Media extends WP_UnitTestCase {
 	}
 
 	/**
-	 * @return array<string, array{0: array{count: int, remaining: int, start_time: int, action?: string, foreground?: bool}, 1: string, 2: bool}>
+	 * @return array<string, array{0: array{count: int, remaining: int, start_time: int, action?: string, foreground?: int}, 1: string, 2: bool}>
 	 */
 	public function pending_transfer_provider(): array {
 		$progress = [
@@ -784,10 +784,11 @@ class Test_Media extends WP_UnitTestCase {
 		return [
 			'rollback'                                                 => [ $progress + [ 'action' => 'rollback_images' ], 'disabled', false ],
 			'rollback, with a stale offload status'                    => [ $progress + [ 'action' => 'rollback_images' ], 'enabled', false ],
-			'dashboard offload that is running'                        => [ $offload + [ 'foreground' => false ], 'enabled', true ],
-			'dashboard offload that finished or stopped at the limit'  => [ $offload + [ 'foreground' => false ], 'disabled', false ],
-			'WP-CLI offload that is running'                           => [ $offload + [ 'foreground' => true ], 'disabled', true ],
-			'WP-CLI offload that ended'                                => [ $offload + [ 'foreground' => false ], 'disabled', false ],
+			'dashboard offload that is running'                        => [ $offload + [ 'foreground' => 0 ], 'enabled', true ],
+			'dashboard offload that finished or stopped at the limit'  => [ $offload + [ 'foreground' => 0 ], 'disabled', false ],
+			'WP-CLI offload that is running'                           => [ $offload + [ 'foreground' => time() ], 'disabled', true ],
+			'WP-CLI offload that ended'                                => [ $offload + [ 'foreground' => 0 ], 'disabled', false ],
+			'WP-CLI offload interrupted an hour ago (Ctrl+C)'          => [ $offload + [ 'foreground' => time() - HOUR_IN_SECONDS ], 'disabled', false ],
 			'recorded before the transfer was stored, idle'            => [ $progress, 'disabled', false ],
 			'recorded before the transfer was stored, offload running' => [ $progress, 'enabled', true ],
 		];
@@ -795,13 +796,44 @@ class Test_Media extends WP_UnitTestCase {
 
 	public function test_a_wp_cli_run_marks_its_progress_until_it_ends(): void {
 		Optml_Media_Offload::record_process_meta( 12, 'offload_images', true );
-		$this->assertTrue( get_option( 'optml_process_meta' )['foreground'] );
+		$this->assertGreaterThanOrEqual( time() - 5, get_option( 'optml_process_meta' )['foreground'] );
 
 		Optml_Media_Offload::end_foreground_process_meta();
 
 		$meta = get_option( 'optml_process_meta' );
-		$this->assertFalse( $meta['foreground'] );
+		$this->assertSame( 0, $meta['foreground'] );
 		$this->assertSame( 12, $meta['remaining'] );
+	}
+
+	/**
+	 * The mark of a WP-CLI run is the time of its last activity: each offloaded image refreshes it,
+	 * so it goes stale by itself when the command is interrupted.
+	 */
+	public function test_each_offloaded_image_refreshes_the_mark_of_a_wp_cli_run(): void {
+		update_option(
+			'optml_process_meta',
+			[
+				'count'      => 12,
+				'remaining'  => 12,
+				'start_time' => time() - 500,
+				'action'     => 'offload_images',
+				'foreground' => time() - 500,
+			]
+		);
+
+		Optml_Media_Offload::decrement_process_meta_remaining();
+
+		$meta = get_option( 'optml_process_meta' );
+		$this->assertSame( 11, $meta['remaining'] );
+		$this->assertGreaterThanOrEqual( time() - 5, $meta['foreground'] );
+	}
+
+	public function test_offloading_an_image_does_not_mark_a_dashboard_offload_as_a_wp_cli_run(): void {
+		Optml_Media_Offload::record_process_meta( 12, 'offload_images' );
+
+		Optml_Media_Offload::decrement_process_meta_remaining();
+
+		$this->assertSame( 0, get_option( 'optml_process_meta' )['foreground'] );
 	}
 
 	/**
@@ -812,7 +844,7 @@ class Test_Media extends WP_UnitTestCase {
 
 		$meta = get_option( 'optml_process_meta' );
 		$this->assertSame( $action, $meta['action'] );
-		$this->assertFalse( $meta['foreground'] );
+		$this->assertSame( 0, $meta['foreground'] );
 	}
 
 	/**
