@@ -30,6 +30,12 @@ class Test_Media extends WP_UnitTestCase {
 	private static $sample_attachment_scaled;
 	public static $error_mark = false;
 	/**
+	 * Offloaded images the mocked account reports, out of an offload limit of 5000.
+	 *
+	 * @var int
+	 */
+	public static $offloaded_images = 50;
+	/**
 	 * Mock the api calls and remote images requests
 	 */
 	public function filter_pre_http_request( $false, $r, $url ) {
@@ -119,7 +125,7 @@ class Test_Media extends WP_UnitTestCase {
 					'data' => array(
 						'cdn_key' => 'cdn_key',
 						'cdn_secret' => 'cdn_secret',
-						'offloaded_images' => 50,
+						'offloaded_images' => self::$offloaded_images,
 						'offload_limit' => 5000,
 					),
 				)),
@@ -371,6 +377,72 @@ class Test_Media extends WP_UnitTestCase {
 			'rollback with offload off and idle' => [ 'disabled', 'disabled', 'rollback', false ],
 			'offload with offload off and idle'  => [ 'disabled', 'disabled', 'offload', false ],
 		];
+	}
+
+	/**
+	 * Run a `wp optimole media` command with the WP-CLI stand-ins.
+	 *
+	 * @param string $command The command method, 'rollback_images' or 'move_to_optimole'.
+	 * @return string[] The lines the command printed.
+	 */
+	private function run_cli_media_command( $command ) {
+		require_once __DIR__ . '/wp-cli-stub.php';
+		WP_CLI::$lines = [];
+
+		( new Optml_Cli_Media() )->$command();
+
+		return WP_CLI::$lines;
+	}
+
+	public function test_cli_rollback_continues_a_rollback_started_from_the_dashboard() {
+		// "Transfer back from Optimole": offload_media goes off, the rollback is in progress.
+		$settings = new Optml_Settings();
+		$settings->update( 'offload_media', 'disabled' );
+		$settings->update( 'rollback_status', 'enabled' );
+
+		$lines = $this->run_cli_media_command( 'rollback_images' );
+
+		$this->assertContains( 'All images have been uploaded to your media library', $lines );
+		$this->assertStringNotContainsString( 'id:', wp_get_attachment_metadata( self::$sample_attachement )['file'] );
+		$this->assertFileExists( get_attached_file( self::$sample_attachement ) );
+	}
+
+	public function test_cli_rollback_is_not_stopped_by_the_offload_limit() {
+		$settings = new Optml_Settings();
+		$settings->update( 'offload_limit_reached', 'enabled' );
+
+		$lines = $this->run_cli_media_command( 'rollback_images' );
+
+		$this->assertContains( 'All images have been uploaded to your media library', $lines );
+		$this->assertStringNotContainsString( 'id:', wp_get_attachment_metadata( self::$sample_attachement )['file'] );
+	}
+
+	public function test_cli_offload_stops_at_the_offload_limit() {
+		// Bring the images back first, so there is something to offload; the account is at its limit.
+		Optml_Media_Offload::instance()->rollback_images( 100 );
+		self::$offloaded_images = 5000;
+		require_once __DIR__ . '/wp-cli-stub.php';
+
+		try {
+			$this->run_cli_media_command( 'move_to_optimole' );
+			$this->fail( 'The offload was not stopped at the offload limit.' );
+		} catch ( Optml_Test_WP_CLI_Error $error ) {
+			$this->assertStringContainsString( 'maximum offloading limit', $error->getMessage() );
+		} finally {
+			self::$offloaded_images = 50;
+		}
+	}
+
+	public function test_cli_rollback_is_refused_when_nothing_was_offloaded() {
+		$settings = new Optml_Settings();
+		$settings->update( 'offload_media', 'disabled' );
+		$settings->update( 'rollback_status', 'disabled' );
+		require_once __DIR__ . '/wp-cli-stub.php';
+
+		$this->expectException( Optml_Test_WP_CLI_Error::class );
+		$this->expectExceptionMessage( 'You need to have the offload_media option enabled' );
+
+		$this->run_cli_media_command( 'rollback_images' );
 	}
 
 	public function test_image_rollback() {
