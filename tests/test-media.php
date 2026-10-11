@@ -828,6 +828,34 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertGreaterThanOrEqual( time() - 5, $meta['foreground'] );
 	}
 
+	/**
+	 * Every offloaded image updates the progress, also an ordinary upload long after a WP-CLI run was
+	 * interrupted. It must not bring the stale mark of that run back.
+	 */
+	public function test_a_later_upload_does_not_revive_the_mark_of_an_interrupted_wp_cli_run(): void {
+		update_option(
+			'optml_process_meta',
+			[
+				'count'      => 4990,
+				'remaining'  => 4990,
+				'start_time' => time() - HOUR_IN_SECONDS,
+				'action'     => 'offload_images',
+				'foreground' => time() - HOUR_IN_SECONDS,
+			]
+		);
+		$settings = new Optml_Settings();
+		$settings->update( 'offloading_status', 'disabled' );
+		$settings->update( 'offload_limit_reached', 'disabled' );
+
+		// Two ordinary uploads: the first one updates the progress, the second one must still be offloaded.
+		self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[0] . '.jpg' );
+		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[1] . '.jpg' );
+
+		$this->assertSame( 0, get_option( 'optml_process_meta' )['foreground'] );
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $attachment_id )['file'] ) );
+		$this->assertFalse( ( new Optml_Settings() )->is_offload_limit_reached() );
+	}
+
 	public function test_offloading_an_image_does_not_mark_a_dashboard_offload_as_a_wp_cli_run(): void {
 		Optml_Media_Offload::record_process_meta( 12, 'offload_images' );
 

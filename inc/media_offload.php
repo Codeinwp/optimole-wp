@@ -1847,6 +1847,18 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
+	 * Whether the progress belongs to a run in the foreground (WP-CLI) that moved an image within the
+	 * lifetime of a transfer step.
+	 *
+	 * @param array<string, mixed> $meta The process meta.
+	 *
+	 * @return bool
+	 */
+	private static function is_foreground_process_alive( array $meta ): bool {
+		return ! empty( $meta['foreground'] ) && ( time() - (int) $meta['foreground'] ) < self::TRANSFER_LOCK_TTL;
+	}
+
+	/**
 	 * Images a bulk offload that is still going has to upload. They count toward the offload limit.
 	 *
 	 * @return int
@@ -1866,8 +1878,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		// "remaining" stays after an offload finished, was cancelled or stopped at the limit. A
 		// dashboard offload runs while its status is on. One from WP-CLI marks its last activity: the
 		// mark is cleared when the command ends, and goes stale when the command was interrupted.
-		$foreground_running = ! empty( $meta['foreground'] ) && ( time() - (int) $meta['foreground'] ) < self::TRANSFER_LOCK_TTL;
-		$running            = $foreground_running || self::$instance->settings->get( 'offloading_status' ) !== 'disabled';
+		$running = self::is_foreground_process_alive( $meta ) || self::$instance->settings->get( 'offloading_status' ) !== 'disabled';
 
 		return $running ? absint( $meta['remaining'] ) : 0;
 	}
@@ -1884,9 +1895,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		$meta['remaining'] = $meta['remaining'] - 1;
-		// A run in the foreground is alive as long as it keeps moving images.
+		// A run in the foreground is alive as long as it keeps moving images. A mark that went stale
+		// belongs to an interrupted run: a later upload must not bring it back.
 		if ( ! empty( $meta['foreground'] ) ) {
-			$meta['foreground'] = time();
+			$meta['foreground'] = self::is_foreground_process_alive( $meta ) ? time() : 0;
 		}
 		update_option( 'optml_process_meta', $meta );
 	}
