@@ -175,9 +175,7 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 		$tag_replacer = new Optml_Tag_Replacer();
 		
 		// Mock settings to disable retina images
-		$settings = $this->getMockBuilder( 'Optml_Settings' )->getMock();
-		$settings->method( 'get' )->with( 'retina_images' )->willReturn( 'disabled' );
-		$tag_replacer->settings = $settings;
+		$tag_replacer->settings = $this->retina_settings( 'disabled' );
 		
 		$tag = '<img src="https://example.com/image.jpg" alt="Test" />';
 		$missing_srcsets = [
@@ -196,9 +194,9 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 	 * advertises its delivered width (824w); the CDN multiplies w by dpr, so its URL asks for the
 	 * CSS width (w:412/dpr:2), not w:824/dpr:2, which would deliver 1648px.
 	 */
-	public function test_add_missing_srcset_attributes_retina_entry_delivers_its_advertised_width() {
+	public function test_add_missing_srcset_attributes_retina_entry_delivers_its_advertised_width(): void {
 		$tag_replacer = new Optml_Tag_Replacer();
-		$tag_replacer->settings = $this->retina_settings();
+		$tag_replacer->settings = $this->retina_settings( 'enabled' );
 
 		$result = $tag_replacer->add_missing_srcset_attributes(
 			'<img src="https://example.com/image.jpg" alt="Test" />',
@@ -219,9 +217,9 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 	 * The 1x and 2x entries of a breakpoint share one slot: the sizes attribute gets one
 	 * condition for it, with the CSS width, not a second one with the doubled width.
 	 */
-	public function test_add_missing_srcset_attributes_retina_entries_share_one_sizes_condition() {
+	public function test_add_missing_srcset_attributes_retina_entries_share_one_sizes_condition(): void {
 		$tag_replacer = new Optml_Tag_Replacer();
-		$tag_replacer->settings = $this->retina_settings();
+		$tag_replacer->settings = $this->retina_settings( 'enabled' );
 
 		$result = $tag_replacer->add_missing_srcset_attributes(
 			'<img src="https://example.com/image.jpg" alt="Test" />',
@@ -241,13 +239,15 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Settings with Retina images enabled.
+	 * Settings mock for the Retina images option.
+	 *
+	 * @param string $retina_images The option value, 'enabled' or 'disabled'.
 	 *
 	 * @return Optml_Settings
 	 */
-	private function retina_settings() {
+	private function retina_settings( string $retina_images ): Optml_Settings {
 		$settings = $this->getMockBuilder( 'Optml_Settings' )->getMock();
-		$settings->method( 'get' )->with( 'retina_images' )->willReturn( 'enabled' );
+		$settings->method( 'get' )->with( 'retina_images' )->willReturn( $retina_images );
 
 		return $settings;
 	}
