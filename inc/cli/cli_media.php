@@ -41,7 +41,6 @@ class Optml_Cli_Media extends WP_CLI_Command {
 				'success' => __( 'All images have been uploaded to your media library', 'optimole-wp' ),
 			],
 			'limit_exceeded' => __( 'You have reached the maximum offloading limit of images. To increase the offload limit and for more information, contact our support.', 'optimole-wp' ),
-			'transfer_running' => __( 'Another image transfer is running. Wait for it to finish, then run this command again.', 'optimole-wp' ),
 		];
 		$settings = new Optml_Settings();
 		if ( ! $settings->can_transfer_images( $action ) ) {
@@ -51,7 +50,7 @@ class Optml_Cli_Media extends WP_CLI_Command {
 		// One run moves images at a time. A background step that is moving images right now holds this
 		// lock; while this command holds it, the background steps do nothing.
 		if ( ! Optml_Media_Offload::acquire_moving_images_lock() ) {
-			return \WP_CLI::error( $strings['transfer_running'] );
+			return \WP_CLI::error( 'Another image transfer is running. Wait for it to finish, then run this command again.' );
 		}
 
 		Optml_Media_Offload::clear_offload_errors_meta();
