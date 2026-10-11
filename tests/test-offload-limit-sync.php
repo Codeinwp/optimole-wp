@@ -10,11 +10,11 @@
  */
 class Test_Offload_Limit_Sync extends WP_UnitTestCase {
 	/**
-	 * Account details the mocked API returns.
+	 * Usage details the mocked account API returns.
 	 *
-	 * @var array<string, mixed>
+	 * @var array{offloaded_images?: int, offload_limit?: int}
 	 */
-	private $account = [];
+	private array $account = [];
 
 	/**
 	 * Set up a connected site with a limit warning from an earlier upload.
@@ -85,7 +85,7 @@ class Test_Offload_Limit_Sync extends WP_UnitTestCase {
 	/**
 	 * Usage below the limit, for example after duplicate sites were removed, clears the warning.
 	 */
-	public function test_daily_sync_clears_the_warning_when_usage_is_below_the_limit() {
+	public function test_daily_sync_clears_the_warning_when_usage_is_below_the_limit(): void {
 		$this->account = [
 			'offloaded_images' => 1181,
 			'offload_limit'    => 20000,
@@ -101,7 +101,7 @@ class Test_Offload_Limit_Sync extends WP_UnitTestCase {
 	/**
 	 * An account still at its limit keeps the warning.
 	 */
-	public function test_daily_sync_keeps_the_warning_at_the_limit() {
+	public function test_daily_sync_keeps_the_warning_at_the_limit(): void {
 		$this->account = [
 			'offloaded_images' => 20000,
 			'offload_limit'    => 20000,
@@ -117,7 +117,7 @@ class Test_Offload_Limit_Sync extends WP_UnitTestCase {
 	/**
 	 * Without usage details in the response, nothing changes.
 	 */
-	public function test_daily_sync_without_usage_details_keeps_the_warning() {
+	public function test_daily_sync_without_usage_details_keeps_the_warning(): void {
 		$this->account = [];
 
 		Optml_Main::instance()->admin->daily_sync();

@@ -1384,13 +1384,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$offload_manager = Optimole::offload();
 		$offload_usage = $offload_manager->getUsage();
 
-		// Images still to upload in a running bulk offload count toward the limit. The progress of a
-		// finished offload or of a rollback does not.
-		$current_run = self::get_process_meta();
-		$remaining   = 0;
-		if ( self::$instance->settings->get( 'offloading_status' ) !== 'disabled' && isset( $current_run['remaining'] ) ) {
-			$remaining = absint( $current_run['remaining'] );
-		}
+		$remaining = self::get_pending_offload_count();
 
 		if ( $remaining + $offload_usage->getCurrent() >= $offload_usage->getLimit() ) {
 			if ( OPTML_DEBUG_MEDIA ) {
@@ -1818,18 +1812,40 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Record process meta,
 	 *
-	 * @param int $count The number of images to process.
+	 * @param int    $count  The number of images to process.
+	 * @param string $action The transfer the images belong to, 'offload_images' or 'rollback_images'.
 	 *
 	 * @return void
 	 */
-	public static function record_process_meta( $count ) {
+	public static function record_process_meta( $count, $action = 'offload_images' ) {
 		$meta               = get_option( 'optml_process_meta', [] );
 		$meta['count']      = $count;
 		$meta['remaining']  = $count;
 		$meta['start_time'] = time();
+		$meta['action']     = $action;
 		update_option( 'optml_process_meta', $meta );
 	}
 
+	/**
+	 * Images a bulk offload still has to upload. They count toward the offload limit; the images a
+	 * rollback still has to move back do not.
+	 *
+	 * @return int
+	 */
+	private static function get_pending_offload_count() {
+		$meta = get_option( 'optml_process_meta', [] );
+
+		if ( ! isset( $meta['remaining'] ) ) {
+			return 0;
+		}
+
+		// Progress recorded before the transfer was stored: it counts while a dashboard offload runs.
+		$is_offload = isset( $meta['action'] )
+			? 'offload_images' === $meta['action']
+			: self::$instance->settings->get( 'offloading_status' ) !== 'disabled';
+
+		return $is_offload ? absint( $meta['remaining'] ) : 0;
+	}
 	/**
 	 * Update the process meta count.
 	 *
@@ -1904,7 +1920,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				self::$instance->settings->update( 'rollback_images' === $action ? 'offloading_status' : 'rollback_status', 'disabled' );
 			}
 			self::$instance->settings->update( 'offload_limit_reached', 'disabled' );
-			self::record_process_meta( $count );
+			self::record_process_meta( $count, $action );
 
 			self::$instance->settings->update( $option, $in_progress ? 'enabled' : 'disabled' );
 			self::$instance->logger->add_log( $type, Optml_Logger::LOG_SEPARATOR );

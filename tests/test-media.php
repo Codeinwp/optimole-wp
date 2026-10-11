@@ -345,43 +345,6 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertStringContainsString( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117', $image_medium_size[0] );
 	}
 
-	/**
-	 * The account mock reports 50 of 5000 images offloaded. A rollback records how many images it
-	 * moves back as the "remaining" progress; once it is over, that number must not count toward
-	 * the limit of the next upload.
-	 */
-	public function test_stale_transfer_progress_does_not_trip_the_offload_limit() {
-		$settings = new Optml_Settings();
-		$settings->update( 'offloading_status', 'disabled' );
-		$settings->update( 'offload_limit_reached', 'disabled' );
-		Optml_Media_Offload::record_process_meta( 4990 );
-
-		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[0] . '.jpg' );
-		$meta          = wp_get_attachment_metadata( $attachment_id );
-
-		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( $meta['file'] ) );
-		$this->assertFalse( ( new Optml_Settings() )->is_offload_limit_reached() );
-	}
-
-	/**
-	 * During a bulk offload the images still to upload do count; when they would exceed the limit,
-	 * the limit of the account is stored with the warning (not the 50,000 default).
-	 */
-	public function test_offload_limit_check_stores_the_account_limit() {
-		$settings = new Optml_Settings();
-		$settings->update( 'offloading_status', 'enabled' );
-		$settings->update( 'offload_limit_reached', 'disabled' );
-		Optml_Media_Offload::record_process_meta( 4990 );
-
-		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[0] . '.jpg' );
-		$meta          = wp_get_attachment_metadata( $attachment_id );
-		$settings      = new Optml_Settings();
-
-		$this->assertFalse( Optml_Media_Offload::is_uploaded_image( $meta['file'] ) );
-		$this->assertTrue( $settings->is_offload_limit_reached() );
-		$this->assertSame( 5000, (int) $settings->get( 'offload_limit' ) );
-	}
-
 	public function test_image_rollback() {
 
 		Optml_Media_Offload::instance()->rollback_images( 100 );
@@ -775,5 +738,72 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertEquals( 1, $scheduled_count );
 
 		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
+	 * The account mock reports 50 of 5000 images offloaded, and 4990 images are recorded as still to
+	 * be moved. They count toward the limit of an upload only when they belong to an offload: a
+	 * rollback records the images it moves back in the same place.
+	 *
+	 * @dataProvider pending_transfer_provider
+	 *
+	 * @param array{count: int, remaining: int, start_time: int, action?: string} $process_meta      The recorded transfer progress.
+	 * @param string                                                              $offloading_status The dashboard offload status.
+	 * @param bool                                                                $limit_reached     Whether the upload trips the limit.
+	 */
+	public function test_only_a_pending_offload_counts_toward_the_offload_limit( array $process_meta, string $offloading_status, bool $limit_reached ): void {
+		$settings = new Optml_Settings();
+		$settings->update( 'offloading_status', $offloading_status );
+		$settings->update( 'offload_limit_reached', 'disabled' );
+		update_option( 'optml_process_meta', $process_meta );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[0] . '.jpg' );
+		$meta          = wp_get_attachment_metadata( $attachment_id );
+		$settings      = new Optml_Settings();
+
+		$this->assertSame( ! $limit_reached, Optml_Media_Offload::is_uploaded_image( $meta['file'] ) );
+		$this->assertSame( $limit_reached, $settings->is_offload_limit_reached() );
+
+		if ( $limit_reached ) {
+			// The limit of the account is stored with the warning, not the 50,000 default.
+			$this->assertSame( 5000, (int) $settings->get( 'offload_limit' ) );
+		}
+	}
+
+	/**
+	 * @return array<string, array{0: array{count: int, remaining: int, start_time: int, action?: string}, 1: string, 2: bool}>
+	 */
+	public function pending_transfer_provider(): array {
+		$progress = [
+			'count'      => 4990,
+			'remaining'  => 4990,
+			'start_time' => time(),
+		];
+
+		return [
+			'rollback'                                               => [ $progress + [ 'action' => 'rollback_images' ], 'disabled', false ],
+			'offload, also from WP-CLI (no dashboard status)'        => [ $progress + [ 'action' => 'offload_images' ], 'disabled', true ],
+			'recorded before the transfer was stored, idle'          => [ $progress, 'disabled', false ],
+			'recorded before the transfer was stored, offload running' => [ $progress, 'enabled', true ],
+		];
+	}
+
+	/**
+	 * @dataProvider transfer_action_provider
+	 */
+	public function test_a_bulk_transfer_records_which_transfer_its_progress_belongs_to( string $action ): void {
+		Optml_Media_Offload::move_images( $action, false );
+
+		$this->assertSame( $action, get_option( 'optml_process_meta' )['action'] );
+	}
+
+	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public function transfer_action_provider(): array {
+		return [
+			'offload'  => [ 'offload_images' ],
+			'rollback' => [ 'rollback_images' ],
+		];
 	}
 }

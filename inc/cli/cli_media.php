@@ -57,7 +57,7 @@ class Optml_Cli_Media extends WP_CLI_Command {
 			$number_of_images_for = 'rollback_images';
 		}
 		$number_of_images = Optml_Media_Offload::number_of_images_and_pages( $number_of_images_for );
-		Optml_Media_Offload::record_process_meta( $number_of_images );
+		Optml_Media_Offload::record_process_meta( $number_of_images, $number_of_images_for );
 		$batch = 5;
 		if ( $number_of_images === 0 ) {
 			WP_CLI::success( $strings[ $action ]['success'] );
