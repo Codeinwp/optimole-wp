@@ -882,6 +882,23 @@ class Optml_Settings {
 	}
 
 	/**
+	 * Whether a bulk image transfer can run. Moving images to Optimole needs offload_media on.
+	 * Moving them back is also allowed while a rollback is in progress: "Transfer back" in the
+	 * dashboard turns offload_media off when it starts the rollback.
+	 *
+	 * @param string $action The transfer, 'offload' or 'rollback'.
+	 *
+	 * @return bool
+	 */
+	public function can_transfer_images( $action ) {
+		if ( 'rollback' === $action ) {
+			return $this->is_offload_enabled();
+		}
+
+		return $this->get( 'offload_media' ) !== 'disabled';
+	}
+
+	/**
 	 * Get cloud sites whitelist for current domain only.
 	 *
 	 * @return array
