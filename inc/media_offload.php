@@ -161,8 +161,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				self::$instance->init();
 			}
 			if ( self::$instance->settings->is_offload_enabled() ) {
+				// While a rollback runs, offloaded images are still served from Optimole, but new uploads
+				// stay local: offloading them and their filename deduplication needs offload_media on.
+				$offload_new_uploads = self::$instance->settings->get( 'offload_media' ) === 'enabled';
+
 				add_filter( 'image_downsize', [ self::$instance, 'generate_filter_downsize_urls' ], 10, 3 );
-				add_filter( 'wp_generate_attachment_metadata', [ self::$instance, 'generate_image_meta' ], 10, 2 );
+				if ( $offload_new_uploads ) {
+					add_filter( 'wp_generate_attachment_metadata', [ self::$instance, 'generate_image_meta' ], 10, 2 );
+				}
 				add_filter( 'wp_get_attachment_url', [ self::$instance, 'get_image_attachment_url' ], - 999, 2 );
 				add_filter( 'wp_insert_post_data', [ self::$instance, 'filter_uploaded_images' ] );
 
@@ -176,12 +182,15 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'wp_calculate_image_srcset', [ self::$instance, 'calculate_image_srcset' ], 1, 5 );
 				add_action( 'post_updated', [ self::$instance, 'update_offload_meta' ], 10, 3 );
 
-				// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
-				$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
-				if ( $below_6_0_0 ) {
-					add_filter( 'wp_insert_attachment_data', [ self::$instance, 'insert_legacy' ], 10, 3 );
-				} else {
-					add_filter( 'wp_insert_attachment_data', [ self::$instance, 'insert' ], 10, 4 );
+				// Local uploads keep WordPress's own filename deduplication.
+				if ( $offload_new_uploads ) {
+					// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
+					$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
+					if ( $below_6_0_0 ) {
+						add_filter( 'wp_insert_attachment_data', [ self::$instance, 'insert_legacy' ], 10, 3 );
+					} else {
+						add_filter( 'wp_insert_attachment_data', [ self::$instance, 'insert' ], 10, 4 );
+					}
 				}
 
 				add_action( 'optml_start_processing_images', [ self::$instance, 'start_processing_images' ], 10, 6 );
