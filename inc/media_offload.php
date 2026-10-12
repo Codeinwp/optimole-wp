@@ -2044,6 +2044,65 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
+	 * Take the lock of the run that is moving images right now, without waiting.
+	 *
+	 * The transfer lock above says which chain owns a transfer. It is taken when a chain is scheduled,
+	 * and again on every request while a transfer is in progress, so it cannot tell whether images are
+	 * being moved at this moment. This one is a database advisory lock: taking it is atomic, and the
+	 * database frees it when the request ends, also after a crash. A background step holds it for its
+	 * batch, and WP-CLI for its whole run, so the two never move the same images at the same time.
+	 *
+	 * @return bool False while another run holds it. True when it was taken, and also where the
+	 *              database has no advisory locks, so transfers work there as before.
+	 */
+	public static function acquire_moving_images_lock(): bool {
+		global $wpdb;
+
+		// The lock lives on one database server. Where reads are spread over several (HyperDB,
+		// LudicrousDB), every run has to ask the same one: the primary.
+		if ( method_exists( $wpdb, 'send_reads_to_masters' ) ) {
+			$wpdb->send_reads_to_masters();
+		}
+
+		$suppress = $wpdb->suppress_errors();
+		$result   = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK( %s, 0 )', self::get_moving_images_lock_name() ) );
+		$wpdb->suppress_errors( $suppress );
+
+		// A fatal error skips the cleanup of the caller. On a persistent connection the lock would then
+		// outlive the request, so it is also released when the request shuts down.
+		add_action( 'shutdown', [ __CLASS__, 'release_moving_images_lock' ] );
+
+		return null === $result || 1 === (int) $result;
+	}
+
+	/**
+	 * Release the lock taken with {@see self::acquire_moving_images_lock()}.
+	 *
+	 * @return void
+	 */
+	public static function release_moving_images_lock(): void {
+		global $wpdb;
+
+		$suppress = $wpdb->suppress_errors();
+		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK( %s )', self::get_moving_images_lock_name() ) );
+		$wpdb->suppress_errors( $suppress );
+	}
+
+	/**
+	 * Name of the advisory lock. Such locks are shared by every database on the server, so the name
+	 * holds the database and the table prefix (which is per site on a network).
+	 *
+	 * @return string
+	 */
+	public static function get_moving_images_lock_name(): string {
+		global $wpdb;
+
+		$database = defined( 'DB_NAME' ) ? DB_NAME : '';
+
+		return 'optml_moving_images_' . md5( $database . $wpdb->prefix );
+	}
+
+	/**
 	 * Release the transfer lock if we still own it, allowing another worker to acquire it.
 	 *
 	 * @param string $token The lock token to release.
@@ -2151,6 +2210,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return;
 		}
 
+		// Only one run moves images at a time. WP-CLI holds this lock while its transfer runs: it does the
+		// work of this step, and the chain is scheduled again once the transfer lock expires.
+		if ( ! self::acquire_moving_images_lock() ) {
+			self::$instance->logger->add_log( $type, 'Another run is moving images, this step is skipped.' );
+
+			return;
+		}
+
 		set_time_limit( 0 );
 
 		try {
@@ -2201,6 +2268,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$lock_token,
 				]
 			);
+		} finally {
+			self::release_moving_images_lock();
 		}
 	}
 
