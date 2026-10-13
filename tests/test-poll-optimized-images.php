@@ -183,6 +183,49 @@ class Test_Poll_Optimized_Images extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Without a connection the SDK is not initialized, so a list cannot be turned into image URLs:
+	 * polling returns an empty list instead of throwing, and does not call the API.
+	 */
+	public function test_poll_returns_empty_list_when_not_connected(): void {
+		( new Optml_Settings() )->update( 'service_data', [] );
+		$requests = 0;
+
+		/**
+		 * An API response with one image, counting the requests.
+		 *
+		 * @return array{headers: array<string, string>, body: string, response: array{code: int, message: string}}
+		 */
+		$this->http_mock = function () use ( &$requests ): array {
+			++$requests;
+			return [
+				'headers'  => [],
+				'body'     => wp_json_encode(
+					[
+						'code' => 200,
+						'data' => [
+							'list' => [
+								[
+									'url' => 'https://example.com/photo.jpg',
+									'key' => 'AbC',
+								],
+							],
+						],
+					]
+				),
+				'response' => [
+					'code'    => 200,
+					'message' => 'OK',
+				],
+			];
+		};
+
+		$payload = $this->poll();
+		$this->assertSame( 'success', $payload['code'] );
+		$this->assertSame( [], $payload['data'] );
+		$this->assertSame( 0, $requests );
+	}
+
+	/**
 	 * A valid list is returned (URLs rewritten through Optimole).
 	 */
 	public function test_poll_returns_images_from_list() {
