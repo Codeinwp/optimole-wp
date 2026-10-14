@@ -64,16 +64,16 @@
         },
         {
             "name": "codeinwp/themeisle-sdk",
-            "version": "3.3.66",
+            "version": "3.3.67",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeinwp/themeisle-sdk.git",
-                "reference": "27e095d8357e0594cd5769222af1258538832e75"
+                "reference": "e1dda44811660a65c3da6994349c054a46686d69"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeinwp/themeisle-sdk/zipball/27e095d8357e0594cd5769222af1258538832e75",
-                "reference": "27e095d8357e0594cd5769222af1258538832e75",
+                "url": "https://api.github.com/repos/Codeinwp/themeisle-sdk/zipball/e1dda44811660a65c3da6994349c054a46686d69",
+                "reference": "e1dda44811660a65c3da6994349c054a46686d69",
                 "shasum": ""
             },
             "require-dev": {
@@ -99,9 +99,9 @@
             ],
             "support": {
                 "issues": "https://github.com/Codeinwp/themeisle-sdk/issues",
-                "source": "https://github.com/Codeinwp/themeisle-sdk/tree/v3.3.66"
+                "source": "https://github.com/Codeinwp/themeisle-sdk/tree/v3.3.67"
             },
-            "time": "2026-10-07T08:46:25+00:00"
+            "time": "2026-10-13T12:16:34+00:00"
         },
         {
             "name": "enshrined/svg-sanitize",
@@ -904,11 +904,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.2.17",
+            "version": "2.3.0",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/e676a49fa70cee9f5bf6ff4796186b928a08673f",
-                "reference": "e676a49fa70cee9f5bf6ff4796186b928a08673f",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/b1f9890d9af53a25c58129e78f0aadd31f90d7f4",
+                "reference": "b1f9890d9af53a25c58129e78f0aadd31f90d7f4",
                 "shasum": ""
             },
             "require": {
@@ -964,7 +964,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-04T19:40:09+00:00"
+            "time": "2026-10-06T06:15:36+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",
