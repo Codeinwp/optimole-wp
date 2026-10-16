@@ -734,6 +734,50 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 	}
 
 	/**
+	 * An unquoted srcset or sizes is still the tag's own attribute: no second one is added in front of it,
+	 * where the browser would use it instead.
+	 *
+	 * @dataProvider unquoted_attribute_tags
+	 *
+	 * @param string $tag      The image tag.
+	 * @param string $unquoted The unquoted attribute, which must stay as it is.
+	 */
+	public function test_add_missing_srcset_attributes_keeps_unquoted_attributes( string $tag, string $unquoted ): void {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, [ [ 'w' => 200, 'h' => 150, 'd' => 1, 's' => '200w', 'b' => 320 ] ], 'https://example.com/image.jpg', false );
+
+		$this->assertSame( 1, preg_match_all( '/\ssrcset\s*=/', $result ) );
+		$this->assertSame( 1, preg_match_all( '/\ssizes\s*=/', $result ) );
+		$this->assertStringContainsString( ' ' . $unquoted . ' ', $result );
+	}
+
+	/**
+	 * Image tags with an unquoted srcset or sizes.
+	 *
+	 * @return array<string, array{string, string}>
+	 */
+	public function unquoted_attribute_tags(): array {
+		return [
+			'unquoted srcset' => [ '<img src="https://example.com/image.jpg" srcset=https://example.com/original.jpg sizes="100vw" alt="Test" />', 'srcset=https://example.com/original.jpg' ],
+			'unquoted sizes'  => [ '<img src="https://example.com/image.jpg" srcset="https://example.com/original.jpg 1000w" sizes=50vw alt="Test" />', 'sizes=50vw' ],
+		];
+	}
+
+	/**
+	 * A data: URI in a lazy loader's data-src is not the image's own source: the real src still gets its srcset.
+	 */
+	public function test_add_missing_srcset_attributes_ignores_data_uri_in_data_src(): void {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img data-src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" src="https://example.com/image.jpg" alt="Test" />';
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, [ [ 'w' => 200, 'h' => 150, 'd' => 1, 's' => '200w', 'b' => 320 ] ], 'https://example.com/image.jpg', false );
+
+		$this->assertSame( 'https://example.com/image.jpg 200w', $this->get_img_element( $result )->getAttribute( 'srcset' ) );
+	}
+
+	/**
 	 * enhance_existing_sizes() merges into the real sizes attribute, not into a data-sizes before it.
 	 */
 	public function test_enhance_existing_sizes_enhances_only_the_real_sizes(): void {

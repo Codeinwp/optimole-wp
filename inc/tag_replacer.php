@@ -484,8 +484,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		}
 
 		// Check if srcset already exists
-		$has_existing_srcset = preg_match( $this->attribute_regex( 'srcset' ), $tag ) === 1;
-		$has_existing_sizes = preg_match( $this->attribute_regex( 'sizes' ), $tag ) === 1;
+		$has_existing_srcset = $this->has_attribute( $tag, 'srcset' );
+		$has_existing_sizes = $this->has_attribute( $tag, 'sizes' );
 
 		// Build new srcset entries from missing srcset data
 		$new_srcset_entries = [];
@@ -708,6 +708,21 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	private function attribute_regex( $name ) {
 		return '/(?<=\s)' . $name . '=["\']([^"\']*)["\']/i';
+	}
+
+	/**
+	 * Check whether the image tag has an attribute, whatever its value looks like.
+	 *
+	 * The regex from attribute_regex() only reads quoted values. An unquoted one (sizes=50vw) still counts here,
+	 * so a second attribute is never added in front of it, where the browser would take it instead of the original.
+	 *
+	 * @param string $tag The image tag.
+	 * @param string $name The attribute name: srcset or sizes.
+	 *
+	 * @return bool True if the attribute is present.
+	 */
+	private function has_attribute( $tag, $name ) {
+		return preg_match( '/(?<=\s)' . $name . '\s*=/i', $tag ) === 1;
 	}
 
 	/**
