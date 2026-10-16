@@ -667,6 +667,88 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 	}
 
 	/**
+	 * An Envira Gallery image keeps a data: placeholder in srcset until its lazy loader copies
+	 * data-envira-srcset in. Real candidates there would load the image before Envira does.
+	 */
+	public function test_add_missing_srcset_attributes_leaves_placeholder_srcset_to_the_lazy_loader(): void {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img class="envira-gallery-image envira-lazy" src="https://example.com/image.jpg" data-envira-src="https://example.com/image.jpg" data-envira-srcset="https://example.com/image.jpg 400w,https://example.com/image.jpg 2x" srcset="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-safe-src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" />';
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, [ [ 'w' => 254, 'h' => 300, 'd' => 1, 's' => '254w', 'b' => 2560 ] ], 'https://example.com/image.jpg', false );
+
+		$this->assertSame( $tag, $result );
+	}
+
+	/**
+	 * A lazy loader that shows a data: placeholder in src owns the image too.
+	 */
+	public function test_add_missing_srcset_attributes_leaves_placeholder_src_to_the_lazy_loader(): void {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%2F%3E" data-src="https://example.com/image.jpg" alt="Test" />';
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, [ [ 'w' => 200, 'h' => 150, 'd' => 1, 's' => '200w', 'b' => 320 ] ], 'https://example.com/image.jpg', false );
+
+		$this->assertSame( $tag, $result );
+	}
+
+	/**
+	 * Only the real srcset is enhanced, and sizes is added once, after it: data-envira-srcset comes first in
+	 * the tag and must neither be read as the existing srcset nor be rewritten.
+	 */
+	public function test_add_missing_srcset_attributes_enhances_only_the_real_srcset(): void {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" data-envira-srcset="lazy-400w.jpg 400w" srcset="existing-300w.jpg 300w" alt="Test" />';
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, [ [ 'w' => 200, 'h' => 150, 'd' => 1, 's' => '200w', 'b' => 320 ] ], 'https://example.com/image.jpg', false );
+		$img    = $this->get_img_element( $result );
+
+		$this->assertSame( 'lazy-400w.jpg 400w', $img->getAttribute( 'data-envira-srcset' ) );
+		$this->assertStringContainsString( 'existing-300w.jpg 300w', $img->getAttribute( 'srcset' ) );
+		$this->assertStringContainsString( '200w', $img->getAttribute( 'srcset' ) );
+		$this->assertStringNotContainsString( 'lazy-400w.jpg', $img->getAttribute( 'srcset' ) );
+		$this->assertSame( 1, substr_count( $result, ' sizes="' ) );
+		$this->assertSame( '(max-width: 320px) 200px', $img->getAttribute( 'sizes' ) );
+	}
+
+	/**
+	 * A tag with only data-src, data-srcset and data-sizes has no srcset or sizes of its own: both are added once,
+	 * after the real src, and the lazy-load attributes stay as they are.
+	 */
+	public function test_add_missing_srcset_attributes_adds_srcset_beside_lazy_load_attributes(): void {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img data-src="https://example.com/image.jpg" src="https://example.com/image.jpg" data-srcset="lazy-400w.jpg 400w" data-sizes="auto" alt="Test" />';
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, [ [ 'w' => 200, 'h' => 150, 'd' => 1, 's' => '200w', 'b' => 320 ] ], 'https://example.com/image.jpg', false );
+		$img    = $this->get_img_element( $result );
+
+		$this->assertSame( 1, substr_count( $result, ' srcset="' ) );
+		$this->assertSame( 1, substr_count( $result, ' sizes="' ) );
+		$this->assertStringContainsString( 'src="https://example.com/image.jpg" srcset="https://example.com/image.jpg 200w" sizes="(max-width: 320px) 200px"', $result );
+		$this->assertSame( 'https://example.com/image.jpg', $img->getAttribute( 'data-src' ) );
+		$this->assertSame( 'lazy-400w.jpg 400w', $img->getAttribute( 'data-srcset' ) );
+		$this->assertSame( 'auto', $img->getAttribute( 'data-sizes' ) );
+	}
+
+	/**
+	 * enhance_existing_sizes() merges into the real sizes attribute, not into a data-sizes before it.
+	 */
+	public function test_enhance_existing_sizes_enhances_only_the_real_sizes(): void {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" data-sizes="auto" sizes="(max-width: 480px) 300px" alt="Test" />';
+
+		$result = $tag_replacer->enhance_existing_sizes( $tag, [ '(max-width: 320px) 200px' ], false );
+		$img    = $this->get_img_element( $result );
+
+		$this->assertSame( 'auto', $img->getAttribute( 'data-sizes' ) );
+		$this->assertSame( '(max-width: 480px) 300px, (max-width: 320px) 200px', $img->getAttribute( 'sizes' ) );
+	}
+
+	/**
 	 * Parse a single img tag string and return its DOM element
 	 */
 	private function get_img_element( $tag_html ) {

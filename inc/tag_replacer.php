@@ -476,9 +476,16 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return $tag;
 		}
 
+		if ( $this->has_placeholder_source( $tag ) ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', 'Skipping srcset enhancement for a lazy-load placeholder: ' . $new_url );
+			}
+			return $tag;
+		}
+
 		// Check if srcset already exists
-		$has_existing_srcset = strpos( $tag, 'srcset=' ) !== false;
-		$has_existing_sizes = strpos( $tag, 'sizes=' ) !== false;
+		$has_existing_srcset = preg_match( $this->attribute_regex( 'srcset' ), $tag ) === 1;
+		$has_existing_sizes = preg_match( $this->attribute_regex( 'sizes' ), $tag ) === 1;
 
 		// Build new srcset entries from missing srcset data
 		$new_srcset_entries = [];
@@ -537,7 +544,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$srcset_attr = $is_slashed ? 'srcset=\"' . addcslashes( $srcset_value, '"' ) . '\"' : 'srcset="' . $srcset_value . '"';
 
 			// Insert srcset attribute after the src attribute
-			$tag = preg_replace( '/(src=["\'][^"\']*["\'])/i', '$1 ' . $srcset_attr, $tag );
+			$tag = preg_replace( $this->attribute_regex( 'src' ), '$0 ' . $srcset_attr, $tag );
 		}
 
 		// Handle sizes attribute - skip if existing sizes contains calc() or complex formulas
@@ -546,7 +553,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 			if ( $has_existing_sizes ) {
 				// Check if existing sizes contains calc() or complex formulas
-				if ( preg_match( '/sizes=["\']([^"\']*)["\']/i', $tag, $matches ) ) {
+				if ( preg_match( $this->attribute_regex( 'sizes' ), $tag, $matches ) ) {
 					$existing_sizes = $matches[1];
 					if ( $this->should_skip_sizes( $existing_sizes ) ) {
 						$should_skip_sizes = true;
@@ -584,7 +591,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 						$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $sizes_value, '"' ) . '\"' : 'sizes="' . $sizes_value . '"';
 
 						// Insert sizes attribute after srcset
-						$tag = preg_replace( '/(srcset=["\'][^"\']*["\'])/i', '$1 ' . $sizes_attr, $tag );
+						$tag = preg_replace( $this->attribute_regex( 'srcset' ), '$0 ' . $sizes_attr, $tag );
 					}
 				}
 			} else {
@@ -614,7 +621,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function enhance_existing_srcset( $tag, $new_srcset_entries, $is_slashed = false ) {
 		// Extract existing srcset value
-		if ( preg_match( '/srcset=["\']([^"\']*)["\']/i', $tag, $matches ) ) {
+		if ( preg_match( $this->attribute_regex( 'srcset' ), $tag, $matches ) ) {
 			$existing_srcset = $matches[1];
 			$existing_entries = array_map( 'trim', explode( ',', $existing_srcset ) );
 
@@ -640,7 +647,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$srcset_attr = $is_slashed ? 'srcset=\"' . addcslashes( $enhanced_srcset, '"' ) . '\"' : 'srcset="' . $enhanced_srcset . '"';
 
 			// Replace existing srcset
-			$tag = preg_replace( '/srcset=["\'][^"\']*["\']/i', $srcset_attr, $tag );
+			$tag = preg_replace( $this->attribute_regex( 'srcset' ), $srcset_attr, $tag );
 		}
 
 		return $tag;
@@ -657,7 +664,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function enhance_existing_sizes( $tag, $new_sizes_entries, $is_slashed = false ) {
 		// Extract existing sizes value
-		if ( preg_match( '/sizes=["\']([^"\']*)["\']/i', $tag, $matches ) ) {
+		if ( preg_match( $this->attribute_regex( 'sizes' ), $tag, $matches ) ) {
 			$existing_sizes = $matches[1];
 			$existing_entries = array_map( 'trim', explode( ',', $existing_sizes ) );
 
@@ -683,10 +690,44 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $enhanced_sizes, '"' ) . '\"' : 'sizes="' . $enhanced_sizes . '"';
 
 			// Replace existing sizes
-			$tag = preg_replace( '/sizes=["\'][^"\']*["\']/i', $sizes_attr, $tag );
+			$tag = preg_replace( $this->attribute_regex( 'sizes' ), $sizes_attr, $tag );
 		}
 
 		return $tag;
+	}
+
+	/**
+	 * Regex for one attribute of an image tag, with its value in group 1.
+	 *
+	 * The name must follow whitespace, so an attribute that only ends with it, such as Envira's
+	 * data-envira-srcset or a lazy loader's data-src, is never read or rewritten in its place.
+	 *
+	 * @param string $name The attribute name: src, srcset or sizes.
+	 *
+	 * @return string The regex.
+	 */
+	private function attribute_regex( $name ) {
+		return '/(?<=\s)' . $name . '=["\']([^"\']*)["\']/i';
+	}
+
+	/**
+	 * Check whether the tag's src or srcset is a data: URI placeholder.
+	 *
+	 * A lazy loader (Envira Gallery, other lazy-load plugins) owns such an image and swaps in the real
+	 * sources itself. Real srcset candidates would make the browser load the image before it does.
+	 *
+	 * @param string $tag The image tag.
+	 *
+	 * @return bool True if the image still shows a placeholder.
+	 */
+	private function has_placeholder_source( $tag ) {
+		foreach ( [ 'src', 'srcset' ] as $name ) {
+			if ( preg_match( $this->attribute_regex( $name ), $tag, $matches ) && stripos( ltrim( $matches[1] ), 'data:' ) === 0 ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**
