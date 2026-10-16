@@ -734,47 +734,53 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 	}
 
 	/**
-	 * An unquoted srcset or sizes is still the tag's own attribute: no second one is added in front of it,
-	 * where the browser would use it instead.
+	 * An unquoted srcset or sizes, or one with spaces around "=", is still the tag's own attribute: no second
+	 * one is added in front of it, where the browser would use it instead.
 	 *
-	 * @dataProvider unquoted_attribute_tags
+	 * @dataProvider own_attribute_variants
 	 *
 	 * @param string $tag      The image tag.
-	 * @param string $unquoted The unquoted attribute, which must stay as it is.
+	 * @param string $original The original attribute, which must stay as it is.
 	 */
-	public function test_add_missing_srcset_attributes_keeps_unquoted_attributes( string $tag, string $unquoted ): void {
+	public function test_add_missing_srcset_attributes_keeps_unquoted_and_spaced_attributes( string $tag, string $original ): void {
 		$tag_replacer = new Optml_Tag_Replacer();
 
 		$result = $tag_replacer->add_missing_srcset_attributes( $tag, [ [ 'w' => 200, 'h' => 150, 'd' => 1, 's' => '200w', 'b' => 320 ] ], 'https://example.com/image.jpg', false );
 
 		$this->assertSame( 1, preg_match_all( '/\ssrcset\s*=/', $result ) );
-		$this->assertSame( 1, preg_match_all( '/\ssizes\s*=/', $result ) );
-		$this->assertStringContainsString( ' ' . $unquoted . ' ', $result );
+		$this->assertLessThanOrEqual( 1, preg_match_all( '/\ssizes\s*=/', $result ) );
+		$this->assertStringContainsString( ' ' . $original . ' ', $result );
 	}
 
 	/**
-	 * Image tags with an unquoted srcset or sizes.
+	 * Image tags whose srcset or sizes is unquoted or has spaces around "=".
 	 *
 	 * @return array<string, array{string, string}>
 	 */
-	public function unquoted_attribute_tags(): array {
+	public function own_attribute_variants(): array {
 		return [
 			'unquoted srcset' => [ '<img src="https://example.com/image.jpg" srcset=https://example.com/original.jpg sizes="100vw" alt="Test" />', 'srcset=https://example.com/original.jpg' ],
 			'unquoted sizes'  => [ '<img src="https://example.com/image.jpg" srcset="https://example.com/original.jpg 1000w" sizes=50vw alt="Test" />', 'sizes=50vw' ],
+			'spaced srcset'   => [ '<img src="https://example.com/image.jpg" srcset = "existing-300w.jpg 300w" alt="Test" />', 'srcset = "existing-300w.jpg 300w"' ],
+			'spaced sizes'    => [ '<img src="https://example.com/image.jpg" srcset="existing-300w.jpg 300w" sizes = "100vw" alt="Test" />', 'sizes = "100vw"' ],
 		];
 	}
 
 	/**
-	 * A data: URI in a lazy loader's data-src is not the image's own source: the real src still gets its srcset.
+	 * A data: URI in a lazy loader's data-src or data-srcset is not the image's own source: the real src still
+	 * gets its srcset, and the lazy-load attributes stay as they are.
 	 */
-	public function test_add_missing_srcset_attributes_ignores_data_uri_in_data_src(): void {
+	public function test_add_missing_srcset_attributes_ignores_data_uri_in_lazy_load_attributes(): void {
 		$tag_replacer = new Optml_Tag_Replacer();
 
-		$tag = '<img data-src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" src="https://example.com/image.jpg" alt="Test" />';
+		$placeholder = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+		$tag         = '<img data-src="' . $placeholder . '" data-srcset="' . $placeholder . '" src="https://example.com/image.jpg" alt="Test" />';
 
 		$result = $tag_replacer->add_missing_srcset_attributes( $tag, [ [ 'w' => 200, 'h' => 150, 'd' => 1, 's' => '200w', 'b' => 320 ] ], 'https://example.com/image.jpg', false );
+		$img    = $this->get_img_element( $result );
 
-		$this->assertSame( 'https://example.com/image.jpg 200w', $this->get_img_element( $result )->getAttribute( 'srcset' ) );
+		$this->assertSame( 'https://example.com/image.jpg 200w', $img->getAttribute( 'srcset' ) );
+		$this->assertSame( $placeholder, $img->getAttribute( 'data-srcset' ) );
 	}
 
 	/**

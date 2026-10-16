@@ -706,7 +706,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 *
 	 * @return string The regex.
 	 */
-	private function attribute_regex( $name ) {
+	private function attribute_regex( string $name ): string {
 		return '/(?<=\s)' . $name . '=["\']([^"\']*)["\']/i';
 	}
 
@@ -721,7 +721,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 *
 	 * @return bool True if the attribute is present.
 	 */
-	private function has_attribute( $tag, $name ) {
+	private function has_attribute( string $tag, string $name ): bool {
 		return preg_match( '/(?<=\s)' . $name . '\s*=/i', $tag ) === 1;
 	}
 
@@ -735,7 +735,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 *
 	 * @return bool True if the image still shows a placeholder.
 	 */
-	private function has_placeholder_source( $tag ) {
+	private function has_placeholder_source( string $tag ): bool {
 		foreach ( [ 'src', 'srcset' ] as $name ) {
 			if ( preg_match( $this->attribute_regex( $name ), $tag, $matches ) && stripos( ltrim( $matches[1] ), 'data:' ) === 0 ) {
 				return true;
