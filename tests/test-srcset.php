@@ -651,8 +651,8 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 	 */
 	public function slashed_tags(): array {
 		return [
-			'escaped double quotes' => [ '<img src=\\"https:\\/\\/example.com\\/image.jpg\\" alt=\\"Test\\" \\/>' ],
-			'single quotes'         => [ "<img src='https:\\/\\/example.com\\/image.jpg'>" ],
+			'double quotes'  => [ '<img src="https:\\/\\/example.com\\/image.jpg">' ],
+			'single quotes'  => [ "<img src='https:\\/\\/example.com\\/image.jpg'>" ],
 		];
 	}
 
