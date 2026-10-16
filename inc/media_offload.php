@@ -1393,8 +1393,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$offload_manager = Optimole::offload();
 		$offload_usage = $offload_manager->getUsage();
 
-		$current_run = self::get_process_meta();
-		$remaining = isset( $current_run['remaining'] ) ? absint( $current_run['remaining'] ) : 0;
+		$remaining = self::get_pending_offload_count();
 
 		if ( $remaining + $offload_usage->getCurrent() >= $offload_usage->getLimit() ) {
 			if ( OPTML_DEBUG_MEDIA ) {
@@ -1402,6 +1401,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', $offload_usage );
 			}
 
+			self::$instance->settings->update( 'offload_limit', $offload_usage->getLimit() );
 			self::$instance->settings->update( 'offload_limit_reached', 'enabled' );
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Offload stopped: offloading images would exceed limit.' );
@@ -1821,18 +1821,76 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Record process meta,
 	 *
-	 * @param int $count The number of images to process.
+	 * @param int    $count      The number of images to process.
+	 * @param string $action     The transfer the images belong to, 'offload_images' or 'rollback_images'.
+	 * @param bool   $foreground Whether the transfer runs in the foreground (WP-CLI), without the
+	 *                           offloading or rollback status a dashboard transfer has. The progress
+	 *                           then holds the time of the run's last activity.
 	 *
 	 * @return void
 	 */
-	public static function record_process_meta( $count ) {
+	public static function record_process_meta( int $count, $action = 'offload_images', bool $foreground = false ): void {
 		$meta               = get_option( 'optml_process_meta', [] );
 		$meta['count']      = $count;
 		$meta['remaining']  = $count;
 		$meta['start_time'] = time();
+		$meta['action']     = $action;
+		$meta['foreground'] = $foreground ? time() : 0;
 		update_option( 'optml_process_meta', $meta );
 	}
 
+	/**
+	 * Mark the transfer that runs in the foreground as over, see {@see self::record_process_meta()}.
+	 *
+	 * @return void
+	 */
+	public static function end_foreground_process_meta(): void {
+		$meta = get_option( 'optml_process_meta', [] );
+
+		if ( empty( $meta['foreground'] ) ) {
+			return;
+		}
+
+		$meta['foreground'] = 0;
+		update_option( 'optml_process_meta', $meta );
+	}
+
+	/**
+	 * Whether the progress belongs to a run in the foreground (WP-CLI) that moved an image within the
+	 * lifetime of a transfer step.
+	 *
+	 * @param array<string, mixed> $meta The process meta.
+	 *
+	 * @return bool
+	 */
+	private static function is_foreground_process_alive( array $meta ): bool {
+		return ! empty( $meta['foreground'] ) && ( time() - (int) $meta['foreground'] ) < self::TRANSFER_LOCK_TTL;
+	}
+
+	/**
+	 * Images a bulk offload that is still going has to upload. They count toward the offload limit.
+	 *
+	 * @return int
+	 */
+	private static function get_pending_offload_count(): int {
+		$meta = get_option( 'optml_process_meta', [] );
+
+		if ( ! isset( $meta['remaining'] ) ) {
+			return 0;
+		}
+
+		// A rollback records the images it still has to move back in the same place.
+		if ( isset( $meta['action'] ) && 'offload_images' !== $meta['action'] ) {
+			return 0;
+		}
+
+		// "remaining" stays after an offload finished, was cancelled or stopped at the limit. A
+		// dashboard offload runs while its status is on. One from WP-CLI marks its last activity: the
+		// mark is cleared when the command ends, and goes stale when the command was interrupted.
+		$running = self::is_foreground_process_alive( $meta ) || self::$instance->settings->get( 'offloading_status' ) !== 'disabled';
+
+		return $running ? absint( $meta['remaining'] ) : 0;
+	}
 	/**
 	 * Update the process meta count.
 	 *
@@ -1846,6 +1904,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		$meta['remaining'] = $meta['remaining'] - 1;
+		// A run in the foreground is alive as long as it keeps moving images. A mark that went stale
+		// belongs to an interrupted run: a later upload must not bring it back.
+		if ( ! empty( $meta['foreground'] ) ) {
+			$meta['foreground'] = self::is_foreground_process_alive( $meta ) ? time() : 0;
+		}
 		update_option( 'optml_process_meta', $meta );
 	}
 
@@ -1907,7 +1970,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				self::$instance->settings->update( 'rollback_images' === $action ? 'offloading_status' : 'rollback_status', 'disabled' );
 			}
 			self::$instance->settings->update( 'offload_limit_reached', 'disabled' );
-			self::record_process_meta( $count );
+			self::record_process_meta( $count, $action );
 
 			self::$instance->settings->update( $option, $in_progress ? 'enabled' : 'disabled' );
 			self::$instance->logger->add_log( $type, Optml_Logger::LOG_SEPARATOR );

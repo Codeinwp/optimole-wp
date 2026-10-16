@@ -1203,6 +1203,16 @@ class Optml_Admin {
 			$this->settings->update_frontend_banner_from_remote( $data['extra_visits'] );
 		}
 
+		// The account usage decides the offload limit: a limit warning from an earlier upload is cleared
+		// once the account is below the limit again, for example after images or sites were removed.
+		if ( isset( $data['offload_limit'], $data['offloaded_images'] ) ) {
+			$this->settings->update( 'offload_limit', (int) $data['offload_limit'] );
+
+			if ( (int) $data['offloaded_images'] < (int) $data['offload_limit'] ) {
+				$this->settings->update( 'offload_limit_reached', 'disabled' );
+			}
+		}
+
 		// Here the account got deactivated, in this case we check if the user is using offloaded images and we roll them back.
 		$should_revert_offloading = isset( $data['status'] ) && $data['status'] === 'inactive';
 

@@ -1073,4 +1073,155 @@ class Test_Media extends WP_UnitTestCase {
 
 		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
 	}
+
+	/**
+	 * The account mock reports 50 of 5000 images offloaded, and 4990 images are recorded as still to
+	 * be moved. They count toward the limit of an upload only while an offload is moving them: not
+	 * for a rollback, which records its progress in the same place, and not once the offload is over.
+	 *
+	 * @dataProvider pending_transfer_provider
+	 *
+	 * @param array{count: int, remaining: int, start_time: int, action?: string, foreground?: int} $process_meta      The recorded transfer progress.
+	 * @param string                                                                                 $offloading_status The dashboard offload status.
+	 * @param bool                                                                                   $limit_reached     Whether the upload trips the limit.
+	 * @param int|null                                                                               $mark_age          Seconds since the last activity of a WP-CLI run, null without one.
+	 */
+	public function test_only_a_running_offload_counts_toward_the_offload_limit( array $process_meta, string $offloading_status, bool $limit_reached, ?int $mark_age = null ): void {
+		// The providers run when the suite is built, long before this test: the mark is dated here.
+		if ( null !== $mark_age ) {
+			$process_meta['foreground'] = time() - $mark_age;
+		}
+
+		$settings = new Optml_Settings();
+		$settings->update( 'offloading_status', $offloading_status );
+		$settings->update( 'offload_limit_reached', 'disabled' );
+		update_option( 'optml_process_meta', $process_meta );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[0] . '.jpg' );
+		$meta          = wp_get_attachment_metadata( $attachment_id );
+		$settings      = new Optml_Settings();
+
+		$this->assertSame( ! $limit_reached, Optml_Media_Offload::is_uploaded_image( $meta['file'] ) );
+		$this->assertSame( $limit_reached, $settings->is_offload_limit_reached() );
+
+		if ( $limit_reached ) {
+			// The limit of the account is stored with the warning, not the 50,000 default.
+			$this->assertSame( 5000, (int) $settings->get( 'offload_limit' ) );
+		}
+	}
+
+	/**
+	 * @return array<string, array{0: array{count: int, remaining: int, start_time: int, action?: string, foreground?: int}, 1: string, 2: bool, 3?: int}>
+	 */
+	public function pending_transfer_provider(): array {
+		$progress = [
+			'count'      => 4990,
+			'remaining'  => 4990,
+			'start_time' => time(),
+		];
+		$offload  = $progress + [ 'action' => 'offload_images' ];
+
+		return [
+			'rollback'                                                 => [ $progress + [ 'action' => 'rollback_images' ], 'disabled', false ],
+			'rollback, with a stale offload status'                    => [ $progress + [ 'action' => 'rollback_images' ], 'enabled', false ],
+			'dashboard offload that is running'                        => [ $offload + [ 'foreground' => 0 ], 'enabled', true ],
+			'dashboard offload that finished or stopped at the limit'  => [ $offload + [ 'foreground' => 0 ], 'disabled', false ],
+			'WP-CLI offload that is running'                           => [ $offload, 'disabled', true, 0 ],
+			'WP-CLI offload that ended'                                => [ $offload + [ 'foreground' => 0 ], 'disabled', false ],
+			'WP-CLI offload interrupted an hour ago (Ctrl+C)'          => [ $offload, 'disabled', false, HOUR_IN_SECONDS ],
+			'recorded before the transfer was stored, idle'            => [ $progress, 'disabled', false ],
+			'recorded before the transfer was stored, offload running' => [ $progress, 'enabled', true ],
+		];
+	}
+
+	public function test_a_wp_cli_run_marks_its_progress_until_it_ends(): void {
+		Optml_Media_Offload::record_process_meta( 12, 'offload_images', true );
+		$this->assertGreaterThanOrEqual( time() - 5, get_option( 'optml_process_meta' )['foreground'] );
+
+		Optml_Media_Offload::end_foreground_process_meta();
+
+		$meta = get_option( 'optml_process_meta' );
+		$this->assertSame( 0, $meta['foreground'] );
+		$this->assertSame( 12, $meta['remaining'] );
+	}
+
+	/**
+	 * The mark of a WP-CLI run is the time of its last activity: each offloaded image refreshes it,
+	 * so it goes stale by itself when the command is interrupted.
+	 */
+	public function test_each_offloaded_image_refreshes_the_mark_of_a_wp_cli_run(): void {
+		update_option(
+			'optml_process_meta',
+			[
+				'count'      => 12,
+				'remaining'  => 12,
+				'start_time' => time() - 500,
+				'action'     => 'offload_images',
+				'foreground' => time() - 500,
+			]
+		);
+
+		Optml_Media_Offload::decrement_process_meta_remaining();
+
+		$meta = get_option( 'optml_process_meta' );
+		$this->assertSame( 11, $meta['remaining'] );
+		$this->assertGreaterThanOrEqual( time() - 5, $meta['foreground'] );
+	}
+
+	/**
+	 * Every offloaded image updates the progress, also an ordinary upload long after a WP-CLI run was
+	 * interrupted. It must not bring the stale mark of that run back.
+	 */
+	public function test_a_later_upload_does_not_revive_the_mark_of_an_interrupted_wp_cli_run(): void {
+		update_option(
+			'optml_process_meta',
+			[
+				'count'      => 4990,
+				'remaining'  => 4990,
+				'start_time' => time() - HOUR_IN_SECONDS,
+				'action'     => 'offload_images',
+				'foreground' => time() - HOUR_IN_SECONDS,
+			]
+		);
+		$settings = new Optml_Settings();
+		$settings->update( 'offloading_status', 'disabled' );
+		$settings->update( 'offload_limit_reached', 'disabled' );
+
+		// Two ordinary uploads: the first one updates the progress, the second one must still be offloaded.
+		self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[0] . '.jpg' );
+		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[1] . '.jpg' );
+
+		$this->assertSame( 0, get_option( 'optml_process_meta' )['foreground'] );
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $attachment_id )['file'] ) );
+		$this->assertFalse( ( new Optml_Settings() )->is_offload_limit_reached() );
+	}
+
+	public function test_offloading_an_image_does_not_mark_a_dashboard_offload_as_a_wp_cli_run(): void {
+		Optml_Media_Offload::record_process_meta( 12, 'offload_images' );
+
+		Optml_Media_Offload::decrement_process_meta_remaining();
+
+		$this->assertSame( 0, get_option( 'optml_process_meta' )['foreground'] );
+	}
+
+	/**
+	 * @dataProvider transfer_action_provider
+	 */
+	public function test_a_bulk_transfer_records_which_transfer_its_progress_belongs_to( string $action ): void {
+		Optml_Media_Offload::move_images( $action, false );
+
+		$meta = get_option( 'optml_process_meta' );
+		$this->assertSame( $action, $meta['action'] );
+		$this->assertSame( 0, $meta['foreground'] );
+	}
+
+	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public function transfer_action_provider(): array {
+		return [
+			'offload'  => [ 'offload_images' ],
+			'rollback' => [ 'rollback_images' ],
+		];
+	}
 }
