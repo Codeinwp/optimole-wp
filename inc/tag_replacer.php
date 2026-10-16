@@ -476,9 +476,22 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			return $tag;
 		}
 
+		// JSON-escaped markup can't be rewritten safely without decoding it: escaping quotes alone does not stop
+		// a \u0022 in a value from closing the attribute once the JSON is decoded.
+		if ( $is_slashed ) {
+			return $tag;
+		}
+
+		if ( $this->has_placeholder_source( $tag ) ) {
+			if ( OPTML_DEBUG ) {
+				do_action( 'optml_log', 'Skipping srcset enhancement for a lazy-load placeholder: ' . $new_url );
+			}
+			return $tag;
+		}
+
 		// Check if srcset already exists
-		$has_existing_srcset = strpos( $tag, 'srcset=' ) !== false;
-		$has_existing_sizes = strpos( $tag, 'sizes=' ) !== false;
+		$has_existing_srcset = $this->has_attribute( $tag, 'srcset' );
+		$has_existing_sizes = $this->has_attribute( $tag, 'sizes' );
 
 		// Build new srcset entries from missing srcset data
 		$new_srcset_entries = [];
@@ -500,8 +513,13 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 			$breakpoint = isset( $srcset_data['b'] ) ? (int) $srcset_data['b'] : 0;
 
+			// A dpr entry advertises its delivered width ("824w"): the CSS width times the dpr. The CDN
+			// multiplies w by dpr, so it gets the CSS width, which is also the slot in the sizes attribute.
+			$css_width  = $dpr > 1 ? (int) round( $width / $dpr ) : $width;
+			$css_height = $dpr > 1 ? (int) round( $height / $dpr ) : $height;
+
 			// Generate optimized URL for this size
-			$optimized_url = $this->change_url_for_size( $new_url, $width, $height, $dpr );
+			$optimized_url = $this->change_url_for_size( $new_url, $css_width, $css_height, $dpr );
 
 			if ( $optimized_url ) {
 				$escaped_url = esc_url( $optimized_url );
@@ -512,7 +530,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 				// Add sizes attribute entry for responsive breakpoints
 				if ( $breakpoint > 0 ) {
-					$new_sizes_entries[] = '(max-width: ' . $breakpoint . 'px) ' . $width . 'px';
+					$new_sizes_entries[] = '(max-width: ' . $breakpoint . 'px) ' . $css_width . 'px';
 				}
 			}
 		}
@@ -526,13 +544,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$tag = $this->enhance_existing_srcset( $tag, $new_srcset_entries, $is_slashed );
 		} else {
 			// Add new srcset attribute
-			$srcset_value = implode( ', ', $new_srcset_entries );
-			// Escape backreference metacharacters so this value can't be expanded by preg_replace() below.
-			$srcset_value = addcslashes( $srcset_value, '\\$' );
-			$srcset_attr = $is_slashed ? 'srcset=\"' . addcslashes( $srcset_value, '"' ) . '\"' : 'srcset="' . $srcset_value . '"';
+			$srcset_attr = $this->build_attribute( 'srcset', implode( ', ', $new_srcset_entries ), $is_slashed );
 
 			// Insert srcset attribute after the src attribute
-			$tag = preg_replace( '/(src=["\'][^"\']*["\'])/i', '$1 ' . $srcset_attr, $tag );
+			$tag = $this->insert_after_attribute( $tag, 'src', $srcset_attr );
 		}
 
 		// Handle sizes attribute - skip if existing sizes contains calc() or complex formulas
@@ -541,8 +556,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 			if ( $has_existing_sizes ) {
 				// Check if existing sizes contains calc() or complex formulas
-				if ( preg_match( '/sizes=["\']([^"\']*)["\']/i', $tag, $matches ) ) {
-					$existing_sizes = $matches[1];
+				$sizes = $this->find_quoted_attribute( $tag, 'sizes' );
+				if ( null !== $sizes ) {
+					$existing_sizes = $sizes['value'];
 					if ( $this->should_skip_sizes( $existing_sizes ) ) {
 						$should_skip_sizes = true;
 						if ( OPTML_DEBUG ) {
@@ -573,13 +589,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 							}
 						);
 
-						$sizes_value = implode( ', ', $sizes_entries );
-						// Escape backreference metacharacters before wrapping, see add_missing_srcset_attributes() above.
-						$sizes_value = addcslashes( $sizes_value, '\\$' );
-						$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $sizes_value, '"' ) . '\"' : 'sizes="' . $sizes_value . '"';
+						$sizes_attr = $this->build_attribute( 'sizes', implode( ', ', $sizes_entries ), $is_slashed );
 
 						// Insert sizes attribute after srcset
-						$tag = preg_replace( '/(srcset=["\'][^"\']*["\'])/i', '$1 ' . $sizes_attr, $tag );
+						$tag = $this->insert_after_attribute( $tag, 'srcset', $sizes_attr );
 					}
 				}
 			} else {
@@ -609,8 +622,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function enhance_existing_srcset( $tag, $new_srcset_entries, $is_slashed = false ) {
 		// Extract existing srcset value
-		if ( preg_match( '/srcset=["\']([^"\']*)["\']/i', $tag, $matches ) ) {
-			$existing_srcset = $matches[1];
+		$srcset = $this->find_quoted_attribute( $tag, 'srcset' );
+		if ( null !== $srcset ) {
+			$existing_srcset = $srcset['value'];
 			$existing_entries = array_map( 'trim', explode( ',', $existing_srcset ) );
 
 			// Merge with new entries, avoiding duplicates
@@ -629,13 +643,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				}
 			);
 
-			$enhanced_srcset = implode( ', ', $all_entries );
-			// Escape backreference metacharacters so this value can't be expanded by preg_replace() below.
-			$enhanced_srcset = addcslashes( $enhanced_srcset, '\\$' );
-			$srcset_attr = $is_slashed ? 'srcset=\"' . addcslashes( $enhanced_srcset, '"' ) . '\"' : 'srcset="' . $enhanced_srcset . '"';
+			$srcset_attr = $this->build_attribute( 'srcset', implode( ', ', $all_entries ), $is_slashed, $srcset['quote'] );
 
 			// Replace existing srcset
-			$tag = preg_replace( '/srcset=["\'][^"\']*["\']/i', $srcset_attr, $tag );
+			$tag = substr_replace( $tag, $srcset_attr, $srcset['start'], $srcset['length'] );
 		}
 
 		return $tag;
@@ -652,8 +663,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	public function enhance_existing_sizes( $tag, $new_sizes_entries, $is_slashed = false ) {
 		// Extract existing sizes value
-		if ( preg_match( '/sizes=["\']([^"\']*)["\']/i', $tag, $matches ) ) {
-			$existing_sizes = $matches[1];
+		$sizes = $this->find_quoted_attribute( $tag, 'sizes' );
+		if ( null !== $sizes ) {
+			$existing_sizes = $sizes['value'];
 			$existing_entries = array_map( 'trim', explode( ',', $existing_sizes ) );
 
 			// Merge with new entries, avoiding duplicates
@@ -672,16 +684,183 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				}
 			);
 
-			$enhanced_sizes = implode( ', ', $all_entries );
-			// Escape backreference metacharacters before wrapping, see enhance_existing_srcset() above.
-			$enhanced_sizes = addcslashes( $enhanced_sizes, '\\$' );
-			$sizes_attr = $is_slashed ? 'sizes=\"' . addcslashes( $enhanced_sizes, '"' ) . '\"' : 'sizes="' . $enhanced_sizes . '"';
+			$sizes_attr = $this->build_attribute( 'sizes', implode( ', ', $all_entries ), $is_slashed, $sizes['quote'] );
 
 			// Replace existing sizes
-			$tag = preg_replace( '/sizes=["\'][^"\']*["\']/i', $sizes_attr, $tag );
+			$tag = substr_replace( $tag, $sizes_attr, $sizes['start'], $sizes['length'] );
 		}
 
 		return $tag;
+	}
+
+	/**
+	 * Read the attributes of an image tag, in order.
+	 *
+	 * The tag is read from "<img" to its end, one attribute after another, the way a browser reads it: values may be
+	 * quoted or unquoted, with spaces around "=", and an attribute may follow a quoted value with no space. Nothing
+	 * is skipped, so text inside a value, such as alt="src=data:…", is never read as an attribute, and only the name
+	 * of a real attribute counts: data-envira-srcset or data-src is not srcset or src.
+	 *
+	 * @param string $tag The image tag.
+	 *
+	 * @return array<int, array{name: string, value: string, quote: string, spaced: bool, start: int, length: int}>|null
+	 *         Lowercase names; value is '' without one; quote is '"', "'" or '' (unquoted); spaced is true with spaces
+	 *         around "="; start and length locate the whole attribute in the tag. Null when part of the tag can't be
+	 *         read this way; callers then treat the tag as having no attributes, so nothing is written into it.
+	 */
+	private function get_attributes( string $tag ): ?array {
+		// HTML whitespace only: PCRE's \s also matches a vertical tab, which a browser keeps inside a name or value.
+		$ws = '\t\n\f\r ';
+
+		// The image tag may come wrapped in <noscript>, see Optml_Manager::parse_images_from_html().
+		if ( ! preg_match( '/^[' . $ws . ']*(?:<noscript[' . $ws . ']*>[' . $ws . ']*)?<[^' . $ws . '\/>]+/i', $tag, $tag_start ) ) {
+			return null;
+		}
+
+		$offset     = strlen( $tag_start[0] );
+		$attributes = [];
+		while ( preg_match( '/\G[' . $ws . '\/]*([^' . $ws . '"\'>\/=]++)(?:([' . $ws . ']*=[' . $ws . ']*)(?:"([^"]*)"|\'([^\']*)\'|([^' . $ws . '"\'>]+))|(?![' . $ws . ']*=))/', $tag, $match, PREG_OFFSET_CAPTURE | PREG_UNMATCHED_AS_NULL, $offset ) ) {
+			$quote = '';
+			if ( null !== ( $match[3][0] ?? null ) ) {
+				$quote = '"';
+			} elseif ( null !== ( $match[4][0] ?? null ) ) {
+				$quote = "'";
+			}
+
+			$end          = $match[0][1] + strlen( $match[0][0] );
+			$attributes[] = [
+				'name'   => strtolower( $match[1][0] ),
+				'value'  => $match[3][0] ?? $match[4][0] ?? $match[5][0] ?? '',
+				'quote'  => $quote,
+				'spaced' => null !== ( $match[2][0] ?? null ) && '=' !== $match[2][0],
+				'start'  => $match[1][1],
+				'length' => $end - $match[1][1],
+			];
+			$offset       = $end;
+		}
+
+		// The image parser ends the tag at the first ">", even inside a quoted value (alt="1 > 0" arrives as
+		// alt="1 >"). A value cut off like that is kept as an attribute that is never rewritten; the attributes
+		// before it are complete, so they can still be read and written.
+		if ( preg_match( '/\G[' . $ws . '\/]*([^' . $ws . '"\'>\/=]+)[' . $ws . ']*=[' . $ws . ']*(["\'])((?:(?!\2).)*)$/s', $tag, $cut, PREG_OFFSET_CAPTURE, $offset ) ) {
+			$attributes[] = [
+				'name'   => strtolower( $cut[1][0] ),
+				'value'  => $cut[3][0],
+				'quote'  => '',
+				'spaced' => false,
+				'start'  => $cut[1][1],
+				'length' => strlen( $tag ) - $cut[1][1],
+			];
+
+			return $attributes;
+		}
+
+		// Anything else left but the end of the tag is syntax this reader does not follow.
+		return preg_match( '/\G[' . $ws . '\/]*>?[' . $ws . ']*(?:<\/noscript[' . $ws . ']*>[' . $ws . ']*)?$/i', $tag, $tag_end, 0, $offset ) ? $attributes : null;
+	}
+
+	/**
+	 * Find the tag's own attribute when it is written as name="value" or name='value'.
+	 *
+	 * That is the only form the srcset enhancement reads and rewrites. When the first attribute with that name is
+	 * unquoted or has spaces around "=", it is left alone and null is returned, as for a missing attribute.
+	 *
+	 * @param string $tag The image tag.
+	 * @param string $name The attribute name: src, srcset or sizes.
+	 *
+	 * @return array{name: string, value: string, quote: string, spaced: bool, start: int, length: int}|null The attribute, or null.
+	 */
+	private function find_quoted_attribute( string $tag, string $name ): ?array {
+		foreach ( $this->get_attributes( $tag ) ?? [] as $attribute ) {
+			if ( $attribute['name'] === $name ) {
+				return ( '' !== $attribute['quote'] && ! $attribute['spaced'] ) ? $attribute : null;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Insert an attribute right after one of the tag's own quoted attributes.
+	 *
+	 * @param string $tag The image tag.
+	 * @param string $after The name of the attribute to insert after: src or srcset.
+	 * @param string $attribute The attribute to insert, such as srcset="…".
+	 *
+	 * @return string The tag, unchanged when it has no quoted attribute with that name.
+	 */
+	private function insert_after_attribute( string $tag, string $after, string $attribute ): string {
+		$anchor = $this->find_quoted_attribute( $tag, $after );
+		if ( null === $anchor ) {
+			return $tag;
+		}
+
+		return substr_replace( $tag, ' ' . $attribute, $anchor['start'] + $anchor['length'], 0 );
+	}
+
+	/**
+	 * Build a srcset or sizes attribute.
+	 *
+	 * An existing value never holds its own quote character, so it is written back with that character. New values
+	 * use double quotes; they are built from escaped URLs and descriptors and hold no quote character.
+	 *
+	 * @param string $name The attribute name: srcset or sizes.
+	 * @param string $value The attribute value.
+	 * @param bool   $is_slashed Whether the tag is slashed (JSON-escaped).
+	 * @param string $quote The quote character of the attribute being replaced.
+	 *
+	 * @return string The attribute.
+	 */
+	private function build_attribute( string $name, string $value, bool $is_slashed, string $quote = '"' ): string {
+		if ( $is_slashed ) {
+			return $name . '=\"' . addcslashes( $value, '"' ) . '\"';
+		}
+
+		return $name . '=' . $quote . $value . $quote;
+	}
+
+	/**
+	 * Check whether the image tag has an attribute, whatever its value looks like.
+	 *
+	 * Only quoted values are rewritten, see find_quoted_attribute(). An unquoted one (sizes=50vw) still counts here,
+	 * so a second attribute is never added in front of it, where the browser would take it instead of the original.
+	 *
+	 * @param string $tag The image tag.
+	 * @param string $name The attribute name: srcset or sizes.
+	 *
+	 * @return bool True if the attribute is present.
+	 */
+	private function has_attribute( string $tag, string $name ): bool {
+		return in_array( $name, array_column( $this->get_attributes( $tag ) ?? [], 'name' ), true );
+	}
+
+	/**
+	 * Check whether the tag's src or srcset is a data: URI placeholder.
+	 *
+	 * A lazy loader (Envira Gallery, other lazy-load plugins) owns such an image and swaps in the real
+	 * sources itself. Real srcset candidates would make the browser load the image before it does.
+	 * Unquoted and spaced placeholders count too, so the sizes next to them is not rewritten either. Only the
+	 * first src and srcset count, as in the browser: a later duplicate is ignored.
+	 *
+	 * @param string $tag The image tag.
+	 *
+	 * @return bool True if the image still shows a placeholder.
+	 */
+	private function has_placeholder_source( string $tag ): bool {
+		$seen = [];
+		foreach ( $this->get_attributes( $tag ) ?? [] as $attribute ) {
+			$name = $attribute['name'];
+			if ( ! in_array( $name, [ 'src', 'srcset' ], true ) || isset( $seen[ $name ] ) ) {
+				continue;
+			}
+
+			$seen[ $name ] = true;
+			if ( stripos( ltrim( $attribute['value'] ), 'data:' ) === 0 ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

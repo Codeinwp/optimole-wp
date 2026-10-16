@@ -161,8 +161,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				self::$instance->init();
 			}
 			if ( self::$instance->settings->is_offload_enabled() ) {
+				// While a rollback runs, offloaded images are still served from Optimole, but new uploads
+				// stay local: offloading them and their filename deduplication needs offload_media on.
+				$offload_new_uploads = self::$instance->settings->get( 'offload_media' ) === 'enabled';
+
 				add_filter( 'image_downsize', [ self::$instance, 'generate_filter_downsize_urls' ], 10, 3 );
-				add_filter( 'wp_generate_attachment_metadata', [ self::$instance, 'generate_image_meta' ], 10, 2 );
+				if ( $offload_new_uploads ) {
+					add_filter( 'wp_generate_attachment_metadata', [ self::$instance, 'generate_image_meta' ], 10, 2 );
+				}
 				add_filter( 'wp_get_attachment_url', [ self::$instance, 'get_image_attachment_url' ], - 999, 2 );
 				add_filter( 'wp_insert_post_data', [ self::$instance, 'filter_uploaded_images' ] );
 
@@ -176,12 +182,15 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'wp_calculate_image_srcset', [ self::$instance, 'calculate_image_srcset' ], 1, 5 );
 				add_action( 'post_updated', [ self::$instance, 'update_offload_meta' ], 10, 3 );
 
-				// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
-				$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
-				if ( $below_6_0_0 ) {
-					add_filter( 'wp_insert_attachment_data', [ self::$instance, 'insert_legacy' ], 10, 3 );
-				} else {
-					add_filter( 'wp_insert_attachment_data', [ self::$instance, 'insert' ], 10, 4 );
+				// Local uploads keep WordPress's own filename deduplication.
+				if ( $offload_new_uploads ) {
+					// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
+					$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
+					if ( $below_6_0_0 ) {
+						add_filter( 'wp_insert_attachment_data', [ self::$instance, 'insert_legacy' ], 10, 3 );
+					} else {
+						add_filter( 'wp_insert_attachment_data', [ self::$instance, 'insert' ], 10, 4 );
+					}
 				}
 
 				add_action( 'optml_start_processing_images', [ self::$instance, 'start_processing_images' ], 10, 6 );
@@ -1384,8 +1393,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$offload_manager = Optimole::offload();
 		$offload_usage = $offload_manager->getUsage();
 
-		$current_run = self::get_process_meta();
-		$remaining = isset( $current_run['remaining'] ) ? absint( $current_run['remaining'] ) : 0;
+		$remaining = self::get_pending_offload_count();
 
 		if ( $remaining + $offload_usage->getCurrent() >= $offload_usage->getLimit() ) {
 			if ( OPTML_DEBUG_MEDIA ) {
@@ -1393,6 +1401,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				do_action( 'optml_log', $offload_usage );
 			}
 
+			self::$instance->settings->update( 'offload_limit', $offload_usage->getLimit() );
 			self::$instance->settings->update( 'offload_limit_reached', 'enabled' );
 
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Offload stopped: offloading images would exceed limit.' );
@@ -1812,18 +1821,76 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Record process meta,
 	 *
-	 * @param int $count The number of images to process.
+	 * @param int    $count      The number of images to process.
+	 * @param string $action     The transfer the images belong to, 'offload_images' or 'rollback_images'.
+	 * @param bool   $foreground Whether the transfer runs in the foreground (WP-CLI), without the
+	 *                           offloading or rollback status a dashboard transfer has. The progress
+	 *                           then holds the time of the run's last activity.
 	 *
 	 * @return void
 	 */
-	public static function record_process_meta( $count ) {
+	public static function record_process_meta( int $count, $action = 'offload_images', bool $foreground = false ): void {
 		$meta               = get_option( 'optml_process_meta', [] );
 		$meta['count']      = $count;
 		$meta['remaining']  = $count;
 		$meta['start_time'] = time();
+		$meta['action']     = $action;
+		$meta['foreground'] = $foreground ? time() : 0;
 		update_option( 'optml_process_meta', $meta );
 	}
 
+	/**
+	 * Mark the transfer that runs in the foreground as over, see {@see self::record_process_meta()}.
+	 *
+	 * @return void
+	 */
+	public static function end_foreground_process_meta(): void {
+		$meta = get_option( 'optml_process_meta', [] );
+
+		if ( empty( $meta['foreground'] ) ) {
+			return;
+		}
+
+		$meta['foreground'] = 0;
+		update_option( 'optml_process_meta', $meta );
+	}
+
+	/**
+	 * Whether the progress belongs to a run in the foreground (WP-CLI) that moved an image within the
+	 * lifetime of a transfer step.
+	 *
+	 * @param array<string, mixed> $meta The process meta.
+	 *
+	 * @return bool
+	 */
+	private static function is_foreground_process_alive( array $meta ): bool {
+		return ! empty( $meta['foreground'] ) && ( time() - (int) $meta['foreground'] ) < self::TRANSFER_LOCK_TTL;
+	}
+
+	/**
+	 * Images a bulk offload that is still going has to upload. They count toward the offload limit.
+	 *
+	 * @return int
+	 */
+	private static function get_pending_offload_count(): int {
+		$meta = get_option( 'optml_process_meta', [] );
+
+		if ( ! isset( $meta['remaining'] ) ) {
+			return 0;
+		}
+
+		// A rollback records the images it still has to move back in the same place.
+		if ( isset( $meta['action'] ) && 'offload_images' !== $meta['action'] ) {
+			return 0;
+		}
+
+		// "remaining" stays after an offload finished, was cancelled or stopped at the limit. A
+		// dashboard offload runs while its status is on. One from WP-CLI marks its last activity: the
+		// mark is cleared when the command ends, and goes stale when the command was interrupted.
+		$running = self::is_foreground_process_alive( $meta ) || self::$instance->settings->get( 'offloading_status' ) !== 'disabled';
+
+		return $running ? absint( $meta['remaining'] ) : 0;
+	}
 	/**
 	 * Update the process meta count.
 	 *
@@ -1837,6 +1904,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		$meta['remaining'] = $meta['remaining'] - 1;
+		// A run in the foreground is alive as long as it keeps moving images. A mark that went stale
+		// belongs to an interrupted run: a later upload must not bring it back.
+		if ( ! empty( $meta['foreground'] ) ) {
+			$meta['foreground'] = self::is_foreground_process_alive( $meta ) ? time() : 0;
+		}
 		update_option( 'optml_process_meta', $meta );
 	}
 
@@ -1898,7 +1970,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				self::$instance->settings->update( 'rollback_images' === $action ? 'offloading_status' : 'rollback_status', 'disabled' );
 			}
 			self::$instance->settings->update( 'offload_limit_reached', 'disabled' );
-			self::record_process_meta( $count );
+			self::record_process_meta( $count, $action );
 
 			self::$instance->settings->update( $option, $in_progress ? 'enabled' : 'disabled' );
 			self::$instance->logger->add_log( $type, Optml_Logger::LOG_SEPARATOR );
@@ -2044,6 +2116,65 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
+	 * Take the lock of the run that is moving images right now, without waiting.
+	 *
+	 * The transfer lock above says which chain owns a transfer. It is taken when a chain is scheduled,
+	 * and again on every request while a transfer is in progress, so it cannot tell whether images are
+	 * being moved at this moment. This one is a database advisory lock: taking it is atomic, and the
+	 * database frees it when the request ends, also after a crash. A background step holds it for its
+	 * batch, and WP-CLI for its whole run, so the two never move the same images at the same time.
+	 *
+	 * @return bool False while another run holds it. True when it was taken, and also where the
+	 *              database has no advisory locks, so transfers work there as before.
+	 */
+	public static function acquire_moving_images_lock(): bool {
+		global $wpdb;
+
+		// The lock lives on one database server. Where reads are spread over several (HyperDB,
+		// LudicrousDB), every run has to ask the same one: the primary.
+		if ( method_exists( $wpdb, 'send_reads_to_masters' ) ) {
+			$wpdb->send_reads_to_masters();
+		}
+
+		$suppress = $wpdb->suppress_errors();
+		$result   = $wpdb->get_var( $wpdb->prepare( 'SELECT GET_LOCK( %s, 0 )', self::get_moving_images_lock_name() ) );
+		$wpdb->suppress_errors( $suppress );
+
+		// A fatal error skips the cleanup of the caller. On a persistent connection the lock would then
+		// outlive the request, so it is also released when the request shuts down.
+		add_action( 'shutdown', [ __CLASS__, 'release_moving_images_lock' ] );
+
+		return null === $result || 1 === (int) $result;
+	}
+
+	/**
+	 * Release the lock taken with {@see self::acquire_moving_images_lock()}.
+	 *
+	 * @return void
+	 */
+	public static function release_moving_images_lock(): void {
+		global $wpdb;
+
+		$suppress = $wpdb->suppress_errors();
+		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK( %s )', self::get_moving_images_lock_name() ) );
+		$wpdb->suppress_errors( $suppress );
+	}
+
+	/**
+	 * Name of the advisory lock. Such locks are shared by every database on the server, so the name
+	 * holds the database and the table prefix (which is per site on a network).
+	 *
+	 * @return string
+	 */
+	public static function get_moving_images_lock_name(): string {
+		global $wpdb;
+
+		$database = defined( 'DB_NAME' ) ? DB_NAME : '';
+
+		return 'optml_moving_images_' . md5( $database . $wpdb->prefix );
+	}
+
+	/**
 	 * Release the transfer lock if we still own it, allowing another worker to acquire it.
 	 *
 	 * @param string $token The lock token to release.
@@ -2151,6 +2282,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return;
 		}
 
+		// Only one run moves images at a time. WP-CLI holds this lock while its transfer runs: it does the
+		// work of this step, and the chain is scheduled again once the transfer lock expires.
+		if ( ! self::acquire_moving_images_lock() ) {
+			self::$instance->logger->add_log( $type, 'Another run is moving images, this step is skipped.' );
+
+			return;
+		}
+
 		set_time_limit( 0 );
 
 		try {
@@ -2201,6 +2340,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$lock_token,
 				]
 			);
+		} finally {
+			self::release_moving_images_lock();
 		}
 	}
 

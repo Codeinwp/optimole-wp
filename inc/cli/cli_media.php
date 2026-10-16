@@ -43,8 +43,14 @@ class Optml_Cli_Media extends WP_CLI_Command {
 			'limit_exceeded' => __( 'You have reached the maximum offloading limit of images. To increase the offload limit and for more information, contact our support.', 'optimole-wp' ),
 		];
 		$settings = new Optml_Settings();
-		if ( $settings->get( 'offload_media' ) === 'disabled' ) {
+		if ( ! $settings->can_transfer_images( $action ) ) {
 			return \WP_CLI::error( __( 'You need to have the offload_media option enabled in order to use this command', 'optimole-wp' ) );
+		}
+
+		// One run moves images at a time. A background step that is moving images right now holds this
+		// lock; while this command holds it, the background steps do nothing.
+		if ( ! Optml_Media_Offload::acquire_moving_images_lock() ) {
+			return \WP_CLI::error( 'Another image transfer is running. Wait for it to finish, then run this command again.' );
 		}
 
 		Optml_Media_Offload::clear_offload_errors_meta();
@@ -57,9 +63,12 @@ class Optml_Cli_Media extends WP_CLI_Command {
 			$number_of_images_for = 'rollback_images';
 		}
 		$number_of_images = Optml_Media_Offload::number_of_images_and_pages( $number_of_images_for );
-		Optml_Media_Offload::record_process_meta( $number_of_images );
+		Optml_Media_Offload::record_process_meta( $number_of_images, $number_of_images_for, true );
+		// The run is over when this command ends, however it exits.
+		register_shutdown_function( [ 'Optml_Media_Offload', 'end_foreground_process_meta' ] );
 		$batch = 5;
 		if ( $number_of_images === 0 ) {
+			Optml_Media_Offload::release_moving_images_lock();
 			WP_CLI::success( $strings[ $action ]['success'] );
 
 			return;
@@ -88,7 +97,9 @@ class Optml_Cli_Media extends WP_CLI_Command {
 				$action === 'rollback' ? Optml_Media_Offload::instance()->rollback_images( $batch ) : Optml_Media_Offload::instance()->upload_images( $batch );
 			}
 
-			if ( Optml_Media_Offload::instance()->settings->is_offload_limit_reached() ) {
+			// The offload limit stops uploads only: moving images back lowers the usage.
+			if ( $action === 'offload' && Optml_Media_Offload::instance()->settings->is_offload_limit_reached() ) {
+				Optml_Media_Offload::release_moving_images_lock();
 				WP_CLI::error( $strings['limit_exceeded'], true );
 			}
 
@@ -96,6 +107,7 @@ class Optml_Cli_Media extends WP_CLI_Command {
 			++$tick;
 		}
 		$progress->finish();
+		Optml_Media_Offload::release_moving_images_lock();
 		WP_CLI::line( $strings[ $action ]['success'] );
 	}
 }

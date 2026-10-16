@@ -30,6 +30,12 @@ class Test_Media extends WP_UnitTestCase {
 	private static $sample_attachment_scaled;
 	public static $error_mark = false;
 	/**
+	 * Offloaded images the mocked account reports, out of an offload limit of 5000.
+	 *
+	 * @var int
+	 */
+	public static $offloaded_images = 50;
+	/**
 	 * Mock the api calls and remote images requests
 	 */
 	public function filter_pre_http_request( $false, $r, $url ) {
@@ -119,7 +125,7 @@ class Test_Media extends WP_UnitTestCase {
 					'data' => array(
 						'cdn_key' => 'cdn_key',
 						'cdn_secret' => 'cdn_secret',
-						'offloaded_images' => 50,
+						'offloaded_images' => self::$offloaded_images,
 						'offload_limit' => 5000,
 					),
 				)),
@@ -224,6 +230,31 @@ class Test_Media extends WP_UnitTestCase {
 			}
 		}
 	}
+	/**
+	 * While a rollback runs (offload_media off, rollback_status on), offloaded images are still
+	 * served from Optimole, but a new upload stays in the media library.
+	 */
+	public function test_upload_during_rollback_stays_local(): void {
+		$settings = new Optml_Settings();
+		$settings->update( 'offload_media', 'disabled' );
+		$settings->update( 'rollback_status', 'enabled' );
+
+		// The hooks of this request, registered with the rollback state.
+		remove_all_filters( 'wp_generate_attachment_metadata' );
+		remove_all_filters( 'wp_insert_attachment_data' );
+		Optml_Media_Offload::instance();
+
+		$this->assertFalse( has_filter( 'wp_generate_attachment_metadata' ) );
+		$this->assertFalse( has_filter( 'wp_insert_attachment_data' ) );
+		$this->assertNotFalse( has_filter( 'wp_get_attachment_url' ), 'Offloaded images are still served from Optimole.' );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[0] . '.jpg' );
+		$meta          = wp_get_attachment_metadata( $attachment_id );
+
+		$this->assertFalse( Optml_Media_Offload::is_uploaded_image( $meta['file'] ) );
+		$this->assertFileExists( get_attached_file( $attachment_id ) );
+	}
+
 	public function test_retryable_error() {
 		Optml_Media_Offload::instance()->rollback_and_update_images([self::$sample_attachement]);
 		self::$error_mark = true;
@@ -343,6 +374,309 @@ class Test_Media extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $image_medium_size[0] );
 		$this->assertStringContainsString( '/w:300/h:200/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117', $image_medium_size[0] );
+	}
+
+	/**
+	 * "Transfer back" in the dashboard turns offload_media off and starts the rollback; WP-CLI
+	 * `wp optimole media rollback_images` must still be able to continue it.
+	 *
+	 * @dataProvider transfer_gate_provider
+	 */
+	public function test_can_transfer_images( $offload_media, $rollback_status, $action, $expected ) {
+		$settings = new Optml_Settings();
+		$settings->update( 'offload_media', $offload_media );
+		$settings->update( 'rollback_status', $rollback_status );
+
+		$this->assertSame( $expected, $settings->can_transfer_images( $action ) );
+	}
+
+	/**
+	 * @return array<string, array{0: string, 1: string, 2: string, 3: bool}>
+	 */
+	public function transfer_gate_provider() {
+		return [
+			'offload with offload on'            => [ 'enabled', 'disabled', 'offload', true ],
+			'rollback with offload on'           => [ 'enabled', 'disabled', 'rollback', true ],
+			'rollback while a rollback runs'     => [ 'disabled', 'enabled', 'rollback', true ],
+			'offload while a rollback runs'      => [ 'disabled', 'enabled', 'offload', false ],
+			'rollback with offload off and idle' => [ 'disabled', 'disabled', 'rollback', false ],
+			'offload with offload off and idle'  => [ 'disabled', 'disabled', 'offload', false ],
+		];
+	}
+
+	/**
+	 * Run a `wp optimole media` command with the WP-CLI stand-ins.
+	 *
+	 * @param string $command The command method, 'rollback_images' or 'move_to_optimole'.
+	 * @return string[] The lines the command printed.
+	 */
+	private function run_cli_media_command( $command ) {
+		require_once __DIR__ . '/wp-cli-stub.php';
+		WP_CLI::$lines = [];
+
+		( new Optml_Cli_Media() )->$command();
+
+		return WP_CLI::$lines;
+	}
+
+	public function test_cli_rollback_continues_a_rollback_started_from_the_dashboard() {
+		// "Transfer back from Optimole": offload_media goes off, the rollback is in progress.
+		$settings = new Optml_Settings();
+		$settings->update( 'offload_media', 'disabled' );
+		$settings->update( 'rollback_status', 'enabled' );
+
+		$lines = $this->run_cli_media_command( 'rollback_images' );
+
+		$this->assertContains( 'All images have been uploaded to your media library', $lines );
+		$this->assertStringNotContainsString( 'id:', wp_get_attachment_metadata( self::$sample_attachement )['file'] );
+		$this->assertFileExists( get_attached_file( self::$sample_attachement ) );
+	}
+
+	public function test_cli_rollback_is_not_stopped_by_the_offload_limit() {
+		$settings = new Optml_Settings();
+		$settings->update( 'offload_limit_reached', 'enabled' );
+
+		$lines = $this->run_cli_media_command( 'rollback_images' );
+
+		$this->assertContains( 'All images have been uploaded to your media library', $lines );
+		$this->assertStringNotContainsString( 'id:', wp_get_attachment_metadata( self::$sample_attachement )['file'] );
+	}
+
+	public function test_cli_offload_stops_at_the_offload_limit() {
+		// Bring the images back first, so there is something to offload; the account is at its limit.
+		Optml_Media_Offload::instance()->rollback_images( 100 );
+		self::$offloaded_images = 5000;
+		require_once __DIR__ . '/wp-cli-stub.php';
+
+		try {
+			$this->run_cli_media_command( 'move_to_optimole' );
+			$this->fail( 'The offload was not stopped at the offload limit.' );
+		} catch ( Optml_Test_WP_CLI_Error $error ) {
+			$this->assertStringContainsString( 'maximum offloading limit', $error->getMessage() );
+		} finally {
+			self::$offloaded_images = 50;
+		}
+
+		$this->assert_moving_images_lock_is_free();
+	}
+
+	/**
+	 * A second database connection: for advisory locks, another process.
+	 *
+	 * @return wpdb
+	 */
+	private function other_connection(): wpdb {
+		return new wpdb( DB_USER, DB_PASSWORD, DB_NAME, DB_HOST );
+	}
+
+	/**
+	 * Hold or release the "moving images" lock from another connection.
+	 *
+	 * @param wpdb $connection The other connection.
+	 * @param bool $hold       True to take the lock, false to release it.
+	 * @return void
+	 */
+	private function moving_images_lock_elsewhere( wpdb $connection, bool $hold ): void {
+		$query = $hold ? 'SELECT GET_LOCK( %s, 0 )' : 'SELECT RELEASE_LOCK( %s )';
+
+		$this->assertSame( '1', $connection->get_var( $connection->prepare( $query, Optml_Media_Offload::get_moving_images_lock_name() ) ) );
+	}
+
+	/**
+	 * @return void
+	 */
+	private function assert_moving_images_lock_is_free(): void {
+		global $wpdb;
+
+		$this->assertSame( '1', $wpdb->get_var( $wpdb->prepare( 'SELECT IS_FREE_LOCK( %s )', Optml_Media_Offload::get_moving_images_lock_name() ) ), 'The "moving images" lock was not released.' );
+	}
+
+	/**
+	 * A background step is moving images at this moment. The command must not move the same images
+	 * at the same time; it runs once that step is done.
+	 */
+	public function test_cli_rollback_waits_for_a_run_that_is_moving_images(): void {
+		$other     = $this->other_connection();
+		$offloaded = Optml_Media_Offload::number_of_images_and_pages( 'rollback_images' );
+		$this->moving_images_lock_elsewhere( $other, true );
+		require_once __DIR__ . '/wp-cli-stub.php';
+
+		try {
+			$this->run_cli_media_command( 'rollback_images' );
+			$this->fail( 'The command ran while another run was moving images.' );
+		} catch ( Optml_Test_WP_CLI_Error $error ) {
+			$this->assertStringContainsString( 'Another image transfer is running', $error->getMessage() );
+		}
+
+		$this->assertGreaterThan( 0, $offloaded );
+		$this->assertSame( $offloaded, Optml_Media_Offload::number_of_images_and_pages( 'rollback_images' ), 'The command moved no image.' );
+
+		$this->moving_images_lock_elsewhere( $other, false );
+		$lines = $this->run_cli_media_command( 'rollback_images' );
+
+		$this->assertContains( 'All images have been uploaded to your media library', $lines );
+		$this->assertSame( 0, Optml_Media_Offload::number_of_images_and_pages( 'rollback_images' ) );
+	}
+
+	/**
+	 * While the command (another connection here) moves the images, a background step that fires
+	 * does nothing: it moves no image and does not continue the chain. Once the lock is free, the
+	 * step runs and schedules the next one.
+	 */
+	public function test_background_step_does_nothing_while_another_run_moves_images(): void {
+		( new Optml_Settings() )->update( 'rollback_status', 'enabled' );
+		$other     = $this->other_connection();
+		$token     = Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' );
+		$offloaded = Optml_Media_Offload::number_of_images_and_pages( 'rollback_images' );
+		$this->moving_images_lock_elsewhere( $other, true );
+
+		Optml_Media_Offload::instance()->start_processing_images( 'rollback_images', 10, 1, 5, 1, $token );
+
+		$this->assertGreaterThan( 0, $offloaded );
+		$this->assertSame( $offloaded, Optml_Media_Offload::number_of_images_and_pages( 'rollback_images' ), 'The step moved no image.' );
+		$this->assertSame( 0, $this->count_scheduled_transfer_steps() );
+
+		$this->moving_images_lock_elsewhere( $other, false );
+		Optml_Media_Offload::instance()->start_processing_images( 'rollback_images', 10, 1, 5, 1, $token );
+
+		$this->assertSame( 1, $this->count_scheduled_transfer_steps() );
+		$this->assert_moving_images_lock_is_free();
+	}
+
+	/**
+	 * @return int The background transfer steps waiting in WP-Cron.
+	 */
+	private function count_scheduled_transfer_steps(): int {
+		$count = 0;
+
+		foreach ( (array) _get_cron_array() as $hooks ) {
+			$count += isset( $hooks['optml_start_processing_images'] ) ? count( $hooks['optml_start_processing_images'] ) : 0;
+		}
+
+		return $count;
+	}
+
+	/**
+	 * Where cron is stuck, the background transfer is scheduled and holds the transfer lock, but no
+	 * step runs. The command does the work, and leaves the transfer lock to the chain.
+	 */
+	public function test_cli_rollback_runs_while_a_background_transfer_is_only_scheduled(): void {
+		$scheduled = Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' );
+
+		$lines = $this->run_cli_media_command( 'rollback_images' );
+
+		$this->assertContains( 'All images have been uploaded to your media library', $lines );
+		$this->assertSame( 0, Optml_Media_Offload::number_of_images_and_pages( 'rollback_images' ) );
+		$this->assert_moving_images_lock_is_free();
+		$this->assertTrue( Optml_Media_Offload::renew_transfer_lock( $scheduled, 'rollback_images' ) );
+	}
+
+	public function test_cli_releases_the_moving_images_lock_when_there_is_nothing_to_move(): void {
+		// Every image is offloaded already.
+		$lines = $this->run_cli_media_command( 'move_to_optimole' );
+
+		$this->assertContains( 'All images have been uploaded to Optimole Cloud', $lines );
+		$this->assert_moving_images_lock_is_free();
+	}
+
+	/**
+	 * A fatal error skips the cleanup of the run. The lock is then released when the request shuts
+	 * down, which matters on a persistent connection.
+	 */
+	public function test_moving_images_lock_is_also_released_at_shutdown(): void {
+		$this->assertTrue( Optml_Media_Offload::acquire_moving_images_lock() );
+
+		$this->assertNotFalse( has_action( 'shutdown', [ Optml_Media_Offload::class, 'release_moving_images_lock' ] ) );
+
+		Optml_Media_Offload::release_moving_images_lock();
+		$this->assert_moving_images_lock_is_free();
+	}
+
+	/**
+	 * With several database servers the lock must be asked from the primary by every run. HyperDB
+	 * and LudicrousDB route the following reads there with send_reads_to_masters().
+	 */
+	public function test_moving_images_lock_is_taken_on_the_primary_database_server(): void {
+		global $wpdb;
+
+		$original = $wpdb;
+		$wpdb     = new class( $original ) {
+			/**
+			 * @var string[] The calls, in order.
+			 */
+			public $calls = [];
+
+			/**
+			 * @var string
+			 */
+			public $prefix;
+
+			/**
+			 * @var wpdb
+			 */
+			private $db;
+
+			public function __construct( wpdb $db ) {
+				$this->db     = $db;
+				$this->prefix = $db->prefix;
+			}
+
+			public function send_reads_to_masters(): void {
+				$this->calls[] = 'send_reads_to_masters';
+			}
+
+			public function suppress_errors( $suppress = true ) {
+				return $this->db->suppress_errors( $suppress );
+			}
+
+			public function prepare( $query, ...$args ) {
+				return $this->db->prepare( $query, ...$args );
+			}
+
+			public function get_var( $query ) {
+				$this->calls[] = false !== strpos( $query, 'GET_LOCK' ) ? 'GET_LOCK' : 'query';
+
+				return $this->db->get_var( $query );
+			}
+		};
+
+		try {
+			$this->assertTrue( Optml_Media_Offload::acquire_moving_images_lock() );
+			$calls = $wpdb->calls;
+		} finally {
+			$wpdb = $original;
+			Optml_Media_Offload::release_moving_images_lock();
+		}
+
+		$this->assertSame( [ 'send_reads_to_masters', 'GET_LOCK' ], $calls );
+	}
+
+	/**
+	 * A database without advisory locks (the query fails): transfers run as before.
+	 */
+	public function test_moving_images_lock_is_granted_where_the_database_has_no_advisory_locks(): void {
+		$break_get_lock = static function ( string $query ): string {
+			return false !== strpos( $query, 'GET_LOCK' ) ? 'SELECT optml_no_such_function()' : $query;
+		};
+		add_filter( 'query', $break_get_lock );
+
+		try {
+			$this->assertTrue( Optml_Media_Offload::acquire_moving_images_lock() );
+		} finally {
+			remove_filter( 'query', $break_get_lock );
+		}
+	}
+
+	public function test_cli_rollback_is_refused_when_nothing_was_offloaded() {
+		$settings = new Optml_Settings();
+		$settings->update( 'offload_media', 'disabled' );
+		$settings->update( 'rollback_status', 'disabled' );
+		require_once __DIR__ . '/wp-cli-stub.php';
+
+		$this->expectException( Optml_Test_WP_CLI_Error::class );
+		$this->expectExceptionMessage( 'You need to have the offload_media option enabled' );
+
+		$this->run_cli_media_command( 'rollback_images' );
 	}
 
 	public function test_image_rollback() {
@@ -738,5 +1072,156 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertEquals( 1, $scheduled_count );
 
 		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
+	 * The account mock reports 50 of 5000 images offloaded, and 4990 images are recorded as still to
+	 * be moved. They count toward the limit of an upload only while an offload is moving them: not
+	 * for a rollback, which records its progress in the same place, and not once the offload is over.
+	 *
+	 * @dataProvider pending_transfer_provider
+	 *
+	 * @param array{count: int, remaining: int, start_time: int, action?: string, foreground?: int} $process_meta      The recorded transfer progress.
+	 * @param string                                                                                 $offloading_status The dashboard offload status.
+	 * @param bool                                                                                   $limit_reached     Whether the upload trips the limit.
+	 * @param int|null                                                                               $mark_age          Seconds since the last activity of a WP-CLI run, null without one.
+	 */
+	public function test_only_a_running_offload_counts_toward_the_offload_limit( array $process_meta, string $offloading_status, bool $limit_reached, ?int $mark_age = null ): void {
+		// The providers run when the suite is built, long before this test: the mark is dated here.
+		if ( null !== $mark_age ) {
+			$process_meta['foreground'] = time() - $mark_age;
+		}
+
+		$settings = new Optml_Settings();
+		$settings->update( 'offloading_status', $offloading_status );
+		$settings->update( 'offload_limit_reached', 'disabled' );
+		update_option( 'optml_process_meta', $process_meta );
+
+		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[0] . '.jpg' );
+		$meta          = wp_get_attachment_metadata( $attachment_id );
+		$settings      = new Optml_Settings();
+
+		$this->assertSame( ! $limit_reached, Optml_Media_Offload::is_uploaded_image( $meta['file'] ) );
+		$this->assertSame( $limit_reached, $settings->is_offload_limit_reached() );
+
+		if ( $limit_reached ) {
+			// The limit of the account is stored with the warning, not the 50,000 default.
+			$this->assertSame( 5000, (int) $settings->get( 'offload_limit' ) );
+		}
+	}
+
+	/**
+	 * @return array<string, array{0: array{count: int, remaining: int, start_time: int, action?: string, foreground?: int}, 1: string, 2: bool, 3?: int}>
+	 */
+	public function pending_transfer_provider(): array {
+		$progress = [
+			'count'      => 4990,
+			'remaining'  => 4990,
+			'start_time' => time(),
+		];
+		$offload  = $progress + [ 'action' => 'offload_images' ];
+
+		return [
+			'rollback'                                                 => [ $progress + [ 'action' => 'rollback_images' ], 'disabled', false ],
+			'rollback, with a stale offload status'                    => [ $progress + [ 'action' => 'rollback_images' ], 'enabled', false ],
+			'dashboard offload that is running'                        => [ $offload + [ 'foreground' => 0 ], 'enabled', true ],
+			'dashboard offload that finished or stopped at the limit'  => [ $offload + [ 'foreground' => 0 ], 'disabled', false ],
+			'WP-CLI offload that is running'                           => [ $offload, 'disabled', true, 0 ],
+			'WP-CLI offload that ended'                                => [ $offload + [ 'foreground' => 0 ], 'disabled', false ],
+			'WP-CLI offload interrupted an hour ago (Ctrl+C)'          => [ $offload, 'disabled', false, HOUR_IN_SECONDS ],
+			'recorded before the transfer was stored, idle'            => [ $progress, 'disabled', false ],
+			'recorded before the transfer was stored, offload running' => [ $progress, 'enabled', true ],
+		];
+	}
+
+	public function test_a_wp_cli_run_marks_its_progress_until_it_ends(): void {
+		Optml_Media_Offload::record_process_meta( 12, 'offload_images', true );
+		$this->assertGreaterThanOrEqual( time() - 5, get_option( 'optml_process_meta' )['foreground'] );
+
+		Optml_Media_Offload::end_foreground_process_meta();
+
+		$meta = get_option( 'optml_process_meta' );
+		$this->assertSame( 0, $meta['foreground'] );
+		$this->assertSame( 12, $meta['remaining'] );
+	}
+
+	/**
+	 * The mark of a WP-CLI run is the time of its last activity: each offloaded image refreshes it,
+	 * so it goes stale by itself when the command is interrupted.
+	 */
+	public function test_each_offloaded_image_refreshes_the_mark_of_a_wp_cli_run(): void {
+		update_option(
+			'optml_process_meta',
+			[
+				'count'      => 12,
+				'remaining'  => 12,
+				'start_time' => time() - 500,
+				'action'     => 'offload_images',
+				'foreground' => time() - 500,
+			]
+		);
+
+		Optml_Media_Offload::decrement_process_meta_remaining();
+
+		$meta = get_option( 'optml_process_meta' );
+		$this->assertSame( 11, $meta['remaining'] );
+		$this->assertGreaterThanOrEqual( time() - 5, $meta['foreground'] );
+	}
+
+	/**
+	 * Every offloaded image updates the progress, also an ordinary upload long after a WP-CLI run was
+	 * interrupted. It must not bring the stale mark of that run back.
+	 */
+	public function test_a_later_upload_does_not_revive_the_mark_of_an_interrupted_wp_cli_run(): void {
+		update_option(
+			'optml_process_meta',
+			[
+				'count'      => 4990,
+				'remaining'  => 4990,
+				'start_time' => time() - HOUR_IN_SECONDS,
+				'action'     => 'offload_images',
+				'foreground' => time() - HOUR_IN_SECONDS,
+			]
+		);
+		$settings = new Optml_Settings();
+		$settings->update( 'offloading_status', 'disabled' );
+		$settings->update( 'offload_limit_reached', 'disabled' );
+
+		// Two ordinary uploads: the first one updates the progress, the second one must still be offloaded.
+		self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[0] . '.jpg' );
+		$attachment_id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/' . self::$files[1] . '.jpg' );
+
+		$this->assertSame( 0, get_option( 'optml_process_meta' )['foreground'] );
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $attachment_id )['file'] ) );
+		$this->assertFalse( ( new Optml_Settings() )->is_offload_limit_reached() );
+	}
+
+	public function test_offloading_an_image_does_not_mark_a_dashboard_offload_as_a_wp_cli_run(): void {
+		Optml_Media_Offload::record_process_meta( 12, 'offload_images' );
+
+		Optml_Media_Offload::decrement_process_meta_remaining();
+
+		$this->assertSame( 0, get_option( 'optml_process_meta' )['foreground'] );
+	}
+
+	/**
+	 * @dataProvider transfer_action_provider
+	 */
+	public function test_a_bulk_transfer_records_which_transfer_its_progress_belongs_to( string $action ): void {
+		Optml_Media_Offload::move_images( $action, false );
+
+		$meta = get_option( 'optml_process_meta' );
+		$this->assertSame( $action, $meta['action'] );
+		$this->assertSame( 0, $meta['foreground'] );
+	}
+
+	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public function transfer_action_provider(): array {
+		return [
+			'offload'  => [ 'offload_images' ],
+			'rollback' => [ 'rollback_images' ],
+		];
 	}
 }
