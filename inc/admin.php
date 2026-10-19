@@ -23,7 +23,7 @@ class Optml_Admin {
 
 	const IMAGE_DATA_COLLECTED_BATCH = 100;
 
-	const BF_PROMO_DISMISS_KEY = 'optml_bf25_notice_dismiss';
+	const BF_PROMO_DISMISS_KEY = 'optml_bf%s_notice_dismiss';
 
 	const SPC_BANNER_DISMISS_KEY = 'optml_spc_banner_dismiss';
 
@@ -1680,6 +1680,10 @@ class Optml_Admin {
 		 */
 		$now = apply_filters( 'themeisle_sdk_current_date', new \DateTime( 'now' ) );
 		$current_year = $now->format( 'Y' );
+		// Per-year dismissal and UTM, so a banner dismissed last year shows again this year.
+		$year_suffix = $now->format( 'y' );
+		$dismiss_key = sprintf( self::BF_PROMO_DISMISS_KEY, $year_suffix );
+		$utm_area = 'bfcm' . $year_suffix;
 
 		$black_friday_day = new \DateTime( "last Friday of November $current_year" );
 		$sale_start = clone $black_friday_day;
@@ -1690,6 +1694,7 @@ class Optml_Admin {
 		$end->modify( '+7 days' );
 		$end->setTime( 23, 59, 59 );
 
+		// The coupon is reused for 2026 (Codeinwp/marketing#365).
 		$promo_code = 'BFCM2525';
 
 		$notices['sidebar'] = [
@@ -1705,10 +1710,10 @@ class Optml_Admin {
 				'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 				'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 			),
-			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm25', 'sidebarnotice' ) ),
+			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), $utm_area, 'sidebarnotice' ) ),
 		];
 
-		if ( get_option( self::BF_PROMO_DISMISS_KEY ) === 'yes' ) {
+		if ( get_option( $dismiss_key ) === 'yes' ) {
 			return $notices;
 		}
 
@@ -1718,7 +1723,7 @@ class Optml_Admin {
 			'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 			'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 		);
-		$cta_link = esc_url_raw( tsdk_utmify( self::get_upgrade_base_link(), 'bfcm25', 'notice' ) );
+		$cta_link = esc_url_raw( tsdk_utmify( self::get_upgrade_base_link(), $utm_area, 'notice' ) );
 		$cta_text = __( 'Claim now', 'optimole-wp' );
 
 		$notices['banner'] = [
@@ -1729,7 +1734,7 @@ class Optml_Admin {
 			'subtitle' => $message,
 			'cta_text' => $cta_text,
 			'cta_link' => $cta_link,
-			'dismiss_key' => self::BF_PROMO_DISMISS_KEY,
+			'dismiss_key' => $dismiss_key,
 		];
 
 		return $notices;

@@ -66,7 +66,7 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->sale_end->setTime( 23, 59, 59 );
 		
 		// Clean up options before each test
-		delete_option( Optml_Admin::BF_PROMO_DISMISS_KEY );
+		delete_option( $this->bf_dismiss_key() );
 		
 		// Remove any filters that might be set
 		remove_all_filters( 'themeisle_sdk_is_black_friday_sale' );
@@ -77,10 +77,17 @@ class Test_Admin extends WP_UnitTestCase {
 	 * Clean up after each test.
 	 */
 	public function tearDown(): void {
-		delete_option( Optml_Admin::BF_PROMO_DISMISS_KEY );
+		delete_option( $this->bf_dismiss_key() );
 		remove_all_filters( 'themeisle_sdk_is_black_friday_sale' );
 		remove_all_filters( 'themeisle_sdk_current_date' );
 		parent::tearDown();
+	}
+
+	/**
+	 * Helper to get this year's Black Friday dismiss key.
+	 */
+	private function bf_dismiss_key(): string {
+		return sprintf( Optml_Admin::BF_PROMO_DISMISS_KEY, $this->black_friday->format( 'y' ) );
 	}
 
 	/**
@@ -188,18 +195,36 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->mock_date_to( clone $this->black_friday );
 		
 		// Test banner is hidden when dismissed
-		update_option( Optml_Admin::BF_PROMO_DISMISS_KEY, 'yes' );
+		update_option( $this->bf_dismiss_key(), 'yes' );
 		$result = $this->admin->get_bf_notices( 'free' );
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'sidebar', $result );
 		$this->assertArrayNotHasKey( 'banner', $result );
 		
 		// Test banner appears when not dismissed
-		delete_option( Optml_Admin::BF_PROMO_DISMISS_KEY );
+		delete_option( $this->bf_dismiss_key() );
 		$result = $this->admin->get_bf_notices( 'free' );
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'sidebar', $result );
 		$this->assertArrayHasKey( 'banner', $result );
+	}
+
+	/**
+	 * Test a banner dismissed in a previous year shows again this year.
+	 */
+	public function test_get_bf_notices_banner_ignores_previous_year_dismissal() {
+		$this->setup_black_friday_sale_period();
+		$this->mock_date_to( clone $this->black_friday );
+
+		$previous_year_key = sprintf( Optml_Admin::BF_PROMO_DISMISS_KEY, ( clone $this->black_friday )->modify( '-1 year' )->format( 'y' ) );
+		update_option( $previous_year_key, 'yes' );
+
+		$result = $this->admin->get_bf_notices( 'free' );
+		delete_option( $previous_year_key );
+
+		$this->assertArrayHasKey( 'banner', $result );
+		$this->assertNotEquals( $previous_year_key, $result['banner']['dismiss_key'] );
+		$this->assertStringContainsString( 'bfcm' . $this->black_friday->format( 'y' ), $result['banner']['cta_link'] );
 	}
 
 	/**
@@ -213,7 +238,7 @@ class Test_Admin extends WP_UnitTestCase {
 		
 		$this->assertArrayHasKey( 'banner', $result );
 		$this->assertArrayHasKey( 'dismiss_key', $result['banner'] );
-		$this->assertEquals( Optml_Admin::BF_PROMO_DISMISS_KEY, $result['banner']['dismiss_key'] );
+		$this->assertEquals( $this->bf_dismiss_key(), $result['banner']['dismiss_key'] );
 	}
 
 	/**
@@ -307,7 +332,7 @@ class Test_Admin extends WP_UnitTestCase {
 		$test_values = [ 'no', '0', '', 'dismissed' ];
 		
 		foreach ( $test_values as $value ) {
-			update_option( Optml_Admin::BF_PROMO_DISMISS_KEY, $value );
+			update_option( $this->bf_dismiss_key(), $value );
 			$result = $this->admin->get_bf_notices( 'free' );
 			$this->assertArrayHasKey( 'banner', $result, "Banner should appear when dismiss key is '$value'" );
 		}
