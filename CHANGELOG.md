@@ -1,3 +1,15 @@
+##### [Version 4.2.17](https://github.com/Codeinwp/optimole-wp/compare/v4.2.16...v4.2.17) (2026-10-19)
+
+- Fixed Image Storage settings staying disabled after a failed status check
+- Fixed WP-CLI rollback refusing transfers started from the dashboard.
+- Fixed new uploads offloading during Image Storage rollback.
+- Fixed optimized image polling failing when the site is disconnected.
+- Fixed the offload limit warning staying after usage dropped below limit.
+- Fixed Retina images delivering twice the advertised width.
+- Fixed generated image sizes listing the same breakpoint twice.
+- Fixed gallery lazy-load images losing their placeholders during optimization.
+- Updated dependencies
+
 ##### [Version 4.2.16](https://github.com/Codeinwp/optimole-wp/compare/v4.2.15...v4.2.16) (2026-10-01)
 
 - Updated dependencies
