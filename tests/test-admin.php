@@ -210,21 +210,29 @@ class Test_Admin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test a banner dismissed in a previous year shows again this year.
+	 * Test the dismiss key and UTM tag follow the year, and 2025 keeps the legacy key.
 	 */
-	public function test_get_bf_notices_banner_ignores_previous_year_dismissal() {
+	public function test_get_bf_notices_uses_yearly_dismiss_key_and_utm() {
 		$this->setup_black_friday_sale_period();
-		$this->mock_date_to( clone $this->black_friday );
 
-		$previous_year_key = sprintf( Optml_Admin::BF_PROMO_DISMISS_KEY, ( clone $this->black_friday )->modify( '-1 year' )->format( 'y' ) );
-		update_option( $previous_year_key, 'yes' );
-
+		// A dismissal from 2025 does not hide the 2026 banner.
+		update_option( 'optml_bf25_notice_dismiss', 'yes' );
+		$this->mock_date_to( new DateTime( '2026-11-27 12:00:00' ) );
 		$result = $this->admin->get_bf_notices( 'free' );
-		delete_option( $previous_year_key );
+		delete_option( 'optml_bf25_notice_dismiss' );
 
 		$this->assertArrayHasKey( 'banner', $result );
-		$this->assertNotEquals( $previous_year_key, $result['banner']['dismiss_key'] );
-		$this->assertStringContainsString( 'bfcm' . $this->black_friday->format( 'y' ), $result['banner']['cta_link'] );
+		$this->assertSame( 'optml_bf26_notice_dismiss', $result['banner']['dismiss_key'] );
+		$this->assertStringContainsString( 'bfcm26', $result['banner']['cta_link'] );
+		$this->assertStringContainsString( 'bfcm26', $result['sidebar']['cta_link'] );
+
+		// 2025 still uses the legacy key and UTM tag.
+		$this->mock_date_to( new DateTime( '2025-11-28 12:00:00' ) );
+		$result = $this->admin->get_bf_notices( 'free' );
+
+		$this->assertSame( 'optml_bf25_notice_dismiss', $result['banner']['dismiss_key'] );
+		$this->assertStringContainsString( 'bfcm25', $result['banner']['cta_link'] );
+		$this->assertStringContainsString( 'bfcm25', $result['sidebar']['cta_link'] );
 	}
 
 	/**
