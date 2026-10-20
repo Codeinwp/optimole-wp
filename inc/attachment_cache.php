@@ -71,8 +71,8 @@ class Optml_Attachment_Cache {
 	/**
 	 * Keep a value in the in-memory map, dropping the older half when it is full.
 	 *
-	 * @param string   $cache_key The cache key.
-	 * @param int|bool $value The attachment ID, or false when it is not cached.
+	 * @param string                   $cache_key The cache key.
+	 * @param int|numeric-string|false $value The attachment ID (a numeric string when read back from a transient), or false when it is not cached.
 	 *
 	 * @return void
 	 */

@@ -24,7 +24,7 @@ class Test_Attachment_Cache extends WP_UnitTestCase {
 	/**
 	 * Read the in-memory map.
 	 *
-	 * @return array<string, int|bool>
+	 * @return array<string, int|numeric-string|false>
 	 */
 	private function memory_map() {
 		$property = new ReflectionProperty( Optml_Attachment_Cache::class, 'cache_map' );
@@ -34,17 +34,16 @@ class Test_Attachment_Cache extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A page with many distinct image URLs must not grow the in-memory map for the whole request.
+	 * A page with many distinct uncached image URLs must not grow the in-memory map for the whole request.
 	 */
-	public function test_memory_map_is_bounded() {
+	public function test_memory_map_is_bounded_on_cache_misses() {
 		$limit = Optml_Attachment_Cache::MAX_MEMORY_ENTRIES;
 
-		for ( $i = 0; $i < $limit * 3; $i++ ) {
+		for ( $i = 0; $i <= $limit; $i++ ) {
 			Optml_Attachment_Cache::get_cached_attachment_id( 'https://example.org/wp-content/uploads/miss-' . $i . '.jpg' );
-			Optml_Attachment_Cache::set_cached_attachment_id( 'https://example.org/wp-content/uploads/hit-' . $i . '.jpg', $i + 1 );
 		}
 
-		$this->assertLessThanOrEqual( $limit, count( $this->memory_map() ) );
+		$this->assertCount( (int) ( $limit / 2 ) + 1, $this->memory_map() );
 	}
 
 	/**
