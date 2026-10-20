@@ -217,6 +217,9 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 			[ 'w' => 200, 'h' => 150, 'd' => 1, 's' => '200w', 'b' => 320 ],
 		];
 
+		$kept = $tag_replacer->add_missing_srcset_attributes( $tag, $missing_srcsets, 'https://example.com/image.jpg', false );
+		$this->assertStringNotContainsString( '(max-width: 320px) 200px', $kept );
+
 		add_filter( 'optml_keep_existing_sizes', '__return_false' );
 		$result = $tag_replacer->add_missing_srcset_attributes( $tag, $missing_srcsets, 'https://example.com/image.jpg', false );
 		remove_filter( 'optml_keep_existing_sizes', '__return_false' );
