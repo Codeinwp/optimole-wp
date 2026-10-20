@@ -1410,7 +1410,7 @@ class Optml_Test_Failing_Read_Stream {
 	 *
 	 * @var int
 	 */
-	private $reads = 0;
+	private int $reads = 0;
 
 	/**
 	 * Open the stream.
@@ -1422,7 +1422,7 @@ class Optml_Test_Failing_Read_Stream {
 	 *
 	 * @return bool
 	 */
-	public function stream_open( $path, $mode, $options, &$opened_path ) {
+	public function stream_open( string $path, string $mode, int $options, ?string &$opened_path ): bool {
 		return true;
 	}
 
@@ -1433,7 +1433,7 @@ class Optml_Test_Failing_Read_Stream {
 	 *
 	 * @return string|false
 	 */
-	public function stream_read( $count ) {
+	public function stream_read( int $count ) {
 		++$this->reads;
 
 		return 1 === $this->reads ? 'partial' : false;
@@ -1444,7 +1444,7 @@ class Optml_Test_Failing_Read_Stream {
 	 *
 	 * @return bool
 	 */
-	public function stream_eof() {
+	public function stream_eof(): bool {
 		return false;
 	}
 
@@ -1453,7 +1453,7 @@ class Optml_Test_Failing_Read_Stream {
 	 *
 	 * @return array<string, int>
 	 */
-	public function stream_stat() {
+	public function stream_stat(): array {
 		return [];
 	}
 
@@ -1465,7 +1465,7 @@ class Optml_Test_Failing_Read_Stream {
 	 *
 	 * @return array<string, int>
 	 */
-	public function url_stat( $path, $flags ) {
+	public function url_stat( string $path, int $flags ): array {
 		return [ 'size' => 100 ];
 	}
 }
