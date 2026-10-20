@@ -58,6 +58,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	const RETRYABLE_META_COUNTER = '_optimole_retryable_errors';
 
 	/**
+	 * Post meta holding the file a rollback moved into uploads before the attachment was updated to it.
+	 */
+	const ROLLBACK_PENDING_FILE = '_optimole_rollback_pending_file';
+
+	/**
 	 * Transient name for the transfer lock.
 	 */
 	const TRANSFER_LOCK_TRANSIENT = 'optml_transfer_lock';
@@ -966,6 +971,17 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				continue;
 			}
 
+			if ( ! function_exists( 'update_attached_file' ) ) {
+				include_once ABSPATH . '/wp-admin/includes/post.php';
+			}
+			if ( ! function_exists( 'update_attached_file' ) ) {
+				update_post_meta( $id, self::META_KEYS['rollback_error'], 'true' );
+				continue;
+			}
+
+			// A file left behind by an interrupted attempt would make WordPress pick a suffixed name.
+			self::delete_pending_rollback_file( $id );
+
 			// Move the temporary file into the uploads directory.
 			$results = wp_handle_sideload( $file, $overrides, get_the_date( 'Y/m', $id ) );
 			if ( ! empty( $results['error'] ) ) {
@@ -977,6 +993,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' faced wp_handle_sideload error.' );
 				continue;
 			}
+
+			// Remember the moved file until the attachment points to it, so a retry can clean it up.
+			update_post_meta( $id, self::ROLLBACK_PENDING_FILE, $results['file'] );
+
+			// Point the attachment at the restored file right away: generating the sub-sizes is the
+			// slow part, and a request that dies there must not leave the stored path behind.
+			update_attached_file( $id, $results['file'] );
 
 			if ( ! function_exists( 'wp_create_image_subsizes' ) ) {
 				include_once ABSPATH . '/wp-admin/includes/image.php';
@@ -1003,14 +1026,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				wp_update_attachment_metadata( $id, $meta );
 			}
 
-			if ( ! function_exists( 'update_attached_file' ) ) {
-				include_once ABSPATH . '/wp-admin/includes/post.php';
-			}
-			if ( ! function_exists( 'update_attached_file' ) ) {
-				update_post_meta( $id, self::META_KEYS['rollback_error'], 'true' );
-				continue;
-			}
-			update_attached_file( $id, $results['file'] );
+			delete_post_meta( $id, self::ROLLBACK_PENDING_FILE );
 
 			$duplicated_images = apply_filters( 'optml_offload_duplicated_images', [], $id );
 			if ( is_array( $duplicated_images ) && ! empty( $duplicated_images ) ) {
@@ -1050,6 +1066,34 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		return $success_back;
+	}
+
+	/**
+	 * Delete the file an interrupted rollback of this attachment moved into uploads.
+	 *
+	 * The file is only removed when it is inside the uploads directory, so a corrupted meta value
+	 * can never delete anything else.
+	 *
+	 * @param int $id The attachment ID.
+	 *
+	 * @return void
+	 */
+	public static function delete_pending_rollback_file( $id ) {
+		$pending = get_post_meta( $id, self::ROLLBACK_PENDING_FILE, true );
+		if ( empty( $pending ) || ! is_string( $pending ) ) {
+			return;
+		}
+		delete_post_meta( $id, self::ROLLBACK_PENDING_FILE );
+
+		$uploads  = wp_get_upload_dir();
+		$base_dir = realpath( $uploads['basedir'] );
+		$file     = realpath( $pending );
+		if ( false === $base_dir || false === $file || ! is_file( $file ) || strpos( $file, trailingslashit( $base_dir ) ) !== 0 ) {
+			return;
+		}
+
+		wp_delete_file( $file );
+		self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' had a file left by an interrupted rollback, it was removed before retrying.' );
 	}
 
 	/**
@@ -2069,23 +2113,68 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return string|false The lock token on success, false if another worker already holds the lock.
 	 */
 	public static function acquire_transfer_lock( $action ) {
+		// Reading the transient also removes it once it has expired, so an expired lock can be taken again.
 		$lock = get_transient( self::TRANSFER_LOCK_TRANSIENT );
 		if ( false !== $lock ) {
 			return false;
 		}
 
 		$token = wp_generate_uuid4();
+		$value = [
+			'token'  => $token,
+			'action' => $action,
+		];
 
-		set_transient(
-			self::TRANSFER_LOCK_TRANSIENT,
-			[
-				'token'  => $token,
-				'action' => $action,
-			],
-			self::TRANSFER_LOCK_TTL
-		);
+		if ( ! self::add_transfer_lock( $value ) ) {
+			return false;
+		}
 
 		return $token;
+	}
+
+	/**
+	 * Store the transfer lock only if no other request stored it first.
+	 *
+	 * A read followed by a write lets two requests that start at the same moment both take the lock.
+	 * The write here fails when the lock already exists: wp_cache_add() with a persistent object
+	 * cache, and an INSERT IGNORE on the transient row otherwise. Both use the same storage as
+	 * set_transient(), so the rest of the lock code reads it as before.
+	 *
+	 * @param array{token: string, action: string} $value The lock value.
+	 *
+	 * @return bool True if this request stored the lock.
+	 */
+	private static function add_transfer_lock( array $value ) {
+		if ( wp_using_ext_object_cache() ) {
+			return wp_cache_add( self::TRANSFER_LOCK_TRANSIENT, $value, 'transient', self::TRANSFER_LOCK_TTL );
+		}
+
+		global $wpdb;
+
+		// The expiry is written first, so a request that dies right after the insert cannot leave a
+		// lock that never expires. A request that loses the race only rewrites the winner's expiry to
+		// the same moment.
+		update_option( '_transient_timeout_' . self::TRANSFER_LOCK_TRANSIENT, time() + self::TRANSFER_LOCK_TTL, false );
+
+		$option = '_transient_' . self::TRANSFER_LOCK_TRANSIENT;
+		$added  = $wpdb->query(
+			$wpdb->prepare(
+				"INSERT IGNORE INTO `{$wpdb->options}` (`option_name`, `option_value`, `autoload`) VALUES (%s, %s, %s)",
+				$option,
+				maybe_serialize( $value ),
+				'no'
+			)
+		);
+
+		// The read above cached the transient as missing; forget that so the next read sees the new row.
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+		if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
+			unset( $notoptions[ $option ] );
+			wp_cache_set( 'notoptions', $notoptions, 'options' );
+		}
+		wp_cache_delete( $option, 'options' );
+
+		return 1 === $added;
 	}
 
 	/**
