@@ -348,7 +348,7 @@ add_filter('optml_dont_replace_url', function( $old, $url ) {
 
 = Can I keep the sizes attribute I wrote for an image ? =
 
-Yes. Add the `data-optml-keep-sizes` attribute to the image tag and Optimole leaves its `sizes` attribute as it is. To keep the existing `sizes` attribute on every image, add this snippet:
+Yes. Add the `data-optml-keep-sizes` attribute to the image tag and the page profiler won't add its own entries to the image's `sizes` attribute. Images lazy loaded by Optimole don't keep `srcset` or `sizes`, since the lazy loader doesn't need them. To keep the existing `sizes` attribute on every image, add this snippet:
 
 <code>
 add_filter( 'optml_keep_existing_sizes', '__return_true' );

@@ -555,7 +555,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$tag = $this->insert_after_attribute( $tag, 'src', $srcset_attr );
 		}
 
-		// Handle sizes attribute - skip if existing sizes contains calc() or complex formulas
+		// Handle sizes attribute - skip if the image asks to keep its existing sizes, or they contain calc() or complex formulas
 		if ( ! empty( $new_sizes_entries ) ) {
 			$should_skip_sizes = false;
 
@@ -606,9 +606,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 					}
 				}
 			} else {
-				// Log that sizes were skipped due to complex formulas
+				// Log that sizes were skipped (kept on request, or complex formula)
 				if ( OPTML_DEBUG ) {
-					do_action( 'optml_log', 'Skipped adding sizes due to complex formula detection' );
+					do_action( 'optml_log', 'Skipped adding sizes' );
 				}
 			}
 		}

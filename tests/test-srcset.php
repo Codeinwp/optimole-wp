@@ -207,17 +207,19 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The attribute only protects an existing sizes: an image without one still gets the generated sizes.
+	 * A filter returning false overrides the attribute, so the existing sizes are enhanced again.
 	 */
-	public function test_keep_sizes_attribute_without_existing_sizes_adds_sizes() {
+	public function test_keep_existing_sizes_filter_can_override_attribute() {
 		$tag_replacer = new Optml_Tag_Replacer();
 
-		$tag = '<img src="https://example.com/image.jpg" data-optml-keep-sizes alt="Test" />';
+		$tag = '<img src="https://example.com/image.jpg" srcset="existing-300w.jpg 300w" sizes="(max-width: 480px) 300px" data-optml-keep-sizes alt="Test" />';
 		$missing_srcsets = [
 			[ 'w' => 200, 'h' => 150, 'd' => 1, 's' => '200w', 'b' => 320 ],
 		];
 
+		add_filter( 'optml_keep_existing_sizes', '__return_false' );
 		$result = $tag_replacer->add_missing_srcset_attributes( $tag, $missing_srcsets, 'https://example.com/image.jpg', false );
+		remove_filter( 'optml_keep_existing_sizes', '__return_false' );
 
 		$this->assertStringContainsString( '(max-width: 320px) 200px', $result );
 	}
