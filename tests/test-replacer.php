@@ -870,6 +870,12 @@ class Test_Replacer extends WP_UnitTestCase {
 			$this->assertSame( [ $real_src ], $images['img_url'], $tag );
 			$this->assertSame( [ $tag ], $images['img_tag'], $tag );
 		}
+
+		$placeholder_only = '<img data-src="' . $placeholder . '" alt="Test" />';
+		$this->assertSame( [], Optml_Manager::parse_images_from_html( $placeholder_only ) );
+
+		$placeholder_and_lazy_src = '<img data-src="' . $placeholder . '" data-lazy-src="' . $real_src . '" alt="Test" />';
+		$this->assertSame( [ $real_src ], Optml_Manager::parse_images_from_html( $placeholder_and_lazy_src )['img_url'] );
 	}
 
 	/**
