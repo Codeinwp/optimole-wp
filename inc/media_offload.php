@@ -2295,7 +2295,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				self::$instance->settings->update( 'show_offload_finish_notice', $type );
 			}
 
-			// Transfer completed successfully: release the lock.
+			// Transfer finished: release the lock.
 			self::release_transfer_lock( $lock_token );
 
 			return;
