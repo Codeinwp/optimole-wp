@@ -1107,7 +1107,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Put the downloaded image in place of the file an interrupted rollback left behind.
 	 *
-	 * The old file is only overwritten once the new one is in place, so a failed move keeps it.
+	 * The image is copied next to the old file first and then renamed over it, so a copy that fails
+	 * partway (full disk, file size limit) leaves the old file intact.
 	 *
 	 * @param string $pending The file left behind, from {@see self::get_pending_rollback_file()}.
 	 * @param string $temp_file The downloaded image.
@@ -1116,8 +1117,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return array{file?: string, url?: string, type?: string, error?: string} The same shape as wp_handle_sideload().
 	 */
 	public static function replace_pending_rollback_file( string $pending, string $temp_file, string $type ): array {
+		$partial = $pending . '.optml-partial';
 		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a failed move is reported through the return value.
-		if ( ! @copy( $temp_file, $pending ) ) {
+		if ( ! @copy( $temp_file, $partial ) || ! @rename( $partial, $pending ) ) {
+			wp_delete_file( $partial );
+
 			return [ 'error' => 'The restored file could not be written to ' . $pending ];
 		}
 		wp_delete_file( $temp_file );
@@ -2219,7 +2223,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			return false;
 		}
 
-		// Written again, in case the previous holder's release removed it between the two writes.
+		// Written again, in case the previous holder's release removed it between the two writes. The
+		// cached copy is dropped first: it still holds the first write, so update_option() would skip the write.
+		wp_cache_delete( '_transient_timeout_' . self::TRANSFER_LOCK_TRANSIENT, 'options' );
 		update_option( '_transient_timeout_' . self::TRANSFER_LOCK_TRANSIENT, time() + self::TRANSFER_LOCK_TTL, false );
 
 		return true;

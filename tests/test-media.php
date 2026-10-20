@@ -760,6 +760,25 @@ class Test_Media extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A retry whose copy fails partway (full disk, file size limit) keeps the file the attachment points to.
+	 */
+	public function test_failed_copy_keeps_the_pending_file() {
+		if ( ! in_array( 'optml-failing-read', stream_get_wrappers(), true ) ) {
+			stream_wrapper_register( 'optml-failing-read', Optml_Test_Failing_Read_Stream::class );
+		}
+		$uploads = wp_get_upload_dir();
+		$pending = $uploads['basedir'] . '/optml-pending-copy.jpg';
+		file_put_contents( $pending, 'restored image' );
+
+		$result = Optml_Media_Offload::replace_pending_rollback_file( $pending, 'optml-failing-read://download', 'image/jpeg' );
+
+		$this->assertArrayHasKey( 'error', $result );
+		$this->assertSame( 'restored image', file_get_contents( $pending ) );
+		$this->assertFileDoesNotExist( $pending . '.optml-partial' );
+		unlink( $pending );
+	}
+
+	/**
 	 * A retry that ends in the branch for attachments whose local metadata was already saved
 	 * clears the pending file too.
 	 */
@@ -1110,6 +1129,35 @@ class Test_Media extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Another request's release can delete the expiry row between our first write and the insert.
+	 * The lock we then store must still get an expiry, or a dead worker would block transfers forever.
+	 */
+	public function test_acquire_transfer_lock_restores_expiry_removed_before_the_insert() {
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+		global $wpdb;
+		$timeout = '_transient_timeout_' . Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT;
+
+		$release = function ( $query ) use ( &$release, $wpdb, $timeout ) {
+			if ( false !== strpos( $query, 'INSERT IGNORE' ) ) {
+				remove_filter( 'query', $release );
+				$wpdb->delete( $wpdb->options, [ 'option_name' => $timeout ] );
+			}
+
+			return $query;
+		};
+		add_filter( 'query', $release );
+		$token = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
+		remove_filter( 'query', $release );
+
+		$this->assertNotFalse( $token );
+		$stored = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $timeout ) );
+		$this->assertNotNull( $stored );
+		$this->assertGreaterThan( time(), (int) $stored );
+
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
 	 * A lock left behind by a worker that died mid-batch (fatal error, killed process) must
 	 * eventually become reclaimable, otherwise a crashed transfer would be stuck forever.
 	 */
@@ -1343,5 +1391,81 @@ class Test_Media extends WP_UnitTestCase {
 			'offload'  => [ 'offload_images' ],
 			'rollback' => [ 'rollback_images' ],
 		];
+	}
+}
+
+/**
+ * A stream that returns some bytes, then fails, like a copy that runs out of disk space partway.
+ */
+class Optml_Test_Failing_Read_Stream {
+	/**
+	 * Stream context, set by PHP.
+	 *
+	 * @var resource|null
+	 */
+	public $context;
+
+	/**
+	 * Reads done so far.
+	 *
+	 * @var int
+	 */
+	private $reads = 0;
+
+	/**
+	 * Open the stream.
+	 *
+	 * @param string      $path The URL.
+	 * @param string      $mode The mode.
+	 * @param int         $options The options.
+	 * @param string|null $opened_path The opened path.
+	 *
+	 * @return bool
+	 */
+	public function stream_open( $path, $mode, $options, &$opened_path ) {
+		return true;
+	}
+
+	/**
+	 * Return a few bytes the first time, then fail.
+	 *
+	 * @param int $count The bytes asked for.
+	 *
+	 * @return string|false
+	 */
+	public function stream_read( $count ) {
+		++$this->reads;
+
+		return 1 === $this->reads ? 'partial' : false;
+	}
+
+	/**
+	 * The stream never reaches its end.
+	 *
+	 * @return bool
+	 */
+	public function stream_eof() {
+		return false;
+	}
+
+	/**
+	 * Stream stats.
+	 *
+	 * @return array<string, int>
+	 */
+	public function stream_stat() {
+		return [];
+	}
+
+	/**
+	 * URL stats.
+	 *
+	 * @param string $path The URL.
+	 * @param int    $flags The flags.
+	 *
+	 * @return array<string, int>
+	 */
+	public function url_stat( $path, $flags ) {
+		return [ 'size' => 100 ];
 	}
 }
