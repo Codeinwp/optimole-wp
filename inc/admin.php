@@ -1680,7 +1680,7 @@ class Optml_Admin {
 		 */
 		$now = apply_filters( 'themeisle_sdk_current_date', new \DateTime( 'now' ) );
 		$current_year = $now->format( 'Y' );
-		// Per-year promo code, dismissal and UTM, so a banner dismissed last year shows again this year.
+		// Per-year dismissal and UTM, so a banner dismissed last year shows again this year.
 		$year_suffix = $now->format( 'y' );
 		$dismiss_key = sprintf( self::BF_PROMO_DISMISS_KEY, $year_suffix );
 		$utm_area = 'bfcm' . $year_suffix;
@@ -1694,8 +1694,7 @@ class Optml_Admin {
 		$end->modify( '+7 days' );
 		$end->setTime( 23, 59, 59 );
 
-		// Code format: BFCM + 2-digit year + discount, e.g. BFCM2625.
-		$promo_code = 'BFCM' . $year_suffix . '25';
+		$promo_code = 'BFCM2525';
 
 		$notices['sidebar'] = [
 			'title'    => sprintf(
