@@ -6,6 +6,13 @@
 class Optml_Attachment_Cache {
 	const CACHE_GROUP = 'om_att';
 	/**
+	 * Most URLs kept in the in-memory map during one request.
+	 *
+	 * A page with many distinct image URLs would otherwise grow the map for the whole request.
+	 * When it is full, the older half is dropped; those URLs are still in the persistent cache.
+	 */
+	const MAX_MEMORY_ENTRIES = 2000;
+	/**
 	 * Local cache map.
 	 *
 	 * @var array
@@ -32,10 +39,10 @@ class Optml_Attachment_Cache {
 			return self::$cache_map[ $cache_key ];
 		}
 
-		$value                         = wp_using_ext_object_cache()
+		$value = wp_using_ext_object_cache()
 			? wp_cache_get( $cache_key, self::CACHE_GROUP )
 			: get_transient( self::CACHE_GROUP . $cache_key );
-		self::$cache_map[ $cache_key ] = $value;
+		self::remember( $cache_key, $value );
 
 		return $value;
 	}
@@ -51,7 +58,7 @@ class Optml_Attachment_Cache {
 	public static function set_cached_attachment_id( $url, $id ) {
 		$cache_key = self::get_cache_key( $url );
 		// We cache also in memory to avoid calling DB every time when not using Object Cache.
-		self::$cache_map[ $cache_key ] = $id;
+		self::remember( $cache_key, $id );
 		// If the ID is not found we cache for 10 minutes, otherwise for a week.
 		// We try to reduce the cache time when is not found to
 		// avoid caching for situation when this might be temporary.
@@ -59,6 +66,21 @@ class Optml_Attachment_Cache {
 		wp_using_ext_object_cache()
 			? wp_cache_set( $cache_key, $id, self::CACHE_GROUP, $expiration )
 			: set_transient( self::CACHE_GROUP . $cache_key, $id, $expiration );
+	}
+
+	/**
+	 * Keep a value in the in-memory map, dropping the older half when it is full.
+	 *
+	 * @param string   $cache_key The cache key.
+	 * @param int|bool $value The attachment ID, or false when it is not cached.
+	 *
+	 * @return void
+	 */
+	private static function remember( $cache_key, $value ) {
+		if ( ! isset( self::$cache_map[ $cache_key ] ) && count( self::$cache_map ) >= self::MAX_MEMORY_ENTRIES ) {
+			self::$cache_map = array_slice( self::$cache_map, (int) ( self::MAX_MEMORY_ENTRIES / 2 ), null, true );
+		}
+		self::$cache_map[ $cache_key ] = $value;
 	}
 
 	/**
