@@ -324,13 +324,18 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	/**
 	 * Get the active cache booster.
 	 *
+	 * Individual tokens are stored as the API returned them, which can be a number,
+	 * so the token is cast to the string the SDK expects.
+	 *
 	 * @param string $url The URL.
-	 * @param string $main_cache_buster The default value.
+	 * @param mixed  $main_cache_buster The default value.
 	 *
 	 * @return string
 	 */
 	public static function get_active_cache_booster( $url, $main_cache_buster ) {
-		return ( get_transient( Optml_Settings::INDIVIDUAL_CACHE_TOKENS_KEY ) ?: [] )[ crc32( wp_basename( $url ) ) ] ?? $main_cache_buster;
+		$token = ( get_transient( Optml_Settings::INDIVIDUAL_CACHE_TOKENS_KEY ) ?: [] )[ crc32( wp_basename( $url ) ) ] ?? $main_cache_buster;
+
+		return is_scalar( $token ) ? (string) $token : '';
 	}
 	/**
 	 * Throw error on object clone
