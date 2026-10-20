@@ -879,6 +879,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( ! isset( $current_meta['file'] ) || ! self::is_uploaded_image( $current_meta['file'] ) ) {
 				delete_post_meta( $id, self::META_KEYS['offloaded'] );
 				delete_post_meta( $id, self::OM_OFFLOADED_FLAG );
+				// A rollback that died after WordPress saved the local metadata ends here on retry.
+				delete_post_meta( $id, self::ROLLBACK_PENDING_FILE );
 				++$success_back;
 				continue;
 			}
@@ -979,11 +981,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				continue;
 			}
 
-			// A file left behind by an interrupted attempt would make WordPress pick a suffixed name.
-			self::delete_pending_rollback_file( $id );
-
-			// Move the temporary file into the uploads directory.
-			$results = wp_handle_sideload( $file, $overrides, get_the_date( 'Y/m', $id ) );
+			// A file left behind by an interrupted attempt is replaced in place: a new sideload would get a
+			// suffixed name, and deleting it first would leave the attachment without a file if the move fails.
+			$pending = self::get_pending_rollback_file( $id );
+			$results = null !== $pending
+				? self::replace_pending_rollback_file( $pending, $temp_file, $type )
+				// Move the temporary file into the uploads directory.
+				: wp_handle_sideload( $file, $overrides, get_the_date( 'Y/m', $id ) );
 			if ( ! empty( $results['error'] ) ) {
 				if ( OPTML_DEBUG_MEDIA ) {
 					do_action( 'optml_log', ' wp_handle_sideload error' );
@@ -1069,31 +1073,68 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
-	 * Delete the file an interrupted rollback of this attachment moved into uploads.
+	 * Get the file an interrupted rollback of this attachment moved into uploads.
 	 *
-	 * The file is only removed when it is inside the uploads directory, so a corrupted meta value
-	 * can never delete anything else.
+	 * Only an existing file inside the uploads directory is returned, so a corrupted meta value can
+	 * never point the rollback at anything else.
 	 *
 	 * @param int $id The attachment ID.
 	 *
-	 * @return void
+	 * @return string|null The absolute path, or null when there is no usable file.
 	 */
-	public static function delete_pending_rollback_file( $id ) {
+	public static function get_pending_rollback_file( int $id ): ?string {
 		$pending = get_post_meta( $id, self::ROLLBACK_PENDING_FILE, true );
 		if ( empty( $pending ) || ! is_string( $pending ) ) {
-			return;
+			return null;
 		}
-		delete_post_meta( $id, self::ROLLBACK_PENDING_FILE );
 
 		$uploads  = wp_get_upload_dir();
 		$base_dir = realpath( $uploads['basedir'] );
 		$file     = realpath( $pending );
-		if ( false === $base_dir || false === $file || ! is_file( $file ) || strpos( $file, trailingslashit( $base_dir ) ) !== 0 ) {
-			return;
+		if ( false === $base_dir || false === $file || ! is_file( $file ) ) {
+			return null;
 		}
 
-		wp_delete_file( $file );
-		self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' had a file left by an interrupted rollback, it was removed before retrying.' );
+		$base_dir = trailingslashit( wp_normalize_path( $base_dir ) );
+		if ( strpos( wp_normalize_path( $file ), $base_dir ) !== 0 ) {
+			return null;
+		}
+
+		// The stored path, not the resolved one: WordPress stores attached files relative to the uploads path as configured.
+		return $pending;
+	}
+
+	/**
+	 * Put the downloaded image in place of the file an interrupted rollback left behind.
+	 *
+	 * The old file is only overwritten once the new one is in place, so a failed move keeps it.
+	 *
+	 * @param string $pending The file left behind, from {@see self::get_pending_rollback_file()}.
+	 * @param string $temp_file The downloaded image.
+	 * @param string $type The image MIME type.
+	 *
+	 * @return array{file?: string, url?: string, type?: string, error?: string} The same shape as wp_handle_sideload().
+	 */
+	public static function replace_pending_rollback_file( string $pending, string $temp_file, string $type ): array {
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a failed move is reported through the return value.
+		if ( ! @copy( $temp_file, $pending ) ) {
+			return [ 'error' => 'The restored file could not be written to ' . $pending ];
+		}
+		wp_delete_file( $temp_file );
+
+		// Same permissions as wp_handle_sideload() gives a new file.
+		$stat = stat( dirname( $pending ) );
+		if ( false !== $stat ) {
+			chmod( $pending, $stat['mode'] & 0000666 );
+		}
+
+		$uploads = wp_get_upload_dir();
+
+		return [
+			'file' => $pending,
+			'url'  => str_replace( wp_normalize_path( $uploads['basedir'] ), $uploads['baseurl'], wp_normalize_path( $pending ) ),
+			'type' => $type,
+		];
 	}
 
 	/**
@@ -2144,7 +2185,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 *
 	 * @return bool True if this request stored the lock.
 	 */
-	private static function add_transfer_lock( array $value ) {
+	private static function add_transfer_lock( array $value ): bool {
 		if ( wp_using_ext_object_cache() ) {
 			return wp_cache_add( self::TRANSFER_LOCK_TRANSIENT, $value, 'transient', self::TRANSFER_LOCK_TTL );
 		}
@@ -2174,7 +2215,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 		wp_cache_delete( $option, 'options' );
 
-		return 1 === $added;
+		if ( 1 !== $added ) {
+			return false;
+		}
+
+		// Written again, in case the previous holder's release removed it between the two writes.
+		update_option( '_transient_timeout_' . self::TRANSFER_LOCK_TRANSIENT, time() + self::TRANSFER_LOCK_TTL, false );
+
+		return true;
 	}
 
 	/**

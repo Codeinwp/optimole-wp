@@ -693,9 +693,9 @@ class Test_Media extends WP_UnitTestCase {
 
 	/**
 	 * A rollback that died after moving the file into uploads leaves that file behind. The retry
-	 * must remove it, so the restored image keeps its name instead of getting a "-1" suffix.
+	 * must write over it, so the restored image keeps its name instead of getting a "-1" suffix.
 	 */
-	public function test_rollback_retry_removes_file_left_by_interrupted_attempt() {
+	public function test_rollback_retry_replaces_file_left_by_interrupted_attempt() {
 		$attachment_id = self::$sample_attachement;
 		$uploads       = wp_upload_dir( get_the_date( 'Y/m', $attachment_id ) );
 		$orphan        = $uploads['path'] . '/' . self::$files[0] . '.jpg';
@@ -746,19 +746,31 @@ class Test_Media extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Only a file inside the uploads directory is removed, whatever the meta says.
+	 * Only a file inside the uploads directory is used, whatever the meta says.
 	 */
-	public function test_pending_rollback_file_outside_uploads_is_kept() {
+	public function test_pending_rollback_file_outside_uploads_is_ignored() {
 		$attachment_id = self::factory()->post->create( [ 'post_type' => 'attachment' ] );
 		$outside       = get_temp_dir() . 'optml-outside-uploads.jpg';
 		file_put_contents( $outside, 'not ours' );
 		update_post_meta( $attachment_id, Optml_Media_Offload::ROLLBACK_PENDING_FILE, $outside );
 
-		Optml_Media_Offload::delete_pending_rollback_file( $attachment_id );
-
-		$this->assertTrue( file_exists( $outside ) );
-		$this->assertEmpty( get_post_meta( $attachment_id, Optml_Media_Offload::ROLLBACK_PENDING_FILE, true ) );
+		$this->assertNull( Optml_Media_Offload::get_pending_rollback_file( $attachment_id ) );
+		$this->assertSame( 'not ours', file_get_contents( $outside ) );
 		unlink( $outside );
+	}
+
+	/**
+	 * A retry that ends in the branch for attachments whose local metadata was already saved
+	 * clears the pending file too.
+	 */
+	public function test_retry_after_local_metadata_was_saved_clears_pending_file() {
+		$attachment_id = self::factory()->post->create( [ 'post_type' => 'attachment' ] );
+		wp_update_attachment_metadata( $attachment_id, [ 'file' => '2026/10/restored.jpg' ] );
+		update_post_meta( $attachment_id, Optml_Media_Offload::ROLLBACK_PENDING_FILE, '/some/where/restored.jpg' );
+
+		Optml_Media_Offload::instance()->rollback_and_update_images( [ $attachment_id ] );
+
+		$this->assertEmpty( get_post_meta( $attachment_id, Optml_Media_Offload::ROLLBACK_PENDING_FILE, true ) );
 	}
 
 	/**
@@ -1070,8 +1082,8 @@ class Test_Media extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A lock left behind by a worker that died mid-batch (fatal error, killed process) must
-	 * eventually become reclaimable, otherwise a crashed transfer would be stuck forever.
+	 * Two requests that both read the lock as free must not both take it: the one whose write comes
+	 * second gets false, and the lock keeps the first one's token and an expiry.
 	 */
 	public function test_acquire_transfer_lock_fails_when_another_request_took_it_after_the_read() {
 		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
@@ -1097,6 +1109,10 @@ class Test_Media extends WP_UnitTestCase {
 		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
 	}
 
+	/**
+	 * A lock left behind by a worker that died mid-batch (fatal error, killed process) must
+	 * eventually become reclaimable, otherwise a crashed transfer would be stuck forever.
+	 */
 	public function test_acquire_transfer_lock_reclaims_expired_lock() {
 		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
 
