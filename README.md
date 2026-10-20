@@ -345,3 +345,11 @@ add_filter('optml_dont_replace_url', function( $old, $url ) {
 
 }, 10, 2);
 </code>
+
+= Can I keep the sizes attribute I wrote for an image ? =
+
+Yes. Add the `data-optml-keep-sizes` attribute to the image tag and Optimole leaves its `sizes` attribute as it is. To keep the existing `sizes` attribute on every image, add this snippet:
+
+<code>
+add_filter( 'optml_keep_existing_sizes', '__return_true' );
+</code>

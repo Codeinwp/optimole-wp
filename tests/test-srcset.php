@@ -169,6 +169,60 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 	}
 
 	/**
+	 * An image with data-optml-keep-sizes keeps its hand-written sizes, and still gets the new srcset entries.
+	 */
+	public function test_keep_sizes_attribute_preserves_existing_sizes() {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" srcset="existing-300w.jpg 300w" sizes="(max-width: 480px) 300px" data-optml-keep-sizes alt="Test" />';
+		$missing_srcsets = [
+			[ 'w' => 200, 'h' => 150, 'd' => 1, 's' => '200w', 'b' => 320 ],
+			[ 'w' => 400, 'h' => 300, 'd' => 1, 's' => '400w', 'b' => 768 ],
+		];
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, $missing_srcsets, 'https://example.com/image.jpg', false );
+
+		$this->assertStringContainsString( 'sizes="(max-width: 480px) 300px"', $result );
+		$this->assertStringNotContainsString( '(max-width: 320px) 200px', $result );
+		$this->assertStringContainsString( '200w', $result );
+	}
+
+	/**
+	 * The optml_keep_existing_sizes filter keeps existing sizes site-wide, with no change to the markup.
+	 */
+	public function test_keep_existing_sizes_filter() {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" srcset="existing-300w.jpg 300w" sizes="(max-width: 480px) 300px" alt="Test" />';
+		$missing_srcsets = [
+			[ 'w' => 200, 'h' => 150, 'd' => 1, 's' => '200w', 'b' => 320 ],
+		];
+
+		add_filter( 'optml_keep_existing_sizes', '__return_true' );
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, $missing_srcsets, 'https://example.com/image.jpg', false );
+		remove_filter( 'optml_keep_existing_sizes', '__return_true' );
+
+		$this->assertStringContainsString( 'sizes="(max-width: 480px) 300px"', $result );
+		$this->assertStringNotContainsString( '(max-width: 320px) 200px', $result );
+	}
+
+	/**
+	 * The attribute only protects an existing sizes: an image without one still gets the generated sizes.
+	 */
+	public function test_keep_sizes_attribute_without_existing_sizes_adds_sizes() {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" data-optml-keep-sizes alt="Test" />';
+		$missing_srcsets = [
+			[ 'w' => 200, 'h' => 150, 'd' => 1, 's' => '200w', 'b' => 320 ],
+		];
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, $missing_srcsets, 'https://example.com/image.jpg', false );
+
+		$this->assertStringContainsString( '(max-width: 320px) 200px', $result );
+	}
+
+	/**
 	 * Test retina images setting respect
 	 */
 	public function test_add_missing_srcset_attributes_retina_disabled() {
