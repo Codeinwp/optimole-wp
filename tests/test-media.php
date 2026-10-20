@@ -544,6 +544,71 @@ class Test_Media extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A step that throws every time is retried a few times, then the chain moves on to the next step
+	 * instead of retrying it every few seconds forever.
+	 */
+	public function test_failing_step_moves_on_after_retries(): void {
+		( new Optml_Settings() )->update( 'rollback_status', 'enabled' );
+		delete_transient( Optml_Media_Offload::STEP_FAILURES_TRANSIENT );
+		$token = Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' );
+		$fail  = function () {
+			throw new Exception( 'cloud lookup failed' );
+		};
+		add_action( 'pre_get_posts', $fail );
+
+		$steps = [];
+		for ( $attempt = 1; $attempt <= Optml_Media_Offload::MAX_STEP_RETRIES; $attempt++ ) {
+			_set_cron_array( [] );
+			Optml_Media_Offload::instance()->start_processing_images( 'rollback_images', 10, 1, 5, 1, $token );
+			$steps[] = $this->scheduled_transfer_step();
+		}
+		remove_action( 'pre_get_posts', $fail );
+
+		$this->assertSame( array_merge( array_fill( 0, Optml_Media_Offload::MAX_STEP_RETRIES - 1, 1 ), [ 2 ] ), $steps );
+		$this->assertFalse( get_transient( Optml_Media_Offload::STEP_FAILURES_TRANSIENT ) );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
+	 * A step that succeeds clears the failures of the one before it.
+	 */
+	public function test_successful_step_clears_failures(): void {
+		( new Optml_Settings() )->update( 'rollback_status', 'enabled' );
+		$token = Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' );
+		set_transient(
+			Optml_Media_Offload::STEP_FAILURES_TRANSIENT,
+			[
+				'action' => 'rollback_images',
+				'step'   => 1,
+				'count'  => Optml_Media_Offload::MAX_STEP_RETRIES - 1,
+			],
+			HOUR_IN_SECONDS
+		);
+
+		_set_cron_array( [] );
+		Optml_Media_Offload::instance()->start_processing_images( 'rollback_images', 10, 1, 5, 1, $token );
+
+		$this->assertSame( 2, $this->scheduled_transfer_step() );
+		$this->assertFalse( get_transient( Optml_Media_Offload::STEP_FAILURES_TRANSIENT ) );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
+	 * @return int|null The step of the background transfer step waiting in WP-Cron.
+	 */
+	private function scheduled_transfer_step() {
+		foreach ( (array) _get_cron_array() as $hooks ) {
+			if ( isset( $hooks['optml_start_processing_images'] ) ) {
+				$event = reset( $hooks['optml_start_processing_images'] );
+
+				return (int) $event['args'][4];
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * @return int The background transfer steps waiting in WP-Cron.
 	 */
 	private function count_scheduled_transfer_steps(): int {

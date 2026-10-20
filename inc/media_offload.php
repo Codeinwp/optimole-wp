@@ -68,6 +68,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	const TRANSFER_LOCK_TTL = 600;
 
 	/**
+	 * Transient counting the failed attempts of the current transfer step.
+	 */
+	const STEP_FAILURES_TRANSIENT = 'optml_transfer_step_failures';
+
+	/**
+	 * How many times a failing transfer step is retried before the chain moves on.
+	 */
+	const MAX_STEP_RETRIES = 5;
+
+	/**
 	 * Flag used inside wp_get_attachment url filter.
 	 *
 	 * @var bool Whether or not to return the original url of the image.
@@ -2322,11 +2332,21 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$lock_token,
 				]
 			);
+			delete_transient( self::STEP_FAILURES_TRANSIENT );
 		} catch ( Exception $e ) {
 			// Reschedule the cron to run again after a delay. Sometimes memory limit is exausted.
 			// This is a retryable error, so the lock is kept rather than released.
 			$delay_in_seconds = 10;
 			self::$instance->logger->add_log( $type, $e->getMessage() );
+
+			// A step that keeps failing would be retried every few seconds forever, with the transfer
+			// shown as running. After a few attempts the chain moves on, so the transfer can finish
+			// and the images left behind can be retried.
+			if ( self::count_step_failure( $action, $step ) >= self::MAX_STEP_RETRIES ) {
+				delete_transient( self::STEP_FAILURES_TRANSIENT );
+				self::$instance->logger->add_log( $type, 'Step ' . $step . ' failed ' . self::MAX_STEP_RETRIES . ' times, moving on to the next one.' );
+				$step = $step + 1;
+			}
 
 			self::schedule_action(
 				time() + $delay_in_seconds,
@@ -2343,6 +2363,33 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		} finally {
 			self::release_moving_images_lock();
 		}
+	}
+
+	/**
+	 * Count a failed attempt of a transfer step.
+	 *
+	 * @param string $action The transfer action.
+	 * @param int    $step The step that failed.
+	 *
+	 * @return int How many times in a row this step has failed.
+	 */
+	private static function count_step_failure( $action, $step ) {
+		$failures = get_transient( self::STEP_FAILURES_TRANSIENT );
+		$count    = 1;
+		if ( is_array( $failures ) && isset( $failures['action'], $failures['step'], $failures['count'] ) && $failures['action'] === $action && (int) $failures['step'] === (int) $step ) {
+			$count = (int) $failures['count'] + 1;
+		}
+		set_transient(
+			self::STEP_FAILURES_TRANSIENT,
+			[
+				'action' => $action,
+				'step'   => (int) $step,
+				'count'  => $count,
+			],
+			HOUR_IN_SECONDS
+		);
+
+		return $count;
 	}
 
 	/**
