@@ -172,7 +172,7 @@ class Test_Admin extends WP_UnitTestCase {
 		
 		// Check subtitle contains discount information for free users
 		$this->assertStringContainsString( '25', $sidebar['subtitle'] );
-		$this->assertStringContainsString( 'BFCM2525', $sidebar['subtitle'] );
+		$this->assertStringContainsString( 'BFCM', $sidebar['subtitle'] );
 		$this->assertStringContainsString( 'Use code', $sidebar['subtitle'] );
 		
 		// Check CTA link is not empty
@@ -181,7 +181,7 @@ class Test_Admin extends WP_UnitTestCase {
 		// Check banner CTA text and message
 		$this->assertNotEmpty( $banner['cta_text'] );
 		$this->assertStringContainsString( 'Use coupon code', $banner['subtitle'] );
-		$this->assertStringContainsString( 'BFCM2525', $banner['subtitle'] );
+		$this->assertStringContainsString( 'BFCM', $banner['subtitle'] );
 		$this->assertStringContainsString( '25', $banner['subtitle'] );
 	}
 	
@@ -210,9 +210,9 @@ class Test_Admin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the dismiss key and UTM tag follow the year, and 2025 keeps the legacy key.
+	 * Test the promo code, dismiss key and UTM tag follow the year, and 2025 keeps the legacy values.
 	 */
-	public function test_get_bf_notices_uses_yearly_dismiss_key_and_utm() {
+	public function test_get_bf_notices_uses_yearly_promo_code_dismiss_key_and_utm() {
 		$this->setup_black_friday_sale_period();
 
 		// A dismissal from 2025 does not hide the 2026 banner.
@@ -225,14 +225,18 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->assertSame( 'optml_bf26_notice_dismiss', $result['banner']['dismiss_key'] );
 		$this->assertStringContainsString( 'bfcm26', $result['banner']['cta_link'] );
 		$this->assertStringContainsString( 'bfcm26', $result['sidebar']['cta_link'] );
+		$this->assertStringContainsString( 'BFCM2625', $result['banner']['subtitle'] );
+		$this->assertStringContainsString( 'BFCM2625', $result['sidebar']['subtitle'] );
 
-		// 2025 still uses the legacy key and UTM tag.
+		// 2025 still uses the legacy promo code, key and UTM tag.
 		$this->mock_date_to( new DateTime( '2025-11-28 12:00:00' ) );
 		$result = $this->admin->get_bf_notices( 'free' );
 
 		$this->assertSame( 'optml_bf25_notice_dismiss', $result['banner']['dismiss_key'] );
 		$this->assertStringContainsString( 'bfcm25', $result['banner']['cta_link'] );
 		$this->assertStringContainsString( 'bfcm25', $result['sidebar']['cta_link'] );
+		$this->assertStringContainsString( 'BFCM2525', $result['banner']['subtitle'] );
+		$this->assertStringContainsString( 'BFCM2525', $result['sidebar']['subtitle'] );
 	}
 
 	/**
