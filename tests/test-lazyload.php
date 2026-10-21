@@ -553,4 +553,34 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertStringContainsString( $svg, $replaced_content );
 		remove_filter('optml_lazyload_images_skip','__return_zero');
 	}
+
+	/**
+	 * A tag whose data-src holds a data: placeholder is lazy-loaded from its real URL.
+	 */
+	public function test_lazyload_tag_with_data_uri_data_src() {
+		$settings = new Optml_Settings();
+		$settings->update( 'skip_lazyload_images', 0 );
+		// The skip limit is cached in a static on first use, so an earlier test may have cached another value.
+		$skip_limit = new ReflectionProperty( Optml_Lazyload_Replacer::class, 'skip_lazyload_images' );
+		$skip_limit->setAccessible( true );
+		$skip_limit->setValue( null, null );
+		Optml_Tag_Replacer::$lazyload_skipped_images = 0;
+		Optml_Manager::instance()->init();
+
+		$placeholder = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+		$tags        = [
+			'<img data-src="' . $placeholder . '" src="https://example.com/wp-content/uploads/2026/10/photo.jpg" alt="Test" />',
+			'<img data-src="' . $placeholder . '" data-lazy-src="https://example.com/wp-content/uploads/2026/10/photo.jpg" alt="Test" />',
+		];
+
+		foreach ( $tags as $tag ) {
+			$replaced_content = Optml_Manager::instance()->replace_content( $tag );
+
+			$this->assertStringContainsString( 'data-opt-src="https://test123.i.optimole.com/', $replaced_content, $tag );
+			$this->assertStringContainsString( '/https://example.com/wp-content/uploads/2026/10/photo.jpg"', $replaced_content, $tag );
+			$this->assertStringContainsString( 'data-src="' . $placeholder . '"', $replaced_content, $tag );
+		}
+
+		$skip_limit->setValue( null, null );
+	}
 }
