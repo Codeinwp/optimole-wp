@@ -79,7 +79,7 @@ class Test_Buffer extends WP_UnitTestCase {
 	/**
 	 * Swap how Optml_Manager reads the last PHP error.
 	 *
-	 * @param callable $reader Returns what error_get_last() would.
+	 * @param callable(): (array{type: int, message: string, file: string, line: int}|null) $reader Returns what error_get_last() would.
 	 */
 	private function set_error_reader( $reader ) {
 		$prop = new ReflectionProperty( Optml_Manager::class, 'error_reader' );

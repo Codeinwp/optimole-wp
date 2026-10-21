@@ -145,7 +145,7 @@ final class Optml_Manager {
 	/**
 	 * Reads the last PHP error; tests swap it to simulate a fatal error.
 	 *
-	 * @var callable
+	 * @var callable(): (array{type: int, message: string, file: string, line: int}|null)
 	 */
 	private static $error_reader = 'error_get_last';
 
