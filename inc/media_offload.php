@@ -68,6 +68,17 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	const TRANSFER_LOCK_TTL = 600;
 
 	/**
+	 * Option counting the failed attempts of the current transfer step, and the steps skipped so far.
+	 * It is an option rather than a transient so an object cache eviction can't reset the count.
+	 */
+	const STEP_FAILURES_OPTION = 'optml_transfer_step_failures';
+
+	/**
+	 * How many times a failing transfer step is retried before the chain moves on.
+	 */
+	const MAX_STEP_RETRIES = 5;
+
+	/**
 	 * Flag used inside wp_get_attachment url filter.
 	 *
 	 * @var bool Whether or not to return the original url of the image.
@@ -1988,6 +1999,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$lock_token = self::acquire_transfer_lock( $action );
 
 			if ( false !== $lock_token ) {
+				delete_option( self::STEP_FAILURES_OPTION );
 				$total = ceil( $count / $batch );
 				self::schedule_action(
 					time(),
@@ -2274,9 +2286,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			self::$instance->settings->update( $option, 'disabled' );
 
-			self::$instance->settings->update( 'show_offload_finish_notice', $type );
+			// A transfer that skipped failing steps left images behind, so it does not report success.
+			$skipped = self::get_skipped_steps( $lock_token );
+			delete_option( self::STEP_FAILURES_OPTION );
+			if ( $skipped > 0 ) {
+				self::$instance->logger->add_log( $type, $skipped . ' step(s) were skipped after failing ' . self::MAX_STEP_RETRIES . ' times. Start the transfer again to move the images left behind.' );
+			} else {
+				self::$instance->settings->update( 'show_offload_finish_notice', $type );
+			}
 
-			// Transfer completed successfully: release the lock.
+			// Transfer finished: release the lock.
 			self::release_transfer_lock( $lock_token );
 
 			return;
@@ -2322,11 +2341,21 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$lock_token,
 				]
 			);
+			self::clear_step_failures( $lock_token );
 		} catch ( Exception $e ) {
 			// Reschedule the cron to run again after a delay. Sometimes memory limit is exausted.
 			// This is a retryable error, so the lock is kept rather than released.
 			$delay_in_seconds = 10;
 			self::$instance->logger->add_log( $type, $e->getMessage() );
+
+			// A step that keeps failing would be retried every few seconds forever, with the transfer
+			// shown as running. After a few attempts the chain moves on, so the transfer can finish
+			// and the images left behind can be retried.
+			if ( self::count_step_failure( $lock_token, $action, $step ) >= self::MAX_STEP_RETRIES ) {
+				self::record_skipped_step( $lock_token );
+				self::$instance->logger->add_log( $type, 'Step ' . $step . ' failed ' . self::MAX_STEP_RETRIES . ' times, moving on to the next one.' );
+				$step = $step + 1;
+			}
 
 			self::schedule_action(
 				time() + $delay_in_seconds,
@@ -2343,6 +2372,98 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		} finally {
 			self::release_moving_images_lock();
 		}
+	}
+
+	/**
+	 * Read the step failures record of a transfer chain.
+	 *
+	 * @param string $lock_token The transfer lock token of the chain.
+	 *
+	 * @return array{token: string, action: string, step: int, count: int, skipped: int} The record, empty for another chain.
+	 */
+	private static function get_step_failures( string $lock_token ): array {
+		$failures = get_option( self::STEP_FAILURES_OPTION );
+		$record   = [
+			'token'   => $lock_token,
+			'action'  => '',
+			'step'    => 0,
+			'count'   => 0,
+			'skipped' => 0,
+		];
+		if ( ! is_array( $failures ) || ! isset( $failures['token'] ) || $failures['token'] !== $lock_token ) {
+			return $record;
+		}
+
+		return [
+			'token'   => $lock_token,
+			'action'  => isset( $failures['action'] ) ? (string) $failures['action'] : '',
+			'step'    => isset( $failures['step'] ) ? (int) $failures['step'] : 0,
+			'count'   => isset( $failures['count'] ) ? (int) $failures['count'] : 0,
+			'skipped' => isset( $failures['skipped'] ) ? (int) $failures['skipped'] : 0,
+		];
+	}
+
+	/**
+	 * Count a failed attempt of a transfer step.
+	 *
+	 * @param string $lock_token The transfer lock token of the chain.
+	 * @param string $action The transfer action.
+	 * @param int    $step The step that failed.
+	 *
+	 * @return int How many times in a row this step has failed.
+	 */
+	private static function count_step_failure( string $lock_token, string $action, int $step ): int {
+		$record = self::get_step_failures( $lock_token );
+		if ( $record['action'] !== $action || $record['step'] !== $step ) {
+			$record['count'] = 0;
+		}
+		$record['action'] = $action;
+		$record['step']   = $step;
+		++$record['count'];
+		update_option( self::STEP_FAILURES_OPTION, $record, false );
+
+		return $record['count'];
+	}
+
+	/**
+	 * Remember that the chain skipped a step that kept failing.
+	 *
+	 * @param string $lock_token The transfer lock token of the chain.
+	 *
+	 * @return void
+	 */
+	private static function record_skipped_step( string $lock_token ): void {
+		$record = self::get_step_failures( $lock_token );
+		$record['count'] = 0;
+		++$record['skipped'];
+		update_option( self::STEP_FAILURES_OPTION, $record, false );
+	}
+
+	/**
+	 * Clear the failed attempts after a step succeeds, keeping the count of skipped steps.
+	 *
+	 * @param string $lock_token The transfer lock token of the chain.
+	 *
+	 * @return void
+	 */
+	private static function clear_step_failures( string $lock_token ): void {
+		$record = self::get_step_failures( $lock_token );
+		if ( 0 === $record['count'] ) {
+			return;
+		}
+		$record['count'] = 0;
+		update_option( self::STEP_FAILURES_OPTION, $record, false );
+	}
+
+	/**
+	 * How many steps the chain skipped after they kept failing.
+	 *
+	 * @param string $lock_token The transfer lock token of the chain.
+	 *
+	 * @return int
+	 */
+	public static function get_skipped_steps( string $lock_token ): int {
+		return self::get_step_failures( $lock_token )['skipped'];
 	}
 
 	/**

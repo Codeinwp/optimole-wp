@@ -851,6 +851,44 @@ class Test_Replacer extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A data: placeholder in a lazy-load attribute before src is not taken as the image URL.
+	 */
+	public function test_parse_images_skips_data_uri_in_lazy_attribute() {
+		$placeholder = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+		$real_src    = 'https://example.com/wp-content/uploads/2026/10/photo.jpg';
+
+		$tags = [
+			'<img data-src="' . $placeholder . '" src="' . $real_src . '" alt="Test" />',
+			"<img data-src='" . $placeholder . "' src='" . $real_src . "' alt='Test' />",
+			'<img data-lazy-src="' . $placeholder . '" alt="Test" src="' . $real_src . '" />',
+			'<img src="' . $real_src . '" data-src="' . $placeholder . '" alt="Test" />',
+			'<img DATA-SRC="DATA:image/gif;base64,R0lGODlh" src="' . $real_src . '" />',
+		];
+
+		foreach ( $tags as $tag ) {
+			$images = Optml_Manager::parse_images_from_html( $tag );
+			$this->assertSame( [ $real_src ], $images['img_url'], $tag );
+			$this->assertSame( [ $tag ], $images['img_tag'], $tag );
+		}
+
+		$placeholder_only = '<img data-src="' . $placeholder . '" alt="Test" />';
+		$this->assertSame( [], Optml_Manager::parse_images_from_html( $placeholder_only ) );
+
+		$placeholder_and_lazy_src = '<img data-src="' . $placeholder . '" data-lazy-src="' . $real_src . '" alt="Test" />';
+		$this->assertSame( [ $real_src ], Optml_Manager::parse_images_from_html( $placeholder_and_lazy_src )['img_url'] );
+	}
+
+	/**
+	 * A data: src is still matched, so an image owned by another lazy-load script is handled as before.
+	 */
+	public function test_parse_images_keeps_data_uri_src() {
+		$tag    = '<img src="data:image/gif;base64,R0lGODdhAQABAPAAAP///wAAACwAAAAAAQABAEACAkQBADs=" data-lazy-src="https://example.com/wp-content/uploads/2026/10/photo.jpg" />';
+		$images = Optml_Manager::parse_images_from_html( $tag );
+
+		$this->assertSame( [ 'data:image/gif' ], $images['img_url'] );
+	}
+
+	/**
 	 * Individual cache tokens are stored as the API returned them, which can be a number.
 	 * The SDK only accepts a string cache buster.
 	 */

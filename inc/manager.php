@@ -698,7 +698,9 @@ final class Optml_Manager {
 		if ( OPTML_DEBUG ) {
 			do_action( 'optml_log', 'Content to parse images from: ' . $content );
 		}
-		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?\s?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ismu';
+		// A lazy-load attribute (e.g. data-src) holding a data: placeholder is skipped, so the real src is used.
+		// A data: src is still matched: the image then belongs to another lazy-load script.
+		$regex = '/(?:<a[^>]+?href=["|\'](?P<link_url>[^\s]+?)["|\'][^>]*?>\s*)?(?P<img_tag>(?:<noscript\s*>\s*)?<img[^>]*?(?:\ssrc=["\'\\\\]*?|\s?(?:' . implode( '|', array_merge( [ 'src' ], Optml_Tag_Replacer::possible_src_attributes() ) ) . ')=["\'\\\\]*?(?!data:))(?P<img_url>[' . Optml_Config::$chars . ']{10,}).*?>(?:\s*<\/noscript\s*>)?){1}(?:\s*<\/a>)?/ismu';
 
 		if ( preg_match_all( $regex, $content, $images, PREG_OFFSET_CAPTURE ) ) {
 			if ( OPTML_DEBUG ) {
