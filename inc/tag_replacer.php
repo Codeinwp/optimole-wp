@@ -14,6 +14,11 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	use Optml_Dam_Offload_Utils;
 
 	/**
+	 * Attribute an image uses to keep its own sizes attribute.
+	 */
+	const KEEP_SIZES_ATTRIBUTE = 'data-optml-keep-sizes';
+
+	/**
 	 * Cached object instance.
 	 *
 	 * @var Optml_Tag_Replacer
@@ -550,11 +555,16 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			$tag = $this->insert_after_attribute( $tag, 'src', $srcset_attr );
 		}
 
-		// Handle sizes attribute - skip if existing sizes contains calc() or complex formulas
+		// Handle sizes attribute - skip if the image asks to keep its existing sizes, or they contain calc() or complex formulas
 		if ( ! empty( $new_sizes_entries ) ) {
 			$should_skip_sizes = false;
 
-			if ( $has_existing_sizes ) {
+			if ( $has_existing_sizes && $this->keeps_existing_sizes( $tag ) ) {
+				$should_skip_sizes = true;
+				if ( OPTML_DEBUG ) {
+					do_action( 'optml_log', 'Keeping the existing sizes attribute: ' . $new_url );
+				}
+			} elseif ( $has_existing_sizes ) {
 				// Check if existing sizes contains calc() or complex formulas
 				$sizes = $this->find_quoted_attribute( $tag, 'sizes' );
 				if ( null !== $sizes ) {
@@ -596,9 +606,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 					}
 				}
 			} else {
-				// Log that sizes were skipped due to complex formulas
+				// Log that sizes were skipped (kept on request, or complex formula)
 				if ( OPTML_DEBUG ) {
-					do_action( 'optml_log', 'Skipped adding sizes due to complex formula detection' );
+					do_action( 'optml_log', 'Skipped adding sizes' );
 				}
 			}
 		}
@@ -832,6 +842,28 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 */
 	private function has_attribute( string $tag, string $name ): bool {
 		return in_array( $name, array_column( $this->get_attributes( $tag ) ?? [], 'name' ), true );
+	}
+
+	/**
+	 * Check whether an image's own sizes attribute must be left as it is.
+	 *
+	 * An image opts out with the data-optml-keep-sizes attribute. The optml_keep_existing_sizes filter
+	 * does it for every image, or for the ones it picks, with no change to the markup.
+	 *
+	 * @param string $tag The image tag.
+	 *
+	 * @return bool True if the existing sizes attribute is kept.
+	 */
+	private function keeps_existing_sizes( string $tag ): bool {
+		$keep = $this->has_attribute( $tag, self::KEEP_SIZES_ATTRIBUTE );
+
+		/**
+		 * Filters whether Optimole leaves an image's existing sizes attribute unchanged.
+		 *
+		 * @param bool   $keep Whether the existing sizes attribute is kept. True when the image has data-optml-keep-sizes.
+		 * @param string $tag  The image tag.
+		 */
+		return (bool) apply_filters( 'optml_keep_existing_sizes', $keep, $tag );
 	}
 
 	/**
