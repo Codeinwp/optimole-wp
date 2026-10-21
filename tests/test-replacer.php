@@ -887,4 +887,35 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$this->assertSame( [ 'data:image/gif' ], $images['img_url'] );
 	}
+
+	/**
+	 * Individual cache tokens are stored as the API returned them, which can be a number.
+	 * The SDK only accepts a string cache buster.
+	 */
+	public function test_build_url_with_numeric_individual_cache_token() {
+		$url = 'http://example.org/wp-content/uploads/2018/05/brands.png';
+		set_transient( Optml_Settings::INDIVIDUAL_CACHE_TOKENS_KEY, [ crc32( wp_basename( $url ) ) => 12345 ], HOUR_IN_SECONDS );
+
+		$result = Optml_Url_Replacer::instance()->build_url( $url );
+
+		delete_transient( Optml_Settings::INDIVIDUAL_CACHE_TOKENS_KEY );
+
+		$this->assertStringContainsString( '/cb:12345/', $result );
+	}
+
+	/**
+	 * The active cache token is always a string, whatever type was stored.
+	 */
+	public function test_get_active_cache_booster_returns_string() {
+		$url = 'http://example.org/wp-content/uploads/2018/05/brands.png';
+
+		$this->assertSame( 'eFRn.20eff', Optml_Url_Replacer::get_active_cache_booster( $url, 'eFRn.20eff' ) );
+		$this->assertSame( '987', Optml_Url_Replacer::get_active_cache_booster( $url, 987 ) );
+		$this->assertSame( '', Optml_Url_Replacer::get_active_cache_booster( $url, null ) );
+
+		set_transient( Optml_Settings::INDIVIDUAL_CACHE_TOKENS_KEY, [ crc32( wp_basename( $url ) ) => 12345 ], HOUR_IN_SECONDS );
+		$this->assertSame( '12345', Optml_Url_Replacer::get_active_cache_booster( $url, 'eFRn.20eff' ) );
+		$this->assertSame( 'eFRn.20eff', Optml_Url_Replacer::get_active_cache_booster( 'http://example.org/other.png', 'eFRn.20eff' ) );
+		delete_transient( Optml_Settings::INDIVIDUAL_CACHE_TOKENS_KEY );
+	}
 }
