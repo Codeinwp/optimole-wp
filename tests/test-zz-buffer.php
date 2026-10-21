@@ -56,6 +56,7 @@ class Test_Buffer extends WP_UnitTestCase {
 			}
 		}
 		$this->reset_buffer_state();
+		$this->set_error_reader( 'error_get_last' );
 		remove_filter( 'optml_capture_at_shutdown', '__return_true' );
 		remove_filter( 'optml_capture_at_shutdown', '__return_false' );
 		parent::tearDown();
@@ -73,6 +74,70 @@ class Test_Buffer extends WP_UnitTestCase {
 			$prop->setAccessible( true );
 			$prop->setValue( null, $value );
 		}
+	}
+
+	/**
+	 * Swap how Optml_Manager reads the last PHP error.
+	 *
+	 * @param callable $reader Returns what error_get_last() would.
+	 */
+	private function set_error_reader( $reader ) {
+		$prop = new ReflectionProperty( Optml_Manager::class, 'error_reader' );
+		$prop->setAccessible( true );
+		$prop->setValue( null, $reader );
+	}
+
+	/**
+	 * Simulate a request that already died with a fatal error.
+	 */
+	private function simulate_fatal_error() {
+		$this->set_error_reader(
+			function () {
+				return [
+					'type'    => E_ERROR,
+					'message' => 'Allowed memory size of 8388608 bytes exhausted',
+					'file'    => __FILE__,
+					'line'    => __LINE__,
+				];
+			}
+		);
+	}
+
+	/**
+	 * After a fatal error the default in-handler mode passes the page through unprocessed.
+	 */
+	public function test_default_mode_passes_page_through_after_fatal_error() {
+		remove_filter( 'optml_capture_at_shutdown', '__return_true' );
+		$manager = Optml_Manager::instance();
+		ob_start();
+		$manager->process_template_redirect_content();
+		echo self::IMG_TAGS; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		$this->simulate_fatal_error();
+		$manager->close_buffer();
+		$manager->close_final_buffer();
+		$out = ob_get_clean();
+
+		$this->assertSame( self::IMG_TAGS, $out );
+		$this->assertSame( $this->base_level, ob_get_level() );
+	}
+
+	/**
+	 * After a fatal error the shutdown-capture mode echoes the page once, unprocessed,
+	 * and late shutdown output is passed through too.
+	 */
+	public function test_capture_mode_passes_page_through_after_fatal_error() {
+		$manager = Optml_Manager::instance();
+		ob_start();
+		$manager->process_template_redirect_content();
+		echo self::IMG_TAGS; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		$this->simulate_fatal_error();
+		$manager->close_buffer();
+		echo self::IMG_TAGS; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		$manager->close_final_buffer();
+		$out = ob_get_clean();
+
+		$this->assertSame( self::IMG_TAGS . self::IMG_TAGS, $out );
+		$this->assertSame( $this->base_level, ob_get_level() );
 	}
 
 	/**
