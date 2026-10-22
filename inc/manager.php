@@ -143,6 +143,13 @@ final class Optml_Manager {
 	private static $ob_processed = false;
 
 	/**
+	 * Reads the last PHP error; tests swap it to simulate a fatal error.
+	 *
+	 * @var callable(): (array{type: int, message: string, file: string, line: int}|null)
+	 */
+	private static $error_reader = 'error_get_last';
+
+	/**
 	 * Class instance method.
 	 *
 	 * @codeCoverageIgnore
@@ -985,6 +992,9 @@ final class Optml_Manager {
 		if ( self::$ob_processed || $content === '' ) {
 			return $content;
 		}
+		if ( self::request_had_fatal_error() ) {
+			return $content;
+		}
 		if ( ! $this->captures_at_shutdown() ) {
 			try {
 				return $this->replace_content( $content, self::is_ajax_request() );
@@ -1052,6 +1062,36 @@ final class Optml_Manager {
 	}
 
 	/**
+	 * Whether the request already died with a fatal error.
+	 *
+	 * A fatal error (memory exhausted, time limit) that hits while MySQL is still
+	 * sending a query's rows leaves the connection out of sync, so every later
+	 * query in the request fails with "Commands out of sync". The page is then
+	 * passed through unprocessed, without the profiler and cache reads that would
+	 * each log that error.
+	 *
+	 * @param array<string, mixed>|null $error The last error, from error_get_last().
+	 *
+	 * @return bool
+	 */
+	public static function is_fatal_error( $error ) {
+		if ( ! is_array( $error ) || ! isset( $error['type'] ) ) {
+			return false;
+		}
+
+		return in_array( (int) $error['type'], [ E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR ], true );
+	}
+
+	/**
+	 * Whether the current request already hit a fatal error.
+	 *
+	 * @return bool
+	 */
+	private static function request_had_fatal_error() {
+		return self::is_fatal_error( call_user_func( self::$error_reader ) );
+	}
+
+	/**
 	 * Capture our buffer, process it outside the display-handler context and echo the result.
 	 *
 	 * Ownership is verified by both nesting level and handler identity, so a
@@ -1086,6 +1126,10 @@ final class Optml_Manager {
 				 * @param string $html The full page HTML.
 				 */
 				$html = apply_filters( 'optml_captured_page_html', $html );
+			}
+			if ( self::request_had_fatal_error() ) {
+				echo $html; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- full page HTML, passed through unprocessed.
+				return true;
 			}
 			echo $this->replace_content( $html, self::is_ajax_request() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- full page HTML, escaping would break the page.
 		}
