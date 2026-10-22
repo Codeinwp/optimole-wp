@@ -66,7 +66,7 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->sale_end->setTime( 23, 59, 59 );
 		
 		// Clean up options before each test
-		delete_option( Optml_Admin::BF_PROMO_DISMISS_KEY );
+		delete_option( $this->bf_dismiss_key() );
 		
 		// Remove any filters that might be set
 		remove_all_filters( 'themeisle_sdk_is_black_friday_sale' );
@@ -77,10 +77,17 @@ class Test_Admin extends WP_UnitTestCase {
 	 * Clean up after each test.
 	 */
 	public function tearDown(): void {
-		delete_option( Optml_Admin::BF_PROMO_DISMISS_KEY );
+		delete_option( $this->bf_dismiss_key() );
 		remove_all_filters( 'themeisle_sdk_is_black_friday_sale' );
 		remove_all_filters( 'themeisle_sdk_current_date' );
 		parent::tearDown();
+	}
+
+	/**
+	 * Helper to get this year's Black Friday dismiss key.
+	 */
+	private function bf_dismiss_key(): string {
+		return sprintf( Optml_Admin::BF_PROMO_DISMISS_KEY, $this->black_friday->format( 'y' ) );
 	}
 
 	/**
@@ -188,18 +195,48 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->mock_date_to( clone $this->black_friday );
 		
 		// Test banner is hidden when dismissed
-		update_option( Optml_Admin::BF_PROMO_DISMISS_KEY, 'yes' );
+		update_option( $this->bf_dismiss_key(), 'yes' );
 		$result = $this->admin->get_bf_notices( 'free' );
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'sidebar', $result );
 		$this->assertArrayNotHasKey( 'banner', $result );
 		
 		// Test banner appears when not dismissed
-		delete_option( Optml_Admin::BF_PROMO_DISMISS_KEY );
+		delete_option( $this->bf_dismiss_key() );
 		$result = $this->admin->get_bf_notices( 'free' );
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'sidebar', $result );
 		$this->assertArrayHasKey( 'banner', $result );
+	}
+
+	/**
+	 * Test the dismiss key and UTM tag follow the year, and the promo code stays BFCM2525.
+	 */
+	public function test_get_bf_notices_uses_yearly_dismiss_key_and_utm() {
+		$this->setup_black_friday_sale_period();
+
+		// A dismissal from 2025 does not hide the 2026 banner.
+		update_option( 'optml_bf25_notice_dismiss', 'yes' );
+		$this->mock_date_to( new DateTime( '2026-11-27 12:00:00' ) );
+		$result = $this->admin->get_bf_notices( 'free' );
+		delete_option( 'optml_bf25_notice_dismiss' );
+
+		$this->assertArrayHasKey( 'banner', $result );
+		$this->assertSame( 'optml_bf26_notice_dismiss', $result['banner']['dismiss_key'] );
+		$this->assertStringContainsString( 'bfcm26', $result['banner']['cta_link'] );
+		$this->assertStringContainsString( 'bfcm26', $result['sidebar']['cta_link'] );
+		$this->assertStringContainsString( 'BFCM2525', $result['banner']['subtitle'] );
+		$this->assertStringContainsString( 'BFCM2525', $result['sidebar']['subtitle'] );
+
+		// 2025 still uses the legacy key and UTM tag.
+		$this->mock_date_to( new DateTime( '2025-11-28 12:00:00' ) );
+		$result = $this->admin->get_bf_notices( 'free' );
+
+		$this->assertSame( 'optml_bf25_notice_dismiss', $result['banner']['dismiss_key'] );
+		$this->assertStringContainsString( 'bfcm25', $result['banner']['cta_link'] );
+		$this->assertStringContainsString( 'bfcm25', $result['sidebar']['cta_link'] );
+		$this->assertStringContainsString( 'BFCM2525', $result['banner']['subtitle'] );
+		$this->assertStringContainsString( 'BFCM2525', $result['sidebar']['subtitle'] );
 	}
 
 	/**
@@ -213,7 +250,7 @@ class Test_Admin extends WP_UnitTestCase {
 		
 		$this->assertArrayHasKey( 'banner', $result );
 		$this->assertArrayHasKey( 'dismiss_key', $result['banner'] );
-		$this->assertEquals( Optml_Admin::BF_PROMO_DISMISS_KEY, $result['banner']['dismiss_key'] );
+		$this->assertEquals( $this->bf_dismiss_key(), $result['banner']['dismiss_key'] );
 	}
 
 	/**
@@ -307,7 +344,7 @@ class Test_Admin extends WP_UnitTestCase {
 		$test_values = [ 'no', '0', '', 'dismissed' ];
 		
 		foreach ( $test_values as $value ) {
-			update_option( Optml_Admin::BF_PROMO_DISMISS_KEY, $value );
+			update_option( $this->bf_dismiss_key(), $value );
 			$result = $this->admin->get_bf_notices( 'free' );
 			$this->assertArrayHasKey( 'banner', $result, "Banner should appear when dismiss key is '$value'" );
 		}
