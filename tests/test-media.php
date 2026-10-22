@@ -544,6 +544,139 @@ class Test_Media extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A step that throws every time is retried a few times, then the chain moves on to the next step
+	 * instead of retrying it every few seconds forever.
+	 */
+	public function test_failing_step_moves_on_after_retries(): void {
+		( new Optml_Settings() )->update( 'rollback_status', 'enabled' );
+		delete_option( Optml_Media_Offload::STEP_FAILURES_OPTION );
+		$token = Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' );
+		$fail  = function () {
+			throw new Exception( 'cloud lookup failed' );
+		};
+		add_action( 'pre_get_posts', $fail );
+
+		$steps = [];
+		for ( $attempt = 1; $attempt <= Optml_Media_Offload::MAX_STEP_RETRIES; $attempt++ ) {
+			_set_cron_array( [] );
+			Optml_Media_Offload::instance()->start_processing_images( 'rollback_images', 10, 1, 5, 1, $token );
+			$steps[] = $this->scheduled_transfer_step();
+		}
+		remove_action( 'pre_get_posts', $fail );
+
+		$this->assertSame( array_merge( array_fill( 0, Optml_Media_Offload::MAX_STEP_RETRIES - 1, 1 ), [ 2 ] ), $steps );
+		$this->assertSame( 1, Optml_Media_Offload::get_skipped_steps( $token ) );
+		$this->assertSame( 0, get_option( Optml_Media_Offload::STEP_FAILURES_OPTION )['count'] );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
+	 * A step that succeeds clears the failures of the one before it, but the skipped steps are kept.
+	 */
+	public function test_successful_step_clears_failures(): void {
+		( new Optml_Settings() )->update( 'rollback_status', 'enabled' );
+		$token = Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' );
+		update_option( Optml_Media_Offload::STEP_FAILURES_OPTION, $this->step_failures( $token, Optml_Media_Offload::MAX_STEP_RETRIES - 1, 1 ), false );
+
+		_set_cron_array( [] );
+		Optml_Media_Offload::instance()->start_processing_images( 'rollback_images', 10, 1, 5, 1, $token );
+
+		$this->assertSame( 2, $this->scheduled_transfer_step() );
+		$this->assertSame( 0, get_option( Optml_Media_Offload::STEP_FAILURES_OPTION )['count'] );
+		$this->assertSame( 1, Optml_Media_Offload::get_skipped_steps( $token ) );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
+	 * Failures left by an earlier transfer don't count toward the retries of a new one.
+	 */
+	public function test_failures_of_another_transfer_are_ignored(): void {
+		( new Optml_Settings() )->update( 'rollback_status', 'enabled' );
+		$token = Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' );
+		update_option( Optml_Media_Offload::STEP_FAILURES_OPTION, $this->step_failures( 'old-transfer', Optml_Media_Offload::MAX_STEP_RETRIES - 1, 2 ), false );
+		$fail = function () {
+			throw new Exception( 'cloud lookup failed' );
+		};
+		add_action( 'pre_get_posts', $fail );
+
+		_set_cron_array( [] );
+		Optml_Media_Offload::instance()->start_processing_images( 'rollback_images', 10, 1, 5, 1, $token );
+		remove_action( 'pre_get_posts', $fail );
+
+		$this->assertSame( 1, $this->scheduled_transfer_step() );
+		$this->assertSame( 1, get_option( Optml_Media_Offload::STEP_FAILURES_OPTION )['count'] );
+		$this->assertSame( 0, Optml_Media_Offload::get_skipped_steps( $token ) );
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
+	 * A transfer that skipped steps does not show the "Transfer Complete" notice.
+	 */
+	public function test_transfer_with_skipped_steps_does_not_report_success(): void {
+		$settings = new Optml_Settings();
+		$settings->update( 'rollback_status', 'enabled' );
+		$settings->update( 'show_offload_finish_notice', '' );
+		$token = Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' );
+		update_option( Optml_Media_Offload::STEP_FAILURES_OPTION, $this->step_failures( $token, 0, 1 ), false );
+
+		Optml_Media_Offload::instance()->start_processing_images( 'rollback_images', 10, 6, 5, 6, $token );
+
+		$settings = new Optml_Settings();
+		$this->assertSame( 'disabled', $settings->get( 'rollback_status' ) );
+		$this->assertSame( '', $settings->get( 'show_offload_finish_notice' ) );
+		$this->assertFalse( get_option( Optml_Media_Offload::STEP_FAILURES_OPTION ) );
+	}
+
+	/**
+	 * A transfer that ran every step shows the "Transfer Complete" notice.
+	 */
+	public function test_transfer_without_skipped_steps_reports_success(): void {
+		$settings = new Optml_Settings();
+		$settings->update( 'rollback_status', 'enabled' );
+		$settings->update( 'show_offload_finish_notice', '' );
+		$token = Optml_Media_Offload::acquire_transfer_lock( 'rollback_images' );
+		update_option( Optml_Media_Offload::STEP_FAILURES_OPTION, $this->step_failures( 'old-transfer', 0, 3 ), false );
+
+		Optml_Media_Offload::instance()->start_processing_images( 'rollback_images', 10, 6, 5, 6, $token );
+
+		$this->assertSame( 'rollback', ( new Optml_Settings() )->get( 'show_offload_finish_notice' ) );
+	}
+
+	/**
+	 * Build a step failures record.
+	 *
+	 * @param string $token The transfer lock token.
+	 * @param int    $count The failed attempts of step 1.
+	 * @param int    $skipped The skipped steps.
+	 *
+	 * @return array{token: string, action: string, step: int, count: int, skipped: int}
+	 */
+	private function step_failures( string $token, int $count, int $skipped ): array {
+		return [
+			'token'   => $token,
+			'action'  => 'rollback_images',
+			'step'    => 1,
+			'count'   => $count,
+			'skipped' => $skipped,
+		];
+	}
+
+	/**
+	 * @return int|null The step of the background transfer step waiting in WP-Cron.
+	 */
+	private function scheduled_transfer_step(): ?int {
+		foreach ( (array) _get_cron_array() as $hooks ) {
+			if ( isset( $hooks['optml_start_processing_images'] ) ) {
+				$event = reset( $hooks['optml_start_processing_images'] );
+
+				return (int) $event['args'][4];
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * @return int The background transfer steps waiting in WP-Cron.
 	 */
 	private function count_scheduled_transfer_steps(): int {
@@ -689,6 +822,117 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'id:', $image_meta['file'] );
 		$this->assertStringContainsString( '-300x200', $image_meta['sizes']['medium']['file'] );
 		$this->assertStringContainsString( '-150x150', $image_meta['sizes']['thumbnail']['file'] );
+	}
+
+	/**
+	 * A rollback that died after moving the file into uploads leaves that file behind. The retry
+	 * must write over it, so the restored image keeps its name instead of getting a "-1" suffix.
+	 */
+	public function test_rollback_retry_replaces_file_left_by_interrupted_attempt() {
+		$attachment_id = self::$sample_attachement;
+		$uploads       = wp_upload_dir( get_the_date( 'Y/m', $attachment_id ) );
+		$orphan        = $uploads['path'] . '/' . self::$files[0] . '.jpg';
+		wp_mkdir_p( $uploads['path'] );
+		file_put_contents( $orphan, 'left by an interrupted rollback' );
+		update_post_meta( $attachment_id, Optml_Media_Offload::ROLLBACK_PENDING_FILE, $orphan );
+
+		Optml_Media_Offload::instance()->rollback_images( 100 );
+
+		$attached = get_attached_file( $attachment_id );
+		$this->assertSame( $orphan, $attached );
+		$this->assertTrue( file_exists( $attached ) );
+		$this->assertNotSame( 'left by an interrupted rollback', file_get_contents( $attached ) );
+		$this->assertEmpty( get_post_meta( $attachment_id, Optml_Media_Offload::ROLLBACK_PENDING_FILE, true ) );
+	}
+
+	/**
+	 * A request that dies while the sub-sizes are generated has already pointed the attachment at
+	 * the restored file, and remembers that file so a retry can clean it up.
+	 */
+	public function test_rollback_dying_during_subsizes_keeps_attachment_on_restored_file() {
+		// Another file already uses the name, so the restored file gets a suffixed one.
+		$uploads = wp_upload_dir( get_the_date( 'Y/m', self::$sample_attachement ) );
+		$taken   = $uploads['path'] . '/' . self::$files[0] . '.jpg';
+		wp_mkdir_p( $uploads['path'] );
+		file_put_contents( $taken, 'another file' );
+
+		$died = function () {
+			throw new RuntimeException( 'request died' );
+		};
+		add_filter( 'intermediate_image_sizes_advanced', $died );
+
+		try {
+			Optml_Media_Offload::instance()->rollback_and_update_images( [ self::$sample_attachement ] );
+			$this->fail( 'The rollback was expected to stop.' );
+		} catch ( RuntimeException $e ) {
+			$this->assertSame( 'request died', $e->getMessage() );
+		} finally {
+			remove_filter( 'intermediate_image_sizes_advanced', $died );
+		}
+
+		$restored = get_post_meta( self::$sample_attachement, Optml_Media_Offload::ROLLBACK_PENDING_FILE, true );
+		$this->assertNotEmpty( $restored );
+		$this->assertTrue( file_exists( $restored ) );
+		$this->assertNotSame( $taken, $restored );
+		$this->assertSame( $restored, get_attached_file( self::$sample_attachement, true ) );
+		unlink( $taken );
+	}
+
+	/**
+	 * Only a file inside the uploads directory is used, whatever the meta says.
+	 */
+	public function test_pending_rollback_file_outside_uploads_is_ignored() {
+		$attachment_id = self::factory()->post->create( [ 'post_type' => 'attachment' ] );
+		$outside       = get_temp_dir() . 'optml-outside-uploads.jpg';
+		file_put_contents( $outside, 'not ours' );
+		update_post_meta( $attachment_id, Optml_Media_Offload::ROLLBACK_PENDING_FILE, $outside );
+
+		$this->assertNull( Optml_Media_Offload::get_pending_rollback_file( $attachment_id ) );
+		$this->assertSame( 'not ours', file_get_contents( $outside ) );
+		unlink( $outside );
+	}
+
+	/**
+	 * A retry whose copy fails partway (full disk, file size limit) keeps the file the attachment points to.
+	 */
+	public function test_failed_copy_keeps_the_pending_file() {
+		if ( ! in_array( 'optml-failing-read', stream_get_wrappers(), true ) ) {
+			stream_wrapper_register( 'optml-failing-read', Optml_Test_Failing_Read_Stream::class );
+		}
+		$uploads = wp_get_upload_dir();
+		$pending = $uploads['basedir'] . '/optml-pending-copy.jpg';
+		file_put_contents( $pending, 'restored image' );
+
+		$result = Optml_Media_Offload::replace_pending_rollback_file( $pending, 'optml-failing-read://download', 'image/jpeg' );
+
+		$this->assertArrayHasKey( 'error', $result );
+		$this->assertSame( 'restored image', file_get_contents( $pending ) );
+		$this->assertFileDoesNotExist( $pending . '.optml-partial' );
+		unlink( $pending );
+	}
+
+	/**
+	 * A retry that ends in the branch for attachments whose local metadata was already saved
+	 * clears the pending file too.
+	 */
+	public function test_retry_after_local_metadata_was_saved_clears_pending_file() {
+		$attachment_id = self::factory()->post->create( [ 'post_type' => 'attachment' ] );
+		wp_update_attachment_metadata( $attachment_id, [ 'file' => '2026/10/restored.jpg' ] );
+		update_post_meta( $attachment_id, Optml_Media_Offload::ROLLBACK_PENDING_FILE, '/some/where/restored.jpg' );
+
+		Optml_Media_Offload::instance()->rollback_and_update_images( [ $attachment_id ] );
+
+		$this->assertEmpty( get_post_meta( $attachment_id, Optml_Media_Offload::ROLLBACK_PENDING_FILE, true ) );
+	}
+
+	/**
+	 * A rollback that completes leaves no pending file behind, so a later retry deletes nothing.
+	 */
+	public function test_completed_rollback_clears_pending_file() {
+		Optml_Media_Offload::instance()->rollback_images( 100 );
+
+		$this->assertTrue( file_exists( get_attached_file( self::$sample_attachement ) ) );
+		$this->assertEmpty( get_post_meta( self::$sample_attachement, Optml_Media_Offload::ROLLBACK_PENDING_FILE, true ) );
 	}
 
 	public function test_rollback_retry_clears_errors() {
@@ -990,6 +1234,63 @@ class Test_Media extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Two requests that both read the lock as free must not both take it: the one whose write comes
+	 * second gets false, and the lock keeps the first one's token and an expiry.
+	 */
+	public function test_acquire_transfer_lock_fails_when_another_request_took_it_after_the_read() {
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+		global $wpdb;
+
+		// This request reads the lock as missing, then another request stores it before our write.
+		$this->assertFalse( get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT ) );
+		$wpdb->insert(
+			$wpdb->options,
+			[
+				'option_name'  => '_transient_' . Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT,
+				'option_value' => maybe_serialize( [ 'token' => 'other-request', 'action' => 'offload_images' ] ),
+				'autoload'     => 'no',
+			]
+		);
+
+		$this->assertFalse( Optml_Media_Offload::acquire_transfer_lock( 'offload_images' ) );
+
+		$lock = get_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+		$this->assertSame( 'other-request', $lock['token'] );
+		$this->assertGreaterThan( time(), (int) get_option( '_transient_timeout_' . Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT ) );
+
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
+	 * Another request's release can delete the expiry row between our first write and the insert.
+	 * The lock we then store must still get an expiry, or a dead worker would block transfers forever.
+	 */
+	public function test_acquire_transfer_lock_restores_expiry_removed_before_the_insert() {
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+		global $wpdb;
+		$timeout = '_transient_timeout_' . Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT;
+
+		$release = function ( $query ) use ( &$release, $wpdb, $timeout ) {
+			if ( false !== strpos( $query, 'INSERT IGNORE' ) ) {
+				remove_filter( 'query', $release );
+				$wpdb->delete( $wpdb->options, [ 'option_name' => $timeout ] );
+			}
+
+			return $query;
+		};
+		add_filter( 'query', $release );
+		$token = Optml_Media_Offload::acquire_transfer_lock( 'offload_images' );
+		remove_filter( 'query', $release );
+
+		$this->assertNotFalse( $token );
+		$stored = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $timeout ) );
+		$this->assertNotNull( $stored );
+		$this->assertGreaterThan( time(), (int) $stored );
+
+		delete_transient( Optml_Media_Offload::TRANSFER_LOCK_TRANSIENT );
+	}
+
+	/**
 	 * A lock left behind by a worker that died mid-batch (fatal error, killed process) must
 	 * eventually become reclaimable, otherwise a crashed transfer would be stuck forever.
 	 */
@@ -1223,5 +1524,81 @@ class Test_Media extends WP_UnitTestCase {
 			'offload'  => [ 'offload_images' ],
 			'rollback' => [ 'rollback_images' ],
 		];
+	}
+}
+
+/**
+ * A stream that returns some bytes, then fails, like a copy that runs out of disk space partway.
+ */
+class Optml_Test_Failing_Read_Stream {
+	/**
+	 * Stream context, set by PHP.
+	 *
+	 * @var resource|null
+	 */
+	public $context;
+
+	/**
+	 * Reads done so far.
+	 *
+	 * @var int
+	 */
+	private int $reads = 0;
+
+	/**
+	 * Open the stream.
+	 *
+	 * @param string      $path The URL.
+	 * @param string      $mode The mode.
+	 * @param int         $options The options.
+	 * @param string|null $opened_path The opened path.
+	 *
+	 * @return bool
+	 */
+	public function stream_open( string $path, string $mode, int $options, ?string &$opened_path ): bool {
+		return true;
+	}
+
+	/**
+	 * Return a few bytes the first time, then fail.
+	 *
+	 * @param int $count The bytes asked for.
+	 *
+	 * @return string|false
+	 */
+	public function stream_read( int $count ) {
+		++$this->reads;
+
+		return 1 === $this->reads ? 'partial' : false;
+	}
+
+	/**
+	 * The stream never reaches its end.
+	 *
+	 * @return bool
+	 */
+	public function stream_eof(): bool {
+		return false;
+	}
+
+	/**
+	 * Stream stats.
+	 *
+	 * @return array<string, int>
+	 */
+	public function stream_stat(): array {
+		return [];
+	}
+
+	/**
+	 * URL stats.
+	 *
+	 * @param string $path The URL.
+	 * @param int    $flags The flags.
+	 *
+	 * @return array<string, int>
+	 */
+	public function url_stat( string $path, int $flags ): array {
+		return [ 'size' => 100 ];
 	}
 }
