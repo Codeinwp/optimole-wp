@@ -920,6 +920,12 @@ class Optml_Rest {
 			return $this->response( [ 'error' => 'Invalid key' ], 'error' );
 		}
 
+		if ( Optml_Admin::BF_PROMO_DISMISS_KEY === $key ) {
+			Optml_Admin::dismiss_sdk_bf_notice();
+
+			return $this->response( [ 'success' => 'Notice dismissed' ] );
+		}
+
 		$result = update_option( $key, 'yes' );
 
 		if ( ! $result ) {

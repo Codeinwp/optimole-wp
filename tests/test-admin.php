@@ -65,8 +65,8 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->sale_end->modify( '+7 days' );
 		$this->sale_end->setTime( 23, 59, 59 );
 		
-		// Clean up options before each test
-		delete_option( Optml_Admin::BF_PROMO_DISMISS_KEY );
+		// Each test starts with an admin that has not dismissed the Black Friday notice.
+		wp_set_current_user( self::factory()->user->create( [ 'role' => 'administrator' ] ) );
 		
 		// Remove any filters that might be set
 		remove_all_filters( 'themeisle_sdk_is_black_friday_sale' );
@@ -77,7 +77,7 @@ class Test_Admin extends WP_UnitTestCase {
 	 * Clean up after each test.
 	 */
 	public function tearDown(): void {
-		delete_option( Optml_Admin::BF_PROMO_DISMISS_KEY );
+		delete_user_meta( get_current_user_id(), Optml_Admin::SDK_BF_DISMISS_META );
 		remove_all_filters( 'themeisle_sdk_is_black_friday_sale' );
 		remove_all_filters( 'themeisle_sdk_current_date' );
 		parent::tearDown();
@@ -188,18 +188,48 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->mock_date_to( clone $this->black_friday );
 		
 		// Test banner is hidden when dismissed
-		update_option( Optml_Admin::BF_PROMO_DISMISS_KEY, 'yes' );
+		Optml_Admin::dismiss_sdk_bf_notice();
 		$result = $this->admin->get_bf_notices( 'free' );
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'sidebar', $result );
 		$this->assertArrayNotHasKey( 'banner', $result );
 		
 		// Test banner appears when not dismissed
-		delete_option( Optml_Admin::BF_PROMO_DISMISS_KEY );
+		delete_user_meta( get_current_user_id(), Optml_Admin::SDK_BF_DISMISS_META );
 		$result = $this->admin->get_bf_notices( 'free' );
 		$this->assertIsArray( $result );
 		$this->assertArrayHasKey( 'sidebar', $result );
 		$this->assertArrayHasKey( 'banner', $result );
+	}
+
+	/**
+	 * Test the dismissal resets and the UTM tag follows the year, and the promo code stays BFCM2525.
+	 */
+	public function test_get_bf_notices_uses_yearly_dismissal_and_utm() {
+		$this->setup_black_friday_sale_period();
+
+		// A dismissal from 2025 does not hide the 2026 banner.
+		$this->mock_date_to( new DateTime( '2025-11-28 12:00:00' ) );
+		Optml_Admin::dismiss_sdk_bf_notice();
+		$this->mock_date_to( new DateTime( '2026-11-27 12:00:00' ) );
+		$result = $this->admin->get_bf_notices( 'free' );
+		delete_user_meta( get_current_user_id(), Optml_Admin::SDK_BF_DISMISS_META );
+
+		$this->assertArrayHasKey( 'banner', $result );
+		$this->assertSame( Optml_Admin::BF_PROMO_DISMISS_KEY, $result['banner']['dismiss_key'] );
+		$this->assertStringContainsString( 'bfcm26', $result['banner']['cta_link'] );
+		$this->assertStringContainsString( 'bfcm26', $result['sidebar']['cta_link'] );
+		$this->assertStringContainsString( 'BFCM2525', $result['banner']['subtitle'] );
+		$this->assertStringContainsString( 'BFCM2525', $result['sidebar']['subtitle'] );
+
+		// 2025 still uses the legacy UTM tag.
+		$this->mock_date_to( new DateTime( '2025-11-28 12:00:00' ) );
+		$result = $this->admin->get_bf_notices( 'free' );
+
+		$this->assertStringContainsString( 'bfcm25', $result['banner']['cta_link'] );
+		$this->assertStringContainsString( 'bfcm25', $result['sidebar']['cta_link'] );
+		$this->assertStringContainsString( 'BFCM2525', $result['banner']['subtitle'] );
+		$this->assertStringContainsString( 'BFCM2525', $result['sidebar']['subtitle'] );
 	}
 
 	/**
@@ -294,23 +324,6 @@ class Test_Admin extends WP_UnitTestCase {
 		$result = $this->admin->get_bf_notices( 'free' );
 		$this->assertNotEmpty( $result );
 		$this->assertArrayHasKey( 'sidebar', $result );
-	}
-
-	/**
-	 * Test get_bf_notices banner appears with non-'yes' dismissal values.
-	 */
-	public function test_get_bf_notices_banner_dismissal_values() {
-		$this->setup_black_friday_sale_period();
-		$this->mock_date_to( clone $this->black_friday );
-		
-		// Banner only hides when dismissal key is exactly 'yes'
-		$test_values = [ 'no', '0', '', 'dismissed' ];
-		
-		foreach ( $test_values as $value ) {
-			update_option( Optml_Admin::BF_PROMO_DISMISS_KEY, $value );
-			$result = $this->admin->get_bf_notices( 'free' );
-			$this->assertArrayHasKey( 'banner', $result, "Banner should appear when dismiss key is '$value'" );
-		}
 	}
 
 	// -------------------------------------------------------------------------
@@ -676,5 +689,65 @@ class Test_Admin extends WP_UnitTestCase {
 		}
 
 		return $preempt;
+	}
+
+	/**
+	 * Test the SDK Black Friday notice is hidden only when Optimole is the only ThemeIsle product.
+	 */
+	public function test_add_black_friday_data_hides_sdk_notice_only_for_optimole_alone() {
+		// The SDK starts on a later hook, so load its registry class here.
+		if ( ! class_exists( \ThemeisleSDK\Loader::class ) ) {
+			require_once OPTML_PATH . 'vendor/codeinwp/themeisle-sdk/src/Loader.php';
+		}
+
+		$products = new ReflectionProperty( \ThemeisleSDK\Loader::class, 'products' );
+		$products->setAccessible( true );
+		$original = $products->getValue();
+
+		$configs = [ 'default' => [ 'sale_url' => 'https://themeisle.com/blackfriday/' ] ];
+
+		try {
+			$products->setValue( null, [ OPTML_PRODUCT_SLUG => 'optimole' ] );
+			$result = $this->admin->add_black_friday_data( $configs );
+			$this->assertSame( '', $result['default']['sale_url'] );
+
+			$products->setValue( null, [ OPTML_PRODUCT_SLUG => 'optimole', 'neve' => 'neve' ] );
+			$this->assertSame( $configs, $this->admin->add_black_friday_data( $configs ) );
+		} finally {
+			$products->setValue( null, $original );
+		}
+	}
+
+	/**
+	 * Test the banner follows the SDK Black Friday dismissal of the current user.
+	 */
+	public function test_get_bf_notices_banner_follows_sdk_dismissal() {
+		$this->setup_black_friday_sale_period();
+		$this->mock_date_to( clone $this->black_friday );
+		$last_year = ( clone $this->black_friday )->modify( '-1 year' );
+		update_user_meta( get_current_user_id(), Optml_Admin::SDK_BF_DISMISS_META, $last_year->getTimestamp() );
+		$result = $this->admin->get_bf_notices( 'free' );
+		$this->assertArrayHasKey( 'banner', $result );
+
+		Optml_Admin::dismiss_sdk_bf_notice();
+		$this->assertSame( $this->black_friday->getTimestamp(), (int) get_user_meta( get_current_user_id(), Optml_Admin::SDK_BF_DISMISS_META, true ) );
+
+		$result = $this->admin->get_bf_notices( 'free' );
+		$this->assertArrayHasKey( 'sidebar', $result );
+		$this->assertArrayNotHasKey( 'banner', $result );
+	}
+
+	/**
+	 * Test the REST dismissal of the banner writes the SDK dismissal, not an option.
+	 */
+	public function test_rest_dismiss_bf_notice_uses_sdk_dismissal() {
+		$this->mock_date_to( clone $this->black_friday );
+
+		$request = new WP_REST_Request( 'POST' );
+		$request->set_param( 'key', Optml_Admin::BF_PROMO_DISMISS_KEY );
+		( new Optml_Rest() )->dismiss_notice( $request );
+
+		$this->assertFalse( get_option( Optml_Admin::BF_PROMO_DISMISS_KEY ) );
+		$this->assertTrue( Optml_Admin::is_sdk_bf_notice_dismissed( clone $this->black_friday ) );
 	}
 }
