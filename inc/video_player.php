@@ -235,9 +235,29 @@ class Optml_Video_Player {
 		// Alignment and custom classes already come from block supports, so no attribute is forwarded here.
 		return sprintf(
 			'<div %s><optimole-video-player %s></optimole-video-player></div>',
-			get_block_wrapper_attributes(),
+			function_exists( 'get_block_wrapper_attributes' ) ? get_block_wrapper_attributes() : $this->get_legacy_wrapper_attributes( $attributes ),
 			implode( ' ', $tag_attributes ),
 		);
+	}
+
+	/**
+	 * Build the wrapper class attribute on WordPress versions without get_block_wrapper_attributes() (below 5.6).
+	 *
+	 * @param array<string, mixed> $attributes The block attributes.
+	 * @return string The wrapper class attribute.
+	 */
+	private function get_legacy_wrapper_attributes( array $attributes ): string {
+		$classes = [ 'wp-block-optimole-video-player' ];
+
+		if ( isset( $attributes['align'] ) && in_array( $attributes['align'], [ 'left', 'center', 'right', 'wide', 'full' ], true ) ) {
+			$classes[] = 'align' . $attributes['align'];
+		}
+
+		if ( ! empty( $attributes['className'] ) && is_string( $attributes['className'] ) ) {
+			$classes[] = $attributes['className'];
+		}
+
+		return 'class="' . esc_attr( implode( ' ', $classes ) ) . '"';
 	}
 
 	/**

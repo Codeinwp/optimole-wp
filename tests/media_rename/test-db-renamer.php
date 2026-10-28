@@ -44,6 +44,13 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 	protected static $replacer_skip_sizes;
 	protected static $replace_skip_sizes_method; // ReflectionMethod
 
+	/**
+	 * The database object swapped out by a test, restored in tear_down().
+	 *
+	 * @var wpdb|null
+	 */
+	private ?wpdb $original_wpdb = null;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create( [
 			'post_title'   => 'Test Post',
@@ -60,6 +67,15 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		self::$replacer_skip_sizes       = new Optml_Attachment_Db_Renamer( true );
 		self::$replace_skip_sizes_method = new ReflectionMethod( 'Optml_Attachment_Db_Renamer', 'replace_urls_in_value' );
 		self::$replace_skip_sizes_method->setAccessible( true );
+	}
+
+	public function tear_down(): void {
+		if ( null !== $this->original_wpdb ) {
+			$GLOBALS['wpdb']     = $this->original_wpdb;
+			$this->original_wpdb = null;
+		}
+
+		parent::tear_down();
 	}
 
 	public static function tear_down_after_class() {
@@ -319,5 +335,70 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		foreach ( $should_not_exist as $url ) {
 			$this->assertStringNotContainsString( $url, $post->post_content );
 		}
+	}
+
+	/**
+	 * Post content is updated when wpdb::prepare() does not support %i (WordPress below 6.2).
+	 */
+	public function test_replace_without_identifier_placeholder_support(): void {
+		global $wpdb;
+
+		$old_url = 'http://example.com/wp-content/uploads/2020/01/legacy-prepare.jpg';
+		$new_url = 'http://example.com/wp-content/uploads/2020/01/legacy-prepare-renamed.jpg';
+		$post_id = self::factory()->post->create( [ 'post_content' => '<img src="' . $old_url . '">' ] );
+
+		$this->original_wpdb = $wpdb;
+		$wpdb                = Optml_Test_Wpdb_Without_Identifier_Placeholders::from( $wpdb );
+
+		$count = ( new Optml_Attachment_Db_Renamer() )->replace( $old_url, $new_url );
+
+		$this->assertGreaterThan( 0, $count );
+		$this->assertStringContainsString( $new_url, $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $post_id ) ) );
+	}
+}
+
+/**
+ * A wpdb sharing the test connection whose prepare() leaves %i as literal text, as WordPress below 6.2 did.
+ */
+class Optml_Test_Wpdb_Without_Identifier_Placeholders extends wpdb {
+
+	/**
+	 * Copy an existing wpdb, including its connection.
+	 *
+	 * @param wpdb $source The database object to copy.
+	 * @return self The copy.
+	 */
+	public static function from( wpdb $source ): self {
+		$copy       = ( new ReflectionClass( self::class ) )->newInstanceWithoutConstructor();
+		$properties = Closure::bind(
+			function (): array {
+				return get_object_vars( $this );
+			},
+			$source,
+			wpdb::class
+		)();
+
+		Closure::bind(
+			function ( array $properties ): void {
+				foreach ( $properties as $name => $value ) {
+					$this->$name = $value;
+				}
+			},
+			$copy,
+			wpdb::class
+		)( $properties );
+
+		return $copy;
+	}
+
+	/**
+	 * Prepare a query with %i escaped to a literal, like wpdb::prepare() before WordPress 6.2.
+	 *
+	 * @param string $query   Query with placeholders.
+	 * @param mixed  ...$args Values for the placeholders.
+	 * @return string|void The prepared query.
+	 */
+	public function prepare( $query, ...$args ) {
+		return parent::prepare( str_replace( '%i', '%%i', $query ), ...$args );
 	}
 }

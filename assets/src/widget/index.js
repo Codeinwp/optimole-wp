@@ -1,7 +1,12 @@
-import { createRoot } from '@wordpress/element';
+import { createRoot, render } from '@wordpress/element';
 import App from './App';
 import './style.scss';
 
-const root = createRoot( document.getElementById( 'optimole-dashboard-widget-root' ) );
+const container = document.getElementById( 'optimole-dashboard-widget-root' );
 
-root.render( <App /> );
+// createRoot ships with WordPress 6.2 (React 18).
+if ( createRoot ) {
+	createRoot( container ).render( <App /> );
+} else {
+	render( <App />, container );
+}
