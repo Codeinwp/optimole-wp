@@ -114,7 +114,7 @@ class Optml_Attachment_Db_Renamer {
 		$text_columns = [];
 
 		// Get table information
-		$results = $wpdb->get_results( 'DESCRIBE ' . $this->quote_identifier( $table ) ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Identifier quoted by quote_identifier().
+		$results = $wpdb->get_results( 'DESCRIBE ' . esc_sql( $this->quote_identifier( $table ) ) );
 
 		if ( ! empty( $results ) ) {
 			// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
@@ -177,11 +177,11 @@ class Optml_Attachment_Db_Renamer {
 
 		$count = 0;
 
-		$table_sql  = $this->quote_identifier( $table );
-		$column_sql = $this->quote_identifier( $column );
-
 		// Check for serialized data
-		$has_serialized = $wpdb->get_var( "SELECT COUNT({$column_sql}) FROM {$table_sql} WHERE {$column_sql} REGEXP '^[aiO]:[1-9]' LIMIT 1" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Identifiers quoted by quote_identifier().
+		$has_serialized = $wpdb->get_var(
+			'SELECT COUNT(' . esc_sql( $this->quote_identifier( $column ) ) . ') FROM ' . esc_sql( $this->quote_identifier( $table ) ) .
+			' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . " REGEXP '^[aiO]:[1-9]' LIMIT 1"
+		);
 
 		// Process with PHP if serialized data is found
 		if ( $has_serialized ) {
@@ -224,12 +224,10 @@ class Optml_Attachment_Db_Renamer {
 		// Build pattern to match any URL containing the base filename
 		$base_url = $old_domain . $old_dir . '/' . $old_base;
 
-		$query = 'SELECT * FROM ' . $this->quote_identifier( $table ) . ' WHERE ' . $this->quote_identifier( $column ) . ' LIKE %s';
-
 		// Get rows with regular URLs
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				'SELECT * FROM ' . esc_sql( $this->quote_identifier( $table ) ) . ' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . ' LIKE %s',
 				'%' . $wpdb->esc_like( $base_url ) . '%'
 			)
 		);
@@ -240,7 +238,7 @@ class Optml_Attachment_Db_Renamer {
 		// Get rows with JSON-escaped URLs
 		$json_rows = $wpdb->get_results(
 			$wpdb->prepare(
-				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+				'SELECT * FROM ' . esc_sql( $this->quote_identifier( $table ) ) . ' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . ' LIKE %s',
 				'%' . $wpdb->esc_like( $json_base_url ) . '%'
 			)
 		);
