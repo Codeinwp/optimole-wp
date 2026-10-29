@@ -1029,7 +1029,7 @@ class Optml_Rest {
 		}
 		$sanitized_lcp_data = [];
 		if ( ! empty( $lcp_data ) ) {
-			$sanitized_lcp_data['imageId'] = sanitize_text_field( $lcp_data['i'] ?? '' );
+			$sanitized_lcp_data['imageId'] = absint( $lcp_data['i'] ?? 0 );
 			$sanitized_lcp_data['bgSelector'] = sanitize_text_field( $lcp_data['s'] ?? '' );
 			if ( count( $lcp_data['u'] ?? [] ) > 3 ) {
 				return $this->response( 'LCP Background URLs limit exceeded', 'error' );
