@@ -155,6 +155,31 @@ class Optml_Rest {
 						'type'     => 'string',
 						'required' => true,
 					],
+					'b' => [
+						'type'                 => 'object',
+						'default'              => [],
+						'additionalProperties' => [
+							'type'                 => 'object',
+							'additionalProperties' => [
+								// The profiler sends null for above-fold elements with no detected URL.
+								'type'  => [ 'array', 'null' ],
+								'items' => [ 'type' => 'string' ],
+							],
+						],
+					],
+					'l' => [
+						'type'       => 'object',
+						'properties' => [
+							'u' => [
+								'type'  => [ 'array', 'null' ],
+								'items' => [ 'type' => 'string' ],
+							],
+						],
+					],
+					'm' => [
+						'type'                 => 'object',
+						'additionalProperties' => [ 'type' => 'object' ],
+					],
 				],
 				'permission_callback' => '__return_true',
 			],
@@ -933,7 +958,7 @@ class Optml_Rest {
 	 * Store optimization data.
 	 *
 	 * @param WP_REST_Request $request Rest request.
-	 * @phpstan-param WP_REST_Request<array{d: int, a: array<mixed>, u: string, t?: int, h?: string, pu?: string, b?: array<string, array<string, list<string>>>, l?: array{i?: string, s?: string, u?: list<string>}, m?: array<int, array{w: int, h: int}>, s?: array<int, list<array{w: int, h: int, d: int, s: string, b: int}>>, c?: array<int, bool>}> $request
+	 * @phpstan-param WP_REST_Request<array{d: int, a: array<mixed>, u: string, t?: int, h?: string, pu?: string, b: array<string, array<string, list<string>|null>>, l?: array{i?: string, s?: string, u?: list<string>|null}, m?: array<int, array{w?: int, h?: int}>, s?: array<int, list<array{w: int, h: int, d: int, s: string, b: int}>>, c?: array<int, bool>}> $request
 	 *
 	 * @return WP_REST_Response
 	 */
@@ -990,6 +1015,7 @@ class Optml_Rest {
 			$selector = strip_tags( $selector );
 			$sanitized_selectors[ $selector ] = [];
 			foreach ( $above_fold_bg_selectors as $above_fold_bg_selector => $bg_urls ) {
+				$bg_urls = (array) $bg_urls;
 				if ( count( $bg_urls ) > 3 ) {
 					return $this->response( 'Background URLs limit exceeded', 'error' );
 				}
