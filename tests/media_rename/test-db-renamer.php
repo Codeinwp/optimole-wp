@@ -450,4 +450,46 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 
 		$this->assertSame( '<img src="' . $new_url . '">', get_post( $post_id )->post_content );
 	}
+
+	public function test_replace_keeps_port_in_size_variants(): void {
+		$post_id = self::factory()->post->create( [ 'post_content' => '<img src="http://localhost:8888/wp-content/uploads/2026/10/port-photo-300x200.jpg">' ] );
+
+		self::$replacer->replace(
+			'http://localhost:8888/wp-content/uploads/2026/10/port-photo.jpg',
+			'http://localhost:8888/wp-content/uploads/2026/10/port-renamed.jpg'
+		);
+		clean_post_cache( $post_id );
+
+		$this->assertSame( '<img src="http://localhost:8888/wp-content/uploads/2026/10/port-renamed-300x200.jpg">', get_post( $post_id )->post_content );
+	}
+
+	public function test_replace_updates_json_escaped_url_in_serialized_meta(): void {
+		update_post_meta( self::$post_id, 'optml_test_layout', wp_slash( [ 'html' => '{"src":"http:\/\/om-wp.test\/wp-content\/uploads\/2026\/10\/json-photo-300x200.jpg"}' ] ) );
+
+		self::$replacer->replace(
+			'http://om-wp.test/wp-content/uploads/2026/10/json-photo.jpg',
+			'http://om-wp.test/wp-content/uploads/2026/10/json-renamed.jpg'
+		);
+		wp_cache_flush();
+
+		$this->assertSame(
+			[ 'html' => '{"src":"http:\/\/om-wp.test\/wp-content\/uploads\/2026\/10\/json-renamed-300x200.jpg"}' ],
+			get_post_meta( self::$post_id, 'optml_test_layout', true )
+		);
+	}
+
+	public function test_replace_without_sizes_updates_json_escaped_url_in_meta(): void {
+		update_post_meta( self::$post_id, 'optml_test_builder_data', wp_slash( '[{"video":{"url":"http:\/\/om-wp.test\/wp-content\/uploads\/2026\/10\/clip.mp4"}}]' ) );
+
+		self::$replacer_skip_sizes->replace(
+			'http://om-wp.test/wp-content/uploads/2026/10/clip.mp4',
+			'http://om-wp.test/wp-content/uploads/2026/10/clip-renamed.mp4'
+		);
+		wp_cache_flush();
+
+		$this->assertSame(
+			'[{"video":{"url":"http:\/\/om-wp.test\/wp-content\/uploads\/2026\/10\/clip-renamed.mp4"}}]',
+			get_post_meta( self::$post_id, 'optml_test_builder_data', true )
+		);
+	}
 }

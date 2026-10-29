@@ -198,12 +198,22 @@ class Optml_Attachment_Db_Renamer {
 			return '';
 		}
 
-		$domain = '';
-		if ( isset( $parts['host'] ) ) {
-			$domain = 'http' . ( isset( $parts['scheme'] ) && $parts['scheme'] === 'https' ? 's' : '' ) . '://' . $parts['host'] . ( isset( $parts['port'] ) ? ':' . $parts['port'] : '' );
+		return $this->get_origin( $parts ) . dirname( $parts['path'] ) . '/' . pathinfo( $parts['path'], PATHINFO_FILENAME );
+	}
+
+	/**
+	 * Get the scheme, host and port of a parsed URL.
+	 *
+	 * @param array{scheme?: string, host?: string, port?: int} $parts Result of parse_url().
+	 *
+	 * @return string Empty when the URL has no host.
+	 */
+	private function get_origin( array $parts ): string {
+		if ( ! isset( $parts['host'] ) ) {
+			return '';
 		}
 
-		return $domain . dirname( $parts['path'] ) . '/' . pathinfo( $parts['path'], PATHINFO_FILENAME );
+		return 'http' . ( isset( $parts['scheme'] ) && $parts['scheme'] === 'https' ? 's' : '' ) . '://' . $parts['host'] . ( isset( $parts['port'] ) ? ':' . $parts['port'] : '' );
 	}
 
 	/**
@@ -411,13 +421,7 @@ class Optml_Attachment_Db_Renamer {
 			}
 		}
 
-		// Handle image sizes for non-serialized content
-		if ( $this->handle_image_sizes ) {
-			return $this->replace_image_urls( $value, $old_url, $new_url );
-		}
-
-		// Simple string replacement for non-serialized data
-		return str_replace( $old_url, $new_url, $value );
+		return $this->replace_image_urls( $value, $old_url, $new_url );
 	}
 
 	/**
@@ -452,8 +456,8 @@ class Optml_Attachment_Db_Renamer {
 		$new_ext = isset( $new_file_info['extension'] ) ? $new_file_info['extension'] : $old_ext;
 
 		// Define domain parts
-		$old_domain = isset( $old_path_parts['host'] ) ? 'http' . ( isset( $old_path_parts['scheme'] ) && $old_path_parts['scheme'] === 'https' ? 's' : '' ) . '://' . $old_path_parts['host'] : '';
-		$new_domain = isset( $new_path_parts['host'] ) ? 'http' . ( isset( $new_path_parts['scheme'] ) && $new_path_parts['scheme'] === 'https' ? 's' : '' ) . '://' . $new_path_parts['host'] : '';
+		$old_domain = $this->get_origin( $old_path_parts );
+		$new_domain = $this->get_origin( $new_path_parts );
 
 		// Replace original URLs
 		$content = str_replace( $old_url, $new_url, $content );
@@ -545,12 +549,7 @@ class Optml_Attachment_Db_Renamer {
 				$data->$key = $this->replace_in_data( $value, $old_url, $new_url );
 			}
 		} elseif ( is_string( $data ) ) {
-			// Replace URLs in strings
-			if ( $this->handle_image_sizes ) {
-				$data = $this->replace_image_urls( $data, $old_url, $new_url );
-			} else {
-				$data = str_replace( $old_url, $new_url, $data );
-			}
+			$data = $this->replace_image_urls( $data, $old_url, $new_url );
 		}
 
 		return $data;
