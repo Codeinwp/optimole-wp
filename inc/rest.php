@@ -465,25 +465,7 @@ class Optml_Rest {
 			delete_option( Optml_Settings::OPTML_USER_EMAIL );
 		}
 		if ( $user === false || is_wp_error( $user ) ) {
-			if ( $user->get_error_code() === 'domain_not_accessible' ) {
-				return new WP_REST_Response(
-					[
-						'data'    => null,
-						'message' => $user->get_error_message(),
-						'code'    => 'domain_not_accessible',
-					],
-					200
-				);
-			}
-
-			return new WP_REST_Response(
-				[
-					'data'    => null,
-					'message' => __( 'Error creating account.', 'optimole-wp' ) . ' ' . $user->get_error_message(),
-					'code'    => 'error',
-				],
-				200
-			);
+			return $this->register_error_response( $user );
 		}
 		if ( $user === 'email_registered' ) {
 			return new WP_REST_Response(
@@ -522,6 +504,35 @@ class Optml_Rest {
 		}
 
 		return $this->response( $user_data );
+	}
+
+	/**
+	 * Build the response for a failed account registration.
+	 *
+	 * @param false|WP_Error $error Failed registration result.
+	 *
+	 * @return WP_REST_Response
+	 */
+	private function register_error_response( $error ): WP_REST_Response {
+		if ( is_wp_error( $error ) && $error->get_error_code() === 'domain_not_accessible' ) {
+			return new WP_REST_Response(
+				[
+					'data'    => null,
+					'message' => $error->get_error_message(),
+					'code'    => 'domain_not_accessible',
+				],
+				200
+			);
+		}
+
+		return new WP_REST_Response(
+			[
+				'data'    => null,
+				'message' => __( 'Error creating account.', 'optimole-wp' ) . ( is_wp_error( $error ) ? ' ' . $error->get_error_message() : '' ),
+				'code'    => 'error',
+			],
+			200
+		);
 	}
 
 	/**
