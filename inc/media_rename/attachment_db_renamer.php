@@ -114,7 +114,7 @@ class Optml_Attachment_Db_Renamer {
 		$text_columns = [];
 
 		// Get table information
-		$results = $wpdb->get_results( $wpdb->prepare( 'DESCRIBE %i', $table ) );
+		$results = $wpdb->get_results( 'DESCRIBE ' . esc_sql( $this->quote_identifier( $table ) ) );
 
 		if ( ! empty( $results ) ) {
 			// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
@@ -130,6 +130,19 @@ class Optml_Attachment_Db_Renamer {
 		}
 
 		return [ $primary_keys, $text_columns ];
+	}
+
+	/**
+	 * Quote a table or column name for use in SQL.
+	 *
+	 * Replaces the %i placeholder, which wpdb::prepare() only supports from WordPress 6.2.
+	 *
+	 * @param string $identifier Table or column name.
+	 *
+	 * @return string The backtick-quoted identifier.
+	 */
+	private function quote_identifier( string $identifier ): string {
+		return '`' . str_replace( '`', '``', $identifier ) . '`';
 	}
 
 	/**
@@ -166,12 +179,8 @@ class Optml_Attachment_Db_Renamer {
 
 		// Check for serialized data
 		$has_serialized = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(%i) FROM %i WHERE %i REGEXP '^[aiO]:[1-9]' LIMIT 1",
-				$column,
-				$table,
-				$column
-			)
+			'SELECT COUNT(' . esc_sql( $this->quote_identifier( $column ) ) . ') FROM ' . esc_sql( $this->quote_identifier( $table ) ) .
+			' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . " REGEXP '^[aiO]:[1-9]' LIMIT 1"
 		);
 
 		// Process with PHP if serialized data is found
@@ -218,9 +227,7 @@ class Optml_Attachment_Db_Renamer {
 		// Get rows with regular URLs
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT * FROM %i WHERE %i LIKE %s',
-				$table,
-				$column,
+				'SELECT * FROM ' . esc_sql( $this->quote_identifier( $table ) ) . ' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . ' LIKE %s',
 				'%' . $wpdb->esc_like( $base_url ) . '%'
 			)
 		);
@@ -231,9 +238,7 @@ class Optml_Attachment_Db_Renamer {
 		// Get rows with JSON-escaped URLs
 		$json_rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT * FROM %i WHERE %i LIKE %s',
-				$table,
-				$column,
+				'SELECT * FROM ' . esc_sql( $this->quote_identifier( $table ) ) . ' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . ' LIKE %s',
 				'%' . $wpdb->esc_like( $json_base_url ) . '%'
 			)
 		);
@@ -303,16 +308,14 @@ class Optml_Attachment_Db_Renamer {
 		// Build the query and allow processing with multiple primary keys.
 		$query = 'SELECT ';
 		foreach ( $primary_keys as $key => $value ) {
-			$query .= $wpdb->prepare( '%i, ', $value );
+			$query .= $this->quote_identifier( $value ) . ', ';
 		}
-		$query .= '%i FROM %i WHERE %s LIKE %s LIMIT 100';
+		$query .= $this->quote_identifier( $column ) . ' FROM ' . $this->quote_identifier( $table ) . ' WHERE %s LIKE %s LIMIT 100';
 
 		// Get the rows that need updating - first for regular URLs
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-				$column,
-				$table,
 				$column,
 				'%' . $wpdb->esc_like( $old_url ) . '%'
 			)
@@ -322,8 +325,6 @@ class Optml_Attachment_Db_Renamer {
 		$json_rows = $wpdb->get_results(
 			$wpdb->prepare(
 				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-				$column,
-				$table,
 				$column,
 				'%' . $wpdb->esc_like( $json_old_url ) . '%'
 			)
