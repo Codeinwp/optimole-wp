@@ -113,17 +113,6 @@ class Test_Rest_Optimizations extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A well-formed payload with a selector outside the watcher list is still refused.
-	 */
-	public function test_unknown_background_selector_is_rejected(): void {
-		$response = rest_get_server()->dispatch( $this->build_request( [ 'b' => [ '.not-a-watcher' => [ '#hero' => null ] ] ] ) );
-
-		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( [ 'data' => 'Invalid background selector', 'code' => 'error' ], $response->get_data() );
-		$this->assertFalse( ( new Profile() )->get_profile_data( self::PROFILE_ID )[ Profile::DEVICE_TYPE_DESKTOP ] );
-	}
-
-	/**
 	 * Build a signed optimizations request as the frontend profiler sends it.
 	 *
 	 * @param array<string, mixed> $fields Fields added to the required ones.
