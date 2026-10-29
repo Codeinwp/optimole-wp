@@ -151,11 +151,11 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Process a single column for replacements
 	 *
-	 * @param string $table Table name.
-	 * @param string $column Column name.
-	 * @param array  $primary_keys Primary keys.
-	 * @param string $old_url Old URL.
-	 * @param string $new_url New URL.
+	 * @param string       $table Table name.
+	 * @param string       $column Column name.
+	 * @param list<string> $primary_keys Primary keys.
+	 * @param string       $old_url Old URL.
+	 * @param string       $new_url New URL.
 	 *
 	 * @return int Number of replacements
 	 */
@@ -179,41 +179,69 @@ class Optml_Attachment_Db_Renamer {
 			$count = $this->php_handle_column( $table, $column, $primary_keys, $old_url, $new_url );
 		} else {
 			// Use direct SQL replacement for non-serialized data
-			$count = $this->sql_handle_column( $table, $column, $old_url, $new_url );
+			$count = $this->sql_handle_column( $table, $column, $primary_keys, $old_url, $new_url );
 		}
 
 		return $count;
 	}
 
 	/**
+	 * Get the URL without the file extension, so size and scaled variants match it too.
+	 *
+	 * @param string $url File URL.
+	 *
+	 * @return string Empty when the URL has no path.
+	 */
+	private function get_base_url( string $url ): string {
+		$parts = parse_url( $url );
+		if ( ! isset( $parts['path'] ) ) {
+			return '';
+		}
+
+		$domain = '';
+		if ( isset( $parts['host'] ) ) {
+			$domain = 'http' . ( isset( $parts['scheme'] ) && $parts['scheme'] === 'https' ? 's' : '' ) . '://' . $parts['host'] . ( isset( $parts['port'] ) ? ':' . $parts['port'] : '' );
+		}
+
+		return $domain . dirname( $parts['path'] ) . '/' . pathinfo( $parts['path'], PATHINFO_FILENAME );
+	}
+
+	/**
+	 * Get the primary key values that identify a row.
+	 *
+	 * @param stdClass     $row Database row.
+	 * @param list<string> $primary_keys Primary keys.
+	 *
+	 * @return array<string, string> Primary key values keyed by column.
+	 */
+	private function get_row_where( stdClass $row, $primary_keys ): array {
+		$where = [];
+		foreach ( $primary_keys as $key ) {
+			$where[ $key ] = $row->$key;
+		}
+
+		return $where;
+	}
+
+	/**
 	 * Handle column using SQL replacement
 	 *
-	 * @param string $table Table name.
-	 * @param string $column Column name.
-	 * @param string $old_url Old URL.
-	 * @param string $new_url New URL.
+	 * @param string       $table Table name.
+	 * @param string       $column Column name.
+	 * @param list<string> $primary_keys Primary keys.
+	 * @param string       $old_url Old URL.
+	 * @param string       $new_url New URL.
 	 *
 	 * @return int Number of replacements
 	 */
-	private function sql_handle_column( $table, $column, $old_url, $new_url ) {
+	private function sql_handle_column( $table, $column, $primary_keys, $old_url, $new_url ) {
 		global $wpdb;
 		$count = 0;
 
-		// Get the filename components
-		$old_path_parts = parse_url( $old_url );
-		if ( ! isset( $old_path_parts['path'] ) ) {
+		$base_url = $this->get_base_url( $old_url );
+		if ( '' === $base_url ) {
 			return 0;
 		}
-
-		$old_path = $old_path_parts['path'];
-		$old_file_info = pathinfo( $old_path );
-
-		$old_base = $old_file_info['filename'];
-		$old_dir = dirname( $old_path );
-		$old_domain = isset( $old_path_parts['host'] ) ? 'http' . ( isset( $old_path_parts['scheme'] ) && $old_path_parts['scheme'] === 'https' ? 's' : '' ) . '://' . $old_path_parts['host'] : '';
-
-		// Build pattern to match any URL containing the base filename
-		$base_url = $old_domain . $old_dir . '/' . $old_base;
 
 		// Get rows with regular URLs
 		$rows = $wpdb->get_results(
@@ -247,35 +275,19 @@ class Optml_Attachment_Db_Renamer {
 		}
 
 		foreach ( $all_rows as $row ) {
-			$id_field = $row->ID ?? $row->id ?? null;
-			if ( ! $id_field ) {
-				foreach ( $row as $field => $value ) {
-					if ( stripos( $field, 'id' ) !== false ) {
-						$id_field = $value;
-						break;
-					}
-				}
-			}
-
-			if ( ! $id_field ) {
-				continue;
-			}
+			$where  = $this->get_row_where( $row, $primary_keys );
+			$row_id = implode( '|', $where );
 
 			// Skip if we've already processed this row
-			if ( isset( $processed_ids[ $id_field ] ) ) {
+			if ( isset( $processed_ids[ $row_id ] ) ) {
 				continue;
 			}
-			$processed_ids[ $id_field ] = true;
+			$processed_ids[ $row_id ] = true;
 
 			$content = $row->$column;
 			$new_content = $this->replace_image_urls( $content, $old_url, $new_url );
 
-			if ( $content !== $new_content ) {
-				$wpdb->update(
-					$table,
-					[ $column => $new_content ],
-					[ 'ID' => $id_field ]
-				);
+			if ( $content !== $new_content && $wpdb->update( $table, [ $column => $new_content ], $where ) ) {
 				++$count;
 			}
 		}
@@ -286,11 +298,11 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Handle column using PHP for serialized data
 	 *
-	 * @param string $table Table name.
-	 * @param string $column Column name.
-	 * @param array  $primary_keys Primary keys.
-	 * @param string $old_url Old URL.
-	 * @param string $new_url New URL.
+	 * @param string       $table Table name.
+	 * @param string       $column Column name.
+	 * @param list<string> $primary_keys Primary keys.
+	 * @param string       $old_url Old URL.
+	 * @param string       $new_url New URL.
 	 *
 	 * @return int Number of replacements
 	 */
@@ -298,14 +310,19 @@ class Optml_Attachment_Db_Renamer {
 		global $wpdb;
 
 		$count = 0;
-		$json_old_url = str_replace( '/', '\/', $old_url );
+
+		$base_url = $this->get_base_url( $old_url );
+		if ( '' === $base_url ) {
+			return 0;
+		}
+		$json_base_url = str_replace( '/', '\/', $base_url );
 
 		// Build the query and allow processing with multiple primary keys.
 		$query = 'SELECT ';
 		foreach ( $primary_keys as $key => $value ) {
 			$query .= $wpdb->prepare( '%i, ', $value );
 		}
-		$query .= '%i FROM %i WHERE %s LIKE %s LIMIT 100';
+		$query .= '%i FROM %i WHERE %i LIKE %s';
 
 		// Get the rows that need updating - first for regular URLs
 		$rows = $wpdb->get_results(
@@ -314,7 +331,7 @@ class Optml_Attachment_Db_Renamer {
 				$column,
 				$table,
 				$column,
-				'%' . $wpdb->esc_like( $old_url ) . '%'
+				'%' . $wpdb->esc_like( $base_url ) . '%'
 			)
 		);
 
@@ -325,7 +342,7 @@ class Optml_Attachment_Db_Renamer {
 				$column,
 				$table,
 				$column,
-				'%' . $wpdb->esc_like( $json_old_url ) . '%'
+				'%' . $wpdb->esc_like( $json_base_url ) . '%'
 			)
 		);
 
@@ -334,11 +351,8 @@ class Optml_Attachment_Db_Renamer {
 		$all_rows = array_merge( $rows, $json_rows );
 
 		foreach ( $all_rows as $row ) {
-			// Generate a unique identifier for this row based on primary keys
-			$row_id = '';
-			foreach ( $primary_keys as $key ) {
-				$row_id .= $row->$key . '|';
-			}
+			$where  = $this->get_row_where( $row, $primary_keys );
+			$row_id = implode( '|', $where );
 
 			// Skip if we've already processed this row
 			if ( isset( $processed_ids[ $row_id ] ) ) {
@@ -361,17 +375,11 @@ class Optml_Attachment_Db_Renamer {
 				continue;
 			}
 
-			// Build WHERE clause for this row
-			$where_conditions = [];
-			foreach ( $primary_keys as $key ) {
-				$where_conditions[ $key ] = $row->$key;
-			}
-
 			// Update the row
 			$updated = $wpdb->update(
 				$table,
 				[ $column => $new_value ],
-				$where_conditions
+				$where
 			);
 
 			if ( $updated ) {
