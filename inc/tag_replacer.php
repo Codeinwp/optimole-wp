@@ -215,6 +215,10 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 			$src = $tmp = $is_slashed ? $this->strip_slashes( $images['img_url'][ $index ] ) : $images['img_url'][ $index ];
 
+			// Decoded escapes must not end the attribute value.
+			if ( $is_slashed && preg_match( '/[\x00-\x20\x7F"\'<>`]/', $src ) ) {
+				continue;
+			}
 			if ( strpos( $src, $this->upload_resource['content_path'] ) === 0 ) {
 				$src = $tmp = untrailingslashit( $this->upload_resource['content_host'] ) . $src;
 
