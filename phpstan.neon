@@ -19,7 +19,7 @@ parameters:
 		- ABSPATH
 		- WPINC
 	typeAliases:
-		RestArgConfig: 'array{type: string, required: bool, default?: mixed}'
+		RestArgConfig: 'array{type: string, required?: bool, default?: mixed}'
 		RestArgs: 'array<string, RestArgConfig>'
 		RestRouteConfig: 'array{0: string, args?: RestArgs, permission_callback?: callable|string}'
 		RestRouteMap: 'array<string, string|RestRouteConfig>'
