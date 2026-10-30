@@ -963,6 +963,7 @@ class Test_Replacer extends WP_UnitTestCase {
 			'process url'   => [ '<img src=\"https:\/\/example.org\/process:\u0022\u003E\u003Csvg\u0020onload\u003Dalert\u00281\u0029\u003E.jpg\">' ],
 			'relative path' => [ '<img src=\"\/wp-content\/process:\u0022\u003E\u003Csvg\u0020onload\u003Dalert\u00281\u0029\u003E.jpg\">' ],
 			'no extension'  => [ '<img src=\"https:\/\/example.org\/uploads\/sample\u0022\u003E\u003Csvg\u0020onload\u003Dalert\u00281\u0029\u003E\">' ],
+			'decoded space' => [ '<img src=\"https:\/\/example.org\/process:x\u0020onerror=alert\u00281\u0029\/\/.jpg\">' ],
 		];
 	}
 
@@ -972,6 +973,6 @@ class Test_Replacer extends WP_UnitTestCase {
 	public function test_unicode_escaped_image_tag_src_is_not_decoded_into_markup( string $content ): void {
 		$replaced = Optml_Manager::instance()->process_images_from_content( $content );
 
-		$this->assertStringNotContainsString( '<svg', $replaced );
+		$this->assertSame( $content, $replaced );
 	}
 }
