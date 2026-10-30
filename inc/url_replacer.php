@@ -89,13 +89,14 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$attachment_id = [];
 			preg_match( '/\/' . Optml_Media_Offload::KEYS['not_processed_flag'] . '([^\/]*)\//', $url, $attachment_id );
 			if ( ! isset( $attachment_id[1] ) ) {
-				return $url;
+				return $original_url;
 			}
 			$id_and_filename = [];
 			preg_match( '/\/(' . Optml_Media_Offload::KEYS['uploaded_flag'] . '.*)/', $url, $id_and_filename );
-			if ( isset( $id_and_filename[0] ) ) {
-				$id_and_filename = $id_and_filename[0];
+			if ( ! isset( $id_and_filename[0] ) ) {
+				return $original_url;
 			}
+			$id_and_filename = esc_url( $id_and_filename[0] );
 			$sizes = $this->parse_dimension_from_optimized_url( $url );
 			if ( isset( $sizes[0] ) && $sizes[0] !== false ) {
 				$args['width'] = $sizes[0];
