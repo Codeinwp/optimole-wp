@@ -89,13 +89,14 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 			$attachment_id = [];
 			preg_match( '/\/' . Optml_Media_Offload::KEYS['not_processed_flag'] . '([^\/]*)\//', $url, $attachment_id );
 			if ( ! isset( $attachment_id[1] ) ) {
-				return $url;
+				return $original_url;
 			}
 			$id_and_filename = [];
 			preg_match( '/\/(' . Optml_Media_Offload::KEYS['uploaded_flag'] . '.*)/', $url, $id_and_filename );
-			if ( isset( $id_and_filename[0] ) ) {
-				$id_and_filename = $id_and_filename[0];
+			if ( ! isset( $id_and_filename[0] ) ) {
+				return $original_url;
 			}
+			$id_and_filename = esc_url( $id_and_filename[0] );
 			$sizes = $this->parse_dimension_from_optimized_url( $url );
 			if ( isset( $sizes[0] ) && $sizes[0] !== false ) {
 				$args['width'] = $sizes[0];
@@ -324,13 +325,18 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 	/**
 	 * Get the active cache booster.
 	 *
+	 * Individual tokens are stored as the API returned them, which can be a number,
+	 * so the token is cast to the string the SDK expects.
+	 *
 	 * @param string $url The URL.
-	 * @param string $main_cache_buster The default value.
+	 * @param mixed  $main_cache_buster The default value.
 	 *
 	 * @return string
 	 */
 	public static function get_active_cache_booster( $url, $main_cache_buster ) {
-		return ( get_transient( Optml_Settings::INDIVIDUAL_CACHE_TOKENS_KEY ) ?: [] )[ crc32( wp_basename( $url ) ) ] ?? $main_cache_buster;
+		$token = ( get_transient( Optml_Settings::INDIVIDUAL_CACHE_TOKENS_KEY ) ?: [] )[ crc32( wp_basename( $url ) ) ] ?? $main_cache_buster;
+
+		return is_scalar( $token ) ? (string) $token : '';
 	}
 	/**
 	 * Throw error on object clone

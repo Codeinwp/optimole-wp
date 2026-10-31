@@ -276,7 +276,9 @@ final class Optml_Main {
 	 */
 	public function deactivate() {
 		// Clear registered cron events.
-		wp_clear_scheduled_hook( 'optml_daily_sync' );
+		wp_clear_scheduled_hook( Optml_Admin::SYNC_CRON );
+		wp_clear_scheduled_hook( Optml_Admin::ENRICH_CRON );
+		// Pre-4.0.0 hook name, still scheduled on upgraded sites.
 		wp_clear_scheduled_hook( 'optml_pull_image_data_init' );
 	}
 

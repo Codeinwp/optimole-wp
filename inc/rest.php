@@ -155,6 +155,31 @@ class Optml_Rest {
 						'type'     => 'string',
 						'required' => true,
 					],
+					'b' => [
+						'type'                 => 'object',
+						'default'              => [],
+						'additionalProperties' => [
+							'type'                 => 'object',
+							'additionalProperties' => [
+								// The profiler sends null for above-fold elements with no detected URL.
+								'type'  => [ 'array', 'null' ],
+								'items' => [ 'type' => 'string' ],
+							],
+						],
+					],
+					'l' => [
+						'type'       => 'object',
+						'properties' => [
+							'u' => [
+								'type'  => [ 'array', 'null' ],
+								'items' => [ 'type' => 'string' ],
+							],
+						],
+					],
+					'm' => [
+						'type'                 => 'object',
+						'additionalProperties' => [ 'type' => 'object' ],
+					],
 				],
 				'permission_callback' => '__return_true',
 			],
@@ -465,25 +490,7 @@ class Optml_Rest {
 			delete_option( Optml_Settings::OPTML_USER_EMAIL );
 		}
 		if ( $user === false || is_wp_error( $user ) ) {
-			if ( $user->get_error_code() === 'domain_not_accessible' ) {
-				return new WP_REST_Response(
-					[
-						'data'    => null,
-						'message' => $user->get_error_message(),
-						'code'    => 'domain_not_accessible',
-					],
-					200
-				);
-			}
-
-			return new WP_REST_Response(
-				[
-					'data'    => null,
-					'message' => __( 'Error creating account.', 'optimole-wp' ) . ' ' . $user->get_error_message(),
-					'code'    => 'error',
-				],
-				200
-			);
+			return $this->register_error_response( $user );
 		}
 		if ( $user === 'email_registered' ) {
 			return new WP_REST_Response(
@@ -522,6 +529,35 @@ class Optml_Rest {
 		}
 
 		return $this->response( $user_data );
+	}
+
+	/**
+	 * Build the response for a failed account registration.
+	 *
+	 * @param false|WP_Error $error Failed registration result.
+	 *
+	 * @return WP_REST_Response
+	 */
+	private function register_error_response( $error ): WP_REST_Response {
+		if ( is_wp_error( $error ) && $error->get_error_code() === 'domain_not_accessible' ) {
+			return new WP_REST_Response(
+				[
+					'data'    => null,
+					'message' => $error->get_error_message(),
+					'code'    => 'domain_not_accessible',
+				],
+				200
+			);
+		}
+
+		return new WP_REST_Response(
+			[
+				'data'    => null,
+				'message' => __( 'Error creating account.', 'optimole-wp' ) . ( is_wp_error( $error ) ? ' ' . $error->get_error_message() : '' ),
+				'code'    => 'error',
+			],
+			200
+		);
 	}
 
 	/**
@@ -933,7 +969,7 @@ class Optml_Rest {
 	 * Store optimization data.
 	 *
 	 * @param WP_REST_Request $request Rest request.
-	 * @phpstan-param WP_REST_Request<array{d: int, a: array<mixed>, u: string, t?: int, h?: string, pu?: string, b?: array<string, array<string, list<string>>>, l?: array{i?: string, s?: string, u?: list<string>}, m?: array<int, array{w: int, h: int}>, s?: array<int, list<array{w: int, h: int, d: int, s: string, b: int}>>, c?: array<int, bool>}> $request
+	 * @phpstan-param WP_REST_Request<array{d: int, a: array<mixed>, u: string, t?: int, h?: string, pu?: string, b: array<string, array<string, list<string>|null>>, l?: array{i?: string, s?: string, u?: list<string>|null}, m?: array<int, array{w?: int, h?: int}>, s?: array<int, list<array{w: int, h: int, d: int, s: string, b: int}>>, c?: array<int, bool>}> $request
 	 *
 	 * @return WP_REST_Response
 	 */
@@ -990,6 +1026,7 @@ class Optml_Rest {
 			$selector = strip_tags( $selector );
 			$sanitized_selectors[ $selector ] = [];
 			foreach ( $above_fold_bg_selectors as $above_fold_bg_selector => $bg_urls ) {
+				$bg_urls = (array) $bg_urls;
 				if ( count( $bg_urls ) > 3 ) {
 					return $this->response( 'Background URLs limit exceeded', 'error' );
 				}
@@ -1029,7 +1066,7 @@ class Optml_Rest {
 		}
 		$sanitized_lcp_data = [];
 		if ( ! empty( $lcp_data ) ) {
-			$sanitized_lcp_data['imageId'] = sanitize_text_field( $lcp_data['i'] ?? '' );
+			$sanitized_lcp_data['imageId'] = absint( $lcp_data['i'] ?? 0 );
 			$sanitized_lcp_data['bgSelector'] = sanitize_text_field( $lcp_data['s'] ?? '' );
 			if ( count( $lcp_data['u'] ?? [] ) > 3 ) {
 				return $this->response( 'LCP Background URLs limit exceeded', 'error' );

@@ -2419,18 +2419,6 @@ parameters:
 			path: inc/media_rename/attachment_db_renamer.php
 
 		-
-			message: '#^Method Optml_Attachment_Db_Renamer\:\:php_handle_column\(\) has parameter \$primary_keys with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/media_rename/attachment_db_renamer.php
-
-		-
-			message: '#^Method Optml_Attachment_Db_Renamer\:\:process_column\(\) has parameter \$primary_keys with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/media_rename/attachment_db_renamer.php
-
-		-
 			message: '#^Property Optml_Attachment_Db_Renamer\:\:\$skip_columns type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
