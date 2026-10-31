@@ -129,6 +129,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			'[style*="background-image:url("]', '[style*="background-image: url("]',
 			'[style*="background:url("]', '[style*="background: url("]',
 			'[class*="wp-block-group"][style*="background-image"]',
+			// Gradient + image in one value: `linear-gradient(...), url(...)`.
+			'[style*="background-image"][style*="url("]',
 		];
 
 		$saved_watchers = self::instance()->settings->get_watchers();
