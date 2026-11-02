@@ -216,7 +216,7 @@ class Test_Admin extends WP_UnitTestCase {
 		delete_user_meta( get_current_user_id(), Optml_Admin::SDK_BF_DISMISS_META );
 
 		$this->assertArrayHasKey( 'banner', $result );
-		$this->assertSame( Optml_Admin::BF_PROMO_DISMISS_KEY, $result['banner']['dismiss_key'] );
+		$this->assertSame( Optml_Admin::SDK_BF_DISMISS_META, $result['banner']['dismiss_key'] );
 		$this->assertStringContainsString( 'bfcm26', $result['banner']['cta_link'] );
 		$this->assertStringContainsString( 'bfcm26', $result['sidebar']['cta_link'] );
 		$this->assertStringContainsString( 'BFCM2525', $result['banner']['subtitle'] );
@@ -243,7 +243,7 @@ class Test_Admin extends WP_UnitTestCase {
 		
 		$this->assertArrayHasKey( 'banner', $result );
 		$this->assertArrayHasKey( 'dismiss_key', $result['banner'] );
-		$this->assertEquals( Optml_Admin::BF_PROMO_DISMISS_KEY, $result['banner']['dismiss_key'] );
+		$this->assertEquals( Optml_Admin::SDK_BF_DISMISS_META, $result['banner']['dismiss_key'] );
 	}
 
 	/**
@@ -744,10 +744,10 @@ class Test_Admin extends WP_UnitTestCase {
 		$this->mock_date_to( clone $this->black_friday );
 
 		$request = new WP_REST_Request( 'POST' );
-		$request->set_param( 'key', Optml_Admin::BF_PROMO_DISMISS_KEY );
+		$request->set_param( 'key', Optml_Admin::SDK_BF_DISMISS_META );
 		( new Optml_Rest() )->dismiss_notice( $request );
 
-		$this->assertFalse( get_option( Optml_Admin::BF_PROMO_DISMISS_KEY ) );
+		$this->assertFalse( get_option( Optml_Admin::SDK_BF_DISMISS_META ) );
 		$this->assertTrue( Optml_Admin::is_sdk_bf_notice_dismissed( clone $this->black_friday ) );
 	}
 }

@@ -23,8 +23,6 @@ class Optml_Admin {
 
 	const IMAGE_DATA_COLLECTED_BATCH = 100;
 
-	const BF_PROMO_DISMISS_KEY = 'optml_bf_notice_dismiss';
-
 	const SDK_BF_DISMISS_META = 'themeisle_sdk_dismissed_notice_black_friday';
 
 	const SPC_BANNER_DISMISS_KEY = 'optml_spc_banner_dismiss';
@@ -1793,7 +1791,7 @@ class Optml_Admin {
 			'subtitle' => $message,
 			'cta_text' => $cta_text,
 			'cta_link' => $cta_link,
-			'dismiss_key' => self::BF_PROMO_DISMISS_KEY,
+			'dismiss_key' => self::SDK_BF_DISMISS_META,
 		];
 
 		return $notices;
