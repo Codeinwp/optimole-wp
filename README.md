@@ -4,7 +4,7 @@
 **Requires at least:** 5.5  
 **Tested up to:** 7.1  
 **Requires PHP:** 7.4  
-**Stable tag:** 4.2.17  
+**Stable tag:** 4.2.18  
 **License:** GPLv3  
 **License URI:** https://www.gnu.org/licenses/gpl-3.0.en.html  
 
@@ -248,16 +248,22 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 ## Changelog ##
 
-##### [Version 4.2.17](https://github.com/Codeinwp/optimole-wp/compare/v4.2.16...v4.2.17) (2026-10-19)
+##### [Version 4.2.18](https://github.com/Codeinwp/optimole-wp/compare/v4.2.17...v4.2.18) (2026-11-02)
 
-- Fixed Image Storage settings staying disabled after a failed status check
-- Fixed WP-CLI rollback refusing transfers started from the dashboard.
-- Fixed new uploads offloading during Image Storage rollback.
-- Fixed optimized image polling failing when the site is disconnected.
-- Fixed the offload limit warning staying after usage dropped below limit.
-- Fixed Retina images delivering twice the advertised width.
-- Fixed generated image sizes listing the same breakpoint twice.
-- Fixed gallery lazy-load images losing their placeholders during optimization.
+- Fixed image replacement failing when a cache token was numeric.
+- Fixed placeholder-first images missing responsive srcset and dimensions.
+- Fixed Image Storage transfers retrying a failed step without end
+- Added option to keep hand-written image sizes attributes
+- Fixed pages with many images running out of memory.
+- Fixed repeated database errors filling error logs on frontend pages
+- Fixed restored images getting extra numbered copies after interrupted rollbacks
+- Fixed Optimole hourly sync staying scheduled after deactivation.
+- Fixed account sign-up failing when the service returned an empty response
+- Fixed renamed images breaking in comments and term descriptions.
+- Fixed comment content executing as markup on optimized pages.
+- Fixed profiler requests failing when background data was missing.
+- Fixed gradient background images lazy-loading on scroll.
+- Fixed LCP image missing high fetch priority and loading lazily.
 - Updated dependencies
 
 
@@ -346,7 +352,7 @@ add_filter('optml_dont_replace_url', function( $old, $url ) {
 }, 10, 2);
 </code>
 
-= Can I keep the sizes attribute I wrote for an image ? =
+### Can I keep the sizes attribute I wrote for an image ? ###
 
 Yes. Add the `data-optml-keep-sizes` attribute to the image tag and the page profiler won't add its own entries to the image's `sizes` attribute. Images lazy loaded by Optimole don't keep `srcset` or `sizes`, since the lazy loader doesn't need them. To keep the existing `sizes` attribute on every image, add this snippet:
 
