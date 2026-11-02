@@ -118,6 +118,17 @@ class Test_Dimension_Replacement extends WP_UnitTestCase {
 	
 	
 	/**
+	 * A data: placeholder in data-src before src does not stop the real image from being processed.
+	 */
+	public function test_dimensions_injected_when_data_src_placeholder_comes_first() {
+		$html_input = '<img data-src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" src="' . self::IMAGE_URL . '" alt="Test image">';
+
+		$result = $this->tag_replacer->process_image_tags( $html_input, $this->extract_images_from_html( $html_input ) );
+
+		$this->assertMatchesRegularExpression( '/width="1920".*height="1080".*data-opt-id=' . $this->tag_replacer->get_id_by_url( self::IMAGE_URL ) . '/', $result );
+	}
+
+	/**
 	 * Helper method to extract images from HTML for testing.
 	 * Uses the actual manager method to ensure correct structure.
 	 */

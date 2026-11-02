@@ -320,4 +320,176 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 			$this->assertStringNotContainsString( $url, $post->post_content );
 		}
 	}
+
+	public function test_replace_updates_comment_content(): void {
+		$old_url    = 'http://om-wp.test/wp-content/uploads/2026/10/comment-photo.jpg';
+		$new_url    = 'http://om-wp.test/wp-content/uploads/2026/10/comment-renamed.jpg';
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => '<img src="' . $old_url . '">',
+			]
+		);
+
+		$count = self::$replacer->replace( $old_url, $new_url );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( 1, $count );
+		$this->assertSame( '<img src="' . $new_url . '">', get_comment( $comment_id )->comment_content );
+	}
+
+	public function test_replace_updates_term_description(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/term-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/term-renamed.jpg';
+		$term_id = self::factory()->category->create( [ 'description' => '<a href="' . $old_url . '">Banner</a>' ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		clean_term_cache( $term_id, 'category' );
+
+		$this->assertSame( '<a href="' . $new_url . '">Banner</a>', get_term( $term_id, 'category' )->description );
+	}
+
+	public function test_replace_counts_only_successful_updates(): void {
+		global $wpdb;
+
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/failing-photo.jpg';
+		self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => '<img src="' . $old_url . '">',
+			]
+		);
+
+		$fail_comment_updates = static function ( string $query ) use ( $wpdb ): string {
+			return 0 === strpos( $query, "UPDATE `{$wpdb->comments}`" ) ? "UPDATE `{$wpdb->comments}` SET `optml_missing_column` = 1" : $query;
+		};
+		add_filter( 'query', $fail_comment_updates );
+		$suppressed = $wpdb->suppress_errors( true );
+
+		try {
+			$count = self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/failing-renamed.jpg' );
+		} finally {
+			$wpdb->suppress_errors( $suppressed );
+			remove_filter( 'query', $fail_comment_updates );
+		}
+
+		$this->assertSame( 0, $count );
+	}
+
+	public function test_replace_updates_serialized_post_meta(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/meta-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/meta-renamed.jpg';
+		update_post_meta( self::$post_id, 'optml_test_gallery', [ 'image' => $old_url ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( [ 'image' => $new_url ], get_post_meta( self::$post_id, 'optml_test_gallery', true ) );
+	}
+
+	public function test_replace_updates_serialized_option(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/option-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/option-renamed.jpg';
+		update_option( 'optml_test_logo', [ 'url' => $old_url ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( [ 'url' => $new_url ], get_option( 'optml_test_logo' ) );
+	}
+
+	public function test_replace_updates_serialized_user_meta(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/avatar-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/avatar-renamed.jpg';
+		$user_id = self::factory()->user->create();
+		update_user_meta( $user_id, 'optml_test_avatar', [ 'url' => $old_url ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( [ 'url' => $new_url ], get_user_meta( $user_id, 'optml_test_avatar', true ) );
+	}
+
+	public function test_replace_updates_size_variants_in_serialized_meta(): void {
+		update_post_meta( self::$post_id, 'optml_test_thumbnail', [ 'image' => 'http://om-wp.test/wp-content/uploads/2026/10/sized-photo-300x200.jpg' ] );
+
+		self::$replacer->replace(
+			'http://om-wp.test/wp-content/uploads/2026/10/sized-photo.jpg',
+			'http://om-wp.test/wp-content/uploads/2026/10/sized-renamed.jpg'
+		);
+		wp_cache_flush();
+
+		$this->assertSame(
+			[ 'image' => 'http://om-wp.test/wp-content/uploads/2026/10/sized-renamed-300x200.jpg' ],
+			get_post_meta( self::$post_id, 'optml_test_thumbnail', true )
+		);
+	}
+
+	public function test_replace_updates_more_than_100_serialized_rows(): void {
+		$old_url  = 'http://om-wp.test/wp-content/uploads/2026/10/bulk-photo.jpg';
+		$new_url  = 'http://om-wp.test/wp-content/uploads/2026/10/bulk-renamed.jpg';
+		$post_ids = self::factory()->post->create_many( 101 );
+		foreach ( $post_ids as $post_id ) {
+			update_post_meta( $post_id, 'optml_test_gallery', [ 'image' => $old_url ] );
+		}
+
+		$count = self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( 101, $count );
+		$this->assertSame( [ 'image' => $new_url ], get_post_meta( end( $post_ids ), 'optml_test_gallery', true ) );
+	}
+
+	public function test_replace_keeps_port_in_url(): void {
+		$old_url = 'http://localhost:8888/wp-content/uploads/2026/10/port-photo.jpg';
+		$new_url = 'http://localhost:8888/wp-content/uploads/2026/10/port-renamed.jpg';
+		$post_id = self::factory()->post->create( [ 'post_content' => '<img src="' . $old_url . '">' ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		clean_post_cache( $post_id );
+
+		$this->assertSame( '<img src="' . $new_url . '">', get_post( $post_id )->post_content );
+	}
+
+	public function test_replace_keeps_port_in_size_variants(): void {
+		$post_id = self::factory()->post->create( [ 'post_content' => '<img src="http://localhost:8888/wp-content/uploads/2026/10/port-photo-300x200.jpg">' ] );
+
+		self::$replacer->replace(
+			'http://localhost:8888/wp-content/uploads/2026/10/port-photo.jpg',
+			'http://localhost:8888/wp-content/uploads/2026/10/port-renamed.jpg'
+		);
+		clean_post_cache( $post_id );
+
+		$this->assertSame( '<img src="http://localhost:8888/wp-content/uploads/2026/10/port-renamed-300x200.jpg">', get_post( $post_id )->post_content );
+	}
+
+	public function test_replace_updates_json_escaped_url_in_serialized_meta(): void {
+		update_post_meta( self::$post_id, 'optml_test_layout', wp_slash( [ 'html' => '{"src":"http:\/\/om-wp.test\/wp-content\/uploads\/2026\/10\/json-photo-300x200.jpg"}' ] ) );
+
+		self::$replacer->replace(
+			'http://om-wp.test/wp-content/uploads/2026/10/json-photo.jpg',
+			'http://om-wp.test/wp-content/uploads/2026/10/json-renamed.jpg'
+		);
+		wp_cache_flush();
+
+		$this->assertSame(
+			[ 'html' => '{"src":"http:\/\/om-wp.test\/wp-content\/uploads\/2026\/10\/json-renamed-300x200.jpg"}' ],
+			get_post_meta( self::$post_id, 'optml_test_layout', true )
+		);
+	}
+
+	public function test_replace_without_sizes_updates_json_escaped_url_in_meta(): void {
+		update_post_meta( self::$post_id, 'optml_test_builder_data', wp_slash( '[{"video":{"url":"http:\/\/om-wp.test\/wp-content\/uploads\/2026\/10\/clip.mp4"}}]' ) );
+
+		self::$replacer_skip_sizes->replace(
+			'http://om-wp.test/wp-content/uploads/2026/10/clip.mp4',
+			'http://om-wp.test/wp-content/uploads/2026/10/clip-renamed.mp4'
+		);
+		wp_cache_flush();
+
+		$this->assertSame(
+			'[{"video":{"url":"http:\/\/om-wp.test\/wp-content\/uploads\/2026\/10\/clip-renamed.mp4"}}]',
+			get_post_meta( self::$post_id, 'optml_test_builder_data', true )
+		);
+	}
 }

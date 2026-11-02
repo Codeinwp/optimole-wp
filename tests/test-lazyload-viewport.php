@@ -117,6 +117,85 @@ class Test_Lazyload_Viewport extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The LCP image reported through the optimizations endpoint is stored as an int and prioritized.
+	 */
+	public function test_lcp_image_reported_via_rest_gets_fetchpriority(): void {
+		// The page capture buffer is not under test; hooks are restored by WP_UnitTestCase.
+		remove_action('rest_api_init', [Optml_Manager::instance(), 'process_template_redirect_content'], PHP_INT_MIN);
+		foreach (Profile::get_active_devices() as $device) {
+			$response = rest_get_server()->dispatch($this->buildOptimizationsRequest($device, 1579989818));
+			$this->assertSame(200, $response->get_status());
+		}
+
+		$stored = Optml_Manager::instance()->page_profiler->get_profile_data((string) self::mock_page_ids());
+		$this->assertSame(1579989818, $stored[Profile::DEVICE_TYPE_DESKTOP]['lcp']['imageId']);
+
+		$this->assertLcpImagePrioritized(Optml_Manager::instance()->replace_content(self::get_sample_html()));
+	}
+
+	/**
+	 * Profiles that stored the LCP image ID as a numeric string still prioritize that image.
+	 */
+	public function test_lcp_image_with_numeric_string_id_gets_fetchpriority(): void {
+		foreach (Profile::get_active_devices() as $device) {
+			$this->storeMockProfileData(self::mock_page_ids(), $device, [], [], ['type' => 'img', 'imageId' => '1579989818']);
+		}
+
+		$this->assertLcpImagePrioritized(Optml_Manager::instance()->replace_content(self::get_sample_html()));
+	}
+
+	/**
+	 * Build a signed optimizations request as the frontend profiler sends it.
+	 *
+	 * @param int $device   Device type.
+	 * @param int $image_id LCP image ID.
+	 */
+	private function buildOptimizationsRequest(int $device, int $image_id): WP_REST_Request {
+		$time    = time();
+		$url     = (string) self::mock_page_ids();
+		$page    = home_url('/');
+		$request = new WP_REST_Request('POST', '/' . OPTML_NAMESPACE . '/v1/optimizations');
+		$request->set_header('Content-Type', 'application/json');
+		$request->set_header('Origin', home_url());
+		$request->set_body(
+			wp_json_encode(
+				[
+					'd'  => $device,
+					'a'  => [],
+					'b'  => [],
+					'u'  => $url,
+					't'  => $time,
+					'h'  => wp_hash($url . $time . $page, 'nonce'),
+					'pu' => $page,
+					'l'  => ['i' => $image_id, 's' => '', 'u' => []],
+				]
+			)
+		);
+
+		return $request;
+	}
+
+	/**
+	 * Assert the LCP sample image is not lazy-loaded and has fetchpriority="high".
+	 *
+	 * @param string $html Replaced page HTML.
+	 */
+	private function assertLcpImagePrioritized(string $html): void {
+		$imageTags = Optml_Manager::instance()->parse_images_from_html($html);
+		$lcpTags   = array_values(
+			array_filter(
+				$imageTags[0],
+				function (string $tag): bool {
+					return strpos($tag, 'data-opt-id=1579989818') !== false;
+				}
+			)
+		);
+		$this->assertNotEmpty($lcpTags);
+		$this->assertStringContainsString('fetchpriority="high"', $lcpTags[0]);
+		$this->assertStringNotContainsString('data-opt-src', $lcpTags[0]);
+	}
+
+	/**
 	 * Test lazy loading with different profiles for different devices.
 	 *
 	 * This test verifies that the correct images are lazy-loaded based on

@@ -645,6 +645,22 @@ class Test_Admin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Test deactivation clears every recurring cron event the plugin schedules.
+	 */
+	public function test_deactivate_clears_recurring_cron_events(): void {
+		$hooks = [ Optml_Admin::SYNC_CRON, Optml_Admin::ENRICH_CRON, 'optml_pull_image_data_init' ];
+		foreach ( $hooks as $hook ) {
+			wp_schedule_event( time(), 'hourly', $hook );
+		}
+
+		Optml_Main::instance()->deactivate();
+
+		foreach ( $hooks as $hook ) {
+			$this->assertFalse( wp_next_scheduled( $hook ), "$hook is still scheduled." );
+		}
+	}
+
+	/**
 	 * Mock the cloud URL lookup and the download of a scripted SVG during a restore.
 	 *
 	 * @param false|array<string, mixed>|WP_Error $preempt Short-circuit response.

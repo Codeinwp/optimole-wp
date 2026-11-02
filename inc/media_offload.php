@@ -58,6 +58,11 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	const RETRYABLE_META_COUNTER = '_optimole_retryable_errors';
 
 	/**
+	 * Post meta holding the file a rollback moved into uploads before the attachment was updated to it.
+	 */
+	const ROLLBACK_PENDING_FILE = '_optimole_rollback_pending_file';
+
+	/**
 	 * Transient name for the transfer lock.
 	 */
 	const TRANSFER_LOCK_TRANSIENT = 'optml_transfer_lock';
@@ -66,6 +71,17 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Time to live for the transfer lock, in seconds.
 	 */
 	const TRANSFER_LOCK_TTL = 600;
+
+	/**
+	 * Option counting the failed attempts of the current transfer step, and the steps skipped so far.
+	 * It is an option rather than a transient so an object cache eviction can't reset the count.
+	 */
+	const STEP_FAILURES_OPTION = 'optml_transfer_step_failures';
+
+	/**
+	 * How many times a failing transfer step is retried before the chain moves on.
+	 */
+	const MAX_STEP_RETRIES = 5;
 
 	/**
 	 * Flag used inside wp_get_attachment url filter.
@@ -874,6 +890,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			if ( ! isset( $current_meta['file'] ) || ! self::is_uploaded_image( $current_meta['file'] ) ) {
 				delete_post_meta( $id, self::META_KEYS['offloaded'] );
 				delete_post_meta( $id, self::OM_OFFLOADED_FLAG );
+				// A rollback that died after WordPress saved the local metadata ends here on retry.
+				delete_post_meta( $id, self::ROLLBACK_PENDING_FILE );
 				++$success_back;
 				continue;
 			}
@@ -966,8 +984,21 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				continue;
 			}
 
-			// Move the temporary file into the uploads directory.
-			$results = wp_handle_sideload( $file, $overrides, get_the_date( 'Y/m', $id ) );
+			if ( ! function_exists( 'update_attached_file' ) ) {
+				include_once ABSPATH . '/wp-admin/includes/post.php';
+			}
+			if ( ! function_exists( 'update_attached_file' ) ) {
+				update_post_meta( $id, self::META_KEYS['rollback_error'], 'true' );
+				continue;
+			}
+
+			// A file left behind by an interrupted attempt is replaced in place: a new sideload would get a
+			// suffixed name, and deleting it first would leave the attachment without a file if the move fails.
+			$pending = self::get_pending_rollback_file( $id );
+			$results = null !== $pending
+				? self::replace_pending_rollback_file( $pending, $temp_file, $type )
+				// Move the temporary file into the uploads directory.
+				: wp_handle_sideload( $file, $overrides, get_the_date( 'Y/m', $id ) );
 			if ( ! empty( $results['error'] ) ) {
 				if ( OPTML_DEBUG_MEDIA ) {
 					do_action( 'optml_log', ' wp_handle_sideload error' );
@@ -977,6 +1008,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Image ID: ' . $id . ' faced wp_handle_sideload error.' );
 				continue;
 			}
+
+			// Remember the moved file until the attachment points to it, so a retry can clean it up.
+			update_post_meta( $id, self::ROLLBACK_PENDING_FILE, $results['file'] );
+
+			// Point the attachment at the restored file right away: generating the sub-sizes is the
+			// slow part, and a request that dies there must not leave the stored path behind.
+			update_attached_file( $id, $results['file'] );
 
 			if ( ! function_exists( 'wp_create_image_subsizes' ) ) {
 				include_once ABSPATH . '/wp-admin/includes/image.php';
@@ -1003,14 +1041,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				wp_update_attachment_metadata( $id, $meta );
 			}
 
-			if ( ! function_exists( 'update_attached_file' ) ) {
-				include_once ABSPATH . '/wp-admin/includes/post.php';
-			}
-			if ( ! function_exists( 'update_attached_file' ) ) {
-				update_post_meta( $id, self::META_KEYS['rollback_error'], 'true' );
-				continue;
-			}
-			update_attached_file( $id, $results['file'] );
+			delete_post_meta( $id, self::ROLLBACK_PENDING_FILE );
 
 			$duplicated_images = apply_filters( 'optml_offload_duplicated_images', [], $id );
 			if ( is_array( $duplicated_images ) && ! empty( $duplicated_images ) ) {
@@ -1050,6 +1081,75 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		return $success_back;
+	}
+
+	/**
+	 * Get the file an interrupted rollback of this attachment moved into uploads.
+	 *
+	 * Only an existing file inside the uploads directory is returned, so a corrupted meta value can
+	 * never point the rollback at anything else.
+	 *
+	 * @param int $id The attachment ID.
+	 *
+	 * @return string|null The absolute path, or null when there is no usable file.
+	 */
+	public static function get_pending_rollback_file( int $id ): ?string {
+		$pending = get_post_meta( $id, self::ROLLBACK_PENDING_FILE, true );
+		if ( empty( $pending ) || ! is_string( $pending ) ) {
+			return null;
+		}
+
+		$uploads  = wp_get_upload_dir();
+		$base_dir = realpath( $uploads['basedir'] );
+		$file     = realpath( $pending );
+		if ( false === $base_dir || false === $file || ! is_file( $file ) ) {
+			return null;
+		}
+
+		$base_dir = trailingslashit( wp_normalize_path( $base_dir ) );
+		if ( strpos( wp_normalize_path( $file ), $base_dir ) !== 0 ) {
+			return null;
+		}
+
+		// The stored path, not the resolved one: WordPress stores attached files relative to the uploads path as configured.
+		return $pending;
+	}
+
+	/**
+	 * Put the downloaded image in place of the file an interrupted rollback left behind.
+	 *
+	 * The image is copied next to the old file first and then renamed over it, so a copy that fails
+	 * partway (full disk, file size limit) leaves the old file intact.
+	 *
+	 * @param string $pending The file left behind, from {@see self::get_pending_rollback_file()}.
+	 * @param string $temp_file The downloaded image.
+	 * @param string $type The image MIME type.
+	 *
+	 * @return array{file?: string, url?: string, type?: string, error?: string} The same shape as wp_handle_sideload().
+	 */
+	public static function replace_pending_rollback_file( string $pending, string $temp_file, string $type ): array {
+		$partial = $pending . '.optml-partial';
+		// phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- a failed move is reported through the return value.
+		if ( ! @copy( $temp_file, $partial ) || ! @rename( $partial, $pending ) ) {
+			wp_delete_file( $partial );
+
+			return [ 'error' => 'The restored file could not be written to ' . $pending ];
+		}
+		wp_delete_file( $temp_file );
+
+		// Same permissions as wp_handle_sideload() gives a new file.
+		$stat = stat( dirname( $pending ) );
+		if ( false !== $stat ) {
+			chmod( $pending, $stat['mode'] & 0000666 );
+		}
+
+		$uploads = wp_get_upload_dir();
+
+		return [
+			'file' => $pending,
+			'url'  => str_replace( wp_normalize_path( $uploads['basedir'] ), $uploads['baseurl'], wp_normalize_path( $pending ) ),
+			'type' => $type,
+		];
 	}
 
 	/**
@@ -1988,6 +2088,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			$lock_token = self::acquire_transfer_lock( $action );
 
 			if ( false !== $lock_token ) {
+				delete_option( self::STEP_FAILURES_OPTION );
 				$total = ceil( $count / $batch );
 				self::schedule_action(
 					time(),
@@ -2069,23 +2170,77 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return string|false The lock token on success, false if another worker already holds the lock.
 	 */
 	public static function acquire_transfer_lock( $action ) {
+		// Reading the transient also removes it once it has expired, so an expired lock can be taken again.
 		$lock = get_transient( self::TRANSFER_LOCK_TRANSIENT );
 		if ( false !== $lock ) {
 			return false;
 		}
 
 		$token = wp_generate_uuid4();
+		$value = [
+			'token'  => $token,
+			'action' => $action,
+		];
 
-		set_transient(
-			self::TRANSFER_LOCK_TRANSIENT,
-			[
-				'token'  => $token,
-				'action' => $action,
-			],
-			self::TRANSFER_LOCK_TTL
-		);
+		if ( ! self::add_transfer_lock( $value ) ) {
+			return false;
+		}
 
 		return $token;
+	}
+
+	/**
+	 * Store the transfer lock only if no other request stored it first.
+	 *
+	 * A read followed by a write lets two requests that start at the same moment both take the lock.
+	 * The write here fails when the lock already exists: wp_cache_add() with a persistent object
+	 * cache, and an INSERT IGNORE on the transient row otherwise. Both use the same storage as
+	 * set_transient(), so the rest of the lock code reads it as before.
+	 *
+	 * @param array{token: string, action: string} $value The lock value.
+	 *
+	 * @return bool True if this request stored the lock.
+	 */
+	private static function add_transfer_lock( array $value ): bool {
+		if ( wp_using_ext_object_cache() ) {
+			return wp_cache_add( self::TRANSFER_LOCK_TRANSIENT, $value, 'transient', self::TRANSFER_LOCK_TTL );
+		}
+
+		global $wpdb;
+
+		// The expiry is written first, so a request that dies right after the insert cannot leave a
+		// lock that never expires. A request that loses the race only rewrites the winner's expiry to
+		// the same moment.
+		update_option( '_transient_timeout_' . self::TRANSFER_LOCK_TRANSIENT, time() + self::TRANSFER_LOCK_TTL, false );
+
+		$option = '_transient_' . self::TRANSFER_LOCK_TRANSIENT;
+		$added  = $wpdb->query(
+			$wpdb->prepare(
+				"INSERT IGNORE INTO `{$wpdb->options}` (`option_name`, `option_value`, `autoload`) VALUES (%s, %s, %s)",
+				$option,
+				maybe_serialize( $value ),
+				'no'
+			)
+		);
+
+		// The read above cached the transient as missing; forget that so the next read sees the new row.
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+		if ( is_array( $notoptions ) && isset( $notoptions[ $option ] ) ) {
+			unset( $notoptions[ $option ] );
+			wp_cache_set( 'notoptions', $notoptions, 'options' );
+		}
+		wp_cache_delete( $option, 'options' );
+
+		if ( 1 !== $added ) {
+			return false;
+		}
+
+		// Written again, in case the previous holder's release removed it between the two writes. The
+		// cached copy is dropped first: it still holds the first write, so update_option() would skip the write.
+		wp_cache_delete( '_transient_timeout_' . self::TRANSFER_LOCK_TRANSIENT, 'options' );
+		update_option( '_transient_timeout_' . self::TRANSFER_LOCK_TRANSIENT, time() + self::TRANSFER_LOCK_TTL, false );
+
+		return true;
 	}
 
 	/**
@@ -2274,9 +2429,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			self::$instance->settings->update( $option, 'disabled' );
 
-			self::$instance->settings->update( 'show_offload_finish_notice', $type );
+			// A transfer that skipped failing steps left images behind, so it does not report success.
+			$skipped = self::get_skipped_steps( $lock_token );
+			delete_option( self::STEP_FAILURES_OPTION );
+			if ( $skipped > 0 ) {
+				self::$instance->logger->add_log( $type, $skipped . ' step(s) were skipped after failing ' . self::MAX_STEP_RETRIES . ' times. Start the transfer again to move the images left behind.' );
+			} else {
+				self::$instance->settings->update( 'show_offload_finish_notice', $type );
+			}
 
-			// Transfer completed successfully: release the lock.
+			// Transfer finished: release the lock.
 			self::release_transfer_lock( $lock_token );
 
 			return;
@@ -2322,11 +2484,21 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 					$lock_token,
 				]
 			);
+			self::clear_step_failures( $lock_token );
 		} catch ( Exception $e ) {
 			// Reschedule the cron to run again after a delay. Sometimes memory limit is exausted.
 			// This is a retryable error, so the lock is kept rather than released.
 			$delay_in_seconds = 10;
 			self::$instance->logger->add_log( $type, $e->getMessage() );
+
+			// A step that keeps failing would be retried every few seconds forever, with the transfer
+			// shown as running. After a few attempts the chain moves on, so the transfer can finish
+			// and the images left behind can be retried.
+			if ( self::count_step_failure( $lock_token, $action, $step ) >= self::MAX_STEP_RETRIES ) {
+				self::record_skipped_step( $lock_token );
+				self::$instance->logger->add_log( $type, 'Step ' . $step . ' failed ' . self::MAX_STEP_RETRIES . ' times, moving on to the next one.' );
+				$step = $step + 1;
+			}
 
 			self::schedule_action(
 				time() + $delay_in_seconds,
@@ -2343,6 +2515,98 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		} finally {
 			self::release_moving_images_lock();
 		}
+	}
+
+	/**
+	 * Read the step failures record of a transfer chain.
+	 *
+	 * @param string $lock_token The transfer lock token of the chain.
+	 *
+	 * @return array{token: string, action: string, step: int, count: int, skipped: int} The record, empty for another chain.
+	 */
+	private static function get_step_failures( string $lock_token ): array {
+		$failures = get_option( self::STEP_FAILURES_OPTION );
+		$record   = [
+			'token'   => $lock_token,
+			'action'  => '',
+			'step'    => 0,
+			'count'   => 0,
+			'skipped' => 0,
+		];
+		if ( ! is_array( $failures ) || ! isset( $failures['token'] ) || $failures['token'] !== $lock_token ) {
+			return $record;
+		}
+
+		return [
+			'token'   => $lock_token,
+			'action'  => isset( $failures['action'] ) ? (string) $failures['action'] : '',
+			'step'    => isset( $failures['step'] ) ? (int) $failures['step'] : 0,
+			'count'   => isset( $failures['count'] ) ? (int) $failures['count'] : 0,
+			'skipped' => isset( $failures['skipped'] ) ? (int) $failures['skipped'] : 0,
+		];
+	}
+
+	/**
+	 * Count a failed attempt of a transfer step.
+	 *
+	 * @param string $lock_token The transfer lock token of the chain.
+	 * @param string $action The transfer action.
+	 * @param int    $step The step that failed.
+	 *
+	 * @return int How many times in a row this step has failed.
+	 */
+	private static function count_step_failure( string $lock_token, string $action, int $step ): int {
+		$record = self::get_step_failures( $lock_token );
+		if ( $record['action'] !== $action || $record['step'] !== $step ) {
+			$record['count'] = 0;
+		}
+		$record['action'] = $action;
+		$record['step']   = $step;
+		++$record['count'];
+		update_option( self::STEP_FAILURES_OPTION, $record, false );
+
+		return $record['count'];
+	}
+
+	/**
+	 * Remember that the chain skipped a step that kept failing.
+	 *
+	 * @param string $lock_token The transfer lock token of the chain.
+	 *
+	 * @return void
+	 */
+	private static function record_skipped_step( string $lock_token ): void {
+		$record = self::get_step_failures( $lock_token );
+		$record['count'] = 0;
+		++$record['skipped'];
+		update_option( self::STEP_FAILURES_OPTION, $record, false );
+	}
+
+	/**
+	 * Clear the failed attempts after a step succeeds, keeping the count of skipped steps.
+	 *
+	 * @param string $lock_token The transfer lock token of the chain.
+	 *
+	 * @return void
+	 */
+	private static function clear_step_failures( string $lock_token ): void {
+		$record = self::get_step_failures( $lock_token );
+		if ( 0 === $record['count'] ) {
+			return;
+		}
+		$record['count'] = 0;
+		update_option( self::STEP_FAILURES_OPTION, $record, false );
+	}
+
+	/**
+	 * How many steps the chain skipped after they kept failing.
+	 *
+	 * @param string $lock_token The transfer lock token of the chain.
+	 *
+	 * @return int
+	 */
+	public static function get_skipped_steps( string $lock_token ): int {
+		return self::get_step_failures( $lock_token )['skipped'];
 	}
 
 	/**
