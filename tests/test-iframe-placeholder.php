@@ -83,6 +83,16 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		$this->assertDoesNotMatchRegularExpression( '/["\'<>&]/', Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS );
 	}
 
+	public function test_marker_is_expanded_when_head_end_tag_is_omitted(): void {
+		$html = '<html><head><style>' . Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT . '</style><body class="post">' . self::IFRAME . $this->comment_link() . '</body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+
+		$this->assertStringContainsString( $this->comment_link(), $replaced );
+		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
+		$this->assertStringContainsString( self::PLACEHOLDER_SELECTOR, substr( $replaced, 0, strpos( $replaced, '<body' ) ) );
+	}
+
 	public function test_body_only_marker_is_not_expanded(): void {
 		$html = '<html><head><title>t</title></head><body>' . self::IFRAME . $this->comment_link() . '</body></html>';
 

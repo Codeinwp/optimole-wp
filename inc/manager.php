@@ -503,21 +503,21 @@ final class Optml_Manager {
 	/**
 	 * Expand the iframe placeholder marker printed in <head>, or inject the placeholder style there.
 	 *
-	 * Copies of the marker after </head> come from page content and are left untouched.
+	 * Copies of the marker after the head come from page content and are left untouched.
+	 * The head ends at </head>, or at <body when the optional </head> is omitted.
 	 *
 	 * @param string $html Page HTML.
 	 *
 	 * @return string HTML with the iframe placeholder CSS added.
 	 */
 	private function add_iframe_placeholder_css( string $html ): string {
-		$head_end = stripos( $html, '</head>' );
-		if ( $head_end === false ) {
+		if ( ! preg_match( '/<\/head>|<body[\s>]/i', $html, $head_end, PREG_OFFSET_CAPTURE ) ) {
 			return $html;
 		}
 
-		$head = substr( $html, 0, $head_end );
+		$head = substr( $html, 0, $head_end[0][1] );
 		if ( strpos( $head, Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT ) !== false ) {
-			return str_replace( Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $head ) . substr( $html, $head_end );
+			return str_replace( Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $head ) . substr( $html, $head_end[0][1] );
 		}
 
 		return preg_replace( '/<head>(.*)<\/head>/ism', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $html ) ?? $html;
