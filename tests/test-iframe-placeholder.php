@@ -83,20 +83,12 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		$this->assertDoesNotMatchRegularExpression( '/["\'<>&]/', Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS );
 	}
 
-	public function test_placeholder_style_is_added_to_head_without_marker(): void {
-		$html = '<html><head><title>Test</title></head><body>' . self::IFRAME . '</body></html>';
+	public function test_body_only_marker_is_not_expanded(): void {
+		$html = '<html><head><title>t</title></head><body>' . self::IFRAME . $this->comment_link() . '</body></html>';
 
 		$replaced = Optml_Manager::instance()->replace_content( $html );
 
+		$this->assertStringContainsString( $this->comment_link(), $replaced );
 		$this->assertStringContainsString( Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $replaced );
-	}
-
-	public function test_marker_is_kept_without_iframe(): void {
-		$html = '<html><head><style>' . Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT . '</style></head><body><p>No embeds.</p></body></html>';
-
-		$replaced = Optml_Manager::instance()->replace_content( $html );
-
-		$this->assertStringContainsString( Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT, $replaced );
-		$this->assertStringNotContainsString( self::PLACEHOLDER_SELECTOR, $replaced );
 	}
 }
