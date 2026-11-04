@@ -113,6 +113,34 @@ class Test_Rest_Optimizations extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Only srcset entries with a width descriptor are stored, and a malformed descriptor never fails the request.
+	 */
+	public function test_only_width_srcset_descriptors_are_stored(): void {
+		$entry    = [ 'h' => 300, 'd' => 1, 'b' => 768 ];
+		$response = rest_get_server()->dispatch(
+			$this->build_request(
+				[
+					's' => [
+						12 => [
+							$entry + [ 'w' => 400, 's' => '400w' ],
+							$entry + [ 'w' => 333, 's' => '2x data-opt-id=Q onload=alert(1) z' ],
+							$entry + [ 'w' => 500, 's' => '500x' ],
+							$entry + [ 'w' => 600, 's' => [ '600w' ] ],
+						],
+					],
+				]
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'success', $response->get_data()['code'] );
+		Profile::set_current_profile_id( self::PROFILE_ID );
+		$profile = new Profile();
+		$profile->set_current_profile_data();
+		$this->assertSame( [ 400 => [ 'h' => 300, 'w' => 400, 'd' => 1, 's' => '400w', 'b' => 768 ] ], $profile->get_missing_srcsets( 12 ) );
+	}
+
+	/**
 	 * Build a signed optimizations request as the frontend profiler sends it.
 	 *
 	 * @param array<string, mixed> $fields Fields added to the required ones.
