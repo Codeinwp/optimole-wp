@@ -27,12 +27,18 @@ class Test_Dimension_Replacement extends WP_UnitTestCase {
 			'cdn_secret' => '12345',
 			'whitelist' => ['example.com'],
 		]);
+		$settings->update( 'lazyload', 'disabled' );
 		Optml_Manager::instance()->init();
 		// Get the tag replacer instance
 		$this->tag_replacer = Optml_Tag_Replacer::instance();
 		
 		// Mock profile data for testing
 		$this->setup_mock_profile_data();
+	}
+
+	public function tearDown() : void {
+		Profile::reset_current_profile();
+		parent::tearDown();
 	}
 	
 	/**
@@ -126,6 +132,63 @@ class Test_Dimension_Replacement extends WP_UnitTestCase {
 		$result = $this->tag_replacer->process_image_tags( $html_input, $this->extract_images_from_html( $html_input ) );
 
 		$this->assertMatchesRegularExpression( '/width="1920".*height="1080".*data-opt-id=' . $this->tag_replacer->get_id_by_url( self::IMAGE_URL ) . '/', $result );
+	}
+
+	/**
+	 * Text that looks like the image id attribute inside an attribute value stays in that value when dimensions are added.
+	 */
+	public function test_dimensions_do_not_break_out_of_attribute_values(): void {
+		$alt        = 'a data-opt-id= x onerror=alert(1) ';
+		$html_input = '<img src="' . self::IMAGE_URL . '" alt="' . $alt . '">';
+
+		$result = $this->tag_replacer->process_image_tags( $html_input, $this->extract_images_from_html( $html_input ) );
+		$img    = $this->get_img_element( $result );
+
+		$this->assertFalse( $img->hasAttribute( 'onerror' ) );
+		$this->assertSame( $alt, $img->getAttribute( 'alt' ) );
+		$this->assertSame( '1920', $img->getAttribute( 'width' ) );
+		$this->assertSame( '1080', $img->getAttribute( 'height' ) );
+	}
+
+	/**
+	 * A stored srcset entry whose descriptor carries attributes never turns them into real ones.
+	 */
+	public function test_stored_srcset_descriptor_cannot_add_attributes(): void {
+		$image_id = $this->tag_replacer->get_id_by_url( self::IMAGE_URL );
+		Profile::reset_current_profile();
+		$profile = Optml_Manager::instance()->page_profiler;
+		$profile->store(
+			'test-profile',
+			Profile::DEVICE_TYPE_DESKTOP,
+			[],
+			[],
+			[],
+			[ $image_id => [ 'w' => 1920, 'h' => 1080 ] ],
+			[ $image_id => [ 333 => [ 'w' => 333, 'h' => 222, 'd' => 1, 's' => '2x data-opt-id=Q onload=alert(1) z', 'b' => 0 ] ] ]
+		);
+		Profile::set_current_profile_id( 'test-profile' );
+		$profile->set_current_profile_data();
+		$html_input = '<img src="' . self::IMAGE_URL . '" alt="Test image">';
+
+		$result = $this->tag_replacer->process_image_tags( $html_input, $this->extract_images_from_html( $html_input ) );
+		$img    = $this->get_img_element( $result );
+
+		$this->assertFalse( $img->hasAttribute( 'onload' ) );
+		$this->assertSame( '1920', $img->getAttribute( 'width' ) );
+	}
+
+	/**
+	 * Parse the first image element out of the markup.
+	 *
+	 * @param string $html The markup.
+	 */
+	private function get_img_element( string $html ): DOMElement {
+		$dom              = new DOMDocument();
+		$previous_setting = libxml_use_internal_errors( true );
+		$dom->loadHTML( $html );
+		libxml_use_internal_errors( $previous_setting );
+
+		return $dom->getElementsByTagName( 'img' )->item( 0 );
 	}
 
 	/**

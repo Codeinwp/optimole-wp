@@ -312,23 +312,51 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 
 			if ( strpos( $image_tag, 'decoding=' ) === false ) {
-				$image_tag = str_replace( 'data-opt-id=', 'decoding=async data-opt-id=', $image_tag );
+				$image_tag = $this->add_image_attribute( $image_tag, 'decoding=async' );
 			}
 			if ( strpos( $image_tag, 'width=' ) === false || strpos( $image_tag, 'height=' ) === false ) {
 				$missing_dimensions = Optml_Manager::instance()->page_profiler->get_missing_dimensions( $image_id );
 				if ( ! empty( $missing_dimensions ) ) {
+					$dimensions = [];
 					if ( strpos( $image_tag, 'width=' ) === false ) {
-						$image_tag = str_replace( 'data-opt-id=', 'width="' . $missing_dimensions['w'] . '" data-opt-id=', $image_tag );
+						$dimensions[] = 'width="' . (int) $missing_dimensions['w'] . '"';
 					}
 					if ( strpos( $image_tag, 'height=' ) === false ) {
-						$image_tag = str_replace( 'data-opt-id=', 'height="' . $missing_dimensions['h'] . '" data-opt-id=', $image_tag );
+						$dimensions[] = 'height="' . (int) $missing_dimensions['h'] . '"';
 					}
+					$image_tag = $this->add_image_attribute( $image_tag, implode( ' ', $dimensions ) );
 				}
 			}
 			$content = str_replace( $images['img_tag'][ $index ], $image_tag, $content );
 		}
 		return $content;
 	}
+	/**
+	 * Add an attribute to each image tag in the markup: the image and, when lazyloaded, its noscript fallback.
+	 *
+	 * The image parser ends a tag at its first ">", so "<img" at the start or right after a ">" always opens a tag
+	 * and is never text inside an attribute value.
+	 *
+	 * @param string $image_tag The image markup.
+	 * @param string $attribute The attribute, such as width="300".
+	 *
+	 * @return string The markup with the attribute added.
+	 */
+	private function add_image_attribute( string $image_tag, string $attribute ): string {
+		return preg_replace( '/(^|>)(\s*)<img\b/i', '$1$2<img ' . $attribute, $image_tag ) ?? $image_tag;
+	}
+
+	/**
+	 * Check whether a value is a srcset width descriptor, the only kind the page profiler reports.
+	 *
+	 * @param mixed $descriptor The descriptor, such as "400w".
+	 *
+	 * @return bool True for a width descriptor.
+	 */
+	public static function is_srcset_descriptor( $descriptor ): bool {
+		return is_string( $descriptor ) && 1 === preg_match( '/^\d+w\z/', $descriptor );
+	}
+
 	/**
 	 * Check if we should lazyload a gif.
 	 *
@@ -508,7 +536,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 
 		foreach ( $missing_srcsets as $srcset_data ) {
 			// Validate required fields
-			if ( ! isset( $srcset_data['w'] ) || ! isset( $srcset_data['h'] ) || ! isset( $srcset_data['s'] ) ) {
+			if ( ! isset( $srcset_data['w'] ) || ! isset( $srcset_data['h'] ) || ! self::is_srcset_descriptor( $srcset_data['s'] ?? null ) ) {
 				continue;
 			}
 

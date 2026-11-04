@@ -1051,7 +1051,7 @@ class Optml_Rest {
 		if ( ! empty( $missing_srcsets ) ) {
 			foreach ( $missing_srcsets as $id => $srcset ) {
 				foreach ( $srcset as $size ) {
-					if ( ! isset( $size['w'], $size['h'], $size['d'], $size['s'], $size['b'] ) ) {
+					if ( ! isset( $size['w'], $size['h'], $size['d'], $size['s'], $size['b'] ) || ! Optml_Tag_Replacer::is_srcset_descriptor( $size['s'] ) ) {
 						continue;
 					}
 					$sanitized_missing_srcsets[ intval( $id ) ][ intval( $size['w'] ) ] = [ 'h' => intval( $size['h'] ), 'w' => intval( $size['w'] ), 'd' => intval( $size['d'] ), 's' => sanitize_text_field( $size['s'] ), 'b' => intval( $size['b'] ) ];
