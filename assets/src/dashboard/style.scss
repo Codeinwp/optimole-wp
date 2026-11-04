@@ -84,7 +84,7 @@ $mango-yellow: #FBBF24;
 	} 
 	.components-toggle-group-control{
 		border-color: var(--wp-components-color-foreground);
-		// Selected indicator since WP 7.1.
+		// Selected-option indicator drawn by ToggleGroupControl's ::before.
 		&::before{
 			background: var(--wp-components-color-foreground);
 			border-color: var(--wp-components-color-foreground);
