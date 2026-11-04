@@ -4,7 +4,7 @@ Tags: image optimization, optimize images, compress images, webp, avif
 Requires at least: 5.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 4.2.18
+Stable tag: 4.2.19
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -248,22 +248,9 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 4.2.18](https://github.com/Codeinwp/optimole-wp/compare/v4.2.17...v4.2.18) (2026-11-02)
+##### [Version 4.2.19](https://github.com/Codeinwp/optimole-wp/compare/v4.2.18...v4.2.19) (2026-11-04)
 
-- Fixed image replacement failing when a cache token was numeric.
-- Fixed placeholder-first images missing responsive srcset and dimensions.
-- Fixed Image Storage transfers retrying a failed step without end
-- Added option to keep hand-written image sizes attributes
-- Fixed pages with many images running out of memory.
-- Fixed repeated database errors filling error logs on frontend pages
-- Fixed restored images getting extra numbered copies after interrupted rollbacks
-- Fixed Optimole hourly sync staying scheduled after deactivation.
-- Fixed account sign-up failing when the service returned an empty response
-- Fixed renamed images breaking in comments and term descriptions.
-- Fixed comment content executing as markup on optimized pages.
-- Fixed profiler requests failing when background data was missing.
-- Fixed gradient background images lazy-loading on scroll.
-- Fixed LCP image missing high fetch priority and loading lazily.
+- Enhanced security
 - Updated dependencies
 
 
