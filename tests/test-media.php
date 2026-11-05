@@ -332,7 +332,7 @@ class Test_Media extends WP_UnitTestCase {
 		$my_size_image = wp_get_attachment_image_src(self::$sample_attachement, 'my_size_crop' );
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $my_size_image[0] );
-		$this->assertStringContainsString('/w:200/h:200/rt:fill/g:nowe/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $my_size_image[0]);
+		$this->assertStringContainsString('/w:200/h:200/rt:fill/g:noea/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $my_size_image[0]);
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $image_thumbnail_size[0] );
 		$this->assertStringContainsString( '/w:150/h:150/rt:fill/g:ce/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $image_thumbnail_size[0] );
