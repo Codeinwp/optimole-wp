@@ -17,7 +17,8 @@ module.exports = {
           targets: {
             node: 'current'
           }
-        }]
+        }],
+        ['@babel/preset-react', { runtime: 'automatic' }]
       ]
     }]
   },
