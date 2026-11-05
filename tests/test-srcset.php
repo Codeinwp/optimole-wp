@@ -598,9 +598,8 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 		$result = $tag_replacer->add_missing_srcset_attributes( $tag, $missing_srcsets, 'https://example.com/image.jpg', false );
 		$img = $this->get_img_element( $result );
 
-		// The payload must stay inert literal text inside the srcset value, not become a real attribute
 		$this->assertFalse( $img->hasAttribute( 'onload' ) );
-		$this->assertStringContainsString( '$0 onload=alert(document.domain) x', $img->getAttribute( 'srcset' ) );
+		$this->assertFalse( $img->hasAttribute( 'srcset' ) );
 	}
 
 	/**
@@ -668,7 +667,28 @@ class Test_Srcset_Functionality extends WP_UnitTestCase {
 		$img = $this->get_img_element( $result );
 
 		$this->assertFalse( $img->hasAttribute( 'onload' ) );
-		$this->assertStringContainsString( '\0 onload=alert(document.domain) x', $img->getAttribute( 'srcset' ) );
+		$this->assertFalse( $img->hasAttribute( 'srcset' ) );
+	}
+
+	/**
+	 * Only width descriptors reach the srcset; an entry with any other descriptor is left out.
+	 */
+	public function test_add_missing_srcset_attributes_skips_non_width_descriptors(): void {
+		$tag_replacer = new Optml_Tag_Replacer();
+
+		$tag = '<img src="https://example.com/image.jpg" alt="Test" />';
+		$missing_srcsets = [
+			[ 'w' => 400, 'h' => 300, 'd' => 1, 's' => '400w', 'b' => 0 ],
+			[ 'w' => 333, 'h' => 222, 'd' => 1, 's' => '2x data-opt-id=Q onload=alert(1) z', 'b' => 0 ],
+			[ 'w' => 500, 'h' => 375, 'd' => 1, 's' => "500w\n", 'b' => 0 ],
+			[ 'w' => 600, 'h' => 450, 'd' => 1, 's' => [ '600w' ], 'b' => 0 ],
+		];
+
+		$result = $tag_replacer->add_missing_srcset_attributes( $tag, $missing_srcsets, 'https://example.com/image.jpg', false );
+		$srcset = $this->get_img_element( $result )->getAttribute( 'srcset' );
+
+		$this->assertCount( 1, explode( ', ', $srcset ) );
+		$this->assertStringEndsWith( ' 400w', $srcset );
 	}
 
 	/**

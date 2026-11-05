@@ -154,30 +154,30 @@ class Profile {
 	/**
 	 * Stores above-fold image data for a specific profile ID and device type.
 	 *
-	 * @param string                                                                              $id The profile ID.
-	 * @param int                                                                                 $device_type The device type constant.
-	 * @param array<int|string>                                                                   $above_fold_images Array of above-fold image ids.
-	 * @param array<string, array<string, array<int, string>>>                                    $af_bg_selectors Array of above-fold background selectors.
-	 *                                        Array structure:
-	 *                                        [
-	 *                                            'css_selector' => [
-	 *                                                'above_the_fold_selector' => [
-	 *                                                    0 => 'background_image_url',
-	 *                                                    1 => 'background_image_url',
-	 *                                                    ...
-	 *                                                ],
-	 *                                                ...
-	 *                                            ],
-	 *                                            ...
-	 *                                        ] Array of above-fold background selectors.
-	 * @param array{imageId?: string, bgSelector?: string, bgUrls?: array<string>, type?: string} $lcp_data LCP (Largest Contentful Paint) data.
-	 *                                                                   where 'imageId' is the element identifier,
-	 *                                                                   'bgSelector' is the selector,
-	 *                                                                   'bgUrls' is an array of URLs
-	 *                                                                   'type' is the type of the LCP element.
-	 * @param array<int, array{w: int, h: int}>                                                   $missing_dimensions Array of missing dimensions.
-	 * @param array<int, array<int, array{w: int, h: int, d: int, s: string, b: int}>>            $missing_srcsets Array of missing srcsets.
-	 * @param array<int, bool>                                                                    $crop_status Array of crop status for images.
+	 * @param string                                                                           $id The profile ID.
+	 * @param int                                                                              $device_type The device type constant.
+	 * @param array<int|string>                                                                $above_fold_images Array of above-fold image ids.
+	 * @param array<string, array<string, array<int, string>>>                                 $af_bg_selectors Array of above-fold background selectors.
+	 *                                     Array structure:
+	 *                                     [
+	 *                                         'css_selector' => [
+	 *                                             'above_the_fold_selector' => [
+	 *                                                 0 => 'background_image_url',
+	 *                                                 1 => 'background_image_url',
+	 *                                                 ...
+	 *                                             ],
+	 *                                             ...
+	 *                                         ],
+	 *                                         ...
+	 *                                     ] Array of above-fold background selectors.
+	 * @param array{imageId?: int, bgSelector?: string, bgUrls?: array<string>, type?: string} $lcp_data LCP (Largest Contentful Paint) data.
+	 *                                                                where 'imageId' is the element identifier,
+	 *                                                                'bgSelector' is the selector,
+	 *                                                                'bgUrls' is an array of URLs
+	 *                                                                'type' is the type of the LCP element.
+	 * @param array<int, array{w: int, h: int}>                                                $missing_dimensions Array of missing dimensions.
+	 * @param array<int, array<int, array{w: int, h: int, d: int, s: string, b: int}>>         $missing_srcsets Array of missing srcsets.
+	 * @param array<int, bool>                                                                 $crop_status Array of crop status for images.
 	 * @return void
 	 */
 	public function store( string $id, int $device_type, array $above_fold_images, $af_bg_selectors = [], $lcp_data = [], $missing_dimensions = [], $missing_srcsets = [], $crop_status = [] ) {
@@ -384,7 +384,9 @@ class Profile {
 	 */
 	public function is_lcp_image_in_all_viewports( int $image_id ): bool {
 		foreach ( self::get_active_devices() as $device ) {
-			if ( ( ( self::$current_profile_data[ $device ]['lcp']['type'] ?? '' ) === 'img' ) && ( ( self::$current_profile_data[ $device ]['lcp']['imageId'] ?? null ) === $image_id ) ) {
+			$lcp = self::$current_profile_data[ $device ]['lcp'] ?? [];
+			// Profiles stored before the REST handler cast the ID hold it as a numeric string.
+			if ( ( $lcp['type'] ?? '' ) === 'img' && isset( $lcp['imageId'] ) && (int) $lcp['imageId'] === $image_id ) {
 				return true;
 			}
 		}

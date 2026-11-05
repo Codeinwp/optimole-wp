@@ -918,4 +918,61 @@ class Test_Replacer extends WP_UnitTestCase {
 		$this->assertSame( 'eFRn.20eff', Optml_Url_Replacer::get_active_cache_booster( 'http://example.org/other.png', 'eFRn.20eff' ) );
 		delete_transient( Optml_Settings::INDIVIDUAL_CACHE_TOKENS_KEY );
 	}
+
+	public function test_unicode_escaped_process_text_is_left_undecoded(): void {
+		$content = '<p>look \/process:\u003Cimg\u0020src\u003Dx\u0020onerror\u003Dalert\u00281\u0029\u003E.jpg here</p>';
+
+		$replaced = Optml_Manager::instance()->process_urls_from_content( $content );
+
+		$this->assertSame( $content, $replaced );
+	}
+
+	public function test_unicode_escaped_offload_filename_is_escaped(): void {
+		$content = '<p>look https:\/\/example.org\/process:999999\/id:\u003Cimg\u0020src\u003Dx\u0020onerror\u003Dalert\u00281\u0029\u003E.jpg here</p>';
+
+		$replaced = Optml_Manager::instance()->process_urls_from_content( $content );
+
+		$this->assertStringContainsString( 'i.optimole.com', $replaced );
+		$this->assertStringNotContainsString( '<img', $replaced );
+	}
+
+	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public function offload_url_without_id_provider(): array {
+		return [
+			'attachment id' => [ '<p>see https://example.org/process:999999/sample-image.jpg here</p>' ],
+			'media cloud'   => [ '<p>see https://example.org/process:media_cloud/sample-image.jpg here</p>' ],
+		];
+	}
+
+	/**
+	 * @dataProvider offload_url_without_id_provider
+	 */
+	public function test_offload_url_without_id_is_left_unchanged( string $content ): void {
+		$replaced = Optml_Manager::instance()->process_urls_from_content( $content );
+
+		$this->assertSame( $content, $replaced );
+	}
+
+	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public function unicode_escaped_image_tag_provider(): array {
+		return [
+			'process url'   => [ '<img src=\"https:\/\/example.org\/process:\u0022\u003E\u003Csvg\u0020onload\u003Dalert\u00281\u0029\u003E.jpg\">' ],
+			'relative path' => [ '<img src=\"\/wp-content\/process:\u0022\u003E\u003Csvg\u0020onload\u003Dalert\u00281\u0029\u003E.jpg\">' ],
+			'no extension'  => [ '<img src=\"https:\/\/example.org\/uploads\/sample\u0022\u003E\u003Csvg\u0020onload\u003Dalert\u00281\u0029\u003E\">' ],
+			'decoded space' => [ '<img src=\"https:\/\/example.org\/process:x\u0020onerror=alert\u00281\u0029\/\/.jpg\">' ],
+		];
+	}
+
+	/**
+	 * @dataProvider unicode_escaped_image_tag_provider
+	 */
+	public function test_unicode_escaped_image_tag_src_is_not_decoded_into_markup( string $content ): void {
+		$replaced = Optml_Manager::instance()->process_images_from_content( $content );
+
+		$this->assertSame( $content, $replaced );
+	}
 }

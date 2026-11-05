@@ -4,7 +4,7 @@ use OptimoleWP\BgOptimizer\Lazyload;
 use OptimoleWP\PageProfiler\Profile;
 
 /**
- * Regression tests: CSS injection through profiler background selectors.
+ * Background lazyload selector tests: default watchers and CSS injection through profiler selectors.
  *
  * @package     Optimole-WP
  * @subpackage  Tests
@@ -224,6 +224,64 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 		$this->assertStringStartsWith( '@media (max-width: 600px) {', $css );
 		$this->assertStringNotContainsString( 'min-width', $css );
 		$this->assertStringContainsString( ':not(#hero):not(.optml-bg-lazyloaded)', $css );
+	}
+
+	/**
+	 * A block style with a gradient and an image in one background-image value is watched.
+	 *
+	 * @dataProvider gradient_with_image_styles
+	 *
+	 * @param string $style Inline style rendered by the core style engine.
+	 */
+	public function test_default_watchers_match_gradient_with_background_image( string $style ): void {
+		$this->assertTrue( $this->is_watched( 'wp-block-quote has-background', $style ) );
+	}
+
+	/**
+	 * Inline styles core renders for a background gradient combined with an image.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public function gradient_with_image_styles(): array {
+		return [
+			'custom gradient' => [ "background-image:linear-gradient(135deg,rgb(6,147,227) 0%,rgb(155,81,224) 100%), url('https://example.com/hero.jpg');background-size:cover;" ],
+			'preset gradient' => [ "background-image:var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple), url('https://example.com/hero.jpg');background-size:cover;" ],
+		];
+	}
+
+	/**
+	 * A gradient without an image is not watched.
+	 */
+	public function test_default_watchers_skip_gradient_without_image(): void {
+		$this->assertFalse( $this->is_watched( 'wp-block-quote has-background', 'background-image:linear-gradient(135deg,red 0%,blue 100%);' ) );
+	}
+
+	/**
+	 * Whether any background lazyload selector matches an element with the given class and style.
+	 *
+	 * Only evaluates selectors built entirely from `[class*="..."]` / `[style*="..."]` parts.
+	 *
+	 * @param string $class_attr Element class attribute.
+	 * @param string $style      Element style attribute.
+	 */
+	private function is_watched( string $class_attr, string $style ): bool {
+		$attributes = [
+			'class' => $class_attr,
+			'style' => $style,
+		];
+		foreach ( Optml_Lazyload_Replacer::get_background_lazyload_selectors() as $selector ) {
+			preg_match_all( '/\[(class|style)\*="([^"]*)"\]/', $selector, $parts, PREG_SET_ORDER );
+			if ( empty( $parts ) || implode( '', array_column( $parts, 0 ) ) !== $selector ) {
+				continue;
+			}
+			foreach ( $parts as $part ) {
+				if ( strpos( $attributes[ $part[1] ], $part[2] ) === false ) {
+					continue 2;
+				}
+			}
+			return true;
+		}
+		return false;
 	}
 
 	/**
