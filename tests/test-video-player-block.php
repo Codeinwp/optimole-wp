@@ -179,4 +179,29 @@ class Test_Video_Player_Block extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'color:red', $rendered );
 		$this->assertStringNotContainsString( 'color:blue', $rendered );
 	}
+
+	/**
+	 * Without get_block_wrapper_attributes() (WordPress 5.5) the wrapper keeps its block, alignment and custom classes only.
+	 */
+	public function test_legacy_wrapper_attributes(): void {
+		$method = new ReflectionMethod( Optml_Video_Player::class, 'get_legacy_wrapper_attributes' );
+		$method->setAccessible( true );
+
+		$this->assertSame(
+			'class="wp-block-optimole-video-player alignwide my-custom-class"',
+			$method->invoke( new Optml_Video_Player(), [
+				'align'       => 'wide',
+				'className'   => 'my-custom-class',
+				'onmouseover' => 'alert(1)',
+			] )
+		);
+		$this->assertSame(
+			'class="wp-block-optimole-video-player"',
+			$method->invoke( new Optml_Video_Player(), [ 'align' => 'wide" onmouseover="alert(1)' ] )
+		);
+		$this->assertSame(
+			'class="wp-block-optimole-video-player x&quot; onmouseover=&quot;alert(1)"',
+			$method->invoke( new Optml_Video_Player(), [ 'className' => 'x" onmouseover="alert(1)' ] )
+		);
+	}
 }

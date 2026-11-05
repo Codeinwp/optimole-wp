@@ -7,14 +7,16 @@ const mockActions = {};
 
 jest.mock( '@wordpress/api-fetch', () => jest.fn() );
 jest.mock( '@wordpress/data', () => ({
-	dispatch: () => new Proxy({}, {
+
+	// Like the default registry, an unregistered store name resolves to null.
+	dispatch: store => [ 'optimole', 'core/notices' ].includes( store ) ? new Proxy({}, {
 		get: ( target, name ) => {
 			if ( ! mockActions[ name ]) {
 				mockActions[ name ] = jest.fn();
 			}
 			return mockActions[ name ];
 		}
-	}),
+	}) : null,
 	select: () => ({
 		getOptimizedImages: () => [],
 		getQueryArgs: () => ({}),
@@ -24,8 +26,8 @@ jest.mock( '@wordpress/data', () => ({
 }) );
 jest.mock( '@wordpress/url', () => ({ addQueryArgs: url => url }) );
 
-// Provided by WordPress at runtime, not installed.
-jest.mock( '@wordpress/notices', () => ({ store: 'core/notices' }), { virtual: true });
+// Provided by WordPress at runtime, not installed; before 5.7 it has no `store` export.
+jest.mock( '@wordpress/notices', () => ({}), { virtual: true });
 jest.mock( '../helpers', () => ({ toggleDashboardSidebarSubmenu: jest.fn() }) );
 
 global.optimoleDashboardApp = {
@@ -36,6 +38,12 @@ global.jQuery = { ajax: jest.fn() };
 
 const apiFetch = require( '@wordpress/api-fetch' );
 const { callSync } = require( '../api' );
+
+describe( 'api module', () => {
+	test( 'loads when @wordpress/notices has no store export', () => {
+		expect( () => jest.isolateModules( () => require( '../api' ) ) ).not.toThrow();
+	});
+});
 
 const flushPromises = () => new Promise( resolve => setTimeout( resolve, 0 ) );
 

@@ -14,6 +14,7 @@ import {
 	BaseControl,
 	Button,
 	Icon,
+	RadioControl,
 	RangeControl,
 	ToggleControl,
 
@@ -173,32 +174,51 @@ const Compression = ({
 		}
 	}, [ showSample ]);
 
+	const compressionModes = [
+		{
+			className: 'bg-blue-500',
+			label: optimoleDashboardApp.strings.options_strings.compression_mode_speed_optimized,
+			value: 'speed_optimized'
+		},
+		{
+			label: optimoleDashboardApp.strings.options_strings.compression_mode_quality_optimized,
+			value: 'quality_optimized'
+		},
+		{
+			label: optimoleDashboardApp.strings.options_strings.compression_mode_custom,
+			value: 'custom'
+		}
+	];
+
+	const compressionModeLabel = (
+		<div className="mb-4">
+			<strong>{optimoleDashboardApp.strings.options_strings.compression_mode}</strong>
+		</div>
+	);
+
 	return (
 		<>
 
-			<ToggleGroupControl className=" w-4/6"
-				aria-label={ optimoleDashboardApp.strings.options_strings.compression_mode }
-				onChange={ value => transformCompressionMode( value ) }
-				value={ compressionMode }
-				label={ (
-					<div className="mb-4">
-						<strong>{optimoleDashboardApp.strings.options_strings.compression_mode}</strong>
-					</div>
-				) }
-			>
-				<ToggleGroupControlOption className="bg-blue-500"
-					label={ optimoleDashboardApp.strings.options_strings.compression_mode_speed_optimized }
-					value="speed_optimized"
+			{ /* ToggleGroupControl ships with WordPress 5.9. */ }
+			{ ToggleGroupControl ? (
+				<ToggleGroupControl className=" w-4/6"
+					aria-label={ optimoleDashboardApp.strings.options_strings.compression_mode }
+					onChange={ value => transformCompressionMode( value ) }
+					value={ compressionMode }
+					label={ compressionModeLabel }
+				>
+					{ compressionModes.map( mode => (
+						<ToggleGroupControlOption key={ mode.value } { ...mode } />
+					) ) }
+				</ToggleGroupControl>
+			) : (
+				<RadioControl
+					label={ compressionModeLabel }
+					selected={ compressionMode }
+					options={ compressionModes }
+					onChange={ value => transformCompressionMode( value ) }
 				/>
-				<ToggleGroupControlOption
-					label={ optimoleDashboardApp.strings.options_strings.compression_mode_quality_optimized }
-					value="quality_optimized"
-				/>
-				<ToggleGroupControlOption
-					label={ optimoleDashboardApp.strings.options_strings.compression_mode_custom }
-					value="custom"
-				/>
-			</ToggleGroupControl>
+			) }
 			{'speed_optimized' === compressionMode && (
 				<p className="text-sm text-gray-600 mb-20">
 					{optimoleDashboardApp.strings.options_strings.compression_mode_speed_optimized_desc}
