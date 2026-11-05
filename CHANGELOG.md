@@ -1,3 +1,8 @@
+##### [Version 4.2.19](https://github.com/Codeinwp/optimole-wp/compare/v4.2.18...v4.2.19) (2026-11-04)
+
+- Enhanced security
+- Updated dependencies
+
 ##### [Version 4.2.18](https://github.com/Codeinwp/optimole-wp/compare/v4.2.17...v4.2.18) (2026-11-02)
 
 - Fixed image replacement failing when a cache token was numeric.
