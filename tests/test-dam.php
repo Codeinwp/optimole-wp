@@ -249,7 +249,7 @@ class Test_Dam extends WP_UnitTestCase {
 			$this->assertEquals( 100, $result[2] );
 			$this->assertFalse( $result[3] );
 			$result = $this->dam->alter_attachment_image_src( false, $id, 'test_gravity', false );
-			$this->assertStringContainsString( 'w:200/h:100/g:noea/rt:fill', $result[0] );
+			$this->assertStringContainsString( 'w:200/h:100/g:nowe/rt:fill', $result[0] );
 
 			$result = $this->dam->alter_attachment_image_src( false, $id, 'test_portrait', false );
 			$this->assertStringContainsString( 'w:100/h:200/g:ce/rt:fill', $result[0] );
