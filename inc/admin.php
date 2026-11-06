@@ -114,7 +114,6 @@ class Optml_Admin {
 		}
 
 		add_filter( 'themeisle-sdk/survey/' . OPTML_PRODUCT_SLUG, [ $this, 'get_survey_metadata' ], 10, 2 );
-		add_filter( 'themeisle_sdk_blackfriday_data', [ $this, 'add_black_friday_data' ] );
 		add_action( 'admin_init', [ $this, 'mark_user_with_offload' ] );
 	}
 
@@ -1648,29 +1647,6 @@ class Optml_Admin {
 	}
 
 	/**
-	 * Hide the SDK Black Friday notice when Optimole is the only ThemeIsle product.
-	 *
-	 * Optimole shows its Black Friday offer only in its dashboard. Without a config,
-	 * the SDK shows the generic ThemeIsle notice on every admin page. When other
-	 * ThemeIsle products are active, the notice is theirs, so it stays.
-	 *
-	 * @param array<string, mixed> $configs The Black Friday configs of the products.
-	 *
-	 * @return array<string, mixed> The configs.
-	 */
-	public function add_black_friday_data( $configs ) {
-		if ( ! class_exists( '\ThemeisleSDK\Loader' ) || ! isset( $configs['default'] ) || ! is_array( $configs['default'] ) ) {
-			return $configs;
-		}
-
-		if ( [ OPTML_PRODUCT_SLUG ] === array_keys( \ThemeisleSDK\Loader::get_products() ) ) {
-			$configs['default']['sale_url'] = '';
-		}
-
-		return $configs;
-	}
-
-	/**
 	 * Check if the current user dismissed the SDK Black Friday notice this year.
 	 *
 	 * The SDK uses one dismissal for the notices of all ThemeIsle products.
@@ -1738,9 +1714,6 @@ class Optml_Admin {
 		 */
 		$now = apply_filters( 'themeisle_sdk_current_date', new \DateTime( 'now' ) );
 		$current_year = $now->format( 'Y' );
-		// Per-year UTM, so each campaign is tracked separately.
-		$year_suffix = $now->format( 'y' );
-		$utm_area = 'bfcm' . $year_suffix;
 
 		$black_friday_day = new \DateTime( "last Friday of November $current_year" );
 		$sale_start = clone $black_friday_day;
@@ -1766,7 +1739,7 @@ class Optml_Admin {
 				'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 				'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 			),
-			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), $utm_area, 'sidebarnotice' ) ),
+			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm', 'sidebarnotice' ) ),
 		];
 
 		// The banner shares the SDK dismissal, which resets every year.
@@ -1780,7 +1753,7 @@ class Optml_Admin {
 			'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 			'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 		);
-		$cta_link = esc_url_raw( tsdk_utmify( self::get_upgrade_base_link(), $utm_area, 'notice' ) );
+		$cta_link = esc_url_raw( tsdk_utmify( self::get_upgrade_base_link(), 'bfcm', 'notice' ) );
 		$cta_text = __( 'Claim now', 'optimole-wp' );
 
 		$notices['banner'] = [

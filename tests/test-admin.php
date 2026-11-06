@@ -203,7 +203,7 @@ class Test_Admin extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Test the dismissal resets and the UTM tag follows the year, and the promo code stays BFCM2525.
+	 * Test the dismissal resets every year, the UTM campaign has no year, and the promo code stays BFCM2525.
 	 */
 	public function test_get_bf_notices_uses_yearly_dismissal_and_utm() {
 		$this->setup_black_friday_sale_period();
@@ -217,19 +217,11 @@ class Test_Admin extends WP_UnitTestCase {
 
 		$this->assertArrayHasKey( 'banner', $result );
 		$this->assertSame( Optml_Admin::SDK_BF_DISMISS_META, $result['banner']['dismiss_key'] );
-		$this->assertStringContainsString( 'bfcm26', $result['banner']['cta_link'] );
-		$this->assertStringContainsString( 'bfcm26', $result['sidebar']['cta_link'] );
-		$this->assertStringContainsString( 'BFCM2525', $result['banner']['subtitle'] );
-		$this->assertStringContainsString( 'BFCM2525', $result['sidebar']['subtitle'] );
-
-		// 2025 still uses the legacy UTM tag.
-		$this->mock_date_to( new DateTime( '2025-11-28 12:00:00' ) );
-		$result = $this->admin->get_bf_notices( 'free' );
-
-		$this->assertStringContainsString( 'bfcm25', $result['banner']['cta_link'] );
-		$this->assertStringContainsString( 'bfcm25', $result['sidebar']['cta_link'] );
-		$this->assertStringContainsString( 'BFCM2525', $result['banner']['subtitle'] );
-		$this->assertStringContainsString( 'BFCM2525', $result['sidebar']['subtitle'] );
+		foreach ( [ 'banner', 'sidebar' ] as $notice ) {
+			parse_str( (string) wp_parse_url( $result[ $notice ]['cta_link'], PHP_URL_QUERY ), $query );
+			$this->assertSame( 'bfcm', $query['utm_campaign'] );
+			$this->assertStringContainsString( 'BFCM2525', $result[ $notice ]['subtitle'] );
+		}
 	}
 
 	/**
@@ -689,33 +681,6 @@ class Test_Admin extends WP_UnitTestCase {
 		}
 
 		return $preempt;
-	}
-
-	/**
-	 * Test the SDK Black Friday notice is hidden only when Optimole is the only ThemeIsle product.
-	 */
-	public function test_add_black_friday_data_hides_sdk_notice_only_for_optimole_alone() {
-		// The SDK starts on a later hook, so load its registry class here.
-		if ( ! class_exists( \ThemeisleSDK\Loader::class ) ) {
-			require_once OPTML_PATH . 'vendor/codeinwp/themeisle-sdk/src/Loader.php';
-		}
-
-		$products = new ReflectionProperty( \ThemeisleSDK\Loader::class, 'products' );
-		$products->setAccessible( true );
-		$original = $products->getValue();
-
-		$configs = [ 'default' => [ 'sale_url' => 'https://themeisle.com/blackfriday/' ] ];
-
-		try {
-			$products->setValue( null, [ OPTML_PRODUCT_SLUG => 'optimole' ] );
-			$result = $this->admin->add_black_friday_data( $configs );
-			$this->assertSame( '', $result['default']['sale_url'] );
-
-			$products->setValue( null, [ OPTML_PRODUCT_SLUG => 'optimole', 'neve' => 'neve' ] );
-			$this->assertSame( $configs, $this->admin->add_black_friday_data( $configs ) );
-		} finally {
-			$products->setValue( null, $original );
-		}
 	}
 
 	/**
