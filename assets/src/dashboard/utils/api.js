@@ -9,7 +9,9 @@ import {
 } from '@wordpress/data';
 
 import { addQueryArgs } from '@wordpress/url';
-import { store as noticesStore } from '@wordpress/notices';
+
+// Registers the core/notices store; its `store` export only exists from WordPress 5.7.
+import '@wordpress/notices';
 import { toggleDashboardSidebarSubmenu } from './helpers';
 
 const {
@@ -52,7 +54,7 @@ const {
 	getSiteSettings
 } = select( 'optimole' );
 
-const { createNotice } = dispatch( noticesStore );
+const { createNotice } = dispatch( 'core/notices' );
 
 
 export const sendOnboardingImages = ( data = {}) => {

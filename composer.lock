@@ -4,20 +4,20 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "1c6cb28ea9cfac46761c17ca70f1a8d0",
+    "content-hash": "fea9ed731d69e59f5089fa14a003e3e3",
     "packages": [
         {
             "name": "codeinwp/optimole-sdk",
-            "version": "v1.2.4",
+            "version": "v1.3.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Codeinwp/optimole-php-sdk.git",
-                "reference": "2f7a48525014bd681f39ddc85c55521b719d5879"
+                "reference": "15ce5e000ff005c6a8dfb15142916780eae645a1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Codeinwp/optimole-php-sdk/zipball/2f7a48525014bd681f39ddc85c55521b719d5879",
-                "reference": "2f7a48525014bd681f39ddc85c55521b719d5879",
+                "url": "https://api.github.com/repos/Codeinwp/optimole-php-sdk/zipball/15ce5e000ff005c6a8dfb15142916780eae645a1",
+                "reference": "15ce5e000ff005c6a8dfb15142916780eae645a1",
                 "shasum": ""
             },
             "require": {
@@ -60,7 +60,7 @@
                 "issues": "https://github.com/Codeinwp/codeinwp/optimole-php-sdk/issues",
                 "source": "https://github.com/Codeinwp/optimole-php-sdk"
             },
-            "time": "2025-11-14T18:01:16+00:00"
+            "time": "2026-11-05T09:54:25+00:00"
         },
         {
             "name": "codeinwp/themeisle-sdk",
@@ -904,11 +904,11 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "2.3.3",
+            "version": "2.3.4",
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/4b57dc8ca7456b635d1661845f44bc060b02c6b0",
-                "reference": "4b57dc8ca7456b635d1661845f44bc060b02c6b0",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/f20ce6f3c82556cfcfc086b152445a12d1d64fff",
+                "reference": "f20ce6f3c82556cfcfc086b152445a12d1d64fff",
                 "shasum": ""
             },
             "require": {
@@ -964,7 +964,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-27T14:06:26+00:00"
+            "time": "2026-10-28T22:38:53+00:00"
         },
         {
             "name": "phpunit/php-code-coverage",

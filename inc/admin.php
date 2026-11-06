@@ -23,7 +23,7 @@ class Optml_Admin {
 
 	const IMAGE_DATA_COLLECTED_BATCH = 100;
 
-	const BF_PROMO_DISMISS_KEY = 'optml_bf25_notice_dismiss';
+	const SDK_BF_DISMISS_META = 'themeisle_sdk_dismissed_notice_black_friday';
 
 	const SPC_BANNER_DISMISS_KEY = 'optml_spc_banner_dismiss';
 
@@ -1647,6 +1647,40 @@ class Optml_Admin {
 	}
 
 	/**
+	 * Check if the current user dismissed the SDK Black Friday notice this year.
+	 *
+	 * The SDK uses one dismissal for the notices of all ThemeIsle products.
+	 *
+	 * @param DateTime $now The current date.
+	 *
+	 * @return bool
+	 */
+	public static function is_sdk_bf_notice_dismissed( $now ) {
+		$dismissed_at = get_user_meta( get_current_user_id(), self::SDK_BF_DISMISS_META, true );
+
+		return ! empty( $dismissed_at ) && wp_date( 'Y', (int) $dismissed_at ) === $now->format( 'Y' );
+	}
+
+	/**
+	 * Dismiss the SDK Black Friday notice for the current user.
+	 *
+	 * Called when the user dismisses the Optimole banner. It also hides the SDK
+	 * notice of the other ThemeIsle products.
+	 *
+	 * @return void
+	 */
+	public static function dismiss_sdk_bf_notice() {
+		/**
+		 * The current date.
+		 *
+		 * @var DateTime $now Current date.
+		 */
+		$now = apply_filters( 'themeisle_sdk_current_date', new \DateTime( 'now' ) );
+
+		update_user_meta( get_current_user_id(), self::SDK_BF_DISMISS_META, $now->getTimestamp() );
+	}
+
+	/**
 	 * Get the black friday notices.
 	 *
 	 * @param non-empty-string $user_plan User plan.
@@ -1705,10 +1739,11 @@ class Optml_Admin {
 				'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 				'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 			),
-			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm25', 'sidebarnotice' ) ),
+			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm', 'sidebarnotice' ) ),
 		];
 
-		if ( get_option( self::BF_PROMO_DISMISS_KEY ) === 'yes' ) {
+		// The banner shares the SDK dismissal, which resets every year.
+		if ( self::is_sdk_bf_notice_dismissed( $now ) ) {
 			return $notices;
 		}
 
@@ -1718,7 +1753,7 @@ class Optml_Admin {
 			'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 			'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 		);
-		$cta_link = esc_url_raw( tsdk_utmify( self::get_upgrade_base_link(), 'bfcm25', 'notice' ) );
+		$cta_link = esc_url_raw( tsdk_utmify( self::get_upgrade_base_link(), 'bfcm', 'notice' ) );
 		$cta_text = __( 'Claim now', 'optimole-wp' );
 
 		$notices['banner'] = [
@@ -1729,7 +1764,7 @@ class Optml_Admin {
 			'subtitle' => $message,
 			'cta_text' => $cta_text,
 			'cta_link' => $cta_link,
-			'dismiss_key' => self::BF_PROMO_DISMISS_KEY,
+			'dismiss_key' => self::SDK_BF_DISMISS_META,
 		];
 
 		return $notices;
