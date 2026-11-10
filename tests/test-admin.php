@@ -515,10 +515,10 @@ class Test_Admin extends WP_UnitTestCase {
 		$watcher_class    = 'watch\\"class';
 
 		$background_class_filter = static function () use ( $background_class ) {
-			return [ $background_class ];
+			return [ 1 => $background_class ];
 		};
 		$watcher_class_filter = static function () use ( $watcher_class ) {
-			return [ $watcher_class ];
+			return [ 2 => $watcher_class ];
 		};
 
 		add_filter( 'optml_lazyload_bg_classes', $background_class_filter );

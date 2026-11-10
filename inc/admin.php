@@ -565,8 +565,8 @@ class Optml_Admin {
 			$lazyload_bg_selectors[] = '.' . $key;
 		}
 		$lazyload_bg_selectors = empty( $lazyload_bg_selectors ) ? '' : sprintf( '%s', implode( ', ', (array) $lazyload_bg_selectors ) );
-		$bgclasses             = wp_json_encode( array_map( 'wp_strip_all_tags', (array) $bgclasses ) );
-		$watcher_classes       = wp_json_encode( array_map( 'wp_strip_all_tags', (array) $watcher_classes ) );
+		$bgclasses             = wp_json_encode( array_values( array_map( 'wp_strip_all_tags', (array) $bgclasses ) ) );
+		$watcher_classes       = wp_json_encode( array_values( array_map( 'wp_strip_all_tags', (array) $watcher_classes ) ) );
 		$lazyload_bg_selectors = wp_json_encode( wp_strip_all_tags( $lazyload_bg_selectors ) );
 		$default_network       = ( $this->settings->get( 'network_optimization' ) === 'enabled' );
 		$limit_dimensions      = $this->settings->get( 'limit_dimensions' ) === 'enabled';
