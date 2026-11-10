@@ -508,6 +508,56 @@ class Test_Admin extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Inline bootstrap configuration keeps quoted and escaped values intact.
+	 */
+	public function test_inline_bootstrap_script_json_encodes_configuration_values(): void {
+		$background_class = 'hero\\"banner';
+		$watcher_class    = 'watch\\"class';
+
+		$background_class_filter = static function () use ( $background_class ) {
+			return [ 1 => $background_class ];
+		};
+		$watcher_class_filter = static function () use ( $watcher_class ) {
+			return [ 2 => $watcher_class ];
+		};
+
+		add_filter( 'optml_lazyload_bg_classes', $background_class_filter );
+		add_filter( 'optml_watcher_lz_classes', $watcher_class_filter );
+
+		$this->reset_lazyload_bootstrap_configuration();
+		try {
+			$background_selectors   = Optml_Lazyload_Replacer::get_background_lazyload_selectors();
+			$background_selectors[] = '.' . $background_class;
+
+			ob_start();
+			$this->admin->inline_bootstrap_script();
+			$output = ob_get_clean();
+
+			$this->assertStringContainsString( 'backgroundReplaceClasses: ' . wp_json_encode( [ $background_class ] ), $output );
+			$this->assertStringContainsString( 'watchClasses: ' . wp_json_encode( [ $watcher_class ] ), $output );
+			$this->assertStringContainsString(
+				'backgroundLazySelectors: ' . wp_json_encode( implode( ', ', $background_selectors ) ),
+				$output
+			);
+		} finally {
+			remove_filter( 'optml_lazyload_bg_classes', $background_class_filter );
+			remove_filter( 'optml_watcher_lz_classes', $watcher_class_filter );
+			$this->reset_lazyload_bootstrap_configuration();
+		}
+	}
+
+	/**
+	 * Reset cached values used by the inline bootstrap configuration.
+	 */
+	private function reset_lazyload_bootstrap_configuration(): void {
+		foreach ( [ 'lazyload_background_classes', 'lazyload_watcher_classes', 'background_lazyload_selectors' ] as $property_name ) {
+			$property = new ReflectionProperty( Optml_Lazyload_Replacer::class, $property_name );
+			$property->setAccessible( true );
+			$property->setValue( null, null );
+		}
+	}
+
+	/**
 	 * Test get_bf_notices at exact boundary conditions.
 	 */
 	public function test_get_bf_notices_date_boundaries() {
