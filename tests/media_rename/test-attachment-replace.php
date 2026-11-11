@@ -159,6 +159,7 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 		) )->replace();
 
 		$this->assertWPError( $result );
+		$this->assertSame( 'optml_attachment_path_outside_uploads', $result->get_error_code() );
 		$this->assertSame( $before, md5_file( $outside ), 'A main file outside uploads must not be overwritten.' );
 		wp_delete_post( $id, true );
 		unlink( $outside );
@@ -190,6 +191,7 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 		) )->replace();
 
 		$this->assertWPError( $result );
+		$this->assertSame( 'optml_attachment_path_outside_uploads', $result->get_error_code() );
 		$this->assertSame( $before, md5_file( $outside ), 'An original image outside uploads must not be overwritten.' );
 		wp_delete_post( $id, true );
 		unlink( $outside );
