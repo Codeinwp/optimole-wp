@@ -21,6 +21,11 @@ class Test_Uploads_Path extends WP_UnitTestCase {
 		$this->assertFalse( UploadsPath::contains( wp_get_upload_dir()['basedir'] . '/../wp-config.php' ) );
 	}
 
+	public function test_path_ending_in_dot_dot_is_refused(): void {
+		$this->assertFalse( UploadsPath::contains( wp_get_upload_dir()['basedir'] . '/..' ) );
+		$this->assertFalse( UploadsPath::contains( wp_get_upload_dir()['basedir'] . '/.' ) );
+	}
+
 	public function test_backslash_in_a_folder_name_is_not_taken_as_a_separator(): void {
 		if ( '\\' === DIRECTORY_SEPARATOR ) {
 			$this->markTestSkipped( 'A backslash is a separator on Windows.' );

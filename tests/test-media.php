@@ -10,6 +10,8 @@
 
 use WpOrg\Requests\Utility\CaseInsensitiveDictionary;
 
+require_once __DIR__ . '/outside-uploads-files.php';
+
 /**
  * Class Test_Generic.
  */
@@ -18,6 +20,7 @@ class Test_Media extends WP_UnitTestCase {
 <figure class="wp-block-image size-large"><img src="https://example.i.optimole.com/BOxmgcE-_HsxvBf4/w:300/h:200/q:90/id:b19fed3de30366eb76682becf7645c7b/sample-test.jpg" alt="" class="wp-image-1339"/></figure>
 <!-- /wp:image --> ';
 	use Optml_Dam_Offload_Utils;
+	use Optml_Test_Outside_Uploads;
 	public static $files = [
 		'sample-test',
 		'1PQ7p',
@@ -257,9 +260,8 @@ class Test_Media extends WP_UnitTestCase {
 
 	public function test_offload_treats_a_main_file_outside_uploads_as_missing(): void {
 		Optml_Media_Offload::instance()->rollback_and_update_images( [ self::$sample_attachement ] );
-		$outside = dirname( wp_get_upload_dir()['basedir'] ) . '/optml-outside-offload.jpg';
-		copy( OPTML_PATH . 'tests/assets/sample-test.jpg', $outside );
-		update_post_meta( self::$sample_attachement, '_wp_attached_file', '../' . basename( $outside ) );
+		$outside = self::outside_uploads_file( 'optml-outside-offload.jpg', OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		update_post_meta( self::$sample_attachement, '_wp_attached_file', self::relative_from( wp_get_upload_dir()['basedir'], $outside ) );
 
 		Optml_Media_Offload::instance()->upload_and_update_existing_images( [ self::$sample_attachement ] );
 
@@ -270,12 +272,9 @@ class Test_Media extends WP_UnitTestCase {
 
 	public function test_offload_keeps_size_files_outside_uploads(): void {
 		Optml_Media_Offload::instance()->rollback_and_update_images( [ self::$sample_attachement ] );
-		$parent  = dirname( wp_get_upload_dir()['basedir'] );
-		$outside = $parent . '/optml-outside-offload-size.jpg';
-		file_put_contents( $outside, 'keep' );
-		$depth = substr_count( trim( substr( dirname( get_attached_file( self::$sample_attachement ) ), strlen( $parent ) ), '/' ), '/' ) + 1;
-		$meta  = wp_get_attachment_metadata( self::$sample_attachement );
-		$meta['sizes']['thumbnail']['file'] = str_repeat( '../', $depth ) . basename( $outside );
+		$outside = self::outside_uploads_file( 'optml-outside-offload-size.jpg' );
+		$meta    = wp_get_attachment_metadata( self::$sample_attachement );
+		$meta['sizes']['thumbnail']['file'] = self::relative_from( dirname( get_attached_file( self::$sample_attachement ) ), $outside );
 		wp_update_attachment_metadata( self::$sample_attachement, $meta );
 
 		Optml_Media_Offload::instance()->upload_and_update_existing_images( [ self::$sample_attachement ] );

@@ -1,4 +1,6 @@
 <?php
+
+require_once __DIR__ . '/../outside-uploads-files.php';
 /**
  * Test class for Optml_Attachment_Rename.
  */
@@ -7,6 +9,8 @@
  * Class Test_Attachment_Rename.
  */
 class Test_Attachment_Rename extends WP_UnitTestCase {
+	use Optml_Test_Outside_Uploads;
+
 	protected static $scaled_id;
 	protected static $unscaled_id;
 
@@ -65,26 +69,6 @@ class Test_Attachment_Rename extends WP_UnitTestCase {
 		$this->assertFileExists( $outside, 'A main file outside uploads must not be moved.' );
 		wp_delete_post( $id, true );
 		unlink( $outside );
-	}
-
-	/**
-	 * Create a file next to the uploads directory, outside it.
-	 */
-	private static function outside_uploads_file( string $name ): string {
-		$path = dirname( wp_get_upload_dir()['basedir'] ) . '/' . $name;
-		file_put_contents( $path, 'keep' );
-
-		return $path;
-	}
-
-	/**
-	 * Build the `../` path from a folder inside uploads to a file next to the uploads directory.
-	 */
-	private static function relative_from( string $dir, string $file ): string {
-		$parent = dirname( wp_get_upload_dir()['basedir'] );
-		$depth  = substr_count( trim( substr( $dir, strlen( $parent ) ), '/' ), '/' ) + 1;
-
-		return str_repeat( '../', $depth ) . basename( $file );
 	}
 
 	private function test_rename( $id, $model, $new_filename, $scaled = false ) {
