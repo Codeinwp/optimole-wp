@@ -12,7 +12,16 @@ use Optml_Lazyload_Replacer;
  * @package OptimoleWP\BgOptimizer
  */
 class Lazyload {
-	const MARKER = '/* OPTML_VIEWPORT_BG_SELECTORS */';
+	/**
+	 * Random bytes in the marker token, printed as twice as many hex characters.
+	 */
+	const MARKER_TOKEN_BYTES = 8;
+	/**
+	 * Marker printed around the general background CSS, created once per PHP process.
+	 *
+	 * @var string|null
+	 */
+	private static $marker = null;
 	/**
 	 * Shape of a plain selector the frontend getUniqueSelector() reports: ids, tags, classes, ' > ' and :nth-of-type(N).
 	 */
@@ -31,6 +40,22 @@ class Lazyload {
 	 */
 	public static function is_safe_selector( $selector ): bool {
 		return is_string( $selector ) && $selector !== '' && preg_match( self::SAFE_SELECTOR_PATTERN, $selector ) === 1;
+	}
+	/**
+	 * Get the marker printed before and after the general background CSS.
+	 *
+	 * The personalized CSS replaces everything between two markers. The marker carries a random
+	 * token created once per PHP process, which is one page request under PHP-FPM or Apache, so
+	 * stored page content, such as a visitor comment, cannot contain a matching pair.
+	 *
+	 * @return string The marker, a CSS comment.
+	 */
+	public static function get_marker(): string {
+		if ( null === self::$marker ) {
+			self::$marker = '/* OPTML_VIEWPORT_BG_SELECTORS ' . bin2hex( random_bytes( self::MARKER_TOKEN_BYTES ) ) . ' */';
+		}
+
+		return self::$marker;
 	}
 	/**
 	 * Get the current personalized CSS for lazy loading.

@@ -587,14 +587,15 @@ final class Optml_Manager {
 				do_action( 'optml_log', 'viewport_bgselectorsdata: ' . print_r( $personalized_bg_css, true ) );
 			}
 
-			if ( ! empty( $personalized_bg_css ) && ( $start_pos = strpos( $html, Lazyload::MARKER ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
+			$marker = Lazyload::get_marker();
+			if ( ! empty( $personalized_bg_css ) && ( $start_pos = strpos( $html, $marker ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
 				// We replace the general bg css with the personalized one.
-				if ( ( $end_pos = strpos( $html, Lazyload::MARKER, $start_pos + strlen( Lazyload::MARKER ) ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
+				if ( ( $end_pos = strpos( $html, $marker, $start_pos + strlen( $marker ) ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
 					$html = substr_replace(
 						$html,
 						$personalized_bg_css,
 						$start_pos,
-						$end_pos + strlen( Lazyload::MARKER ) - $start_pos
+						$end_pos + strlen( $marker ) - $start_pos
 					);
 				}
 			}

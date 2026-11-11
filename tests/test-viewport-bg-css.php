@@ -1,0 +1,136 @@
+<?php
+/**
+ * WordPress unit test plugin.
+ *
+ * @package     Optimole-WP
+ * @subpackage  Tests
+ */
+
+use OptimoleWP\BgOptimizer\Lazyload;
+use OptimoleWP\PageProfiler\Profile;
+
+/**
+ * The personalized background CSS replaces only the marker pair the plugin printed in this request.
+ */
+class Test_Viewport_Bg_Css extends WP_UnitTestCase {
+
+	const PROFILE_ID = 'bgcss1946';
+
+	const WATCHER = '[class*="wp-block-cover"][style*="background-image"]';
+
+	/**
+	 * The marker text page content can know: it was fixed before markers carried a token.
+	 */
+	const STORED_MARKER = '/* OPTML_VIEWPORT_BG_SELECTORS */';
+
+	const STYLE_HANDLE = 'optm_lazyload_noscript_style';
+
+	/**
+	 * Settings values replaced in setUp, restored in tearDown.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private $previous_settings = [];
+
+	public function setUp(): void {
+		parent::setUp();
+		$settings = new Optml_Settings();
+		foreach ( [ 'lazyload', 'lazyload_type' ] as $key ) {
+			$this->previous_settings[ $key ] = $settings->get( $key );
+		}
+		$settings->update( 'service_data', [
+			'cdn_key'    => 'test123',
+			'cdn_secret' => '12345',
+			'whitelist'  => [ 'example.com' ],
+		] );
+		$settings->update( 'lazyload', 'enabled' );
+		$settings->update( 'lazyload_type', 'viewport' );
+		$this->init_replacers();
+		add_filter( 'optml_page_profile_id', [ self::class, 'profile_id' ] );
+
+		foreach ( [ Profile::DEVICE_TYPE_MOBILE, Profile::DEVICE_TYPE_DESKTOP ] as $device ) {
+			Optml_Manager::instance()->page_profiler->store( self::PROFILE_ID, $device, [], [ self::WATCHER => [] ] );
+		}
+	}
+
+	public function tearDown(): void {
+		remove_filter( 'optml_page_profile_id', [ self::class, 'profile_id' ] );
+		wp_deregister_style( self::STYLE_HANDLE );
+		Profile::reset_current_profile();
+		$settings = new Optml_Settings();
+		foreach ( $this->previous_settings as $key => $value ) {
+			$settings->update( $key, $value );
+		}
+		$this->init_replacers();
+		parent::tearDown();
+	}
+
+	public static function profile_id(): string {
+		return self::PROFILE_ID;
+	}
+
+	private function init_replacers(): void {
+		Optml_Url_Replacer::instance()->init();
+		Optml_Tag_Replacer::instance()->init();
+		Optml_Lazyload_Replacer::instance()->init();
+		Optml_Manager::instance()->init();
+	}
+
+	/**
+	 * The inline style the plugin prints in the head, with the general background CSS between its markers.
+	 */
+	private function plugin_style(): string {
+		Optml_Main::instance()->admin->frontend_scripts();
+		ob_start();
+		wp_styles()->do_item( self::STYLE_HANDLE );
+
+		return (string) ob_get_clean();
+	}
+
+	/**
+	 * Page content, such as a comment, carrying a marker pair inside an attribute.
+	 */
+	private function comment(): string {
+		return '<abbr title="' . self::STORED_MARKER . ' ' . self::STORED_MARKER . ' data-note=1 ">x</abbr>';
+	}
+
+	private function personalized_rule(): string {
+		return 'html ' . self::WATCHER . ':not(.optml-bg-lazyloaded) { background-image: none !important; }';
+	}
+
+	public function test_marker_carries_a_random_token(): void {
+		$this->assertMatchesRegularExpression( '/^\/\* OPTML_VIEWPORT_BG_SELECTORS [0-9a-f]{16} \*\/$/', Lazyload::get_marker() );
+		$this->assertSame( Lazyload::get_marker(), Lazyload::get_marker(), 'The printed and the replaced marker are the same.' );
+	}
+
+	public function test_comment_markers_are_kept_when_the_plugin_prints_none(): void {
+		// The AMP case: the plugin prints no style, so the comment holds the only marker pair.
+		$html = '<html><head><title>Post</title></head><body><p>' . $this->comment() . '</p></body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+
+		$this->assertStringContainsString( $this->comment(), $replaced );
+		$this->assertStringNotContainsString( $this->personalized_rule(), $replaced );
+	}
+
+	public function test_plugin_markers_are_replaced_and_comment_markers_kept(): void {
+		$html = '<html><head>' . $this->plugin_style() . '</head><body><p>' . $this->comment() . '</p></body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+
+		$this->assertStringContainsString( $this->comment(), $replaced );
+		$this->assertStringContainsString( $this->personalized_rule(), $replaced );
+		$this->assertSame( 2, substr_count( $replaced, 'OPTML_VIEWPORT_BG_SELECTORS' ), 'Only the comment markers are left.' );
+	}
+
+	public function test_marker_printed_before_the_plugin_style_is_not_paired_with_it(): void {
+		// Text another plugin prints in the head, such as a title built from user input.
+		$title = '<title>Sale ' . self::STORED_MARKER . '</title>';
+		$html  = '<html><head>' . $title . $this->plugin_style() . '</head><body><p>Body.</p></body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+
+		$this->assertStringContainsString( $title, $replaced );
+		$this->assertStringContainsString( $this->personalized_rule(), $replaced );
+	}
+}

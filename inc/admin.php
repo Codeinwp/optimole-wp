@@ -1009,7 +1009,7 @@ class Optml_Admin {
 		}
 		$css = implode( ",\n", $css ) . ' { background-image: none !important; }';
 
-		$css = Lazyload::MARKER . "\n" . strip_tags( $css ) . "\n" . Lazyload::MARKER;
+		$css = Lazyload::get_marker() . "\n" . strip_tags( $css ) . "\n" . Lazyload::get_marker();
 		return $css;
 	}
 
