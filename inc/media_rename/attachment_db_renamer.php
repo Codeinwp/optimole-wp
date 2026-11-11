@@ -180,7 +180,7 @@ class Optml_Attachment_Db_Renamer {
 		// Check for serialized data
 		$has_serialized = $wpdb->get_var(
 			'SELECT COUNT(' . esc_sql( $this->quote_identifier( $column ) ) . ') FROM ' . esc_sql( $this->quote_identifier( $table ) ) .
-			' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . " REGEXP '^[aisOCE]:[0-9]' LIMIT 1"
+			' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . " REGEXP '^[aiOCE]:[1-9]' LIMIT 1"
 		);
 
 		// Process with PHP if serialized data is found

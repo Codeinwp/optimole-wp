@@ -577,6 +577,22 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		$this->assertSame( [ 'image' => $new_url, 'note' => 'O:4:"Test":0:{}' ], get_post_meta( self::$post_id, 'optml_test_notes', true ) );
 	}
 
+	public function test_replace_updates_text_that_starts_like_a_serialized_string(): void {
+		$old_url    = 'http://om-wp.test/wp-content/uploads/2026/10/string-photo.jpg';
+		$new_url    = 'http://om-wp.test/wp-content/uploads/2026/10/string-renamed.jpg';
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => 's:3:"foo"; see "' . $old_url . '";',
+			]
+		);
+
+		self::$replacer->replace( $old_url, $new_url );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( 's:3:"foo"; see "' . $new_url . '";', get_comment( $comment_id )->comment_content );
+	}
+
 	public function test_replace_updates_size_variants_in_serialized_meta(): void {
 		update_post_meta( self::$post_id, 'optml_test_thumbnail', [ 'image' => 'http://om-wp.test/wp-content/uploads/2026/10/sized-photo-300x200.jpg' ] );
 
