@@ -491,20 +491,79 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		$this->assertEquals( (object) [ 'image' => $new_url ], get_post_meta( self::$post_id, 'optml_test_object', true ) );
 	}
 
-	public function test_replace_finishes_on_a_std_class_that_refers_to_itself(): void {
-		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/cycle-photo.jpg';
-		$value   = (object) [ "\0*\0self" => $old_url ];
+	public function test_replace_keeps_a_std_class_that_refers_to_itself_unchanged(): void {
+		$old_url     = 'http://om-wp.test/wp-content/uploads/2026/10/cycle-photo.jpg';
+		$value       = (object) [ 'image' => $old_url ];
 		$value->self = $value;
-		self::factory()->comment->create(
+		$stored      = serialize( $value );
+		$comment_id  = self::factory()->comment->create(
 			[
 				'comment_post_ID' => self::$post_id,
-				'comment_content' => serialize( $value ),
+				'comment_content' => $stored,
 			]
 		);
 
-		$count = self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/cycle-renamed.jpg' );
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/cycle-renamed.jpg' );
+		clean_comment_cache( $comment_id );
 
-		$this->assertGreaterThan( 0, $count );
+		$this->assertSame( $stored, get_comment( $comment_id )->comment_content );
+	}
+
+	public function test_replace_keeps_a_custom_serialized_object_unchanged(): void {
+		$old_url    = 'http://om-wp.test/wp-content/uploads/2026/10/custom-top-photo.jpg';
+		$payload    = '{' . $old_url . '}';
+		$stored     = 'C:21:"Optml_Test_Not_Loaded":' . ( strlen( $payload ) - 2 ) . ':' . $payload;
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => $stored,
+			]
+		);
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/custom-top-renamed.jpg' );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( $stored, get_comment( $comment_id )->comment_content );
+	}
+
+	public function test_replace_keeps_a_custom_serialized_object_next_to_other_serialized_rows_unchanged(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/custom-mixed-photo.jpg';
+		$payload = '{' . $old_url . '}';
+		$stored  = 'C:21:"Optml_Test_Not_Loaded":' . ( strlen( $payload ) - 2 ) . ':' . $payload;
+		// Another row in the column that starts like an array, so the column is read row by row in PHP.
+		self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => serialize( [ 'image' => $old_url ] ),
+			]
+		);
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => $stored,
+			]
+		);
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/custom-mixed-renamed.jpg' );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( $stored, get_comment( $comment_id )->comment_content );
+	}
+
+	public function test_replace_keeps_values_with_an_enum_that_is_not_loaded_unchanged(): void {
+		$old_url    = 'http://om-wp.test/wp-content/uploads/2026/10/enum-photo.jpg';
+		$stored     = 'a:2:{s:5:"image";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:4:"kind";E:20:"Optml_Test_No_Enum:A";}';
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => $stored,
+			]
+		);
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/enum-renamed.jpg' );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( $stored, get_comment( $comment_id )->comment_content );
 	}
 
 	public function test_replace_updates_serialized_text_that_looks_like_an_object(): void {

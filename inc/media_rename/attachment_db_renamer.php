@@ -180,7 +180,7 @@ class Optml_Attachment_Db_Renamer {
 		// Check for serialized data
 		$has_serialized = $wpdb->get_var(
 			'SELECT COUNT(' . esc_sql( $this->quote_identifier( $column ) ) . ') FROM ' . esc_sql( $this->quote_identifier( $table ) ) .
-			' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . " REGEXP '^[aiO]:[1-9]' LIMIT 1"
+			' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . " REGEXP '^[aisOCE]:[0-9]' LIMIT 1"
 		);
 
 		// Process with PHP if serialized data is found
@@ -411,20 +411,24 @@ class Optml_Attachment_Db_Renamer {
 	private function replace_urls_in_value( $value, $old_url, $new_url ) {
 		// Check if the value is serialized
 		if ( $this->is_serialized( $value ) ) {
+			// A value with references (r: or R:) can refer to itself, which the URL walk cannot end.
+			if ( preg_match( '/[;{][rR]:\d+;/', $value ) ) {
+				return $value;
+			}
+
 			// Any table can hold the URL, including values visitors write, so stored data must not create
 			// objects whose class runs code.
 			$unserialized = @unserialize( $value, [ 'allowed_classes' => [ 'stdClass' ] ] );
 
-			// If unserialize successful, process the data
-			if ( $unserialized !== false ) {
-				// Such values are left as stored: an object read without its class could not be written
-				// back unchanged, and an enum cannot change.
-				if ( $this->holds_other_objects( $unserialized ) ) {
-					return $value;
-				}
-				$replaced = $this->replace_in_data( $unserialized, $old_url, $new_url );
-				return serialize( $replaced );
+			// A serialized value is left as stored when it cannot be read, such as one naming an enum that is
+			// not loaded, or when it holds an object other than stdClass: an object read without its class
+			// could not be written back unchanged, and an enum cannot change. A raw text replacement would
+			// break its declared lengths.
+			if ( false === $unserialized || $this->holds_other_objects( $unserialized ) ) {
+				return $value;
 			}
+
+			return serialize( $this->replace_in_data( $unserialized, $old_url, $new_url ) );
 		}
 
 		return $this->replace_image_urls( $value, $old_url, $new_url );
@@ -537,24 +541,17 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Check whether unserialized data holds an object other than stdClass, such as an incomplete object or an enum.
 	 *
-	 * @param mixed            $data The unserialized data.
-	 * @param array<int, true> $seen Ids of the stdClass objects already checked, so self-references end.
+	 * @param mixed $data The unserialized data, without references.
 	 *
 	 * @return bool True when the data holds such an object.
 	 */
-	private function holds_other_objects( $data, array &$seen = [] ): bool {
-		if ( is_object( $data ) ) {
-			if ( ! $data instanceof stdClass ) {
-				return true;
-			}
-			if ( isset( $seen[ spl_object_id( $data ) ] ) ) {
-				return false;
-			}
-			$seen[ spl_object_id( $data ) ] = true;
+	private function holds_other_objects( $data ): bool {
+		if ( is_object( $data ) && ! $data instanceof stdClass ) {
+			return true;
 		}
 		if ( is_array( $data ) || is_object( $data ) ) {
 			foreach ( $data as $value ) {
-				if ( $this->holds_other_objects( $value, $seen ) ) {
+				if ( $this->holds_other_objects( $value ) ) {
 					return true;
 				}
 			}
@@ -630,6 +627,8 @@ class Optml_Attachment_Db_Renamer {
 				// Fall through
 			case 'a':
 			case 'O':
+			case 'C':
+			case 'E':
 			case 'i':
 			case 'd':
 				return (bool) preg_match( "/^{$token}:[0-9]+:/", $data );
