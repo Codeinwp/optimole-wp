@@ -501,7 +501,7 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Expand the iframe placeholder comment the plugin printed, or add the placeholder style after the head start tag.
+	 * Expand the iframe placeholder comment the plugin printed, or add the placeholder style before the head end.
 	 *
 	 * The comment carries the request token, so copies of its text in page content are not matched.
 	 *
@@ -515,13 +515,7 @@ final class Optml_Manager {
 			return str_replace( $comment, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $html );
 		}
 
-		// Only the doctype, the html tag and comments come before the head start tag, while head and body
-		// content, such as scripts and styles, can hold "</head>" as text.
-		if ( ! preg_match( '/<!--.*?-->(*SKIP)(*FAIL)|<head(?:\s[^>]*)?>/is', $html, $head_start, PREG_OFFSET_CAPTURE ) ) {
-			return $html;
-		}
-
-		return substr_replace( $html, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE, $head_start[0][1] + strlen( $head_start[0][0] ), 0 );
+		return preg_replace( '/<head>(.*)<\/head>/ism', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $html ) ?? $html;
 	}
 
 	/**
