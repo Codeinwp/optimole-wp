@@ -144,6 +144,20 @@ class Test_Viewport_Bg_Css extends WP_UnitTestCase {
 		$this->assertStringContainsString( $content, $replaced );
 	}
 
+	public function test_html_tag_in_a_conditional_comment_is_not_taken_as_the_root(): void {
+		$add_class = static function (): array {
+			return [ 'optml-test' ];
+		};
+		add_filter( 'optml_additional_html_classes', $add_class );
+		$conditional = '<!--[if IE]><html class="ie"><![endif]-->';
+		$html        = $conditional . '<html class="ie"><head></head><body></body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+		remove_filter( 'optml_additional_html_classes', $add_class );
+
+		$this->assertStringStartsWith( $conditional . '<html class="optml-test', $replaced );
+	}
+
 	public function test_debug_comment_is_added_only_after_the_document(): void {
 		$_GET['optml_debug'] = 'true';
 		$content = '<textarea></html></textarea>';
