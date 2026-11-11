@@ -622,7 +622,7 @@ class Optml_Admin {
 							}
 						}(window, document));
 		</script>',
-			Optml_Lazyload_Replacer::get_iframe_temp_comment(),
+			$this->settings->get( 'video_lazyload' ) === 'enabled' ? Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS : '',
 			esc_url( $domain ),
 			$min,
 			$bgclasses,

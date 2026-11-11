@@ -2,7 +2,6 @@
 
 use OptimoleWP\PageProfiler\Profile;
 use OptimoleWP\Preload\Links;
-use OptimoleWP\RequestToken;
 
 /**
  * The class handles the img tag replacements for lazyload.
@@ -38,16 +37,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	private static $found_iframe = false;
 
-	/**
-	 * Get the comment printed in the head where the iframe placeholder CSS goes.
-	 *
-	 * It carries the request token, so a copy of its text in the page, such as in a title, is not replaced.
-	 *
-	 * @return string The comment.
-	 */
-	public static function get_iframe_temp_comment(): string {
-		return '/** optmliframelazyloadplaceholder ' . RequestToken::get() . ' */';
-	}
 	/**
 	 * Cached object instance.
 	 *

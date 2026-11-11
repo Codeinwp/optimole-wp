@@ -501,20 +501,6 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Expand the iframe placeholder comment the plugin printed.
-	 *
-	 * The comment carries the request token, so copies of its text in page content are not matched. Without the
-	 * comment, the plugin printed no head script either, so the iframes do not lazyload and need no placeholder.
-	 *
-	 * @param string $html Page HTML.
-	 *
-	 * @return string HTML with the iframe placeholder CSS added.
-	 */
-	private function add_iframe_placeholder_css( string $html ): string {
-		return str_replace( Optml_Lazyload_Replacer::get_iframe_temp_comment(), Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $html );
-	}
-
-	/**
 	 * Filter raw HTML content for urls.
 	 *
 	 * @param string $html HTML to filter.
@@ -569,9 +555,6 @@ final class Optml_Manager {
 
 		if ( $this->settings->get( 'video_lazyload' ) === 'enabled' ) {
 			$html = apply_filters( 'optml_video_replace', $html );
-			if ( Optml_Lazyload_Replacer::found_iframe() === true ) {
-				$html = $this->add_iframe_placeholder_css( $html );
-			}
 		}
 
 		if ( $this->settings->is_lazyload_type_viewport() && ! $partial ) {

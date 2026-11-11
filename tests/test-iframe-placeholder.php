@@ -12,7 +12,7 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 	const PLACEHOLDER_SELECTOR = 'iframe[data-opt-src]:not([data-opt-lazy-loaded])';
 
 	/**
-	 * The marker text page content can know: it was fixed before markers carried a token.
+	 * The fixed comment the plugin used to print and replace, which page content can hold.
 	 */
 	const STORED_MARKER = '/** optmliframelazyloadplaceholder */';
 
@@ -64,7 +64,7 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 	}
 
 	/**
-	 * The markup the plugin prints in the head, with its iframe placeholder comment.
+	 * The markup the plugin prints in the head.
 	 */
 	private function plugin_head(): string {
 		ob_start();
@@ -77,34 +77,36 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		return '<a href="https://example.com/" title="' . self::STORED_MARKER . ' autofocus onfocus=alert(1) x=">hi</a>';
 	}
 
-	public function test_marker_in_page_content_is_not_expanded(): void {
-		$html = '<html><head><style>' . Optml_Lazyload_Replacer::get_iframe_temp_comment() . '</style></head><body>' . self::IFRAME . $this->comment_link() . '</body></html>';
-
-		$replaced = Optml_Manager::instance()->replace_content( $html );
-
-		$this->assertStringContainsString( $this->comment_link(), $replaced );
-		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
-		$this->assertStringContainsString( self::PLACEHOLDER_SELECTOR, substr( $replaced, 0, stripos( $replaced, '</head>' ) ) );
+	public function test_plugin_head_holds_the_placeholder_style(): void {
+		$this->assertStringContainsString( self::PLACEHOLDER_SELECTOR, $this->plugin_head() );
 	}
 
-	public function test_marker_in_the_title_is_not_expanded(): void {
+	public function test_plugin_head_has_no_placeholder_style_without_video_lazyload(): void {
+		( new Optml_Settings() )->update( 'video_lazyload', 'disabled' );
+
+		$this->assertStringNotContainsString( self::PLACEHOLDER_SELECTOR, $this->plugin_head() );
+	}
+
+	public function test_marker_text_in_the_page_is_kept(): void {
 		$title = '<title>Search ' . self::STORED_MARKER . '</title>';
-		$html  = '<html><head>' . $title . $this->plugin_head() . '</head><body>' . self::IFRAME . '</body></html>';
+		$html  = '<html><head>' . $title . $this->plugin_head() . '</head><body>' . self::IFRAME . $this->comment_link() . '</body></html>';
 
 		$replaced = Optml_Manager::instance()->replace_content( $html );
 
 		$this->assertStringContainsString( $title, $replaced );
+		$this->assertStringContainsString( $this->comment_link(), $replaced );
 		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
 	}
 
-	public function test_plugin_comment_after_head_end_text_is_expanded(): void {
+	public function test_head_end_text_in_the_page_is_kept(): void {
 		$script = '<script>var end = "</head>";</script>';
-		$html   = '<html><head><!-- </head> -->' . $this->plugin_head() . '</head><body>' . self::IFRAME . $script . '</body></html>';
+		$html   = '<html><head><!-- </head> --></head><body>' . self::IFRAME . $script . '</body></html>';
 
 		$replaced = Optml_Manager::instance()->replace_content( $html );
 
+		$this->assertStringContainsString( '<head><!-- </head> --></head>', $replaced );
 		$this->assertStringContainsString( $script, $replaced );
-		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
+		$this->assertStringNotContainsString( self::PLACEHOLDER_SELECTOR, $replaced );
 	}
 
 	public function test_marker_in_partial_content_is_not_expanded(): void {
@@ -116,24 +118,5 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 
 	public function test_placeholder_css_cannot_close_an_attribute(): void {
 		$this->assertDoesNotMatchRegularExpression( '/["\'<>&]/', Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS );
-	}
-
-	public function test_marker_is_expanded_when_head_end_tag_is_omitted(): void {
-		$html = '<html><head><style>' . Optml_Lazyload_Replacer::get_iframe_temp_comment() . '</style><body class="post">' . self::IFRAME . $this->comment_link() . '</body></html>';
-
-		$replaced = Optml_Manager::instance()->replace_content( $html );
-
-		$this->assertStringContainsString( $this->comment_link(), $replaced );
-		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
-		$this->assertStringContainsString( self::PLACEHOLDER_SELECTOR, substr( $replaced, 0, strpos( $replaced, '<body' ) ) );
-	}
-
-	public function test_page_without_the_plugin_comment_is_left_unchanged(): void {
-		$html = '<html><head><title>t</title></head><body>' . self::IFRAME . $this->comment_link() . '<script>var end = "</head>";</script></body></html>';
-
-		$replaced = Optml_Manager::instance()->replace_content( $html );
-
-		$this->assertStringContainsString( $this->comment_link() . '<script>var end = "</head>";</script>', $replaced );
-		$this->assertStringNotContainsString( self::PLACEHOLDER_SELECTOR, $replaced );
 	}
 }
