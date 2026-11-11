@@ -72,6 +72,11 @@ class Optml_Attachment_Replace {
 			return new WP_Error( 'file_error', __( 'Original file does not exist.', 'optimole-wp' ) );
 		}
 
+		// The path comes from attachment metadata, so only a file inside the uploads directory is overwritten.
+		if ( ! UploadsPath::contains( $original_file ) ) {
+			return new WP_Error( 'optml_attachment_path_outside_uploads', __( 'Error uploading file.', 'optimole-wp' ) );
+		}
+
 		$original_filetype = wp_check_filetype( $original_file );
 		$uploaded_filetype = wp_check_filetype( $this->file['name'] );
 

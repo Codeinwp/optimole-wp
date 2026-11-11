@@ -14,7 +14,8 @@ class UploadsPath {
 	/**
 	 * Check whether a file path, existing or not, is inside the uploads directory.
 	 *
-	 * The folder holding the file must exist; `..` and symlinks are resolved before the check.
+	 * The folder holding the file must exist; `..` and symlinks in that folder are resolved before the check.
+	 * A symlink at the file itself is not followed: creating one needs write access to the server files.
 	 *
 	 * @param string $path Absolute file path.
 	 *
@@ -32,6 +33,7 @@ class UploadsPath {
 			return false;
 		}
 
-		return 0 === strpos( trailingslashit( $dir ), trailingslashit( $uploads ) );
+		// realpath() returns backslashes on Windows, so both sides are normalized before the prefix check.
+		return 0 === strpos( trailingslashit( wp_normalize_path( $dir ) ), trailingslashit( wp_normalize_path( $uploads ) ) );
 	}
 }

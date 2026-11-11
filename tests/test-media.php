@@ -255,6 +255,36 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertFileExists( get_attached_file( $attachment_id ) );
 	}
 
+	public function test_offload_treats_a_main_file_outside_uploads_as_missing(): void {
+		Optml_Media_Offload::instance()->rollback_and_update_images( [ self::$sample_attachement ] );
+		$outside = dirname( wp_get_upload_dir()['basedir'] ) . '/optml-outside-offload.jpg';
+		copy( OPTML_PATH . 'tests/assets/sample-test.jpg', $outside );
+		update_post_meta( self::$sample_attachement, '_wp_attached_file', '../' . basename( $outside ) );
+
+		Optml_Media_Offload::instance()->upload_and_update_existing_images( [ self::$sample_attachement ] );
+
+		$this->assertSame( 'true', get_post_meta( self::$sample_attachement, Optml_Media_Offload::META_KEYS['offload_error'], true ) );
+		$this->assertFileExists( $outside, 'A main file outside uploads must not be offloaded and deleted.' );
+		unlink( $outside );
+	}
+
+	public function test_offload_keeps_size_files_outside_uploads(): void {
+		Optml_Media_Offload::instance()->rollback_and_update_images( [ self::$sample_attachement ] );
+		$parent  = dirname( wp_get_upload_dir()['basedir'] );
+		$outside = $parent . '/optml-outside-offload-size.jpg';
+		file_put_contents( $outside, 'keep' );
+		$depth = substr_count( trim( substr( dirname( get_attached_file( self::$sample_attachement ) ), strlen( $parent ) ), '/' ), '/' ) + 1;
+		$meta  = wp_get_attachment_metadata( self::$sample_attachement );
+		$meta['sizes']['thumbnail']['file'] = str_repeat( '../', $depth ) . basename( $outside );
+		wp_update_attachment_metadata( self::$sample_attachement, $meta );
+
+		Optml_Media_Offload::instance()->upload_and_update_existing_images( [ self::$sample_attachement ] );
+
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( self::$sample_attachement )['file'] ) );
+		$this->assertFileExists( $outside, 'A size file outside uploads must not be deleted.' );
+		unlink( $outside );
+	}
+
 	public function test_retryable_error() {
 		Optml_Media_Offload::instance()->rollback_and_update_images([self::$sample_attachement]);
 		self::$error_mark = true;

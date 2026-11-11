@@ -138,6 +138,33 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 		unlink( $outside );
 	}
 
+	public function test_replace_refuses_a_main_file_outside_uploads() {
+		global $wp_filesystem;
+
+		$id      = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$outside = dirname( wp_get_upload_dir()['basedir'] ) . '/optml-outside-replace-main.jpg';
+		copy( OPTML_PATH . 'tests/assets/sample-test.jpg', $outside );
+		$before = md5_file( $outside );
+		update_post_meta( $id, '_wp_attached_file', '../' . basename( $outside ) );
+
+		$tmp_file = self::FILESTASH . 'replace-outside-main.jpg';
+		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
+		$result = ( new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-outside-main.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => $tmp_file,
+			]
+		) )->replace();
+
+		$this->assertWPError( $result );
+		$this->assertSame( $before, md5_file( $outside ), 'A main file outside uploads must not be overwritten.' );
+		wp_delete_post( $id, true );
+		unlink( $outside );
+		file_exists( $tmp_file ) && unlink( $tmp_file );
+	}
+
 	/**
 	 * A 0600 upload tmp file must not leave the replaced attachment unreadable to the web server.
 	 */
