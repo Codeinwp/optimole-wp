@@ -33,7 +33,11 @@ class UploadsPath {
 			return false;
 		}
 
-		// realpath() returns backslashes on Windows, so both sides are normalized before the prefix check.
-		return 0 === strpos( trailingslashit( wp_normalize_path( $dir ) ), trailingslashit( wp_normalize_path( $uploads ) ) );
+		// realpath() returns backslashes on Windows. Elsewhere a backslash is a filename character, so only the
+		// separator of this system is normalized.
+		$dir     = str_replace( DIRECTORY_SEPARATOR, '/', $dir );
+		$uploads = str_replace( DIRECTORY_SEPARATOR, '/', $uploads );
+
+		return 0 === strpos( trailingslashit( $dir ), trailingslashit( $uploads ) );
 	}
 }

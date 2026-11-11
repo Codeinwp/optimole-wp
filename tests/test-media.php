@@ -285,6 +285,37 @@ class Test_Media extends WP_UnitTestCase {
 		unlink( $outside );
 	}
 
+	public function test_offload_keeps_a_scaled_file_outside_uploads(): void {
+		Optml_Media_Offload::instance()->rollback_and_update_images( [ self::$sample_attachement ] );
+		// The uploads folder name holds the extension, so the scaled path built from it points to another folder.
+		$basedir = WP_CONTENT_DIR . '/optml-media.jpg';
+		$outside = WP_CONTENT_DIR . '/optml-media-scaled.jpg/sample-test-scaled.jpg';
+		wp_mkdir_p( $basedir );
+		wp_mkdir_p( dirname( $outside ) );
+		copy( get_attached_file( self::$sample_attachement ), $basedir . '/sample-test.jpg' );
+		file_put_contents( $outside, 'keep' );
+		$uploads = static function ( array $dir ) use ( $basedir ): array {
+			$dir['basedir'] = $basedir;
+
+			return $dir;
+		};
+		add_filter( 'upload_dir', $uploads );
+		update_post_meta( self::$sample_attachement, '_wp_attached_file', 'sample-test.jpg' );
+		$meta                   = wp_get_attachment_metadata( self::$sample_attachement );
+		$meta['original_image'] = 'sample-test-original.jpg';
+		wp_update_attachment_metadata( self::$sample_attachement, $meta );
+
+		Optml_Media_Offload::instance()->upload_and_update_existing_images( [ self::$sample_attachement ] );
+		remove_filter( 'upload_dir', $uploads );
+
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( self::$sample_attachement )['file'] ) );
+		$this->assertFileExists( $outside, 'A scaled file outside uploads must not be deleted.' );
+		unlink( $outside );
+		rmdir( dirname( $outside ) );
+		file_exists( $basedir . '/sample-test.jpg' ) && unlink( $basedir . '/sample-test.jpg' );
+		rmdir( $basedir );
+	}
+
 	public function test_retryable_error() {
 		Optml_Media_Offload::instance()->rollback_and_update_images([self::$sample_attachement]);
 		self::$error_mark = true;

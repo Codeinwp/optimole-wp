@@ -1629,7 +1629,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( isset( $meta['original_image'] ) ) {
 			$ext         = $this->get_ext( $local_file );
 			$scaled_path = str_replace( '.' . $ext, '-scaled.' . $ext, $local_file );
-			file_exists( $scaled_path ) && unlink( $scaled_path );
+			// The extension is replaced in the whole path, so folder names change too.
+			file_exists( $scaled_path ) && UploadsPath::contains( $scaled_path ) && unlink( $scaled_path );
 		}
 
 		$duplicated_images = apply_filters( 'optml_offload_duplicated_images', [], $attachment_id );
