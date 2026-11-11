@@ -501,26 +501,26 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Expand the iframe placeholder marker printed in <head>, or inject the placeholder style there.
+	 * Expand the iframe placeholder comment the plugin printed, or add the placeholder style before the head end.
 	 *
-	 * Copies of the marker after the head come from page content and are left untouched.
-	 * The head ends at </head>, or at <body when the optional </head> is omitted.
+	 * The comment carries the request token, so copies of its text in page content are not matched.
 	 *
 	 * @param string $html Page HTML.
 	 *
 	 * @return string HTML with the iframe placeholder CSS added.
 	 */
 	private function add_iframe_placeholder_css( string $html ): string {
-		if ( ! preg_match( '/<\/head>|<body[\s>]/i', $html, $head_end, PREG_OFFSET_CAPTURE ) ) {
+		$comment = Optml_Lazyload_Replacer::get_iframe_temp_comment();
+		if ( strpos( $html, $comment ) !== false ) {
+			return str_replace( $comment, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $html );
+		}
+
+		// Comments and scripts can hold "</head>" as text, so the first one outside them is taken as the head end.
+		if ( ! preg_match( '/(?:<!--.*?-->|<script\b.*?<\/script>)(*SKIP)(*FAIL)|<\/head>/is', $html, $head_end, PREG_OFFSET_CAPTURE ) ) {
 			return $html;
 		}
 
-		$head = substr( $html, 0, $head_end[0][1] );
-		if ( strpos( $head, Optml_Lazyload_Replacer::get_iframe_temp_comment() ) !== false ) {
-			return str_replace( Optml_Lazyload_Replacer::get_iframe_temp_comment(), Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $head ) . substr( $html, $head_end[0][1] );
-		}
-
-		return preg_replace( '/<head>(.*)<\/head>/ism', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $html ) ?? $html;
+		return substr_replace( $html, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE, $head_end[0][1], 0 );
 	}
 
 	/**
@@ -660,7 +660,7 @@ final class Optml_Manager {
 				if ( strpos( $match[0], 'class' ) !== false ) {
 					$new_tag = str_replace( [ 'class="', "class='" ], [ 'class="' . $add_classes, "class='" . $add_classes ], $match[0] );
 				} else {
-					$new_tag = str_replace( 'html ', 'html class="' . $add_classes . '" ', $match[0] );
+					$new_tag = preg_replace( '/^<html/i', '<html class="' . $add_classes . '"', $match[0] );
 				}
 
 				// Only that tag changes, so copies later in page content stay as written.

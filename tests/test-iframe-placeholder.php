@@ -97,6 +97,27 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
 	}
 
+	public function test_head_end_text_in_comments_and_scripts_is_not_taken_as_the_head_end(): void {
+		$script = '<script>var end = "</head>";</script>';
+		$html   = '<html><head><!-- </head> --></head><body>' . self::IFRAME . $script . '</body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+
+		$this->assertStringContainsString( '<!-- </head> -->' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $replaced );
+		$this->assertStringContainsString( $script, $replaced );
+		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
+	}
+
+	public function test_plugin_comment_after_head_end_text_is_expanded(): void {
+		$script = '<script>var end = "</head>";</script>';
+		$html   = '<html><head><!-- </head> -->' . $this->plugin_head() . '</head><body>' . self::IFRAME . $script . '</body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+
+		$this->assertStringContainsString( $script, $replaced );
+		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
+	}
+
 	public function test_marker_in_partial_content_is_not_expanded(): void {
 		$replaced = Optml_Manager::instance()->replace_content( self::IFRAME . $this->comment_link(), true );
 
