@@ -128,12 +128,12 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		$this->assertStringContainsString( self::PLACEHOLDER_SELECTOR, substr( $replaced, 0, strpos( $replaced, '<body' ) ) );
 	}
 
-	public function test_body_only_marker_is_not_expanded(): void {
-		$html = '<html><head><title>t</title></head><body>' . self::IFRAME . $this->comment_link() . '</body></html>';
+	public function test_page_without_the_plugin_comment_is_left_unchanged(): void {
+		$html = '<html><head><title>t</title></head><body>' . self::IFRAME . $this->comment_link() . '<script>var end = "</head>";</script></body></html>';
 
 		$replaced = Optml_Manager::instance()->replace_content( $html );
 
-		$this->assertStringContainsString( $this->comment_link(), $replaced );
-		$this->assertStringContainsString( Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $replaced );
+		$this->assertStringContainsString( $this->comment_link() . '<script>var end = "</head>";</script>', $replaced );
+		$this->assertStringNotContainsString( self::PLACEHOLDER_SELECTOR, $replaced );
 	}
 }

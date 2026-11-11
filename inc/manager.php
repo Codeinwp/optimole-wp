@@ -501,21 +501,17 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Expand the iframe placeholder comment the plugin printed, or add the placeholder style before the head end.
+	 * Expand the iframe placeholder comment the plugin printed.
 	 *
-	 * The comment carries the request token, so copies of its text in page content are not matched.
+	 * The comment carries the request token, so copies of its text in page content are not matched. Without the
+	 * comment, the plugin printed no head script either, so the iframes do not lazyload and need no placeholder.
 	 *
 	 * @param string $html Page HTML.
 	 *
 	 * @return string HTML with the iframe placeholder CSS added.
 	 */
 	private function add_iframe_placeholder_css( string $html ): string {
-		$comment = Optml_Lazyload_Replacer::get_iframe_temp_comment();
-		if ( strpos( $html, $comment ) !== false ) {
-			return str_replace( $comment, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $html );
-		}
-
-		return preg_replace( '/<head>(.*)<\/head>/ism', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $html ) ?? $html;
+		return str_replace( Optml_Lazyload_Replacer::get_iframe_temp_comment(), Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $html );
 	}
 
 	/**
