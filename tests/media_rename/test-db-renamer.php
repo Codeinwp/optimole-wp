@@ -445,6 +445,79 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		$this->assertSame( [ 'url' => $new_url ], get_user_meta( $user_id, 'optml_test_avatar', true ) );
 	}
 
+	public function test_replace_keeps_stored_objects_of_other_classes_unchanged(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/object-photo.jpg';
+		$stored  = 'O:' . strlen( Optml_Test_Renamer_Stored_Object::class ) . ':"' . Optml_Test_Renamer_Stored_Object::class . '":1:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";}';
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => $stored,
+			]
+		);
+		Optml_Test_Renamer_Stored_Object::$woken = false;
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/object-renamed.jpg' );
+		clean_comment_cache( $comment_id );
+
+		$this->assertFalse( Optml_Test_Renamer_Stored_Object::$woken, 'The stored object must not be created.' );
+		$this->assertSame( $stored, get_comment( $comment_id )->comment_content );
+	}
+
+	public function test_replace_keeps_values_with_custom_serialized_objects_unchanged(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/custom-photo.jpg';
+		// An array with the URL next to an object in the Serializable format, whose payload only its class can read.
+		$stored     = 'a:2:{s:5:"image";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:6:"widget";C:21:"Optml_Test_Not_Loaded":7:{payload}}';
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => $stored,
+			]
+		);
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/custom-renamed.jpg' );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( $stored, get_comment( $comment_id )->comment_content );
+	}
+
+	public function test_replace_updates_serialized_std_class(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/std-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/std-renamed.jpg';
+		update_post_meta( self::$post_id, 'optml_test_object', (object) [ 'image' => $old_url ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertEquals( (object) [ 'image' => $new_url ], get_post_meta( self::$post_id, 'optml_test_object', true ) );
+	}
+
+	public function test_replace_finishes_on_a_std_class_that_refers_to_itself(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/cycle-photo.jpg';
+		$value   = (object) [ "\0*\0self" => $old_url ];
+		$value->self = $value;
+		self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => serialize( $value ),
+			]
+		);
+
+		$count = self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/cycle-renamed.jpg' );
+
+		$this->assertGreaterThan( 0, $count );
+	}
+
+	public function test_replace_updates_serialized_text_that_looks_like_an_object(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/text-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/text-renamed.jpg';
+		update_post_meta( self::$post_id, 'optml_test_notes', [ 'image' => $old_url, 'note' => 'O:4:"Test":0:{}' ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( [ 'image' => $new_url, 'note' => 'O:4:"Test":0:{}' ], get_post_meta( self::$post_id, 'optml_test_notes', true ) );
+	}
+
 	public function test_replace_updates_size_variants_in_serialized_meta(): void {
 		update_post_meta( self::$post_id, 'optml_test_thumbnail', [ 'image' => 'http://om-wp.test/wp-content/uploads/2026/10/sized-photo-300x200.jpg' ] );
 
@@ -572,5 +645,28 @@ class Optml_Test_Wpdb_Without_Identifier_Placeholders extends wpdb {
 	 */
 	public function prepare( $query, ...$args ) {
 		return parent::prepare( str_replace( '%i', '%%i', $query ), ...$args );
+	}
+}
+
+/**
+ * A class whose code runs when a stored value creates it.
+ */
+class Optml_Test_Renamer_Stored_Object {
+	/**
+	 * Whether a stored value created an instance.
+	 *
+	 * @var bool
+	 */
+	public static $woken = false;
+
+	/**
+	 * URL the stored value carries.
+	 *
+	 * @var string
+	 */
+	public $url = '';
+
+	public function __wakeup() {
+		self::$woken = true;
 	}
 }

@@ -411,10 +411,17 @@ class Optml_Attachment_Db_Renamer {
 	private function replace_urls_in_value( $value, $old_url, $new_url ) {
 		// Check if the value is serialized
 		if ( $this->is_serialized( $value ) ) {
-			$unserialized = @unserialize( $value );
+			// Any table can hold the URL, including values visitors write, so stored data must not create
+			// objects whose class runs code.
+			$unserialized = @unserialize( $value, [ 'allowed_classes' => [ 'stdClass' ] ] );
 
 			// If unserialize successful, process the data
 			if ( $unserialized !== false ) {
+				// Such values are left as stored: an object read without its class could not be written
+				// back unchanged, and an enum cannot change.
+				if ( $this->holds_other_objects( $unserialized ) ) {
+					return $value;
+				}
 				$replaced = $this->replace_in_data( $unserialized, $old_url, $new_url );
 				return serialize( $replaced );
 			}
@@ -525,6 +532,35 @@ class Optml_Attachment_Db_Renamer {
 		}
 
 		return $content;
+	}
+
+	/**
+	 * Check whether unserialized data holds an object other than stdClass, such as an incomplete object or an enum.
+	 *
+	 * @param mixed            $data The unserialized data.
+	 * @param array<int, true> $seen Ids of the stdClass objects already checked, so self-references end.
+	 *
+	 * @return bool True when the data holds such an object.
+	 */
+	private function holds_other_objects( $data, array &$seen = [] ): bool {
+		if ( is_object( $data ) ) {
+			if ( ! $data instanceof stdClass ) {
+				return true;
+			}
+			if ( isset( $seen[ spl_object_id( $data ) ] ) ) {
+				return false;
+			}
+			$seen[ spl_object_id( $data ) ] = true;
+		}
+		if ( is_array( $data ) || is_object( $data ) ) {
+			foreach ( $data as $value ) {
+				if ( $this->holds_other_objects( $value, $seen ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	/**
