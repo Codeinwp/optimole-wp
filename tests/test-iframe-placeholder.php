@@ -63,6 +63,16 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		Optml_Manager::instance()->init();
 	}
 
+	/**
+	 * The markup the plugin prints in the head, with its iframe placeholder comment.
+	 */
+	private function plugin_head(): string {
+		ob_start();
+		Optml_Main::instance()->admin->inline_bootstrap_script();
+
+		return (string) ob_get_clean();
+	}
+
 	private function comment_link(): string {
 		return '<a href="https://example.com/" title="' . self::STORED_MARKER . ' autofocus onfocus=alert(1) x=">hi</a>';
 	}
@@ -79,7 +89,7 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 
 	public function test_marker_in_the_title_is_not_expanded(): void {
 		$title = '<title>Search ' . self::STORED_MARKER . '</title>';
-		$html  = '<html><head>' . $title . '<style>' . Optml_Lazyload_Replacer::get_iframe_temp_comment() . '</style></head><body>' . self::IFRAME . '</body></html>';
+		$html  = '<html><head>' . $title . $this->plugin_head() . '</head><body>' . self::IFRAME . '</body></html>';
 
 		$replaced = Optml_Manager::instance()->replace_content( $html );
 

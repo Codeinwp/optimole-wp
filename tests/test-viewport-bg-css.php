@@ -8,6 +8,7 @@
 
 use OptimoleWP\BgOptimizer\Lazyload;
 use OptimoleWP\PageProfiler\Profile;
+use OptimoleWP\Preload\Links;
 
 /**
  * Page placeholders are replaced only where the plugin printed them in this request.
@@ -56,6 +57,9 @@ class Test_Viewport_Bg_Css extends WP_UnitTestCase {
 	public function tearDown(): void {
 		remove_filter( 'optml_page_profile_id', [ self::class, 'profile_id' ] );
 		wp_deregister_style( self::STYLE_HANDLE );
+		$links = new ReflectionProperty( Links::class, 'links' );
+		$links->setAccessible( true );
+		$links->setValue( null, [] );
 		Profile::reset_current_profile();
 		$settings = new Optml_Settings();
 		foreach ( $this->previous_settings as $key => $value ) {
@@ -114,13 +118,43 @@ class Test_Viewport_Bg_Css extends WP_UnitTestCase {
 	}
 
 	public function test_preload_placeholder_text_in_content_is_kept(): void {
+		Links::add_link( [ 'url' => 'https://example.com/hero.jpg', 'priority' => 'high' ] );
 		$content = '<textarea><script id=optmlpreload></script></textarea>';
 		$html    = '<html><head>' . Optml_Admin::get_preload_links_placeholder() . '</head><body>' . $content . '</body></html>';
 
 		$replaced = Optml_Manager::instance()->replace_content( $html );
 
 		$this->assertStringContainsString( $content, $replaced );
-		$this->assertStringNotContainsString( Optml_Admin::get_preload_links_placeholder(), $replaced );
+		$head = substr( $replaced, 0, strpos( $replaced, '</head>' ) );
+		$this->assertMatchesRegularExpression( '/<link rel="preload" media="screen" href="[^"]*hero\.jpg"/', $head );
+	}
+
+	public function test_html_tag_copy_in_content_gets_no_class(): void {
+		$add_class = static function (): array {
+			return [ 'optml-test' ];
+		};
+		add_filter( 'optml_additional_html_classes', $add_class );
+		$content = '<textarea><html lang="en"></textarea>';
+		$html    = '<html lang="en"><head></head><body>' . $content . '</body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+		remove_filter( 'optml_additional_html_classes', $add_class );
+
+		$this->assertMatchesRegularExpression( '/^<html class="[^"]*optml-test[^"]*" lang="en">/', $replaced );
+		$this->assertStringContainsString( $content, $replaced );
+	}
+
+	public function test_debug_comment_is_added_only_after_the_document(): void {
+		$_GET['optml_debug'] = 'true';
+		$content = '<textarea></html></textarea>';
+		$html    = '<html><head></head><body>' . $content . '</body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+		unset( $_GET['optml_debug'] );
+
+		$this->assertStringContainsString( $content, $replaced );
+		$this->assertSame( 1, substr_count( $replaced, 'plugin=optimole-wp' ) );
+		$this->assertStringContainsString( '</body></html><!-- plugin=optimole-wp', $replaced );
 	}
 
 	public function test_optimizer_placeholder_text_in_content_is_kept(): void {

@@ -564,8 +564,10 @@ final class Optml_Manager {
 
 			Profile::set_current_profile_id( $profile_id );
 			$this->page_profiler->set_current_profile_data();
-			if ( $should_show_comment ) {
-				$html = str_replace( '</html>', '</html>' . $this->page_profiler->get_current_profile_html_comment(), $html );
+			// The document ends at the last </html>; earlier copies are page content.
+			$html_end = $should_show_comment ? strrpos( $html, '</html>' ) : false;
+			if ( false !== $html_end ) {
+				$html = substr_replace( $html, '</html>' . $this->page_profiler->get_current_profile_html_comment(), $html_end, strlen( '</html>' ) );
 			}
 		}
 		if ( ! $partial ) {
@@ -660,7 +662,8 @@ final class Optml_Manager {
 					$new_tag = str_replace( 'html ', 'html class="' . $add_classes . '" ', $match[0] );
 				}
 
-				$content = str_replace( $match[0], $new_tag, $content );
+				// Only the tag found first is the root; copies later in the page are content.
+				$content = substr_replace( $content, $new_tag, $match[1], strlen( $match[0] ) );
 			}
 		}
 
