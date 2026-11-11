@@ -12,6 +12,11 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 	const PLACEHOLDER_SELECTOR = 'iframe[data-opt-src]:not([data-opt-lazy-loaded])';
 
 	/**
+	 * The marker text page content can know: it was fixed before markers carried a token.
+	 */
+	const STORED_MARKER = '/** optmliframelazyloadplaceholder */';
+
+	/**
 	 * Settings values replaced in setUp, restored in tearDown.
 	 *
 	 * @var array<string, mixed>
@@ -59,17 +64,27 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 	}
 
 	private function comment_link(): string {
-		return '<a href="https://example.com/" title="' . Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT . ' autofocus onfocus=alert(1) x=">hi</a>';
+		return '<a href="https://example.com/" title="' . self::STORED_MARKER . ' autofocus onfocus=alert(1) x=">hi</a>';
 	}
 
 	public function test_marker_in_page_content_is_not_expanded(): void {
-		$html = '<html><head><style>' . Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT . '</style></head><body>' . self::IFRAME . $this->comment_link() . '</body></html>';
+		$html = '<html><head><style>' . Optml_Lazyload_Replacer::get_iframe_temp_comment() . '</style></head><body>' . self::IFRAME . $this->comment_link() . '</body></html>';
 
 		$replaced = Optml_Manager::instance()->replace_content( $html );
 
 		$this->assertStringContainsString( $this->comment_link(), $replaced );
 		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
 		$this->assertStringContainsString( self::PLACEHOLDER_SELECTOR, substr( $replaced, 0, stripos( $replaced, '</head>' ) ) );
+	}
+
+	public function test_marker_in_the_title_is_not_expanded(): void {
+		$title = '<title>Search ' . self::STORED_MARKER . '</title>';
+		$html  = '<html><head>' . $title . '<style>' . Optml_Lazyload_Replacer::get_iframe_temp_comment() . '</style></head><body>' . self::IFRAME . '</body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+
+		$this->assertStringContainsString( $title, $replaced );
+		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
 	}
 
 	public function test_marker_in_partial_content_is_not_expanded(): void {
@@ -84,7 +99,7 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 	}
 
 	public function test_marker_is_expanded_when_head_end_tag_is_omitted(): void {
-		$html = '<html><head><style>' . Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT . '</style><body class="post">' . self::IFRAME . $this->comment_link() . '</body></html>';
+		$html = '<html><head><style>' . Optml_Lazyload_Replacer::get_iframe_temp_comment() . '</style><body class="post">' . self::IFRAME . $this->comment_link() . '</body></html>';
 
 		$replaced = Optml_Manager::instance()->replace_content( $html );
 

@@ -516,8 +516,8 @@ final class Optml_Manager {
 		}
 
 		$head = substr( $html, 0, $head_end[0][1] );
-		if ( strpos( $head, Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT ) !== false ) {
-			return str_replace( Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $head ) . substr( $html, $head_end[0][1] );
+		if ( strpos( $head, Optml_Lazyload_Replacer::get_iframe_temp_comment() ) !== false ) {
+			return str_replace( Optml_Lazyload_Replacer::get_iframe_temp_comment(), Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $head ) . substr( $html, $head_end[0][1] );
 		}
 
 		return preg_replace( '/<head>(.*)<\/head>/ism', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $html ) ?? $html;

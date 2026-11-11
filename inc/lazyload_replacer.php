@@ -2,6 +2,7 @@
 
 use OptimoleWP\PageProfiler\Profile;
 use OptimoleWP\Preload\Links;
+use OptimoleWP\RequestToken;
 
 /**
  * The class handles the img tag replacements for lazyload.
@@ -29,8 +30,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			}';
 	const IFRAME_PLACEHOLDER_STYLE = '<style type="text/css">' . self::IFRAME_PLACEHOLDER_CLASS . '</style>';
 
-	const IFRAME_TEMP_COMMENT = '/** optmliframelazyloadplaceholder */';
-
 	const SVG_PLACEHOLDER = 'data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20#width#%20#height#%22%20width%3D%22#width#%22%20height%3D%22#height#%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22#width#%22%20height%3D%22#height#%22%20fill%3D%22#fill#%22%2F%3E%3C%2Fsvg%3E';
 	/**
 	 * If frame lazyload is present on page.
@@ -38,6 +37,17 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @var bool Whether or not at least one iframe has been lazyloaded.
 	 */
 	private static $found_iframe = false;
+
+	/**
+	 * Get the comment printed in the head where the iframe placeholder CSS goes.
+	 *
+	 * It carries the request token, so a copy of its text in the page, such as in a title, is not replaced.
+	 *
+	 * @return string The comment.
+	 */
+	public static function get_iframe_temp_comment(): string {
+		return '/** optmliframelazyloadplaceholder ' . RequestToken::get() . ' */';
+	}
 	/**
 	 * Cached object instance.
 	 *

@@ -13,6 +13,7 @@
 use enshrined\svgSanitize\Sanitizer;
 use OptimoleWP\BgOptimizer\Lazyload;
 use OptimoleWP\PageProfiler\Profile;
+use OptimoleWP\RequestToken;
 /**
  * Class Optml_Admin
  */
@@ -621,7 +622,7 @@ class Optml_Admin {
 							}
 						}(window, document));
 		</script>',
-			Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT,
+			Optml_Lazyload_Replacer::get_iframe_temp_comment(),
 			esc_url( $domain ),
 			$min,
 			$bgclasses,
@@ -1065,7 +1066,7 @@ class Optml_Admin {
 	public static function get_optimizer_script( $placeholder = true ) {
 
 		if ( $placeholder ) {
-			return '<script id=optmloptimizer></script>';
+			return '<script id=optmloptimizer-' . RequestToken::get() . '></script>';
 		}
 
 		return '<script async  src="' . add_query_arg( 'v', OPTML_VERSION, OPTML_URL . 'assets/build/optimizer/optimizer.js' ) . '"></script><script id="optmloptimizer" >
@@ -1090,7 +1091,7 @@ class Optml_Admin {
 	 * @return string The preload links placeholder.
 	 */
 	public static function get_preload_links_placeholder(): string {
-		return '<script id=optmlpreload></script>';
+		return '<script id=optmlpreload-' . RequestToken::get() . '></script>';
 	}
 	/**
 	 * Maybe redirect to dashboard page.

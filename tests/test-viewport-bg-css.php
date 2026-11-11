@@ -10,7 +10,7 @@ use OptimoleWP\BgOptimizer\Lazyload;
 use OptimoleWP\PageProfiler\Profile;
 
 /**
- * The personalized background CSS replaces only the marker pair the plugin printed in this request.
+ * Page placeholders are replaced only where the plugin printed them in this request.
  */
 class Test_Viewport_Bg_Css extends WP_UnitTestCase {
 
@@ -113,14 +113,30 @@ class Test_Viewport_Bg_Css extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( $this->personalized_rule(), $replaced );
 	}
 
-	public function test_plugin_markers_are_replaced_and_comment_markers_kept(): void {
-		$html = '<html><head>' . $this->plugin_style() . '</head><body><p>' . $this->comment() . '</p></body></html>';
+	public function test_preload_placeholder_text_in_content_is_kept(): void {
+		$content = '<textarea><script id=optmlpreload></script></textarea>';
+		$html    = '<html><head>' . Optml_Admin::get_preload_links_placeholder() . '</head><body>' . $content . '</body></html>';
 
 		$replaced = Optml_Manager::instance()->replace_content( $html );
 
-		$this->assertStringContainsString( $this->comment(), $replaced );
-		$this->assertStringContainsString( $this->personalized_rule(), $replaced );
-		$this->assertSame( 2, substr_count( $replaced, 'OPTML_VIEWPORT_BG_SELECTORS' ), 'Only the comment markers are left.' );
+		$this->assertStringContainsString( $content, $replaced );
+		$this->assertStringNotContainsString( Optml_Admin::get_preload_links_placeholder(), $replaced );
+	}
+
+	public function test_optimizer_placeholder_text_in_content_is_kept(): void {
+		// A page without a stored profile, so the plugin swaps its placeholder for the optimizer script.
+		$profile_without_data = static function (): string {
+			return 'bgcss1946-new';
+		};
+		add_filter( 'optml_page_profile_id', $profile_without_data, 20 );
+		$content = '<textarea><script id=optmloptimizer></script></textarea>';
+		$html    = '<html><head></head><body>' . $content . Optml_Admin::get_optimizer_script( true ) . '</body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+		remove_filter( 'optml_page_profile_id', $profile_without_data, 20 );
+
+		$this->assertStringContainsString( $content, $replaced );
+		$this->assertSame( 1, substr_count( $replaced, 'optimoleDataOptimizer' ) );
 	}
 
 	public function test_marker_printed_before_the_plugin_style_is_not_paired_with_it(): void {
