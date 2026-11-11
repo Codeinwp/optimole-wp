@@ -1,5 +1,7 @@
 <?php
 
+use OptimoleWP\Media\UploadsPath;
+
 /**
  * Attachment rename class.
  */
@@ -65,6 +67,11 @@ class Optml_Attachment_Rename {
 
 		global $wp_filesystem;
 
+		// Paths come from attachment metadata, so only files inside the uploads directory are moved.
+		if ( ! UploadsPath::contains( $file_path ) || ! UploadsPath::contains( $new_file_path ) ) {
+			return new WP_Error( 'optml_attachment_path_outside_uploads', __( 'Error renaming file.', 'optimole-wp' ) );
+		}
+
 		// Bail if original file doesn't exist.
 		if ( ! $wp_filesystem->exists( $file_path ) ) {
 			return new WP_Error( 'optml_attachment_file_not_found', __( 'Error renaming file.', 'optimole-wp' ) );
@@ -87,7 +94,9 @@ class Optml_Attachment_Rename {
 
 			$new_scaled_file_path = $base_dir . $scaled_new_file_with_ext;
 			// Move the scaled image. We also override any leftover scaled files.
-			$wp_filesystem->move( $scaled_old_file_path, $new_scaled_file_path, true );
+			if ( UploadsPath::contains( $scaled_old_file_path ) && UploadsPath::contains( $new_scaled_file_path ) ) {
+				$wp_filesystem->move( $scaled_old_file_path, $new_scaled_file_path, true );
+			}
 		}
 
 		// Update attachment metadata
@@ -186,6 +195,9 @@ class Optml_Attachment_Rename {
 
 				$old_size_file_path = sprintf( '%s/%s', $this->attachment->get_dir_path(), $size_data['file'] );
 				$new_size_file_path = sprintf( '%s/%s', $this->attachment->get_dir_path(), $new_size_file );
+				if ( ! UploadsPath::contains( $old_size_file_path ) || ! UploadsPath::contains( $new_size_file_path ) ) {
+					continue;
+				}
 
 				$move = $wp_filesystem->move( $old_size_file_path, $new_size_file_path );
 

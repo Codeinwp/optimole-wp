@@ -109,6 +109,35 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 		$this->do_replace_test( self::$unscaled_unscaled_id, $replace_file, false, false );
 	}
 
+	public function test_replace_does_not_delete_size_files_outside_uploads() {
+		global $wp_filesystem;
+
+		$id      = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$model   = new Optml_Attachment_Model( $id );
+		$parent  = dirname( wp_get_upload_dir()['basedir'] );
+		$outside = $parent . '/optml-outside-replace.txt';
+		file_put_contents( $outside, 'keep' );
+		$depth = substr_count( trim( substr( $model->get_dir_path(), strlen( $parent ) ), '/' ), '/' ) + 1;
+		$meta  = wp_get_attachment_metadata( $id );
+		$meta['sizes']['thumbnail']['file'] = str_repeat( '../', $depth ) . basename( $outside );
+		wp_update_attachment_metadata( $id, $meta );
+
+		$tmp_file = self::FILESTASH . 'replace-outside.jpg';
+		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
+		( new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-outside.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => $tmp_file,
+			]
+		) )->replace();
+
+		$this->assertFileExists( $outside, 'A size file outside uploads must not be deleted.' );
+		wp_delete_post( $id, true );
+		unlink( $outside );
+	}
+
 	/**
 	 * A 0600 upload tmp file must not leave the replaced attachment unreadable to the web server.
 	 */

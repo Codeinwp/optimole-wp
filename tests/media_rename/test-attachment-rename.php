@@ -40,6 +40,53 @@ class Test_Attachment_Rename extends WP_UnitTestCase {
 		$this->test_rename( self::$scaled_id, self::$scaled_model, 'big-file-rename', true );
 	}
 
+	public function test_rename_leaves_size_files_outside_uploads_in_place(): void {
+		$id      = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/rename-unscaled.jpg' );
+		$outside = self::outside_uploads_file( 'optml-outside-size.txt' );
+		$meta    = wp_get_attachment_metadata( $id );
+		$meta['sizes']['thumbnail']['file'] = self::relative_from( ( new Optml_Attachment_Model( $id ) )->get_dir_path(), $outside );
+		wp_update_attachment_metadata( $id, $meta );
+
+		( new Optml_Attachment_Rename( $id, 'outside-size-renamed' ) )->rename();
+
+		$this->assertFileExists( $outside, 'A size file outside uploads must not be moved.' );
+		wp_delete_post( $id, true );
+		unlink( $outside );
+	}
+
+	public function test_rename_refuses_a_main_file_outside_uploads(): void {
+		$id      = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/rename-unscaled.jpg' );
+		$outside = self::outside_uploads_file( 'optml-outside-main.jpg' );
+		update_post_meta( $id, '_wp_attached_file', self::relative_from( wp_get_upload_dir()['basedir'], $outside ) );
+
+		$result = ( new Optml_Attachment_Rename( $id, 'outside-main-renamed' ) )->rename();
+
+		$this->assertWPError( $result );
+		$this->assertFileExists( $outside, 'A main file outside uploads must not be moved.' );
+		wp_delete_post( $id, true );
+		unlink( $outside );
+	}
+
+	/**
+	 * Create a file next to the uploads directory, outside it.
+	 */
+	private static function outside_uploads_file( string $name ): string {
+		$path = dirname( wp_get_upload_dir()['basedir'] ) . '/' . $name;
+		file_put_contents( $path, 'keep' );
+
+		return $path;
+	}
+
+	/**
+	 * Build the `../` path from a folder inside uploads to a file next to the uploads directory.
+	 */
+	private static function relative_from( string $dir, string $file ): string {
+		$parent = dirname( wp_get_upload_dir()['basedir'] );
+		$depth  = substr_count( trim( substr( $dir, strlen( $parent ) ), '/' ), '/' ) + 1;
+
+		return str_repeat( '../', $depth ) . basename( $file );
+	}
+
 	private function test_rename( $id, $model, $new_filename, $scaled = false ) {
 		$renamer = new Optml_Attachment_Rename( $id, $new_filename );
 		$result = $renamer->rename();

@@ -6,6 +6,7 @@
  * @author     Optimole <friends@optimole.com>
  */
 
+use OptimoleWP\Media\UploadsPath;
 use OptimoleWP\Offload\Loader;
 use Optimole\Sdk\Exception\InvalidArgumentException;
 use Optimole\Sdk\Exception\InvalidUploadApiResponseException;
@@ -1463,7 +1464,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 			do_action( 'optml_log', 'file after replace' );
 			do_action( 'optml_log', $local_file );
 		}
-		if ( ! file_exists( $local_file ) ) {
+		// The path comes from attachment metadata, so a file outside the uploads directory is treated as missing.
+		if ( ! file_exists( $local_file ) || ! UploadsPath::contains( $local_file ) ) {
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 			do_action( 'optml_log', 'missing file' );
 			do_action( 'optml_log', $local_file );
@@ -1616,7 +1618,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		if ( isset( $meta['sizes'] ) ) {
 			foreach ( $meta['sizes'] as $key => $value ) {
 				$generated_image_size_path = str_replace( $original_name, $meta['sizes'][ $key ]['file'], $local_file );
-				file_exists( $generated_image_size_path ) && unlink( $generated_image_size_path );
+				// Size files come from attachment metadata too, so only those inside the uploads directory are deleted.
+				file_exists( $generated_image_size_path ) && UploadsPath::contains( $generated_image_size_path ) && unlink( $generated_image_size_path );
 				$meta['sizes'][ $key ]['file'] = $file_name;
 			}
 		}
