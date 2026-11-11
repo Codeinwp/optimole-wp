@@ -97,15 +97,22 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
 	}
 
-	public function test_head_end_text_in_comments_and_scripts_is_not_taken_as_the_head_end(): void {
-		$script = '<script>var end = "</head>";</script>';
-		$html   = '<html><head><!-- </head> --></head><body>' . self::IFRAME . $script . '</body></html>';
+	public function test_placeholder_style_is_added_after_the_head_start_tag(): void {
+		$head = '<!-- <head> --><style>.label::after { content: "</head>"; }</style><script>var end = "</head>";</script >';
+		$html = '<html><head lang="en">' . $head . '</head><body>' . self::IFRAME . '<textarea></head></textarea></body></html>';
 
 		$replaced = Optml_Manager::instance()->replace_content( $html );
 
-		$this->assertStringContainsString( '<!-- </head> -->' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $replaced );
-		$this->assertStringContainsString( $script, $replaced );
+		$this->assertStringContainsString( '<head lang="en">' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . $head . '</head>', $replaced );
+		$this->assertStringContainsString( '<textarea></head></textarea>', $replaced );
 		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
+	}
+
+	public function test_partial_content_gets_no_placeholder_style(): void {
+		$replaced = Optml_Manager::instance()->replace_content( self::IFRAME . '<textarea></head></textarea>', true );
+
+		$this->assertStringContainsString( '<textarea></head></textarea>', $replaced );
+		$this->assertStringNotContainsString( self::PLACEHOLDER_SELECTOR, $replaced );
 	}
 
 	public function test_plugin_comment_after_head_end_text_is_expanded(): void {
@@ -145,6 +152,6 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		$replaced = Optml_Manager::instance()->replace_content( $html );
 
 		$this->assertStringContainsString( $this->comment_link(), $replaced );
-		$this->assertStringContainsString( Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $replaced );
+		$this->assertStringContainsString( '<head>' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '<title>', $replaced );
 	}
 }

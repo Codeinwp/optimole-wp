@@ -172,6 +172,19 @@ class Test_Viewport_Bg_Css extends WP_UnitTestCase {
 		$this->assertStringStartsWith( $conditional . '<html class="optml-test', $replaced );
 	}
 
+	public function test_uppercase_html_root_keeps_its_classes(): void {
+		$add_class = static function (): array {
+			return [ 'optml-test' ];
+		};
+		add_filter( 'optml_additional_html_classes', $add_class );
+		$html = '<HTML CLASS="theme-dark"><head></head><body></body></HTML>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+		remove_filter( 'optml_additional_html_classes', $add_class );
+
+		$this->assertStringStartsWith( '<HTML CLASS="theme-dark">', $replaced );
+	}
+
 	public function test_debug_comment_is_added_only_after_the_document(): void {
 		$_GET['optml_debug'] = 'true';
 		$content = '<textarea></html></textarea>';

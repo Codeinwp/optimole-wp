@@ -501,7 +501,7 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Expand the iframe placeholder comment the plugin printed, or add the placeholder style before the head end.
+	 * Expand the iframe placeholder comment the plugin printed, or add the placeholder style after the head start tag.
 	 *
 	 * The comment carries the request token, so copies of its text in page content are not matched.
 	 *
@@ -515,12 +515,13 @@ final class Optml_Manager {
 			return str_replace( $comment, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $html );
 		}
 
-		// Comments and scripts can hold "</head>" as text, so the first one outside them is taken as the head end.
-		if ( ! preg_match( '/(?:<!--.*?-->|<script\b.*?<\/script>)(*SKIP)(*FAIL)|<\/head>/is', $html, $head_end, PREG_OFFSET_CAPTURE ) ) {
+		// Only the doctype, the html tag and comments come before the head start tag, while head and body
+		// content, such as scripts and styles, can hold "</head>" as text.
+		if ( ! preg_match( '/<!--.*?-->(*SKIP)(*FAIL)|<head(?:\s[^>]*)?>/is', $html, $head_start, PREG_OFFSET_CAPTURE ) ) {
 			return $html;
 		}
 
-		return substr_replace( $html, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE, $head_end[0][1], 0 );
+		return substr_replace( $html, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE, $head_start[0][1] + strlen( $head_start[0][0] ), 0 );
 	}
 
 	/**
@@ -660,7 +661,8 @@ final class Optml_Manager {
 				if ( strpos( $match[0], 'class' ) !== false ) {
 					$new_tag = str_replace( [ 'class="', "class='" ], [ 'class="' . $add_classes, "class='" . $add_classes ], $match[0] );
 				} else {
-					$new_tag = preg_replace( '/^<html/i', '<html class="' . $add_classes . '"', $match[0] );
+					// The class check above is case-sensitive, so an uppercase tag, which can hold CLASS, stays as written.
+					$new_tag = preg_replace( '/^<html/', '<html class="' . $add_classes . '"', $match[0] );
 				}
 
 				// Only that tag changes, so copies later in page content stay as written.
