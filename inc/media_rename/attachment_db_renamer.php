@@ -43,8 +43,8 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Constructor
 	 *
-	 * @param bool         $skip_sizes Whether size and scaled variations are left unchanged.
-	 * @param list<string> $kept_size_suffixes Size suffixes, such as `150x150`, whose URLs are left unchanged.
+	 * @param bool     $skip_sizes Whether size and scaled variations are left unchanged.
+	 * @param string[] $kept_size_suffixes Size suffixes, such as `150x150`, whose URLs are left unchanged.
 	 */
 	public function __construct( $skip_sizes = false, array $kept_size_suffixes = [] ) {
 		$this->handle_image_sizes = ! $skip_sizes;
