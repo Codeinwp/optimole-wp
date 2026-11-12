@@ -27,9 +27,9 @@ class Optml_Attachment_Db_Renamer {
 	private $skip_columns = [ 'user_pass' ];
 
 	/**
-	 * Size suffixes, such as `150x150`, whose URLs are left unchanged
+	 * Size suffixes, such as `150x150`, whose URLs are left unchanged, as keys
 	 *
-	 * @var list<string>
+	 * @var array<string, int>
 	 */
 	private $kept_size_suffixes = [];
 
@@ -48,7 +48,7 @@ class Optml_Attachment_Db_Renamer {
 	 */
 	public function __construct( $skip_sizes = false, array $kept_size_suffixes = [] ) {
 		$this->handle_image_sizes = ! $skip_sizes;
-		$this->kept_size_suffixes = $kept_size_suffixes;
+		$this->kept_size_suffixes = array_flip( $kept_size_suffixes );
 	}
 
 	/**
@@ -490,7 +490,7 @@ class Optml_Attachment_Db_Renamer {
 				function ( $matches ) use ( $old_base, $new_base, $old_domain, $new_domain, $old_dir, $new_dir, $old_ext, $new_ext ) {
 					// Extract the size part (e.g., -300x200)
 					$size_part = substr( $matches[0], strlen( $old_domain . $old_dir . '/' . $old_base ), -strlen( '.' . $old_ext ) );
-					if ( in_array( ltrim( $size_part, '-' ), $this->kept_size_suffixes, true ) ) {
+					if ( isset( $this->kept_size_suffixes[ ltrim( $size_part, '-' ) ] ) ) {
 						return $matches[0];
 					}
 
@@ -519,7 +519,7 @@ class Optml_Attachment_Db_Renamer {
 				function ( $matches ) use ( $old_base, $new_base, $old_domain, $new_domain, $old_dir, $new_dir, $old_ext, $new_ext ) {
 					// Extract the size part (e.g., -300x200)
 					$size_part = substr( $matches[0], strlen( str_replace( '/', '\/', $old_domain . $old_dir . '/' . $old_base ) ), -strlen( '.' . $old_ext ) );
-					if ( in_array( ltrim( $size_part, '-' ), $this->kept_size_suffixes, true ) ) {
+					if ( isset( $this->kept_size_suffixes[ ltrim( $size_part, '-' ) ] ) ) {
 						return $matches[0];
 					}
 
