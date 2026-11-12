@@ -1,3 +1,10 @@
+##### [Version 4.2.20](https://github.com/Codeinwp/optimole-wp/compare/v4.2.19...v4.2.20) (2026-11-12)
+
+- Fixed unreadable selected compression mode on WordPress 7.1.
+- Fixed media rename, video block, and dashboard widget on older WordPress versions.
+- Enhanced security
+- Updated dependencies
+
 ##### [Version 4.2.19](https://github.com/Codeinwp/optimole-wp/compare/v4.2.18...v4.2.19) (2026-11-04)
 
 - Enhanced security
