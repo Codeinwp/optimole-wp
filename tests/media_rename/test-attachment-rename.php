@@ -116,6 +116,27 @@ class Test_Attachment_Rename extends WP_UnitTestCase {
 		unlink( $outside );
 	}
 
+	public function test_rename_keeps_links_to_a_size_whose_file_another_size_moved(): void {
+		$id            = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/rename-unscaled.jpg' );
+		$thumbnail_url = wp_get_attachment_image_url( $id, 'thumbnail' );
+		$post_id       = $this->post_linking( $thumbnail_url );
+		$outside       = self::outside_uploads_file( 'optml-outside-shared-size.txt' );
+		$meta          = wp_get_attachment_metadata( $id );
+		$thumbnail     = $meta['sizes']['thumbnail'];
+		// A size with the thumbnail dimensions that names the medium file, which the medium size moves first.
+		$meta['sizes']['optml_twin']        = array_merge( $meta['sizes']['medium'], [ 'width' => $thumbnail['width'], 'height' => $thumbnail['height'] ] );
+		$meta['sizes']['thumbnail']['file'] = self::relative_from( ( new Optml_Attachment_Model( $id ) )->get_dir_path(), $outside );
+		wp_update_attachment_metadata( $id, $meta );
+
+		( new Optml_Attachment_Rename( $id, 'outside-shared-renamed' ) )->rename();
+		clean_post_cache( $post_id );
+
+		$this->assertStringContainsString( $thumbnail_url, get_post( $post_id )->post_content );
+		$this->assertFileExists( ( new Optml_Attachment_Model( $id ) )->get_dir_path() . '/' . $thumbnail['file'] );
+		wp_delete_post( $id, true );
+		unlink( $outside );
+	}
+
 	/**
 	 * Create a post that links each URL as an image and in JSON block attributes.
 	 *

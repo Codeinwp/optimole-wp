@@ -212,7 +212,10 @@ class Optml_Attachment_Rename {
 					$already_moved_paths[] = $old_size_file_path;
 					$metadata['sizes'][ $size ]['file'] = $new_size_file;
 					$already_moved_paths = array_unique( $already_moved_paths );
-					// Links are renamed only for these sizes, so a skipped size keeps its working links.
+				}
+				// Links are renamed only for size files this rename created, so other links keep working. A path
+				// moved for an earlier size creates no file with this suffix.
+				if ( $move ) {
 					$this->moved_size_suffixes[] = $size_suffix;
 				}
 			}

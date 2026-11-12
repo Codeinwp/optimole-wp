@@ -2401,12 +2401,6 @@ parameters:
 			path: inc/media_offload.php
 
 		-
-			message: '#^Method Optml_Attachment_Db_Renamer\:\:__construct\(\) has parameter \$skip_sizes with no type specified\.$#'
-			identifier: missingType.parameter
-			count: 1
-			path: inc/media_rename/attachment_db_renamer.php
-
-		-
 			message: '#^Method Optml_Attachment_Db_Renamer\:\:get_columns\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
