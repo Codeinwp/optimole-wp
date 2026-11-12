@@ -419,8 +419,7 @@ class Optml_Attachment_Db_Renamer {
 	private function replace_urls_in_value( $value, $old_url, $new_url, int $depth = 0 ) {
 		// Check if the value is serialized
 		if ( $this->is_serialized( $value ) ) {
-			// A value with references (r: or R:) can refer to itself, which the URL walk cannot end.
-			if ( preg_match( '/[;{][rR]:\d+;/', $value ) ) {
+			if ( $this->has_references( $value ) ) {
 				return $value;
 			}
 
@@ -438,7 +437,7 @@ class Optml_Attachment_Db_Renamer {
 
 			// Plain text can start like a serialized string, such as `s:3:"foo"; see …`, and keeps its text after
 			// the first value.
-			if ( is_string( $unserialized ) && ! $this->reads_back( $unserialized, trim( $value ) ) ) {
+			if ( is_string( $unserialized ) && $this->has_text_after_string( trim( $value ) ) ) {
 				return $this->replace_image_urls( $value, $old_url, $new_url );
 			}
 
@@ -619,6 +618,9 @@ class Optml_Attachment_Db_Renamer {
 	 */
 	private function replace_in_string( string $value, string $old_url, string $new_url, int $depth ): string {
 		if ( $this->is_serialized( $value ) ) {
+			if ( $this->has_references( $value ) ) {
+				return $value;
+			}
 			$inner = @unserialize( $value, [ 'allowed_classes' => [ 'stdClass' ] ] );
 			if ( false === $inner || $this->holds_other_objects( $inner ) ) {
 				return $value;
@@ -630,6 +632,34 @@ class Optml_Attachment_Db_Renamer {
 		}
 
 		return $this->replace_image_urls( $value, $old_url, $new_url );
+	}
+
+	/**
+	 * Check whether a serialized value has references (r: or R:).
+	 *
+	 * A reference can point back at its own value, which the URL walk and the object check cannot end.
+	 *
+	 * @param string $value The serialized value.
+	 *
+	 * @return bool True when the value has references.
+	 */
+	private function has_references( string $value ): bool {
+		return (bool) preg_match( '/[;{][rR]:\d+;/', $value );
+	}
+
+	/**
+	 * Check whether text follows the first value of a serialized string, which unserialize() ignores.
+	 *
+	 * Lengths can have leading zeros, such as `s:027:"…";`, which serialize() does not write.
+	 *
+	 * @param string $value A serialized string that unserializes.
+	 *
+	 * @return bool True when text follows the string.
+	 */
+	private function has_text_after_string( string $value ): bool {
+		preg_match( '/^s:(\d+):"/', $value, $matches );
+
+		return strlen( $value ) > strlen( $matches[0] ) + (int) $matches[1] + 2;
 	}
 
 	/**

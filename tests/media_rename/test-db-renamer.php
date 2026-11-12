@@ -670,14 +670,35 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		);
 	}
 
+	public function test_replace_keeps_nested_values_with_references_as_stored(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-reference-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-reference-renamed.jpg';
+		$inner   = 'O:8:"stdClass":2:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:4:"self";r:1;}';
+		// The escaped string format hides the reference from the check on the outer value.
+		$escaped    = str_replace( ';', '\\3b', $inner );
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => 'a:2:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:4:"data";S:' . strlen( $inner ) . ':"' . $escaped . '";}',
+			]
+		);
+
+		self::$replacer->replace( $old_url, $new_url );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( [ 'url' => $new_url, 'data' => $inner ], unserialize( get_comment( $comment_id )->comment_content ) );
+	}
+
 	public function test_replace_updates_nested_values_with_old_float_precision(): void {
 		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/float-photo.jpg';
 		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/float-renamed-photo.jpg';
 		update_option( 'optml_test_float', [ 'data' => 'a:2:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:5:"ratio";d:0.10000000000000001;}' ] );
+		$precision = ini_get( 'serialize_precision' );
 
 		self::$replacer->replace( $old_url, $new_url );
 		wp_cache_flush();
 
+		$this->assertSame( $precision, ini_get( 'serialize_precision' ) );
 		$this->assertSame( [ 'url' => $new_url, 'ratio' => 0.1 ], unserialize( get_option( 'optml_test_float' )['data'] ) );
 	}
 
@@ -696,11 +717,18 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 				'comment_content' => 's:3:"foo"; see "' . $old_url . '";',
 			]
 		);
+		$padded  = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => 's:0' . strlen( $old_url ) . ':"' . $old_url . '";',
+			]
+		);
 
 		self::$replacer->replace( $old_url, $new_url );
-		clean_comment_cache( [ $string, $text ] );
+		clean_comment_cache( [ $string, $text, $padded ] );
 
 		$this->assertSame( 'see ' . $new_url, unserialize( get_comment( $string )->comment_content ) );
+		$this->assertSame( $new_url, unserialize( get_comment( $padded )->comment_content ) );
 		$this->assertSame( 's:3:"foo"; see "' . $new_url . '";', get_comment( $text )->comment_content );
 	}
 
