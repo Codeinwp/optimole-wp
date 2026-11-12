@@ -92,6 +92,7 @@ class Test_Attachment_Rename extends WP_UnitTestCase {
 		$this->assertStringContainsString( $thumbnail_url, $content );
 		$this->assertStringContainsString( wp_json_encode( $thumbnail_url ), $content );
 		$this->assertStringNotContainsString( $medium_url, $content );
+		$this->assertStringNotContainsString( wp_json_encode( $medium_url ), $content );
 		$this->assertFileExists( ( new Optml_Attachment_Model( $id ) )->get_dir_path() . '/' . $thumbnail );
 		wp_delete_post( $id, true );
 		unlink( $outside );
