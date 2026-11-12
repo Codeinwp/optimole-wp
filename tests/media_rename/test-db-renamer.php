@@ -284,6 +284,20 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		}
 	}
 
+	public function test_static__renames_only_listed_sizes() {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2025/03/asdfgh.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2025/03/listed-sizes.jpg';
+
+		$listed = self::$replace_method->invoke( new Optml_Attachment_Db_Renamer( false, [ '300x200' ] ), self::POST_CONTENT, $old_url, $new_url );
+		$none   = self::$replace_method->invoke( new Optml_Attachment_Db_Renamer( false, [] ), self::POST_CONTENT, $old_url, $new_url );
+
+		$this->assertStringContainsString( 'listed-sizes-300x200.jpg', $listed );
+		$this->assertStringContainsString( 'asdfgh-150x150.jpg', $listed );
+		$this->assertStringNotContainsString( 'listed-sizes-150x150.jpg', $listed );
+		$this->assertStringContainsString( 'asdfgh-300x200.jpg', $none );
+		$this->assertStringContainsString( 'asdfgh-150x150.jpg', $none );
+	}
+
 	public function test_db__post_content_video_replacement() {
 		$initial_url = 'http://om-wp.test/wp-content/uploads/2025/03/video-file.mp4';
 		$new_url     = 'http://example.com/wp-content/uploads/2020/01/new-home-made-tutorial.mp4';
