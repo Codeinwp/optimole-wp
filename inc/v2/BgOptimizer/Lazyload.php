@@ -4,6 +4,7 @@ namespace OptimoleWP\BgOptimizer;
 
 use OptimoleWP\PageProfiler\Profile;
 use OptimoleWP\Preload\Links;
+use OptimoleWP\RequestToken;
 use Optml_Lazyload_Replacer;
 
 /**
@@ -12,7 +13,6 @@ use Optml_Lazyload_Replacer;
  * @package OptimoleWP\BgOptimizer
  */
 class Lazyload {
-	const MARKER = '/* OPTML_VIEWPORT_BG_SELECTORS */';
 	/**
 	 * Shape of a plain selector the frontend getUniqueSelector() reports: ids, tags, classes, ' > ' and :nth-of-type(N).
 	 */
@@ -31,6 +31,17 @@ class Lazyload {
 	 */
 	public static function is_safe_selector( $selector ): bool {
 		return is_string( $selector ) && $selector !== '' && preg_match( self::SAFE_SELECTOR_PATTERN, $selector ) === 1;
+	}
+	/**
+	 * Get the marker printed before and after the general background CSS.
+	 *
+	 * The personalized CSS replaces everything between two markers. The marker carries the request
+	 * token, so page content, such as a comment, cannot contain a matching pair.
+	 *
+	 * @return string The marker, a CSS comment.
+	 */
+	public static function get_marker(): string {
+		return '/* OPTML_VIEWPORT_BG_SELECTORS ' . RequestToken::get() . ' */';
 	}
 	/**
 	 * Get the current personalized CSS for lazy loading.
