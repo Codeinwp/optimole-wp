@@ -594,16 +594,33 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		$deepest = serialize( [ 'url' => $old_url ] );
 		$value   = $deepest;
 		for ( $level = 0; $level < 3; $level++ ) {
-			$value = serialize( [ 'data' => $value ] );
+			$value = serialize( [ 'data' => $value, 'url' => $old_url ] );
 		}
 		update_option( 'optml_test_deep', [ 'data' => $value, 'url' => $old_url ] );
 
 		self::$replacer->replace( $old_url, $new_url );
 		wp_cache_flush();
 
+		// Three nested levels are rewritten, and the fourth stays as stored.
 		$stored = get_option( 'optml_test_deep' );
-		$this->assertSame( $new_url, $stored['url'] );
-		$this->assertSame( serialize( [ 'data' => serialize( [ 'data' => $deepest ] ) ] ), unserialize( $stored['data'] )['data'] );
+		for ( $level = 0; $level < 3; $level++ ) {
+			$stored = unserialize( $stored['data'] );
+			$this->assertSame( $new_url, $stored['url'] );
+		}
+		$this->assertSame( $deepest, $stored['data'] );
+	}
+
+	public function test_replace_does_not_create_objects_nested_in_strings(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-object-photo.jpg';
+		$object  = 'O:' . strlen( Optml_Test_Renamer_Stored_Object::class ) . ':"' . Optml_Test_Renamer_Stored_Object::class . '":1:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";}';
+		update_option( 'optml_test_nested_object', [ 'data' => $object, 'url' => $old_url ] );
+		Optml_Test_Renamer_Stored_Object::$woken = false;
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/nested-object-renamed.jpg' );
+		wp_cache_flush();
+
+		$this->assertFalse( Optml_Test_Renamer_Stored_Object::$woken, 'The nested object must not be created.' );
+		$this->assertSame( $object, get_option( 'optml_test_nested_object' )['data'] );
 	}
 
 	public function test_replace_updates_nested_text_that_starts_like_a_serialized_string(): void {
