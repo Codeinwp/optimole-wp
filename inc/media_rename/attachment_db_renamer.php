@@ -34,6 +34,13 @@ class Optml_Attachment_Db_Renamer {
 	private $handle_image_sizes = false;
 
 	/**
+	 * How many serialized values nested in strings are rewritten as data.
+	 *
+	 * Each level reads a copy of the string, so the cap bounds memory.
+	 */
+	private const MAX_NESTED_DEPTH = 3;
+
+	/**
 	 * Constructor
 	 */
 	public function __construct( $skip_sizes = false ) {
@@ -405,10 +412,11 @@ class Optml_Attachment_Db_Renamer {
 	 * @param string $value The value to process.
 	 * @param string $old_url Old URL.
 	 * @param string $new_url New URL.
+	 * @param int    $depth How many serialized strings hold this value.
 	 *
 	 * @return string The processed value
 	 */
-	private function replace_urls_in_value( $value, $old_url, $new_url ) {
+	private function replace_urls_in_value( $value, $old_url, $new_url, int $depth = 0 ) {
 		// Check if the value is serialized
 		if ( $this->is_serialized( $value ) ) {
 			// A value with references (r: or R:) can refer to itself, which the URL walk cannot end.
@@ -428,7 +436,7 @@ class Optml_Attachment_Db_Renamer {
 				return $value;
 			}
 
-			return serialize( $this->replace_in_data( $unserialized, $old_url, $new_url ) );
+			return serialize( $this->replace_in_data( $unserialized, $old_url, $new_url, $depth ) );
 		}
 
 		return $this->replace_image_urls( $value, $old_url, $new_url );
@@ -566,25 +574,52 @@ class Optml_Attachment_Db_Renamer {
 	 * @param mixed  $data The data to process.
 	 * @param string $old_url Old URL.
 	 * @param string $new_url New URL.
+	 * @param int    $depth How many serialized strings hold this data.
 	 *
 	 * @return mixed The processed data
 	 */
-	private function replace_in_data( $data, $old_url, $new_url ) {
+	private function replace_in_data( $data, $old_url, $new_url, int $depth ) {
 		if ( is_array( $data ) ) {
 			// Process arrays recursively
 			foreach ( $data as $key => $value ) {
-				$data[ $key ] = $this->replace_in_data( $value, $old_url, $new_url );
+				$data[ $key ] = $this->replace_in_data( $value, $old_url, $new_url, $depth );
 			}
 		} elseif ( is_object( $data ) ) {
 			// Process objects recursively
 			foreach ( $data as $key => $value ) {
-				$data->$key = $this->replace_in_data( $value, $old_url, $new_url );
+				$data->$key = $this->replace_in_data( $value, $old_url, $new_url, $depth );
 			}
 		} elseif ( is_string( $data ) ) {
-			$data = $this->replace_image_urls( $data, $old_url, $new_url );
+			$data = $this->replace_in_string( $data, $old_url, $new_url, $depth );
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Replace URLs in a string read from serialized data.
+	 *
+	 * Plugins can store a serialized value in a string of another one. That value is rewritten as data, so its
+	 * declared lengths stay right, but only when it reads back to exactly the same text. Other text that only
+	 * starts like serialized data gets the plain replacement.
+	 *
+	 * @param string $value The string.
+	 * @param string $old_url Old URL.
+	 * @param string $new_url New URL.
+	 * @param int    $depth How many serialized strings hold the data this string is in.
+	 *
+	 * @return string The processed string.
+	 */
+	private function replace_in_string( string $value, string $old_url, string $new_url, int $depth ): string {
+		if ( $this->is_serialized( $value ) ) {
+			$inner = @unserialize( $value, [ 'allowed_classes' => [ 'stdClass' ] ] );
+			if ( false !== $inner && serialize( $inner ) === $value ) {
+				// Past the cap the value is kept as stored, because a text replacement would break its lengths.
+				return $depth < self::MAX_NESTED_DEPTH ? $this->replace_urls_in_value( $value, $old_url, $new_url, $depth + 1 ) : $value;
+			}
+		}
+
+		return $this->replace_image_urls( $value, $old_url, $new_url );
 	}
 
 	/**

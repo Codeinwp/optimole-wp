@@ -577,6 +577,46 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		$this->assertSame( [ 'image' => $new_url, 'note' => 'O:4:"Test":0:{}' ], get_post_meta( self::$post_id, 'optml_test_notes', true ) );
 	}
 
+	public function test_replace_updates_a_serialized_string_inside_a_serialized_option(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-renamed-photo.jpg';
+		update_option( 'optml_test_nested', [ 'data' => serialize( [ 'url' => $old_url ] ) ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( [ 'url' => $new_url ], unserialize( get_option( 'optml_test_nested' )['data'] ) );
+	}
+
+	public function test_replace_keeps_serialized_strings_past_the_nesting_cap_as_stored(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/deep-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/deep-renamed-photo.jpg';
+		$deepest = serialize( [ 'url' => $old_url ] );
+		$value   = $deepest;
+		for ( $level = 0; $level < 3; $level++ ) {
+			$value = serialize( [ 'data' => $value ] );
+		}
+		update_option( 'optml_test_deep', [ 'data' => $value, 'url' => $old_url ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$stored = get_option( 'optml_test_deep' );
+		$this->assertSame( $new_url, $stored['url'] );
+		$this->assertSame( serialize( [ 'data' => serialize( [ 'data' => $deepest ] ) ] ), unserialize( $stored['data'] )['data'] );
+	}
+
+	public function test_replace_updates_nested_text_that_starts_like_a_serialized_string(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/note-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/note-renamed-photo.jpg';
+		update_option( 'optml_test_note', [ 'note' => 's:3:"foo"; see "' . $old_url . '";' ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( [ 'note' => 's:3:"foo"; see "' . $new_url . '";' ], get_option( 'optml_test_note' ) );
+	}
+
 	public function test_replace_updates_size_variants_in_serialized_meta(): void {
 		update_post_meta( self::$post_id, 'optml_test_thumbnail', [ 'image' => 'http://om-wp.test/wp-content/uploads/2026/10/sized-photo-300x200.jpg' ] );
 
