@@ -58,7 +58,22 @@ class Test_Attachment_Rename extends WP_UnitTestCase {
 		unlink( $outside );
 	}
 
-	public function test_rename_keeps_links_to_a_size_left_outside_uploads(): void {
+	/**
+	 * Tampered metadata can change the size numbers too.
+	 *
+	 * @return array<string, array{int}>
+	 */
+	public function size_width_changes(): array {
+		return [
+			'same width'    => [ 0 ],
+			'changed width' => [ 1 ],
+		];
+	}
+
+	/**
+	 * @dataProvider size_width_changes
+	 */
+	public function test_rename_keeps_links_to_a_size_left_outside_uploads( int $width_change ): void {
 		$id            = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/rename-unscaled.jpg' );
 		$thumbnail_url = wp_get_attachment_image_url( $id, 'thumbnail' );
 		$medium_url    = wp_get_attachment_image_url( $id, 'medium' );
@@ -67,6 +82,7 @@ class Test_Attachment_Rename extends WP_UnitTestCase {
 		$meta          = wp_get_attachment_metadata( $id );
 		$thumbnail     = $meta['sizes']['thumbnail']['file'];
 		$meta['sizes']['thumbnail']['file'] = self::relative_from( ( new Optml_Attachment_Model( $id ) )->get_dir_path(), $outside );
+		$meta['sizes']['thumbnail']['width'] += $width_change;
 		wp_update_attachment_metadata( $id, $meta );
 
 		( new Optml_Attachment_Rename( $id, 'outside-linked-renamed' ) )->rename();

@@ -28,11 +28,11 @@ class Optml_Attachment_Rename {
 	private $attachment;
 
 	/**
-	 * Size suffixes, such as `150x150`, whose files stay under the old name.
+	 * Size suffixes, such as `150x150`, of the size files moved to the new name.
 	 *
 	 * @var list<string>
 	 */
-	private $kept_size_suffixes = [];
+	private $moved_size_suffixes = [];
 
 	/**
 	 * Constructor.
@@ -116,7 +116,7 @@ class Optml_Attachment_Rename {
 		try {
 			$skip_sizes = ! $this->attachment->is_image();
 
-			$replacer = new Optml_Attachment_Db_Renamer( $skip_sizes, $this->kept_size_suffixes );
+			$replacer = new Optml_Attachment_Db_Renamer( $skip_sizes, $this->moved_size_suffixes );
 			$old_url = $this->attachment->get_main_url();
 			$new_url = $this->get_new_url( $new_unique_filename );
 
@@ -192,8 +192,6 @@ class Optml_Attachment_Rename {
 		// Update image sizes if they exist
 		if ( isset( $metadata['sizes'] ) && is_array( $metadata['sizes'] ) ) {
 			$already_moved_paths = [];
-			$skipped_suffixes = [];
-			$moved_suffixes = [];
 
 			foreach ( $metadata['sizes'] as $size => $size_data ) {
 				if ( ! isset( $size_data['file'] ) ) {
@@ -205,7 +203,6 @@ class Optml_Attachment_Rename {
 				$old_size_file_path = sprintf( '%s/%s', $this->attachment->get_dir_path(), $size_data['file'] );
 				$new_size_file_path = sprintf( '%s/%s', $this->attachment->get_dir_path(), $new_size_file );
 				if ( ! UploadsPath::contains( $old_size_file_path ) || ! UploadsPath::contains( $new_size_file_path ) ) {
-					$skipped_suffixes[] = $size_suffix;
 					continue;
 				}
 
@@ -215,12 +212,10 @@ class Optml_Attachment_Rename {
 					$already_moved_paths[] = $old_size_file_path;
 					$metadata['sizes'][ $size ]['file'] = $new_size_file;
 					$already_moved_paths = array_unique( $already_moved_paths );
-					$moved_suffixes[] = $size_suffix;
+					// Links are renamed only for these sizes, so a skipped size keeps its working links.
+					$this->moved_size_suffixes[] = $size_suffix;
 				}
 			}
-
-			// Links to a skipped size keep the old name, because no file is created under the new one.
-			$this->kept_size_suffixes = array_values( array_diff( $skipped_suffixes, $moved_suffixes ) );
 		}
 
 		$metadata_update = wp_update_attachment_metadata( $this->attachment_id, $metadata );

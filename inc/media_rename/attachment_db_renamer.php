@@ -27,11 +27,11 @@ class Optml_Attachment_Db_Renamer {
 	private $skip_columns = [ 'user_pass' ];
 
 	/**
-	 * Size suffixes, such as `150x150`, whose URLs are left unchanged, as keys
+	 * Size suffixes, such as `150x150`, whose URLs are renamed, as keys; null renames every size
 	 *
-	 * @var array<string, int>
+	 * @var array<string, int>|null
 	 */
-	private $kept_size_suffixes = [];
+	private $renamed_size_suffixes = null;
 
 	/**
 	 * Handle image size variations
@@ -43,12 +43,12 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Constructor
 	 *
-	 * @param bool     $skip_sizes Whether size and scaled variations are left unchanged.
-	 * @param string[] $kept_size_suffixes Size suffixes, such as `150x150`, whose URLs are left unchanged.
+	 * @param bool          $skip_sizes Whether size and scaled variations are left unchanged.
+	 * @param string[]|null $renamed_size_suffixes Size suffixes, such as `150x150`, whose URLs are renamed; null renames every size.
 	 */
-	public function __construct( $skip_sizes = false, array $kept_size_suffixes = [] ) {
+	public function __construct( $skip_sizes = false, ?array $renamed_size_suffixes = null ) {
 		$this->handle_image_sizes = ! $skip_sizes;
-		$this->kept_size_suffixes = array_flip( $kept_size_suffixes );
+		$this->renamed_size_suffixes = null === $renamed_size_suffixes ? null : array_flip( $renamed_size_suffixes );
 	}
 
 	/**
@@ -490,7 +490,7 @@ class Optml_Attachment_Db_Renamer {
 				function ( $matches ) use ( $old_base, $new_base, $old_domain, $new_domain, $old_dir, $new_dir, $old_ext, $new_ext ) {
 					// Extract the size part (e.g., -300x200)
 					$size_part = substr( $matches[0], strlen( $old_domain . $old_dir . '/' . $old_base ), -strlen( '.' . $old_ext ) );
-					if ( isset( $this->kept_size_suffixes[ ltrim( $size_part, '-' ) ] ) ) {
+					if ( null !== $this->renamed_size_suffixes && ! isset( $this->renamed_size_suffixes[ ltrim( $size_part, '-' ) ] ) ) {
 						return $matches[0];
 					}
 
@@ -519,7 +519,7 @@ class Optml_Attachment_Db_Renamer {
 				function ( $matches ) use ( $old_base, $new_base, $old_domain, $new_domain, $old_dir, $new_dir, $old_ext, $new_ext ) {
 					// Extract the size part (e.g., -300x200)
 					$size_part = substr( $matches[0], strlen( str_replace( '/', '\/', $old_domain . $old_dir . '/' . $old_base ) ), -strlen( '.' . $old_ext ) );
-					if ( isset( $this->kept_size_suffixes[ ltrim( $size_part, '-' ) ] ) ) {
+					if ( null !== $this->renamed_size_suffixes && ! isset( $this->renamed_size_suffixes[ ltrim( $size_part, '-' ) ] ) ) {
 						return $matches[0];
 					}
 
