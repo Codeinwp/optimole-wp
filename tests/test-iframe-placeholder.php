@@ -12,6 +12,11 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 	const PLACEHOLDER_SELECTOR = 'iframe[data-opt-src]:not([data-opt-lazy-loaded])';
 
 	/**
+	 * The fixed comment the plugin used to print and replace, which page content can hold.
+	 */
+	const STORED_MARKER = '/** optmliframelazyloadplaceholder */';
+
+	/**
 	 * Settings values replaced in setUp, restored in tearDown.
 	 *
 	 * @var array<string, mixed>
@@ -31,7 +36,6 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		] );
 		$settings->update( 'lazyload', 'enabled' );
 		$settings->update( 'video_lazyload', 'enabled' );
-		$this->reset_found_iframe();
 		$this->init_replacers();
 	}
 
@@ -40,15 +44,8 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		foreach ( $this->previous_settings as $key => $value ) {
 			$settings->update( $key, $value );
 		}
-		$this->reset_found_iframe();
 		$this->init_replacers();
 		parent::tearDown();
-	}
-
-	private function reset_found_iframe(): void {
-		$found_iframe = new ReflectionProperty( Optml_Lazyload_Replacer::class, 'found_iframe' );
-		$found_iframe->setAccessible( true );
-		$found_iframe->setValue( null, false );
 	}
 
 	private function init_replacers(): void {
@@ -58,18 +55,50 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		Optml_Manager::instance()->init();
 	}
 
-	private function comment_link(): string {
-		return '<a href="https://example.com/" title="' . Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT . ' autofocus onfocus=alert(1) x=">hi</a>';
+	/**
+	 * The markup the plugin prints in the head.
+	 */
+	private function plugin_head(): string {
+		ob_start();
+		Optml_Main::instance()->admin->inline_bootstrap_script();
+
+		return (string) ob_get_clean();
 	}
 
-	public function test_marker_in_page_content_is_not_expanded(): void {
-		$html = '<html><head><style>' . Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT . '</style></head><body>' . self::IFRAME . $this->comment_link() . '</body></html>';
+	private function comment_link(): string {
+		return '<a href="https://example.com/" title="' . self::STORED_MARKER . ' autofocus onfocus=alert(1) x=">hi</a>';
+	}
+
+	public function test_plugin_head_holds_the_placeholder_style(): void {
+		$this->assertStringContainsString( self::PLACEHOLDER_SELECTOR, $this->plugin_head() );
+	}
+
+	public function test_plugin_head_has_no_placeholder_style_without_video_lazyload(): void {
+		( new Optml_Settings() )->update( 'video_lazyload', 'disabled' );
+
+		$this->assertStringNotContainsString( self::PLACEHOLDER_SELECTOR, $this->plugin_head() );
+	}
+
+	public function test_marker_text_in_the_page_is_kept(): void {
+		$title = '<title>Search ' . self::STORED_MARKER . '</title>';
+		$html  = '<html><head>' . $title . $this->plugin_head() . '</head><body>' . self::IFRAME . $this->comment_link() . '</body></html>';
 
 		$replaced = Optml_Manager::instance()->replace_content( $html );
 
+		$this->assertStringContainsString( $title, $replaced );
 		$this->assertStringContainsString( $this->comment_link(), $replaced );
 		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
-		$this->assertStringContainsString( self::PLACEHOLDER_SELECTOR, substr( $replaced, 0, stripos( $replaced, '</head>' ) ) );
+	}
+
+	public function test_head_end_text_in_the_page_is_kept(): void {
+		$script = '<script>var end = "</head>";</script>';
+		$html   = '<html><head><!-- </head> --></head><body>' . self::IFRAME . $script . '</body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+
+		$this->assertStringContainsString( '<head><!-- </head> --></head>', $replaced );
+		$this->assertStringContainsString( $script, $replaced );
+		$this->assertStringNotContainsString( self::PLACEHOLDER_SELECTOR, $replaced );
 	}
 
 	public function test_marker_in_partial_content_is_not_expanded(): void {
@@ -79,26 +108,7 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( self::PLACEHOLDER_SELECTOR, $replaced );
 	}
 
-	public function test_placeholder_css_cannot_close_an_attribute(): void {
+	public function test_placeholder_css_cannot_close_the_style(): void {
 		$this->assertDoesNotMatchRegularExpression( '/["\'<>&]/', Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS );
-	}
-
-	public function test_marker_is_expanded_when_head_end_tag_is_omitted(): void {
-		$html = '<html><head><style>' . Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT . '</style><body class="post">' . self::IFRAME . $this->comment_link() . '</body></html>';
-
-		$replaced = Optml_Manager::instance()->replace_content( $html );
-
-		$this->assertStringContainsString( $this->comment_link(), $replaced );
-		$this->assertSame( 1, substr_count( $replaced, self::PLACEHOLDER_SELECTOR ) );
-		$this->assertStringContainsString( self::PLACEHOLDER_SELECTOR, substr( $replaced, 0, strpos( $replaced, '<body' ) ) );
-	}
-
-	public function test_body_only_marker_is_not_expanded(): void {
-		$html = '<html><head><title>t</title></head><body>' . self::IFRAME . $this->comment_link() . '</body></html>';
-
-		$replaced = Optml_Manager::instance()->replace_content( $html );
-
-		$this->assertStringContainsString( $this->comment_link(), $replaced );
-		$this->assertStringContainsString( Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $replaced );
 	}
 }
