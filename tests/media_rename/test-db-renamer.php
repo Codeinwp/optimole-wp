@@ -670,6 +670,51 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		);
 	}
 
+	public function test_replace_updates_columns_whose_only_serialized_values_have_padded_lengths(): void {
+		$old_url    = 'http://om-wp.test/wp-content/uploads/2026/10/padded-photo.jpg';
+		$new_url    = 'http://om-wp.test/wp-content/uploads/2026/10/padded-renamed-photo.jpg';
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => 's:0' . strlen( $old_url ) . ':"' . $old_url . '";',
+			]
+		);
+
+		self::$replacer->replace( $old_url, $new_url );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( $new_url, unserialize( get_comment( $comment_id )->comment_content ) );
+	}
+
+	public function test_replace_updates_nested_values_with_padded_lengths(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-padded-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-padded-renamed.jpg';
+		update_option( 'optml_test_nested_padded', [ 'data' => 'a:1:{s:3:"url";s:0' . strlen( $old_url ) . ':"' . $old_url . '";}' ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( [ 'url' => $new_url ], unserialize( get_option( 'optml_test_nested_padded' )['data'] ) );
+	}
+
+	public function test_replace_updates_nested_floats_when_the_site_uses_precision_17(): void {
+		$old_url   = 'http://om-wp.test/wp-content/uploads/2026/10/precision-photo.jpg';
+		$new_url   = 'http://om-wp.test/wp-content/uploads/2026/10/precision-renamed-photo.jpg';
+		$precision = ini_get( 'serialize_precision' );
+		update_option( 'optml_test_precision', [ 'data' => 'a:2:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:5:"ratio";d:0.1;}' ] );
+
+		ini_set( 'serialize_precision', '17' );
+		try {
+			self::$replacer->replace( $old_url, $new_url );
+			$this->assertSame( '17', ini_get( 'serialize_precision' ) );
+		} finally {
+			ini_set( 'serialize_precision', $precision );
+		}
+		wp_cache_flush();
+
+		$this->assertSame( [ 'url' => $new_url, 'ratio' => 0.1 ], unserialize( get_option( 'optml_test_precision' )['data'] ) );
+	}
+
 	public function test_replace_keeps_nested_values_with_references_as_stored(): void {
 		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-reference-photo.jpg';
 		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-reference-renamed.jpg';
@@ -717,18 +762,11 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 				'comment_content' => 's:3:"foo"; see "' . $old_url . '";',
 			]
 		);
-		$padded  = self::factory()->comment->create(
-			[
-				'comment_post_ID' => self::$post_id,
-				'comment_content' => 's:0' . strlen( $old_url ) . ':"' . $old_url . '";',
-			]
-		);
 
 		self::$replacer->replace( $old_url, $new_url );
-		clean_comment_cache( [ $string, $text, $padded ] );
+		clean_comment_cache( [ $string, $text ] );
 
 		$this->assertSame( 'see ' . $new_url, unserialize( get_comment( $string )->comment_content ) );
-		$this->assertSame( $new_url, unserialize( get_comment( $padded )->comment_content ) );
 		$this->assertSame( 's:3:"foo"; see "' . $new_url . '";', get_comment( $text )->comment_content );
 	}
 

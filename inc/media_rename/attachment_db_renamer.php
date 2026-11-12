@@ -187,7 +187,7 @@ class Optml_Attachment_Db_Renamer {
 		// Check for serialized data
 		$has_serialized = $wpdb->get_var(
 			'SELECT COUNT(' . esc_sql( $this->quote_identifier( $column ) ) . ') FROM ' . esc_sql( $this->quote_identifier( $table ) ) .
-			' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . " REGEXP '^[aiOCEs]:[1-9]' LIMIT 1"
+			' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . " REGEXP '^[aiOCEs]:[0-9]' LIMIT 1"
 		);
 
 		// Process with PHP if serialized data is found
@@ -412,26 +412,14 @@ class Optml_Attachment_Db_Renamer {
 	 * @param string $value The value to process.
 	 * @param string $old_url Old URL.
 	 * @param string $new_url New URL.
-	 * @param int    $depth How many serialized strings hold this value.
 	 *
 	 * @return string The processed value
 	 */
-	private function replace_urls_in_value( $value, $old_url, $new_url, int $depth = 0 ) {
+	private function replace_urls_in_value( $value, $old_url, $new_url ) {
 		// Check if the value is serialized
 		if ( $this->is_serialized( $value ) ) {
-			if ( $this->has_references( $value ) ) {
-				return $value;
-			}
-
-			// Any table can hold the URL, including values visitors write, so stored data must not create
-			// objects whose class runs code.
-			$unserialized = @unserialize( $value, [ 'allowed_classes' => [ 'stdClass' ] ] );
-
-			// A serialized value is left as stored when it cannot be read, such as one naming an enum that is
-			// not loaded, or when it holds an object other than stdClass: an object read without its class
-			// could not be written back unchanged, and an enum cannot change. A raw text replacement would
-			// break its declared lengths.
-			if ( false === $unserialized || $this->holds_other_objects( $unserialized ) ) {
+			$unserialized = $this->read_serialized( $value );
+			if ( null === $unserialized ) {
 				return $value;
 			}
 
@@ -441,7 +429,7 @@ class Optml_Attachment_Db_Renamer {
 				return $this->replace_image_urls( $value, $old_url, $new_url );
 			}
 
-			return serialize( $this->replace_in_data( $unserialized, $old_url, $new_url, $depth ) );
+			return serialize( $this->replace_in_data( $unserialized, $old_url, $new_url, 0 ) );
 		}
 
 		return $this->replace_image_urls( $value, $old_url, $new_url );
@@ -618,16 +606,13 @@ class Optml_Attachment_Db_Renamer {
 	 */
 	private function replace_in_string( string $value, string $old_url, string $new_url, int $depth ): string {
 		if ( $this->is_serialized( $value ) ) {
-			if ( $this->has_references( $value ) ) {
-				return $value;
-			}
-			$inner = @unserialize( $value, [ 'allowed_classes' => [ 'stdClass' ] ] );
-			if ( false === $inner || $this->holds_other_objects( $inner ) ) {
+			$inner = $this->read_serialized( $value );
+			if ( null === $inner ) {
 				return $value;
 			}
 			if ( $this->reads_back( $inner, $value ) ) {
 				// Past the cap the value is kept as stored, because a text replacement would break its lengths.
-				return $depth < self::MAX_NESTED_DEPTH ? $this->replace_urls_in_value( $value, $old_url, $new_url, $depth + 1 ) : $value;
+				return $depth < self::MAX_NESTED_DEPTH ? serialize( $this->replace_in_data( $inner, $old_url, $new_url, $depth + 1 ) ) : $value;
 			}
 		}
 
@@ -635,16 +620,32 @@ class Optml_Attachment_Db_Renamer {
 	}
 
 	/**
-	 * Check whether a serialized value has references (r: or R:).
+	 * Read a serialized value when the URL walk can rewrite it safely.
 	 *
-	 * A reference can point back at its own value, which the URL walk and the object check cannot end.
+	 * The value is left as stored when this returns null:
+	 * - It has references (r: or R:), which can point back at their own value, so the walk cannot end.
+	 * - It cannot be read, such as one naming an enum that is not loaded.
+	 * - It holds an object other than stdClass. Such an object read without its class could not be written back
+	 *   unchanged, and an enum cannot change.
+	 * A raw text replacement would break its declared lengths.
 	 *
 	 * @param string $value The serialized value.
 	 *
-	 * @return bool True when the value has references.
+	 * @return mixed|null The data, or null when the value is left as stored.
 	 */
-	private function has_references( string $value ): bool {
-		return (bool) preg_match( '/[;{][rR]:\d+;/', $value );
+	private function read_serialized( string $value ) {
+		if ( preg_match( '/[;{][rR]:\d+;/', $value ) ) {
+			return null;
+		}
+
+		// Any table can hold the URL, including values visitors write, so stored data must not create objects
+		// whose class runs code.
+		$data = @unserialize( $value, [ 'allowed_classes' => [ 'stdClass' ] ] );
+		if ( false === $data || $this->holds_other_objects( $data ) ) {
+			return null;
+		}
+
+		return $data;
 	}
 
 	/**
@@ -665,8 +666,9 @@ class Optml_Attachment_Db_Renamer {
 	/**
 	 * Check whether unserialized data serializes back to the stored text.
 	 *
-	 * PHP 7.0 and earlier wrote floats with 17 digits, such as `d:0.10000000000000001;`, so that precision is
-	 * tried as well.
+	 * Floats were written with 17 digits, such as `d:0.10000000000000001;`, by PHP 7.0 and earlier or with that
+	 * setting, and in the shortest form since, so both precisions are tried. Lengths can have leading zeros,
+	 * such as `s:062:"…";`, which serialize() does not write.
 	 *
 	 * @param mixed  $data The unserialized data.
 	 * @param string $stored The stored text.
@@ -674,16 +676,21 @@ class Optml_Attachment_Db_Renamer {
 	 * @return bool True when the data serializes to the stored text.
 	 */
 	private function reads_back( $data, string $stored ): bool {
-		if ( serialize( $data ) === $stored ) {
-			return true;
+		$unpadded  = preg_replace( '/(^|[;{}])([saOCE]):0+(?=\d)/', '$1$2:', $stored );
+		$precision = ini_get( 'serialize_precision' );
+
+		try {
+			foreach ( [ $precision, '17', '-1' ] as $try ) {
+				ini_set( 'serialize_precision', $try );
+				if ( in_array( serialize( $data ), [ $stored, $unpadded ], true ) ) {
+					return true;
+				}
+			}
+		} finally {
+			ini_set( 'serialize_precision', $precision );
 		}
 
-		$precision = ini_get( 'serialize_precision' );
-		ini_set( 'serialize_precision', '17' );
-		$same = serialize( $data ) === $stored;
-		ini_set( 'serialize_precision', $precision );
-
-		return $same;
+		return false;
 	}
 
 	/**
