@@ -1,5 +1,7 @@
 <?php
 
+use OptimoleWP\Media\UploadsPath;
+
 /**
  * Optml_Attachment_Replace
  *
@@ -68,6 +70,11 @@ class Optml_Attachment_Replace {
 
 		if ( ! file_exists( $original_file ) ) {
 			return new WP_Error( 'file_error', __( 'Original file does not exist.', 'optimole-wp' ) );
+		}
+
+		// The path comes from attachment metadata, so only a file inside the uploads directory is overwritten.
+		if ( ! UploadsPath::contains( $original_file ) ) {
+			return new WP_Error( 'optml_attachment_path_outside_uploads', __( 'Error uploading file.', 'optimole-wp' ) );
 		}
 
 		$original_filetype = wp_check_filetype( $original_file );
@@ -186,7 +193,8 @@ class Optml_Attachment_Replace {
 		global $wp_filesystem;
 
 		foreach ( $all_image_sizes_paths as $path ) {
-			if ( file_exists( $path ) ) {
+			// Paths come from attachment metadata, so only files inside the uploads directory are deleted.
+			if ( file_exists( $path ) && UploadsPath::contains( $path ) ) {
 				$wp_filesystem->delete( $path );
 			}
 		}
@@ -223,7 +231,7 @@ class Optml_Attachment_Replace {
 
 			// replace the old year/month/item-scaled.ext with the new year/month/item.ext
 			$scaled_path = str_replace( $unscaled_file, $old_scaled_file, $this->attachment->get_source_file_path() );
-			if ( file_exists( $scaled_path ) ) {
+			if ( file_exists( $scaled_path ) && UploadsPath::contains( $scaled_path ) ) {
 				$wp_filesystem->delete( $scaled_path );
 			}
 
