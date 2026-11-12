@@ -27,6 +27,13 @@ class Optml_Attachment_Db_Renamer {
 	private $skip_columns = [ 'user_pass' ];
 
 	/**
+	 * Size suffixes, such as `150x150`, whose URLs are renamed, as keys; null renames every size
+	 *
+	 * @var array<string, int>|null
+	 */
+	private $renamed_size_suffixes = null;
+
+	/**
 	 * Handle image size variations
 	 *
 	 * @var bool
@@ -34,10 +41,21 @@ class Optml_Attachment_Db_Renamer {
 	private $handle_image_sizes = false;
 
 	/**
-	 * Constructor
+	 * How many serialized values nested in strings are rewritten as data.
+	 *
+	 * Each level reads a copy of the string, so the cap bounds memory.
 	 */
-	public function __construct( $skip_sizes = false ) {
+	private const MAX_NESTED_DEPTH = 3;
+
+	/**
+	 * Constructor
+	 *
+	 * @param bool          $skip_sizes Whether size and scaled variations are left unchanged.
+	 * @param string[]|null $renamed_size_suffixes Size suffixes, such as `150x150`, whose URLs are renamed; null renames every size.
+	 */
+	public function __construct( $skip_sizes = false, ?array $renamed_size_suffixes = null ) {
 		$this->handle_image_sizes = ! $skip_sizes;
+		$this->renamed_size_suffixes = null === $renamed_size_suffixes ? null : array_flip( $renamed_size_suffixes );
 	}
 
 	/**
@@ -114,7 +132,7 @@ class Optml_Attachment_Db_Renamer {
 		$text_columns = [];
 
 		// Get table information
-		$results = $wpdb->get_results( $wpdb->prepare( 'DESCRIBE %i', $table ) );
+		$results = $wpdb->get_results( 'DESCRIBE ' . esc_sql( $this->quote_identifier( $table ) ) );
 
 		if ( ! empty( $results ) ) {
 			// phpcs:disable WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase
@@ -130,6 +148,19 @@ class Optml_Attachment_Db_Renamer {
 		}
 
 		return [ $primary_keys, $text_columns ];
+	}
+
+	/**
+	 * Quote a table or column name for use in SQL.
+	 *
+	 * Replaces the %i placeholder, which wpdb::prepare() only supports from WordPress 6.2.
+	 *
+	 * @param string $identifier Table or column name.
+	 *
+	 * @return string The backtick-quoted identifier.
+	 */
+	private function quote_identifier( string $identifier ): string {
+		return '`' . str_replace( '`', '``', $identifier ) . '`';
 	}
 
 	/**
@@ -166,12 +197,8 @@ class Optml_Attachment_Db_Renamer {
 
 		// Check for serialized data
 		$has_serialized = $wpdb->get_var(
-			$wpdb->prepare(
-				"SELECT COUNT(%i) FROM %i WHERE %i REGEXP '^[aiO]:[1-9]' LIMIT 1",
-				$column,
-				$table,
-				$column
-			)
+			'SELECT COUNT(' . esc_sql( $this->quote_identifier( $column ) ) . ') FROM ' . esc_sql( $this->quote_identifier( $table ) ) .
+			' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . " REGEXP '^[aiOCEs]:[0-9]' LIMIT 1"
 		);
 
 		// Process with PHP if serialized data is found
@@ -256,9 +283,7 @@ class Optml_Attachment_Db_Renamer {
 		// Get rows with regular URLs
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT * FROM %i WHERE %i LIKE %s',
-				$table,
-				$column,
+				'SELECT * FROM ' . esc_sql( $this->quote_identifier( $table ) ) . ' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . ' LIKE %s',
 				'%' . $wpdb->esc_like( $base_url ) . '%'
 			)
 		);
@@ -269,9 +294,7 @@ class Optml_Attachment_Db_Renamer {
 		// Get rows with JSON-escaped URLs
 		$json_rows = $wpdb->get_results(
 			$wpdb->prepare(
-				'SELECT * FROM %i WHERE %i LIKE %s',
-				$table,
-				$column,
+				'SELECT * FROM ' . esc_sql( $this->quote_identifier( $table ) ) . ' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . ' LIKE %s',
 				'%' . $wpdb->esc_like( $json_base_url ) . '%'
 			)
 		);
@@ -330,17 +353,14 @@ class Optml_Attachment_Db_Renamer {
 		// Build the query and allow processing with multiple primary keys.
 		$query = 'SELECT ';
 		foreach ( $primary_keys as $key => $value ) {
-			$query .= $wpdb->prepare( '%i, ', $value );
+			$query .= $this->quote_identifier( $value ) . ', ';
 		}
-		$query .= '%i FROM %i WHERE %i LIKE %s';
+		$query .= $this->quote_identifier( $column ) . ' FROM ' . $this->quote_identifier( $table ) . ' WHERE ' . $this->quote_identifier( $column ) . ' LIKE %s';
 
 		// Get the rows that need updating - first for regular URLs
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-				$column,
-				$table,
-				$column,
 				'%' . $wpdb->esc_like( $base_url ) . '%'
 			)
 		);
@@ -349,9 +369,6 @@ class Optml_Attachment_Db_Renamer {
 		$json_rows = $wpdb->get_results(
 			$wpdb->prepare(
 				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
-				$column,
-				$table,
-				$column,
 				'%' . $wpdb->esc_like( $json_base_url ) . '%'
 			)
 		);
@@ -412,13 +429,18 @@ class Optml_Attachment_Db_Renamer {
 	private function replace_urls_in_value( $value, $old_url, $new_url ) {
 		// Check if the value is serialized
 		if ( $this->is_serialized( $value ) ) {
-			$unserialized = @unserialize( $value );
-
-			// If unserialize successful, process the data
-			if ( $unserialized !== false ) {
-				$replaced = $this->replace_in_data( $unserialized, $old_url, $new_url );
-				return serialize( $replaced );
+			$unserialized = $this->read_serialized( $value );
+			if ( null === $unserialized ) {
+				return $value;
 			}
+
+			// Plain text can start like a serialized string, such as `s:3:"foo"; see …`, and keeps its text after
+			// the first value.
+			if ( is_string( $unserialized ) && $this->has_text_after_string( trim( $value ) ) ) {
+				return $this->replace_image_urls( $value, $old_url, $new_url );
+			}
+
+			return serialize( $this->replace_in_data( $unserialized, $old_url, $new_url, 0 ) );
 		}
 
 		return $this->replace_image_urls( $value, $old_url, $new_url );
@@ -480,6 +502,9 @@ class Optml_Attachment_Db_Renamer {
 				function ( $matches ) use ( $old_base, $new_base, $old_domain, $new_domain, $old_dir, $new_dir, $old_ext, $new_ext ) {
 					// Extract the size part (e.g., -300x200)
 					$size_part = substr( $matches[0], strlen( $old_domain . $old_dir . '/' . $old_base ), -strlen( '.' . $old_ext ) );
+					if ( null !== $this->renamed_size_suffixes && ! isset( $this->renamed_size_suffixes[ ltrim( $size_part, '-' ) ] ) ) {
+						return $matches[0];
+					}
 
 					// Build the new URL with the same size
 					return $new_domain . $new_dir . '/' . $new_base . $size_part . '.' . $new_ext;
@@ -506,6 +531,9 @@ class Optml_Attachment_Db_Renamer {
 				function ( $matches ) use ( $old_base, $new_base, $old_domain, $new_domain, $old_dir, $new_dir, $old_ext, $new_ext ) {
 					// Extract the size part (e.g., -300x200)
 					$size_part = substr( $matches[0], strlen( str_replace( '/', '\/', $old_domain . $old_dir . '/' . $old_base ) ), -strlen( '.' . $old_ext ) );
+					if ( null !== $this->renamed_size_suffixes && ! isset( $this->renamed_size_suffixes[ ltrim( $size_part, '-' ) ] ) ) {
+						return $matches[0];
+					}
 
 					// Build the new URL with the same size
 					return str_replace( '/', '\/', $new_domain . $new_dir . '/' . $new_base . $size_part . '.' . $new_ext );
@@ -529,30 +557,157 @@ class Optml_Attachment_Db_Renamer {
 	}
 
 	/**
+	 * Check whether unserialized data holds an object other than stdClass, such as an incomplete object or an enum.
+	 *
+	 * @param mixed $data The unserialized data, without references.
+	 *
+	 * @return bool True when the data holds such an object.
+	 */
+	private function holds_other_objects( $data ): bool {
+		if ( is_object( $data ) && ! $data instanceof stdClass ) {
+			return true;
+		}
+		if ( is_array( $data ) || is_object( $data ) ) {
+			foreach ( $data as $value ) {
+				if ( $this->holds_other_objects( $value ) ) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Recursively replace URLs in data structure
 	 *
 	 * @param mixed  $data The data to process.
 	 * @param string $old_url Old URL.
 	 * @param string $new_url New URL.
+	 * @param int    $depth How many serialized strings hold this data.
 	 *
 	 * @return mixed The processed data
 	 */
-	private function replace_in_data( $data, $old_url, $new_url ) {
+	private function replace_in_data( $data, $old_url, $new_url, int $depth ) {
 		if ( is_array( $data ) ) {
 			// Process arrays recursively
 			foreach ( $data as $key => $value ) {
-				$data[ $key ] = $this->replace_in_data( $value, $old_url, $new_url );
+				$data[ $key ] = $this->replace_in_data( $value, $old_url, $new_url, $depth );
 			}
 		} elseif ( is_object( $data ) ) {
 			// Process objects recursively
 			foreach ( $data as $key => $value ) {
-				$data->$key = $this->replace_in_data( $value, $old_url, $new_url );
+				$data->$key = $this->replace_in_data( $value, $old_url, $new_url, $depth );
 			}
 		} elseif ( is_string( $data ) ) {
-			$data = $this->replace_image_urls( $data, $old_url, $new_url );
+			$data = $this->replace_in_string( $data, $old_url, $new_url, $depth );
 		}
 
 		return $data;
+	}
+
+	/**
+	 * Replace URLs in a string read from serialized data.
+	 *
+	 * Plugins can store a serialized value in a string of another one. That value is rewritten as data, so its
+	 * declared lengths stay right, but only when it reads back to the same text. A serialized value that cannot
+	 * be read safely stays as stored, as at the top level. Other text that only starts like serialized data gets
+	 * the plain replacement.
+	 *
+	 * @param string $value The string.
+	 * @param string $old_url Old URL.
+	 * @param string $new_url New URL.
+	 * @param int    $depth How many serialized strings hold the data this string is in.
+	 *
+	 * @return string The processed string.
+	 */
+	private function replace_in_string( string $value, string $old_url, string $new_url, int $depth ): string {
+		if ( $this->is_serialized( $value ) ) {
+			$inner = $this->read_serialized( $value );
+			if ( null === $inner ) {
+				return $value;
+			}
+			if ( $this->reads_back( $inner, $value ) ) {
+				// Past the cap the value is kept as stored, because a text replacement would break its lengths.
+				return $depth < self::MAX_NESTED_DEPTH ? serialize( $this->replace_in_data( $inner, $old_url, $new_url, $depth + 1 ) ) : $value;
+			}
+		}
+
+		return $this->replace_image_urls( $value, $old_url, $new_url );
+	}
+
+	/**
+	 * Read a serialized value when the URL walk can rewrite it safely.
+	 *
+	 * The value is left as stored when this returns null:
+	 * - It has references (r: or R:), which can point back at their own value, so the walk cannot end.
+	 * - It cannot be read, such as one naming an enum that is not loaded.
+	 * - It holds an object other than stdClass. Such an object read without its class could not be written back
+	 *   unchanged, and an enum cannot change.
+	 * A raw text replacement would break its declared lengths.
+	 *
+	 * @param string $value The serialized value.
+	 *
+	 * @return mixed|null The data, or null when the value is left as stored.
+	 */
+	private function read_serialized( string $value ) {
+		if ( preg_match( '/[;{][rR]:\d+;/', $value ) ) {
+			return null;
+		}
+
+		// Any table can hold the URL, including values visitors write, so stored data must not create objects
+		// whose class runs code.
+		$data = @unserialize( $value, [ 'allowed_classes' => [ 'stdClass' ] ] );
+		if ( false === $data || $this->holds_other_objects( $data ) ) {
+			return null;
+		}
+
+		return $data;
+	}
+
+	/**
+	 * Check whether text follows the first value of a serialized string, which unserialize() ignores.
+	 *
+	 * Lengths can have leading zeros, such as `s:027:"…";`, which serialize() does not write.
+	 *
+	 * @param string $value A serialized string that unserializes.
+	 *
+	 * @return bool True when text follows the string.
+	 */
+	private function has_text_after_string( string $value ): bool {
+		preg_match( '/^s:(\d+):"/', $value, $matches );
+
+		return strlen( $value ) > strlen( $matches[0] ) + (int) $matches[1] + 2;
+	}
+
+	/**
+	 * Check whether unserialized data serializes back to the stored text.
+	 *
+	 * Floats were written with 17 digits, such as `d:0.10000000000000001;`, by PHP 7.0 and earlier or with that
+	 * setting, and in the shortest form since, so both precisions are tried. Lengths can have leading zeros,
+	 * such as `s:062:"…";`, which serialize() does not write.
+	 *
+	 * @param mixed  $data The unserialized data.
+	 * @param string $stored The stored text.
+	 *
+	 * @return bool True when the data serializes to the stored text.
+	 */
+	private function reads_back( $data, string $stored ): bool {
+		$unpadded  = preg_replace( '/(^|[;{}])([saOCE]):0+(?=\d)/', '$1$2:', $stored );
+		$precision = ini_get( 'serialize_precision' );
+
+		try {
+			foreach ( [ $precision, '17', '-1' ] as $try ) {
+				ini_set( 'serialize_precision', $try );
+				if ( in_array( serialize( $data ), [ $stored, $unpadded ], true ) ) {
+					return true;
+				}
+			}
+		} finally {
+			ini_set( 'serialize_precision', $precision );
+		}
+
+		return false;
 	}
 
 	/**
@@ -595,6 +750,8 @@ class Optml_Attachment_Db_Renamer {
 				// Fall through
 			case 'a':
 			case 'O':
+			case 'C':
+			case 'E':
 			case 'i':
 			case 'd':
 				return (bool) preg_match( "/^{$token}:[0-9]+:/", $data );

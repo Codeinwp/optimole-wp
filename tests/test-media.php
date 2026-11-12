@@ -10,6 +10,8 @@
 
 use WpOrg\Requests\Utility\CaseInsensitiveDictionary;
 
+require_once __DIR__ . '/outside-uploads-files.php';
+
 /**
  * Class Test_Generic.
  */
@@ -18,6 +20,7 @@ class Test_Media extends WP_UnitTestCase {
 <figure class="wp-block-image size-large"><img src="https://example.i.optimole.com/BOxmgcE-_HsxvBf4/w:300/h:200/q:90/id:b19fed3de30366eb76682becf7645c7b/sample-test.jpg" alt="" class="wp-image-1339"/></figure>
 <!-- /wp:image --> ';
 	use Optml_Dam_Offload_Utils;
+	use Optml_Test_Outside_Uploads;
 	public static $files = [
 		'sample-test',
 		'1PQ7p',
@@ -255,6 +258,63 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertFileExists( get_attached_file( $attachment_id ) );
 	}
 
+	public function test_offload_treats_a_main_file_outside_uploads_as_missing(): void {
+		Optml_Media_Offload::instance()->rollback_and_update_images( [ self::$sample_attachement ] );
+		$outside = self::outside_uploads_file( 'optml-outside-offload.jpg', OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		update_post_meta( self::$sample_attachement, '_wp_attached_file', self::relative_from( wp_get_upload_dir()['basedir'], $outside ) );
+
+		Optml_Media_Offload::instance()->upload_and_update_existing_images( [ self::$sample_attachement ] );
+
+		$this->assertSame( 'true', get_post_meta( self::$sample_attachement, Optml_Media_Offload::META_KEYS['offload_error'], true ) );
+		$this->assertFileExists( $outside, 'A main file outside uploads must not be offloaded and deleted.' );
+		unlink( $outside );
+	}
+
+	public function test_offload_keeps_size_files_outside_uploads(): void {
+		Optml_Media_Offload::instance()->rollback_and_update_images( [ self::$sample_attachement ] );
+		$outside = self::outside_uploads_file( 'optml-outside-offload-size.jpg' );
+		$meta    = wp_get_attachment_metadata( self::$sample_attachement );
+		$meta['sizes']['thumbnail']['file'] = self::relative_from( dirname( get_attached_file( self::$sample_attachement ) ), $outside );
+		wp_update_attachment_metadata( self::$sample_attachement, $meta );
+
+		Optml_Media_Offload::instance()->upload_and_update_existing_images( [ self::$sample_attachement ] );
+
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( self::$sample_attachement )['file'] ) );
+		$this->assertFileExists( $outside, 'A size file outside uploads must not be deleted.' );
+		unlink( $outside );
+	}
+
+	public function test_offload_keeps_a_scaled_file_outside_uploads(): void {
+		Optml_Media_Offload::instance()->rollback_and_update_images( [ self::$sample_attachement ] );
+		// The uploads folder name holds the extension, so the scaled path built from it points to another folder.
+		$basedir = WP_CONTENT_DIR . '/optml-media.jpg';
+		$outside = WP_CONTENT_DIR . '/optml-media-scaled.jpg/sample-test-scaled.jpg';
+		wp_mkdir_p( $basedir );
+		wp_mkdir_p( dirname( $outside ) );
+		copy( get_attached_file( self::$sample_attachement ), $basedir . '/sample-test.jpg' );
+		file_put_contents( $outside, 'keep' );
+		$uploads = static function ( array $dir ) use ( $basedir ): array {
+			$dir['basedir'] = $basedir;
+
+			return $dir;
+		};
+		add_filter( 'upload_dir', $uploads );
+		update_post_meta( self::$sample_attachement, '_wp_attached_file', 'sample-test.jpg' );
+		$meta                   = wp_get_attachment_metadata( self::$sample_attachement );
+		$meta['original_image'] = 'sample-test-original.jpg';
+		wp_update_attachment_metadata( self::$sample_attachement, $meta );
+
+		Optml_Media_Offload::instance()->upload_and_update_existing_images( [ self::$sample_attachement ] );
+		remove_filter( 'upload_dir', $uploads );
+
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( self::$sample_attachement )['file'] ) );
+		$this->assertFileExists( $outside, 'A scaled file outside uploads must not be deleted.' );
+		unlink( $outside );
+		rmdir( dirname( $outside ) );
+		file_exists( $basedir . '/sample-test.jpg' ) && unlink( $basedir . '/sample-test.jpg' );
+		rmdir( $basedir );
+	}
+
 	public function test_retryable_error() {
 		Optml_Media_Offload::instance()->rollback_and_update_images([self::$sample_attachement]);
 		self::$error_mark = true;
@@ -332,7 +392,7 @@ class Test_Media extends WP_UnitTestCase {
 		$my_size_image = wp_get_attachment_image_src(self::$sample_attachement, 'my_size_crop' );
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $my_size_image[0] );
-		$this->assertStringContainsString('/w:200/h:200/rt:fill/g:nowe/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $my_size_image[0]);
+		$this->assertStringContainsString('/w:200/h:200/rt:fill/g:noea/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $my_size_image[0]);
 
 		$this->assertStringContainsString( 'example.i.optimole.com', $image_thumbnail_size[0] );
 		$this->assertStringContainsString( '/w:150/h:150/rt:fill/g:ce/q:mauto/process:' . self::$sample_attachement .'/id:579c7f7707ce87caa65fdf50c238a117/http://example.org/sample-test.jpg', $image_thumbnail_size[0] );

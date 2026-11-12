@@ -1,4 +1,6 @@
 <?php
+
+require_once __DIR__ . '/../outside-uploads-files.php';
 /**
  * Test class for Optml_Attachment_Replace.
  */
@@ -7,6 +9,8 @@
  * Class Test_Attachment_Replace.
  */
 class Test_Attachment_Replace extends WP_UnitTestCase {
+	use Optml_Test_Outside_Uploads;
+
 	protected static $scaled_unscaled_id; // scaled -> unscaled
 	protected static $unscaled_scaled_id; // unscaled -> scaled
 	protected static $scaled_scaled_id;   // scaled -> scaled
@@ -107,6 +111,131 @@ class Test_Attachment_Replace extends WP_UnitTestCase {
 		];
 
 		$this->do_replace_test( self::$unscaled_unscaled_id, $replace_file, false, false );
+	}
+
+	public function test_replace_does_not_delete_size_files_outside_uploads() {
+		global $wp_filesystem;
+
+		$id      = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$outside = self::outside_uploads_file( 'optml-outside-replace.txt' );
+		$meta    = wp_get_attachment_metadata( $id );
+		$meta['sizes']['thumbnail']['file'] = self::relative_from( ( new Optml_Attachment_Model( $id ) )->get_dir_path(), $outside );
+		wp_update_attachment_metadata( $id, $meta );
+
+		$tmp_file = self::FILESTASH . 'replace-outside.jpg';
+		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
+		( new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-outside.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => $tmp_file,
+			]
+		) )->replace();
+
+		$this->assertFileExists( $outside, 'A size file outside uploads must not be deleted.' );
+		wp_delete_post( $id, true );
+		unlink( $outside );
+	}
+
+	public function test_replace_refuses_a_main_file_outside_uploads() {
+		global $wp_filesystem;
+
+		$id      = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$outside = self::outside_uploads_file( 'optml-outside-replace-main.jpg', OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$before  = md5_file( $outside );
+		update_post_meta( $id, '_wp_attached_file', self::relative_from( wp_get_upload_dir()['basedir'], $outside ) );
+
+		$tmp_file = self::FILESTASH . 'replace-outside-main.jpg';
+		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
+		$result = ( new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-outside-main.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => $tmp_file,
+			]
+		) )->replace();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'optml_attachment_path_outside_uploads', $result->get_error_code() );
+		$this->assertSame( $before, md5_file( $outside ), 'A main file outside uploads must not be overwritten.' );
+		wp_delete_post( $id, true );
+		unlink( $outside );
+		file_exists( $tmp_file ) && unlink( $tmp_file );
+	}
+
+	public function test_replace_refuses_an_original_image_outside_uploads() {
+		global $wp_filesystem;
+
+		$id      = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$outside = self::outside_uploads_file( 'optml-outside-replace-original.jpg', OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$before  = md5_file( $outside );
+		$meta    = wp_get_attachment_metadata( $id );
+		$meta['original_image'] = self::relative_from( dirname( get_attached_file( $id ) ), $outside );
+		wp_update_attachment_metadata( $id, $meta );
+
+		$tmp_file = self::FILESTASH . 'replace-outside-original.jpg';
+		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
+		$result = ( new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-outside-original.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => $tmp_file,
+			]
+		) )->replace();
+
+		$this->assertWPError( $result );
+		$this->assertSame( 'optml_attachment_path_outside_uploads', $result->get_error_code() );
+		$this->assertSame( $before, md5_file( $outside ), 'An original image outside uploads must not be overwritten.' );
+		wp_delete_post( $id, true );
+		unlink( $outside );
+		file_exists( $tmp_file ) && unlink( $tmp_file );
+	}
+
+	public function test_replace_keeps_a_scaled_file_outside_uploads() {
+		global $wp_filesystem;
+
+		$id = self::factory()->attachment->create_upload_object( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		// The uploads folder name holds the file name, so the old scaled path built from it points to another folder.
+		$basedir = WP_CONTENT_DIR . '/optml-replace-photo.jpg';
+		$outside = WP_CONTENT_DIR . '/optml-replace-photo-scaled.jpg/replace-photo-scaled.jpg';
+		wp_mkdir_p( $basedir );
+		wp_mkdir_p( dirname( $outside ) );
+		copy( OPTML_PATH . 'tests/assets/sample-test.jpg', $basedir . '/replace-photo.jpg' );
+		copy( OPTML_PATH . 'tests/assets/sample-test.jpg', $basedir . '/replace-photo-scaled.jpg' );
+		file_put_contents( $outside, 'keep' );
+		$uploads = static function ( array $dir ) use ( $basedir ): array {
+			$dir['basedir'] = $basedir;
+
+			return $dir;
+		};
+		add_filter( 'upload_dir', $uploads );
+		update_post_meta( $id, '_wp_attached_file', 'replace-photo-scaled.jpg' );
+		$meta                   = wp_get_attachment_metadata( $id );
+		$meta['file']           = 'replace-photo-scaled.jpg';
+		$meta['original_image'] = 'replace-photo.jpg';
+		wp_update_attachment_metadata( $id, $meta );
+
+		$tmp_file = self::FILESTASH . 'replace-photo.jpg';
+		$wp_filesystem->copy( OPTML_PATH . 'tests/assets/small-1.jpg', $tmp_file, true );
+		( new Optml_Attachment_Replace(
+			$id,
+			[
+				'name'     => 'replace-photo.jpg',
+				'type'     => 'image/jpeg',
+				'tmp_name' => $tmp_file,
+			]
+		) )->replace();
+		remove_filter( 'upload_dir', $uploads );
+
+		$this->assertFileExists( $outside, 'A scaled file outside uploads must not be deleted.' );
+		wp_delete_post( $id, true );
+		unlink( $outside );
+		rmdir( dirname( $outside ) );
+		array_map( 'unlink', glob( $basedir . '/*' ) );
+		rmdir( $basedir );
 	}
 
 	/**

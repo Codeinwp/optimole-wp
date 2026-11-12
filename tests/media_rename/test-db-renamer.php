@@ -44,6 +44,13 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 	protected static $replacer_skip_sizes;
 	protected static $replace_skip_sizes_method; // ReflectionMethod
 
+	/**
+	 * The database object swapped out by a test, restored in tear_down().
+	 *
+	 * @var wpdb|null
+	 */
+	private ?wpdb $original_wpdb = null;
+
 	public static function wpSetUpBeforeClass( WP_UnitTest_Factory $factory ) {
 		self::$post_id = $factory->post->create( [
 			'post_title'   => 'Test Post',
@@ -60,6 +67,15 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		self::$replacer_skip_sizes       = new Optml_Attachment_Db_Renamer( true );
 		self::$replace_skip_sizes_method = new ReflectionMethod( 'Optml_Attachment_Db_Renamer', 'replace_urls_in_value' );
 		self::$replace_skip_sizes_method->setAccessible( true );
+	}
+
+	public function tear_down(): void {
+		if ( null !== $this->original_wpdb ) {
+			$GLOBALS['wpdb']     = $this->original_wpdb;
+			$this->original_wpdb = null;
+		}
+
+		parent::tear_down();
 	}
 
 	public static function tear_down_after_class() {
@@ -268,6 +284,20 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		}
 	}
 
+	public function test_static__renames_only_listed_sizes() {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2025/03/asdfgh.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2025/03/listed-sizes.jpg';
+
+		$listed = self::$replace_method->invoke( new Optml_Attachment_Db_Renamer( false, [ '300x200' ] ), self::POST_CONTENT, $old_url, $new_url );
+		$none   = self::$replace_method->invoke( new Optml_Attachment_Db_Renamer( false, [] ), self::POST_CONTENT, $old_url, $new_url );
+
+		$this->assertStringContainsString( 'listed-sizes-300x200.jpg', $listed );
+		$this->assertStringContainsString( 'asdfgh-150x150.jpg', $listed );
+		$this->assertStringNotContainsString( 'listed-sizes-150x150.jpg', $listed );
+		$this->assertStringContainsString( 'asdfgh-300x200.jpg', $none );
+		$this->assertStringContainsString( 'asdfgh-150x150.jpg', $none );
+	}
+
 	public function test_db__post_content_video_replacement() {
 		$initial_url = 'http://om-wp.test/wp-content/uploads/2025/03/video-file.mp4';
 		$new_url     = 'http://example.com/wp-content/uploads/2020/01/new-home-made-tutorial.mp4';
@@ -319,6 +349,25 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		foreach ( $should_not_exist as $url ) {
 			$this->assertStringNotContainsString( $url, $post->post_content );
 		}
+	}
+
+	/**
+	 * Post content is updated when wpdb::prepare() does not support %i (WordPress below 6.2).
+	 */
+	public function test_replace_without_identifier_placeholder_support(): void {
+		global $wpdb;
+
+		$old_url = 'http://example.com/wp-content/uploads/2020/01/legacy-prepare.jpg';
+		$new_url = 'http://example.com/wp-content/uploads/2020/01/legacy-prepare-renamed.jpg';
+		$post_id = self::factory()->post->create( [ 'post_content' => '<img src="' . $old_url . '">' ] );
+
+		$this->original_wpdb = $wpdb;
+		$wpdb                = Optml_Test_Wpdb_Without_Identifier_Placeholders::from( $wpdb );
+
+		$count = ( new Optml_Attachment_Db_Renamer() )->replace( $old_url, $new_url );
+
+		$this->assertGreaterThan( 0, $count );
+		$this->assertStringContainsString( $new_url, $wpdb->get_var( $wpdb->prepare( "SELECT post_content FROM {$wpdb->posts} WHERE ID = %d", $post_id ) ) );
 	}
 
 	public function test_replace_updates_comment_content(): void {
@@ -410,6 +459,331 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 		$this->assertSame( [ 'url' => $new_url ], get_user_meta( $user_id, 'optml_test_avatar', true ) );
 	}
 
+	public function test_replace_keeps_stored_objects_of_other_classes_unchanged(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/object-photo.jpg';
+		$stored  = 'O:' . strlen( Optml_Test_Renamer_Stored_Object::class ) . ':"' . Optml_Test_Renamer_Stored_Object::class . '":1:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";}';
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => $stored,
+			]
+		);
+		Optml_Test_Renamer_Stored_Object::$woken = false;
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/object-renamed.jpg' );
+		clean_comment_cache( $comment_id );
+
+		$this->assertFalse( Optml_Test_Renamer_Stored_Object::$woken, 'The stored object must not be created.' );
+		$this->assertSame( $stored, get_comment( $comment_id )->comment_content );
+	}
+
+	public function test_replace_keeps_values_with_custom_serialized_objects_unchanged(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/custom-photo.jpg';
+		// An array with the URL next to an object in the Serializable format, whose payload only its class can read.
+		$stored     = 'a:2:{s:5:"image";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:6:"widget";C:21:"Optml_Test_Not_Loaded":7:{payload}}';
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => $stored,
+			]
+		);
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/custom-renamed.jpg' );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( $stored, get_comment( $comment_id )->comment_content );
+	}
+
+	public function test_replace_updates_serialized_std_class(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/std-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/std-renamed.jpg';
+		update_post_meta( self::$post_id, 'optml_test_object', (object) [ 'image' => $old_url ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertEquals( (object) [ 'image' => $new_url ], get_post_meta( self::$post_id, 'optml_test_object', true ) );
+	}
+
+	public function test_replace_keeps_a_std_class_that_refers_to_itself_unchanged(): void {
+		$old_url     = 'http://om-wp.test/wp-content/uploads/2026/10/cycle-photo.jpg';
+		$value       = (object) [ 'image' => $old_url ];
+		$value->self = $value;
+		$stored      = serialize( $value );
+		$comment_id  = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => $stored,
+			]
+		);
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/cycle-renamed.jpg' );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( $stored, get_comment( $comment_id )->comment_content );
+	}
+
+	public function test_replace_keeps_a_custom_serialized_object_unchanged(): void {
+		$old_url    = 'http://om-wp.test/wp-content/uploads/2026/10/custom-top-photo.jpg';
+		$payload    = '{' . $old_url . '}';
+		$stored     = 'C:21:"Optml_Test_Not_Loaded":' . ( strlen( $payload ) - 2 ) . ':' . $payload;
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => $stored,
+			]
+		);
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/custom-top-renamed.jpg' );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( $stored, get_comment( $comment_id )->comment_content );
+	}
+
+	public function test_replace_keeps_a_custom_serialized_object_next_to_other_serialized_rows_unchanged(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/custom-mixed-photo.jpg';
+		$payload = '{' . $old_url . '}';
+		$stored  = 'C:21:"Optml_Test_Not_Loaded":' . ( strlen( $payload ) - 2 ) . ':' . $payload;
+		// Another row in the column that starts like an array, so the column is read row by row in PHP.
+		self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => serialize( [ 'image' => $old_url ] ),
+			]
+		);
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => $stored,
+			]
+		);
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/custom-mixed-renamed.jpg' );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( $stored, get_comment( $comment_id )->comment_content );
+	}
+
+	public function test_replace_keeps_values_with_an_enum_that_is_not_loaded_unchanged(): void {
+		$old_url    = 'http://om-wp.test/wp-content/uploads/2026/10/enum-photo.jpg';
+		$stored     = 'a:2:{s:5:"image";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:4:"kind";E:20:"Optml_Test_No_Enum:A";}';
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => $stored,
+			]
+		);
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/enum-renamed.jpg' );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( $stored, get_comment( $comment_id )->comment_content );
+	}
+
+	public function test_replace_updates_serialized_text_that_looks_like_an_object(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/text-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/text-renamed.jpg';
+		update_post_meta( self::$post_id, 'optml_test_notes', [ 'image' => $old_url, 'note' => 'O:4:"Test":0:{}' ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( [ 'image' => $new_url, 'note' => 'O:4:"Test":0:{}' ], get_post_meta( self::$post_id, 'optml_test_notes', true ) );
+	}
+
+	public function test_replace_updates_a_serialized_string_inside_a_serialized_option(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-renamed-photo.jpg';
+		update_option( 'optml_test_nested', [ 'data' => serialize( [ 'url' => $old_url ] ) ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( [ 'url' => $new_url ], unserialize( get_option( 'optml_test_nested' )['data'] ) );
+	}
+
+	public function test_replace_keeps_serialized_strings_past_the_nesting_cap_as_stored(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/deep-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/deep-renamed-photo.jpg';
+		$deepest = serialize( [ 'url' => $old_url ] );
+		$value   = $deepest;
+		for ( $level = 0; $level < 3; $level++ ) {
+			$value = serialize( [ 'data' => $value, 'url' => $old_url ] );
+		}
+		update_option( 'optml_test_deep', [ 'data' => $value, 'url' => $old_url ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		// Three nested levels are rewritten, and the fourth stays as stored.
+		$stored = get_option( 'optml_test_deep' );
+		for ( $level = 0; $level < 3; $level++ ) {
+			$stored = unserialize( $stored['data'] );
+			$this->assertSame( $new_url, $stored['url'] );
+		}
+		$this->assertSame( $deepest, $stored['data'] );
+	}
+
+	public function test_replace_does_not_create_objects_nested_in_strings(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-object-photo.jpg';
+		$object  = 'O:' . strlen( Optml_Test_Renamer_Stored_Object::class ) . ':"' . Optml_Test_Renamer_Stored_Object::class . '":1:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";}';
+		update_option( 'optml_test_nested_object', [ 'data' => $object, 'url' => $old_url ] );
+		Optml_Test_Renamer_Stored_Object::$woken = false;
+
+		self::$replacer->replace( $old_url, 'http://om-wp.test/wp-content/uploads/2026/10/nested-object-renamed.jpg' );
+		wp_cache_flush();
+
+		$this->assertFalse( Optml_Test_Renamer_Stored_Object::$woken, 'The nested object must not be created.' );
+		$this->assertSame( $object, get_option( 'optml_test_nested_object' )['data'] );
+	}
+
+	public function test_replace_updates_nested_text_that_starts_like_a_serialized_string(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/note-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/note-renamed-photo.jpg';
+		update_option(
+			'optml_test_note',
+			[
+				'note' => 's:3:"foo"; see "' . $old_url . '";',
+				'data' => serialize( [ 'url' => $old_url ] ),
+			]
+		);
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$stored = get_option( 'optml_test_note' );
+		$this->assertSame( 's:3:"foo"; see "' . $new_url . '";', $stored['note'] );
+		$this->assertSame( [ 'url' => $new_url ], unserialize( $stored['data'] ) );
+	}
+
+	public function test_replace_keeps_nested_values_it_cannot_read_safely_as_stored(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-unsafe-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-unsafe-renamed.jpg';
+		$url     = 's:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";';
+		$custom  = 'a:2:{' . $url . 's:6:"widget";C:21:"Optml_Test_Not_Loaded":7:{payload}}';
+		$enum    = 'a:2:{' . $url . 's:4:"kind";E:20:"Optml_Test_No_Enum:A";}';
+		update_option(
+			'optml_test_nested_unsafe',
+			[
+				'custom' => $custom,
+				'enum'   => $enum,
+				'url'    => $old_url,
+			]
+		);
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame(
+			[
+				'custom' => $custom,
+				'enum'   => $enum,
+				'url'    => $new_url,
+			],
+			get_option( 'optml_test_nested_unsafe' )
+		);
+	}
+
+	public function test_replace_updates_columns_whose_only_serialized_values_have_padded_lengths(): void {
+		$old_url    = 'http://om-wp.test/wp-content/uploads/2026/10/padded-photo.jpg';
+		$new_url    = 'http://om-wp.test/wp-content/uploads/2026/10/padded-renamed-photo.jpg';
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => 's:0' . strlen( $old_url ) . ':"' . $old_url . '";',
+			]
+		);
+
+		self::$replacer->replace( $old_url, $new_url );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( $new_url, unserialize( get_comment( $comment_id )->comment_content ) );
+	}
+
+	public function test_replace_updates_nested_values_with_padded_lengths(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-padded-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-padded-renamed.jpg';
+		update_option( 'optml_test_nested_padded', [ 'data' => 'a:1:{s:3:"url";s:0' . strlen( $old_url ) . ':"' . $old_url . '";}' ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( [ 'url' => $new_url ], unserialize( get_option( 'optml_test_nested_padded' )['data'] ) );
+	}
+
+	public function test_replace_updates_nested_floats_when_the_site_uses_precision_17(): void {
+		$old_url   = 'http://om-wp.test/wp-content/uploads/2026/10/precision-photo.jpg';
+		$new_url   = 'http://om-wp.test/wp-content/uploads/2026/10/precision-renamed-photo.jpg';
+		$precision = ini_get( 'serialize_precision' );
+		update_option( 'optml_test_precision', [ 'data' => 'a:2:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:5:"ratio";d:0.1;}' ] );
+
+		ini_set( 'serialize_precision', '17' );
+		try {
+			self::$replacer->replace( $old_url, $new_url );
+			$this->assertSame( '17', ini_get( 'serialize_precision' ) );
+		} finally {
+			ini_set( 'serialize_precision', $precision );
+		}
+		wp_cache_flush();
+
+		$this->assertSame( [ 'url' => $new_url, 'ratio' => 0.1 ], unserialize( get_option( 'optml_test_precision' )['data'] ) );
+	}
+
+	public function test_replace_keeps_nested_values_with_references_as_stored(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-reference-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-reference-renamed.jpg';
+		$inner   = 'O:8:"stdClass":2:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:4:"self";r:1;}';
+		// The escaped string format hides the reference from the check on the outer value.
+		$escaped    = str_replace( ';', '\\3b', $inner );
+		$comment_id = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => 'a:2:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:4:"data";S:' . strlen( $inner ) . ':"' . $escaped . '";}',
+			]
+		);
+
+		self::$replacer->replace( $old_url, $new_url );
+		clean_comment_cache( $comment_id );
+
+		$this->assertSame( [ 'url' => $new_url, 'data' => $inner ], unserialize( get_comment( $comment_id )->comment_content ) );
+	}
+
+	public function test_replace_updates_nested_values_with_old_float_precision(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/float-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/float-renamed-photo.jpg';
+		update_option( 'optml_test_float', [ 'data' => 'a:2:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:5:"ratio";d:0.10000000000000001;}' ] );
+		$precision = ini_get( 'serialize_precision' );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( $precision, ini_get( 'serialize_precision' ) );
+		$this->assertSame( [ 'url' => $new_url, 'ratio' => 0.1 ], unserialize( get_option( 'optml_test_float' )['data'] ) );
+	}
+
+	public function test_replace_updates_columns_whose_only_serialized_values_are_strings(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/string-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/string-renamed-photo.jpg';
+		$string  = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => serialize( 'see ' . $old_url ),
+			]
+		);
+		$text    = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => 's:3:"foo"; see "' . $old_url . '";',
+			]
+		);
+
+		self::$replacer->replace( $old_url, $new_url );
+		clean_comment_cache( [ $string, $text ] );
+
+		$this->assertSame( 'see ' . $new_url, unserialize( get_comment( $string )->comment_content ) );
+		$this->assertSame( 's:3:"foo"; see "' . $new_url . '";', get_comment( $text )->comment_content );
+	}
+
 	public function test_replace_updates_size_variants_in_serialized_meta(): void {
 		update_post_meta( self::$post_id, 'optml_test_thumbnail', [ 'image' => 'http://om-wp.test/wp-content/uploads/2026/10/sized-photo-300x200.jpg' ] );
 
@@ -491,5 +865,74 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 			'[{"video":{"url":"http:\/\/om-wp.test\/wp-content\/uploads\/2026\/10\/clip-renamed.mp4"}}]',
 			get_post_meta( self::$post_id, 'optml_test_builder_data', true )
 		);
+	}
+}
+
+/**
+ * A wpdb sharing the test connection whose prepare() leaves %i as literal text, as WordPress below 6.2 did.
+ */
+class Optml_Test_Wpdb_Without_Identifier_Placeholders extends wpdb {
+
+	/**
+	 * Copy an existing wpdb, including its connection.
+	 *
+	 * @param wpdb $source The database object to copy.
+	 * @return self The copy.
+	 */
+	public static function from( wpdb $source ): self {
+		$copy       = ( new ReflectionClass( self::class ) )->newInstanceWithoutConstructor();
+		$properties = Closure::bind(
+			function (): array {
+				return get_object_vars( $this );
+			},
+			$source,
+			wpdb::class
+		)();
+
+		Closure::bind(
+			function ( array $properties ): void {
+				foreach ( $properties as $name => $value ) {
+					$this->$name = $value;
+				}
+			},
+			$copy,
+			wpdb::class
+		)( $properties );
+
+		return $copy;
+	}
+
+	/**
+	 * Prepare a query with %i escaped to a literal, like wpdb::prepare() before WordPress 6.2.
+	 *
+	 * @param string $query   Query with placeholders.
+	 * @param mixed  ...$args Values for the placeholders.
+	 * @return string|void The prepared query.
+	 */
+	public function prepare( $query, ...$args ) {
+		return parent::prepare( str_replace( '%i', '%%i', $query ), ...$args );
+	}
+}
+
+/**
+ * A class whose code runs when a stored value creates it.
+ */
+class Optml_Test_Renamer_Stored_Object {
+	/**
+	 * Whether a stored value created an instance.
+	 *
+	 * @var bool
+	 */
+	public static $woken = false;
+
+	/**
+	 * URL the stored value carries.
+	 *
+	 * @var string
+	 */
+	public $url = '';
+
+	public function __wakeup() {
+		self::$woken = true;
 	}
 }

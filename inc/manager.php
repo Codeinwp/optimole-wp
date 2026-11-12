@@ -501,29 +501,6 @@ final class Optml_Manager {
 	}
 
 	/**
-	 * Expand the iframe placeholder marker printed in <head>, or inject the placeholder style there.
-	 *
-	 * Copies of the marker after the head come from page content and are left untouched.
-	 * The head ends at </head>, or at <body when the optional </head> is omitted.
-	 *
-	 * @param string $html Page HTML.
-	 *
-	 * @return string HTML with the iframe placeholder CSS added.
-	 */
-	private function add_iframe_placeholder_css( string $html ): string {
-		if ( ! preg_match( '/<\/head>|<body[\s>]/i', $html, $head_end, PREG_OFFSET_CAPTURE ) ) {
-			return $html;
-		}
-
-		$head = substr( $html, 0, $head_end[0][1] );
-		if ( strpos( $head, Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT ) !== false ) {
-			return str_replace( Optml_Lazyload_Replacer::IFRAME_TEMP_COMMENT, Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS, $head ) . substr( $html, $head_end[0][1] );
-		}
-
-		return preg_replace( '/<head>(.*)<\/head>/ism', '<head> $1' . Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_STYLE . '</head>', $html ) ?? $html;
-	}
-
-	/**
 	 * Filter raw HTML content for urls.
 	 *
 	 * @param string $html HTML to filter.
@@ -564,8 +541,10 @@ final class Optml_Manager {
 
 			Profile::set_current_profile_id( $profile_id );
 			$this->page_profiler->set_current_profile_data();
-			if ( $should_show_comment ) {
-				$html = str_replace( '</html>', '</html>' . $this->page_profiler->get_current_profile_html_comment(), $html );
+			// The last </html> is taken as the document end, so earlier copies in page content stay as written.
+			$html_end = $should_show_comment ? strrpos( $html, '</html>' ) : false;
+			if ( false !== $html_end ) {
+				$html = substr_replace( $html, '</html>' . $this->page_profiler->get_current_profile_html_comment(), $html_end, strlen( '</html>' ) );
 			}
 		}
 		if ( ! $partial ) {
@@ -576,9 +555,6 @@ final class Optml_Manager {
 
 		if ( $this->settings->get( 'video_lazyload' ) === 'enabled' ) {
 			$html = apply_filters( 'optml_video_replace', $html );
-			if ( Optml_Lazyload_Replacer::found_iframe() === true ) {
-				$html = $this->add_iframe_placeholder_css( $html );
-			}
 		}
 
 		if ( $this->settings->is_lazyload_type_viewport() && ! $partial ) {
@@ -587,14 +563,15 @@ final class Optml_Manager {
 				do_action( 'optml_log', 'viewport_bgselectorsdata: ' . print_r( $personalized_bg_css, true ) );
 			}
 
-			if ( ! empty( $personalized_bg_css ) && ( $start_pos = strpos( $html, Lazyload::MARKER ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
+			$marker = Lazyload::get_marker();
+			if ( ! empty( $personalized_bg_css ) && ( $start_pos = strpos( $html, $marker ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
 				// We replace the general bg css with the personalized one.
-				if ( ( $end_pos = strpos( $html, Lazyload::MARKER, $start_pos + strlen( Lazyload::MARKER ) ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
+				if ( ( $end_pos = strpos( $html, $marker, $start_pos + strlen( $marker ) ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
 					$html = substr_replace(
 						$html,
 						$personalized_bg_css,
 						$start_pos,
-						$end_pos + strlen( Lazyload::MARKER ) - $start_pos
+						$end_pos + strlen( $marker ) - $start_pos
 					);
 				}
 			}
@@ -649,17 +626,20 @@ final class Optml_Manager {
 			return $content;
 		}
 
-		if ( preg_match( '/<html.*>/ismU', $content, $matches, PREG_OFFSET_CAPTURE ) === 1 ) {
+		// The first html tag outside HTML comments, such as IE conditional comments, is taken as the root.
+		if ( preg_match( '/<!--.*-->(*SKIP)(*FAIL)|<html.*>/ismU', $content, $matches, PREG_OFFSET_CAPTURE ) === 1 ) {
 
 			$add_classes = implode( ' ', $additional_html_classes );
 			foreach ( $matches as $match ) {
 				if ( strpos( $match[0], 'class' ) !== false ) {
 					$new_tag = str_replace( [ 'class="', "class='" ], [ 'class="' . $add_classes, "class='" . $add_classes ], $match[0] );
 				} else {
-					$new_tag = str_replace( 'html ', 'html class="' . $add_classes . '" ', $match[0] );
+					// The class check above is case-sensitive, so an uppercase tag, which can hold CLASS, stays as written.
+					$new_tag = preg_replace( '/^<html/', '<html class="' . $add_classes . '"', $match[0] );
 				}
 
-				$content = str_replace( $match[0], $new_tag, $content );
+				// Only that tag changes, so copies later in page content stay as written.
+				$content = substr_replace( $content, $new_tag, $match[1], strlen( $match[0] ) );
 			}
 		}
 
