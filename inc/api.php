@@ -51,18 +51,94 @@ final class Optml_Api {
 	}
 
 	/**
-	 * Connect to the service.
+	 * Connect the current site to the account behind the API key.
+	 *
+	 * Talks to the modern connection endpoint and shapes its answer like the legacy
+	 * connect payload (app_count, extra_visits, available_apps) the plugin UI consumes.
 	 *
 	 * @param string $api_key Api key.
 	 *
-	 * @return array|bool|WP_Error
+	 * @return array<string, mixed>|false|WP_Error
 	 */
 	public function connect( $api_key = '' ) {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
 
-		return $this->request( '/optml/v2/account/connect', 'POST', [ 'sample_image' => $this->get_sample_image() ] );
+		$response = $this->modern_request(
+			'integrations/wordpress/connections',
+			'POST',
+			[
+				'domain'       => get_home_url(),
+				'sample_image' => $this->get_sample_image(),
+			]
+		);
+
+		if ( is_wp_error( $response ) ) {
+			if ( $response->get_error_code() === 'domain_not_accessible' ) {
+				return $this->domain_not_accessible_error();
+			}
+
+			return $response;
+		}
+
+		if ( ! isset( $response['application'] ) || ! is_array( $response['application'] ) ) {
+			return false;
+		}
+
+		$application    = $response['application'];
+		$custom_domains = isset( $response['custom_domains'] ) && is_array( $response['custom_domains'] ) ? $response['custom_domains'] : [];
+		$domains_limit  = isset( $application['limits']['custom_domains'] ) ? (int) $application['limits']['custom_domains'] : 0;
+
+		return [
+			'app_count'      => $domains_limit > 0 ? $domains_limit : 1,
+			'extra_visits'   => ! empty( $response['extra_visits'] ),
+			'available_apps' => $this->build_available_apps( $application, $custom_domains ),
+		];
+	}
+
+	/**
+	 * Shape the modern connection response into the application list the dashboard UI expects.
+	 *
+	 * Mirrors the legacy "available_apps" payload: one entry per active custom domain, or the
+	 * default Optimole domain when the plan has none.
+	 *
+	 * @param array<string, mixed>             $application    The application resource.
+	 * @param array<int, array<string, mixed>> $custom_domains The active custom domains.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function build_available_apps( array $application, array $custom_domains ) {
+		$default_app = [
+			'key'               => isset( $application['key'] ) ? (string) $application['key'] : '',
+			'status'            => ( $application['status'] ?? '' ) === 'active' ? 'active' : 'inactive',
+			'domain'            => (string) ( $application['default_domain'] ?? ( $application['domain'] ?? '' ) ),
+			'is_cname_assigned' => 'no',
+			'cf_ssl_registered' => 'no',
+			'certificate_arn'   => '',
+			'limit_wl_sites'    => isset( $application['limits']['sites'] ) ? (int) $application['limits']['sites'] : 0,
+		];
+
+		if ( empty( $application['capabilities']['custom_domains'] ) ) {
+			return [ $default_app ];
+		}
+
+		$apps = [];
+		foreach ( $custom_domains as $custom_domain ) {
+			if ( ! is_array( $custom_domain ) || empty( $custom_domain['domain'] ) ) {
+				continue;
+			}
+			$apps[] = array_merge(
+				$default_app,
+				[
+					'domain'            => (string) $custom_domain['domain'],
+					'is_cname_assigned' => 'yes',
+					'cf_ssl_registered' => 'yes',
+				]
+			);
+		}
+
+		return empty( $apps ) ? [ $default_app ] : $apps;
 	}
 
 	/**
@@ -90,16 +166,33 @@ final class Optml_Api {
 		return $original_image_url;
 	}
 	/**
-	 * Get user data from service.
+	 * Get the account context from the service.
 	 *
-	 * @return array|string|bool|WP_Error User data.
+	 * Returns the string "disconnect" when the service refuses the key or the site can no
+	 * longer be whitelisted, so callers drop the stored connection.
+	 *
+	 * @param string $api_key Api key.
+	 * @param string $application Unused, kept for callers passing the application key.
+	 *
+	 * @return array<string, mixed>|string|WP_Error User data, "disconnect", or an API error.
 	 */
 	public function get_user_data( $api_key = '', $application = '' ) {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
 
-		return $this->request( '/optml/v2/account/details', 'POST', [ 'application' => $application ] );
+		$response = $this->modern_request( 'integrations/wordpress/context', 'POST', [ 'site' => get_home_url() ] );
+
+		if ( is_wp_error( $response ) ) {
+			$status = $response->get_error_data();
+			$status = is_array( $status ) && isset( $status['status'] ) ? (int) $status['status'] : 0;
+
+			if ( 'whitelist_limit_reached' === $response->get_error_code() || in_array( $status, [ 401, 403 ], true ) ) {
+				return 'disconnect';
+			}
+		}
+
+		return $response;
 	}
 
 	/**
@@ -107,21 +200,22 @@ final class Optml_Api {
 	 *
 	 * @param string $api_key Api key.
 	 * @param string $status Status of the visits toggle.
+	 * @param string $application Unused, kept for callers passing the application key.
 	 *
-	 * @return array|bool|string
+	 * @return array<string, mixed>|WP_Error
 	 */
 	public function update_extra_visits( $api_key = '', $status = 'enabled', $application = '' ) {
 		if ( ! empty( $api_key ) ) {
 			$this->api_key = $api_key;
 		}
 
-		return $this->request( '/optml/v2/account/extra_visits', 'POST', [ 'extra_visits' => $status, 'application' => $application ] );
+		return $this->modern_request( 'application/extra-visits', 'PUT', [ 'enabled' => 'enabled' === $status ] );
 	}
 
 	/**
-	 * Get cache token from service.
+	 * Get a new cache-busting token from the service.
 	 *
-	 * @return array|bool|WP_Error User data.
+	 * @return array<string, mixed>|WP_Error The token payload, or a throttle/API error.
 	 */
 	public function get_cache_token( $token = '', $type = '', $api_key = '' ) {
 		if ( ! empty( $api_key ) ) {
@@ -139,7 +233,7 @@ final class Optml_Api {
 		if ( $lock === 'yes' ) {
 			return new WP_Error( 'cache_throttle', __( 'You can clear cache only once per 5 minutes.', 'optimole-wp' ) );
 		}
-		return $this->request( '/optml/v1/cache/tokens', 'POST', [ 'token' => $token, 'type' => $type ] );
+		return $this->modern_request( 'cache-tokens', 'POST' );
 	}
 
 	/**
@@ -192,7 +286,7 @@ final class Optml_Api {
 
 		if ( intval( $response['code'] ) !== 200 ) {
 			if ( isset( $response['error'] ) && $response['error'] === 'domain_not_accessible' ) {
-				return new WP_Error( 'domain_not_accessible', sprintf( /* translators: 1 start of the italic tag, 2 is the end of italic tag,  3 is starting anchor tag, 4 is the ending anchor tag. */ __( 'It seems Optimole is having trouble reaching your website. This issue often occurs if your website is private, local, or protected by a firewall. But don\'t stress – it\'s an easy fix! Ensure your website is live and accessible to the public. If a firewall is in place, just tweak the settings to allow the %1$sOptimole(1.0)%2$s user agent access to your website. %3$sLearn More%4$s', 'optimole-wp' ), '<i>', '</i>', '<a href="https://docs.optimole.com/article/1976-resolving-optimole-access-to-your-website" target="_blank">', '</a>' ) );
+				return $this->domain_not_accessible_error();
 			}
 			if ( $path === 'optml/v2/account/complete_register_remote' && isset( $response['error'] ) ) {
 				if ( strpos( $response['error'], 'This email address is already registered.' ) !== false ) {
@@ -202,16 +296,6 @@ final class Optml_Api {
 				if ( $response['error'] === 'ERROR: Site already whitelisted.' ) {
 					return 'site_exists';
 				}
-			}
-
-			if ( $path === '/optml/v2/account/details'
-				&& isset( $response['code'] ) && $response['code'] === 'not_allowed' ) {
-				return 'disconnect';
-			}
-
-			if ( $path === '/optml/v2/account/details'
-				&& isset( $response['error'] ) && $response['error'] === 'whitelist_limit_reached' ) {
-				return 'disconnect';
 			}
 
 			return isset( $response['error'] ) ? new WP_Error(
@@ -229,6 +313,94 @@ final class Optml_Api {
 		}
 
 		return $response['data'];
+	}
+
+	/**
+	 * The error the connect flow returns when Optimole cannot reach the site.
+	 *
+	 * @return WP_Error
+	 */
+	private function domain_not_accessible_error() {
+		return new WP_Error( 'domain_not_accessible', sprintf( /* translators: 1 start of the italic tag, 2 is the end of italic tag,  3 is starting anchor tag, 4 is the ending anchor tag. */ __( 'It seems Optimole is having trouble reaching your website. This issue often occurs if your website is private, local, or protected by a firewall. But don\'t stress – it\'s an easy fix! Ensure your website is live and accessible to the public. If a firewall is in place, just tweak the settings to allow the %1$sOptimole(1.0)%2$s user agent access to your website. %3$sLearn More%4$s', 'optimole-wp' ), '<i>', '</i>', '<a href="https://docs.optimole.com/article/1976-resolving-optimole-access-to-your-website" target="_blank">', '</a>' ) );
+	}
+
+	/**
+	 * Call the current dashboard API (the /api/* routes).
+	 *
+	 * Unlike the legacy optml/v2 routes, these return the resource directly and report
+	 * failures through the HTTP status, with a JSON body carrying "message" and, for
+	 * known failures, a "code" the caller can branch on.
+	 *
+	 * @param string               $path   Route path, relative to the API root.
+	 * @param string               $method HTTP method.
+	 * @param array<string, mixed> $params JSON body for writes, query string for GET.
+	 *
+	 * @return array<string, mixed>|WP_Error The decoded body (empty for 204), or an error carrying the API error code and the HTTP status in its data.
+	 */
+	private function modern_request( $path, $method = 'GET', $params = [] ) {
+		$url = trailingslashit( $this->api_root ) . ltrim( $path, '/' );
+		if ( 'GET' === $method && ! empty( $params ) ) {
+			$url = add_query_arg( $params, $url );
+		}
+		$url = tsdk_translate_link( $url, 'query' );
+
+		$headers = [
+			'Optml-Site' => get_home_url(),
+			'Accept'     => 'application/json',
+		];
+		if ( ! empty( $this->api_key ) ) {
+			$headers['Authorization'] = 'Bearer ' . $this->api_key;
+		}
+
+		$args = [
+			'method'     => $method,
+			'timeout'    => 45,
+			'user-agent' => 'Optimle WP (v' . OPTML_VERSION . ') ',
+			'sslverify'  => false,
+			'headers'    => $headers,
+		];
+		if ( 'GET' !== $method ) {
+			$args['headers']['Content-Type'] = 'application/json';
+			$args['body']                    = wp_json_encode( $params );
+		}
+
+		$response = wp_remote_request( $url, $args );
+		if ( is_wp_error( $response ) ) {
+			return $response;
+		}
+
+		$status = (int) wp_remote_retrieve_response_code( $response );
+		$body   = json_decode( wp_remote_retrieve_body( $response ), true );
+		$body   = is_array( $body ) ? $body : [];
+
+		if ( $status >= 200 && $status < 300 ) {
+			return $body;
+		}
+
+		$message = isset( $body['message'] ) && is_string( $body['message'] ) ? $body['message'] : '';
+		if ( '' === $message && ! empty( $body['errors'] ) && is_array( $body['errors'] ) ) {
+			$first_error = reset( $body['errors'] );
+			$first_error = is_array( $first_error ) ? reset( $first_error ) : $first_error;
+			$message     = is_scalar( $first_error ) ? (string) $first_error : '';
+		}
+		if ( '' === $message ) {
+			$message = sprintf( /* translators: %d is the HTTP status code. */ __( 'Unexpected response from the Optimole service (HTTP %d).', 'optimole-wp' ), $status );
+		}
+		$code = isset( $body['code'] ) && is_string( $body['code'] ) && '' !== $body['code'] ? $body['code'] : 'api_error';
+
+		return new WP_Error(
+			$code,
+			wp_kses(
+				$message,
+				[
+					'a' => [
+						'href'   => [],
+						'target' => [],
+					],
+				]
+			),
+			[ 'status' => $status ]
+		);
 	}
 
 	/**
@@ -307,11 +479,40 @@ final class Optml_Api {
 	/**
 	 * Send a list of images with alt/title values to update.
 	 *
-	 * @param array $images List of images.
-	 * @return array
+	 * @param array<string, array<string, mixed>> $images Alt/title data keyed by image URL.
+	 * @return true|WP_Error
 	 */
 	public function call_data_enrich_api( $images = [] ) {
-		return $this->request( 'optml/v2/media/add_data', 'POST', [ 'images' => $images, 'key' => Optml_Config::$key ] );
+		$assets = [];
+		foreach ( $images as $url => $data ) {
+			if ( ! is_string( $url ) || '' === $url || ! is_array( $data ) ) {
+				continue;
+			}
+			$asset = [ 'url' => $url ];
+			foreach ( [ 'title', 'alt' ] as $attribute ) {
+				if ( ! empty( $data[ $attribute ] ) && is_scalar( $data[ $attribute ] ) ) {
+					$asset[ $attribute ] = mb_substr( (string) $data[ $attribute ], 0, 255 );
+				}
+			}
+			if ( count( $asset ) === 1 ) {
+				continue;
+			}
+			$assets[] = $asset;
+		}
+
+		if ( empty( $assets ) ) {
+			return true;
+		}
+
+		// The dashboard accepts at most 100 assets per call.
+		foreach ( array_chunk( $assets, 100 ) as $chunk ) {
+			$response = $this->modern_request( 'assets', 'PATCH', [ 'assets' => $chunk ] );
+			if ( is_wp_error( $response ) ) {
+				return $response;
+			}
+		}
+
+		return true;
 	}
 	/**
 	 * Register user remotely on optimole.com.
@@ -354,28 +555,6 @@ final class Optml_Api {
 		return $this->request( '/optml/v1/stats/images', 'GET', [], [ 'application' => $app_key ] );
 	}
 
-	/**
-	 * Call the images endpoint.
-	 *
-	 * @param integer $page Page used to advance the search.
-	 * @param array   $domains Domains to filter by.
-	 * @param string  $search The string to search inside the originURL.
-	 * @return mixed The decoded json response from the api.
-	 */
-	public function get_cloud_images( $page = 0, $domains = [], $search = '' ) {
-
-		$params = [ 'key' => Optml_Config::$key ];
-		$params['page'] = $page;
-		$params['size'] = 40;
-		if ( $search !== '' ) {
-			$params['search'] = $search;
-		}
-
-		if ( ! empty( $domains ) ) {
-			$params['domains'] = implode( ',', $domains );
-		}
-		return $this->request( 'optml/v2/media/browser', 'GET', $params );
-	}
 	/**
 	 * Get offload conflicts.
 	 *
