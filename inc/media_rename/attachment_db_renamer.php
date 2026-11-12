@@ -187,7 +187,7 @@ class Optml_Attachment_Db_Renamer {
 		// Check for serialized data
 		$has_serialized = $wpdb->get_var(
 			'SELECT COUNT(' . esc_sql( $this->quote_identifier( $column ) ) . ') FROM ' . esc_sql( $this->quote_identifier( $table ) ) .
-			' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . " REGEXP '^[aiOCE]:[1-9]' LIMIT 1"
+			' WHERE ' . esc_sql( $this->quote_identifier( $column ) ) . " REGEXP '^[aiOCEs]:[1-9]' LIMIT 1"
 		);
 
 		// Process with PHP if serialized data is found
@@ -436,6 +436,12 @@ class Optml_Attachment_Db_Renamer {
 				return $value;
 			}
 
+			// Plain text can start like a serialized string, such as `s:3:"foo"; see …`, and keeps its text after
+			// the first value.
+			if ( is_string( $unserialized ) && ! $this->reads_back( $unserialized, trim( $value ) ) ) {
+				return $this->replace_image_urls( $value, $old_url, $new_url );
+			}
+
 			return serialize( $this->replace_in_data( $unserialized, $old_url, $new_url, $depth ) );
 		}
 
@@ -600,8 +606,9 @@ class Optml_Attachment_Db_Renamer {
 	 * Replace URLs in a string read from serialized data.
 	 *
 	 * Plugins can store a serialized value in a string of another one. That value is rewritten as data, so its
-	 * declared lengths stay right, but only when it reads back to exactly the same text. Other text that only
-	 * starts like serialized data gets the plain replacement.
+	 * declared lengths stay right, but only when it reads back to the same text. A serialized value that cannot
+	 * be read safely stays as stored, as at the top level. Other text that only starts like serialized data gets
+	 * the plain replacement.
 	 *
 	 * @param string $value The string.
 	 * @param string $old_url Old URL.
@@ -613,13 +620,40 @@ class Optml_Attachment_Db_Renamer {
 	private function replace_in_string( string $value, string $old_url, string $new_url, int $depth ): string {
 		if ( $this->is_serialized( $value ) ) {
 			$inner = @unserialize( $value, [ 'allowed_classes' => [ 'stdClass' ] ] );
-			if ( false !== $inner && serialize( $inner ) === $value ) {
+			if ( false === $inner || $this->holds_other_objects( $inner ) ) {
+				return $value;
+			}
+			if ( $this->reads_back( $inner, $value ) ) {
 				// Past the cap the value is kept as stored, because a text replacement would break its lengths.
 				return $depth < self::MAX_NESTED_DEPTH ? $this->replace_urls_in_value( $value, $old_url, $new_url, $depth + 1 ) : $value;
 			}
 		}
 
 		return $this->replace_image_urls( $value, $old_url, $new_url );
+	}
+
+	/**
+	 * Check whether unserialized data serializes back to the stored text.
+	 *
+	 * PHP 7.0 and earlier wrote floats with 17 digits, such as `d:0.10000000000000001;`, so that precision is
+	 * tried as well.
+	 *
+	 * @param mixed  $data The unserialized data.
+	 * @param string $stored The stored text.
+	 *
+	 * @return bool True when the data serializes to the stored text.
+	 */
+	private function reads_back( $data, string $stored ): bool {
+		if ( serialize( $data ) === $stored ) {
+			return true;
+		}
+
+		$precision = ini_get( 'serialize_precision' );
+		ini_set( 'serialize_precision', '17' );
+		$same = serialize( $data ) === $stored;
+		ini_set( 'serialize_precision', $precision );
+
+		return $same;
 	}
 
 	/**

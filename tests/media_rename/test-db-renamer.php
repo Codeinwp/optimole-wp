@@ -626,12 +626,82 @@ class Test_Attachment_Db_Renamer extends WP_UnitTestCase {
 	public function test_replace_updates_nested_text_that_starts_like_a_serialized_string(): void {
 		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/note-photo.jpg';
 		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/note-renamed-photo.jpg';
-		update_option( 'optml_test_note', [ 'note' => 's:3:"foo"; see "' . $old_url . '";' ] );
+		update_option(
+			'optml_test_note',
+			[
+				'note' => 's:3:"foo"; see "' . $old_url . '";',
+				'data' => serialize( [ 'url' => $old_url ] ),
+			]
+		);
 
 		self::$replacer->replace( $old_url, $new_url );
 		wp_cache_flush();
 
-		$this->assertSame( [ 'note' => 's:3:"foo"; see "' . $new_url . '";' ], get_option( 'optml_test_note' ) );
+		$stored = get_option( 'optml_test_note' );
+		$this->assertSame( 's:3:"foo"; see "' . $new_url . '";', $stored['note'] );
+		$this->assertSame( [ 'url' => $new_url ], unserialize( $stored['data'] ) );
+	}
+
+	public function test_replace_keeps_nested_values_it_cannot_read_safely_as_stored(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-unsafe-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/nested-unsafe-renamed.jpg';
+		$url     = 's:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";';
+		$custom  = 'a:2:{' . $url . 's:6:"widget";C:21:"Optml_Test_Not_Loaded":7:{payload}}';
+		$enum    = 'a:2:{' . $url . 's:4:"kind";E:20:"Optml_Test_No_Enum:A";}';
+		update_option(
+			'optml_test_nested_unsafe',
+			[
+				'custom' => $custom,
+				'enum'   => $enum,
+				'url'    => $old_url,
+			]
+		);
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame(
+			[
+				'custom' => $custom,
+				'enum'   => $enum,
+				'url'    => $new_url,
+			],
+			get_option( 'optml_test_nested_unsafe' )
+		);
+	}
+
+	public function test_replace_updates_nested_values_with_old_float_precision(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/float-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/float-renamed-photo.jpg';
+		update_option( 'optml_test_float', [ 'data' => 'a:2:{s:3:"url";s:' . strlen( $old_url ) . ':"' . $old_url . '";s:5:"ratio";d:0.10000000000000001;}' ] );
+
+		self::$replacer->replace( $old_url, $new_url );
+		wp_cache_flush();
+
+		$this->assertSame( [ 'url' => $new_url, 'ratio' => 0.1 ], unserialize( get_option( 'optml_test_float' )['data'] ) );
+	}
+
+	public function test_replace_updates_columns_whose_only_serialized_values_are_strings(): void {
+		$old_url = 'http://om-wp.test/wp-content/uploads/2026/10/string-photo.jpg';
+		$new_url = 'http://om-wp.test/wp-content/uploads/2026/10/string-renamed-photo.jpg';
+		$string  = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => serialize( 'see ' . $old_url ),
+			]
+		);
+		$text    = self::factory()->comment->create(
+			[
+				'comment_post_ID' => self::$post_id,
+				'comment_content' => 's:3:"foo"; see "' . $old_url . '";',
+			]
+		);
+
+		self::$replacer->replace( $old_url, $new_url );
+		clean_comment_cache( [ $string, $text ] );
+
+		$this->assertSame( 'see ' . $new_url, unserialize( get_comment( $string )->comment_content ) );
+		$this->assertSame( 's:3:"foo"; see "' . $new_url . '";', get_comment( $text )->comment_content );
 	}
 
 	public function test_replace_updates_size_variants_in_serialized_meta(): void {
