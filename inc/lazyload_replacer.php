@@ -36,7 +36,6 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @var bool Whether or not at least one iframe has been lazyloaded.
 	 */
 	private static $found_iframe = false;
-
 	/**
 	 * Cached object instance.
 	 *

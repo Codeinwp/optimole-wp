@@ -36,7 +36,6 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		] );
 		$settings->update( 'lazyload', 'enabled' );
 		$settings->update( 'video_lazyload', 'enabled' );
-		$this->reset_found_iframe();
 		$this->init_replacers();
 	}
 
@@ -45,15 +44,8 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		foreach ( $this->previous_settings as $key => $value ) {
 			$settings->update( $key, $value );
 		}
-		$this->reset_found_iframe();
 		$this->init_replacers();
 		parent::tearDown();
-	}
-
-	private function reset_found_iframe(): void {
-		$found_iframe = new ReflectionProperty( Optml_Lazyload_Replacer::class, 'found_iframe' );
-		$found_iframe->setAccessible( true );
-		$found_iframe->setValue( null, false );
 	}
 
 	private function init_replacers(): void {
@@ -116,7 +108,7 @@ class Test_Iframe_Placeholder extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( self::PLACEHOLDER_SELECTOR, $replaced );
 	}
 
-	public function test_placeholder_css_cannot_close_an_attribute(): void {
+	public function test_placeholder_css_cannot_close_the_style(): void {
 		$this->assertDoesNotMatchRegularExpression( '/["\'<>&]/', Optml_Lazyload_Replacer::IFRAME_PLACEHOLDER_CLASS );
 	}
 }
