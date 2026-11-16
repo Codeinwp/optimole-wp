@@ -294,6 +294,17 @@ describe('optmlBackground', () => {
       expect(result.selectorMap.get('.bg-element')).toEqual([]);
     });
 
+    test('issue 1216: populates the provided selector map shared with the observer', () => {
+      document.body.innerHTML = '<div class="bg-element"></div>';
+      optmlDomUtils.getUniqueSelector.mockReturnValue('div.bg-element');
+      const observerSelectorMap = new Map();
+
+      const result = optmlBackground.processBackgroundSelectors(['.bg-element'], mockObserver, observerSelectorMap);
+
+      expect(result.selectorMap).toBe(observerSelectorMap);
+      expect(observerSelectorMap.get('.bg-element')).toEqual([]);
+    });
+
     test('should log warning for selectors with no elements', () => {
       const result = optmlBackground.processBackgroundSelectors(['.non-existent'], mockObserver);
 

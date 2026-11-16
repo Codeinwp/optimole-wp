@@ -278,9 +278,40 @@ describe('optmlMain', () => {
 
       expect(optmlBackground.processBackgroundSelectors).toHaveBeenCalledWith(
         ['.hero', '.banner'],
-        mockObserver
+        mockObserver,
+        expect.any(Map)
       );
       expect(optmlBackground.extractBackgroundImageUrls).toHaveBeenCalledWith(['.hero', '.banner']);
+    });
+
+    test('issue 1216: sends above-fold background selectors recorded by the observer with their URLs', async () => {
+      let observerSelectorMap;
+      let isLazyloaded = false;
+
+      optmlImageDetector.createIntersectionObserver.mockImplementation((atfImages, selectorMap) => {
+        observerSelectorMap = selectorMap;
+        return mockObserver;
+      });
+
+      // Simulates the element being lazyloaded and then reported by the observer during the wait.
+      optmlBackground.processBackgroundSelectors.mockImplementation((selectors, observer, selectorMap = new Map()) => {
+        selectorMap.set('.hero', []);
+        setTimeout(() => {
+          isLazyloaded = true;
+          observerSelectorMap.get('.hero')?.push('div.hero');
+        }, 0);
+        return { selectorMap, pendingElements: 1 };
+      });
+
+      optmlBackground.extractBackgroundImageUrls.mockImplementation(() =>
+        new Map([['.hero', new Map(isLazyloaded ? [['div.hero', ['hero.jpg']]] : [])]])
+      );
+
+      window.optimoleDataOptimizer.bgSelectors = ['.hero'];
+
+      const result = await optmlMain.runProfiling();
+
+      expect(result.b).toEqual({ '.hero': { 'div.hero': ['hero.jpg'] } });
     });
 
     test('should send data to API when images found', async () => {
@@ -445,11 +476,9 @@ describe('optmlMain', () => {
       });
 
       // Setup background
-      const selectorMap = new Map();
-      selectorMap.set('.hero', ['div.hero']);
-      optmlBackground.processBackgroundSelectors.mockReturnValue({
-        selectorMap,
-        pendingElements: 0
+      optmlBackground.processBackgroundSelectors.mockImplementation((selectors, observer, selectorMap) => {
+        selectorMap.set('.hero', ['div.hero']);
+        return { selectorMap, pendingElements: 0 };
       });
 
       const bgUrls = new Map();

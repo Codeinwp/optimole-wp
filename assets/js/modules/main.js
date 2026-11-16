@@ -107,7 +107,7 @@ export const optmlMain = {
     const aboveTheFoldImages = [];
     
     // Create intersection observer
-    let selectorMap = new Map();
+    const selectorMap = new Map();
     const observer = optmlImageDetector.createIntersectionObserver(aboveTheFoldImages, selectorMap);
     
     // Observe Optimole images
@@ -131,17 +131,16 @@ export const optmlMain = {
     let pendingElements = 0;
 
     if (bgSelectors && Array.isArray(bgSelectors) && bgSelectors.length > 0) {
-      const backgroundResult = optmlBackground.processBackgroundSelectors(bgSelectors, observer);
-      selectorMap = backgroundResult.selectorMap;
+      const backgroundResult = optmlBackground.processBackgroundSelectors(bgSelectors, observer, selectorMap);
       pendingElements = backgroundResult.pendingElements;
 
-      // Extract background image URLs
-      bgImageUrls = optmlBackground.extractBackgroundImageUrls(bgSelectors);
-      
       // Adjust wait time based on whether we have pending elements
       const waitTime = pendingElements > 0 ? 600 : 300;
       optmlLogger.info(`Waiting ${waitTime}ms for ${pendingElements} pending background elements`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
+
+      // Extract after the wait so elements lazyloaded during it are included.
+      bgImageUrls = optmlBackground.extractBackgroundImageUrls(bgSelectors);
     } else {
       // Standard wait time if no background selectors
       await new Promise(resolve => setTimeout(resolve, 300));

@@ -127,10 +127,10 @@ export const optmlBackground = {
    * Process background selectors and setup observation
    * @param {Array} bgSelectors - Array of CSS selectors
    * @param {IntersectionObserver} observer - Intersection observer instance
-   * @returns {Object} Object containing selectorMap and pendingElements count
+   * @param {Map<string, Array<string>>} [selectorMap] - Map the observer records above-fold selectors into; must be the same instance passed to the observer
+   * @returns {{selectorMap: Map<string, Array<string>>, pendingElements: number}} Object containing selectorMap and pendingElements count
    */
-  processBackgroundSelectors: function(bgSelectors, observer) {
-    const selectorMap = new Map();
+  processBackgroundSelectors: function(bgSelectors, observer, selectorMap = new Map()) {
     let pendingElements = 0;
 
     if (!bgSelectors || !Array.isArray(bgSelectors) || bgSelectors.length === 0) {
