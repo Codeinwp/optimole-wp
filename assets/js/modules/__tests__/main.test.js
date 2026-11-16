@@ -314,6 +314,27 @@ describe('optmlMain', () => {
       expect(result.b).toEqual({ '.hero': { 'div.hero': ['hero.jpg'] } });
     });
 
+    test('issue 1216: sends at most three background URLs per element and for the LCP', async () => {
+      const urls = ['1.jpg', '2.jpg', '3.jpg', '4.jpg'];
+      optmlLcp.detectLcpElement.mockResolvedValue({
+        element: null,
+        imageId: null,
+        bgSelector: 'div.hero',
+        bgUrls: urls
+      });
+      optmlBackground.processBackgroundSelectors.mockImplementation((selectors, observer, selectorMap) => {
+        selectorMap.set('.hero', ['div.hero']);
+        return { selectorMap, pendingElements: 0 };
+      });
+      optmlBackground.extractBackgroundImageUrls.mockReturnValue(new Map([['.hero', new Map([['div.hero', urls]])]]));
+      window.optimoleDataOptimizer.bgSelectors = ['.hero'];
+
+      const result = await optmlMain.runProfiling();
+
+      expect(result.b['.hero']['div.hero']).toEqual(['1.jpg', '2.jpg', '3.jpg']);
+      expect(result.l.u).toEqual(['1.jpg', '2.jpg', '3.jpg']);
+    });
+
     test('should send data to API when images found', async () => {
       // Create a real image element and add to DOM
       document.body.innerHTML = '<img data-opt-id="123" />';

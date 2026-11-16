@@ -13,6 +13,9 @@ import { optmlLcp } from './lcp.js';
 import { optmlImageDetector } from './image-detector.js';
 import { optmlSrcsetDetector } from './srcset-detector.js';
 
+// The optimizations endpoint rejects the whole payload when an element sends more URLs than this.
+const MAX_BG_URLS_PER_ELEMENT = 3;
+
 /**
  * Main detection functionality
  */
@@ -184,7 +187,7 @@ export const optmlMain = {
         l: { 
           i: lcpData.imageId,
           s: lcpData.bgSelector, 
-          u: lcpData.bgUrls   
+          u: lcpData.bgUrls ? lcpData.bgUrls.slice(0, MAX_BG_URLS_PER_ELEMENT) : lcpData.bgUrls
         },
         m: imageDimensionsData, // m for missing dimensions
         s: srcsetData, // s for srcset data
@@ -232,8 +235,8 @@ export const optmlMain = {
         // Then, if we have URLs for this selector, add them
         if (bgImageUrls.has(baseSelector) && 
             bgImageUrls.get(baseSelector).has(specificSelector)) { 
-          processedBgSelectors[baseSelector][specificSelector] = 
-            bgImageUrls.get(baseSelector).get(specificSelector);
+          processedBgSelectors[baseSelector][specificSelector] =
+            bgImageUrls.get(baseSelector).get(specificSelector).slice(0, MAX_BG_URLS_PER_ELEMENT);
         }
       });
     });

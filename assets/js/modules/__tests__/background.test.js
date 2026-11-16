@@ -33,6 +33,7 @@ describe('optmlBackground', () => {
 
     mockObserver = {
       observe: jest.fn(),
+      unobserve: jest.fn(),
       disconnect: jest.fn()
     };
 
@@ -44,6 +45,19 @@ describe('optmlBackground', () => {
   });
 
   describe('setupBackgroundImageObservation', () => {
+    test('issue 1216: re-observes a lazyloaded element so an already observed img gets a fresh callback', () => {
+      document.body.innerHTML = '<img data-opt-id="7" class="optml-bg-lazyloaded" />';
+      const img = document.querySelector('img');
+      optmlDomUtils.getUniqueSelector.mockReturnValue('img.bg');
+      optmlDomUtils.hasBackgroundImage.mockReturnValue(true);
+
+      optmlBackground.setupBackgroundImageObservation([img], '.bg', new Map(), mockObserver);
+
+      expect(mockObserver.unobserve).toHaveBeenCalledWith(img);
+      expect(mockObserver.observe).toHaveBeenCalledWith(img);
+      expect(mockObserver.unobserve.mock.invocationCallOrder[0]).toBeLessThan(mockObserver.observe.mock.invocationCallOrder[0]);
+    });
+
     test('should setup observation for elements', () => {
       document.body.innerHTML = `
         <div class="bg-element"></div>

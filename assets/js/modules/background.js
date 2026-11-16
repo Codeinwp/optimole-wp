@@ -19,6 +19,13 @@ export const optmlBackground = {
    * @returns {number} Number of elements waiting for lazy load
    */
   setupBackgroundImageObservation: function(elements, selector, selectorMap, observer) {
+    // Re-observing forces a fresh callback for elements already observed as Optimole images,
+    // whose first callback ran before they were marked as backgrounds.
+    const observeBackground = element => {
+      observer.unobserve(element);
+      observer.observe(element);
+    };
+
     // Create a single shared observer for all elements
     const classObserver = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
@@ -29,7 +36,7 @@ export const optmlBackground = {
           if (element.classList.contains('optml-bg-lazyloaded') && 
               optmlDomUtils.hasBackgroundImage(element)) {
             // Start observing for visibility
-            observer.observe(element);
+            observeBackground(element);
             
             // Stop watching for class changes on this element
             classObserver.disconnect(element);
@@ -55,7 +62,7 @@ export const optmlBackground = {
       // If already lazyloaded with background image, observe immediately
       if (element.classList.contains('optml-bg-lazyloaded') && 
           optmlDomUtils.hasBackgroundImage(element)) {
-        observer.observe(element);
+        observeBackground(element);
       } else {
         // Otherwise, add to the list to watch for class changes
         elementsToWatch.push(element);
