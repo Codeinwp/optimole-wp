@@ -13,8 +13,9 @@ import { optmlLcp } from './lcp.js';
 import { optmlImageDetector } from './image-detector.js';
 import { optmlSrcsetDetector } from './srcset-detector.js';
 
-// The optimizations endpoint rejects the whole payload when an element sends more URLs than this.
+// The optimizations endpoint rejects the whole payload when these limits are exceeded.
 const MAX_BG_URLS_PER_ELEMENT = 3;
+const MAX_ABOVE_FOLD_SELECTORS_PER_WATCHER = 100;
 
 /**
  * Main detection functionality
@@ -228,7 +229,7 @@ export const optmlMain = {
       processedBgSelectors[baseSelector] = {};
       
       // For each specific selector, add its URLs if available
-      specificSelectors.forEach(specificSelector => {
+      specificSelectors.slice(0, MAX_ABOVE_FOLD_SELECTORS_PER_WATCHER).forEach(specificSelector => {
         // First, add the selector to indicate it's above the fold
         processedBgSelectors[baseSelector][specificSelector] = null;
         

@@ -335,6 +335,19 @@ describe('optmlMain', () => {
       expect(result.l.u).toEqual(['1.jpg', '2.jpg', '3.jpg']);
     });
 
+    test('issue 1216: sends at most 100 above-fold selectors per watcher', async () => {
+      const specificSelectors = Array.from({ length: 101 }, (value, index) => `div.tile:nth-of-type(${index + 1})`);
+      optmlBackground.processBackgroundSelectors.mockImplementation((selectors, observer, selectorMap) => {
+        selectorMap.set('.tile', specificSelectors);
+        return { selectorMap, pendingElements: 0 };
+      });
+      window.optimoleDataOptimizer.bgSelectors = ['.tile'];
+
+      const result = await optmlMain.runProfiling();
+
+      expect(Object.keys(result.b['.tile'])).toEqual(specificSelectors.slice(0, 100));
+    });
+
     test('should send data to API when images found', async () => {
       // Create a real image element and add to DOM
       document.body.innerHTML = '<img data-opt-id="123" />';
