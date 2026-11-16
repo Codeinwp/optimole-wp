@@ -46,6 +46,14 @@ jobs:
             tools: phpunit-polyfills:1.1
         - name: Checkout source code
           uses: actions/checkout@v4
+        - name: Setup Node
+          uses: actions/setup-node@v4
+          with:
+            node-version: 18
+        - name: Build assets
+          run: |
+            npm ci
+            npm run build
         - name: Install WordPress Test Suite
           run: composer install-wp-tests
         - name: Install Composer dependencies
@@ -58,6 +66,7 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
+      - name: Setup PHP version
       - name: Setup PHP version
         uses: shivammathur/setup-php@v2
         with:
