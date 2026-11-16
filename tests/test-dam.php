@@ -136,6 +136,17 @@ class Test_Dam extends WP_UnitTestCase {
 		$this->assertEmpty( $data['sites'] );
 	}
 
+	public function test_admin_page_script_loads_in_head_issue_1211() {
+		set_current_screen( 'optimole_page_optimole-dam' );
+
+		$this->dam->enqueue_admin_page_scripts();
+
+		$this->assertTrue( wp_script_is( OPTML_NAMESPACE . '-admin-page', 'enqueued' ) );
+		$this->assertFalse( wp_scripts()->get_data( OPTML_NAMESPACE . '-admin-page', 'group' ) );
+
+		set_current_screen( 'front' );
+	}
+
 	public function test_insert_attachments() {
 		foreach ( $this->inserted_ids as $index => $id ) {
 			$this->assertIsInt( $id );

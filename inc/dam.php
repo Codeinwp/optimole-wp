@@ -429,12 +429,12 @@ class Optml_Dam {
 					display: none !important;
 				}
 			</style>
-		<iframe id="om-dam" style="display: none;" src="<?php echo( $this->build_iframe_url() ); ?>" allow="clipboard-read; clipboard-write"></iframe>
 		<div class="om-dam-loader">
 			<img src="<?php echo esc_url( OPTML_URL . 'assets/img/logo.png' ); ?>" alt="Optimole Logo"
 				class="om-dam-logo">
 			<p><?php echo esc_html__( 'Loading', 'optimole-wp' ); ?>...</p>
 		</div>
+		<iframe id="om-dam" style="display: none;" src="<?php echo( $this->build_iframe_url() ); ?>" allow="clipboard-read; clipboard-write"></iframe>
 		<?php
 	}
 
@@ -521,7 +521,7 @@ class Optml_Dam {
 			OPTML_URL . 'assets/build/media/admin-page.js',
 			$asset_file['dependencies'],
 			$asset_file['version'],
-			true
+			false
 		);
 
 		wp_localize_script(
