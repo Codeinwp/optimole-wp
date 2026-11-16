@@ -136,15 +136,17 @@ class Test_Dam extends WP_UnitTestCase {
 		$this->assertEmpty( $data['sites'] );
 	}
 
-	public function test_admin_page_script_loads_in_head_issue_1211() {
-		set_current_screen( 'optimole_page_optimole-dam' );
+	public function test_dashboard_page_renders_loader_before_iframe_issue_1211() {
+		ob_start();
+		$this->dam->render_dashboard_page();
+		$html = ob_get_clean();
 
-		$this->dam->enqueue_admin_page_scripts();
+		$loader = strpos( $html, 'class="om-dam-loader"' );
+		$iframe = strpos( $html, 'id="om-dam"' );
 
-		$this->assertTrue( wp_script_is( OPTML_NAMESPACE . '-admin-page', 'enqueued' ) );
-		$this->assertFalse( wp_scripts()->get_data( OPTML_NAMESPACE . '-admin-page', 'group' ) );
-
-		set_current_screen( 'front' );
+		$this->assertNotFalse( $loader );
+		$this->assertNotFalse( $iframe );
+		$this->assertLessThan( $iframe, $loader );
 	}
 
 	public function test_insert_attachments() {
