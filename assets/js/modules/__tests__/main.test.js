@@ -348,6 +348,19 @@ describe('optmlMain', () => {
       expect(Object.keys(result.b['.tile'])).toEqual(specificSelectors.slice(0, 100));
     });
 
+    test('issue 1216: sends at most 100 watchers', async () => {
+      const watchers = Array.from({ length: 101 }, (value, index) => `.bg-${index}`);
+      optmlBackground.processBackgroundSelectors.mockImplementation((selectors, observer, selectorMap) => {
+        watchers.forEach(watcher => selectorMap.set(watcher, []));
+        return { selectorMap, pendingElements: 0 };
+      });
+      window.optimoleDataOptimizer.bgSelectors = watchers;
+
+      const result = await optmlMain.runProfiling();
+
+      expect(Object.keys(result.b)).toEqual(watchers.slice(0, 100));
+    });
+
     test('should send data to API when images found', async () => {
       // Create a real image element and add to DOM
       document.body.innerHTML = '<img data-opt-id="123" />';

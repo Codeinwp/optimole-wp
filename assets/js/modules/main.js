@@ -16,6 +16,7 @@ import { optmlSrcsetDetector } from './srcset-detector.js';
 // The optimizations endpoint rejects the whole payload when these limits are exceeded.
 const MAX_BG_URLS_PER_ELEMENT = 3;
 const MAX_ABOVE_FOLD_SELECTORS_PER_WATCHER = 100;
+const MAX_BG_WATCHERS = 100;
 
 /**
  * Main detection functionality
@@ -224,7 +225,7 @@ export const optmlMain = {
     const processedBgSelectors = {};
     
     // Process each selector that's present on the page
-    selectorMap.forEach((specificSelectors, baseSelector) => {
+    Array.from(selectorMap).slice(0, MAX_BG_WATCHERS).forEach(([baseSelector, specificSelectors]) => {
       // Initialize the object for this base selector
       processedBgSelectors[baseSelector] = {};
       
