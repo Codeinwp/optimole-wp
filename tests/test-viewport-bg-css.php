@@ -50,7 +50,7 @@ class Test_Viewport_Bg_Css extends WP_UnitTestCase {
 		add_filter( 'optml_page_profile_id', [ self::class, 'profile_id' ] );
 
 		foreach ( [ Profile::DEVICE_TYPE_MOBILE, Profile::DEVICE_TYPE_DESKTOP ] as $device ) {
-			Optml_Manager::instance()->page_profiler->store( self::PROFILE_ID, $device, [], [ self::WATCHER => [] ] );
+			Optml_Manager::instance()->page_profiler->store( self::PROFILE_ID, $device, [], [ self::WATCHER => [ '#hero' => [] ] ] );
 		}
 	}
 
@@ -98,8 +98,11 @@ class Test_Viewport_Bg_Css extends WP_UnitTestCase {
 		return '<abbr title="' . self::STORED_MARKER . ' ' . self::STORED_MARKER . ' data-note=1 ">x</abbr>';
 	}
 
+	/**
+	 * A rule only the personalized CSS contains: the generic CSS has no above-fold exemption.
+	 */
 	private function personalized_rule(): string {
-		return 'html ' . self::WATCHER . ':not(.optml-bg-lazyloaded) { background-image: none !important; }';
+		return 'html ' . self::WATCHER . ':not(#hero):not(.optml-bg-lazyloaded)';
 	}
 
 	public function test_marker_carries_a_random_token(): void {

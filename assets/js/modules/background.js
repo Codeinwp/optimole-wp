@@ -19,37 +19,44 @@ export const optmlBackground = {
    * @returns {number} Number of elements waiting for lazy load
    */
   setupBackgroundImageObservation: function(elements, selector, selectorMap, observer) {
-    // Re-observing forces a fresh callback for elements already observed as Optimole images,
-    // whose first callback ran before they were marked as backgrounds.
+    /**
+     * Observe a background element, re-observing so an element already observed as an Optimole image
+     * gets a fresh callback (its first one ran before it was marked as a background)
+     * @param {Element} element - Background element to observe
+     * @returns {void}
+     */
     const observeBackground = element => {
       observer.unobserve(element);
       observer.observe(element);
     };
 
+    // Elements still waiting for the lazyload class
+    const elementsToWatch = new Set();
+
     // Create a single shared observer for all elements
+    // Only class changes are delivered (see attributeFilter below)
     const classObserver = new MutationObserver((mutations) => {
-      for (const mutation of mutations) {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          const element = mutation.target;
-          
-          // Check if element now has the required class and a background image
-          if (element.classList.contains('optml-bg-lazyloaded') && 
-              optmlDomUtils.hasBackgroundImage(element)) {
-            // Start observing for visibility
-            observeBackground(element);
-            
-            // Stop watching for class changes on this element
-            classObserver.disconnect(element);
-            
-            const specificSelector = element.getAttribute('data-optml-specific-selector');
-            optmlLogger.info(`Background element "${specificSelector}" is now observable`);
-          }
+      mutations.forEach(({ target: element }) => {
+        // Check if element now has the required class and a background image
+        if (!elementsToWatch.has(element) ||
+            !element.classList.contains('optml-bg-lazyloaded') ||
+            !optmlDomUtils.hasBackgroundImage(element)) {
+          return;
         }
-      }
+
+        // Start observing for visibility
+        observeBackground(element);
+
+        // disconnect() stops watching every element, so wait until none is pending
+        elementsToWatch.delete(element);
+        if (elementsToWatch.size === 0) {
+          classObserver.disconnect();
+        }
+
+        const specificSelector = element.getAttribute('data-optml-specific-selector');
+        optmlLogger.info(`Background element "${specificSelector}" is now observable`);
+      });
     });
-    
-    // Process all elements at once
-    const elementsToWatch = [];
     
     elements.forEach(element => {
       // Generate a specific selector for this element
@@ -65,12 +72,12 @@ export const optmlBackground = {
         observeBackground(element);
       } else {
         // Otherwise, add to the list to watch for class changes
-        elementsToWatch.push(element);
+        elementsToWatch.add(element);
       }
     });
     
     // Set up observation for class changes only on elements that need it
-    if (elementsToWatch.length > 0) {
+    if (elementsToWatch.size > 0) {
       elementsToWatch.forEach(element => {
         classObserver.observe(element, { attributes: true, attributeFilter: ['class'] });
       });
@@ -82,7 +89,7 @@ export const optmlBackground = {
       }, 5000);
     }
     
-    return elementsToWatch.length;
+    return elementsToWatch.size;
   },
 
   /**

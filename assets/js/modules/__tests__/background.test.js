@@ -45,6 +45,31 @@ describe('optmlBackground', () => {
   });
 
   describe('setupBackgroundImageObservation', () => {
+    test('issue 1216: keeps watching pending elements after the first one is lazyloaded', () => {
+      let classCallback;
+      const classObserverInstance = { observe: jest.fn(), disconnect: jest.fn() };
+      global.MutationObserver = jest.fn((callback) => {
+        classCallback = callback;
+        return classObserverInstance;
+      });
+      document.body.innerHTML = '<div class="bg"></div><div class="bg"></div>';
+      const [first, second] = document.querySelectorAll('div');
+      optmlDomUtils.getUniqueSelector.mockReturnValue('div.bg');
+      optmlDomUtils.hasBackgroundImage.mockReturnValue(true);
+
+      optmlBackground.setupBackgroundImageObservation([first, second], '.bg', new Map(), mockObserver);
+
+      first.classList.add('optml-bg-lazyloaded');
+      classCallback([{ target: first }]);
+      expect(classObserverInstance.disconnect).not.toHaveBeenCalled();
+
+      second.classList.add('optml-bg-lazyloaded');
+      classCallback([{ target: second }]);
+      expect(mockObserver.observe).toHaveBeenCalledWith(first);
+      expect(mockObserver.observe).toHaveBeenCalledWith(second);
+      expect(classObserverInstance.disconnect).toHaveBeenCalledTimes(1);
+    });
+
     test('issue 1216: re-observes a lazyloaded element so an already observed img gets a fresh callback', () => {
       document.body.innerHTML = '<img data-opt-id="7" class="optml-bg-lazyloaded" />';
       const img = document.querySelector('img');

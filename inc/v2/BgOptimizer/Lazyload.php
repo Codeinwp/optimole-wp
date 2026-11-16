@@ -143,12 +143,20 @@ class Lazyload {
 				$css_selectors[] = 'html ' . strip_tags( $selector ) . ':not(.optml-bg-lazyloaded)';
 				continue;
 			}
+			// One rule per watcher: a separate rule per element would still hide the watcher's other above-fold elements.
+			$exemptions = '';
 			foreach ( $above_fold_selectors as $above_fold_selector => $bg_urls ) {
 				if ( ! self::is_safe_selector( $above_fold_selector ) ) {
 					return null;
 				}
-				$css_selectors[] = 'html ' . strip_tags( $selector ) . ':not(' . $above_fold_selector . '):not(.optml-bg-lazyloaded)';
+				$exemptions .= ':not(' . $above_fold_selector . ')';
 			}
+			$css_selectors[] = 'html ' . strip_tags( $selector ) . $exemptions . ':not(.optml-bg-lazyloaded)';
+		}
+
+		// This CSS replaces the generic one, so watchers the profile does not list keep their generic hide rule.
+		foreach ( array_keys( array_diff_key( $lazyload_selectors, $personalized_selectors ) ) as $selector ) {
+			$css_selectors[] = 'html ' . strip_tags( $selector ) . ':not(.optml-bg-lazyloaded)';
 		}
 
 		$css_selectors = array_unique( $css_selectors );

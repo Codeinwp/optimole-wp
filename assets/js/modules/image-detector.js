@@ -76,7 +76,7 @@ export const optmlImageDetector = {
   /**
    * Setup intersection observer for image detection
    * @param {Array} aboveTheFoldImages - Array to store above-fold image IDs
-   * @param {Map} selectorMap - Map for background selectors
+   * @param {Map<string, Array<string>>} selectorMap - Map of base selector to above-fold specific selectors
    * @returns {IntersectionObserver} Configured intersection observer
    */
   createIntersectionObserver: function(aboveTheFoldImages, selectorMap) {

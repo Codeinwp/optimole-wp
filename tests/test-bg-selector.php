@@ -133,6 +133,60 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Issue 1216: all above-fold elements of a watcher are exempted in one rule, since a separate
+	 * rule per element would still hide the other elements.
+	 */
+	public function test_personalized_css_exempts_all_above_fold_elements_in_one_rule(): void {
+		$device_data = [ 'bg' => [ self::WATCHER => [ '#hero-a' => [], '#hero-b' => [] ] ] ];
+
+		$css = Lazyload::get_personalized_css(
+			[
+				Profile::DEVICE_TYPE_MOBILE  => $device_data,
+				Profile::DEVICE_TYPE_DESKTOP => $device_data,
+			]
+		);
+
+		$this->assertStringContainsString( 'html ' . self::WATCHER . ':not(#hero-a):not(#hero-b):not(.optml-bg-lazyloaded)', $css );
+		$this->assertStringNotContainsString( 'html ' . self::WATCHER . ':not(#hero-a):not(.optml-bg-lazyloaded)', $css );
+		$this->assertStringNotContainsString( 'html ' . self::WATCHER . ':not(#hero-b):not(.optml-bg-lazyloaded)', $css );
+	}
+
+	/**
+	 * Issue 1216: a watcher the profile does not list, such as the 101st when the client caps
+	 * watchers at 100, keeps its generic hide rule.
+	 */
+	public function test_personalized_css_keeps_generic_rule_for_unlisted_watchers(): void {
+		$watchers = array_map(
+			static function ( int $index ): string {
+				return '.bg-' . $index;
+			},
+			range( 0, 100 )
+		);
+		$add_watchers = static function ( array $selectors ) use ( $watchers ): array {
+			return array_merge( $selectors, $watchers );
+		};
+		add_filter( 'optml_lazyload_bg_selectors', $add_watchers );
+		$this->reset_background_selectors();
+
+		$bg = array_fill_keys( array_slice( $watchers, 0, 100 ), [] );
+		$bg['.bg-0'] = [ '#hero' => [] ];
+		$device_data = [ 'bg' => $bg ];
+
+		$css = Lazyload::get_personalized_css(
+			[
+				Profile::DEVICE_TYPE_MOBILE  => $device_data,
+				Profile::DEVICE_TYPE_DESKTOP => $device_data,
+			]
+		);
+		remove_filter( 'optml_lazyload_bg_selectors', $add_watchers );
+
+		$this->assertStringContainsString( 'html .bg-100:not(.optml-bg-lazyloaded)', $css );
+		$this->assertStringContainsString( 'html ' . self::WATCHER . ':not(.optml-bg-lazyloaded)', $css );
+		$this->assertStringContainsString( 'html .bg-0:not(#hero):not(.optml-bg-lazyloaded)', $css );
+		$this->assertStringNotContainsString( 'html .bg-0:not(.optml-bg-lazyloaded)', $css );
+	}
+
+	/**
 	 * An injected LCP selector voids the device rule.
 	 */
 	public function test_personalized_css_drops_injected_lcp_selector(): void {
