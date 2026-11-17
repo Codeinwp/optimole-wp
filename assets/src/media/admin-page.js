@@ -3,12 +3,16 @@ import './scss/admin-page.scss';
 const { optmlAdminPage } = window;
 
 const { siteUrl } = optmlAdminPage;
-const iframe = document.getElementById( 'om-dam' );
 
-iframe.addEventListener( 'load', function() {
+// This runs in the head, before #om-dam exists: `load` does not bubble, so catch it in the capture phase.
+document.addEventListener( 'load', function( event ) {
+	if ( 'om-dam' !== event.target.id ) {
+		return;
+	}
+
 	document.querySelector( '.om-dam-loader' ).style.display = 'none';
-	iframe.style.display = '';
-});
+	event.target.style.display = '';
+}, true );
 
 window.addEventListener( 'message', function( event ) {
 	if ( ! event.data ) {
@@ -31,5 +35,5 @@ window.addEventListener( 'message', function( event ) {
 		return;
 	}
 
-	iframe.contentWindow.postMessage({ siteUrl, type: 'om-dam', context: 'browse' }, '*' );
+	document.getElementById( 'om-dam' ).contentWindow.postMessage({ siteUrl, type: 'om-dam', context: 'browse' }, '*' );
 });
