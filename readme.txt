@@ -4,7 +4,7 @@ Tags: image optimization, optimize images, compress images, webp, avif
 Requires at least: 5.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 4.2.19
+Stable tag: 4.2.20
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.en.html
 
@@ -248,8 +248,10 @@ Discover how to make the most of Optimole with our detailed and user-friendly [d
 
 == Changelog ==
 
-##### [Version 4.2.19](https://github.com/Codeinwp/optimole-wp/compare/v4.2.18...v4.2.19) (2026-11-04)
+##### [Version 4.2.20](https://github.com/Codeinwp/optimole-wp/compare/v4.2.19...v4.2.20) (2026-11-12)
 
+- Fixed unreadable selected compression mode on WordPress 7.1.
+- Fixed media rename, video block, and dashboard widget on older WordPress versions.
 - Enhanced security
 - Updated dependencies
 
