@@ -19,6 +19,16 @@ class Lazyload {
 	const SAFE_SELECTOR_PATTERN = '/^(?:[\w\-#. >\x{00A0}-\x{10FFFF}]|:nth-of-type\(\d+\))+$/u';
 
 	/**
+	 * Most watchers the profiler reports per device; the frontend cuts the rest.
+	 */
+	const MAX_WATCHERS = 100;
+
+	/**
+	 * Most above-fold selectors the profiler reports per watcher; the frontend cuts the rest.
+	 */
+	const MAX_ABOVE_FOLD_SELECTORS = 100;
+
+	/**
 	 * Check whether a client-reported selector is a plain selector safe to embed in the stylesheet as-is.
 	 *
 	 * A selector carrying CSS metacharacters (`(`, `)`, `{`, `;`, `:` beyond nth-of-type, `/`, …) is not
@@ -139,6 +149,10 @@ class Lazyload {
 			if ( ! isset( $lazyload_selectors[ $selector ] ) ) {
 				continue;
 			}
+			// A full list may have been cut, so hiding the watcher could delay unlisted above-fold elements.
+			if ( count( $above_fold_selectors ) >= self::MAX_ABOVE_FOLD_SELECTORS ) {
+				continue;
+			}
 			// One rule per watcher: a separate rule per element would still hide the watcher's other above-fold elements.
 			$exemptions = '';
 			foreach ( $above_fold_selectors as $above_fold_selector => $bg_urls ) {
@@ -150,9 +164,11 @@ class Lazyload {
 			$css_selectors[] = 'html ' . strip_tags( $selector ) . $exemptions . ':not(.optml-bg-lazyloaded)';
 		}
 
-		// This CSS replaces the generic one, so watchers the profile does not list keep their generic hide rule.
-		foreach ( array_keys( array_diff_key( $lazyload_selectors, $personalized_selectors ) ) as $selector ) {
-			$css_selectors[] = 'html ' . strip_tags( $selector ) . ':not(.optml-bg-lazyloaded)';
+		// This CSS replaces the generic one, so unlisted watchers keep it unless the watcher list may have been cut.
+		if ( count( $personalized_selectors ) < self::MAX_WATCHERS ) {
+			foreach ( array_keys( array_diff_key( $lazyload_selectors, $personalized_selectors ) ) as $selector ) {
+				$css_selectors[] = 'html ' . strip_tags( $selector ) . ':not(.optml-bg-lazyloaded)';
+			}
 		}
 
 		$css_selectors = array_unique( $css_selectors );

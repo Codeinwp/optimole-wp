@@ -152,25 +152,77 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Issue 1216: a watcher the profile does not list, such as the 101st when the client caps
-	 * watchers at 100, keeps its generic hide rule.
+	 * A watcher the profile does not list keeps its generic hide rule while the watcher list is below the cap.
 	 */
 	public function test_personalized_css_keeps_generic_rule_for_unlisted_watchers(): void {
+		$device_data = [ 'bg' => [ '.bg-0' => [ '#hero' => [] ] ] ];
+
+		$css = $this->get_css_with_watchers( 1, $device_data );
+
+		$this->assertStringContainsString( 'html ' . self::WATCHER . ':not(.optml-bg-lazyloaded)', $css );
+		$this->assertStringContainsString( 'html .bg-0:not(#hero):not(.optml-bg-lazyloaded)', $css );
+	}
+
+	/**
+	 * When the profile lists the maximum number of watchers, the client may have cut others, so unlisted
+	 * watchers get no hide rule.
+	 */
+	public function test_personalized_css_skips_unlisted_watchers_when_watcher_list_is_full(): void {
 		$watchers = array_map(
 			static function ( int $index ): string {
 				return '.bg-' . $index;
 			},
-			range( 0, 100 )
+			range( 0, Lazyload::MAX_WATCHERS )
 		);
-		$add_watchers = static function ( array $selectors ) use ( $watchers ): array {
-			return array_merge( $selectors, $watchers );
+		$bg = array_fill_keys( array_slice( $watchers, 0, Lazyload::MAX_WATCHERS ), [] );
+		$bg['.bg-0'] = [ '#hero' => [] ];
+
+		$css = $this->get_css_with_watchers( Lazyload::MAX_WATCHERS + 1, [ 'bg' => $bg ] );
+
+		$this->assertStringNotContainsString( 'html .bg-' . Lazyload::MAX_WATCHERS . ':', $css );
+		$this->assertStringNotContainsString( 'html ' . self::WATCHER . ':', $css );
+		$this->assertStringContainsString( 'html .bg-0:not(#hero):not(.optml-bg-lazyloaded)', $css );
+		$this->assertStringContainsString( 'html .bg-1:not(.optml-bg-lazyloaded)', $css );
+	}
+
+	/**
+	 * A watcher whose above-fold list hit the cap may be missing above-fold elements, so it gets no hide rule.
+	 */
+	public function test_personalized_css_skips_watcher_with_full_above_fold_list(): void {
+		$above_fold = [];
+		foreach ( range( 1, Lazyload::MAX_ABOVE_FOLD_SELECTORS ) as $index ) {
+			$above_fold[ '#hero-' . $index ] = [];
+		}
+		$device_data = [
+			'bg' => [
+				'.bg-0' => $above_fold,
+				'.bg-1' => array_slice( $above_fold, 0, Lazyload::MAX_ABOVE_FOLD_SELECTORS - 1 ),
+			],
+		];
+
+		$css = $this->get_css_with_watchers( 2, $device_data );
+
+		$this->assertStringNotContainsString( 'html .bg-0:', $css );
+		$this->assertStringContainsString( 'html .bg-1:not(#hero-1)', $css );
+	}
+
+	/**
+	 * Build the personalized CSS for both devices with extra watchers .bg-0 … .bg-{count-1} registered.
+	 *
+	 * @param int                  $count       Number of extra watchers to register.
+	 * @param array<string, mixed> $device_data Profile data used for both devices.
+	 *
+	 * @return string Personalized CSS.
+	 */
+	private function get_css_with_watchers( int $count, array $device_data ): string {
+		$add_watchers = static function ( array $selectors ) use ( $count ): array {
+			foreach ( range( 0, $count - 1 ) as $index ) {
+				$selectors[] = '.bg-' . $index;
+			}
+			return $selectors;
 		};
 		add_filter( 'optml_lazyload_bg_selectors', $add_watchers );
 		$this->reset_background_selectors();
-
-		$bg = array_fill_keys( array_slice( $watchers, 0, 100 ), [] );
-		$bg['.bg-0'] = [ '#hero' => [] ];
-		$device_data = [ 'bg' => $bg ];
 
 		$css = Lazyload::get_personalized_css(
 			[
@@ -180,10 +232,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 		);
 		remove_filter( 'optml_lazyload_bg_selectors', $add_watchers );
 
-		$this->assertStringContainsString( 'html .bg-100:not(.optml-bg-lazyloaded)', $css );
-		$this->assertStringContainsString( 'html ' . self::WATCHER . ':not(.optml-bg-lazyloaded)', $css );
-		$this->assertStringContainsString( 'html .bg-0:not(#hero):not(.optml-bg-lazyloaded)', $css );
-		$this->assertStringNotContainsString( 'html .bg-0:not(.optml-bg-lazyloaded)', $css );
+		return $css;
 	}
 
 	/**
