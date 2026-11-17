@@ -139,10 +139,6 @@ class Lazyload {
 			if ( ! isset( $lazyload_selectors[ $selector ] ) ) {
 				continue;
 			}
-			if ( empty( $above_fold_selectors ) ) {
-				$css_selectors[] = 'html ' . strip_tags( $selector ) . ':not(.optml-bg-lazyloaded)';
-				continue;
-			}
 			// One rule per watcher: a separate rule per element would still hide the watcher's other above-fold elements.
 			$exemptions = '';
 			foreach ( $above_fold_selectors as $above_fold_selector => $bg_urls ) {

@@ -101,6 +101,20 @@ describe('optmlDomUtils', () => {
       expect(selector).toContain('another-class');
     });
 
+    test.each([
+      ['only the lazyload class', 'optml-bg-lazyloaded'],
+      ['a whitespace-only class attribute', '  '],
+    ])('should return a valid selector for an element with %s', (_label, classAttribute) => {
+      document.body.innerHTML = '<section id="c"><div></div><div></div></section>';
+      const element = document.querySelectorAll('#c > div')[1];
+      element.setAttribute('class', classAttribute);
+
+      const selector = optmlDomUtils.getUniqueSelector(element);
+
+      expect(selector).toBe('#c > div:nth-of-type(2)');
+      expect(document.querySelector(selector)).toBe(element);
+    });
+
     test('should handle element without classes', () => {
       document.body.innerHTML = '<div></div>';
       const element = document.querySelector('div');
