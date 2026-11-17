@@ -127,9 +127,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 			]
 		);
 
-		$this->assertStringNotContainsString( 'background:red', $css );
-		$this->assertStringNotContainsString( self::PAYLOAD, $css );
-		$this->assertSame( '', $css );
+		$this->assertNull( $css );
 	}
 
 	/**
@@ -207,6 +205,33 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 	}
 
 	/**
+	 * When one device's watcher hit the above-fold cap, the other device's hide rule stays in its media query.
+	 */
+	public function test_personalized_css_scopes_other_device_rule_when_one_device_is_capped(): void {
+		$above_fold = [];
+		foreach ( range( 1, Lazyload::MAX_ABOVE_FOLD_SELECTORS ) as $index ) {
+			$above_fold[ '#hero-' . $index ] = [];
+		}
+		$only_watcher = static function (): array {
+			return [ '.bg-0' ];
+		};
+		add_filter( 'optml_lazyload_bg_selectors', $only_watcher );
+		$this->reset_background_selectors();
+
+		$css = Lazyload::get_personalized_css(
+			[
+				Profile::DEVICE_TYPE_MOBILE  => [ 'bg' => [ '.bg-0' => $above_fold ] ],
+				Profile::DEVICE_TYPE_DESKTOP => [ 'bg' => [ '.bg-0' => array_slice( $above_fold, 0, Lazyload::MAX_ABOVE_FOLD_SELECTORS - 1 ) ] ],
+			]
+		);
+		remove_filter( 'optml_lazyload_bg_selectors', $only_watcher );
+
+		$this->assertIsString( $css );
+		$this->assertStringStartsWith( '@media (min-width: 600px) { html .bg-0:not(#hero-1)', $css );
+		$this->assertStringNotContainsString( 'max-width', $css );
+	}
+
+	/**
 	 * Build the personalized CSS for both devices with extra watchers .bg-0 … .bg-{count-1} registered.
 	 *
 	 * @param int                  $count       Number of extra watchers to register.
@@ -254,8 +279,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 			]
 		);
 
-		$this->assertStringNotContainsString( 'background:red', $css );
-		$this->assertSame( '', $css );
+		$this->assertNull( $css );
 	}
 
 	/**
@@ -278,8 +302,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 			]
 		);
 
-		$this->assertStringNotContainsString( 'background:red', $css );
-		$this->assertSame( '', $css );
+		$this->assertNull( $css );
 	}
 
 	/**
