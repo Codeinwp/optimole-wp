@@ -717,7 +717,7 @@ class Optml_Admin {
 					?>
 				</p>
 				<p style="margin: 1.5% 0;">
-					<a href="<?php echo esc_url( tsdk_translate_link( self::get_upgrade_base_link() ) ); ?>"
+					<a href="<?php echo esc_url( self::get_upgrade_base_link() ); ?>"
 						target="_blank"
 						style="border-radius: 4px;padding: 9px 10px;border: 2px solid #FFF;color: white;text-decoration: none;"><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 					</a>
@@ -771,6 +771,8 @@ class Optml_Admin {
 
 	/**
 	 * Build upgrade URL with current user's encoded email.
+	 *
+	 * The URL is already localized, so callers must not pass it through tsdk_translate_link() again.
 	 *
 	 * @return string Upgrade URL.
 	 */
@@ -1741,7 +1743,7 @@ class Optml_Admin {
 				'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 				'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 			),
-			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm', 'sidebarnotice' ) ),
+			'cta_link' => esc_url_raw( tsdk_utmify( self::get_upgrade_base_link(), 'bfcm', 'sidebarnotice' ) ),
 		];
 
 		// The banner shares the SDK dismissal, which resets every year.
@@ -1914,7 +1916,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			'notice_disabled_account'        => sprintf(
 			/* translators: 1 anchor tag to pricing, 2 is the ending endin anchor tag, 3 is the bold tag start, 4 ending bold tag, 5 new line tag */
 				__( '%3$sYour account has been disabled due to exceeding quota.%4$s All images are being redirected to the original unoptimized URL. %5$sPlease %1$supgrade%2$s to re-activate the account.', 'optimole-wp' ),
-				'<b><a href="' . esc_url( tsdk_translate_link( self::get_upgrade_base_link() ) ) . '">',
+				'<b><a href="' . esc_url( self::get_upgrade_base_link() ) . '">',
 				'</a></b>',
 				'<b>',
 				'</b>',
