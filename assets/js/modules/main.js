@@ -118,11 +118,6 @@ export const optmlMain = {
     // Observe Optimole images
     const { allOptimoleImages } = optmlImageDetector.observeOptimoleImages(observer);
     
-    // Detect images with missing dimensions
-    const imageDimensionsData = optmlImageDetector.detectImageDimensions(allOptimoleImages);
-    
-    optmlLogger.info('Images with missing dimensions found:', Object.keys(imageDimensionsData).length);
-    
     // Detect images requiring srcset variations (non-lazyload images)
     const srcsetResult = await optmlSrcsetDetector.detectMissingSrcsets();
     const srcsetData = srcsetResult.srcset;
@@ -153,6 +148,11 @@ export const optmlMain = {
     
     // Elements lazyloaded at the end of the wait are not reported yet.
     await optmlImageDetector.flushIntersectionObserver(observer, aboveTheFoldImages, selectorMap);
+
+    // Read after the waits so images that finished loading during them have natural dimensions.
+    const imageDimensionsData = optmlImageDetector.detectImageDimensions(allOptimoleImages);
+
+    optmlLogger.info('Images with missing dimensions found:', Object.keys(imageDimensionsData).length);
 
     // Disconnect observer and clean up event listeners
     observer.disconnect();

@@ -266,6 +266,30 @@ describe('optmlMain', () => {
       expect(optmlImageDetector.detectImageDimensions).toHaveBeenCalledWith(mockImages);
     });
 
+    test('sends dimensions of an image that finishes loading during the profiler waits', async () => {
+      const { optmlImageDetector: actualImageDetector } = jest.requireActual('../image-detector.js');
+      document.body.innerHTML = '<img data-opt-id="42" />';
+      const img = document.querySelector('img');
+      let naturalWidth = 0;
+      Object.defineProperty(img, 'naturalWidth', { get: () => naturalWidth });
+      Object.defineProperty(img, 'naturalHeight', { get: () => (naturalWidth ? 300 : 0) });
+      optmlImageDetector.observeOptimoleImages.mockReturnValue({
+        allOptimoleImages: [img],
+        observedElements: new Map()
+      });
+      optmlImageDetector.detectImageDimensions.mockImplementation(images => actualImageDetector.detectImageDimensions(images));
+      optmlSrcsetDetector.detectMissingSrcsets.mockImplementation(async () => {
+        setTimeout(() => {
+          naturalWidth = 400;
+        }, 0);
+        return { srcset: {}, crop: {} };
+      });
+
+      const result = await optmlMain.runProfiling();
+
+      expect(result.m).toEqual({ 42: { w: 400, h: 300 } });
+    });
+
     test('should detect missing srcsets', async () => {
       await optmlMain.runProfiling();
 
