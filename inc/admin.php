@@ -717,7 +717,7 @@ class Optml_Admin {
 					?>
 				</p>
 				<p style="margin: 1.5% 0;">
-					<a href="<?php echo esc_url( tsdk_translate_link( self::get_upgrade_base_link() ) ); ?>"
+					<a href="<?php echo esc_url( self::get_upgrade_base_link() ); ?>"
 						target="_blank"
 						style="border-radius: 4px;padding: 9px 10px;border: 2px solid #FFF;color: white;text-decoration: none;"><?php _e( 'Check upgrade plans', 'optimole-wp' ); ?>
 					</a>
@@ -772,11 +772,12 @@ class Optml_Admin {
 	/**
 	 * Build upgrade URL with current user's encoded email.
 	 *
+	 * The URL is not localized with tsdk_translate_link() because optimole.com has no translated pages.
+	 *
 	 * @return string Upgrade URL.
 	 */
 	public static function get_upgrade_base_link() {
-		$base_url = 'https://optimole.com/upgrade';
-		$base_url = tsdk_translate_link( $base_url );
+		$base_url = 'https://optimole.com/upgrade/';
 		$email    = self::get_account_email();
 
 		if ( ! empty( $email ) ) {
@@ -792,7 +793,7 @@ class Optml_Admin {
 	 * @return string Contact URL.
 	 */
 	public static function get_contact_base_link() {
-		return tsdk_translate_link( 'https://optimole.com/contact' );
+		return 'https://optimole.com/contact/';
 	}
 
 	/**
@@ -1531,11 +1532,11 @@ class Optml_Admin {
 			'site_settings'              => $site_settings,
 			'offload_limit'              => $this->settings->get( 'offload_limit' ),
 			'home_url'                   => home_url(),
-			'optimoleHome'               => tsdk_translate_link( 'https://optimole.com/' ),
+			'optimoleHome'               => 'https://optimole.com/',
 			'optimoleDashHome'           => tsdk_translate_link( 'https://dashboard.optimole.com/', 'query' ),
 			'optimoleDashBilling'        => tsdk_translate_link( 'https://dashboard.optimole.com/settings/billing', 'query' ),
 			'optimoleDashMetrics'        => tsdk_translate_link( tsdk_utmify( 'https://dashboard.optimole.com/metrics', 'wp-plugin', 'shortcut' ) ),
-			'offload_upgrade_url'        => tsdk_translate_link( tsdk_utmify( 'https://optimole.com/pricing/', 'offload' ) ),
+			'offload_upgrade_url'        => tsdk_utmify( 'https://optimole.com/pricing/', 'offload' ),
 			'days_since_install'         => round( ( time() - get_option( 'optimole_wp_install', 0 ) ) / DAY_IN_SECONDS ),
 			'is_offload_media_available' => $is_offload_media_available,
 			'auto_connect'               => $auto_connect,
@@ -1741,7 +1742,7 @@ class Optml_Admin {
 				'<span class="border-b border-0 border-white border-dashed text-promo-orange">' . $promo_code . '</span>',
 				'<span class="text-promo-orange uppercase">' . __( '25% discount', 'optimole-wp' ) . '</span>'
 			),
-			'cta_link' => esc_url_raw( tsdk_utmify( tsdk_translate_link( self::get_upgrade_base_link() ), 'bfcm', 'sidebarnotice' ) ),
+			'cta_link' => esc_url_raw( tsdk_utmify( self::get_upgrade_base_link(), 'bfcm', 'sidebarnotice' ) ),
 		];
 
 		// The banner shares the SDK dismissal, which resets every year.
@@ -1914,7 +1915,7 @@ The root cause might be either a security plugin which blocks this feature or so
 			'notice_disabled_account'        => sprintf(
 			/* translators: 1 anchor tag to pricing, 2 is the ending endin anchor tag, 3 is the bold tag start, 4 ending bold tag, 5 new line tag */
 				__( '%3$sYour account has been disabled due to exceeding quota.%4$s All images are being redirected to the original unoptimized URL. %5$sPlease %1$supgrade%2$s to re-activate the account.', 'optimole-wp' ),
-				'<b><a href="' . esc_url( tsdk_translate_link( self::get_upgrade_base_link() ) ) . '">',
+				'<b><a href="' . esc_url( self::get_upgrade_base_link() ) . '">',
 				'</a></b>',
 				'<b>',
 				'</b>',
@@ -1923,8 +1924,8 @@ The root cause might be either a security plugin which blocks this feature or so
 			'signup_terms'                   => sprintf(
 			/* translators: 1 is starting anchor tag to terms, 2 is starting anchor tag to privacy link and 3 is ending anchor tag. */
 				__( 'By signing up, you agree to our  %1$sTerms of Service %3$s and %2$sPrivacy Policy %3$s.', 'optimole-wp' ),
-				'<a href="' . esc_url( tsdk_translate_link( 'https://optimole.com/terms/' ) ) . '" target="_blank" >',
-				'<a href="' . esc_url( tsdk_translate_link( 'https://optimole.com/privacy-policy/' ) ) . '" target="_blank">',
+				'<a href="' . esc_url( 'https://optimole.com/terms/' ) . '" target="_blank" >',
+				'<a href="' . esc_url( 'https://optimole.com/privacy-policy/' ) . '" target="_blank">',
 				'</a>'
 			),
 			'dashboard_menu_item'            => __( 'Dashboard', 'optimole-wp' ),
