@@ -151,6 +151,9 @@ export const optmlMain = {
       await new Promise(resolve => setTimeout(resolve, 300));
     }
     
+    // Elements lazyloaded at the end of the wait are not reported yet.
+    await optmlImageDetector.flushIntersectionObserver(observer, aboveTheFoldImages, selectorMap);
+
     // Disconnect observer and clean up event listeners
     observer.disconnect();
     window.removeEventListener('resize', resizeHandler);

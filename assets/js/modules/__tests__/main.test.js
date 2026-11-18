@@ -70,6 +70,7 @@ jest.mock('../lcp.js', () => ({
 jest.mock('../image-detector.js', () => ({
   optmlImageDetector: {
     createIntersectionObserver: jest.fn(),
+    flushIntersectionObserver: jest.fn(),
     observeOptimoleImages: jest.fn(),
     detectImageDimensions: jest.fn(),
     cleanupBackgroundElements: jest.fn()
@@ -408,6 +409,22 @@ describe('optmlMain', () => {
       expect(optmlLogger.info).toHaveBeenCalledWith(
         'No above-the-fold images, background elements, LCP elements, dimension data, or srcset data found'
       );
+    });
+
+    test('records the observer entries still queued before disconnecting it', async () => {
+      const calls = [];
+      let observerArgs;
+      optmlImageDetector.createIntersectionObserver.mockImplementation((atfImages, selectorMap) => {
+        observerArgs = [atfImages, selectorMap];
+        return mockObserver;
+      });
+      optmlImageDetector.flushIntersectionObserver.mockImplementation(() => calls.push('flush'));
+      mockObserver.disconnect.mockImplementation(() => calls.push('disconnect'));
+
+      await optmlMain.runProfiling();
+
+      expect(optmlImageDetector.flushIntersectionObserver).toHaveBeenCalledWith(mockObserver, ...observerArgs);
+      expect(calls).toEqual(['flush', 'disconnect']);
     });
 
     test('should clean up event listeners after profiling', async () => {

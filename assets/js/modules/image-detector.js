@@ -81,28 +81,55 @@ export const optmlImageDetector = {
    */
   createIntersectionObserver: function(aboveTheFoldImages, selectorMap) {
     return new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (!entry.isIntersecting) {
-          return;
-        }
-        const element = entry.target;
-
-        // Handle img elements with data-opt-id
-        if (element.tagName === 'IMG') {
-          const id = parseInt(element.getAttribute('data-opt-id'), 10);
-          if (!isNaN(id) && !aboveTheFoldImages.includes(id)) {
-            aboveTheFoldImages.push(id);
-          }
-        }
-
-        // An img can also carry a background image, so this is checked independently.
-        if (element.hasAttribute('data-optml-bg-selector')) {
-          this.recordAboveFoldBackground(element, selectorMap);
-        }
-      });
+      this.recordIntersections(entries, aboveTheFoldImages, selectorMap);
     }, {
       threshold: 0.1 // Consider element visible when 10% is in viewport
     });
+  },
+
+  /**
+   * Record the above-fold images and background elements of intersection entries
+   * @param {Array<IntersectionObserverEntry>} entries - Entries reported by the observer
+   * @param {Array<number>} aboveTheFoldImages - Array to store above-fold image IDs
+   * @param {Map<string, Array<string>>} selectorMap - Map of base selector to above-fold specific selectors
+   * @returns {void}
+   */
+  recordIntersections: function(entries, aboveTheFoldImages, selectorMap) {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) {
+        return;
+      }
+      const element = entry.target;
+
+      // Handle img elements with data-opt-id
+      if (element.tagName === 'IMG') {
+        const id = parseInt(element.getAttribute('data-opt-id'), 10);
+        if (!isNaN(id) && !aboveTheFoldImages.includes(id)) {
+          aboveTheFoldImages.push(id);
+        }
+      }
+
+      // An img can also carry a background image, so this is checked independently.
+      if (element.hasAttribute('data-optml-bg-selector')) {
+        this.recordAboveFoldBackground(element, selectorMap);
+      }
+    });
+  },
+
+  /**
+   * Record elements observed shortly before the observer is disconnected
+   * @param {IntersectionObserver} observer - Observer created by createIntersectionObserver
+   * @param {Array<number>} aboveTheFoldImages - Array to store above-fold image IDs
+   * @param {Map<string, Array<string>>} selectorMap - Map of base selector to above-fold specific selectors
+   * @returns {Promise<void>} Resolves once the queued entries are recorded
+   */
+  flushIntersectionObserver: async function(observer, aboveTheFoldImages, selectorMap) {
+    // A new observation is computed only at the next rendering; hidden tabs render no frames, hence the timeout.
+    await Promise.race([
+      new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      new Promise(resolve => setTimeout(resolve, 100))
+    ]);
+    this.recordIntersections(observer.takeRecords(), aboveTheFoldImages, selectorMap);
   },
 
   /**

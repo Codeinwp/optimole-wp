@@ -29,7 +29,7 @@ class Lazyload {
 	const MAX_ABOVE_FOLD_SELECTORS = 100;
 
 	/**
-	 * Viewport width in px that splits the mobile and desktop rules.
+	 * Widest viewport in px the profiler counts as mobile (MOBILE_BREAKPOINT in device.js).
 	 */
 	private const DEVICE_BREAKPOINT = 600;
 
@@ -127,7 +127,7 @@ class Lazyload {
 			$media_queries[] = '@media (max-width: ' . self::DEVICE_BREAKPOINT . 'px) { ' . $mobile_selectors . $hide_rule . ' }';
 		}
 		if ( $desktop_selectors !== '' ) {
-			$media_queries[] = '@media (min-width: ' . self::DEVICE_BREAKPOINT . 'px) { ' . $desktop_selectors . $hide_rule . ' }';
+			$media_queries[] = '@media (min-width: ' . ( self::DEVICE_BREAKPOINT + 1 ) . 'px) { ' . $desktop_selectors . $hide_rule . ' }';
 		}
 		return implode( ' ', $media_queries );
 	}

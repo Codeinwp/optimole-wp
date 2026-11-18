@@ -242,6 +242,21 @@ describe('optmlImageDetector', () => {
     });
   });
 
+  describe('flushIntersectionObserver', () => {
+    test('records an element the observer has not reported before it is disconnected', async () => {
+      const aboveTheFoldImages = [];
+      const selectorMap = new Map([['[style*="background-image:url("]', []]]);
+      document.body.innerHTML = '<img data-opt-id="9" style="background-image:url(a.jpg)" data-optml-bg-selector="x" data-optml-specific-selector="img.late" />';
+      const observer = optmlImageDetector.createIntersectionObserver(aboveTheFoldImages, selectorMap);
+      observer.takeRecords = jest.fn(() => [{ isIntersecting: true, target: document.querySelector('img') }]);
+
+      await optmlImageDetector.flushIntersectionObserver(observer, aboveTheFoldImages, selectorMap);
+
+      expect(aboveTheFoldImages).toEqual([9]);
+      expect(selectorMap.get('[style*="background-image:url("]')).toEqual(['img.late']);
+    });
+  });
+
   describe('observeOptimoleImages', () => {
     test('should observe all images with data-opt-id', () => {
       document.body.innerHTML = `

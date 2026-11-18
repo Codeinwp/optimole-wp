@@ -227,8 +227,24 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 		remove_filter( 'optml_lazyload_bg_selectors', $only_watcher );
 
 		$this->assertIsString( $css );
-		$this->assertStringStartsWith( '@media (min-width: 600px) { html .bg-0:not(#hero-1)', $css );
+		$this->assertStringStartsWith( '@media (min-width: 601px) { html .bg-0:not(#hero-1)', $css );
 		$this->assertStringNotContainsString( 'max-width', $css );
+	}
+
+	/**
+	 * The profiler counts a 600px viewport as mobile, so only the mobile rule applies there.
+	 */
+	public function test_personalized_css_device_media_queries_do_not_overlap(): void {
+		$css = Lazyload::get_personalized_css(
+			[
+				Profile::DEVICE_TYPE_MOBILE  => [ 'bg' => [ self::WATCHER => [ '#hero-mobile' => [] ] ] ],
+				Profile::DEVICE_TYPE_DESKTOP => [ 'bg' => [ self::WATCHER => [ '#hero-desktop' => [] ] ] ],
+			]
+		);
+
+		$this->assertIsString( $css );
+		$this->assertStringContainsString( '@media (max-width: 600px) { html ' . self::WATCHER . ':not(#hero-mobile)', $css );
+		$this->assertStringContainsString( '@media (min-width: 601px) { html ' . self::WATCHER . ':not(#hero-desktop)', $css );
 	}
 
 	/**
@@ -326,7 +342,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'background:red', $css );
 		$this->assertStringNotContainsString( self::PAYLOAD, $css );
 		// The surviving desktop rule must stay desktop-scoped and not apply on phones.
-		$this->assertStringStartsWith( '@media (min-width: 600px) {', $css );
+		$this->assertStringStartsWith( '@media (min-width: 601px) {', $css );
 		$this->assertStringNotContainsString( '@media (max-width: 600px)', $css );
 		// The safe above-fold and LCP selectors are still rendered (the gating must not over-reject them).
 		$this->assertStringContainsString( ':not(#hero):not(.optml-bg-lazyloaded)', $css );
