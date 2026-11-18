@@ -255,6 +255,29 @@ describe('optmlImageDetector', () => {
       expect(aboveTheFoldImages).toEqual([9]);
       expect(selectorMap.get('[style*="background-image:url("]')).toEqual(['img.late']);
     });
+
+    test('records queued entries when no frame is rendered, as in a hidden tab', async () => {
+      jest.useFakeTimers();
+      // Stubbed after the fake timers, which replace requestAnimationFrame too.
+      const requestAnimationFrameSpy = jest.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 0);
+      try {
+        const aboveTheFoldImages = [];
+        const selectorMap = new Map([['[style*="background-image:url("]', []]]);
+        document.body.innerHTML = '<img data-opt-id="9" style="background-image:url(a.jpg)" data-optml-bg-selector="x" data-optml-specific-selector="img.late" />';
+        const observer = optmlImageDetector.createIntersectionObserver(aboveTheFoldImages, selectorMap);
+        observer.takeRecords = jest.fn(() => [{ isIntersecting: true, target: document.querySelector('img') }]);
+
+        const flushed = optmlImageDetector.flushIntersectionObserver(observer, aboveTheFoldImages, selectorMap);
+        await jest.advanceTimersByTimeAsync(100);
+        await flushed;
+
+        expect(aboveTheFoldImages).toEqual([9]);
+        expect(selectorMap.get('[style*="background-image:url("]')).toEqual(['img.late']);
+      } finally {
+        requestAnimationFrameSpy.mockRestore();
+        jest.useRealTimers();
+      }
+    });
   });
 
   describe('observeOptimoleImages', () => {
