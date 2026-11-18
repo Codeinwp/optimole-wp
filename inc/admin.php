@@ -772,12 +772,13 @@ class Optml_Admin {
 	/**
 	 * Build upgrade URL with current user's encoded email.
 	 *
-	 * The URL is not localized with tsdk_translate_link() because optimole.com has no translated pages.
+	 * The URL is already localized, so callers must not pass it through tsdk_translate_link() again.
 	 *
 	 * @return string Upgrade URL.
 	 */
 	public static function get_upgrade_base_link() {
-		$base_url = 'https://optimole.com/upgrade/';
+		$base_url = 'https://optimole.com/upgrade';
+		$base_url = tsdk_translate_link( $base_url );
 		$email    = self::get_account_email();
 
 		if ( ! empty( $email ) ) {
@@ -793,7 +794,7 @@ class Optml_Admin {
 	 * @return string Contact URL.
 	 */
 	public static function get_contact_base_link() {
-		return 'https://optimole.com/contact/';
+		return tsdk_translate_link( 'https://optimole.com/contact' );
 	}
 
 	/**
@@ -1532,11 +1533,11 @@ class Optml_Admin {
 			'site_settings'              => $site_settings,
 			'offload_limit'              => $this->settings->get( 'offload_limit' ),
 			'home_url'                   => home_url(),
-			'optimoleHome'               => 'https://optimole.com/',
+			'optimoleHome'               => tsdk_translate_link( 'https://optimole.com/' ),
 			'optimoleDashHome'           => tsdk_translate_link( 'https://dashboard.optimole.com/', 'query' ),
 			'optimoleDashBilling'        => tsdk_translate_link( 'https://dashboard.optimole.com/settings/billing', 'query' ),
 			'optimoleDashMetrics'        => tsdk_translate_link( tsdk_utmify( 'https://dashboard.optimole.com/metrics', 'wp-plugin', 'shortcut' ) ),
-			'offload_upgrade_url'        => tsdk_utmify( 'https://optimole.com/pricing/', 'offload' ),
+			'offload_upgrade_url'        => tsdk_translate_link( tsdk_utmify( 'https://optimole.com/pricing/', 'offload' ) ),
 			'days_since_install'         => round( ( time() - get_option( 'optimole_wp_install', 0 ) ) / DAY_IN_SECONDS ),
 			'is_offload_media_available' => $is_offload_media_available,
 			'auto_connect'               => $auto_connect,
@@ -1924,8 +1925,8 @@ The root cause might be either a security plugin which blocks this feature or so
 			'signup_terms'                   => sprintf(
 			/* translators: 1 is starting anchor tag to terms, 2 is starting anchor tag to privacy link and 3 is ending anchor tag. */
 				__( 'By signing up, you agree to our  %1$sTerms of Service %3$s and %2$sPrivacy Policy %3$s.', 'optimole-wp' ),
-				'<a href="' . esc_url( 'https://optimole.com/terms/' ) . '" target="_blank" >',
-				'<a href="' . esc_url( 'https://optimole.com/privacy-policy/' ) . '" target="_blank">',
+				'<a href="' . esc_url( tsdk_translate_link( 'https://optimole.com/terms/' ) ) . '" target="_blank" >',
+				'<a href="' . esc_url( tsdk_translate_link( 'https://optimole.com/privacy-policy/' ) ) . '" target="_blank">',
 				'</a>'
 			),
 			'dashboard_menu_item'            => __( 'Dashboard', 'optimole-wp' ),
