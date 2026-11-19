@@ -553,6 +553,21 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		];
 	}
 
+	public function test_lazyload_video_with_source_preload_ignores_quoted_attribute_text() {
+		$replaced_content = Optml_Manager::instance()->replace_content( '<video title="a>b src=x" controls><source type="video/mp4" src="https://example.org/c.mp4"></video>' );
+
+		$this->assertStringContainsString( '<video title="a>b src=x" controls preload="metadata">', $replaced_content );
+		$this->assertStringNotContainsString( '<noscript>', $replaced_content );
+	}
+
+	public function test_lazyload_iframe_leaves_json_escaped_markup_unchanged() {
+		$iframe = '<iframe title="a src=x onload=alert(1) y=" src="https://www.youtube.com/embed/x"></iframe>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( json_encode( [ 'html' => $iframe ], JSON_UNESCAPED_SLASHES ) );
+
+		$this->assertSame( [ 'html' => $iframe ], json_decode( $replaced_content, true ) );
+	}
+
 	public function test_generic_placeholder() {
 		$settings = new Optml_Settings();
 

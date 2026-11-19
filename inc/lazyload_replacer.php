@@ -31,9 +31,16 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 	const SVG_PLACEHOLDER = 'data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20#width#%20#height#%22%20width%3D%22#width#%22%20height%3D%22#height#%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22#width#%22%20height%3D%22#height#%22%20fill%3D%22#fill#%22%2F%3E%3C%2Fsvg%3E';
 	/**
-	 * One start tag attribute; a quoted value is matched whole, so text inside it is never read as an attribute.
+	 * What precedes a start tag attribute: whitespace or, as browsers allow, directly a quoted value.
 	 */
-	private const TAG_ATTRIBUTE = '[^\s"\'>\/=]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>]+))?';
+	private const TAG_ATTRIBUTE_SEPARATOR = '(?:\s+|(?<=["\']))';
+	/**
+	 * One start tag attribute with its separator.
+	 *
+	 * A quoted value is matched whole, so text inside it is never read as an attribute. A value starting
+	 * with a backslash is not matched, so JSON-escaped markup (`src=\"…\"`) is left as written.
+	 */
+	private const TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>\\\\][^\s>]*))?';
 	/**
 	 * If frame lazyload is present on page.
 	 *
@@ -379,7 +386,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$iframes = [];
 		$videos = [];
 		// Only iframes with no fallback content; one with fallback text is left as written.
-		preg_match_all( '#(?:<noscript\s*>\s*)?<iframe(?>(?:\s+' . self::TAG_ATTRIBUTE . ')*)\s*/?></iframe>(?:\s*</noscript\s*>)?#i', $content, $iframes );
+		preg_match_all( '#(?:<noscript\s*>\s*)?<iframe(?>(?:' . self::TAG_ATTRIBUTE . ')*)\s*/?></iframe>(?:\s*</noscript\s*>)?#i', $content, $iframes );
 		preg_match_all( '#(?:<noscript\s*>\s*)?<video(.*?)>.*?</video>(?:\s*</noscript\s*>)?#is', $content, $videos );
 		$iframe_count = count( $iframes[0] );
 		$video_tags = array_merge( $iframes[0], $videos[0] );
@@ -436,7 +443,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			return null;
 		}
 
-		return [ preg_replace( '#^((?:<noscript\s*>\s*)?<video(?>(?:\s+' . self::TAG_ATTRIBUTE . ')*)\s*/?)>#i', '$1 preload="metadata">', $element, 1 ) ?? $element, false ];
+		return [ preg_replace( '#^((?:<noscript\s*>\s*)?<video(?>(?:' . self::TAG_ATTRIBUTE . ')*)\s*/?)>#i', '$1 preload="metadata">', $element, 1 ) ?? $element, false ];
 	}
 
 	/**
@@ -449,7 +456,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 * @return string The element, unchanged when its start tag has no src attribute.
 	 */
 	private function replace_start_tag_src( string $element, string $tag_name, string $replacement ): string {
-		$pattern = '#^((?:<noscript\s*>\s*)?<' . $tag_name . '(?>(?:\s+(?!src\s*=)' . self::TAG_ATTRIBUTE . ')*)\s+)src(?=\s*=)#i';
+		$pattern = '#^((?:<noscript\s*>\s*)?<' . $tag_name . '(?>(?:(?!\s*src\s*=)' . self::TAG_ATTRIBUTE . ')*)' . self::TAG_ATTRIBUTE_SEPARATOR . ')src(?=\s*=)#i';
 
 		return preg_replace( $pattern, '$1' . $replacement, $element, 1 ) ?? $element;
 	}
