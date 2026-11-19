@@ -516,6 +516,58 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertStringNotContainsString( '<noscript>', $replaced_content );
 	}
 
+	public function test_lazyload_iframe_leaves_content_after_fallback_text_unchanged() {
+		$form    = '<iframe src="https://docs.google.com/forms/d/e/x/viewform?embedded=true" width="640" height="800">Loading…</iframe>';
+		$comment = '<p>One more thing, the <a href="#x" title="iframe src=x onfocus=alert(1) autofocus y=" rel="nofollow ugc">details</a> are here.</p>';
+		$map     = '<iframe src="https://www.google.com/maps/embed?pb=1" width="600" height="220"></iframe>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $form . $comment . $map );
+
+		$this->assertStringContainsString( $form . $comment, $replaced_content );
+		$this->assertStringContainsString( '<iframe  src="about:blank" data-opt-src="https://www.google.com/maps/embed?pb=1" width="600" height="220"></iframe><noscript>' . $map . '</noscript>', $replaced_content );
+	}
+
+	public function test_lazyload_iframe_rewrites_only_its_src_attribute() {
+		$iframe = '<iframe title="Clip src=x onload=alert(1) y=" width="640" src="https://www.youtube.com/embed/x?feature=oembed"></iframe>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $iframe );
+
+		$this->assertStringContainsString( '<iframe title="Clip src=x onload=alert(1) y=" width="640"  src="about:blank" data-opt-src="https://www.youtube.com/embed/x?feature=oembed"></iframe><noscript>' . $iframe . '</noscript>', $replaced_content );
+	}
+
+	/**
+	 * @dataProvider video_titles_with_src_text
+	 */
+	public function test_lazyload_video_rewrites_only_its_src_attribute( string $title ) {
+		$video = '<video controls title="' . $title . '" src="https://example.org/clip.mp4"></video>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( $video );
+
+		$this->assertStringContainsString( '<video controls title="' . $title . '"  data-opt-src="https://example.org/clip.mp4"></video><noscript>' . $video . '</noscript>', $replaced_content );
+	}
+
+	public function video_titles_with_src_text(): array {
+		return [
+			'iframe text' => [ 'iframe src=x onloadstart=alert(1) y=' ],
+			'video text'  => [ 'video src=x onloadstart=alert(1) y=' ],
+		];
+	}
+
+	public function test_lazyload_video_with_source_preload_ignores_quoted_attribute_text() {
+		$replaced_content = Optml_Manager::instance()->replace_content( '<video title="a>b src=x" controls><source type="video/mp4" src="https://example.org/c.mp4"></video>' );
+
+		$this->assertStringContainsString( '<video title="a>b src=x" controls preload="metadata">', $replaced_content );
+		$this->assertStringNotContainsString( '<noscript>', $replaced_content );
+	}
+
+	public function test_lazyload_iframe_leaves_json_escaped_markup_unchanged() {
+		$iframe = '<iframe title="a src=x onload=alert(1) y=" src="https://www.youtube.com/embed/x"></iframe>';
+
+		$replaced_content = Optml_Manager::instance()->replace_content( json_encode( [ 'html' => $iframe ], JSON_UNESCAPED_SLASHES ) );
+
+		$this->assertSame( [ 'html' => $iframe ], json_decode( $replaced_content, true ) );
+	}
+
 	public function test_generic_placeholder() {
 		$settings = new Optml_Settings();
 
