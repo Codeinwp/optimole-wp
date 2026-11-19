@@ -45,15 +45,15 @@ const DOCS_SECTION = [
 		items: [
 			{
 				label: optimoleDashboardApp.strings.help.account_item_one,
-				value: 'https://docs.optimole.com/article/1134-how-optimole-counts-the-number-of-visitors'
+				value: optimoleDashboardApp.docs_links.visitors_count
 			},
 			{
 				label: optimoleDashboardApp.strings.help.account_item_two,
-				value: 'https://docs.optimole.com/article/1008-what-happens-if-i-exceed-plan-limits'
+				value: optimoleDashboardApp.docs_links.plan_limits
 			},
 			{
 				label: optimoleDashboardApp.strings.help.account_item_three,
-				value: 'https://docs.optimole.com/article/1133-visitors-based-plan'
+				value: optimoleDashboardApp.docs_links.visitors_plan
 			}
 		]
 	},
@@ -62,15 +62,15 @@ const DOCS_SECTION = [
 		items: [
 			{
 				label: optimoleDashboardApp.strings.help.image_processing_item_one,
-				value: 'https://docs.optimole.com/article/1173-how-to-get-started-with-optimole-in-just-3-steps'
+				value: optimoleDashboardApp.docs_links.getting_started
 			},
 			{
 				label: optimoleDashboardApp.strings.help.image_processing_item_two,
-				value: 'https://docs.optimole.com/article/1068-how-optimole-can-serve-webp-images'
+				value: optimoleDashboardApp.docs_links.webp
 			},
 			{
 				label: optimoleDashboardApp.strings.help.image_processing_item_three,
-				value: 'https://docs.optimole.com/article/1475-adding-watermarks-to-your-images'
+				value: optimoleDashboardApp.docs_links.watermarks
 			}
 		]
 	},
@@ -79,15 +79,15 @@ const DOCS_SECTION = [
 		items: [
 			{
 				label: optimoleDashboardApp.strings.help.api_item_one,
-				value: 'https://docs.optimole.com/article/1323-cloud-library-browsing'
+				value: optimoleDashboardApp.docs_links.cloud_library
 			},
 			{
 				label: optimoleDashboardApp.strings.help.api_item_two,
-				value: 'https://docs.optimole.com/article/1191-exclude-from-optimizing-or-lazy-loading'
+				value: optimoleDashboardApp.docs_links.exclusions
 			},
 			{
 				label: optimoleDashboardApp.strings.help.api_item_three,
-				value: 'https://docs.optimole.com/article/1307-custom-integration'
+				value: optimoleDashboardApp.docs_links.custom_integration
 			}
 		]
 	}
@@ -134,7 +134,7 @@ const Help = () => {
 			<div className="flex items-center justify-between">
 				<p className="font-bold text-base">{ optimoleDashboardApp.strings.help.section_two_title }</p>
 
-				<ExternalLink href="https://docs.optimole.com/">{ optimoleDashboardApp.strings.help.section_two_sub }</ExternalLink>
+				<ExternalLink href={ optimoleDashboardApp.docs_links.home }>{ optimoleDashboardApp.strings.help.section_two_sub }</ExternalLink>
 			</div>
 
 			<div className="flex gap-5 flex-col md:flex-row">
