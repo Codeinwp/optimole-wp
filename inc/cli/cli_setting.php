@@ -29,7 +29,7 @@ class Optml_Cli_Setting extends WP_CLI_Command {
 
 		$request = new Optml_Api();
 		$data    = $request->get_user_data( $api_key );
-		if ( $data === false || is_wp_error( $data ) ) {
+		if ( ! is_array( $data ) ) {
 			$extra = '';
 			if ( is_wp_error( $data ) ) {
 				$extra = sprintf(
