@@ -42,9 +42,9 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	private const TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>\\\\][^\s>]*))?';
 	/**
-	 * One attribute of a JSON-escaped start tag with its separator, where quotes are written as \" or \'.
+	 * One image tag attribute with its separator, whose value may be JSON-escaped, with quotes written as \" or \'.
 	 */
-	private const TAG_ATTRIBUTE_SLASHED = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=\\\\]+(?:\s*=\s*(?:\\\\"[^"]*?\\\\"|\\\\\'[^\']*?\\\\\'|[^\s"\'>\\\\][^\s>]*))?';
+	private const IMAGE_TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=\\\\]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|\\\\"[^"]*?\\\\"|\\\\\'[^\']*?\\\\\'|[^\s"\'>\\\\][^\s>]*))?';
 	/**
 	 * If frame lazyload is present on page.
 	 *
@@ -286,23 +286,26 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			);
 		}
 
-		$loading_pattern = $this->image_attribute_pattern( 'loading', $is_slashed );
+		$loading = [];
+		// Most tags do not hold the word at all, and need no pattern.
+		$has_loading = stripos( $new_tag, 'loading' ) !== false && preg_match( $this->image_attribute_pattern( 'loading' ), $new_tag, $loading ) === 1;
+		// Only a quoted value that is not JSON-escaped is changed; any other loading attribute is kept as written.
+		$after_loading = isset( $loading[3] ) ? substr( $new_tag, strlen( $loading[0] ) ) : null;
 
 		if ( self::instance()->settings->get( 'native_lazyload' ) === 'enabled' ) {
-			if ( preg_match( $loading_pattern, $new_tag ) !== 1 ) {
+			if ( ! $has_loading ) {
 				// No loading attribute exists, add it after <img
 				$loading_attr = $is_slashed ? ' loading=\"lazy\"' : ' loading="lazy"';
 
 				return preg_replace( '/<img/i', '<img' . $loading_attr, $new_tag, 1 );
 			}
 
-			// JSON-escaped markup keeps the loading value it has; elsewhere it becomes lazy.
-			return $is_slashed ? $new_tag : ( preg_replace( $loading_pattern, '$1$2loading="lazy"', $new_tag, 1 ) ?? $new_tag );
+			return null === $after_loading ? $new_tag : $loading[1] . $loading[2] . 'loading="lazy"' . $after_loading;
 		}
 
-		// we remove the loading attribute if it exists; JSON-escaped markup keeps it
-		if ( ! $is_slashed ) {
-			$new_tag = preg_replace( $loading_pattern, '$1$2', $new_tag, 1 ) ?? $new_tag;
+		// we remove the loading attribute if it exists
+		if ( null !== $after_loading ) {
+			$new_tag = $loading[1] . $loading[2] . $after_loading;
 		}
 
 		$should_ignore_rescale = ! $this->is_valid_mimetype_from_url( $original_url, [ 'gif' => true, 'svg' => true ] );
@@ -369,8 +372,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 		// We remove srcset and sizes attributes since our lazyload does not need them.
 		foreach ( [ 'srcset', 'sizes' ] as $attribute ) {
-			foreach ( [ false, true ] as $slashed ) {
-				$new_tag = preg_replace( $this->image_attribute_pattern( $attribute, $slashed ), '$1', $new_tag, 1 ) ?? $new_tag;
+			if ( stripos( $new_tag, $attribute ) !== false ) {
+				$new_tag = preg_replace( $this->image_attribute_pattern( $attribute ), '$1', $new_tag, 1 ) ?? $new_tag;
 			}
 		}
 
@@ -384,21 +387,25 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		return $new_tag . '<noscript>' . $no_script_tag . '</noscript>';
 	}
 	/**
-	 * Build the pattern that finds a quoted attribute of an image tag.
+	 * Build the pattern that finds an attribute of an image tag.
 	 *
 	 * Every attribute before it is matched whole, so the same text inside another attribute's value is not taken
-	 * for the attribute. Group 1 is the tag up to the attribute's separator and group 2 the separator.
+	 * for the attribute. Group 1 is the tag up to the attribute's separator and group 2 the separator. Group 3 is
+	 * the value, set only when it is quoted and not JSON-escaped; a JSON-escaped value is matched when it is
+	 * double-quoted and holds no backslash.
 	 *
-	 * @param string $name       Attribute name.
-	 * @param bool   $is_slashed Whether the tag's quotes are JSON-escaped.
+	 * @param string $name Attribute name.
 	 *
 	 * @return string The pattern.
 	 */
-	private function image_attribute_pattern( string $name, bool $is_slashed ): string {
-		$attribute = $is_slashed ? self::TAG_ATTRIBUTE_SLASHED : self::TAG_ATTRIBUTE;
-		$value     = $is_slashed ? '(?:\\\\"[^"]*?\\\\"|\\\\\'[^\']*?\\\\\')' : '(?:"[^"]*"|\'[^\']*\')';
+	private function image_attribute_pattern( string $name ): string {
+		static $patterns = [];
 
-		return '#^((?:<noscript\s*>\s*)?<img(?>(?:(?!\s*' . $name . '\s*=)' . $attribute . ')*))(' . self::TAG_ATTRIBUTE_SEPARATOR . ')' . $name . '\s*=\s*' . $value . '#i';
+		if ( ! isset( $patterns[ $name ] ) ) {
+			$patterns[ $name ] = '#^((?:<noscript\s*>\s*)?<img(?>(?:(?!\s*' . $name . '\s*=)' . self::IMAGE_TAG_ATTRIBUTE . ')*))(' . self::TAG_ATTRIBUTE_SEPARATOR . ')' . $name . '\s*=\s*(?:("[^"]*"|\'[^\']*\')|\\\\"[^\\\\"]*\\\\"|[^\s"\'>\\\\][^\s>]*)#i';
+		}
+
+		return $patterns[ $name ];
 	}
 	/**
 	 * Replaces video embeds with lazyload embeds.

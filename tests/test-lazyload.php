@@ -444,18 +444,20 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 	public function test_lazyload_removes_loading_as_an_attribute_only() {
 		// As when the images that are never lazy-loaded were already found on the page.
 		Optml_Tag_Replacer::$lazyload_skipped_images = Optml_Lazyload_Replacer::get_skip_lazyload_limit();
-		$content          = '<img loading="eager" src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" title="x loading=" alt="y data-note=z">';
+		$content          = '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" title="x loading=" alt="y data-note=z" loading="eager">';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		// The noscript copy keeps the tag as written.
+		$lazy_tag = strstr( $replaced_content, '<noscript>', true );
 
-		$this->assertStringContainsString( 'data-opt-src', $replaced_content );
-		$this->assertStringNotContainsString( 'loading="eager"', $replaced_content );
-		$this->assertStringContainsString( 'title="x loading=" alt="y data-note=z">', $replaced_content );
+		$this->assertStringContainsString( 'data-opt-src', $lazy_tag );
+		$this->assertStringNotContainsString( 'loading="eager"', $lazy_tag );
+		$this->assertStringContainsString( 'title="x loading=" alt="y data-note=z"', $lazy_tag );
 	}
 
 	public function test_lazyload_removes_srcset_and_sizes_as_attributes_only() {
 		// As when the images that are never lazy-loaded were already found on the page.
 		Optml_Tag_Replacer::$lazyload_skipped_images = Optml_Lazyload_Replacer::get_skip_lazyload_limit();
-		$content          = '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" srcset="https://example.org/wp-content/uploads/2020/02/Herren.jpg 1x" sizes="100vw" title=\' sizes="\' alt="\' data-note=z data-x=\'y\'">';
+		$content          = '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" title=\' sizes="\' alt="\' data-note=z data-x=\'y\'" srcset="https://example.org/wp-content/uploads/2020/02/Herren.jpg 1x" sizes="100vw">';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
 		// The noscript copy keeps the tag as written.
@@ -463,7 +465,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 
 		$this->assertStringContainsString( 'data-opt-src', $lazy_tag );
 		$this->assertStringNotContainsString( 'sizes="100vw"', $lazy_tag );
-		$this->assertStringContainsString( 'title=\' sizes="\' alt="\' data-note=z data-x=\'y\'">', $lazy_tag );
+		$this->assertStringContainsString( 'title=\' sizes="\' alt="\' data-note=z data-x=\'y\'"', $lazy_tag );
 	}
 	public function test_lazyload_iframe() {
 
