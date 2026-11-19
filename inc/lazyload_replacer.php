@@ -37,8 +37,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	/**
 	 * One start tag attribute with its separator.
 	 *
-	 * A quoted value is matched whole, so text inside it is never read as an attribute. A value starting
-	 * with a backslash is not matched, so JSON-escaped markup (`src=\"…\"`) is left as written.
+	 * A quoted value is matched whole, so text inside it is never read as an attribute. An iframe whose
+	 * attribute value starts with a backslash is not matched, so JSON-escaped iframe markup is left as written.
 	 */
 	private const TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>\\\\][^\s>]*))?';
 	/**
