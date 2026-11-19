@@ -155,6 +155,16 @@ class Optml_Rest {
 						'type'     => 'string',
 						'required' => true,
 					],
+					't' => [
+						'type' => 'integer',
+					],
+					'h' => [
+						'type' => 'string',
+					],
+					'pu' => [
+						'type'    => 'string',
+						'default' => '',
+					],
 					'b' => [
 						'type'                 => 'object',
 						'default'              => [],
@@ -997,8 +1007,12 @@ class Optml_Rest {
 		if ( $time < time() - 300 ) {
 			return $this->response( 'Invalid Signature.', 'error' );
 		}
-		if ( wp_hash( $url . $time . $current_url, 'nonce' ) !== $hmac ) {
+		if ( ! hash_equals( Profile::sign( $url, $time, $current_url ), $hmac ) ) {
 			return $this->response( 'Invalid Signature.', 'error' );
+		}
+		// A stored profile is kept until it expires, so a token cannot be used again to replace it.
+		if ( ( new Profile() )->exists( $url, $device_type ) ) {
+			return $this->response( 'Profile already stored', 'error' );
 		}
 		$bg_selectors = $request->get_param( 'b' );
 		$lcp_data = $request->get_param( 'l' );
@@ -1040,7 +1054,7 @@ class Optml_Rest {
 					array_map( 'sanitize_url', array_values( $bg_urls ) ),
 					function ( $url ) {
 						// we ignore urls that are not from our service
-						return strpos( $url, Optml_Config::$service_url ) === 0;
+						return self::is_service_url( $url );
 					}
 				);
 			}
@@ -1081,7 +1095,7 @@ class Optml_Rest {
 				array_map( 'sanitize_url', array_values( $lcp_data['u'] ?? [] ) ),
 				function ( $url ) {
 					// we ignore urls that are not from our service
-					return strpos( $url, Optml_Config::$service_url ) === 0;
+					return self::is_service_url( $url );
 				}
 			);
 			$sanitized_lcp_data['type'] = empty( $sanitized_lcp_data['imageId'] ) ? 'bg' : 'img';
@@ -1102,6 +1116,19 @@ class Optml_Rest {
 			do_action( 'optml_clear_cache', $current_url );
 		}
 		return $this->response( 'Optimization data stored successfully' );
+	}
+
+	/**
+	 * Check that a URL points at this site's Optimole host.
+	 *
+	 * The trailing slash ends the host, so a longer host that only starts with ours is not accepted.
+	 *
+	 * @param string $url The URL to check.
+	 *
+	 * @return bool
+	 */
+	private static function is_service_url( string $url ): bool {
+		return strpos( $url, trailingslashit( Optml_Config::$service_url ) ) === 0;
 	}
 
 	/**

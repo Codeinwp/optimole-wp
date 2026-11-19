@@ -71,7 +71,7 @@ class OptimoleVideoPlayer extends HTMLElement {
 	render() {
 		this.innerHTML = `
         <div class="optml-player-container">
-					<video src="${this.videoSrc}" class="optml-video ${this.hideClass}"></video>
+					<video class="optml-video ${this.hideClass}"></video>
           <div class="optml-spinner"><span class="optml-ic">${this.getIcon( this.icons.spinner )}</span></div>
           <button class="optml-video-lg-play ${this.hideClass}" aria-label="${this.strings.play}">${this.getIcon( this.icons.play )}</button>
 					<div class="optml-controls ${'true' === this.hideControls ? this.hideClass : ''}">
@@ -90,6 +90,11 @@ class OptimoleVideoPlayer extends HTMLElement {
 					</div>
 				</div>
 		`;
+
+		// The source is set on the element, so the URL is never read as markup.
+		if ( this.videoSrc ) {
+			this.querySelector( '.optml-video' ).setAttribute( 'src', this.videoSrc );
+		}
 	}
 
 	setupEventListeners() {

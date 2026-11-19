@@ -349,6 +349,42 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_post_meta( self::$sample_attachement, Optml_Media_Offload::META_KEYS['offload_error'], true ) );
 		self::$error_mark = false;
 	}
+	public function test_upload_that_stays_local_keeps_its_own_file(): void {
+		// Not an image, so no metadata is generated and the upload is not offloaded.
+		$local    = wp_upload_bits( 'optml-keep.jpg', null, 'not an image' );
+		$local_id = $this->insert_uploaded_image( $local, [ 'post_name' => 'optml-keep-renamed' ] );
+
+		$this->assertSame( $local['file'], get_attached_file( $local_id ) );
+
+		// A later upload whose name holds the first one's is offloaded from its own file.
+		$this->insert_uploaded_image( wp_upload_bits( 'optml-keep-second.jpg', null, file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' ) ) );
+
+		$this->assertFileExists( $local['file'] );
+		unlink( $local['file'] );
+	}
+
+	/**
+	 * Create the attachment of an uploaded image the way the media endpoints do.
+	 *
+	 * @param array{file: string, url: string} $upload   The upload, as wp_upload_bits() returns it.
+	 * @param array<string, string>            $postdata Post fields added to the attachment.
+	 */
+	private function insert_uploaded_image( array $upload, array $postdata = [] ): int {
+		$attachment_id = wp_insert_attachment(
+			array_merge(
+				[
+					'post_title'     => pathinfo( $upload['file'], PATHINFO_FILENAME ),
+					'post_mime_type' => 'image/jpeg',
+					'guid'           => $upload['url'],
+				],
+				$postdata
+			),
+			$upload['file']
+		);
+		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $upload['file'] ) );
+
+		return $attachment_id;
+	}
 	public function test_duplicated_image() {
 
 		$content =  wp_get_attachment_image( self::$sample_attachement_upper_case );

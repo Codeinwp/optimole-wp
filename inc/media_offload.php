@@ -110,6 +110,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	private static $last_deduplicated = false;
 	/**
+	 * The files that uploads were stored as before their attachment was given a deduplicated name, keyed by attachment ID.
+	 *
+	 * @var array<int, string>
+	 */
+	private static $uploaded_files = [];
+	/**
 	 * Checks if the plugin was installed before adding POST_OFFLOADED_FLAG.
 	 *
 	 * @var bool Used when applying the flags for the page query.
@@ -185,6 +191,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'image_downsize', [ self::$instance, 'generate_filter_downsize_urls' ], 10, 3 );
 				if ( $offload_new_uploads ) {
 					add_filter( 'wp_generate_attachment_metadata', [ self::$instance, 'generate_image_meta' ], 10, 2 );
+					add_filter( 'wp_generate_attachment_metadata', [ self::$instance, 'keep_uploaded_file_name' ], 11, 2 );
 				}
 				add_filter( 'wp_get_attachment_url', [ self::$instance, 'get_image_attachment_url' ], - 999, 2 );
 				add_filter( 'wp_insert_post_data', [ self::$instance, 'filter_uploaded_images' ] );
@@ -275,6 +282,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		// if we have current deduplication set and it contains the filename that is updated
 		// we replace the updated filename with the deduplicated filename
 		if ( ! empty( self::$current_file_deduplication ) && stripos( self::$current_file_deduplication, $no_ext_file_name ) !== false ) {
+			self::$uploaded_files[ $attachment_id ] = $file;
 			$file = str_replace( $file_name, self::$current_file_deduplication, $file );
 			// we need to store the filename we replaced to check when uploading the image if it was deduplicated
 			self::$last_deduplicated = $file_name;
@@ -289,6 +297,35 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		return $file;
 	}
 
+	/**
+	 * Point an attachment that stayed local back at the file it was uploaded as.
+	 *
+	 * The deduplicated name belongs to the copy stored in the cloud. When the upload is not offloaded, no local
+	 * file was saved under that name, so the attachment keeps the name of its own file.
+	 *
+	 * @param array<string, mixed> $meta          Attachment metadata.
+	 * @param int                  $attachment_id Attachment ID.
+	 *
+	 * @return array<string, mixed> The metadata, unchanged.
+	 * @uses filter:wp_generate_attachment_metadata
+	 */
+	public function keep_uploaded_file_name( $meta, $attachment_id ) {
+		if ( ! isset( self::$uploaded_files[ $attachment_id ] ) ) {
+			return $meta;
+		}
+
+		$uploaded_file = self::$uploaded_files[ $attachment_id ];
+		unset( self::$uploaded_files[ $attachment_id ] );
+
+		if ( isset( $meta['file'] ) && self::is_uploaded_image( $meta['file'] ) ) {
+			return $meta;
+		}
+
+		self::$last_deduplicated = false;
+		update_attached_file( $attachment_id, $uploaded_file );
+
+		return $meta;
+	}
 	/**
 	 * Function for `wp_insert_attachment_data` filter-hook.
 	 * Because we remove the images when new images are added the wp deduplication using the files will not work

@@ -1807,12 +1807,6 @@ parameters:
 			path: inc/lazyload_replacer.php
 
 		-
-			message: '#^Property Optml_Logger\:\:\$log_filenames type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/logger.php
-
-		-
 			message: '#^Method Optml_Main\:\:activate\(\) has no return type specified\.$#'
 			identifier: missingType.return
 			count: 1

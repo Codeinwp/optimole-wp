@@ -106,6 +106,22 @@ class Profile {
 	}
 
 	/**
+	 * Sign the values a profile submission is bound to.
+	 *
+	 * The values are JSON-encoded as a list, so the same characters cannot be split differently between
+	 * the fields and still produce the same signature.
+	 *
+	 * @param string $id   The profile ID.
+	 * @param int    $time When the token was issued, as a Unix timestamp.
+	 * @param string $url  The URL of the profiled page.
+	 *
+	 * @return string The signature.
+	 */
+	public static function sign( string $id, int $time, string $url ): string {
+		return wp_hash( (string) wp_json_encode( [ $id, $time, $url ] ), 'nonce' );
+	}
+
+	/**
 	 * Generate a unique ID for the page profile
 	 *
 	 * @param string $content The content of the page.

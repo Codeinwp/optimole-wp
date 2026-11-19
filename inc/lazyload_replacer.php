@@ -42,6 +42,10 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	private const TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>\\\\][^\s>]*))?';
 	/**
+	 * One attribute of a JSON-escaped start tag with its separator, where quotes are written as \" or \'.
+	 */
+	private const TAG_ATTRIBUTE_SLASHED = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=\\\\]+(?:\s*=\s*(?:\\\\"[^"]*?\\\\"|\\\\\'[^\']*?\\\\\'|[^\s"\'>\\\\][^\s>]*))?';
+	/**
 	 * If frame lazyload is present on page.
 	 *
 	 * @var bool Whether or not at least one iframe has been lazyloaded.
@@ -282,22 +286,24 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			);
 		}
 
+		$loading_pattern = $this->image_attribute_pattern( 'loading', $is_slashed );
+
 		if ( self::instance()->settings->get( 'native_lazyload' ) === 'enabled' ) {
-			// First check if loading attribute already exists
-			if ( strpos( $new_tag, 'loading=' ) !== false ) {
-				// Replace existing loading attribute with lazy
-				$loading_attr = $is_slashed ? 'loading=\"lazy\"' : 'loading="lazy"';
-				$new_tag = preg_replace( '/loading=(["\'])[^"\']*\1/i', $loading_attr, $new_tag );
-			} else {
+			if ( preg_match( $loading_pattern, $new_tag ) !== 1 ) {
 				// No loading attribute exists, add it after <img
 				$loading_attr = $is_slashed ? ' loading=\"lazy\"' : ' loading="lazy"';
-				$new_tag = preg_replace( '/<img/i', '<img' . $loading_attr, $new_tag, 1 );
+
+				return preg_replace( '/<img/i', '<img' . $loading_attr, $new_tag, 1 );
 			}
-			return $new_tag;
+
+			// JSON-escaped markup keeps the loading value it has; elsewhere it becomes lazy.
+			return $is_slashed ? $new_tag : ( preg_replace( $loading_pattern, '$1$2loading="lazy"', $new_tag, 1 ) ?? $new_tag );
 		}
 
-		// we remove the loading attribute if it exists with strpos
-		$new_tag = preg_replace( '/loading=(["\'])[^"\']*\1/i', '', $new_tag );
+		// we remove the loading attribute if it exists; JSON-escaped markup keeps it
+		if ( ! $is_slashed ) {
+			$new_tag = preg_replace( $loading_pattern, '$1$2', $new_tag, 1 ) ?? $new_tag;
+		}
 
 		$should_ignore_rescale = ! $this->is_valid_mimetype_from_url( $original_url, [ 'gif' => true, 'svg' => true ] );
 
@@ -362,8 +368,11 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		);
 
 		// We remove srcset and sizes attributes since our lazyload does not need them.
-		$pattern = '/\s+(?:srcset|sizes)=("[^"]*"|\'[^\']*\'|\\\\"[^\\\\"]*\\\\")/i';
-		$new_tag = preg_replace( $pattern, '', $new_tag );
+		foreach ( [ 'srcset', 'sizes' ] as $attribute ) {
+			foreach ( [ false, true ] as $slashed ) {
+				$new_tag = preg_replace( $this->image_attribute_pattern( $attribute, $slashed ), '$1', $new_tag, 1 ) ?? $new_tag;
+			}
+		}
 
 		// We keep this for srcset lazyload compatibility that might break our mechanism.
 		$new_tag = str_replace( 'srcset=', 'old-srcset=', $new_tag );
@@ -373,6 +382,23 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return $new_tag . '<noscript>' . $no_script_tag . '</noscript>';
+	}
+	/**
+	 * Build the pattern that finds a quoted attribute of an image tag.
+	 *
+	 * Every attribute before it is matched whole, so the same text inside another attribute's value is not taken
+	 * for the attribute. Group 1 is the tag up to the attribute's separator and group 2 the separator.
+	 *
+	 * @param string $name       Attribute name.
+	 * @param bool   $is_slashed Whether the tag's quotes are JSON-escaped.
+	 *
+	 * @return string The pattern.
+	 */
+	private function image_attribute_pattern( string $name, bool $is_slashed ): string {
+		$attribute = $is_slashed ? self::TAG_ATTRIBUTE_SLASHED : self::TAG_ATTRIBUTE;
+		$value     = $is_slashed ? '(?:\\\\"[^"]*?\\\\"|\\\\\'[^\']*?\\\\\')' : '(?:"[^"]*"|\'[^\']*\')';
+
+		return '#^((?:<noscript\s*>\s*)?<img(?>(?:(?!\s*' . $name . '\s*=)' . $attribute . ')*))(' . self::TAG_ATTRIBUTE_SEPARATOR . ')' . $name . '\s*=\s*' . $value . '#i';
 	}
 	/**
 	 * Replaces video embeds with lazyload embeds.

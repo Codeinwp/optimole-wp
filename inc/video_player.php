@@ -143,6 +143,7 @@ class Optml_Video_Player {
 			'optimole-video-player-component',
 			OPTML_URL . 'assets/build/video-player/frontend/frontend.js',
 			$asset_file['dependencies'],
+			$asset_file['version']
 		);
 
 		wp_localize_script( 'optimole-video-player-component', self::LOCALIZATION_VAR, $this->get_localization() );

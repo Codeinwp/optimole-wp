@@ -18,9 +18,9 @@ class Optml_Logger {
 	private $upload_dir;
 
 	/**
-	 * Log filenames.
+	 * The log types, with the fixed file name each was stored under before file names carried a hash.
 	 *
-	 * @var array
+	 * @var array<string, string>
 	 */
 	private $log_filenames = [
 		self::LOG_TYPE_OFFLOAD  => 'offload.log',
@@ -64,6 +64,50 @@ class Optml_Logger {
 		}
 
 		add_action( 'wp_ajax_optml_fetch_logs', [ $this, 'fetch_logs_ajax_handler' ] );
+		add_action( 'admin_init', [ $this, 'protect_log_files' ] );
+	}
+
+	/**
+	 * Get the path of a log file.
+	 *
+	 * The file name carries a hash only this site can compute, so the log cannot be requested by guessing its URL.
+	 * A log written under the earlier fixed name is moved to the new one.
+	 *
+	 * @param string $type Type of log (offload/rollback).
+	 *
+	 * @return string Absolute path of the log file.
+	 */
+	private function get_file_path( $type ) {
+		$legacy_path = $this->upload_dir . $this->log_filenames[ $type ];
+		$file_path   = $this->upload_dir . $type . '-' . wp_hash( $type ) . '.log';
+
+		// A log that cannot be moved is deleted, so nothing stays under the old name.
+		if ( file_exists( $legacy_path ) && ( file_exists( $file_path ) || ! @rename( $legacy_path, $file_path ) ) ) {
+			wp_delete_file( $legacy_path );
+		}
+
+		return $file_path;
+	}
+
+	/**
+	 * Keep the log directory from being listed or served, and move the logs written under the earlier fixed names.
+	 *
+	 * The .htaccess file is written last, so its presence means the directory needs no further work.
+	 *
+	 * @return void
+	 */
+	public function protect_log_files() {
+		$htaccess = $this->upload_dir . '.htaccess';
+		if ( file_exists( $htaccess ) || ! $this->has_permission() ) {
+			return;
+		}
+
+		foreach ( array_keys( $this->log_filenames ) as $type ) {
+			$this->get_file_path( $type );
+		}
+
+		file_put_contents( $this->upload_dir . 'index.html', '' );
+		file_put_contents( $htaccess, "<IfModule mod_authz_core.c>\n\tRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n\tDeny from all\n</IfModule>\n" );
 	}
 
 	/**
@@ -84,7 +128,7 @@ class Optml_Logger {
 			return false;
 		}
 
-		$file_path = $this->upload_dir . $this->log_filenames[ $type ];
+		$file_path = $this->get_file_path( $type );
 		$handle    = @fopen( $file_path, 'a' );
 
 		if ( $handle === false ) {
@@ -110,7 +154,7 @@ class Optml_Logger {
 			return false;
 		}
 
-		$file_path = $this->upload_dir . $this->log_filenames[ $type ];
+		$file_path = $this->get_file_path( $type );
 
 		if ( $this->has_logs( $type ) ) {
 			$data = $this->tailCustom( $file_path, $lines, true, $separator );
@@ -131,7 +175,7 @@ class Optml_Logger {
 			return false;
 		}
 
-		$file_path = $this->upload_dir . $this->log_filenames[ $type ];
+		$file_path = $this->get_file_path( $type );
 		return file_exists( $file_path );
 	}
 
@@ -215,8 +259,8 @@ class Optml_Logger {
 	 */
 	public function fetch_logs_ajax_handler() {
 		// Check for nonce security
-		$nonce = $_REQUEST['nonce'];
-		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+		$nonce = isset( $_REQUEST['nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) || ! current_user_can( 'manage_options' ) ) {
 			wp_die( __( 'Security check failed', 'optimole-wp' ) );
 		}
 
