@@ -11,6 +11,11 @@ class Optml_Logger {
 	const LOG_SEPARATOR = '==========';
 
 	/**
+	 * The option that holds the random part of this site's log file names.
+	 */
+	const FILE_TOKEN_OPTION = 'optml_log_file_token';
+
+	/**
 	 * Upload directory.
 	 *
 	 * @var string
@@ -70,16 +75,22 @@ class Optml_Logger {
 	/**
 	 * Get the path of a log file.
 	 *
-	 * The file name carries a hash only this site can compute, so the log cannot be requested by guessing its URL.
-	 * A log written under the earlier fixed name is moved to the new one.
+	 * The file name carries a random token stored for this site, so the log cannot be requested by guessing its
+	 * URL. A log written under the earlier fixed name is moved to the new one.
 	 *
 	 * @param string $type Type of log (offload/rollback).
 	 *
 	 * @return string Absolute path of the log file.
 	 */
 	private function get_file_path( $type ) {
+		$token = get_option( self::FILE_TOKEN_OPTION );
+		if ( ! is_string( $token ) || '' === $token ) {
+			$token = wp_generate_password( 32, false );
+			update_option( self::FILE_TOKEN_OPTION, $token );
+		}
+
 		$legacy_path = $this->upload_dir . $this->log_filenames[ $type ];
-		$file_path   = $this->upload_dir . $type . '-' . wp_hash( $type ) . '.log';
+		$file_path   = $this->upload_dir . $type . '-' . $token . '.log';
 
 		// A log that cannot be moved is deleted, so nothing stays under the old name.
 		if ( file_exists( $legacy_path ) && ( file_exists( $file_path ) || ! @rename( $legacy_path, $file_path ) ) ) {
@@ -90,15 +101,13 @@ class Optml_Logger {
 	}
 
 	/**
-	 * Keep the log directory from being listed or served, and move the logs written under the earlier fixed names.
-	 *
-	 * The .htaccess file is written last, so its presence means the directory needs no further work.
+	 * Move the logs written under the earlier fixed names, and add the files that keep a web server from listing
+	 * or serving the log directory. A file that already exists is kept as it is.
 	 *
 	 * @return void
 	 */
 	public function protect_log_files() {
-		$htaccess = $this->upload_dir . '.htaccess';
-		if ( file_exists( $htaccess ) || ! $this->has_permission() ) {
+		if ( ! $this->has_permission() ) {
 			return;
 		}
 
@@ -106,10 +115,16 @@ class Optml_Logger {
 			$this->get_file_path( $type );
 		}
 
-		file_put_contents( $this->upload_dir . 'index.html', '' );
-		file_put_contents( $htaccess, "<IfModule mod_authz_core.c>\n\tRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n\tDeny from all\n</IfModule>\n" );
+		$files = [
+			'index.html' => '',
+			'.htaccess'  => "<IfModule mod_authz_core.c>\n\tRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n\tDeny from all\n</IfModule>\n",
+		];
+		foreach ( $files as $name => $content ) {
+			if ( ! file_exists( $this->upload_dir . $name ) ) {
+				file_put_contents( $this->upload_dir . $name, $content );
+			}
+		}
 	}
-
 	/**
 	 * Adds a log entry.
 	 *
@@ -156,7 +171,7 @@ class Optml_Logger {
 
 		$file_path = $this->get_file_path( $type );
 
-		if ( $this->has_logs( $type ) ) {
+		if ( file_exists( $file_path ) ) {
 			$data = $this->tailCustom( $file_path, $lines, true, $separator );
 			return nl2br( esc_textarea( $data ) );
 		}

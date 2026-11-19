@@ -446,7 +446,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		Optml_Tag_Replacer::$lazyload_skipped_images = Optml_Lazyload_Replacer::get_skip_lazyload_limit();
 		$content          = '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" title="x loading=" alt="y data-note=z" loading="eager">';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
-		// The noscript copy keeps the tag as written.
+		// The noscript copy keeps these attributes.
 		$lazy_tag = strstr( $replaced_content, '<noscript>', true );
 
 		$this->assertStringContainsString( 'data-opt-src', $lazy_tag );
@@ -460,12 +460,37 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$content          = '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" title=\' sizes="\' alt="\' data-note=z data-x=\'y\'" srcset="https://example.org/wp-content/uploads/2020/02/Herren.jpg 1x" sizes="100vw">';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
-		// The noscript copy keeps the tag as written.
+		// The noscript copy keeps these attributes.
 		$lazy_tag = strstr( $replaced_content, '<noscript>', true );
 
 		$this->assertStringContainsString( 'data-opt-src', $lazy_tag );
 		$this->assertStringNotContainsString( 'sizes="100vw"', $lazy_tag );
 		$this->assertStringContainsString( 'title=\' sizes="\' alt="\' data-note=z data-x=\'y\'"', $lazy_tag );
+	}
+	public function test_json_native_lazyload_keeps_the_markup_escaped() {
+		// As when the images that are never lazy-loaded were already found on the page.
+		Optml_Tag_Replacer::$lazyload_skipped_images = Optml_Lazyload_Replacer::get_skip_lazyload_limit();
+		$settings = new Optml_Settings();
+		$settings->update( 'native_lazyload', 'enabled' );
+		Optml_Manager::instance()->init();
+
+		$content          = [ "<img loading='eager' src=\"https://example.org/wp-content/uploads/2020/02/Herren.jpg\" alt>" ];
+		$replaced_content = Optml_Manager::instance()->replace_content( json_encode( $content ) );
+
+		$this->assertStringContainsString( 'loading=\"lazy\"', $replaced_content );
+		$this->assertIsArray( json_decode( $replaced_content, true ) );
+	}
+
+	public function test_lazyload_reads_an_unquoted_value_that_starts_with_a_backslash() {
+		// As when the images that are never lazy-loaded were already found on the page.
+		Optml_Tag_Replacer::$lazyload_skipped_images = Optml_Lazyload_Replacer::get_skip_lazyload_limit();
+		$content          = '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" data-path=\local sizes="100vw">';
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+		// The noscript copy keeps these attributes.
+		$lazy_tag = strstr( $replaced_content, '<noscript>', true );
+
+		$this->assertStringContainsString( 'data-path=\local', $lazy_tag );
+		$this->assertStringNotContainsString( 'sizes="100vw"', $lazy_tag );
 	}
 	public function test_lazyload_iframe() {
 

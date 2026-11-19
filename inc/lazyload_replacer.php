@@ -44,7 +44,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	/**
 	 * One image tag attribute with its separator, whose value may be JSON-escaped, with quotes written as \" or \'.
 	 */
-	private const IMAGE_TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=\\\\]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|\\\\"[^"]*?\\\\"|\\\\\'[^\']*?\\\\\'|[^\s"\'>\\\\][^\s>]*))?';
+	private const IMAGE_TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=\\\\]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|\\\\"[^"]*?\\\\"|\\\\\'[^\']*?\\\\\'|(?:[^\s"\'>\\\\]|\\\\(?!["\']))[^\s>]*))?';
 	/**
 	 * If frame lazyload is present on page.
 	 *
@@ -293,14 +293,13 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$after_loading = isset( $loading[3] ) ? substr( $new_tag, strlen( $loading[0] ) ) : null;
 
 		if ( self::instance()->settings->get( 'native_lazyload' ) === 'enabled' ) {
+			$lazy_attr = $is_slashed ? 'loading=\"lazy\"' : 'loading="lazy"';
 			if ( ! $has_loading ) {
 				// No loading attribute exists, add it after <img
-				$loading_attr = $is_slashed ? ' loading=\"lazy\"' : ' loading="lazy"';
-
-				return preg_replace( '/<img/i', '<img' . $loading_attr, $new_tag, 1 );
+				return preg_replace( '/<img/i', '<img ' . $lazy_attr, $new_tag, 1 );
 			}
 
-			return null === $after_loading ? $new_tag : $loading[1] . $loading[2] . 'loading="lazy"' . $after_loading;
+			return null === $after_loading ? $new_tag : $loading[1] . $loading[2] . $lazy_attr . $after_loading;
 		}
 
 		// we remove the loading attribute if it exists

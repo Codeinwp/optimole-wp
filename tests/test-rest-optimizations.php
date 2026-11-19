@@ -182,17 +182,55 @@ class Test_Rest_Optimizations extends WP_UnitTestCase {
 	public function test_background_urls_are_kept_for_the_service_host_only(): void {
 		$service_url = Optml_Config::$service_url;
 		$this->assertNotSame( '', $service_url );
+		$urls = [ $service_url . '.example.net/a.jpg', $service_url . '/b.jpg' ];
 
 		rest_get_server()->dispatch(
 			$this->build_request(
 				[
-					'l' => [ 'u' => [ $service_url . '.example.net/a.jpg', $service_url . '/b.jpg' ] ],
+					'b' => [ self::WATCHER => [ '#hero' => $urls ] ],
+					'l' => [ 'u' => $urls ],
 				]
 			)
 		);
 
 		$stored = ( new Profile() )->get_profile_data( self::PROFILE_ID )[ Profile::DEVICE_TYPE_DESKTOP ];
+		$this->assertSame( [ $service_url . '/b.jpg' ], array_values( $stored['bg'][ self::WATCHER ]['#hero'] ) );
 		$this->assertSame( [ $service_url . '/b.jpg' ], array_values( $stored['lcp']['bgUrls'] ) );
+	}
+
+	/**
+	 * No background URL is stored while the service URL is not set.
+	 */
+	public function test_background_urls_are_dropped_without_a_service_url(): void {
+		$service_url               = Optml_Config::$service_url;
+		Optml_Config::$service_url = '';
+
+		rest_get_server()->dispatch( $this->build_request( [ 'l' => [ 'u' => [ '//example.net/a.jpg' ] ] ] ) );
+		Optml_Config::$service_url = $service_url;
+
+		$this->assertSame( [], ( new Profile() )->get_profile_data( self::PROFILE_ID )[ Profile::DEVICE_TYPE_DESKTOP ]['lcp']['bgUrls'] );
+	}
+
+	/**
+	 * The token printed with a page is the one the endpoint accepts for it.
+	 */
+	public function test_token_printed_with_a_page_is_accepted(): void {
+		$html = Optml_Manager::instance()->replace_content( '<html><head></head><body><p>Page</p>' . Optml_Admin::get_optimizer_script( true ) . '</body></html>' );
+		$this->assertSame( 1, preg_match( '/var optimoleDataOptimizer = (\{.*?\});/s', $html, $matches ) );
+		$config = json_decode( $matches[1], true );
+
+		$response = rest_get_server()->dispatch(
+			$this->build_request(
+				[
+					'u'  => $config['pageProfileId'],
+					't'  => $config['_t'],
+					'h'  => $config['hmac'],
+					'pu' => $config['pageProfileUrl'],
+				]
+			)
+		);
+
+		$this->assertSame( 'success', $response->get_data()['code'] );
 	}
 	/**
 	 * Build a signed optimizations request as the frontend profiler sends it.
