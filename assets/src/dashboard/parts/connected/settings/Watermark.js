@@ -63,7 +63,7 @@ const Watermark = () => {
 						className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-50"
 						target="_blank"
 						rel="noopener noreferrer"
-						href="https://docs.optimole.com/article/1475-adding-watermarks-to-your-images"
+						href={ optimoleDashboardApp.docs_links.watermark_settings }
 					>
 						{options_strings.learn_more}
 					</Button>
