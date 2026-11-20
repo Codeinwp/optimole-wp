@@ -46,6 +46,8 @@ class Test_Docs_Links extends WP_UnitTestCase {
 		$strings = wp_json_encode( $this->get_dashboard_strings(), JSON_UNESCAPED_SLASHES );
 
 		$this->assertStringNotContainsString( 'docs.optimole.com/article/', $strings );
+		// Curly quotes make the browser read the target as a window named ”_blank”, so every click reuses one tab.
+		$this->assertStringNotContainsString( 'target=\u201d', $strings );
 		preg_match_all( '#href=\\\\"(https://docs\.optimole\.com/[^"\\\\]*)#', $strings, $links );
 		$this->assertNotEmpty( $links[1] );
 		foreach ( $links[1] as $link ) {
