@@ -101,6 +101,20 @@ describe('optmlDomUtils', () => {
       expect(selector).toContain('another-class');
     });
 
+    test.each([
+      ['only the lazyload class', 'optml-bg-lazyloaded'],
+      ['a whitespace-only class attribute', '  '],
+    ])('should return a valid selector for an element with %s', (_label, classAttribute) => {
+      document.body.innerHTML = '<section id="c"><div></div><div></div></section>';
+      const element = document.querySelectorAll('#c > div')[1];
+      element.setAttribute('class', classAttribute);
+
+      const selector = optmlDomUtils.getUniqueSelector(element);
+
+      expect(selector).toBe('#c > div:nth-of-type(2)');
+      expect(document.querySelector(selector)).toBe(element);
+    });
+
     test('should handle element without classes', () => {
       document.body.innerHTML = '<div></div>';
       const element = document.querySelector('div');
@@ -293,12 +307,15 @@ describe('optmlDomUtils', () => {
   describe('waitForPageLoad', () => {
     test('should resolve immediately if page is already loaded', async () => {
       Object.defineProperty(document, 'readyState', { writable: true, configurable: true, value: 'complete' });
+      jest.useFakeTimers();
+      const resolved = jest.fn();
 
-      const startTime = Date.now();
-      await optmlDomUtils.waitForPageLoad();
-      const endTime = Date.now();
+      optmlDomUtils.waitForPageLoad().then(resolved);
 
-      expect(endTime - startTime).toBeLessThan(10);
+      // Flushes pending promises without letting any time pass.
+      await jest.advanceTimersByTimeAsync(0);
+      expect(resolved).toHaveBeenCalled();
+      jest.useRealTimers();
     });
 
     test('should wait for load event if page not complete', async () => {
@@ -329,54 +346,70 @@ describe('optmlDomUtils', () => {
     test('should fallback to setTimeout if requestIdleCallback not available', async () => {
       const originalRequestIdleCallback = global.requestIdleCallback;
       delete global.requestIdleCallback;
+      jest.useFakeTimers();
+      const resolved = jest.fn();
 
-      const startTime = Date.now();
-      await optmlDomUtils.waitForIdleTime();
-      const endTime = Date.now();
+      optmlDomUtils.waitForIdleTime().then(resolved);
 
-      expect(endTime - startTime).toBeGreaterThanOrEqual(200);
-      
+      await jest.advanceTimersByTimeAsync(199);
+      expect(resolved).not.toHaveBeenCalled();
+      await jest.advanceTimersByTimeAsync(1);
+      expect(resolved).toHaveBeenCalled();
+      jest.useRealTimers();
+
       // Restore
       global.requestIdleCallback = originalRequestIdleCallback;
     });
   });
 
   describe('waitForViewportImages', () => {
+    // Fake timers: wall-clock timing can fire a millisecond early on a busy machine.
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     test('should resolve after delay if page already loaded', async () => {
       Object.defineProperty(document, 'readyState', { writable: true, configurable: true, value: 'complete' });
+      const resolved = jest.fn();
 
-      const startTime = Date.now();
-      await optmlDomUtils.waitForViewportImages(100);
-      const endTime = Date.now();
+      optmlDomUtils.waitForViewportImages(100).then(resolved);
 
-      expect(endTime - startTime).toBeGreaterThanOrEqual(100);
+      await jest.advanceTimersByTimeAsync(99);
+      expect(resolved).not.toHaveBeenCalled();
+      await jest.advanceTimersByTimeAsync(1);
+      expect(resolved).toHaveBeenCalled();
     });
 
     test('should wait for load event and then delay', async () => {
       Object.defineProperty(document, 'readyState', { writable: true, configurable: true, value: 'loading' });
+      const resolved = jest.fn();
 
-      const promise = optmlDomUtils.waitForViewportImages(50);
-      
-      // Simulate load event
-      setTimeout(() => {
-        window.dispatchEvent(new Event('load'));
-      }, 10);
+      optmlDomUtils.waitForViewportImages(50).then(resolved);
 
-      const startTime = Date.now();
-      await promise;
-      const endTime = Date.now();
+      await jest.advanceTimersByTimeAsync(1000);
+      expect(resolved).not.toHaveBeenCalled();
 
-      expect(endTime - startTime).toBeGreaterThanOrEqual(50);
+      window.dispatchEvent(new Event('load'));
+      await jest.advanceTimersByTimeAsync(49);
+      expect(resolved).not.toHaveBeenCalled();
+      await jest.advanceTimersByTimeAsync(1);
+      expect(resolved).toHaveBeenCalled();
     });
 
     test('should use default delay of 1000ms', async () => {
       Object.defineProperty(document, 'readyState', { writable: true, configurable: true, value: 'complete' });
+      const resolved = jest.fn();
 
-      const startTime = Date.now();
-      await optmlDomUtils.waitForViewportImages();
-      const endTime = Date.now();
+      optmlDomUtils.waitForViewportImages().then(resolved);
 
-      expect(endTime - startTime).toBeGreaterThanOrEqual(1000);
+      await jest.advanceTimersByTimeAsync(999);
+      expect(resolved).not.toHaveBeenCalled();
+      await jest.advanceTimersByTimeAsync(1);
+      expect(resolved).toHaveBeenCalled();
     });
   });
 });

@@ -33,6 +33,7 @@ describe('optmlBackground', () => {
 
     mockObserver = {
       observe: jest.fn(),
+      unobserve: jest.fn(),
       disconnect: jest.fn()
     };
 
@@ -44,6 +45,44 @@ describe('optmlBackground', () => {
   });
 
   describe('setupBackgroundImageObservation', () => {
+    test('issue 1216: keeps watching pending elements after the first one is lazyloaded', () => {
+      let classCallback;
+      const classObserverInstance = { observe: jest.fn(), disconnect: jest.fn() };
+      global.MutationObserver = jest.fn((callback) => {
+        classCallback = callback;
+        return classObserverInstance;
+      });
+      document.body.innerHTML = '<div class="bg"></div><div class="bg"></div>';
+      const [first, second] = document.querySelectorAll('div');
+      optmlDomUtils.getUniqueSelector.mockReturnValue('div.bg');
+      optmlDomUtils.hasBackgroundImage.mockReturnValue(true);
+
+      optmlBackground.setupBackgroundImageObservation([first, second], '.bg', new Map(), mockObserver);
+
+      first.classList.add('optml-bg-lazyloaded');
+      classCallback([{ target: first }]);
+      expect(classObserverInstance.disconnect).not.toHaveBeenCalled();
+
+      second.classList.add('optml-bg-lazyloaded');
+      classCallback([{ target: second }]);
+      expect(mockObserver.observe).toHaveBeenCalledWith(first);
+      expect(mockObserver.observe).toHaveBeenCalledWith(second);
+      expect(classObserverInstance.disconnect).toHaveBeenCalledTimes(1);
+    });
+
+    test('issue 1216: re-observes a lazyloaded element so an already observed img gets a fresh callback', () => {
+      document.body.innerHTML = '<img data-opt-id="7" class="optml-bg-lazyloaded" />';
+      const img = document.querySelector('img');
+      optmlDomUtils.getUniqueSelector.mockReturnValue('img.bg');
+      optmlDomUtils.hasBackgroundImage.mockReturnValue(true);
+
+      optmlBackground.setupBackgroundImageObservation([img], '.bg', new Map(), mockObserver);
+
+      expect(mockObserver.unobserve).toHaveBeenCalledWith(img);
+      expect(mockObserver.observe).toHaveBeenCalledWith(img);
+      expect(mockObserver.unobserve.mock.invocationCallOrder[0]).toBeLessThan(mockObserver.observe.mock.invocationCallOrder[0]);
+    });
+
     test('should setup observation for elements', () => {
       document.body.innerHTML = `
         <div class="bg-element"></div>
@@ -292,6 +331,17 @@ describe('optmlBackground', () => {
 
       expect(result.selectorMap.has('.bg-element')).toBe(true);
       expect(result.selectorMap.get('.bg-element')).toEqual([]);
+    });
+
+    test('issue 1216: populates the provided selector map shared with the observer', () => {
+      document.body.innerHTML = '<div class="bg-element"></div>';
+      optmlDomUtils.getUniqueSelector.mockReturnValue('div.bg-element');
+      const observerSelectorMap = new Map();
+
+      const result = optmlBackground.processBackgroundSelectors(['.bg-element'], mockObserver, observerSelectorMap);
+
+      expect(result.selectorMap).toBe(observerSelectorMap);
+      expect(observerSelectorMap.get('.bg-element')).toEqual([]);
     });
 
     test('should log warning for selectors with no elements', () => {

@@ -19,6 +19,21 @@ class Lazyload {
 	const SAFE_SELECTOR_PATTERN = '/^(?:[\w\-#. >\x{00A0}-\x{10FFFF}]|:nth-of-type\(\d+\))+$/u';
 
 	/**
+	 * Most watchers the profiler reports per device; the frontend cuts the rest.
+	 */
+	const MAX_WATCHERS = 100;
+
+	/**
+	 * Most above-fold selectors the profiler reports per watcher; the frontend cuts the rest.
+	 */
+	const MAX_ABOVE_FOLD_SELECTORS = 100;
+
+	/**
+	 * Widest viewport in px the profiler counts as mobile (MOBILE_BREAKPOINT in device.js).
+	 */
+	private const DEVICE_BREAKPOINT = 600;
+
+	/**
 	 * Check whether a client-reported selector is a plain selector safe to embed in the stylesheet as-is.
 	 *
 	 * A selector carrying CSS metacharacters (`(`, `)`, `{`, `;`, `:` beyond nth-of-type, `/`, …) is not
@@ -46,9 +61,9 @@ class Lazyload {
 	/**
 	 * Get the current personalized CSS for lazy loading.
 	 *
-	 * @return string The personalized CSS.
+	 * @return string|null The personalized CSS, or null when the general CSS must stay.
 	 */
-	public static function get_current_personalized_css() {
+	public static function get_current_personalized_css(): ?string {
 		return self::get_personalized_css( Profile::get_current_profile_data() );
 	}
 	/**
@@ -56,9 +71,9 @@ class Lazyload {
 	 *
 	 * @param array $data Profile data.
 	 *
-	 * @return string The personalized CSS.
+	 * @return string|null The personalized CSS ('' hides nothing), or null when every device was voided and the general CSS must stay.
 	 */
-	public static function get_personalized_css( $data ) {
+	public static function get_personalized_css( $data ): ?string {
 		$lazyload_selectors = array_values( Optml_Lazyload_Replacer::get_background_lazyload_selectors() );
 		$lazyload_selectors = array_fill_keys( $lazyload_selectors, true );
 		$css_selectors = [];
@@ -94,35 +109,27 @@ class Lazyload {
 			Links::add_link( [ 'url' => $url, 'priority' => 'high' ] );
 		}
 
-		$hide_rule = ' { background-image: none !important; }';
-		$mobile = $css_selectors[ Profile::DEVICE_TYPE_MOBILE ];
-		$desktop = $css_selectors[ Profile::DEVICE_TYPE_DESKTOP ];
-
-		// Keep the surviving rule scoped when the other device was voided.
-		if ( $tainted[ Profile::DEVICE_TYPE_MOBILE ] !== $tainted[ Profile::DEVICE_TYPE_DESKTOP ] ) {
-			if ( $tainted[ Profile::DEVICE_TYPE_MOBILE ] ) {
-				return empty( $desktop ) ? '' : '@media (min-width: 600px) { ' . implode( ',', $desktop ) . $hide_rule . ' }';
-			}
-			return empty( $mobile ) ? '' : '@media (max-width: 600px) { ' . implode( ',', $mobile ) . $hide_rule . ' }';
+		if ( ! in_array( false, $tainted, true ) ) {
+			return null;
 		}
 
-		$mobile_selectors = implode( ',', $mobile );
-		$desktop_selectors = implode( ',', $desktop );
+		$hide_rule = ' { background-image: none !important; }';
+		$mobile_selectors = implode( ',', $css_selectors[ Profile::DEVICE_TYPE_MOBILE ] );
+		$desktop_selectors = implode( ',', $css_selectors[ Profile::DEVICE_TYPE_DESKTOP ] );
 
 		if ( $mobile_selectors === $desktop_selectors ) {
-				return empty( $mobile_selectors ) ? '' : $mobile_selectors . $hide_rule;
-		}
-		// if any of those are empty, return the other one
-		if ( empty( $mobile_selectors ) ) {
-				return $desktop_selectors . $hide_rule;
-		}
-		if ( empty( $desktop_selectors ) ) {
-				return $mobile_selectors . $hide_rule;
+			return $mobile_selectors === '' ? '' : $mobile_selectors . $hide_rule;
 		}
 
-		// generate media query for desktop and mobile
-		$media_query = '@media (max-width: 600px) { ' . $mobile_selectors . $hide_rule . ' } @media (min-width: 600px) { ' . $desktop_selectors . $hide_rule . ' }';
-		return $media_query;
+		// A device without selectors hides nothing on purpose (voided or capped), so the other rule stays in its media query.
+		$media_queries = [];
+		if ( $mobile_selectors !== '' ) {
+			$media_queries[] = '@media (max-width: ' . self::DEVICE_BREAKPOINT . 'px) { ' . $mobile_selectors . $hide_rule . ' }';
+		}
+		if ( $desktop_selectors !== '' ) {
+			$media_queries[] = '@media (min-width: ' . ( self::DEVICE_BREAKPOINT + 1 ) . 'px) { ' . $desktop_selectors . $hide_rule . ' }';
+		}
+		return implode( ' ', $media_queries );
 	}
 	/**
 	 * Build the background-hide selectors for one device.
@@ -139,15 +146,25 @@ class Lazyload {
 			if ( ! isset( $lazyload_selectors[ $selector ] ) ) {
 				continue;
 			}
-			if ( empty( $above_fold_selectors ) ) {
-				$css_selectors[] = 'html ' . strip_tags( $selector ) . ':not(.optml-bg-lazyloaded)';
+			// A full list may have been cut, so hiding the watcher could delay unlisted above-fold elements.
+			if ( count( $above_fold_selectors ) >= self::MAX_ABOVE_FOLD_SELECTORS ) {
 				continue;
 			}
+			// One rule per watcher: a separate rule per element would still hide the watcher's other above-fold elements.
+			$exemptions = '';
 			foreach ( $above_fold_selectors as $above_fold_selector => $bg_urls ) {
 				if ( ! self::is_safe_selector( $above_fold_selector ) ) {
 					return null;
 				}
-				$css_selectors[] = 'html ' . strip_tags( $selector ) . ':not(' . $above_fold_selector . '):not(.optml-bg-lazyloaded)';
+				$exemptions .= ':not(' . $above_fold_selector . ')';
+			}
+			$css_selectors[] = 'html ' . strip_tags( $selector ) . $exemptions . ':not(.optml-bg-lazyloaded)';
+		}
+
+		// This CSS replaces the generic one, so unlisted watchers keep it unless the watcher list may have been cut.
+		if ( count( $personalized_selectors ) < self::MAX_WATCHERS ) {
+			foreach ( array_keys( array_diff_key( $lazyload_selectors, $personalized_selectors ) ) as $selector ) {
+				$css_selectors[] = 'html ' . strip_tags( $selector ) . ':not(.optml-bg-lazyloaded)';
 			}
 		}
 

@@ -70,6 +70,7 @@ jest.mock('../lcp.js', () => ({
 jest.mock('../image-detector.js', () => ({
   optmlImageDetector: {
     createIntersectionObserver: jest.fn(),
+    flushIntersectionObserver: jest.fn(),
     observeOptimoleImages: jest.fn(),
     detectImageDimensions: jest.fn(),
     cleanupBackgroundElements: jest.fn()
@@ -265,6 +266,30 @@ describe('optmlMain', () => {
       expect(optmlImageDetector.detectImageDimensions).toHaveBeenCalledWith(mockImages);
     });
 
+    test('sends dimensions of an image that finishes loading during the profiler waits', async () => {
+      const { optmlImageDetector: actualImageDetector } = jest.requireActual('../image-detector.js');
+      document.body.innerHTML = '<img data-opt-id="42" />';
+      const img = document.querySelector('img');
+      let naturalWidth = 0;
+      Object.defineProperty(img, 'naturalWidth', { get: () => naturalWidth });
+      Object.defineProperty(img, 'naturalHeight', { get: () => (naturalWidth ? 300 : 0) });
+      optmlImageDetector.observeOptimoleImages.mockReturnValue({
+        allOptimoleImages: [img],
+        observedElements: new Map()
+      });
+      optmlImageDetector.detectImageDimensions.mockImplementation(images => actualImageDetector.detectImageDimensions(images));
+      optmlSrcsetDetector.detectMissingSrcsets.mockImplementation(async () => {
+        setTimeout(() => {
+          naturalWidth = 400;
+        }, 0);
+        return { srcset: {}, crop: {} };
+      });
+
+      const result = await optmlMain.runProfiling();
+
+      expect(result.m).toEqual({ 42: { w: 400, h: 300 } });
+    });
+
     test('should detect missing srcsets', async () => {
       await optmlMain.runProfiling();
 
@@ -278,9 +303,87 @@ describe('optmlMain', () => {
 
       expect(optmlBackground.processBackgroundSelectors).toHaveBeenCalledWith(
         ['.hero', '.banner'],
-        mockObserver
+        mockObserver,
+        expect.any(Map)
       );
       expect(optmlBackground.extractBackgroundImageUrls).toHaveBeenCalledWith(['.hero', '.banner']);
+    });
+
+    test('issue 1216: sends above-fold background selectors recorded by the observer with their URLs', async () => {
+      let observerSelectorMap;
+      let isLazyloaded = false;
+
+      optmlImageDetector.createIntersectionObserver.mockImplementation((atfImages, selectorMap) => {
+        observerSelectorMap = selectorMap;
+        return mockObserver;
+      });
+
+      // Simulates the element being lazyloaded and then reported by the observer during the wait.
+      optmlBackground.processBackgroundSelectors.mockImplementation((selectors, observer, selectorMap = new Map()) => {
+        selectorMap.set('.hero', []);
+        setTimeout(() => {
+          isLazyloaded = true;
+          observerSelectorMap.get('.hero')?.push('div.hero');
+        }, 0);
+        return { selectorMap, pendingElements: 1 };
+      });
+
+      optmlBackground.extractBackgroundImageUrls.mockImplementation(() =>
+        new Map([['.hero', new Map(isLazyloaded ? [['div.hero', ['hero.jpg']]] : [])]])
+      );
+
+      window.optimoleDataOptimizer.bgSelectors = ['.hero'];
+
+      const result = await optmlMain.runProfiling();
+
+      expect(result.b).toEqual({ '.hero': { 'div.hero': ['hero.jpg'] } });
+    });
+
+    test('issue 1216: sends at most three background URLs per element and for the LCP', async () => {
+      const urls = ['1.jpg', '2.jpg', '3.jpg', '4.jpg'];
+      optmlLcp.detectLcpElement.mockResolvedValue({
+        element: null,
+        imageId: null,
+        bgSelector: 'div.hero',
+        bgUrls: urls
+      });
+      optmlBackground.processBackgroundSelectors.mockImplementation((selectors, observer, selectorMap) => {
+        selectorMap.set('.hero', ['div.hero']);
+        return { selectorMap, pendingElements: 0 };
+      });
+      optmlBackground.extractBackgroundImageUrls.mockReturnValue(new Map([['.hero', new Map([['div.hero', urls]])]]));
+      window.optimoleDataOptimizer.bgSelectors = ['.hero'];
+
+      const result = await optmlMain.runProfiling();
+
+      expect(result.b['.hero']['div.hero']).toEqual(['1.jpg', '2.jpg', '3.jpg']);
+      expect(result.l.u).toEqual(['1.jpg', '2.jpg', '3.jpg']);
+    });
+
+    test('issue 1216: sends at most 100 above-fold selectors per watcher', async () => {
+      const specificSelectors = Array.from({ length: 101 }, (value, index) => `div.tile:nth-of-type(${index + 1})`);
+      optmlBackground.processBackgroundSelectors.mockImplementation((selectors, observer, selectorMap) => {
+        selectorMap.set('.tile', specificSelectors);
+        return { selectorMap, pendingElements: 0 };
+      });
+      window.optimoleDataOptimizer.bgSelectors = ['.tile'];
+
+      const result = await optmlMain.runProfiling();
+
+      expect(Object.keys(result.b['.tile'])).toEqual(specificSelectors.slice(0, 100));
+    });
+
+    test('issue 1216: sends at most 100 watchers', async () => {
+      const watchers = Array.from({ length: 101 }, (value, index) => `.bg-${index}`);
+      optmlBackground.processBackgroundSelectors.mockImplementation((selectors, observer, selectorMap) => {
+        watchers.forEach(watcher => selectorMap.set(watcher, []));
+        return { selectorMap, pendingElements: 0 };
+      });
+      window.optimoleDataOptimizer.bgSelectors = watchers;
+
+      const result = await optmlMain.runProfiling();
+
+      expect(Object.keys(result.b)).toEqual(watchers.slice(0, 100));
     });
 
     test('should send data to API when images found', async () => {
@@ -330,6 +433,22 @@ describe('optmlMain', () => {
       expect(optmlLogger.info).toHaveBeenCalledWith(
         'No above-the-fold images, background elements, LCP elements, dimension data, or srcset data found'
       );
+    });
+
+    test('records the observer entries still queued before disconnecting it', async () => {
+      const calls = [];
+      let observerArgs;
+      optmlImageDetector.createIntersectionObserver.mockImplementation((atfImages, selectorMap) => {
+        observerArgs = [atfImages, selectorMap];
+        return mockObserver;
+      });
+      optmlImageDetector.flushIntersectionObserver.mockImplementation(() => calls.push('flush'));
+      mockObserver.disconnect.mockImplementation(() => calls.push('disconnect'));
+
+      await optmlMain.runProfiling();
+
+      expect(optmlImageDetector.flushIntersectionObserver).toHaveBeenCalledWith(mockObserver, ...observerArgs);
+      expect(calls).toEqual(['flush', 'disconnect']);
     });
 
     test('should clean up event listeners after profiling', async () => {
@@ -445,11 +564,9 @@ describe('optmlMain', () => {
       });
 
       // Setup background
-      const selectorMap = new Map();
-      selectorMap.set('.hero', ['div.hero']);
-      optmlBackground.processBackgroundSelectors.mockReturnValue({
-        selectorMap,
-        pendingElements: 0
+      optmlBackground.processBackgroundSelectors.mockImplementation((selectors, observer, selectorMap) => {
+        selectorMap.set('.hero', ['div.hero']);
+        return { selectorMap, pendingElements: 0 };
       });
 
       const bgUrls = new Map();
