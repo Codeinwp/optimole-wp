@@ -211,6 +211,73 @@ describe('optmlImageDetector', () => {
       // The observer is created successfully
       expect(observer).toBeInstanceOf(IntersectionObserver);
     });
+
+    test('issue 1216: records a background element under every watcher it matches', () => {
+      const selectorMap = new Map([
+        ['[style*="background-image:url("]', []],
+        ['[style*="background-image"][style*="url("]', []]
+      ]);
+      document.body.innerHTML = '<div style="background-image:url(a.jpg)" data-optml-bg-selector="[style*=&quot;background-image&quot;][style*=&quot;url(&quot;]" data-optml-specific-selector="div.hero"></div>';
+
+      const observer = optmlImageDetector.createIntersectionObserver([], selectorMap);
+      observer.callback([{ isIntersecting: true, target: document.querySelector('div') }]);
+
+      expect(selectorMap.get('[style*="background-image:url("]')).toEqual(['div.hero']);
+      expect(selectorMap.get('[style*="background-image"][style*="url("]')).toEqual(['div.hero']);
+    });
+
+    test.each([
+      ['with data-opt-id', ' data-opt-id="77"', [77]],
+      ['without data-opt-id', '', []]
+    ])('issue 1216: records an img background %s', (label, idAttribute, expectedImages) => {
+      const aboveTheFoldImages = [];
+      const selectorMap = new Map([['[style*="background-image:url("]', []]]);
+      document.body.innerHTML = `<img${idAttribute} style="background-image:url(a.jpg)" data-optml-bg-selector="x" data-optml-specific-selector="img.bg" />`;
+
+      const observer = optmlImageDetector.createIntersectionObserver(aboveTheFoldImages, selectorMap);
+      observer.callback([{ isIntersecting: true, target: document.querySelector('img') }]);
+
+      expect(selectorMap.get('[style*="background-image:url("]')).toEqual(['img.bg']);
+      expect(aboveTheFoldImages).toEqual(expectedImages);
+    });
+  });
+
+  describe('flushIntersectionObserver', () => {
+    test('records an element the observer has not reported before it is disconnected', async () => {
+      const aboveTheFoldImages = [];
+      const selectorMap = new Map([['[style*="background-image:url("]', []]]);
+      document.body.innerHTML = '<img data-opt-id="9" style="background-image:url(a.jpg)" data-optml-bg-selector="x" data-optml-specific-selector="img.late" />';
+      const observer = optmlImageDetector.createIntersectionObserver(aboveTheFoldImages, selectorMap);
+      observer.takeRecords = jest.fn(() => [{ isIntersecting: true, target: document.querySelector('img') }]);
+
+      await optmlImageDetector.flushIntersectionObserver(observer, aboveTheFoldImages, selectorMap);
+
+      expect(aboveTheFoldImages).toEqual([9]);
+      expect(selectorMap.get('[style*="background-image:url("]')).toEqual(['img.late']);
+    });
+
+    test('records queued entries when no frame is rendered, as in a hidden tab', async () => {
+      jest.useFakeTimers();
+      // Stubbed after the fake timers, which replace requestAnimationFrame too.
+      const requestAnimationFrameSpy = jest.spyOn(window, 'requestAnimationFrame').mockImplementation(() => 0);
+      try {
+        const aboveTheFoldImages = [];
+        const selectorMap = new Map([['[style*="background-image:url("]', []]]);
+        document.body.innerHTML = '<img data-opt-id="9" style="background-image:url(a.jpg)" data-optml-bg-selector="x" data-optml-specific-selector="img.late" />';
+        const observer = optmlImageDetector.createIntersectionObserver(aboveTheFoldImages, selectorMap);
+        observer.takeRecords = jest.fn(() => [{ isIntersecting: true, target: document.querySelector('img') }]);
+
+        const flushed = optmlImageDetector.flushIntersectionObserver(observer, aboveTheFoldImages, selectorMap);
+        await jest.advanceTimersByTimeAsync(100);
+        await flushed;
+
+        expect(aboveTheFoldImages).toEqual([9]);
+        expect(selectorMap.get('[style*="background-image:url("]')).toEqual(['img.late']);
+      } finally {
+        requestAnimationFrameSpy.mockRestore();
+        jest.useRealTimers();
+      }
+    });
   });
 
   describe('observeOptimoleImages', () => {
