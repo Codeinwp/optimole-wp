@@ -564,7 +564,7 @@ final class Optml_Manager {
 			}
 
 			$marker = Lazyload::get_marker();
-			if ( ! empty( $personalized_bg_css ) && ( $start_pos = strpos( $html, $marker ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
+			if ( null !== $personalized_bg_css && ( $start_pos = strpos( $html, $marker ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
 				// We replace the general bg css with the personalized one.
 				if ( ( $end_pos = strpos( $html, $marker, $start_pos + strlen( $marker ) ) ) !== false ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
 					$html = substr_replace(

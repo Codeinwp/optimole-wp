@@ -31,6 +31,17 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 	const SVG_PLACEHOLDER = 'data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20#width#%20#height#%22%20width%3D%22#width#%22%20height%3D%22#height#%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22#width#%22%20height%3D%22#height#%22%20fill%3D%22#fill#%22%2F%3E%3C%2Fsvg%3E';
 	/**
+	 * What precedes a start tag attribute: whitespace or, as browsers allow, directly a quoted value.
+	 */
+	private const TAG_ATTRIBUTE_SEPARATOR = '(?:\s+|(?<=["\']))';
+	/**
+	 * One start tag attribute with its separator.
+	 *
+	 * A quoted value is matched whole, so text inside it is never read as an attribute. An iframe whose
+	 * attribute value starts with a backslash is not matched, so JSON-escaped iframe markup is left as written.
+	 */
+	private const TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>\\\\][^\s>]*))?';
+	/**
 	 * If frame lazyload is present on page.
 	 *
 	 * @var bool Whether or not at least one iframe has been lazyloaded.
@@ -374,14 +385,16 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$video_tags = [];
 		$iframes = [];
 		$videos = [];
-		preg_match_all( '#(?:<noscript\s*>\s*)?<iframe(.*?)></iframe>(?:\s*</noscript\s*>)?#is', $content, $iframes );
+		// Only iframes with no fallback content; one with fallback text is left as written.
+		preg_match_all( '#(?:<noscript\s*>\s*)?<iframe(?>(?:' . self::TAG_ATTRIBUTE . ')*)\s*/?></iframe>(?:\s*</noscript\s*>)?#i', $content, $iframes );
 		preg_match_all( '#(?:<noscript\s*>\s*)?<video(.*?)>.*?</video>(?:\s*</noscript\s*>)?#is', $content, $videos );
+		$iframe_count = count( $iframes[0] );
 		$video_tags = array_merge( $iframes[0], $videos[0] );
 
 		$search = [];
 		$replace = [];
 
-		foreach ( $video_tags as $video_tag ) {
+		foreach ( $video_tags as $index => $video_tag ) {
 
 			if ( ! $this->should_lazyload_iframe( $video_tag ) ) {
 				continue;
@@ -389,23 +402,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			if ( preg_match( "/ data-opt-src=['\"]/is", $video_tag ) ) {
 				continue;
 			}
-			$should_add_noscript = true;
 			$original_tag = $video_tag;
-			// replace the src and add the data-opt-src attribute
-			if ( strpos( $video_tag, 'iframe' ) !== false ) {
-				$video_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 src="about:blank" data-opt-src=', $video_tag );
-			} elseif ( strpos( $video_tag, 'video' ) !== false ) {
-				if ( strpos( $video_tag, 'source' ) !== false ) {
-					if ( strpos( $video_tag, 'preload' ) === false ) {
-						$video_tag = preg_replace( '/video(.*?)>/is', 'video$1 preload="metadata">', $video_tag, 1 );
-						$should_add_noscript = false;
-					} else {
-						continue;
-					}
-				} else {
-					$video_tag = preg_replace( '/video(.*?)src=/is', 'video$1 data-opt-src=', $video_tag );
-				}
+			$lazyloaded = $this->lazyload_media_element( $video_tag, $index < $iframe_count );
+			if ( null === $lazyloaded ) {
+				continue;
 			}
+			list( $video_tag, $should_add_noscript ) = $lazyloaded;
 			if ( $this->should_add_noscript( $video_tag ) && $should_add_noscript ) {
 				$video_tag .= '<noscript>' . $original_tag . '</noscript>';
 			}
@@ -417,6 +419,46 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$replace = array_unique( $replace );
 		$content = str_replace( $search, $replace, $content );
 		return $content;
+	}
+
+	/**
+	 * Move the src of a matched iframe or video to data-opt-src, or ask a sourced video to preload metadata only.
+	 *
+	 * @param string $element   The iframe or video element.
+	 * @param bool   $is_iframe Whether the element was matched as an iframe.
+	 *
+	 * @return array{0: string, 1: bool}|null The element and whether it gets a noscript copy, or null to leave it untouched.
+	 */
+	private function lazyload_media_element( string $element, bool $is_iframe ): ?array {
+		if ( $is_iframe && strpos( $element, 'iframe' ) !== false ) {
+			return [ $this->replace_start_tag_src( $element, 'iframe', ' src="about:blank" data-opt-src' ), true ];
+		}
+		if ( $is_iframe || strpos( $element, 'video' ) === false ) {
+			return [ $element, true ];
+		}
+		if ( strpos( $element, 'source' ) === false ) {
+			return [ $this->replace_start_tag_src( $element, 'video', ' data-opt-src' ), true ];
+		}
+		if ( strpos( $element, 'preload' ) !== false ) {
+			return null;
+		}
+
+		return [ preg_replace( '#^((?:<noscript\s*>\s*)?<video(?>(?:' . self::TAG_ATTRIBUTE . ')*)\s*/?)>#i', '$1 preload="metadata">', $element, 1 ) ?? $element, false ];
+	}
+
+	/**
+	 * Replace the name of the src attribute in the element's start tag.
+	 *
+	 * @param string $element      Element markup, starting with its start tag.
+	 * @param string $tag_name     The element's tag name.
+	 * @param string $replacement  Markup written in place of the attribute name, before its `=`.
+	 *
+	 * @return string The element, unchanged when its start tag has no src attribute.
+	 */
+	private function replace_start_tag_src( string $element, string $tag_name, string $replacement ): string {
+		$pattern = '#^((?:<noscript\s*>\s*)?<' . $tag_name . '(?>(?:(?!\s*src\s*=)' . self::TAG_ATTRIBUTE . ')*)' . self::TAG_ATTRIBUTE_SEPARATOR . ')src(?=\s*=)#i';
+
+		return preg_replace( $pattern, '$1' . $replacement, $element, 1 ) ?? $element;
 	}
 
 	/**

@@ -136,6 +136,19 @@ class Test_Dam extends WP_UnitTestCase {
 		$this->assertEmpty( $data['sites'] );
 	}
 
+	public function test_dashboard_page_renders_loader_before_iframe_issue_1211() {
+		ob_start();
+		$this->dam->render_dashboard_page();
+		$html = ob_get_clean();
+
+		$loader = strpos( $html, 'class="om-dam-loader"' );
+		$iframe = strpos( $html, 'id="om-dam"' );
+
+		$this->assertNotFalse( $loader );
+		$this->assertNotFalse( $iframe );
+		$this->assertLessThan( $iframe, $loader );
+	}
+
 	public function test_insert_attachments() {
 		foreach ( $this->inserted_ids as $index => $id ) {
 			$this->assertIsInt( $id );
