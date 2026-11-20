@@ -524,7 +524,7 @@ final class Optml_Manager {
 					$missing = $this->page_profiler->missing_devices( $profile_id );
 					$time = time();
 					$url  = esc_url( esc_js( $this->get_current_url() ) );
-					$hmac = wp_hash( $profile_id . $time . $url, 'nonce' );
+					$hmac = Profile::sign( $profile_id, $time, $url );
 					$js_optimizer = str_replace(
 						[ Profile::PLACEHOLDER, Profile::PLACEHOLDER_MISSING, Profile::PLACEHOLDER_TIME, Profile::PLACEHOLDER_HMAC, Profile::PLACEHOLDER_URL ],
 						[ $profile_id, implode( ',', $missing ), strval( $time ), $hmac, $url ],

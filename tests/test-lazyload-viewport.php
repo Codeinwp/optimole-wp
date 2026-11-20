@@ -165,7 +165,7 @@ class Test_Lazyload_Viewport extends WP_UnitTestCase {
 					'b'  => [],
 					'u'  => $url,
 					't'  => $time,
-					'h'  => wp_hash($url . $time . $page, 'nonce'),
+					'h'  => Profile::sign($url, $time, $page),
 					'pu' => $page,
 					'l'  => ['i' => $image_id, 's' => '', 'u' => []],
 				]
