@@ -23,7 +23,7 @@ class Optml_Logger {
 	private $upload_dir;
 
 	/**
-	 * The log types, with the fixed file name each was stored under before file names carried a hash.
+	 * The log types, with the fixed file name each was stored under before file names carried a token.
 	 *
 	 * @var array<string, string>
 	 */
@@ -31,6 +31,13 @@ class Optml_Logger {
 		self::LOG_TYPE_OFFLOAD  => 'offload.log',
 		self::LOG_TYPE_ROLLBACK => 'rollback.log',
 	];
+
+	/**
+	 * The random part of this site's log file names.
+	 *
+	 * @var string
+	 */
+	private $file_token;
 
 	/**
 	 * The single instance of the class.
@@ -61,6 +68,8 @@ class Optml_Logger {
 	private function __construct() {
 		$upload_dir       = wp_upload_dir();
 		$this->upload_dir = trailingslashit( $upload_dir['basedir'] ) . 'optimole-logs/';
+		// Read with the directory, so both belong to the same site of a network for as long as the logger lives.
+		$this->file_token = $this->get_file_token();
 
 		if ( ! file_exists( $this->upload_dir ) ) {
 			if ( false === wp_mkdir_p( $this->upload_dir ) ) {
@@ -70,6 +79,27 @@ class Optml_Logger {
 
 		add_action( 'wp_ajax_optml_fetch_logs', [ $this, 'fetch_logs_ajax_handler' ] );
 		add_action( 'admin_init', [ $this, 'protect_log_files' ] );
+	}
+
+	/**
+	 * Get the random part of this site's log file names, creating it on first use.
+	 *
+	 * The stored value is read back after it is added, so requests that create it at the same time end up with
+	 * the same token.
+	 *
+	 * @return string
+	 */
+	private function get_file_token() {
+		$token = get_option( self::FILE_TOKEN_OPTION );
+		if ( is_string( $token ) && '' !== $token ) {
+			return $token;
+		}
+
+		$token = bin2hex( random_bytes( 16 ) );
+		add_option( self::FILE_TOKEN_OPTION, $token );
+		$stored = get_option( self::FILE_TOKEN_OPTION );
+
+		return is_string( $stored ) && '' !== $stored ? $stored : $token;
 	}
 
 	/**
@@ -83,14 +113,8 @@ class Optml_Logger {
 	 * @return string Absolute path of the log file.
 	 */
 	private function get_file_path( $type ) {
-		$token = get_option( self::FILE_TOKEN_OPTION );
-		if ( ! is_string( $token ) || '' === $token ) {
-			$token = wp_generate_password( 32, false );
-			update_option( self::FILE_TOKEN_OPTION, $token );
-		}
-
 		$legacy_path = $this->upload_dir . $this->log_filenames[ $type ];
-		$file_path   = $this->upload_dir . $type . '-' . $token . '.log';
+		$file_path   = $this->upload_dir . $type . '-' . $this->file_token . '.log';
 
 		// A log that cannot be moved is deleted, so nothing stays under the old name.
 		if ( file_exists( $legacy_path ) && ( file_exists( $file_path ) || ! @rename( $legacy_path, $file_path ) ) ) {
@@ -99,7 +123,6 @@ class Optml_Logger {
 
 		return $file_path;
 	}
-
 	/**
 	 * Move the logs written under the earlier fixed names, and add the files that keep a web server from listing
 	 * or serving the log directory. A file that already exists is kept as it is.

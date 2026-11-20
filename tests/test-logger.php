@@ -19,8 +19,14 @@ class Test_Logger extends WP_UnitTestCase {
 		parent::setUp();
 
 		$this->logger = Optml_Logger::instance();
-		// The option is rolled back after each test, while the log files written by earlier tests stay.
-		update_option( Optml_Logger::FILE_TOKEN_OPTION, 'tests' );
+	}
+
+	/**
+	 * Put back the logger the other tests share, with the log files they wrote.
+	 */
+	public function tearDown(): void {
+		$this->set_logger( $this->logger );
+		parent::tearDown();
 	}
 
 	/**
@@ -55,16 +61,23 @@ class Test_Logger extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A log file is stored under a name that holds a random token kept for the site.
+	 * A log file is stored under a name that holds a random token, created once and kept for the site.
 	 */
 	public function test_log_file_name_holds_a_stored_token() {
 		delete_option( Optml_Logger::FILE_TOKEN_OPTION );
-		$this->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Named log message' );
+		$this->new_logger()->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Named log message' );
 
-		$token = get_option( Optml_Logger::FILE_TOKEN_OPTION );
-		$this->assertSame( 32, strlen( (string) $token ) );
+		$token = (string) get_option( Optml_Logger::FILE_TOKEN_OPTION );
+		$this->assertSame( 32, strlen( $token ) );
 		$this->assertTrue( file_exists( $this->log_dir() . 'offload-' . $token . '.log' ) );
 		$this->assertFalse( file_exists( $this->log_dir() . 'offload.log' ) );
+
+		// A later request reads the stored token; a site without one gets a token of its own.
+		$this->assertTrue( $this->new_logger()->has_logs( Optml_Logger::LOG_TYPE_OFFLOAD ) );
+		delete_option( Optml_Logger::FILE_TOKEN_OPTION );
+		$this->assertFalse( $this->new_logger()->has_logs( Optml_Logger::LOG_TYPE_OFFLOAD ) );
+		$this->assertNotSame( $token, get_option( Optml_Logger::FILE_TOKEN_OPTION ) );
+
 		unlink( $this->log_dir() . 'offload-' . $token . '.log' );
 	}
 	/**
@@ -106,9 +119,12 @@ class Test_Logger extends WP_UnitTestCase {
 		$this->assertTrue( file_exists( $this->log_dir() . 'index.html' ) );
 
 		unlink( $this->log_dir() . '.htaccess' );
+		file_put_contents( $this->log_dir() . 'index.html', 'kept' );
 		$this->logger->protect_log_files();
 
 		$this->assertStringContainsString( 'Require all denied', file_get_contents( $this->log_dir() . '.htaccess' ) );
+		$this->assertSame( 'kept', file_get_contents( $this->log_dir() . 'index.html' ) );
+		file_put_contents( $this->log_dir() . 'index.html', '' );
 	}
 	/**
 	 * The log reader answers administrators only.
@@ -142,6 +158,26 @@ class Test_Logger extends WP_UnitTestCase {
 		}
 
 		return (string) ob_get_clean();
+	}
+
+	/**
+	 * Create a logger the way a new request does.
+	 */
+	private function new_logger(): Optml_Logger {
+		$this->set_logger( null );
+
+		return Optml_Logger::instance();
+	}
+
+	/**
+	 * Set the logger the class hands out.
+	 *
+	 * @param Optml_Logger|null $logger The logger, or null to have a new one created.
+	 */
+	private function set_logger( $logger ): void {
+		$instance = new ReflectionProperty( Optml_Logger::class, 'instance' );
+		$instance->setAccessible( true );
+		$instance->setValue( null, $logger );
 	}
 
 	/**

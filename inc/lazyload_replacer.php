@@ -42,9 +42,13 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	private const TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>\\\\][^\s>]*))?';
 	/**
+	 * An unquoted image tag attribute value. It may start with a backslash, unless that begins a JSON-escaped quote.
+	 */
+	private const IMAGE_TAG_UNQUOTED_VALUE = '(?:[^\s"\'>\\\\]|\\\\(?!["\']))[^\s>]*';
+	/**
 	 * One image tag attribute with its separator, whose value may be JSON-escaped, with quotes written as \" or \'.
 	 */
-	private const IMAGE_TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=\\\\]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|\\\\"[^"]*?\\\\"|\\\\\'[^\']*?\\\\\'|(?:[^\s"\'>\\\\]|\\\\(?!["\']))[^\s>]*))?';
+	private const IMAGE_TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=\\\\]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|\\\\"[^"]*?\\\\"|\\\\\'[^\']*?\\\\\'|' . self::IMAGE_TAG_UNQUOTED_VALUE . '))?';
 	/**
 	 * If frame lazyload is present on page.
 	 *
@@ -293,13 +297,19 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$after_loading = isset( $loading[3] ) ? substr( $new_tag, strlen( $loading[0] ) ) : null;
 
 		if ( self::instance()->settings->get( 'native_lazyload' ) === 'enabled' ) {
-			$lazy_attr = $is_slashed ? 'loading=\"lazy\"' : 'loading="lazy"';
 			if ( ! $has_loading ) {
 				// No loading attribute exists, add it after <img
-				return preg_replace( '/<img/i', '<img ' . $lazy_attr, $new_tag, 1 );
-			}
+				$loading_attr = $is_slashed ? ' loading=\"lazy\"' : ' loading="lazy"';
 
-			return null === $after_loading ? $new_tag : $loading[1] . $loading[2] . $lazy_attr . $after_loading;
+				return preg_replace( '/<img/i', '<img' . $loading_attr, $new_tag, 1 );
+			}
+			if ( null === $after_loading ) {
+				return $new_tag;
+			}
+			// The value keeps the quote it was written with, which stays valid where the markup is JSON-encoded.
+			$quote = $loading[3][0];
+
+			return $loading[1] . $loading[2] . 'loading=' . $quote . 'lazy' . $quote . $after_loading;
 		}
 
 		// we remove the loading attribute if it exists
@@ -401,7 +411,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		static $patterns = [];
 
 		if ( ! isset( $patterns[ $name ] ) ) {
-			$patterns[ $name ] = '#^((?:<noscript\s*>\s*)?<img(?>(?:(?!\s*' . $name . '\s*=)' . self::IMAGE_TAG_ATTRIBUTE . ')*))(' . self::TAG_ATTRIBUTE_SEPARATOR . ')' . $name . '\s*=\s*(?:("[^"]*"|\'[^\']*\')|\\\\"[^\\\\"]*\\\\"|[^\s"\'>\\\\][^\s>]*)#i';
+			$patterns[ $name ] = '#^((?:<noscript\s*>\s*)?<img(?>(?:(?!\s*' . $name . '\s*=)' . self::IMAGE_TAG_ATTRIBUTE . ')*))(' . self::TAG_ATTRIBUTE_SEPARATOR . ')' . $name . '\s*=\s*(?:("[^"]*"|\'[^\']*\')|\\\\"[^\\\\"]*\\\\"|' . self::IMAGE_TAG_UNQUOTED_VALUE . ')#i';
 		}
 
 		return $patterns[ $name ];

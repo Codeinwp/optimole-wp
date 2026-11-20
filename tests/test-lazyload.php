@@ -467,7 +467,12 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertStringNotContainsString( 'sizes="100vw"', $lazy_tag );
 		$this->assertStringContainsString( 'title=\' sizes="\' alt="\' data-note=z data-x=\'y\'"', $lazy_tag );
 	}
-	public function test_json_native_lazyload_keeps_the_markup_escaped() {
+	/**
+	 * @dataProvider json_encoding_flags
+	 *
+	 * @param int $flags Flags the markup is JSON-encoded with.
+	 */
+	public function test_json_native_lazyload_keeps_the_json_valid( int $flags ) {
 		// As when the images that are never lazy-loaded were already found on the page.
 		Optml_Tag_Replacer::$lazyload_skipped_images = Optml_Lazyload_Replacer::get_skip_lazyload_limit();
 		$settings = new Optml_Settings();
@@ -475,12 +480,34 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		Optml_Manager::instance()->init();
 
 		$content          = [ "<img loading='eager' src=\"https://example.org/wp-content/uploads/2020/02/Herren.jpg\" alt>" ];
-		$replaced_content = Optml_Manager::instance()->replace_content( json_encode( $content ) );
+		$replaced_content = json_decode( Optml_Manager::instance()->replace_content( json_encode( $content, $flags ) ), true );
 
-		$this->assertStringContainsString( 'loading=\"lazy\"', $replaced_content );
-		$this->assertIsArray( json_decode( $replaced_content, true ) );
+		$this->assertIsArray( $replaced_content );
+		$this->assertStringContainsString( "loading='lazy'", $replaced_content[0] );
 	}
 
+	/**
+	 * @return array<string, array{0: int}>
+	 */
+	public function json_encoding_flags(): array {
+		return [
+			'slashes escaped'   => [ 0 ],
+			'slashes unescaped' => [ JSON_UNESCAPED_SLASHES ],
+		];
+	}
+
+	public function test_native_lazyload_reads_an_unquoted_loading_value_that_starts_with_a_backslash() {
+		// As when the images that are never lazy-loaded were already found on the page.
+		Optml_Tag_Replacer::$lazyload_skipped_images = Optml_Lazyload_Replacer::get_skip_lazyload_limit();
+		$settings = new Optml_Settings();
+		$settings->update( 'native_lazyload', 'enabled' );
+		Optml_Manager::instance()->init();
+
+		$content          = '<img loading=\none src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>';
+		$replaced_content = Optml_Manager::instance()->replace_content( $content );
+
+		$this->assertSame( 1, substr_count( $replaced_content, 'loading=' ) );
+	}
 	public function test_lazyload_reads_an_unquoted_value_that_starts_with_a_backslash() {
 		// As when the images that are never lazy-loaded were already found on the page.
 		Optml_Tag_Replacer::$lazyload_skipped_images = Optml_Lazyload_Replacer::get_skip_lazyload_limit();

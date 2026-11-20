@@ -307,7 +307,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Point an attachment that stayed local back at the file it was uploaded as.
 	 *
 	 * The deduplicated name belongs to the copy stored in the cloud. When the upload is not offloaded, no local
-	 * file was saved under that name, so the attachment keeps the name of its own file.
+	 * file was saved under that name, so the attachment keeps the name of its own file. An attachment that no
+	 * longer has the deduplicated name is left as it is.
 	 *
 	 * @param array<string, mixed>|false $meta          Attachment metadata, false when WordPress could not read any.
 	 * @param int                        $attachment_id Attachment ID.
