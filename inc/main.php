@@ -207,8 +207,14 @@ final class Optml_Main {
 	 * @return array{is_pro: bool, links: array<int, array{icon: string, text: string, url: string}>}
 	 */
 	public static function add_support_hub_metadata() {
+		$is_pro = false;
+		if ( self::$_instance->admin->settings->is_connected() ) {
+			$service_data = self::$_instance->admin->settings->get( 'service_data' );
+			$is_pro       = isset( $service_data['plan'] ) && 'free' !== $service_data['plan'];
+		}
+
 		return [
-			'is_pro' => false,
+			'is_pro' => $is_pro,
 			'links'  => [
 				[
 					'icon' => 'groups',
