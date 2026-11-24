@@ -110,13 +110,20 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	private static $last_deduplicated = false;
 	/**
-	 * The uploads whose attachment was given a deduplicated file name, until their metadata is generated.
+	 * The new uploads that get a deduplicated file name when they are offloaded, until their metadata is generated.
 	 *
-	 * Keyed by blog ID and attachment ID, as attachment IDs repeat across the sites of a network.
+	 * Keyed by blog ID and attachment ID, as attachment IDs repeat across the sites of a network. `file` is the
+	 * path the upload was stored as, `alias` the same path with the deduplicated name.
 	 *
 	 * @var array<string, array{file: string, alias: string}>
 	 */
 	private static $uploaded_files = [];
+	/**
+	 * The key in $uploaded_files of the upload whose offload is running, if any.
+	 *
+	 * @var string|null
+	 */
+	private static $offloading_upload = null;
 	/**
 	 * Checks if the plugin was installed before adding POST_OFFLOADED_FLAG.
 	 *
@@ -193,7 +200,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'image_downsize', [ self::$instance, 'generate_filter_downsize_urls' ], 10, 3 );
 				if ( $offload_new_uploads ) {
 					add_filter( 'wp_generate_attachment_metadata', [ self::$instance, 'generate_image_meta' ], 10, 2 );
-					add_filter( 'wp_generate_attachment_metadata', [ self::$instance, 'keep_uploaded_file_name' ], 11, 2 );
+					add_filter( 'wp_generate_attachment_metadata', [ self::$instance, 'use_deduplicated_file_name' ], 9, 2 );
+					add_filter( 'wp_generate_attachment_metadata', [ self::$instance, 'finish_deduplicated_upload' ], 11, 2 );
 				}
 				add_filter( 'wp_get_attachment_url', [ self::$instance, 'get_image_attachment_url' ], - 999, 2 );
 				add_filter( 'wp_insert_post_data', [ self::$instance, 'filter_uploaded_images' ] );
@@ -282,14 +290,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$file_name        = basename( $file );
 		$no_ext_file_name = basename( $file, '.' . $info['extension'] );
 		// if we have current deduplication set and it contains the filename that is updated
-		// we replace the updated filename with the deduplicated filename
+		// we remember the deduplicated filename for the offload; the stored path stays the uploaded file
 		if ( ! empty( self::$current_file_deduplication ) && stripos( self::$current_file_deduplication, $no_ext_file_name ) !== false ) {
-			$alias = str_replace( $file_name, self::$current_file_deduplication, $file );
 			self::$uploaded_files[ get_current_blog_id() . ':' . $attachment_id ] = [
 				'file'  => $file,
-				'alias' => $alias,
+				'alias' => str_replace( $file_name, self::$current_file_deduplication, $file ),
 			];
-			$file = $alias;
 			// we need to store the filename we replaced to check when uploading the image if it was deduplicated
 			self::$last_deduplicated = $file_name;
 
@@ -304,11 +310,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
-	 * Point an attachment that stayed local back at the file it was uploaded as.
+	 * Let the offload of a new upload see the upload under its deduplicated file name.
 	 *
-	 * The deduplicated name belongs to the copy stored in the cloud. When the upload is not offloaded, no local
-	 * file was saved under that name, so the attachment keeps the name of its own file. An attachment that no
-	 * longer has the deduplicated name is left as it is.
+	 * The name is applied in memory, to the attached file and its URL, while the offload runs. The stored path
+	 * stays the upload's own file, so a request that ends before the offload does leaves the attachment correct.
 	 *
 	 * @param array<string, mixed>|false $meta          Attachment metadata, false when WordPress could not read any.
 	 * @param int                        $attachment_id Attachment ID.
@@ -316,26 +321,75 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @return array<string, mixed>|false The metadata, unchanged.
 	 * @uses filter:wp_generate_attachment_metadata
 	 */
-	public function keep_uploaded_file_name( $meta, $attachment_id ) {
+	public function use_deduplicated_file_name( $meta, $attachment_id ) {
 		$key = get_current_blog_id() . ':' . $attachment_id;
-		if ( ! isset( self::$uploaded_files[ $key ] ) ) {
+		if ( isset( self::$uploaded_files[ $key ] ) ) {
+			self::$offloading_upload = $key;
+			add_filter( 'get_attached_file', [ __CLASS__, 'deduplicate_offloading_upload' ], 10, 2 );
+			add_filter( 'wp_get_attachment_url', [ __CLASS__, 'deduplicate_offloading_upload' ], -1000, 2 );
+		}
+
+		return $meta;
+	}
+
+	/**
+	 * Give the attached file or URL of the upload being offloaded its deduplicated name.
+	 *
+	 * @param string $location      The attached file path or the attachment URL.
+	 * @param int    $attachment_id Attachment ID.
+	 *
+	 * @return string The location, unchanged for any other attachment and when it ends in another file name, as
+	 *                it does once WordPress attached a scaled or rotated copy.
+	 * @uses filter:get_attached_file
+	 * @uses filter:wp_get_attachment_url
+	 */
+	public static function deduplicate_offloading_upload( $location, $attachment_id ) {
+		$key = get_current_blog_id() . ':' . $attachment_id;
+		if ( self::$offloading_upload !== $key || ! is_string( $location ) ) {
+			return $location;
+		}
+
+		$name = basename( self::$uploaded_files[ $key ]['file'] );
+		if ( basename( $location ) !== $name ) {
+			return $location;
+		}
+
+		return substr( $location, 0, -strlen( $name ) ) . basename( self::$uploaded_files[ $key ]['alias'] );
+	}
+
+	/**
+	 * End the offload step of a new upload that has a deduplicated file name.
+	 *
+	 * The deduplicated name is stored once the upload is offloaded, when it names the copy in the cloud. An
+	 * upload that stayed local keeps the path of its own file.
+	 *
+	 * @param array<string, mixed>|false $meta          Attachment metadata, false when WordPress could not read any.
+	 * @param int                        $attachment_id Attachment ID.
+	 *
+	 * @return array<string, mixed>|false The metadata, unchanged.
+	 * @uses filter:wp_generate_attachment_metadata
+	 */
+	public function finish_deduplicated_upload( $meta, $attachment_id ) {
+		$key = get_current_blog_id() . ':' . $attachment_id;
+		if ( self::$offloading_upload !== $key ) {
 			return $meta;
 		}
 
-		$upload = self::$uploaded_files[ $key ];
+		$attached_file = get_attached_file( $attachment_id, true );
+		$alias_file    = self::deduplicate_offloading_upload( $attached_file, $attachment_id );
+		$uploaded_name = basename( self::$uploaded_files[ $key ]['file'] );
+
+		remove_filter( 'get_attached_file', [ __CLASS__, 'deduplicate_offloading_upload' ], 10 );
+		remove_filter( 'wp_get_attachment_url', [ __CLASS__, 'deduplicate_offloading_upload' ], -1000 );
+		self::$offloading_upload = null;
 		unset( self::$uploaded_files[ $key ] );
 
-		if ( isset( $meta['file'] ) && self::is_uploaded_image( $meta['file'] ) ) {
-			return $meta;
-		}
-
 		// The name kept for this upload's offload is dropped, so a later upload is not read from this one's file.
-		if ( self::$last_deduplicated === basename( $upload['file'] ) ) {
+		if ( self::$last_deduplicated === $uploaded_name ) {
 			self::$last_deduplicated = false;
 		}
-		// WordPress points the attachment at a scaled or rotated copy while it builds the metadata; that path is kept.
-		if ( get_post_meta( $attachment_id, '_wp_attached_file', true ) === _wp_relative_upload_path( $upload['alias'] ) ) {
-			update_attached_file( $attachment_id, $upload['file'] );
+		if ( $alias_file !== $attached_file && isset( $meta['file'] ) && self::is_uploaded_image( $meta['file'] ) ) {
+			update_attached_file( $attachment_id, $alias_file );
 		}
 
 		return $meta;

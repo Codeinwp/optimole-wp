@@ -69,7 +69,8 @@ class Optml_Logger {
 		$upload_dir       = wp_upload_dir();
 		$this->upload_dir = trailingslashit( $upload_dir['basedir'] ) . 'optimole-logs/';
 		// Read with the directory, so both belong to the same site of a network for as long as the logger lives.
-		$this->file_token = $this->get_file_token();
+		$stored_token     = get_option( self::FILE_TOKEN_OPTION );
+		$this->file_token = is_string( $stored_token ) && '' !== $stored_token ? $stored_token : $this->create_file_token();
 
 		if ( ! file_exists( $this->upload_dir ) ) {
 			if ( false === wp_mkdir_p( $this->upload_dir ) ) {
@@ -79,19 +80,19 @@ class Optml_Logger {
 
 		add_action( 'wp_ajax_optml_fetch_logs', [ $this, 'fetch_logs_ajax_handler' ] );
 		add_action( 'admin_init', [ $this, 'protect_log_files' ] );
+
+		// The site just got its token: logs still stored under the earlier fixed names are moved on this request.
+		if ( $this->file_token !== $stored_token ) {
+			$this->protect_log_files();
+		}
 	}
 
 	/**
-	 * Get the random part of this site's log file names, storing a new one when the site has none.
+	 * Create and store the random part of this site's log file names.
 	 *
 	 * @return string
 	 */
-	private function get_file_token() {
-		$token = get_option( self::FILE_TOKEN_OPTION );
-		if ( is_string( $token ) && '' !== $token ) {
-			return $token;
-		}
-
+	private function create_file_token() {
 		$token = bin2hex( random_bytes( 16 ) );
 		update_option( self::FILE_TOKEN_OPTION, $token );
 

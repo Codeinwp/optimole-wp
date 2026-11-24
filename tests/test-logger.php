@@ -105,18 +105,43 @@ class Test_Logger extends WP_UnitTestCase {
 	}
 
 	/**
-	 * A log keeps its file name when the site's salts change.
+	 * A log file is named after the stored token, whatever the site's salts are.
 	 */
 	public function test_log_file_name_does_not_depend_on_the_salts() {
-		$this->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Message before the salt change' );
-
 		add_filter( 'salt', '__return_empty_string' );
-		$log = $this->new_logger()->get_log( Optml_Logger::LOG_TYPE_OFFLOAD );
+		$this->new_logger()->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Message with other salts' );
 		remove_filter( 'salt', '__return_empty_string' );
 
-		$this->assertStringContainsString( 'Message before the salt change', (string) $log );
+		$this->assertTrue( file_exists( $this->log_dir() . 'offload-' . get_option( 'optml_log_file_token' ) . '.log' ) );
 	}
 
+	/**
+	 * Logs under the earlier fixed names are moved on the request that gives the site its token.
+	 */
+	public function test_log_under_the_earlier_name_is_moved_when_the_site_gets_its_token() {
+		delete_option( 'optml_log_file_token' );
+		file_put_contents( $this->log_dir() . 'offload.log', "[Jan 01 00:00:00] Earlier offload message\n" );
+
+		$logger = $this->new_logger();
+
+		$this->assertFalse( file_exists( $this->log_dir() . 'offload.log' ) );
+		$this->assertStringContainsString( 'Earlier offload message', (string) $logger->get_log( Optml_Logger::LOG_TYPE_OFFLOAD ) );
+		unlink( $this->log_dir() . 'offload-' . get_option( 'optml_log_file_token' ) . '.log' );
+	}
+
+	/**
+	 * A log under the earlier fixed name is dropped when the log already exists under its new name.
+	 */
+	public function test_log_under_the_earlier_name_is_dropped_beside_the_new_one() {
+		$this->logger->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Kept rollback message' );
+		file_put_contents( $this->log_dir() . 'rollback.log', "[Jan 01 00:00:00] Older rollback message\n" );
+
+		$log = (string) $this->logger->get_log( Optml_Logger::LOG_TYPE_ROLLBACK );
+
+		$this->assertFalse( file_exists( $this->log_dir() . 'rollback.log' ) );
+		$this->assertStringContainsString( 'Kept rollback message', $log );
+		$this->assertStringNotContainsString( 'Older rollback message', $log );
+	}
 	/**
 	 * On admin requests the log directory gets the files that keep a web server from listing or serving it.
 	 */
