@@ -514,7 +514,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 
 		$this->assertIsArray( $replaced_content );
 		$this->assertStringContainsString( 'data-opt-src', $replaced_content[0] );
-		$this->assertStringContainsString( "alt=Logo", strstr( $replaced_content[0], '<noscript>', true ) );
+		$this->assertStringContainsString( "sizes=\n100vw\nalt=Logo", strstr( $replaced_content[0], '<noscript>', true ) );
 	}
 	public function test_lazyload_iframe() {
 
