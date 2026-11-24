@@ -50,7 +50,7 @@ class Test_Viewport_Bg_Css extends WP_UnitTestCase {
 		add_filter( 'optml_page_profile_id', [ self::class, 'profile_id' ] );
 
 		foreach ( [ Profile::DEVICE_TYPE_MOBILE, Profile::DEVICE_TYPE_DESKTOP ] as $device ) {
-			Optml_Manager::instance()->page_profiler->store( self::PROFILE_ID, $device, [], [ self::WATCHER => [] ] );
+			Optml_Manager::instance()->page_profiler->store( self::PROFILE_ID, $device, [], [ self::WATCHER => [ '#hero' => [] ] ] );
 		}
 	}
 
@@ -98,8 +98,11 @@ class Test_Viewport_Bg_Css extends WP_UnitTestCase {
 		return '<abbr title="' . self::STORED_MARKER . ' ' . self::STORED_MARKER . ' data-note=1 ">x</abbr>';
 	}
 
+	/**
+	 * A rule only the personalized CSS contains: the generic CSS has no above-fold exemption.
+	 */
 	private function personalized_rule(): string {
-		return 'html ' . self::WATCHER . ':not(.optml-bg-lazyloaded) { background-image: none !important; }';
+		return 'html ' . self::WATCHER . ':not(#hero):not(.optml-bg-lazyloaded)';
 	}
 
 	public function test_marker_carries_a_random_token(): void {
@@ -210,5 +213,37 @@ class Test_Viewport_Bg_Css extends WP_UnitTestCase {
 
 		$this->assertStringContainsString( $title, $replaced );
 		$this->assertStringContainsString( $this->personalized_rule(), $replaced );
+	}
+
+	public function test_general_css_is_removed_when_every_device_hides_nothing(): void {
+		$only_watcher = static function (): array {
+			return [ self::WATCHER ];
+		};
+		add_filter( 'optml_lazyload_bg_selectors', $only_watcher );
+		$this->reset_background_selectors();
+		$above_fold = [];
+		foreach ( range( 1, Lazyload::MAX_ABOVE_FOLD_SELECTORS ) as $index ) {
+			$above_fold[ '#hero-' . $index ] = [];
+		}
+		foreach ( [ Profile::DEVICE_TYPE_MOBILE, Profile::DEVICE_TYPE_DESKTOP ] as $device ) {
+			Optml_Manager::instance()->page_profiler->store( self::PROFILE_ID, $device, [], [ self::WATCHER => $above_fold ] );
+		}
+		$html = '<html><head>' . $this->plugin_style() . '</head><body><p>Body.</p></body></html>';
+
+		$replaced = Optml_Manager::instance()->replace_content( $html );
+		remove_filter( 'optml_lazyload_bg_selectors', $only_watcher );
+		$this->reset_background_selectors();
+
+		$this->assertStringContainsString( 'optml_no_js', $replaced );
+		$this->assertStringNotContainsString( 'html ' . self::WATCHER . ':not(.optml-bg-lazyloaded)', $replaced );
+	}
+
+	/**
+	 * Reset the cached background lazyload selectors.
+	 */
+	private function reset_background_selectors(): void {
+		$property = new ReflectionProperty( Optml_Lazyload_Replacer::class, 'background_lazyload_selectors' );
+		$property->setAccessible( true );
+		$property->setValue( null, null );
 	}
 }

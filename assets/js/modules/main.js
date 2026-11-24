@@ -13,6 +13,11 @@ import { optmlLcp } from './lcp.js';
 import { optmlImageDetector } from './image-detector.js';
 import { optmlSrcsetDetector } from './srcset-detector.js';
 
+// The optimizations endpoint rejects the whole payload when these limits are exceeded.
+const MAX_BG_URLS_PER_ELEMENT = 3;
+const MAX_ABOVE_FOLD_SELECTORS_PER_WATCHER = 100;
+const MAX_BG_WATCHERS = 100;
+
 /**
  * Main detection functionality
  */
@@ -107,16 +112,11 @@ export const optmlMain = {
     const aboveTheFoldImages = [];
     
     // Create intersection observer
-    let selectorMap = new Map();
+    const selectorMap = new Map();
     const observer = optmlImageDetector.createIntersectionObserver(aboveTheFoldImages, selectorMap);
     
     // Observe Optimole images
     const { allOptimoleImages } = optmlImageDetector.observeOptimoleImages(observer);
-    
-    // Detect images with missing dimensions
-    const imageDimensionsData = optmlImageDetector.detectImageDimensions(allOptimoleImages);
-    
-    optmlLogger.info('Images with missing dimensions found:', Object.keys(imageDimensionsData).length);
     
     // Detect images requiring srcset variations (non-lazyload images)
     const srcsetResult = await optmlSrcsetDetector.detectMissingSrcsets();
@@ -131,22 +131,29 @@ export const optmlMain = {
     let pendingElements = 0;
 
     if (bgSelectors && Array.isArray(bgSelectors) && bgSelectors.length > 0) {
-      const backgroundResult = optmlBackground.processBackgroundSelectors(bgSelectors, observer);
-      selectorMap = backgroundResult.selectorMap;
+      const backgroundResult = optmlBackground.processBackgroundSelectors(bgSelectors, observer, selectorMap);
       pendingElements = backgroundResult.pendingElements;
 
-      // Extract background image URLs
-      bgImageUrls = optmlBackground.extractBackgroundImageUrls(bgSelectors);
-      
       // Adjust wait time based on whether we have pending elements
       const waitTime = pendingElements > 0 ? 600 : 300;
       optmlLogger.info(`Waiting ${waitTime}ms for ${pendingElements} pending background elements`);
       await new Promise(resolve => setTimeout(resolve, waitTime));
+
+      // Extract after the wait so elements lazyloaded during it are included.
+      bgImageUrls = optmlBackground.extractBackgroundImageUrls(bgSelectors);
     } else {
       // Standard wait time if no background selectors
       await new Promise(resolve => setTimeout(resolve, 300));
     }
     
+    // Elements lazyloaded at the end of the wait are not reported yet.
+    await optmlImageDetector.flushIntersectionObserver(observer, aboveTheFoldImages, selectorMap);
+
+    // Read after the waits so images that finished loading during them have natural dimensions.
+    const imageDimensionsData = optmlImageDetector.detectImageDimensions(allOptimoleImages);
+
+    optmlLogger.info('Images with missing dimensions found:', Object.keys(imageDimensionsData).length);
+
     // Disconnect observer and clean up event listeners
     observer.disconnect();
     window.removeEventListener('resize', resizeHandler);
@@ -185,7 +192,7 @@ export const optmlMain = {
         l: { 
           i: lcpData.imageId,
           s: lcpData.bgSelector, 
-          u: lcpData.bgUrls   
+          u: lcpData.bgUrls ? lcpData.bgUrls.slice(0, MAX_BG_URLS_PER_ELEMENT) : lcpData.bgUrls
         },
         m: imageDimensionsData, // m for missing dimensions
         s: srcsetData, // s for srcset data
@@ -221,20 +228,20 @@ export const optmlMain = {
     const processedBgSelectors = {};
     
     // Process each selector that's present on the page
-    selectorMap.forEach((specificSelectors, baseSelector) => {
+    Array.from(selectorMap).slice(0, MAX_BG_WATCHERS).forEach(([baseSelector, specificSelectors]) => {
       // Initialize the object for this base selector
       processedBgSelectors[baseSelector] = {};
       
       // For each specific selector, add its URLs if available
-      specificSelectors.forEach(specificSelector => {
+      specificSelectors.slice(0, MAX_ABOVE_FOLD_SELECTORS_PER_WATCHER).forEach(specificSelector => {
         // First, add the selector to indicate it's above the fold
         processedBgSelectors[baseSelector][specificSelector] = null;
         
         // Then, if we have URLs for this selector, add them
         if (bgImageUrls.has(baseSelector) && 
             bgImageUrls.get(baseSelector).has(specificSelector)) { 
-          processedBgSelectors[baseSelector][specificSelector] = 
-            bgImageUrls.get(baseSelector).get(specificSelector);
+          processedBgSelectors[baseSelector][specificSelector] =
+            bgImageUrls.get(baseSelector).get(specificSelector).slice(0, MAX_BG_URLS_PER_ELEMENT);
         }
       });
     });

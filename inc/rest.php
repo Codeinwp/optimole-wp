@@ -9,6 +9,7 @@
 
 use Optimole\Sdk\Resource\ImageProperty\ResizeTypeProperty;
 use Optimole\Sdk\ValueObject\Position;
+use OptimoleWP\BgOptimizer\Lazyload;
 use OptimoleWP\PageProfiler\Profile;
 
 /**
@@ -1028,7 +1029,7 @@ class Optml_Rest {
 		// save just the first 6 images, see https://github.com/Codeinwp/optimole-service/issues/1588#issuecomment-3357110865
 		$above_fold_images = array_slice( $above_fold_images, 0, 6 );
 		$above_fold_images = array_values( array_map( 'intval', array_filter( $above_fold_images, 'is_numeric' ) ) );
-		if ( count( $bg_selectors ) > 100 ) {
+		if ( count( $bg_selectors ) > Lazyload::MAX_WATCHERS ) {
 			return $this->response( 'Background selectors limit exceeded', 'error' );
 		}
 		if ( $url === Profile::PLACEHOLDER ) {
@@ -1041,7 +1042,7 @@ class Optml_Rest {
 			if ( ! in_array( $selector, $current_selectors, true ) ) {
 				return $this->response( 'Invalid background selector', 'error' );
 			}
-			if ( count( $above_fold_bg_selectors ) > 100 ) {
+			if ( count( $above_fold_bg_selectors ) > Lazyload::MAX_ABOVE_FOLD_SELECTORS ) {
 				return $this->response( 'Above fold background selectors limit exceeded', 'error' );
 			}
 			$selector = strip_tags( $selector );

@@ -76,40 +76,80 @@ export const optmlImageDetector = {
   /**
    * Setup intersection observer for image detection
    * @param {Array} aboveTheFoldImages - Array to store above-fold image IDs
-   * @param {Map} selectorMap - Map for background selectors
+   * @param {Map<string, Array<string>>} selectorMap - Map of base selector to above-fold specific selectors
    * @returns {IntersectionObserver} Configured intersection observer
    */
   createIntersectionObserver: function(aboveTheFoldImages, selectorMap) {
     return new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const element = entry.target;
-          
-          // Handle img elements with data-opt-id
-          if (element.tagName === 'IMG') {
-            const id = parseInt(element.getAttribute('data-opt-id'), 10);
-            if (!isNaN(id) && !aboveTheFoldImages.includes(id)) {
-              aboveTheFoldImages.push(id);
-            }
-          } 
-          // Handle background image elements
-          else if (element.hasAttribute('data-optml-bg-selector')) {
-            const baseSelector = element.getAttribute('data-optml-bg-selector');
-            const specificSelector = element.getAttribute('data-optml-specific-selector');
-            
-            if (baseSelector && specificSelector && selectorMap.has(baseSelector)) {
-              // Add this specific selector to the above-fold list for this base selector
-              const aboveTheFoldSelectors = selectorMap.get(baseSelector);
-              if (!aboveTheFoldSelectors.includes(specificSelector)) {
-                aboveTheFoldSelectors.push(specificSelector);
-                optmlLogger.info(`Element with selector "${specificSelector}" is above the fold`);
-              }
-            }
-          }
-        }
-      });
+      this.recordIntersections(entries, aboveTheFoldImages, selectorMap);
     }, {
       threshold: 0.1 // Consider element visible when 10% is in viewport
+    });
+  },
+
+  /**
+   * Record the above-fold images and background elements of intersection entries
+   * @param {Array<IntersectionObserverEntry>} entries - Entries reported by the observer
+   * @param {Array<number>} aboveTheFoldImages - Array to store above-fold image IDs
+   * @param {Map<string, Array<string>>} selectorMap - Map of base selector to above-fold specific selectors
+   * @returns {void}
+   */
+  recordIntersections: function(entries, aboveTheFoldImages, selectorMap) {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) {
+        return;
+      }
+      const element = entry.target;
+
+      // Handle img elements with data-opt-id
+      if (element.tagName === 'IMG') {
+        const id = parseInt(element.getAttribute('data-opt-id'), 10);
+        if (!isNaN(id) && !aboveTheFoldImages.includes(id)) {
+          aboveTheFoldImages.push(id);
+        }
+      }
+
+      // An img can also carry a background image, so this is checked independently.
+      if (element.hasAttribute('data-optml-bg-selector')) {
+        this.recordAboveFoldBackground(element, selectorMap);
+      }
+    });
+  },
+
+  /**
+   * Record elements observed shortly before the observer is disconnected
+   * @param {IntersectionObserver} observer - Observer created by createIntersectionObserver
+   * @param {Array<number>} aboveTheFoldImages - Array to store above-fold image IDs
+   * @param {Map<string, Array<string>>} selectorMap - Map of base selector to above-fold specific selectors
+   * @returns {Promise<void>} Resolves once the queued entries are recorded
+   */
+  flushIntersectionObserver: async function(observer, aboveTheFoldImages, selectorMap) {
+    // A new observation is computed only at the next rendering; hidden tabs render no frames, hence the timeout.
+    await Promise.race([
+      new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+      new Promise(resolve => setTimeout(resolve, 100))
+    ]);
+    this.recordIntersections(observer.takeRecords(), aboveTheFoldImages, selectorMap);
+  },
+
+  /**
+   * Record a background element under every base selector it matches
+   * @param {Element} element - Above-the-fold background element
+   * @param {Map<string, Array<string>>} selectorMap - Map of base selector to above-fold specific selectors
+   * @returns {void}
+   */
+  recordAboveFoldBackground: function(element, selectorMap) {
+    const specificSelector = element.getAttribute('data-optml-specific-selector');
+    if (!specificSelector) {
+      return;
+    }
+
+    // An element can match several watchers; each one needs it listed or the server hides it.
+    selectorMap.forEach((aboveTheFoldSelectors, baseSelector) => {
+      if (element.matches(baseSelector) && !aboveTheFoldSelectors.includes(specificSelector)) {
+        aboveTheFoldSelectors.push(specificSelector);
+        optmlLogger.info(`Element with selector "${specificSelector}" is above the fold`);
+      }
     });
   },
 
