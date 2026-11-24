@@ -7,6 +7,21 @@
 class Test_Support_Hub_Metadata extends WP_UnitTestCase {
 
 	/**
+	 * @var mixed Original service_data, restored in teardown (settings are statically cached).
+	 */
+	private $original_service_data;
+
+	public function set_up() {
+		parent::set_up();
+		$this->original_service_data = Optml_Main::instance()->admin->settings->get( 'service_data' );
+	}
+
+	public function tear_down() {
+		Optml_Main::instance()->admin->settings->update( 'service_data', $this->original_service_data );
+		parent::tear_down();
+	}
+
+	/**
 	 * is_pro follows the connected service plan, so paid sites are not tagged free.
 	 */
 	public function test_is_pro_follows_the_connected_plan() {
