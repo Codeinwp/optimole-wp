@@ -65,20 +65,33 @@ class Test_Logger extends WP_UnitTestCase {
 	 */
 	public function test_log_file_name_holds_a_stored_token() {
 		delete_option( Optml_Logger::FILE_TOKEN_OPTION );
-		$this->new_logger()->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Named log message' );
+		$first = $this->new_logger();
+		$first->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Named log message' );
 
 		$token = (string) get_option( Optml_Logger::FILE_TOKEN_OPTION );
 		$this->assertSame( 32, strlen( $token ) );
 		$this->assertTrue( file_exists( $this->log_dir() . 'offload-' . $token . '.log' ) );
 		$this->assertFalse( file_exists( $this->log_dir() . 'offload.log' ) );
-
-		// A later request reads the stored token; a site without one gets a token of its own.
 		$this->assertTrue( $this->new_logger()->has_logs( Optml_Logger::LOG_TYPE_OFFLOAD ) );
+
+		// A site without a token gets a token of its own, while a logger keeps the one it started with.
 		delete_option( Optml_Logger::FILE_TOKEN_OPTION );
 		$this->assertFalse( $this->new_logger()->has_logs( Optml_Logger::LOG_TYPE_OFFLOAD ) );
 		$this->assertNotSame( $token, get_option( Optml_Logger::FILE_TOKEN_OPTION ) );
+		$this->assertTrue( $first->has_logs( Optml_Logger::LOG_TYPE_OFFLOAD ) );
 
 		unlink( $this->log_dir() . 'offload-' . $token . '.log' );
+	}
+
+	/**
+	 * An empty stored token is replaced, so the next request finds the log.
+	 */
+	public function test_empty_log_file_token_is_replaced() {
+		update_option( Optml_Logger::FILE_TOKEN_OPTION, '' );
+		$this->new_logger()->add_log( Optml_Logger::LOG_TYPE_ROLLBACK, 'Message after an empty token' );
+
+		$this->assertStringContainsString( 'Message after an empty token', (string) $this->new_logger()->get_log( Optml_Logger::LOG_TYPE_ROLLBACK ) );
+		unlink( $this->log_dir() . 'rollback-' . get_option( Optml_Logger::FILE_TOKEN_OPTION ) . '.log' );
 	}
 	/**
 	 * A log written under the earlier fixed name is read from its new name.
@@ -98,7 +111,7 @@ class Test_Logger extends WP_UnitTestCase {
 		$this->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Message before the salt change' );
 
 		add_filter( 'salt', '__return_empty_string' );
-		$log = $this->logger->get_log( Optml_Logger::LOG_TYPE_OFFLOAD );
+		$log = $this->new_logger()->get_log( Optml_Logger::LOG_TYPE_OFFLOAD );
 		remove_filter( 'salt', '__return_empty_string' );
 
 		$this->assertStringContainsString( 'Message before the salt change', (string) $log );
@@ -170,9 +183,7 @@ class Test_Logger extends WP_UnitTestCase {
 	}
 
 	/**
-	 * Set the logger the class hands out.
-	 *
-	 * @param Optml_Logger|null $logger The logger, or null to have a new one created.
+	 * @param Optml_Logger|null $logger The logger the class hands out, or null to have a new one created.
 	 */
 	private function set_logger( $logger ): void {
 		$instance = new ReflectionProperty( Optml_Logger::class, 'instance' );

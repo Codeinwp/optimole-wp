@@ -496,28 +496,25 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		];
 	}
 
-	public function test_native_lazyload_reads_an_unquoted_loading_value_that_starts_with_a_backslash() {
+	public function test_lazyload_leaves_unquoted_sizes_as_written() {
 		// As when the images that are never lazy-loaded were already found on the page.
 		Optml_Tag_Replacer::$lazyload_skipped_images = Optml_Lazyload_Replacer::get_skip_lazyload_limit();
-		$settings = new Optml_Settings();
-		$settings->update( 'native_lazyload', 'enabled' );
-		Optml_Manager::instance()->init();
-
-		$content          = '<img loading=\none src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" alt>';
+		$content          = '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" sizes=100vw alt="x">';
 		$replaced_content = Optml_Manager::instance()->replace_content( $content );
 
-		$this->assertSame( 1, substr_count( $replaced_content, 'loading=' ) );
+		$this->assertStringContainsString( 'data-opt-src', $replaced_content );
+		$this->assertStringContainsString( ' sizes=100vw alt="x">', strstr( $replaced_content, '<noscript>', true ) );
 	}
-	public function test_lazyload_reads_an_unquoted_value_that_starts_with_a_backslash() {
+
+	public function test_json_lazyload_keeps_attributes_separated_by_encoded_line_breaks() {
 		// As when the images that are never lazy-loaded were already found on the page.
 		Optml_Tag_Replacer::$lazyload_skipped_images = Optml_Lazyload_Replacer::get_skip_lazyload_limit();
-		$content          = '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" data-path=\local sizes="100vw">';
-		$replaced_content = Optml_Manager::instance()->replace_content( $content );
-		// The noscript copy keeps these attributes.
-		$lazy_tag = strstr( $replaced_content, '<noscript>', true );
+		$content          = [ "<img src=\"https://example.org/wp-content/uploads/2020/02/Herren.jpg\" sizes=\n100vw\nalt=Logo>" ];
+		$replaced_content = json_decode( Optml_Manager::instance()->replace_content( json_encode( $content ) ), true );
 
-		$this->assertStringContainsString( 'data-path=\local', $lazy_tag );
-		$this->assertStringNotContainsString( 'sizes="100vw"', $lazy_tag );
+		$this->assertIsArray( $replaced_content );
+		$this->assertStringContainsString( 'data-opt-src', $replaced_content[0] );
+		$this->assertStringContainsString( "alt=Logo", strstr( $replaced_content[0], '<noscript>', true ) );
 	}
 	public function test_lazyload_iframe() {
 

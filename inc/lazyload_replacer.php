@@ -42,9 +42,10 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 */
 	private const TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>\\\\][^\s>]*))?';
 	/**
-	 * An unquoted image tag attribute value. It may start with a backslash, unless that begins a JSON-escaped quote.
+	 * An unquoted image tag attribute value. It does not start with a backslash, which begins an escape in
+	 * JSON-encoded markup.
 	 */
-	private const IMAGE_TAG_UNQUOTED_VALUE = '(?:[^\s"\'>\\\\]|\\\\(?!["\']))[^\s>]*';
+	private const IMAGE_TAG_UNQUOTED_VALUE = '[^\s"\'>\\\\][^\s>]*';
 	/**
 	 * One image tag attribute with its separator, whose value may be JSON-escaped, with quotes written as \" or \'.
 	 */
@@ -294,7 +295,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		// Most tags do not hold the word at all, and need no pattern.
 		$has_loading = stripos( $new_tag, 'loading' ) !== false && preg_match( $this->image_attribute_pattern( 'loading' ), $new_tag, $loading ) === 1;
 		// Only a quoted value that is not JSON-escaped is changed; any other loading attribute is kept as written.
-		$after_loading = isset( $loading[3] ) ? substr( $new_tag, strlen( $loading[0] ) ) : null;
+		$after_loading = ( $loading[3] ?? '' ) !== '' ? substr( $new_tag, strlen( $loading[0] ) ) : null;
 
 		if ( self::instance()->settings->get( 'native_lazyload' ) === 'enabled' ) {
 			if ( ! $has_loading ) {
@@ -382,7 +383,15 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		// We remove srcset and sizes attributes since our lazyload does not need them.
 		foreach ( [ 'srcset', 'sizes' ] as $attribute ) {
 			if ( stripos( $new_tag, $attribute ) !== false ) {
-				$new_tag = preg_replace( $this->image_attribute_pattern( $attribute ), '$1', $new_tag, 1 ) ?? $new_tag;
+				$new_tag = preg_replace_callback(
+					$this->image_attribute_pattern( $attribute ),
+					static function ( $attribute_match ) {
+						// An unquoted value is left as written.
+						return isset( $attribute_match[3] ) ? $attribute_match[1] : $attribute_match[0];
+					},
+					$new_tag,
+					1
+				) ?? $new_tag;
 			}
 		}
 
@@ -400,8 +409,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 	 *
 	 * Every attribute before it is matched whole, so the same text inside another attribute's value is not taken
 	 * for the attribute. Group 1 is the tag up to the attribute's separator and group 2 the separator. Group 3 is
-	 * the value, set only when it is quoted and not JSON-escaped; a JSON-escaped value is matched when it is
-	 * double-quoted and holds no backslash.
+	 * the value when it is quoted, and group 4 when it is JSON-escaped: double-quoted with no backslash inside.
+	 * Neither is set for an unquoted value.
 	 *
 	 * @param string $name Attribute name.
 	 *
@@ -411,7 +420,7 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		static $patterns = [];
 
 		if ( ! isset( $patterns[ $name ] ) ) {
-			$patterns[ $name ] = '#^((?:<noscript\s*>\s*)?<img(?>(?:(?!\s*' . $name . '\s*=)' . self::IMAGE_TAG_ATTRIBUTE . ')*))(' . self::TAG_ATTRIBUTE_SEPARATOR . ')' . $name . '\s*=\s*(?:("[^"]*"|\'[^\']*\')|\\\\"[^\\\\"]*\\\\"|' . self::IMAGE_TAG_UNQUOTED_VALUE . ')#i';
+			$patterns[ $name ] = '#^((?:<noscript\s*>\s*)?<img(?>(?:(?!\s*' . $name . '\s*=)' . self::IMAGE_TAG_ATTRIBUTE . ')*))(' . self::TAG_ATTRIBUTE_SEPARATOR . ')' . $name . '\s*=\s*(?:("[^"]*"|\'[^\']*\')|(\\\\"[^\\\\"]*\\\\")|' . self::IMAGE_TAG_UNQUOTED_VALUE . ')#i';
 		}
 
 		return $patterns[ $name ];

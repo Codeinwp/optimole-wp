@@ -82,10 +82,7 @@ class Optml_Logger {
 	}
 
 	/**
-	 * Get the random part of this site's log file names, creating it on first use.
-	 *
-	 * The stored value is read back after it is added, so requests that create it at the same time end up with
-	 * the same token.
+	 * Get the random part of this site's log file names, storing a new one when the site has none.
 	 *
 	 * @return string
 	 */
@@ -96,12 +93,10 @@ class Optml_Logger {
 		}
 
 		$token = bin2hex( random_bytes( 16 ) );
-		add_option( self::FILE_TOKEN_OPTION, $token );
-		$stored = get_option( self::FILE_TOKEN_OPTION );
+		update_option( self::FILE_TOKEN_OPTION, $token );
 
-		return is_string( $stored ) && '' !== $stored ? $stored : $token;
+		return $token;
 	}
-
 	/**
 	 * Get the path of a log file.
 	 *
