@@ -112,7 +112,7 @@ class Test_Logger extends WP_UnitTestCase {
 		$this->new_logger()->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Message with other salts' );
 		remove_filter( 'salt', '__return_empty_string' );
 
-		$this->assertTrue( file_exists( $this->log_dir() . 'offload-' . get_option( 'optml_log_file_token' ) . '.log' ) );
+		$this->assertStringContainsString( 'Message with other salts', (string) file_get_contents( $this->log_dir() . 'offload-' . get_option( 'optml_log_file_token' ) . '.log' ) );
 	}
 
 	/**

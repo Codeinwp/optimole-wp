@@ -2095,18 +2095,6 @@ parameters:
 			path: inc/media_offload.php
 
 		-
-			message: '#^Method Optml_Media_Offload\:\:generate_image_meta\(\) has parameter \$meta with no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/media_offload.php
-
-		-
-			message: '#^Method Optml_Media_Offload\:\:generate_image_meta\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: inc/media_offload.php
-
-		-
 			message: '#^Method Optml_Media_Offload\:\:get_image_id_from_content\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
