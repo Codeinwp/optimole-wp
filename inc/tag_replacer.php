@@ -447,6 +447,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		}
 		$pattern = '/(?<!\/)' . preg_quote( $original_url, '/' ) . '/i';
 		$replace = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
+		$replace = $this->to_literal_replacement( $replace );
 
 		// Get image ID for srcset enhancement
 		$image_id = $this->get_id_by_url( $original_url );

@@ -635,4 +635,23 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 
 		$skip_limit->setValue( null, null );
 	}
+
+	public function test_lazyload_url_dollar_sequences_stay_inside_attribute_value(): void {
+		$url     = '\/\/i0.wp.com\/x\u00241x\u00241onerror\u003dalert\u0028document.domain\u0029.jpg';
+		$content = "<img alt='src= " . $url . ' src=' . $url . "' src='https://secure.gravatar.com/avatar/abc.jpg?s=50' class='avatar' height='50' width='50' />";
+
+		$skip_limit = new ReflectionProperty( Optml_Lazyload_Replacer::class, 'skip_lazyload_images' );
+		$skip_limit->setAccessible( true );
+		$skip_limit->setValue( null, 0 );
+		try {
+			$replaced = Optml_Manager::instance()->process_images_from_content( $content );
+		} finally {
+			$skip_limit->setValue( null, null );
+		}
+
+		$tag = new WP_HTML_Tag_Processor( $replaced );
+		$this->assertTrue( $tag->next_tag( 'img' ) );
+		$this->assertNull( $tag->get_attribute( 'onerror' ) );
+		$this->assertStringContainsString( 'x$1x$1onerror=alert(document.domain).jpg', (string) $tag->get_attribute( 'alt' ) );
+	}
 }

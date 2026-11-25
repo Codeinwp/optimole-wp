@@ -975,4 +975,13 @@ class Test_Replacer extends WP_UnitTestCase {
 
 		$this->assertSame( $content, $replaced );
 	}
+
+	public function test_slashed_image_url_dollar_sequences_are_kept_literally(): void {
+		$content = '<img src=\"https:\/\/example.org\/wp-content\/uploads\/x\u00240y\u00241.jpg\">';
+
+		$replaced = Optml_Manager::instance()->process_images_from_content( $content );
+
+		$this->assertStringContainsString( 'optimole.com', $replaced );
+		$this->assertStringContainsString( 'x$0y$1.jpg', $replaced );
+	}
 }
