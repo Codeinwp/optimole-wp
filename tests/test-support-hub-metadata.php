@@ -30,9 +30,11 @@ class Test_Support_Hub_Metadata extends WP_UnitTestCase {
 		$settings->update( 'service_data', array( 'cdn_key' => 'k', 'cdn_secret' => 's', 'plan' => 'business' ) );
 		$meta = apply_filters( 'optimole_wp_support_hub_metadata', array() );
 		$this->assertTrue( $meta['is_pro'], 'a connected paid plan is pro' );
-		$this->assertSame( 'groups', $meta['links'][0]['icon'] );
-		$this->assertNotEmpty( $meta['links'][0]['text'] );
-		$this->assertNotEmpty( $meta['links'][0]['url'] );
+		$this->assertSame( 'friends@optimole.com', $meta['support_email'] );
+		$this->assertSame( array( 'book-alt', 'groups' ), array_column( $meta['links'], 'icon' ) );
+		$this->assertStringStartsWith( 'https://docs.optimole.com/?', $meta['links'][0]['url'] );
+		$this->assertStringContainsString( 'utm_campaign=supporthub', $meta['links'][0]['url'] );
+		$this->assertSame( 'https://wordpress.org/support/plugin/optimole-wp/', $meta['links'][1]['url'] );
 
 		$settings->update( 'service_data', array( 'cdn_key' => 'k', 'cdn_secret' => 's', 'plan' => 'free' ) );
 		$this->assertFalse( apply_filters( 'optimole_wp_support_hub_metadata', array() )['is_pro'], 'a free plan is not pro' );

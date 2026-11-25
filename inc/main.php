@@ -202,9 +202,9 @@ final class Optml_Main {
 	}
 
 	/**
-	 * Opt in to the SDK Support Hub: the links shown in the Help form.
+	 * Opt in to the SDK Support Hub: the Help form links and its mailto fallback.
 	 *
-	 * @return array{is_pro: bool, links: array<int, array{icon: string, text: string, url: string}>}
+	 * @return array{is_pro: bool, support_email: string, links: array<int, array{icon: string, text: string, url: string}>}
 	 */
 	public static function add_support_hub_metadata() {
 		$is_pro = false;
@@ -214,8 +214,15 @@ final class Optml_Main {
 		}
 
 		return [
-			'is_pro' => $is_pro,
-			'links'  => [
+			'is_pro'        => $is_pro,
+			// The mailto fallback: Optimole users write to this address.
+			'support_email' => 'friends@optimole.com',
+			'links'         => [
+				[
+					'icon' => 'book-alt',
+					'text' => __( 'Documentation', 'optimole-wp' ),
+					'url'  => Optml_Admin::docs_url( '', 'supporthub', 'help' ),
+				],
 				[
 					'icon' => 'groups',
 					'text' => __( 'Community Forum', 'optimole-wp' ),
