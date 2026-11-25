@@ -64,7 +64,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * How many numbered file names are tried for an image whose own name is taken, before it is left local.
 	 */
-	const OFFLOAD_NAME_ATTEMPTS = 100;
+	const OFFLOAD_NAME_ATTEMPTS = 20;
 
 	/**
 	 * Post meta holding the file a rollback moved into uploads before the attachment was updated to it.
@@ -121,6 +121,18 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @var array<string, array{file: string, alias: string}>
 	 */
 	private static $renamed_uploads = [];
+	/**
+	 * The attachment whose file a rollback is bringing back, which may keep its own file name; 0 when none is.
+	 *
+	 * @var int
+	 */
+	private static $restored_attachment = 0;
+	/**
+	 * Whether a file name for an upload is being looked for, which asks WordPress for names in turn.
+	 *
+	 * @var bool
+	 */
+	private static $is_naming_upload = false;
 	/**
 	 * The upload whose offload is running under its deduplicated name, if any: the same key and names.
 	 *
@@ -206,7 +218,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				}
 				add_filter( 'wp_get_attachment_url', [ self::$instance, 'get_image_attachment_url' ], - 999, 2 );
 				add_filter( 'wp_insert_post_data', [ self::$instance, 'filter_uploaded_images' ] );
-				add_filter( 'wp_unique_filename', [ self::$instance, 'get_unique_upload_name' ], 10, 3 );
+				add_filter( 'wp_unique_filename', [ __CLASS__, 'get_unique_upload_name' ], 10, 3 );
 
 				self::$instance->add_new_actions();
 
@@ -218,7 +230,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				add_filter( 'wp_calculate_image_srcset', [ self::$instance, 'calculate_image_srcset' ], 1, 5 );
 				add_action( 'post_updated', [ self::$instance, 'update_offload_meta' ], 10, 3 );
 
-				// Local uploads keep WordPress's own filename deduplication.
+				// Local uploads keep the file name WordPress gives them, which get_unique_upload_name() keeps apart
+				// from the names of the other attachments.
 				if ( $offload_new_uploads ) {
 					// Backwards compatibility for older versions of WordPress < 6.0.0 requiring 3 parameters for this specific filter.
 					$below_6_0_0 = version_compare( get_bloginfo( 'version' ), '6.0.0', '<' );
@@ -378,9 +391,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$directory = '.' === dirname( $stored_file ) ? '' : dirname( $stored_file ) . '/';
 		// An image WordPress scaled is offloaded from its original, under the original's name.
 		$uploaded_name = $this->maybe_strip_scaled( basename( $stored_file ) );
-		// The copies of the image in other languages share its file.
-		$own_ids = array_merge( [ $attachment_id ], array_map( 'intval', (array) apply_filters( 'optml_offload_duplicated_images', [], $attachment_id ) ) );
-		$name    = $this->get_free_file_name( $own_ids, $directory, [ $kept_name, $uploaded_name ], $uploaded_name );
+		$name = $this->get_free_file_name( self::get_file_owner_ids( $attachment_id ), $directory, $kept_name, $uploaded_name );
 		if ( $name === $uploaded_name ) {
 			$meta = $this->offload_image( $meta, $attachment_id );
 		} elseif ( null === $name || basename( $stored_file ) !== $uploaded_name ) {
@@ -447,53 +458,83 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @param string $extension Its extension, with the dot.
 	 * @param string $directory The directory the file goes to.
 	 *
-	 * @return string The name, or the name with the first free number when it is taken.
+	 * @return string The name, or the first numbered name that is free when it is taken.
 	 * @uses filter:wp_unique_filename
 	 */
-	public function get_unique_upload_name( $filename, $extension, $directory ) {
-		$file = _wp_relative_upload_path( trailingslashit( $directory ) . $filename );
-		// A file outside the uploads directory is not the stored file of an attachment.
-		if ( path_is_absolute( $file ) ) {
+	public static function get_unique_upload_name( $filename, $extension, $directory ) {
+		$uploads_directory = trailingslashit( wp_get_upload_dir()['basedir'] );
+		$folder            = trailingslashit( $directory );
+		// Only a file inside the uploads directory is offloaded. The names asked for below come back through this filter.
+		if ( self::$is_naming_upload || 0 !== strpos( $folder, $uploads_directory ) ) {
 			return $filename;
 		}
 
-		$folder = '.' === dirname( $file ) ? '' : dirname( $file ) . '/';
+		$stored_folder = substr( $folder, strlen( $uploads_directory ) );
+		$own_ids       = self::$restored_attachment > 0 ? self::get_file_owner_ids( self::$restored_attachment ) : [];
+		$base_name     = '' === $extension ? $filename : substr( $filename, 0, -strlen( $extension ) );
+		$name          = $filename;
 
-		return $this->get_free_file_name( [], $folder, [], $filename ) ?? $filename;
+		self::$is_naming_upload = true;
+		try {
+			for ( $number = 2; $number <= 2 + self::OFFLOAD_NAME_ATTEMPTS && self::is_stored_file_of_another_attachment( $own_ids, $stored_folder . $name ); $number++ ) {
+				// WordPress checks each numbered name on the disk as it checked the first one. When no number is
+				// left, the name gets an ending that is not in use.
+				$ending = $number < 2 + self::OFFLOAD_NAME_ATTEMPTS ? (string) $number : uniqid();
+				$name   = wp_unique_filename( $directory, $base_name . '-' . $ending . $extension );
+			}
+		} finally {
+			self::$is_naming_upload = false;
+		}
+
+		return $name;
 	}
 
 	/**
-	 * Find a file name no other attachment is stored under and no other file on disk has.
+	 * Get the attachments that have the file of an attachment as their own.
 	 *
-	 * An offloaded image is kept in the cloud by its URL and its local files are removed, so nothing on the disk
-	 * tells that its name is in use.
+	 * @param int $attachment_id Attachment ID.
 	 *
-	 * @param int[]    $own_ids      The attachments whose own file this is.
-	 * @param string   $directory    The file's folder inside the uploads directory, with a trailing slash, or empty.
-	 * @param string[] $wanted_names The names to use before the file's own, in order; an empty one is skipped.
-	 * @param string   $own_name     The name of the file itself.
+	 * @return int[] The attachment, and its copies in other languages that are stored under the same file.
+	 */
+	private static function get_file_owner_ids( int $attachment_id ): array {
+		$stored_file = get_post_meta( $attachment_id, '_wp_attached_file', true );
+		$copy_ids    = array_filter(
+			array_map( 'intval', (array) apply_filters( 'optml_offload_duplicated_images', [], $attachment_id ) ),
+			static function ( int $copy_id ) use ( $stored_file ): bool {
+				return get_post_meta( $copy_id, '_wp_attached_file', true ) === $stored_file;
+			}
+		);
+
+		return array_merge( [ $attachment_id ], $copy_ids );
+	}
+
+	/**
+	 * Find a file name an image can be offloaded under: one no other attachment is stored under and no other file
+	 * on disk has.
 	 *
-	 * @return string|null A wanted name, else the file's own name, else that name with the first free number; null
+	 * @param int[]  $own_ids     The attachments whose own file this is.
+	 * @param string $directory   The file's folder inside the uploads directory, with a trailing slash, or empty.
+	 * @param string $wanted_name The name to use before the file's own; empty when there is none.
+	 * @param string $own_name    The name of the file itself.
+	 *
+	 * @return string|null The wanted name, else the file's own name, else that name with the first free number; null
 	 *                     when none of them is free.
 	 */
-	private function get_free_file_name( array $own_ids, string $directory, array $wanted_names, string $own_name ): ?string {
+	private function get_free_file_name( array $own_ids, string $directory, string $wanted_name, string $own_name ): ?string {
 		$extension = pathinfo( $own_name, PATHINFO_EXTENSION );
 		$base_name = '' === $extension ? $own_name : substr( $own_name, 0, -strlen( $extension ) - 1 );
 		$suffix    = '' === $extension ? '' : '.' . $extension;
-		$names     = array_merge( $wanted_names, [ $own_name ] );
+		$names     = '' === $wanted_name ? [ $own_name ] : [ $wanted_name, $own_name ];
 		// Numbered as WordPress numbers the slug of a second upload of the same name.
 		for ( $number = 2; $number < 2 + self::OFFLOAD_NAME_ATTEMPTS; $number++ ) {
 			$names[] = $base_name . '-' . $number . $suffix;
 		}
 
 		foreach ( array_unique( $names ) as $name ) {
-			// No name is wanted, or the name ends in "-scaled" and would be offloaded without that ending, as another name.
-			if ( '' === $name || ( $name !== $own_name && $this->maybe_strip_scaled( $name ) !== $name ) ) {
-				continue;
-			}
-			// The file itself is on the disk under its own name, or about to be.
+			// The file itself is on the disk under its own name.
 			$is_on_disk = $name !== $own_name && file_exists( wp_get_upload_dir()['basedir'] . '/' . $directory . $name );
-			if ( ! $is_on_disk && ! self::is_stored_file_of_another_attachment( $own_ids, $directory . $name ) ) {
+			// A name that ends in "-scaled" is offloaded without that ending, and the lookup of that name covers both.
+			if ( ! $is_on_disk && ! self::is_stored_file_of_another_attachment( $own_ids, $directory . $this->maybe_strip_scaled( $name ) ) ) {
 				return $name;
 			}
 		}
@@ -1279,11 +1320,16 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 			// A file left behind by an interrupted attempt is replaced in place: a new sideload would get a
 			// suffixed name, and deleting it first would leave the attachment without a file if the move fails.
-			$pending = self::get_pending_rollback_file( $id );
-			$results = null !== $pending
-				? self::replace_pending_rollback_file( $pending, $temp_file, $type )
-				// Move the temporary file into the uploads directory.
-				: wp_handle_sideload( $file, $overrides, get_the_date( 'Y/m', $id ) );
+			$pending                    = self::get_pending_rollback_file( $id );
+			self::$restored_attachment = (int) $id;
+			try {
+				$results = null !== $pending
+					? self::replace_pending_rollback_file( $pending, $temp_file, $type )
+					// Move the temporary file into the uploads directory.
+					: wp_handle_sideload( $file, $overrides, get_the_date( 'Y/m', $id ) );
+			} finally {
+				self::$restored_attachment = 0;
+			}
 			if ( ! empty( $results['error'] ) ) {
 				if ( OPTML_DEBUG_MEDIA ) {
 					do_action( 'optml_log', ' wp_handle_sideload error' );

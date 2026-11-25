@@ -490,9 +490,15 @@ class Test_Media extends WP_UnitTestCase {
 		$image    = file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' );
 		$first    = wp_upload_bits( 'optml-taken.jpg', null, $image );
 		$first_id = $this->insert_uploaded_image( $first );
-		// The file name and the slug of the second upload make up the first image's file name.
+		// The file name and the slug of the second upload make up the first image's file name. The first image is
+		// also given as the second one's copy in another language, with a file of its own.
+		$copies = static function () use ( $first_id ) {
+			return [ $first_id ];
+		};
+		add_filter( 'optml_offload_duplicated_images', $copies );
 		$second    = wp_upload_bits( 'optml-ta.jpg', null, $image );
 		$second_id = $this->insert_uploaded_image( $second, [ 'post_name' => 'ken' ] );
+		remove_filter( 'optml_offload_duplicated_images', $copies );
 
 		$this->assertStringEndsWith( '/optml-ta.jpg', wp_get_attachment_metadata( $second_id )['file'] );
 		$this->assertSame( $second['file'], get_attached_file( $second_id, true ) );
@@ -552,13 +558,19 @@ class Test_Media extends WP_UnitTestCase {
 	public function test_upload_does_not_get_the_file_name_of_an_offloaded_image(): void {
 		$this->delete_uploads( 'optml-again*.jpg' );
 		$image = file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' );
-		$first = wp_upload_bits( 'optml-again.jpg', null, $image );
-		$this->insert_uploaded_image( $first );
-		// A file that belongs to no attachment has the first numbered name.
+		$first    = wp_upload_bits( 'optml-again.jpg', null, $image );
+		$first_id = $this->insert_uploaded_image( $first );
+		// A file that belongs to no attachment has the first numbered name, which WordPress numbers in its own way.
 		file_put_contents( dirname( $first['file'] ) . '/optml-again-2.jpg', $image );
 
 		$this->assertFalse( file_exists( $first['file'] ) );
-		$this->assertSame( dirname( $first['file'] ) . '/optml-again-3.jpg', wp_upload_bits( 'optml-again.jpg', null, $image )['file'] );
+		$this->assertSame( dirname( $first['file'] ) . '/optml-again-2-1.jpg', wp_upload_bits( 'optml-again.jpg', null, $image )['file'] );
+		$this->delete_uploads( 'optml-again-*.jpg' );
+
+		// The image itself comes back under its own name.
+		Optml_Media_Offload::instance()->rollback_and_update_images( [ $first_id ] );
+
+		$this->assertSame( $first['file'], get_attached_file( $first_id, true ) );
 		$this->delete_uploads( 'optml-again*.jpg' );
 
 		// A file outside the uploads directory is not looked up among the attachments.
@@ -566,6 +578,38 @@ class Test_Media extends WP_UnitTestCase {
 		wp_unique_filename( get_temp_dir(), 'optml-again.jpg' );
 
 		$this->assertSame( $queries, get_num_queries() );
+	}
+
+	public function test_upload_gets_a_free_file_name_when_no_number_is_left(): void {
+		$this->delete_uploads( 'optml-many*.jpg' );
+		$folder = ltrim( wp_upload_dir()['subdir'], '/' );
+		$taken  = [];
+		// Other attachments are stored under the file name and under each of the 20 numbered names that are tried.
+		foreach ( array_merge( [ '' ], range( 2, 21 ) ) as $number ) {
+			$taken[] = 'optml-many' . ( '' === $number ? '' : '-' . $number ) . '.jpg';
+			update_post_meta( self::factory()->attachment->create(), '_wp_attached_file', $folder . '/' . end( $taken ) );
+		}
+		$upload = wp_upload_bits( 'optml-many.jpg', null, 'not an image' );
+
+		$this->assertNotContains( basename( $upload['file'] ), $taken );
+		$this->assertStringStartsWith( 'optml-many-', basename( $upload['file'] ) );
+		unlink( $upload['file'] );
+	}
+
+	public function test_two_scaled_images_of_one_file_name_are_both_offloaded(): void {
+		$this->delete_uploads( 'optml-wide*.jpg' );
+		// Wider than the size from which WordPress attaches a scaled copy.
+		ob_start();
+		imagejpeg( imagecreatetruecolor( 2600, 20 ) );
+		$image     = ob_get_clean();
+		$first_id  = $this->insert_uploaded_image( wp_upload_bits( 'optml-wide.jpg', null, $image ) );
+		$second_id = $this->insert_uploaded_image( wp_upload_bits( 'optml-wide.jpg', null, $image ) );
+
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $first_id )['file'] ) );
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $second_id )['file'] ) );
+		$this->assertStringEndsWith( '/optml-wide-scaled.jpg', get_attached_file( $first_id, true ) );
+		$this->assertStringEndsWith( '/optml-wide-2-scaled.jpg', get_attached_file( $second_id, true ) );
+		$this->assertNotSame( wp_get_attachment_metadata( $first_id )['file'], wp_get_attachment_metadata( $second_id )['file'] );
 	}
 
 	public function test_deduplicated_name_that_is_offloaded_as_the_name_of_another_image_is_not_used(): void {
@@ -586,8 +630,8 @@ class Test_Media extends WP_UnitTestCase {
 		$this->delete_uploads( 'optml-full*.jpg' );
 		$upload = wp_upload_bits( 'optml-full.jpg', null, file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' ) );
 		$folder = dirname( _wp_relative_upload_path( $upload['file'] ) );
-		// Other attachments are stored under the upload's file name and under each of the 100 numbered names that are tried.
-		foreach ( array_merge( [ '' ], range( 2, 101 ) ) as $number ) {
+		// Other attachments are stored under the upload's file name and under each of the 20 numbered names that are tried.
+		foreach ( array_merge( [ '' ], range( 2, 21 ) ) as $number ) {
 			update_post_meta( self::factory()->attachment->create(), '_wp_attached_file', $folder . '/optml-full' . ( '' === $number ? '' : '-' . $number ) . '.jpg' );
 		}
 		$attachment_id = $this->insert_uploaded_image( $upload, [ 'post_title' => 'optml-full-x' ] );
