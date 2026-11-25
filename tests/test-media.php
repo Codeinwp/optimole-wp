@@ -522,10 +522,7 @@ class Test_Media extends WP_UnitTestCase {
 
 	public function test_scaled_image_with_the_file_name_of_an_offloaded_image_stays_local(): void {
 		$this->delete_uploads( 'optml-large*.jpg' );
-		// Wider than the size from which WordPress attaches a scaled copy.
-		ob_start();
-		imagejpeg( imagecreatetruecolor( 2600, 20 ) );
-		$image     = ob_get_clean();
+		$image     = $this->wide_image();
 		$first     = wp_upload_bits( 'optml-large.jpg', null, $image );
 		$first_id  = $this->insert_uploaded_image( $first );
 		// As for an image that was added while uploads were not given a free file name.
@@ -568,14 +565,14 @@ class Test_Media extends WP_UnitTestCase {
 		$this->delete_uploads( 'optml-again-*.jpg' );
 
 		// The image itself comes back under its own name.
-		Optml_Media_Offload::instance()->rollback_and_update_images( [ $first_id ] );
-
+		$this->assertSame( 1, Optml_Media_Offload::instance()->rollback_and_update_images( [ $first_id ] ) );
+		$this->assertFileExists( $first['file'] );
 		$this->assertSame( $first['file'], get_attached_file( $first_id, true ) );
 		$this->delete_uploads( 'optml-again*.jpg' );
 
-		// A file outside the uploads directory is not looked up among the attachments.
+		// A file in a folder that only starts like the uploads directory is not looked up among the attachments.
 		$queries = get_num_queries();
-		wp_unique_filename( get_temp_dir(), 'optml-again.jpg' );
+		wp_unique_filename( wp_get_upload_dir()['basedir'] . '-backup', 'optml-again.jpg' );
 
 		$this->assertSame( $queries, get_num_queries() );
 	}
@@ -598,10 +595,7 @@ class Test_Media extends WP_UnitTestCase {
 
 	public function test_two_scaled_images_of_one_file_name_are_both_offloaded(): void {
 		$this->delete_uploads( 'optml-wide*.jpg' );
-		// Wider than the size from which WordPress attaches a scaled copy.
-		ob_start();
-		imagejpeg( imagecreatetruecolor( 2600, 20 ) );
-		$image     = ob_get_clean();
+		$image     = $this->wide_image();
 		$first_id  = $this->insert_uploaded_image( wp_upload_bits( 'optml-wide.jpg', null, $image ) );
 		$second_id = $this->insert_uploaded_image( wp_upload_bits( 'optml-wide.jpg', null, $image ) );
 
@@ -624,6 +618,13 @@ class Test_Media extends WP_UnitTestCase {
 
 		$this->assertStringEndsWith( '/optml-ca.jpg', wp_get_attachment_metadata( $second_id )['file'] );
 		$this->assertStringEndsWith( '/optml-cat.jpg', wp_get_attachment_metadata( $first_id )['file'] );
+
+		// When the name without the ending is free, the image is offloaded under it and stored with the ending.
+		$third    = wp_upload_bits( 'optml-cab.jpg', null, $image );
+		$third_id = $this->insert_uploaded_image( $third, [ 'post_name' => 'in-scaled' ] );
+
+		$this->assertStringEndsWith( '/optml-cabin.jpg', wp_get_attachment_metadata( $third_id )['file'] );
+		$this->assertSame( dirname( $third['file'] ) . '/optml-cabin-scaled.jpg', get_attached_file( $third_id, true ) );
 	}
 
 	public function test_image_stays_local_when_no_file_name_is_free(): void {
@@ -794,6 +795,16 @@ class Test_Media extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Build a JPEG that is wider than the size from which WordPress attaches a scaled copy.
+	 */
+	private function wide_image(): string {
+		ob_start();
+		imagejpeg( imagecreatetruecolor( 2600, 20 ) );
+
+		return (string) ob_get_clean();
+	}
+
+	/**
 	 * Store an upload under the file name WordPress alone gives it, which can be the name of an offloaded image.
 	 *
 	 * @param string $name  The file name.
@@ -805,9 +816,10 @@ class Test_Media extends WP_UnitTestCase {
 		$keep_name = static function () use ( $name ) {
 			return $name;
 		};
-		add_filter( 'wp_unique_filename', $keep_name, 11 );
+		// Added last, so it runs after the plugin's own filter of the same priority.
+		add_filter( 'wp_unique_filename', $keep_name, PHP_INT_MAX );
 		$upload = wp_upload_bits( $name, null, $bytes );
-		remove_filter( 'wp_unique_filename', $keep_name, 11 );
+		remove_filter( 'wp_unique_filename', $keep_name, PHP_INT_MAX );
 
 		return $upload;
 	}

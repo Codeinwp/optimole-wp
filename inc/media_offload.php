@@ -218,7 +218,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				}
 				add_filter( 'wp_get_attachment_url', [ self::$instance, 'get_image_attachment_url' ], - 999, 2 );
 				add_filter( 'wp_insert_post_data', [ self::$instance, 'filter_uploaded_images' ] );
-				add_filter( 'wp_unique_filename', [ __CLASS__, 'get_unique_upload_name' ], 10, 3 );
+				// After the filters of other plugins, so the name they settle on is the one that is checked.
+				add_filter( 'wp_unique_filename', [ __CLASS__, 'get_unique_upload_name' ], PHP_INT_MAX, 3 );
 
 				self::$instance->add_new_actions();
 
@@ -476,11 +477,13 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 
 		self::$is_naming_upload = true;
 		try {
-			for ( $number = 2; $number <= 2 + self::OFFLOAD_NAME_ATTEMPTS && self::is_stored_file_of_another_attachment( $own_ids, $stored_folder . $name ); $number++ ) {
-				// WordPress checks each numbered name on the disk as it checked the first one. When no number is
-				// left, the name gets an ending that is not in use.
-				$ending = $number < 2 + self::OFFLOAD_NAME_ATTEMPTS ? (string) $number : uniqid();
-				$name   = wp_unique_filename( $directory, $base_name . '-' . $ending . $extension );
+			for ( $number = 2; self::is_stored_file_of_another_attachment( $own_ids, $stored_folder . $name ); $number++ ) {
+				// No number is left, or another filter keeps giving the same name: the name gets an ending of its own.
+				if ( $number >= 2 + self::OFFLOAD_NAME_ATTEMPTS ) {
+					return $base_name . '-' . uniqid() . $extension;
+				}
+				// WordPress checks each numbered name on the disk as it checked the first one.
+				$name = wp_unique_filename( $directory, $base_name . '-' . $number . $extension );
 			}
 		} finally {
 			self::$is_naming_upload = false;
