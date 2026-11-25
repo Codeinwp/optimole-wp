@@ -280,6 +280,22 @@ class Test_Dam extends WP_UnitTestCase {
 		$this->assertStringContainsString( $expected, $result[0] );
 	}
 
+	public function test_dam_url_cache_token_is_inserted_literally(): void {
+		$previous_token = $this->settings->get( 'cache_buster_images' );
+		$this->settings->update( 'cache_buster_images', 'a$0b' );
+		Optml_Url_Replacer::instance()->init();
+
+		try {
+			$url = Optml_Url_Replacer::instance()->build_url( 'https://cloudUrlTest.test/dam:1/cb:old/w:auto/h:auto/q:auto/id:testId/https://test-site.test/9.jpg' );
+		} finally {
+			$this->settings->update( 'cache_buster_images', $previous_token );
+			Optml_Url_Replacer::instance()->init();
+		}
+
+		$this->assertStringContainsString( '/cb:a$0b/', $url );
+		$this->assertStringNotContainsString( '/cb:old/', $url );
+	}
+
 	public function test_alter_attachment_image_src() {
 		foreach ( $this->inserted_ids as $id ) {
 			$result = $this->dam->alter_attachment_image_src( false, $id, 'test_landscape', false );
