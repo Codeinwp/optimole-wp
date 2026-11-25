@@ -432,7 +432,8 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 
 		$this->assertStringContainsString( ' title="<img">', Optml_Manager::instance()->replace_content( $content ) );
 
-		// Markup that another filter wrapped in text.
+		// Markup that another filter wrapped in text, for a lazy-loaded image with its noscript copy.
+		Optml_Tag_Replacer::$lazyload_skipped_images = Optml_Lazyload_Replacer::get_skip_lazyload_limit();
 		$wrap = static function ( $tag ) {
 			return '<span>Featured ' . $tag . '</span>';
 		};
@@ -440,8 +441,7 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$wrapped_content = Optml_Manager::instance()->replace_content( $content );
 		remove_filter( 'optml_tag_replace', $wrap, 99 );
 
-		$this->assertSame( 1, substr_count( $wrapped_content, 'data-opt-id=' ) );
-		$this->assertStringContainsString( ' title="<img">', $wrapped_content );
+		$this->assertSame( 1, preg_match( '#^<span>Featured <img [^>]*data-opt-id=\d+ [^>]* title="<img"><noscript><img [^>]*data-opt-id=\d+ [^>]* title="<img"></noscript></span>$#', $wrapped_content ), $wrapped_content );
 	}
 
 	public function test_attributes_added_to_an_image_that_is_not_lazy_loaded_go_on_the_tag_only() {
