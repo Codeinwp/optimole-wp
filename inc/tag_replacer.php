@@ -358,7 +358,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			},
 			$image_tag
 		);
-		if ( 0 === $added ) {
+		// Quotes that do not pair up hide a tag inside the value they open: such markup is read as before.
+		if ( $added < (int) preg_match_all( '/(?:^|>)\s*<img\b/i', $image_tag ) ) {
 			$with_attribute = preg_replace( '/(^|>)(\s*)<img\b/i', '$1$2<img ' . $attribute, $image_tag );
 		}
 

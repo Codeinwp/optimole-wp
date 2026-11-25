@@ -206,6 +206,7 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 				}
 				add_filter( 'wp_get_attachment_url', [ self::$instance, 'get_image_attachment_url' ], - 999, 2 );
 				add_filter( 'wp_insert_post_data', [ self::$instance, 'filter_uploaded_images' ] );
+				add_filter( 'wp_unique_filename', [ self::$instance, 'get_unique_upload_name' ], 10, 3 );
 
 				self::$instance->add_new_actions();
 
@@ -377,11 +378,14 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		$directory = '.' === dirname( $stored_file ) ? '' : dirname( $stored_file ) . '/';
 		// An image WordPress scaled is offloaded from its original, under the original's name.
 		$uploaded_name = $this->maybe_strip_scaled( basename( $stored_file ) );
-		$name          = self::get_free_offload_name( $attachment_id, $directory, '' === $kept_name ? $uploaded_name : $kept_name, $uploaded_name );
+		// The copies of the image in other languages share its file.
+		$own_ids = array_merge( [ $attachment_id ], array_map( 'intval', (array) apply_filters( 'optml_offload_duplicated_images', [], $attachment_id ) ) );
+		$name    = $this->get_free_file_name( $own_ids, $directory, [ $kept_name, $uploaded_name ], $uploaded_name );
 		if ( $name === $uploaded_name ) {
 			$meta = $this->offload_image( $meta, $attachment_id );
 		} elseif ( null === $name || basename( $stored_file ) !== $uploaded_name ) {
-			// No free name, or a scaled copy is attached, which is not offloaded under another name: the image stays local.
+			// A scaled copy is offloaded from its original and under the original's name, so it cannot take another
+			// name: the image stays local, as it does when no name is free.
 			update_post_meta( $attachment_id, self::META_KEYS['offload_error'], 'true' );
 			self::$instance->logger->add_log( Optml_Logger::LOG_TYPE_OFFLOAD, 'Image ID: ' . $attachment_id . ' has the file name of another image.' );
 
@@ -435,33 +439,61 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	}
 
 	/**
-	 * Find a file name an image can be offloaded under.
+	 * Keep a new upload from getting the file name another attachment is stored under.
 	 *
-	 * An offloaded image is kept in the cloud by its URL and its local files are removed, so WordPress gives its
-	 * file name to the next upload of that name. The name must be one no other attachment is stored under.
+	 * WordPress looks for the name on the disk only, and an offloaded image has no local file any more.
 	 *
-	 * @param int    $attachment_id Attachment ID.
-	 * @param string $directory     The image's folder inside the uploads directory, with a trailing slash, or empty.
-	 * @param string $wanted_name   The name to use when it is free.
-	 * @param string $uploaded_name The name of the image's local file.
+	 * @param string $filename  The file name WordPress chose.
+	 * @param string $extension Its extension, with the dot.
+	 * @param string $directory The directory the file goes to.
 	 *
-	 * @return string|null The wanted name, else the local file's name, else that name with the first free number;
-	 *                     null when none of them is free.
+	 * @return string The name, or the name with the first free number when it is taken.
+	 * @uses filter:wp_unique_filename
 	 */
-	private static function get_free_offload_name( int $attachment_id, string $directory, string $wanted_name, string $uploaded_name ): ?string {
-		$extension = pathinfo( $uploaded_name, PATHINFO_EXTENSION );
-		$base_name = '' === $extension ? $uploaded_name : substr( $uploaded_name, 0, -strlen( $extension ) - 1 );
+	public function get_unique_upload_name( $filename, $extension, $directory ) {
+		$file = _wp_relative_upload_path( trailingslashit( $directory ) . $filename );
+		// A file outside the uploads directory is not the stored file of an attachment.
+		if ( path_is_absolute( $file ) ) {
+			return $filename;
+		}
+
+		$folder = '.' === dirname( $file ) ? '' : dirname( $file ) . '/';
+
+		return $this->get_free_file_name( [], $folder, [], $filename ) ?? $filename;
+	}
+
+	/**
+	 * Find a file name no other attachment is stored under and no other file on disk has.
+	 *
+	 * An offloaded image is kept in the cloud by its URL and its local files are removed, so nothing on the disk
+	 * tells that its name is in use.
+	 *
+	 * @param int[]    $own_ids      The attachments whose own file this is.
+	 * @param string   $directory    The file's folder inside the uploads directory, with a trailing slash, or empty.
+	 * @param string[] $wanted_names The names to use before the file's own, in order; an empty one is skipped.
+	 * @param string   $own_name     The name of the file itself.
+	 *
+	 * @return string|null A wanted name, else the file's own name, else that name with the first free number; null
+	 *                     when none of them is free.
+	 */
+	private function get_free_file_name( array $own_ids, string $directory, array $wanted_names, string $own_name ): ?string {
+		$extension = pathinfo( $own_name, PATHINFO_EXTENSION );
+		$base_name = '' === $extension ? $own_name : substr( $own_name, 0, -strlen( $extension ) - 1 );
 		$suffix    = '' === $extension ? '' : '.' . $extension;
-		$names     = [ $wanted_name, $uploaded_name ];
+		$names     = array_merge( $wanted_names, [ $own_name ] );
 		// Numbered as WordPress numbers the slug of a second upload of the same name.
 		for ( $number = 2; $number < 2 + self::OFFLOAD_NAME_ATTEMPTS; $number++ ) {
 			$names[] = $base_name . '-' . $number . $suffix;
 		}
 
 		foreach ( array_unique( $names ) as $name ) {
-			// The image's own file is on the disk under its own name.
-			$is_on_disk = $name !== $uploaded_name && file_exists( wp_get_upload_dir()['basedir'] . '/' . $directory . $name );
-			if ( ! $is_on_disk && ! self::is_stored_file_of_another_attachment( $attachment_id, $directory . $name ) ) {
+			// No name is wanted, or the name ends in "-scaled" and would be offloaded without that ending, as another name.
+			if ( '' === $name || ( $name !== $own_name && $this->maybe_strip_scaled( $name ) !== $name ) ) {
+				continue;
+			}
+			// The file itself is on the disk under its own name, or about to be.
+			$is_on_disk = $name !== $own_name && file_exists( wp_get_upload_dir()['basedir'] . '/' . $directory . $name );
+			if ( ! $is_on_disk && ! self::is_stored_file_of_another_attachment( $own_ids, $directory . $name ) ) {
 				return $name;
 			}
 		}
@@ -472,19 +504,19 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	/**
 	 * Tell if another attachment is stored under a file, or under the copy WordPress scaled from it.
 	 *
-	 * @param int    $attachment_id Attachment ID.
-	 * @param string $file          The file, relative to the uploads directory.
+	 * @param int[]  $own_ids The attachments that are not another one.
+	 * @param string $file    The file, relative to the uploads directory.
 	 *
 	 * @return bool
 	 */
-	private static function is_stored_file_of_another_attachment( int $attachment_id, string $file ): bool {
+	private static function is_stored_file_of_another_attachment( array $own_ids, string $file ): bool {
 		$extension   = pathinfo( $file, PATHINFO_EXTENSION );
 		$scaled_copy = '' === $extension ? $file . '-scaled' : substr( $file, 0, -strlen( $extension ) - 1 ) . '-scaled.' . $extension;
 		$attachments = get_posts(
 			[
 				'post_type'              => 'attachment',
 				'post_status'            => array_keys( get_post_stati() ),
-				'post__not_in'           => [ $attachment_id ],
+				'post__not_in'           => $own_ids,
 				'posts_per_page'         => 1,
 				'fields'                 => 'ids',
 				'no_found_rows'          => true,
@@ -495,6 +527,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 						'key'     => '_wp_attached_file',
 						'value'   => [ $file, $scaled_copy ],
 						'compare' => 'IN',
+						// Paths that differ in letter case are different files and different URLs.
+						'type'    => 'BINARY',
 					],
 				],
 			]
