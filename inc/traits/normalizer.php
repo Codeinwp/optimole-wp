@@ -95,6 +95,19 @@ trait Optml_Normalizer {
 	}
 
 	/**
+	 * Escape a value for a preg_replace() replacement, so `$n` and `\n` stay literal.
+	 *
+	 * `\\` still becomes `\`, as before: double-slashed JSON URLs rely on it.
+	 *
+	 * @param string $value Replacement text.
+	 *
+	 * @return string Escaped replacement.
+	 */
+	public function to_literal_replacement( string $value ): string {
+		return addcslashes( str_replace( '\\\\', '\\', $value ), '\\$' );
+	}
+
+	/**
 	 * Normalize value to positive integer.
 	 *
 	 * @param mixed $value Value to process.

@@ -64,6 +64,13 @@ class Test_Video_Tag extends WP_UnitTestCase {
         $this->assertStringContainsString( '/f:mp4', $replaced_content );
         $this->assertStringContainsString( 'https://www.example.org', $replaced_content );
       }
+    public function test_should_replace_only_the_tag_name () {
+
+        $replaced_content = Optml_Manager::instance()->process_images_from_content( '<img title="<img" src="https://www.example.org/wp-content/uploads/2018/05/brands.gif"/>' );
+
+        $this->assertStringStartsWith( '<video autoplay muted loop playsinline poster="', $replaced_content );
+        $this->assertStringContainsString( ' title="<img" ', $replaced_content );
+    }
     public function test_should_not_replace_tag () {
 
         $replaced_content = Optml_Manager::instance()->process_images_from_content( self::IMG_TAGS_NOT_GIF );

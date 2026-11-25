@@ -31,6 +31,26 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 
 	const SVG_PLACEHOLDER = 'data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%20#width#%20#height#%22%20width%3D%22#width#%22%20height%3D%22#height#%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22#width#%22%20height%3D%22#height#%22%20fill%3D%22#fill#%22%2F%3E%3C%2Fsvg%3E';
 	/**
+	 * What precedes a start tag attribute: whitespace or, as browsers allow, directly a quoted value.
+	 */
+	private const TAG_ATTRIBUTE_SEPARATOR = '(?:\s+|(?<=["\']))';
+	/**
+	 * One start tag attribute with its separator.
+	 *
+	 * A quoted value is matched whole, so text inside it is never read as an attribute. An iframe whose
+	 * attribute value starts with a backslash is not matched, so JSON-escaped iframe markup is left as written.
+	 */
+	private const TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s"\'>\\\\][^\s>]*))?';
+	/**
+	 * An unquoted image tag attribute value. It does not start with a backslash, which begins an escape in
+	 * JSON-encoded markup.
+	 */
+	private const IMAGE_TAG_UNQUOTED_VALUE = '[^\s"\'>\\\\][^\s>]*';
+	/**
+	 * One image tag attribute with its separator, whose value may be JSON-escaped, with quotes written as \" or \'.
+	 */
+	private const IMAGE_TAG_ATTRIBUTE = self::TAG_ATTRIBUTE_SEPARATOR . '[^\s"\'>\/=\\\\]+(?:\s*=\s*(?:"[^"]*"|\'[^\']*\'|\\\\"[^"]*?\\\\"|\\\\\'[^\']*?\\\\\'|' . self::IMAGE_TAG_UNQUOTED_VALUE . '))?';
+	/**
 	 * If frame lazyload is present on page.
 	 *
 	 * @var bool Whether or not at least one iframe has been lazyloaded.
@@ -271,22 +291,32 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			);
 		}
 
+		$loading = [];
+		// Most tags do not hold the word at all, and need no pattern.
+		$has_loading = stripos( $new_tag, 'loading' ) !== false && preg_match( $this->image_attribute_pattern( 'loading' ), $new_tag, $loading ) === 1;
+		// Only a quoted value that is not JSON-escaped is changed; any other loading attribute is kept as written.
+		$after_loading = ( $loading[3] ?? '' ) !== '' ? substr( $new_tag, strlen( $loading[0] ) ) : null;
+
 		if ( self::instance()->settings->get( 'native_lazyload' ) === 'enabled' ) {
-			// First check if loading attribute already exists
-			if ( strpos( $new_tag, 'loading=' ) !== false ) {
-				// Replace existing loading attribute with lazy
-				$loading_attr = $is_slashed ? 'loading=\"lazy\"' : 'loading="lazy"';
-				$new_tag = preg_replace( '/loading=(["\'])[^"\']*\1/i', $loading_attr, $new_tag );
-			} else {
+			if ( ! $has_loading ) {
 				// No loading attribute exists, add it after <img
 				$loading_attr = $is_slashed ? ' loading=\"lazy\"' : ' loading="lazy"';
-				$new_tag = preg_replace( '/<img/i', '<img' . $loading_attr, $new_tag, 1 );
+
+				return preg_replace( '/<img/i', '<img' . $loading_attr, $new_tag, 1 );
 			}
-			return $new_tag;
+			if ( null === $after_loading ) {
+				return $new_tag;
+			}
+			// The value keeps the quote it was written with, which stays valid where the markup is JSON-encoded.
+			$quote = $loading[3][0];
+
+			return $loading[1] . $loading[2] . 'loading=' . $quote . 'lazy' . $quote . $after_loading;
 		}
 
-		// we remove the loading attribute if it exists with strpos
-		$new_tag = preg_replace( '/loading=(["\'])[^"\']*\1/i', '', $new_tag );
+		// we remove the loading attribute if it exists
+		if ( null !== $after_loading ) {
+			$new_tag = $loading[1] . $loading[2] . $after_loading;
+		}
 
 		$should_ignore_rescale = ! $this->is_valid_mimetype_from_url( $original_url, [ 'gif' => true, 'svg' => true ] );
 
@@ -343,16 +373,27 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				'/<img/im',
 			],
 			[
-				"$1$low_url",
-				'<img' . $opt_src,
+				'$1' . $this->to_literal_replacement( $low_url ),
+				'<img' . $this->to_literal_replacement( $opt_src ),
 			],
 			$new_tag,
 			1
 		);
 
 		// We remove srcset and sizes attributes since our lazyload does not need them.
-		$pattern = '/\s+(?:srcset|sizes)=("[^"]*"|\'[^\']*\'|\\\\"[^\\\\"]*\\\\")/i';
-		$new_tag = preg_replace( $pattern, '', $new_tag );
+		foreach ( [ 'srcset', 'sizes' ] as $attribute ) {
+			if ( stripos( $new_tag, $attribute ) !== false ) {
+				$new_tag = preg_replace_callback(
+					$this->image_attribute_pattern( $attribute ),
+					static function ( $attribute_match ) {
+						// An unquoted value is left as written.
+						return isset( $attribute_match[3] ) ? $attribute_match[1] : $attribute_match[0];
+					},
+					$new_tag,
+					1
+				) ?? $new_tag;
+			}
+		}
 
 		// We keep this for srcset lazyload compatibility that might break our mechanism.
 		$new_tag = str_replace( 'srcset=', 'old-srcset=', $new_tag );
@@ -362,6 +403,27 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		}
 
 		return $new_tag . '<noscript>' . $no_script_tag . '</noscript>';
+	}
+	/**
+	 * Build the pattern that finds an attribute of an image tag.
+	 *
+	 * Every attribute before it is matched whole, so the same text inside another attribute's value is not taken
+	 * for the attribute. Group 1 is the tag up to the attribute's separator and group 2 the separator. Group 3 is
+	 * the value when it is quoted, and group 4 when it is JSON-escaped: double-quoted with no backslash inside.
+	 * Neither is set for an unquoted value.
+	 *
+	 * @param string $name Attribute name.
+	 *
+	 * @return string The pattern.
+	 */
+	private function image_attribute_pattern( string $name ): string {
+		static $patterns = [];
+
+		if ( ! isset( $patterns[ $name ] ) ) {
+			$patterns[ $name ] = '#^((?:<noscript\s*>\s*)?<img(?>(?:(?!\s*' . $name . '\s*=)' . self::IMAGE_TAG_ATTRIBUTE . ')*))(' . self::TAG_ATTRIBUTE_SEPARATOR . ')' . $name . '\s*=\s*(?:("[^"]*"|\'[^\']*\')|(\\\\"[^\\\\"]*\\\\")|' . self::IMAGE_TAG_UNQUOTED_VALUE . ')#i';
+		}
+
+		return $patterns[ $name ];
 	}
 	/**
 	 * Replaces video embeds with lazyload embeds.
@@ -374,14 +436,16 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$video_tags = [];
 		$iframes = [];
 		$videos = [];
-		preg_match_all( '#(?:<noscript\s*>\s*)?<iframe(.*?)></iframe>(?:\s*</noscript\s*>)?#is', $content, $iframes );
+		// Only iframes with no fallback content; one with fallback text is left as written.
+		preg_match_all( '#(?:<noscript\s*>\s*)?<iframe(?>(?:' . self::TAG_ATTRIBUTE . ')*)\s*/?></iframe>(?:\s*</noscript\s*>)?#i', $content, $iframes );
 		preg_match_all( '#(?:<noscript\s*>\s*)?<video(.*?)>.*?</video>(?:\s*</noscript\s*>)?#is', $content, $videos );
+		$iframe_count = count( $iframes[0] );
 		$video_tags = array_merge( $iframes[0], $videos[0] );
 
 		$search = [];
 		$replace = [];
 
-		foreach ( $video_tags as $video_tag ) {
+		foreach ( $video_tags as $index => $video_tag ) {
 
 			if ( ! $this->should_lazyload_iframe( $video_tag ) ) {
 				continue;
@@ -389,23 +453,12 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 			if ( preg_match( "/ data-opt-src=['\"]/is", $video_tag ) ) {
 				continue;
 			}
-			$should_add_noscript = true;
 			$original_tag = $video_tag;
-			// replace the src and add the data-opt-src attribute
-			if ( strpos( $video_tag, 'iframe' ) !== false ) {
-				$video_tag = preg_replace( '/iframe(.*?)src=/is', 'iframe$1 src="about:blank" data-opt-src=', $video_tag );
-			} elseif ( strpos( $video_tag, 'video' ) !== false ) {
-				if ( strpos( $video_tag, 'source' ) !== false ) {
-					if ( strpos( $video_tag, 'preload' ) === false ) {
-						$video_tag = preg_replace( '/video(.*?)>/is', 'video$1 preload="metadata">', $video_tag, 1 );
-						$should_add_noscript = false;
-					} else {
-						continue;
-					}
-				} else {
-					$video_tag = preg_replace( '/video(.*?)src=/is', 'video$1 data-opt-src=', $video_tag );
-				}
+			$lazyloaded = $this->lazyload_media_element( $video_tag, $index < $iframe_count );
+			if ( null === $lazyloaded ) {
+				continue;
 			}
+			list( $video_tag, $should_add_noscript ) = $lazyloaded;
 			if ( $this->should_add_noscript( $video_tag ) && $should_add_noscript ) {
 				$video_tag .= '<noscript>' . $original_tag . '</noscript>';
 			}
@@ -417,6 +470,46 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 		$replace = array_unique( $replace );
 		$content = str_replace( $search, $replace, $content );
 		return $content;
+	}
+
+	/**
+	 * Move the src of a matched iframe or video to data-opt-src, or ask a sourced video to preload metadata only.
+	 *
+	 * @param string $element   The iframe or video element.
+	 * @param bool   $is_iframe Whether the element was matched as an iframe.
+	 *
+	 * @return array{0: string, 1: bool}|null The element and whether it gets a noscript copy, or null to leave it untouched.
+	 */
+	private function lazyload_media_element( string $element, bool $is_iframe ): ?array {
+		if ( $is_iframe && strpos( $element, 'iframe' ) !== false ) {
+			return [ $this->replace_start_tag_src( $element, 'iframe', ' src="about:blank" data-opt-src' ), true ];
+		}
+		if ( $is_iframe || strpos( $element, 'video' ) === false ) {
+			return [ $element, true ];
+		}
+		if ( strpos( $element, 'source' ) === false ) {
+			return [ $this->replace_start_tag_src( $element, 'video', ' data-opt-src' ), true ];
+		}
+		if ( strpos( $element, 'preload' ) !== false ) {
+			return null;
+		}
+
+		return [ preg_replace( '#^((?:<noscript\s*>\s*)?<video(?>(?:' . self::TAG_ATTRIBUTE . ')*)\s*/?)>#i', '$1 preload="metadata">', $element, 1 ) ?? $element, false ];
+	}
+
+	/**
+	 * Replace the name of the src attribute in the element's start tag.
+	 *
+	 * @param string $element      Element markup, starting with its start tag.
+	 * @param string $tag_name     The element's tag name.
+	 * @param string $replacement  Markup written in place of the attribute name, before its `=`.
+	 *
+	 * @return string The element, unchanged when its start tag has no src attribute.
+	 */
+	private function replace_start_tag_src( string $element, string $tag_name, string $replacement ): string {
+		$pattern = '#^((?:<noscript\s*>\s*)?<' . $tag_name . '(?>(?:(?!\s*src\s*=)' . self::TAG_ATTRIBUTE . ')*)' . self::TAG_ATTRIBUTE_SEPARATOR . ')src(?=\s*=)#i';
+
+		return preg_replace( $pattern, '$1' . $replacement, $element, 1 ) ?? $element;
 	}
 
 	/**

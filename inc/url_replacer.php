@@ -418,7 +418,7 @@ final class Optml_Url_Replacer extends Optml_App_Replacer {
 
 			// Check if the property exists in the URL, if so, replace it with the current property value. Otherwise, add it before the /q: param.
 			$url = strpos( $url, '/' . $name . ':' ) !== false
-				? preg_replace( '/\/' . $name . ':.*?\//', '/' . $name . ':' . $value . '/', $url )
+				? preg_replace( '/\/' . $name . ':.*?\//', $this->to_literal_replacement( '/' . $name . ':' . $value . '/' ), $url )
 				: str_replace( '/q:', '/' . $name . ':' . $value . '/q:', $url );
 		}
 

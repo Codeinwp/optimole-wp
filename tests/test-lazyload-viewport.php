@@ -145,6 +145,22 @@ class Test_Lazyload_Viewport extends WP_UnitTestCase {
 	}
 
 	/**
+	 * The priority attribute of the LCP image goes on the tag, not into the same text inside an attribute value.
+	 */
+	public function test_lcp_image_gets_fetchpriority_on_the_tag_only(): void {
+		$url      = 'https://example.org/wp-content/uploads/2020/02/Herren.jpg';
+		$image_id = Optml_Tag_Replacer::instance()->get_id_by_url($url);
+		foreach (Profile::get_active_devices() as $device) {
+			$this->storeMockProfileData(self::mock_page_ids(), $device, [], [], ['type' => 'img', 'imageId' => $image_id]);
+		}
+
+		$html = Optml_Manager::instance()->replace_content('<img src="' . $url . '" title="<img">');
+
+		$this->assertSame(1, substr_count($html, 'fetchpriority="high"'));
+		$this->assertStringEndsWith(' title="<img">', $html);
+	}
+
+	/**
 	 * Build a signed optimizations request as the frontend profiler sends it.
 	 *
 	 * @param int $device   Device type.
@@ -165,7 +181,7 @@ class Test_Lazyload_Viewport extends WP_UnitTestCase {
 					'b'  => [],
 					'u'  => $url,
 					't'  => $time,
-					'h'  => wp_hash($url . $time . $page, 'nonce'),
+					'h'  => Profile::sign($url, $time, $page),
 					'pu' => $page,
 					'l'  => ['i' => $image_id, 's' => '', 'u' => []],
 				]

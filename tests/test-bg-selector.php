@@ -127,9 +127,153 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 			]
 		);
 
-		$this->assertStringNotContainsString( 'background:red', $css );
-		$this->assertStringNotContainsString( self::PAYLOAD, $css );
-		$this->assertSame( '', $css );
+		$this->assertNull( $css );
+	}
+
+	/**
+	 * Issue 1216: all above-fold elements of a watcher are exempted in one rule, since a separate
+	 * rule per element would still hide the other elements.
+	 */
+	public function test_personalized_css_exempts_all_above_fold_elements_in_one_rule(): void {
+		$device_data = [ 'bg' => [ self::WATCHER => [ '#hero-a' => [], '#hero-b' => [] ] ] ];
+
+		$css = Lazyload::get_personalized_css(
+			[
+				Profile::DEVICE_TYPE_MOBILE  => $device_data,
+				Profile::DEVICE_TYPE_DESKTOP => $device_data,
+			]
+		);
+
+		$this->assertStringContainsString( 'html ' . self::WATCHER . ':not(#hero-a):not(#hero-b):not(.optml-bg-lazyloaded)', $css );
+		$this->assertStringNotContainsString( 'html ' . self::WATCHER . ':not(#hero-a):not(.optml-bg-lazyloaded)', $css );
+		$this->assertStringNotContainsString( 'html ' . self::WATCHER . ':not(#hero-b):not(.optml-bg-lazyloaded)', $css );
+	}
+
+	/**
+	 * A watcher the profile does not list keeps its generic hide rule while the watcher list is below the cap.
+	 */
+	public function test_personalized_css_keeps_generic_rule_for_unlisted_watchers(): void {
+		$device_data = [ 'bg' => [ '.bg-0' => [ '#hero' => [] ] ] ];
+
+		$css = $this->get_css_with_watchers( 1, $device_data );
+
+		$this->assertStringContainsString( 'html ' . self::WATCHER . ':not(.optml-bg-lazyloaded)', $css );
+		$this->assertStringContainsString( 'html .bg-0:not(#hero):not(.optml-bg-lazyloaded)', $css );
+	}
+
+	/**
+	 * When the profile lists the maximum number of watchers, the client may have cut others, so unlisted
+	 * watchers get no hide rule.
+	 */
+	public function test_personalized_css_skips_unlisted_watchers_when_watcher_list_is_full(): void {
+		$watchers = array_map(
+			static function ( int $index ): string {
+				return '.bg-' . $index;
+			},
+			range( 0, Lazyload::MAX_WATCHERS )
+		);
+		$bg = array_fill_keys( array_slice( $watchers, 0, Lazyload::MAX_WATCHERS ), [] );
+		$bg['.bg-0'] = [ '#hero' => [] ];
+
+		$css = $this->get_css_with_watchers( Lazyload::MAX_WATCHERS + 1, [ 'bg' => $bg ] );
+
+		$this->assertStringNotContainsString( 'html .bg-' . Lazyload::MAX_WATCHERS . ':', $css );
+		$this->assertStringNotContainsString( 'html ' . self::WATCHER . ':', $css );
+		$this->assertStringContainsString( 'html .bg-0:not(#hero):not(.optml-bg-lazyloaded)', $css );
+		$this->assertStringContainsString( 'html .bg-1:not(.optml-bg-lazyloaded)', $css );
+	}
+
+	/**
+	 * A watcher whose above-fold list hit the cap may be missing above-fold elements, so it gets no hide rule.
+	 */
+	public function test_personalized_css_skips_watcher_with_full_above_fold_list(): void {
+		$above_fold = [];
+		foreach ( range( 1, Lazyload::MAX_ABOVE_FOLD_SELECTORS ) as $index ) {
+			$above_fold[ '#hero-' . $index ] = [];
+		}
+		$device_data = [
+			'bg' => [
+				'.bg-0' => $above_fold,
+				'.bg-1' => array_slice( $above_fold, 0, Lazyload::MAX_ABOVE_FOLD_SELECTORS - 1 ),
+			],
+		];
+
+		$css = $this->get_css_with_watchers( 2, $device_data );
+
+		$this->assertStringNotContainsString( 'html .bg-0:', $css );
+		$this->assertStringContainsString( 'html .bg-1:not(#hero-1)', $css );
+	}
+
+	/**
+	 * When one device's watcher hit the above-fold cap, the other device's hide rule stays in its media query.
+	 */
+	public function test_personalized_css_scopes_other_device_rule_when_one_device_is_capped(): void {
+		$above_fold = [];
+		foreach ( range( 1, Lazyload::MAX_ABOVE_FOLD_SELECTORS ) as $index ) {
+			$above_fold[ '#hero-' . $index ] = [];
+		}
+		$only_watcher = static function (): array {
+			return [ '.bg-0' ];
+		};
+		add_filter( 'optml_lazyload_bg_selectors', $only_watcher );
+		$this->reset_background_selectors();
+
+		$css = Lazyload::get_personalized_css(
+			[
+				Profile::DEVICE_TYPE_MOBILE  => [ 'bg' => [ '.bg-0' => $above_fold ] ],
+				Profile::DEVICE_TYPE_DESKTOP => [ 'bg' => [ '.bg-0' => array_slice( $above_fold, 0, Lazyload::MAX_ABOVE_FOLD_SELECTORS - 1 ) ] ],
+			]
+		);
+		remove_filter( 'optml_lazyload_bg_selectors', $only_watcher );
+
+		$this->assertIsString( $css );
+		$this->assertStringStartsWith( '@media (min-width: 601px) { html .bg-0:not(#hero-1)', $css );
+		$this->assertStringNotContainsString( 'max-width', $css );
+	}
+
+	/**
+	 * The profiler counts a 600px viewport as mobile, so only the mobile rule applies there.
+	 */
+	public function test_personalized_css_device_media_queries_do_not_overlap(): void {
+		$css = Lazyload::get_personalized_css(
+			[
+				Profile::DEVICE_TYPE_MOBILE  => [ 'bg' => [ self::WATCHER => [ '#hero-mobile' => [] ] ] ],
+				Profile::DEVICE_TYPE_DESKTOP => [ 'bg' => [ self::WATCHER => [ '#hero-desktop' => [] ] ] ],
+			]
+		);
+
+		$this->assertIsString( $css );
+		$this->assertStringContainsString( '@media (max-width: 600px) { html ' . self::WATCHER . ':not(#hero-mobile)', $css );
+		$this->assertStringContainsString( '@media (min-width: 601px) { html ' . self::WATCHER . ':not(#hero-desktop)', $css );
+	}
+
+	/**
+	 * Build the personalized CSS for both devices with extra watchers .bg-0 … .bg-{count-1} registered.
+	 *
+	 * @param int                  $count       Number of extra watchers to register.
+	 * @param array<string, mixed> $device_data Profile data used for both devices.
+	 *
+	 * @return string Personalized CSS.
+	 */
+	private function get_css_with_watchers( int $count, array $device_data ): string {
+		$add_watchers = static function ( array $selectors ) use ( $count ): array {
+			foreach ( range( 0, $count - 1 ) as $index ) {
+				$selectors[] = '.bg-' . $index;
+			}
+			return $selectors;
+		};
+		add_filter( 'optml_lazyload_bg_selectors', $add_watchers );
+		$this->reset_background_selectors();
+
+		$css = Lazyload::get_personalized_css(
+			[
+				Profile::DEVICE_TYPE_MOBILE  => $device_data,
+				Profile::DEVICE_TYPE_DESKTOP => $device_data,
+			]
+		);
+		remove_filter( 'optml_lazyload_bg_selectors', $add_watchers );
+
+		return $css;
 	}
 
 	/**
@@ -151,8 +295,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 			]
 		);
 
-		$this->assertStringNotContainsString( 'background:red', $css );
-		$this->assertSame( '', $css );
+		$this->assertNull( $css );
 	}
 
 	/**
@@ -175,8 +318,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 			]
 		);
 
-		$this->assertStringNotContainsString( 'background:red', $css );
-		$this->assertSame( '', $css );
+		$this->assertNull( $css );
 	}
 
 	/**
@@ -200,7 +342,7 @@ class Test_Bg_Selector extends WP_UnitTestCase {
 		$this->assertStringNotContainsString( 'background:red', $css );
 		$this->assertStringNotContainsString( self::PAYLOAD, $css );
 		// The surviving desktop rule must stay desktop-scoped and not apply on phones.
-		$this->assertStringStartsWith( '@media (min-width: 600px) {', $css );
+		$this->assertStringStartsWith( '@media (min-width: 601px) {', $css );
 		$this->assertStringNotContainsString( '@media (max-width: 600px)', $css );
 		// The safe above-fold and LCP selectors are still rendered (the gating must not over-reject them).
 		$this->assertStringContainsString( ':not(#hero):not(.optml-bg-lazyloaded)', $css );

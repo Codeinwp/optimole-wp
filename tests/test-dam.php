@@ -136,6 +136,19 @@ class Test_Dam extends WP_UnitTestCase {
 		$this->assertEmpty( $data['sites'] );
 	}
 
+	public function test_dashboard_page_renders_loader_before_iframe_issue_1211() {
+		ob_start();
+		$this->dam->render_dashboard_page();
+		$html = ob_get_clean();
+
+		$loader = strpos( $html, 'class="om-dam-loader"' );
+		$iframe = strpos( $html, 'id="om-dam"' );
+
+		$this->assertNotFalse( $loader );
+		$this->assertNotFalse( $iframe );
+		$this->assertLessThan( $iframe, $loader );
+	}
+
 	public function test_insert_attachments() {
 		foreach ( $this->inserted_ids as $index => $id ) {
 			$this->assertIsInt( $id );
@@ -239,6 +252,48 @@ class Test_Dam extends WP_UnitTestCase {
 		$this->assertEquals( 'https://cloudUrlTest.test/dam:1/w:150/h:100/g:sm/rt:fill/q:auto/id:testId/https://test-site.test/9.jpg', $processed );
 
 		$this->settings->update( 'resize_smart', 'disabled' );
+	}
+
+	/**
+	 * @return array<string, array{0: array<string, string>, 1: string}>
+	 */
+	public function backreference_dimension_provider(): array {
+		return [
+			'width'  => [ [ 'originalWidth' => '$1' ], '/w:$1/h:1800/q:' ],
+			'height' => [ [ 'originalHeight' => '$2' ], '/w:1200/h:$2/q:' ],
+		];
+	}
+
+	/**
+	 * @dataProvider backreference_dimension_provider
+	 *
+	 * @param array<string, string> $meta     Dimension metadata override.
+	 * @param string                $expected Expected URL fragment.
+	 */
+	public function test_imported_dimensions_are_inserted_literally( array $meta, string $expected ): void {
+		$image         = self::MOCK_ATTACHMENTS[0];
+		$image['meta'] = array_merge( $image['meta'], $meta, [ 'resourceS3' => 'backreferenceDimension' ] );
+		$ids           = $this->dam->insert_attachments( [ $image ] );
+
+		$result = $this->dam->alter_attachment_image_src( false, $ids[0], 'full', false );
+
+		$this->assertStringContainsString( $expected, $result[0] );
+	}
+
+	public function test_dam_url_cache_token_is_inserted_literally(): void {
+		$previous_token = $this->settings->get( 'cache_buster_images' );
+		$this->settings->update( 'cache_buster_images', 'a$0b' );
+		Optml_Url_Replacer::instance()->init();
+
+		try {
+			$url = Optml_Url_Replacer::instance()->build_url( 'https://cloudUrlTest.test/dam:1/cb:old/w:auto/h:auto/q:auto/id:testId/https://test-site.test/9.jpg' );
+		} finally {
+			$this->settings->update( 'cache_buster_images', $previous_token );
+			Optml_Url_Replacer::instance()->init();
+		}
+
+		$this->assertStringContainsString( '/cb:a$0b/', $url );
+		$this->assertStringNotContainsString( '/cb:old/', $url );
 	}
 
 	public function test_alter_attachment_image_src() {

@@ -108,6 +108,7 @@ final class Optml_Main {
 			add_filter( 'optml_register_conflicts', [ __CLASS__, 'register_conflicts' ] );
 			add_filter( 'optimole_wp_logger_data', [ __CLASS__, 'add_settings' ] );
 			add_filter( 'optimole_wp_ai_connect_metadata', [ __CLASS__, 'add_ai_connect_metadata' ] );
+			add_filter( 'optimole_wp_support_hub_metadata', [ __CLASS__, 'add_support_hub_metadata' ] );
 			self::$_instance          = new self();
 			self::$_instance->manager = Optml_Manager::instance();
 			self::$_instance->rest    = new Optml_Rest();
@@ -197,6 +198,31 @@ final class Optml_Main {
 				__( 'I changed my logo. Purge the cached versions so visitors get the new one.', 'optimole-wp' ),
 			],
 			'ability_prefix'    => 'optimole',
+		];
+	}
+
+	/**
+	 * Opt in to the SDK Support Hub: the Help form links and its mailto fallback.
+	 *
+	 * @return array{is_pro: bool, support_email: string, links: array<int, array{icon: string, text: string, url: string}>}
+	 */
+	public static function add_support_hub_metadata() {
+		return [
+			'is_pro'        => self::is_paid_plan(),
+			// The mailto fallback: Optimole users write to this address.
+			'support_email' => 'friends@optimole.com',
+			'links'         => [
+				[
+					'icon' => 'book-alt',
+					'text' => __( 'Documentation', 'optimole-wp' ),
+					'url'  => Optml_Admin::docs_url( '', 'supporthub', 'help' ),
+				],
+				[
+					'icon' => 'groups',
+					'text' => __( 'Community Forum', 'optimole-wp' ),
+					'url'  => 'https://wordpress.org/support/plugin/optimole-wp/',
+				],
+			],
 		];
 	}
 
@@ -308,12 +334,20 @@ final class Optml_Main {
 	 * @access public
 	 */
 	public static function sdk_hide_promo_notice( $should_show ) {
-		if ( self::$_instance->admin->settings->is_connected() ) {
-			$service_data = self::$_instance->admin->settings->get( 'service_data' );
-			if ( isset( $service_data['plan'] ) && 'free' !== $service_data['plan'] ) {
-				return true;
-			}
+		return self::is_paid_plan() ? true : $should_show;
+	}
+
+	/**
+	 * Whether the site is connected to a paid Optimole plan.
+	 *
+	 * @return bool
+	 */
+	private static function is_paid_plan() {
+		if ( ! self::$_instance->admin->settings->is_connected() ) {
+			return false;
 		}
-		return $should_show;
+		$service_data = self::$_instance->admin->settings->get( 'service_data' );
+
+		return isset( $service_data['plan'] ) && 'free' !== $service_data['plan'];
 	}
 }

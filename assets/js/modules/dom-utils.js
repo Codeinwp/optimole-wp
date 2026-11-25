@@ -36,18 +36,13 @@ export const optmlDomUtils = {
       
       const tag = element.tagName.toLowerCase();
       
-      // Optimize class name processing
       let className = '';
       if (element.className && typeof element.className === 'string') {
-        // Only process if needed
-        if (element.className.includes('optml-bg-lazyloaded')) {
-          className = '.' + element.className.trim()
-            .split(/\s+/)
-            .filter(cls => cls !== 'optml-bg-lazyloaded')
-            .join('.');
-        } else {
-          // Avoid unnecessary split/filter/join when no filtering needed
-          className = '.' + element.className.trim().replace(/\s+/g, '.');
+        const classes = element.className.trim()
+          .split(/\s+/)
+          .filter(cls => cls && cls !== 'optml-bg-lazyloaded');
+        if (classes.length > 0) {
+          className = '.' + classes.join('.');
         }
       }
       

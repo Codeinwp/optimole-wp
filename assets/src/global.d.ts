@@ -27,6 +27,7 @@ export interface IOptimoleDashboardApp {
   optimoleHome: string
   optimoleDashHome: string
   optimoleDashBilling: string
+  docs_links: DocsLinks
   days_since_install: string
   is_offload_media_available: string
   auto_connect: string
@@ -36,6 +37,20 @@ export interface IOptimoleDashboardApp {
   spc_banner: SpcBanner
   show_exceed_plan_quota_notice: string
   report_issue_url: string
+}
+
+export interface DocsLinks {
+  home: string
+  visitors_count: string
+  plan_limits: string
+  visitors_plan: string
+  getting_started: string
+  webp: string
+  watermarks: string
+  cloud_library: string
+  exclusions: string
+  custom_integration: string
+  watermark_settings: string
 }
 
 export interface Strings {

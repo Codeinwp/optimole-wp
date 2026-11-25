@@ -172,21 +172,22 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			]
 		);
 
-		$video_tag = $image_tag;
-
 		$video_tag = str_replace(
 			[
 				'src=',
-				'<img',
 				'/>',
 			],
 			[
 				'original-src=',
-				'<video autoplay muted loop playsinline poster="' . $link_png . '"',
 				'><source src="' . $link_mp4 . '" type="video/mp4"></video>',
 			],
-			$video_tag
+			$image_tag
 		);
+		// The tag's own name is the first one; the same text inside an attribute value stays as written.
+		$name_position = strpos( $video_tag, '<img' );
+		if ( false !== $name_position ) {
+			$video_tag = substr_replace( $video_tag, '<video autoplay muted loop playsinline poster="' . $link_png . '"', $name_position, 4 );
+		}
 		$content = str_replace( $image_tag, $video_tag, $content );
 		return true;
 	}
@@ -304,7 +305,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 				$image_tag = apply_filters( 'optml_tag_replace', $image_tag, $images['img_url'][ $index ], $new_url, $optml_args, $is_slashed, $tag );
 			}
 			if ( strpos( $image_tag, 'data-opt-id=' ) === false ) {
-				$image_tag = preg_replace( '/<img/im', '<img data-opt-id=' . $image_id . ' ', $image_tag );
+				$image_tag = $this->add_image_attribute( $image_tag, 'data-opt-id=' . $image_id . ' ' );
 			}
 
 			if ( $priority = Links::is_preloaded( $image_id ) ) { // phpcs:ignore Generic.CodeAnalysis.AssignmentInCondition.Found
@@ -334,8 +335,9 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	/**
 	 * Add an attribute to each image tag in the markup: the image and, when lazyloaded, its noscript fallback.
 	 *
-	 * The image parser ends a tag at its first ">", so "<img" at the start or right after a ">" always opens a tag
-	 * and is never text inside an attribute value.
+	 * Each tag is matched together with its quoted values, so "<img" inside an attribute value is never taken for a
+	 * tag, wherever the image stands in the markup. Markup whose quotes do not pair up is read as before: "<img" at
+	 * the start or right after a ">" opens a tag.
 	 *
 	 * @param string $image_tag The image markup.
 	 * @param string $attribute The attribute, such as width="300".
@@ -343,7 +345,25 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * @return string The markup with the attribute added.
 	 */
 	private function add_image_attribute( string $image_tag, string $attribute ): string {
-		return preg_replace( '/(^|>)(\s*)<img\b/i', '$1$2<img ' . $attribute, $image_tag ) ?? $image_tag;
+		$added          = 0;
+		$with_attribute = preg_replace_callback(
+			'/<(?>[^>"\']+|"[^"]*"|\'[^\']*\')*>/',
+			static function ( $tag ) use ( $attribute, &$added ) {
+				if ( 1 !== preg_match( '/^<img\b/i', $tag[0] ) ) {
+					return $tag[0];
+				}
+				++$added;
+
+				return '<img ' . $attribute . substr( $tag[0], 4 );
+			},
+			$image_tag
+		);
+		// Quotes that do not pair up hide a tag inside the value they open: such markup is read as before.
+		if ( $added < (int) preg_match_all( '/(?:^|>)\s*<img\b/i', $image_tag ) ) {
+			$with_attribute = preg_replace( '/(^|>)(\s*)<img\b/i', '$1$2<img ' . $attribute, $image_tag );
+		}
+
+		return $with_attribute ?? $image_tag;
 	}
 
 	/**
@@ -447,6 +467,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		}
 		$pattern = '/(?<!\/)' . preg_quote( $original_url, '/' ) . '/i';
 		$replace = $is_slashed ? addcslashes( $new_url, '/' ) : $new_url;
+		$replace = $this->to_literal_replacement( $replace );
 
 		// Get image ID for srcset enhancement
 		$image_id = $this->get_id_by_url( $original_url );
@@ -460,7 +481,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 		if ( $this->settings->get( 'lazyload' ) === 'enabled' && $this->settings->get( 'native_lazyload' ) === 'enabled'
 			&& apply_filters( 'optml_should_load_eager', '__return_true' ) && ! $this->is_valid_gif( $original_url ) ) {
 			if ( strpos( $new_tag, 'loading=' ) === false ) {
-				$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img loading=\"eager\"' : '<img loading="eager"', $new_tag );
+				$new_tag = $this->add_image_attribute( $new_tag, $is_slashed ? 'loading=\"eager\"' : 'loading="eager"' );
 			} else {
 				$new_tag = $is_slashed ? str_replace( 'loading=\"lazy\"', 'loading=\"eager\"', $new_tag ) : str_replace( 'loading="lazy"', 'loading="eager"', $new_tag );
 			}
@@ -477,7 +498,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			}
 
 			if ( $is_lcp_image ) {
-				$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img fetchpriority=\"high\"' : '<img fetchpriority="high"', $new_tag );
+				$new_tag = $this->add_image_attribute( $new_tag, $is_slashed ? 'fetchpriority=\"high\"' : 'fetchpriority="high"' );
 			}
 		}
 
@@ -488,7 +509,7 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 			self::$lazyload_skipped_images < Optml_Lazyload_Replacer::get_skip_lazyload_limit() &&
 			false === strpos( $new_tag, 'fetchpriority=' )
 		) {
-			$new_tag = preg_replace( '/<img/im', $is_slashed ? '<img fetchpriority=\"high\"' : '<img fetchpriority="high"', $new_tag );
+			$new_tag = $this->add_image_attribute( $new_tag, $is_slashed ? 'fetchpriority=\"high\"' : 'fetchpriority="high"' );
 		}
 
 		++self::$lazyload_skipped_images;

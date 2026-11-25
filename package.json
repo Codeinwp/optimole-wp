@@ -49,7 +49,7 @@
     "make-pot": "docker run --user root --rm --volume $(pwd):/var/www/html/optimole-wp wordpress:cli bash -c 'php -d memory_limit=512M $(which wp) --version --allow-root && wp i18n make-pot optimole-wp ./optimole-wp/languages/optimole-wp.pot --include=inc,assets/src --allow-root --domain=optimole-wp'"
   },
   "devDependencies": {
-    "@playwright/test": "^1.50.1",
+    "@playwright/test": "^1.61.1",
     "@semantic-release/changelog": "^5.0.1",
     "@semantic-release/exec": "^5.0.0",
     "@semantic-release/git": "^9.0.0",

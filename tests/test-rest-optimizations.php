@@ -109,6 +109,9 @@ class Test_Rest_Optimizations extends WP_UnitTestCase {
 			'background URL nested array'     => [ [ 'b' => [ self::WATCHER => [ '#hero' => [ [ 'https://example.com/a.jpg' ] ] ] ] ] ],
 			'LCP background URL nested array' => [ [ 'b' => [], 'l' => [ 'u' => [ [ 'https://example.com/a.jpg' ] ] ] ] ],
 			'missing dimensions entry string' => [ [ 'b' => [], 'm' => [ 12 => 'size' ] ] ],
+			'token time with trailing text'   => [ [ 't' => time() . 'h' ] ],
+			'signature list'                  => [ [ 'h' => [ 'signature' ] ] ],
+			'page URL list'                   => [ [ 'pu' => [ 'page' ] ] ],
 		];
 	}
 
@@ -141,6 +144,95 @@ class Test_Rest_Optimizations extends WP_UnitTestCase {
 	}
 
 	/**
+	 * A signature is only valid for the profile ID, time and page URL it was issued for.
+	 */
+	public function test_signature_is_bound_to_each_signed_field(): void {
+		$time = time();
+		$page = home_url( '/' );
+
+		// The same characters, with the last one of the profile ID moved to the front of the time.
+		$response = rest_get_server()->dispatch(
+			$this->build_request(
+				[
+					'u' => 'split-profile-',
+					't' => (int) ( '9' . $time ),
+					'h' => Profile::sign( 'split-profile-9', $time, $page ),
+				]
+			)
+		);
+
+		$this->assertSame( 'error', $response->get_data()['code'] );
+		$this->assertFalse( ( new Profile() )->get_profile_data( 'split-profile-' )[ Profile::DEVICE_TYPE_DESKTOP ] );
+	}
+
+	/**
+	 * A profile that is already stored is not replaced by a later submission.
+	 */
+	public function test_stored_profile_is_not_replaced(): void {
+		rest_get_server()->dispatch( $this->build_request( [ 'a' => [ 11 ] ] ) );
+		$response = rest_get_server()->dispatch( $this->build_request( [ 'a' => [ 22 ] ] ) );
+
+		$this->assertSame( 'error', $response->get_data()['code'] );
+		$this->assertSame( [ 11 => true ], ( new Profile() )->get_profile_data( self::PROFILE_ID )[ Profile::DEVICE_TYPE_DESKTOP ]['af'] );
+	}
+
+	/**
+	 * Only background URLs on the service host are stored; a longer host that starts with it is another host.
+	 */
+	public function test_background_urls_are_kept_for_the_service_host_only(): void {
+		$service_url = Optml_Config::$service_url;
+		$this->assertNotSame( '', $service_url );
+		$urls = [ $service_url . '.example.net/a.jpg', $service_url . '/b.jpg' ];
+
+		rest_get_server()->dispatch(
+			$this->build_request(
+				[
+					'b' => [ self::WATCHER => [ '#hero' => $urls ] ],
+					'l' => [ 'u' => $urls ],
+				]
+			)
+		);
+
+		$stored = ( new Profile() )->get_profile_data( self::PROFILE_ID )[ Profile::DEVICE_TYPE_DESKTOP ];
+		$this->assertSame( [ $service_url . '/b.jpg' ], array_values( $stored['bg'][ self::WATCHER ]['#hero'] ) );
+		$this->assertSame( [ $service_url . '/b.jpg' ], array_values( $stored['lcp']['bgUrls'] ) );
+	}
+
+	/**
+	 * No background URL is stored while the service URL is not set.
+	 */
+	public function test_background_urls_are_dropped_without_a_service_url(): void {
+		$service_url               = Optml_Config::$service_url;
+		Optml_Config::$service_url = '';
+
+		rest_get_server()->dispatch( $this->build_request( [ 'l' => [ 'u' => [ '//example.net/a.jpg' ] ] ] ) );
+		Optml_Config::$service_url = $service_url;
+
+		$this->assertSame( [], ( new Profile() )->get_profile_data( self::PROFILE_ID )[ Profile::DEVICE_TYPE_DESKTOP ]['lcp']['bgUrls'] );
+	}
+
+	/**
+	 * The token printed with a page is the one the endpoint accepts for it.
+	 */
+	public function test_token_printed_with_a_page_is_accepted(): void {
+		$html = Optml_Manager::instance()->replace_content( '<html><head></head><body><p>Page</p>' . Optml_Admin::get_optimizer_script( true ) . '</body></html>' );
+		$this->assertSame( 1, preg_match( '/var optimoleDataOptimizer = (\{.*?\});/s', $html, $matches ) );
+		$config = json_decode( $matches[1], true );
+
+		$response = rest_get_server()->dispatch(
+			$this->build_request(
+				[
+					'u'  => $config['pageProfileId'],
+					't'  => $config['_t'],
+					'h'  => $config['hmac'],
+					'pu' => $config['pageProfileUrl'],
+				]
+			)
+		);
+
+		$this->assertSame( 'success', $response->get_data()['code'] );
+	}
+	/**
 	 * Build a signed optimizations request as the frontend profiler sends it.
 	 *
 	 * @param array<string, mixed> $fields Fields added to the required ones.
@@ -159,7 +251,7 @@ class Test_Rest_Optimizations extends WP_UnitTestCase {
 						'a'  => [],
 						'u'  => self::PROFILE_ID,
 						't'  => $time,
-						'h'  => wp_hash( self::PROFILE_ID . $time . $page, 'nonce' ),
+						'h'  => Profile::sign( self::PROFILE_ID, $time, $page ),
 						'pu' => $page,
 					],
 					$fields
