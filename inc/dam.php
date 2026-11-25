@@ -704,7 +704,7 @@ class Optml_Dam {
 			$replacement = self::URL_DAM_FLAG . $replacement;
 		}
 
-		return preg_replace( '/\/w:(.*)\/h:(.*)\/q:/', $replacement, $subject );
+		return preg_replace( '/\/w:(.*)\/h:(.*)\/q:/', $this->to_literal_replacement( $replacement ), $subject );
 	}
 
 	/**
