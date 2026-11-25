@@ -246,7 +246,6 @@ final class Optml_Api {
 			'method'     => $method,
 			'timeout'    => 45,
 			'user-agent' => 'Optimle WP (v' . OPTML_VERSION . ') ',
-			'sslverify'  => false,
 			'headers'    => $headers,
 		];
 		if ( $method !== 'GET' ) {
@@ -297,7 +296,6 @@ final class Optml_Api {
 			],
 			'timeout'     => 60,
 			'blocking'    => true,
-			'sslverify'   => false,
 			'data_format' => 'body',
 		];
 		return wp_remote_post( $this->onboard_api_root, $options );
@@ -405,7 +403,6 @@ final class Optml_Api {
 				'headers' => [ 'Content-Type' => 'application/json' ],
 				'timeout'     => 15,
 				'blocking'    => true,
-				'sslverify'   => false,
 				'data_format' => 'body',
 				'body' => [
 					'error_body' => wp_json_encode( $body ),
