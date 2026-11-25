@@ -373,8 +373,8 @@ final class Optml_Lazyload_Replacer extends Optml_App_Replacer {
 				'/<img/im',
 			],
 			[
-				"$1$low_url",
-				'<img' . $opt_src,
+				'$1' . $this->to_literal_replacement( $low_url ),
+				'<img' . $this->to_literal_replacement( $opt_src ),
 			],
 			$new_tag,
 			1
