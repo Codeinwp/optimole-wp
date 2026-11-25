@@ -431,6 +431,17 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$content = '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" title="<img">';
 
 		$this->assertStringContainsString( ' title="<img">', Optml_Manager::instance()->replace_content( $content ) );
+
+		// Markup that another filter wrapped in text.
+		$wrap = static function ( $tag ) {
+			return '<span>Featured ' . $tag . '</span>';
+		};
+		add_filter( 'optml_tag_replace', $wrap, 99 );
+		$wrapped_content = Optml_Manager::instance()->replace_content( $content );
+		remove_filter( 'optml_tag_replace', $wrap, 99 );
+
+		$this->assertSame( 1, substr_count( $wrapped_content, 'data-opt-id=' ) );
+		$this->assertStringContainsString( ' title="<img">', $wrapped_content );
 	}
 
 	public function test_attributes_added_to_an_image_that_is_not_lazy_loaded_go_on_the_tag_only() {

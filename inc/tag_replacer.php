@@ -336,7 +336,8 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * Add an attribute to each image tag in the markup: the image and, when lazyloaded, its noscript fallback.
 	 *
 	 * The image parser ends a tag at its first ">", so "<img" at the start or right after a ">" always opens a tag
-	 * and is never text inside an attribute value.
+	 * and is never text inside an attribute value. Markup that a filter wrapped in text has no tag at those places:
+	 * there the first "<img" is the image.
 	 *
 	 * @param string $image_tag The image markup.
 	 * @param string $attribute The attribute, such as width="300".
@@ -344,7 +345,12 @@ final class Optml_Tag_Replacer extends Optml_App_Replacer {
 	 * @return string The markup with the attribute added.
 	 */
 	private function add_image_attribute( string $image_tag, string $attribute ): string {
-		return preg_replace( '/(^|>)(\s*)<img\b/i', '$1$2<img ' . $attribute, $image_tag ) ?? $image_tag;
+		$with_attribute = preg_replace( '/(^|>)(\s*)<img\b/i', '$1$2<img ' . $attribute, $image_tag, -1, $added );
+		if ( 0 === $added ) {
+			$with_attribute = preg_replace( '/<img\b/i', '<img ' . $attribute, $image_tag, 1 );
+		}
+
+		return $with_attribute ?? $image_tag;
 	}
 
 	/**
