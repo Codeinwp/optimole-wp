@@ -349,6 +349,554 @@ class Test_Media extends WP_UnitTestCase {
 		$this->assertNotEmpty( get_post_meta( self::$sample_attachement, Optml_Media_Offload::META_KEYS['offload_error'], true ) );
 		self::$error_mark = false;
 	}
+	public function test_upload_that_stays_local_keeps_its_own_file(): void {
+		$this->delete_uploads( 'optml-keep.jpg', 'optml-keep-second.jpg' );
+		$local    = wp_upload_bits( 'optml-keep.jpg', null, 'not an image' );
+		$local_id = wp_insert_attachment( $this->image_postdata( $local, [ 'post_name' => 'optml-keep-renamed' ] ), $local['file'] );
+
+		// The stored path is the upload's own file from the start, whatever happens to the request afterwards.
+		$this->assertSame( $local['file'], get_attached_file( $local_id ) );
+
+		// Not an image, so no metadata is generated and the upload is not offloaded.
+		wp_update_attachment_metadata( $local_id, wp_generate_attachment_metadata( $local_id, $local['file'] ) );
+
+		$this->assertSame( $local['file'], get_attached_file( $local_id ) );
+
+		// A later upload whose name holds the first one's is offloaded from its own file.
+		$second_id = $this->insert_uploaded_image( wp_upload_bits( 'optml-keep-second.jpg', null, file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' ) ) );
+
+		$this->assertFileExists( $local['file'] );
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $second_id )['file'] ) );
+		unlink( $local['file'] );
+	}
+
+	public function test_upload_that_stays_local_leaves_another_pending_upload_to_be_offloaded(): void {
+		$this->delete_uploads( 'optml-first.jpg', 'optml-other.jpg' );
+		$local    = wp_upload_bits( 'optml-first.jpg', null, 'not an image' );
+		$local_id = wp_insert_attachment( $this->image_postdata( $local, [ 'post_name' => 'optml-first-renamed' ] ), $local['file'] );
+		$other    = wp_upload_bits( 'optml-other.jpg', null, file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' ) );
+		$other_id = wp_insert_attachment( $this->image_postdata( $other, [ 'post_name' => 'optml-other-renamed' ] ), $other['file'] );
+
+		wp_update_attachment_metadata( $local_id, wp_generate_attachment_metadata( $local_id, $local['file'] ) );
+		$this->assertSame( $local['file'], get_attached_file( $local_id ) );
+
+		wp_update_attachment_metadata( $other_id, wp_generate_attachment_metadata( $other_id, $other['file'] ) );
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $other_id )['file'] ) );
+		unlink( $local['file'] );
+	}
+
+	public function test_deduplicated_name_is_stored_once_the_upload_is_offloaded(): void {
+		$this->delete_uploads( 'optml-site.jpg' );
+		$upload        = wp_upload_bits( 'optml-site.jpg', null, 'not an image' );
+		$attachment_id = wp_insert_attachment( $this->image_postdata( $upload, [ 'post_name' => 'optml-site-renamed' ] ), $upload['file'] );
+
+		$this->assertSame( $upload['file'], get_attached_file( $attachment_id, true ) );
+
+		apply_filters( 'wp_generate_attachment_metadata', $this->offloaded_metadata( $upload ), $attachment_id, 'create' );
+
+		$this->assertSame( dirname( $upload['file'] ) . '/optml-site-renamed.jpg', get_attached_file( $attachment_id, true ) );
+		$this->assertFalse( metadata_exists( 'post', $attachment_id, Optml_Media_Offload::DEDUPLICATED_UPLOAD_META ) );
+		unlink( $upload['file'] );
+	}
+
+	public function test_upload_offloaded_in_a_later_request_gets_its_deduplicated_name(): void {
+		$this->delete_uploads( 'optml-later.jpg' );
+		$upload = wp_upload_bits( 'optml-later.jpg', null, file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' ) );
+		// The first offload fails, as when the upload API cannot be reached.
+		self::$error_mark = true;
+		$attachment_id    = $this->insert_uploaded_image( $upload, [ 'post_name' => 'optml-later-renamed' ] );
+		self::$error_mark = false;
+
+		$this->assertSame( $upload['file'], get_attached_file( $attachment_id, true ) );
+
+		Optml_Media_Offload::instance()->upload_and_update_existing_images( [ $attachment_id ] );
+
+		$this->assertStringEndsWith( '/optml-later-renamed.jpg', wp_get_attachment_metadata( $attachment_id )['file'] );
+		$this->assertSame( dirname( $upload['file'] ) . '/optml-later-renamed.jpg', get_attached_file( $attachment_id, true ) );
+		$this->assertFalse( file_exists( $upload['file'] ) );
+	}
+
+	public function test_file_put_in_the_place_of_an_upload_is_offloaded_under_its_own_name(): void {
+		$this->delete_uploads( 'optml-swap*.jpg', 'other/optml-swap*.jpg' );
+		$image  = file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$upload = wp_upload_bits( 'optml-swap.jpg', null, $image );
+		self::$error_mark = true;
+		$attachment_id    = $this->insert_uploaded_image( $upload, [ 'post_name' => 'optml-swap-renamed' ] );
+		self::$error_mark = false;
+
+		$this->assertSame( $upload['file'], get_attached_file( $attachment_id, true ) );
+
+		// As when the image is replaced: a file of the same name in another folder is attached, and the upload stays.
+		$replacement = dirname( $upload['file'] ) . '/other/optml-swap.jpg';
+		wp_mkdir_p( dirname( $replacement ) );
+		file_put_contents( $replacement, $image );
+		update_attached_file( $attachment_id, $replacement );
+		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $replacement ) );
+
+		$this->assertStringEndsWith( '/optml-swap.jpg', wp_get_attachment_metadata( $attachment_id )['file'] );
+		$this->assertFalse( file_exists( $replacement ) );
+		$this->assertFileExists( $upload['file'] );
+		// The upload and its sizes stay local.
+		$this->delete_uploads( 'optml-swap*.jpg' );
+	}
+
+	public function test_offload_leaves_the_same_attachment_id_on_another_site_alone(): void {
+		$this->delete_uploads( 'optml-network.jpg' );
+		$upload        = wp_upload_bits( 'optml-network.jpg', null, 'not an image' );
+		$attachment_id = wp_insert_attachment( $this->image_postdata( $upload, [ 'post_name' => 'optml-network-renamed' ] ), $upload['file'] );
+		$names         = [];
+		// Part-way through the offload, the attached file is read on this site and as on another site of the
+		// network, where the same attachment ID is another attachment.
+		$read_file = static function ( $url, $id ) use ( $attachment_id, &$names ) {
+			if ( $id === $attachment_id && [] === $names ) {
+				$names[]            = basename( get_attached_file( $attachment_id ) );
+				$site_id            = $GLOBALS['blog_id'];
+				$GLOBALS['blog_id'] = $site_id + 1;
+				$names[]            = basename( get_attached_file( $attachment_id ) );
+				$GLOBALS['blog_id'] = $site_id;
+			}
+
+			return $url;
+		};
+		add_filter( 'wp_get_attachment_url', $read_file, 10, 2 );
+		apply_filters( 'wp_generate_attachment_metadata', $this->local_metadata( $upload ), $attachment_id, 'create' );
+		remove_filter( 'wp_get_attachment_url', $read_file, 10 );
+
+		$this->assertSame( [ 'optml-network-renamed.jpg', 'optml-network.jpg' ], $names );
+	}
+
+	public function test_image_with_the_file_name_of_an_offloaded_image_is_offloaded_under_a_free_name(): void {
+		$this->delete_uploads( 'optml-same*.jpg' );
+		$image    = file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$first    = wp_upload_bits( 'optml-same.jpg', null, $image );
+		$first_id = $this->insert_uploaded_image( $first );
+		// A path that differs in letter case only is another file.
+		update_post_meta( self::factory()->attachment->create(), '_wp_attached_file', dirname( _wp_relative_upload_path( $first['file'] ) ) . '/OPTML-SAME-2.jpg' );
+		// As for an image that was added while uploads were not given a free file name: the first image has no local
+		// file any more, so WordPress gives the second upload its file name. The title is the slug WordPress gives
+		// the second upload, which leaves it without a deduplicated name.
+		$second    = $this->upload_with_the_name_wordpress_gives( 'optml-same.jpg', $image );
+		$second_id = $this->insert_uploaded_image( $second, [ 'post_title' => 'optml-same-2' ] );
+
+		$this->assertSame( $first['file'], $second['file'] );
+		$this->assertStringEndsWith( '/optml-same-2.jpg', wp_get_attachment_metadata( $second_id )['file'] );
+		$this->assertSame( dirname( $first['file'] ) . '/optml-same-2.jpg', get_attached_file( $second_id, true ) );
+		$this->assertStringEndsWith( '/optml-same.jpg', wp_get_attachment_metadata( $first_id )['file'] );
+		$this->assertSame( $first['file'], get_attached_file( $first_id, true ) );
+	}
+
+	public function test_deduplicated_name_of_another_image_is_not_used(): void {
+		$this->delete_uploads( 'optml-ta*.jpg' );
+		$image    = file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$first    = wp_upload_bits( 'optml-taken.jpg', null, $image );
+		$first_id = $this->insert_uploaded_image( $first );
+		// The file name and the slug of the second upload make up the first image's file name. The first image is
+		// also given as the second one's copy in another language, with a file of its own.
+		$copies = static function () use ( $first_id ) {
+			return [ $first_id ];
+		};
+		add_filter( 'optml_offload_duplicated_images', $copies );
+		$second    = wp_upload_bits( 'optml-ta.jpg', null, $image );
+		$second_id = $this->insert_uploaded_image( $second, [ 'post_name' => 'ken' ] );
+		remove_filter( 'optml_offload_duplicated_images', $copies );
+
+		$this->assertStringEndsWith( '/optml-ta.jpg', wp_get_attachment_metadata( $second_id )['file'] );
+		$this->assertSame( $second['file'], get_attached_file( $second_id, true ) );
+		$this->assertStringEndsWith( '/optml-taken.jpg', wp_get_attachment_metadata( $first_id )['file'] );
+		$this->assertFalse( metadata_exists( 'post', $second_id, Optml_Media_Offload::DEDUPLICATED_UPLOAD_META ) );
+	}
+
+	public function test_deduplicated_name_of_a_file_on_disk_is_not_used(): void {
+		$this->delete_uploads( 'optml-disk*.jpg' );
+		$image  = file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$upload = wp_upload_bits( 'optml-disk.jpg', null, $image );
+		// A file that belongs to no attachment has the name the upload is deduplicated to.
+		$other_file = dirname( $upload['file'] ) . '/optml-disk-renamed.jpg';
+		file_put_contents( $other_file, $image );
+		$attachment_id = $this->insert_uploaded_image( $upload, [ 'post_name' => 'optml-disk-renamed' ] );
+
+		$this->assertStringEndsWith( '/optml-disk.jpg', wp_get_attachment_metadata( $attachment_id )['file'] );
+		$this->assertFileExists( $other_file );
+		$this->delete_uploads( 'optml-disk*.jpg' );
+	}
+
+	public function test_scaled_image_with_the_file_name_of_an_offloaded_image_stays_local(): void {
+		$this->delete_uploads( 'optml-large*.jpg' );
+		$image     = $this->wide_image();
+		$first     = wp_upload_bits( 'optml-large.jpg', null, $image );
+		$first_id  = $this->insert_uploaded_image( $first );
+		// As for an image that was added while uploads were not given a free file name.
+		$second    = $this->upload_with_the_name_wordpress_gives( 'optml-large.jpg', $image );
+		$second_id = $this->insert_uploaded_image( $second );
+
+		$this->assertSame( $first['file'], $second['file'] );
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $first_id )['file'] ) );
+		$this->assertFalse( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $second_id )['file'] ) );
+		$this->assertSame( 'true', get_post_meta( $second_id, Optml_Media_Offload::META_KEYS['offload_error'], true ) );
+		$this->delete_uploads( 'optml-large*.jpg' );
+
+		// The copy of an image in another language shares its file, and is not another image.
+		$translated     = wp_upload_bits( 'optml-large-translated.jpg', null, $image );
+		self::$error_mark = true;
+		$translated_id  = $this->insert_uploaded_image( $translated );
+		self::$error_mark = false;
+		$copy_id        = self::factory()->attachment->create();
+		update_post_meta( $copy_id, '_wp_attached_file', get_post_meta( $translated_id, '_wp_attached_file', true ) );
+		$copies = static function () use ( $copy_id ) {
+			return [ $copy_id ];
+		};
+		add_filter( 'optml_offload_duplicated_images', $copies );
+		Optml_Media_Offload::instance()->upload_and_update_existing_images( [ $translated_id ] );
+		remove_filter( 'optml_offload_duplicated_images', $copies );
+
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $translated_id )['file'] ) );
+	}
+
+	public function test_upload_does_not_get_the_file_name_of_an_offloaded_image(): void {
+		$this->delete_uploads( 'optml-again*.jpg' );
+		$image = file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$first    = wp_upload_bits( 'optml-again.jpg', null, $image );
+		$first_id = $this->insert_uploaded_image( $first );
+		// A file that belongs to no attachment has the first numbered name, which WordPress numbers in its own way.
+		file_put_contents( dirname( $first['file'] ) . '/optml-again-2.jpg', $image );
+
+		$this->assertFalse( file_exists( $first['file'] ) );
+		$this->assertSame( dirname( $first['file'] ) . '/optml-again-2-1.jpg', wp_upload_bits( 'optml-again.jpg', null, $image )['file'] );
+		$this->delete_uploads( 'optml-again-*.jpg' );
+
+		// The image itself comes back under its own name.
+		$this->assertSame( 1, Optml_Media_Offload::instance()->rollback_and_update_images( [ $first_id ] ) );
+		$this->assertFileExists( $first['file'] );
+		$this->assertSame( $first['file'], get_attached_file( $first_id, true ) );
+		$this->delete_uploads( 'optml-again*.jpg' );
+
+		// A file in a folder that only starts like the uploads directory is not looked up among the attachments.
+		$queries = get_num_queries();
+		wp_unique_filename( wp_get_upload_dir()['basedir'] . '-backup', 'optml-again.jpg' );
+
+		$this->assertSame( $queries, get_num_queries() );
+	}
+
+	public function test_upload_gets_a_free_file_name_when_no_number_is_left(): void {
+		$this->delete_uploads( 'optml-many*.jpg' );
+		$folder = ltrim( wp_upload_dir()['subdir'], '/' );
+		$taken  = [];
+		// Other attachments are stored under the file name and under each of the 20 numbered names that are tried.
+		foreach ( array_merge( [ '' ], range( 2, 21 ) ) as $number ) {
+			$taken[] = 'optml-many' . ( '' === $number ? '' : '-' . $number ) . '.jpg';
+			update_post_meta( self::factory()->attachment->create(), '_wp_attached_file', $folder . '/' . end( $taken ) );
+		}
+		$upload = wp_upload_bits( 'optml-many.jpg', null, 'not an image' );
+
+		$this->assertNotContains( basename( $upload['file'] ), $taken );
+		$this->assertStringStartsWith( 'optml-many-', basename( $upload['file'] ) );
+		unlink( $upload['file'] );
+	}
+
+	public function test_two_scaled_images_of_one_file_name_are_both_offloaded(): void {
+		$this->delete_uploads( 'optml-wide*.jpg' );
+		$image     = $this->wide_image();
+		$first_id  = $this->insert_uploaded_image( wp_upload_bits( 'optml-wide.jpg', null, $image ) );
+		$second_id = $this->insert_uploaded_image( wp_upload_bits( 'optml-wide.jpg', null, $image ) );
+
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $first_id )['file'] ) );
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $second_id )['file'] ) );
+		$this->assertStringEndsWith( '/optml-wide-scaled.jpg', get_attached_file( $first_id, true ) );
+		$this->assertStringEndsWith( '/optml-wide-2-scaled.jpg', get_attached_file( $second_id, true ) );
+		$this->assertNotSame( wp_get_attachment_metadata( $first_id )['file'], wp_get_attachment_metadata( $second_id )['file'] );
+	}
+
+	public function test_deduplicated_name_that_is_offloaded_as_the_name_of_another_image_is_not_used(): void {
+		$this->delete_uploads( 'optml-ca*.jpg' );
+		$image    = file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' );
+		$first    = wp_upload_bits( 'optml-cat.jpg', null, $image );
+		$first_id = $this->insert_uploaded_image( $first );
+		// The file name and the slug make up the first image's name with the ending of a scaled copy, which is
+		// left out when an image is offloaded.
+		$second    = wp_upload_bits( 'optml-ca.jpg', null, $image );
+		$second_id = $this->insert_uploaded_image( $second, [ 'post_name' => 't-scaled' ] );
+
+		$this->assertStringEndsWith( '/optml-ca.jpg', wp_get_attachment_metadata( $second_id )['file'] );
+		$this->assertStringEndsWith( '/optml-cat.jpg', wp_get_attachment_metadata( $first_id )['file'] );
+
+		// When the name without the ending is free, the image is offloaded under it and stored with the ending.
+		$third    = wp_upload_bits( 'optml-cab.jpg', null, $image );
+		$third_id = $this->insert_uploaded_image( $third, [ 'post_name' => 'in-scaled' ] );
+
+		$this->assertStringEndsWith( '/optml-cabin.jpg', wp_get_attachment_metadata( $third_id )['file'] );
+		$this->assertSame( dirname( $third['file'] ) . '/optml-cabin-scaled.jpg', get_attached_file( $third_id, true ) );
+	}
+
+	public function test_image_stays_local_when_no_file_name_is_free(): void {
+		$this->delete_uploads( 'optml-full*.jpg' );
+		$upload = wp_upload_bits( 'optml-full.jpg', null, file_get_contents( OPTML_PATH . 'tests/assets/sample-test.jpg' ) );
+		$folder = dirname( _wp_relative_upload_path( $upload['file'] ) );
+		// Other attachments are stored under the upload's file name and under each of the 20 numbered names that are tried.
+		foreach ( array_merge( [ '' ], range( 2, 21 ) ) as $number ) {
+			update_post_meta( self::factory()->attachment->create(), '_wp_attached_file', $folder . '/optml-full' . ( '' === $number ? '' : '-' . $number ) . '.jpg' );
+		}
+		$attachment_id = $this->insert_uploaded_image( $upload, [ 'post_title' => 'optml-full-x' ] );
+
+		$this->assertFalse( Optml_Media_Offload::is_uploaded_image( wp_get_attachment_metadata( $attachment_id )['file'] ) );
+		$this->assertSame( 'true', get_post_meta( $attachment_id, Optml_Media_Offload::META_KEYS['offload_error'], true ) );
+		$this->assertSame( $upload['file'], get_attached_file( $attachment_id, true ) );
+		$this->delete_uploads( 'optml-full*.jpg' );
+	}
+
+	public function test_filters_on_the_attached_file_get_the_deduplicated_name_once(): void {
+		$this->delete_uploads( 'optml-seen.jpg' );
+		$seen     = [];
+		$listener = static function ( $file ) use ( &$seen ) {
+			$seen[] = basename( $file );
+
+			return $file;
+		};
+		// A filter that runs before the plugin's own, as another plugin may add, and one that runs after it.
+		add_filter( 'update_attached_file', 'wp_normalize_path', 5 );
+		add_filter( 'update_attached_file', $listener, 999 );
+
+		$upload        = wp_upload_bits( 'optml-seen.jpg', null, 'not an image' );
+		$attachment_id = wp_insert_attachment( $this->image_postdata( $upload, [ 'post_name' => 'optml-seen-renamed' ] ), $upload['file'] );
+		$stored_file   = get_attached_file( $attachment_id, true );
+		apply_filters( 'wp_generate_attachment_metadata', $this->offloaded_metadata( $upload ), $attachment_id, 'create' );
+		remove_filter( 'update_attached_file', 'wp_normalize_path', 5 );
+		remove_filter( 'update_attached_file', $listener, 999 );
+
+		$this->assertSame( $upload['file'], $stored_file );
+		$this->assertSame( [ 'optml-seen-renamed.jpg' ], $seen );
+		unlink( $upload['file'] );
+	}
+
+	public function test_upload_keeps_its_own_file_name_when_another_filter_moves_the_path(): void {
+		$this->delete_uploads( 'optml-moved.jpg' );
+		$received = '';
+		$move     = static function ( $file ) use ( &$received ) {
+			$received = basename( $file );
+
+			return dirname( $file ) . '/moved/' . basename( $file );
+		};
+		add_filter( 'update_attached_file', $move, 20 );
+
+		$upload        = wp_upload_bits( 'optml-moved.jpg', null, 'not an image' );
+		$attachment_id = wp_insert_attachment( $this->image_postdata( $upload, [ 'post_name' => 'optml-moved-renamed' ] ), $upload['file'] );
+		remove_filter( 'update_attached_file', $move, 20 );
+
+		$this->assertSame( 'optml-moved-renamed.jpg', $received );
+		$this->assertSame( dirname( $upload['file'] ) . '/moved/optml-moved.jpg', get_attached_file( $attachment_id, true ) );
+		unlink( $upload['file'] );
+	}
+
+	public function test_upload_keeps_its_own_file_when_a_filter_updates_attached_files(): void {
+		$this->delete_uploads( 'optml-nested.jpg', 'optml-nested-new.jpg' );
+		$other_id = self::factory()->attachment->create();
+		$new      = wp_upload_bits( 'optml-nested-new.jpg', null, 'not an image' );
+		$new_id   = 0;
+		$updating = false;
+		// A filter that, part-way through the update, updates another attachment's file and this one's, and adds an upload.
+		$update_files = function ( $file, $attachment_id ) use ( $other_id, $new, &$new_id, &$updating ) {
+			if ( ! $updating ) {
+				$updating = true;
+				update_attached_file( $other_id, dirname( $file ) . '/optml-nested-other.jpg' );
+				update_attached_file( $attachment_id, dirname( $file ) . '/optml-nested-copy.jpg' );
+				$new_id = wp_insert_attachment( $this->image_postdata( $new, [ 'post_name' => 'optml-nested-new-renamed' ] ), $new['file'] );
+			}
+
+			return $file;
+		};
+		add_filter( 'update_attached_file', $update_files, 20, 2 );
+
+		$upload        = wp_upload_bits( 'optml-nested.jpg', null, 'not an image' );
+		$attachment_id = wp_insert_attachment( $this->image_postdata( $upload, [ 'post_name' => 'optml-nested-renamed' ] ), $upload['file'] );
+		remove_filter( 'update_attached_file', $update_files, 20 );
+
+		$this->assertSame( $upload['file'], get_attached_file( $attachment_id, true ) );
+		$this->assertSame( $new['file'], get_attached_file( $new_id, true ) );
+		unlink( $upload['file'] );
+		unlink( $new['file'] );
+	}
+
+	public function test_upload_in_a_folder_named_after_it_keeps_its_own_path(): void {
+		$upload        = [
+			'file' => wp_upload_dir()['path'] . '/optml-folder.jpg-archive/optml-folder.jpg',
+			'url'  => wp_upload_dir()['url'] . '/optml-folder.jpg-archive/optml-folder.jpg',
+		];
+		$attachment_id = wp_insert_attachment( $this->image_postdata( $upload, [ 'post_name' => 'optml-folder-renamed' ] ), $upload['file'] );
+
+		$this->assertSame( $upload['file'], get_attached_file( $attachment_id, true ) );
+	}
+
+	public function test_later_update_of_the_attached_file_is_stored_as_it_is(): void {
+		$this->delete_uploads( 'optml-big.jpg' );
+		$upload        = wp_upload_bits( 'optml-big.jpg', null, 'not an image' );
+		$attachment_id = wp_insert_attachment( $this->image_postdata( $upload, [ 'post_name' => 'optml-big-scaled' ] ), $upload['file'] );
+		$scaled_file   = dirname( $upload['file'] ) . '/optml-big-scaled.jpg';
+
+		$this->assertSame( $upload['file'], get_attached_file( $attachment_id, true ) );
+
+		// WordPress attaches the copy it scaled, which here has the name the upload was deduplicated to.
+		update_attached_file( $attachment_id, $scaled_file );
+
+		$this->assertSame( $scaled_file, get_attached_file( $attachment_id, true ) );
+		unlink( $upload['file'] );
+	}
+
+	public function test_failed_offload_leaves_the_upload_under_its_own_name(): void {
+		$this->delete_uploads( 'optml-fail.jpg' );
+		$upload        = wp_upload_bits( 'optml-fail.jpg', null, 'not an image' );
+		$attachment_id = wp_insert_attachment( $this->image_postdata( $upload, [ 'post_name' => 'optml-fail-renamed' ] ), $upload['file'] );
+		$failure       = new DomainException( 'The offload step failed.' );
+		$fail          = static function () use ( $failure ) {
+			throw $failure;
+		};
+		$thrown        = null;
+		// The offload reads the attachment URL, so this ends it part-way.
+		add_filter( 'wp_get_attachment_url', $fail );
+
+		try {
+			apply_filters( 'wp_generate_attachment_metadata', $this->local_metadata( $upload ), $attachment_id, 'create' );
+		} catch ( DomainException $exception ) {
+			$thrown = $exception;
+		}
+		remove_filter( 'wp_get_attachment_url', $fail );
+
+		$this->assertSame( $failure, $thrown );
+		$this->assertSame( $upload['file'], get_attached_file( $attachment_id ) );
+		unlink( $upload['file'] );
+	}
+
+	public function test_upload_offloaded_while_another_is_keeps_both_deduplicated_names(): void {
+		$this->delete_uploads( 'optml-inner.jpg', 'optml-outer.jpg' );
+		$inner    = wp_upload_bits( 'optml-inner.jpg', null, 'not an image' );
+		$inner_id = wp_insert_attachment( $this->image_postdata( $inner, [ 'post_name' => 'optml-inner-renamed' ] ), $inner['file'] );
+		$outer    = wp_upload_bits( 'optml-outer.jpg', null, 'not an image' );
+		$outer_id = wp_insert_attachment( $this->image_postdata( $outer, [ 'post_name' => 'optml-outer-renamed' ] ), $outer['file'] );
+		$names    = [];
+		// The offload reads the attachment URL, so the other upload is offloaded part-way through this one.
+		$offload_inner = function ( $url, $attachment_id ) use ( $inner, $inner_id, $outer_id, &$names ) {
+			if ( $attachment_id === $outer_id && [] === $names ) {
+				$names[] = basename( get_attached_file( $outer_id ) );
+				apply_filters( 'wp_generate_attachment_metadata', $this->offloaded_metadata( $inner ), $inner_id, 'create' );
+				$names[] = basename( get_attached_file( $outer_id ) );
+				// The stored name, read without the filters.
+				$names[] = basename( get_attached_file( $outer_id, true ) );
+			}
+
+			return $url;
+		};
+		add_filter( 'wp_get_attachment_url', $offload_inner, 10, 2 );
+		$meta = apply_filters( 'wp_generate_attachment_metadata', $this->local_metadata( $outer ), $outer_id, 'create' );
+		remove_filter( 'wp_get_attachment_url', $offload_inner, 10 );
+
+		$this->assertSame( [ 'optml-outer-renamed.jpg', 'optml-outer-renamed.jpg', 'optml-outer.jpg' ], $names );
+		$this->assertSame( 'optml-inner-renamed.jpg', basename( get_attached_file( $inner_id, true ) ) );
+		$this->assertTrue( Optml_Media_Offload::is_uploaded_image( $meta['file'] ) );
+		$this->assertSame( 'optml-outer-renamed.jpg', basename( get_attached_file( $outer_id, true ) ) );
+		unlink( $inner['file'] );
+	}
+
+	/**
+	 * Build a JPEG that is wider than the size from which WordPress attaches a scaled copy.
+	 */
+	private function wide_image(): string {
+		ob_start();
+		imagejpeg( imagecreatetruecolor( 2600, 20 ) );
+
+		return (string) ob_get_clean();
+	}
+
+	/**
+	 * Store an upload under the file name WordPress alone gives it, which can be the name of an offloaded image.
+	 *
+	 * @param string $name  The file name.
+	 * @param string $bytes The file's content.
+	 *
+	 * @return array{file: string, url: string} The upload, as wp_upload_bits() returns it.
+	 */
+	private function upload_with_the_name_wordpress_gives( string $name, string $bytes ): array {
+		$keep_name = static function () use ( $name ) {
+			return $name;
+		};
+		// Added last, so it runs after the plugin's own filter of the same priority.
+		add_filter( 'wp_unique_filename', $keep_name, PHP_INT_MAX );
+		$upload = wp_upload_bits( $name, null, $bytes );
+		remove_filter( 'wp_unique_filename', $keep_name, PHP_INT_MAX );
+
+		return $upload;
+	}
+
+	/**
+	 * Delete uploads a failed run left behind, which would change the names WordPress gives the same uploads now.
+	 *
+	 * @param string ...$names File names in the current uploads folder, or patterns of them.
+	 */
+	private function delete_uploads( string ...$names ): void {
+		foreach ( $names as $name ) {
+			array_map( 'wp_delete_file', (array) glob( wp_upload_dir()['path'] . '/' . $name ) );
+		}
+	}
+
+	/**
+	 * Build the metadata of an upload that is still local.
+	 *
+	 * @param array{file: string, url: string} $upload The upload, as wp_upload_bits() returns it.
+	 *
+	 * @return array{file: string, width: int, height: int}
+	 */
+	private function local_metadata( array $upload ): array {
+		return [
+			'file'   => _wp_relative_upload_path( $upload['file'] ),
+			'width'  => 1,
+			'height' => 1,
+		];
+	}
+
+	/**
+	 * Build the metadata of an upload that is already offloaded.
+	 *
+	 * @param array{file: string, url: string} $upload The upload, as wp_upload_bits() returns it.
+	 *
+	 * @return array{file: string, width: int, height: int}
+	 */
+	private function offloaded_metadata( array $upload ): array {
+		return [
+			'file'   => '/' . Optml_Media_Offload::KEYS['uploaded_flag'] . 'abc/' . $upload['url'],
+			'width'  => 1,
+			'height' => 1,
+		];
+	}
+
+	/**
+	 * Build the post fields of an uploaded image's attachment.
+	 *
+	 * @param array{file: string, url: string} $upload   The upload, as wp_upload_bits() returns it.
+	 * @param array<string, string>            $postdata Post fields added to the attachment.
+	 *
+	 * @return array<string, string>
+	 */
+	private function image_postdata( array $upload, array $postdata = [] ): array {
+		return array_merge(
+			[
+				'post_title'     => pathinfo( $upload['file'], PATHINFO_FILENAME ),
+				'post_mime_type' => 'image/jpeg',
+				'guid'           => $upload['url'],
+			],
+			$postdata
+		);
+	}
+
+	/**
+	 * Create the attachment of an uploaded image the way the media endpoints do.
+	 *
+	 * @param array{file: string, url: string} $upload   The upload, as wp_upload_bits() returns it.
+	 * @param array<string, string>            $postdata Post fields added to the attachment.
+	 */
+	private function insert_uploaded_image( array $upload, array $postdata = [] ): int {
+		$attachment_id = wp_insert_attachment( $this->image_postdata( $upload, $postdata ), $upload['file'] );
+		wp_update_attachment_metadata( $attachment_id, wp_generate_attachment_metadata( $attachment_id, $upload['file'] ) );
+
+		return $attachment_id;
+	}
+
 	public function test_duplicated_image() {
 
 		$content =  wp_get_attachment_image( self::$sample_attachement_upper_case );

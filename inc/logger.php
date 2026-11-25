@@ -11,6 +11,11 @@ class Optml_Logger {
 	const LOG_SEPARATOR = '==========';
 
 	/**
+	 * The option that holds the random part of this site's log file names.
+	 */
+	const FILE_TOKEN_OPTION = 'optml_log_file_token';
+
+	/**
 	 * Upload directory.
 	 *
 	 * @var string
@@ -18,14 +23,21 @@ class Optml_Logger {
 	private $upload_dir;
 
 	/**
-	 * Log filenames.
+	 * The log types, with the fixed file name each was stored under before file names carried a token.
 	 *
-	 * @var array
+	 * @var array<string, string>
 	 */
 	private $log_filenames = [
 		self::LOG_TYPE_OFFLOAD  => 'offload.log',
 		self::LOG_TYPE_ROLLBACK => 'rollback.log',
 	];
+
+	/**
+	 * The random part of this site's log file names.
+	 *
+	 * @var string
+	 */
+	private $file_token;
 
 	/**
 	 * The single instance of the class.
@@ -56,6 +68,9 @@ class Optml_Logger {
 	private function __construct() {
 		$upload_dir       = wp_upload_dir();
 		$this->upload_dir = trailingslashit( $upload_dir['basedir'] ) . 'optimole-logs/';
+		// Read with the directory, so both belong to the same site of a network for as long as the logger lives.
+		$stored_token     = get_option( self::FILE_TOKEN_OPTION );
+		$this->file_token = is_string( $stored_token ) && '' !== $stored_token ? $stored_token : $this->create_file_token();
 
 		if ( ! file_exists( $this->upload_dir ) ) {
 			if ( false === wp_mkdir_p( $this->upload_dir ) ) {
@@ -64,8 +79,71 @@ class Optml_Logger {
 		}
 
 		add_action( 'wp_ajax_optml_fetch_logs', [ $this, 'fetch_logs_ajax_handler' ] );
+		add_action( 'admin_init', [ $this, 'protect_log_files' ] );
+
+		// The site just got its token: logs still stored under the earlier fixed names are moved on this request.
+		if ( $this->file_token !== $stored_token ) {
+			$this->protect_log_files();
+		}
 	}
 
+	/**
+	 * Create and store the random part of this site's log file names.
+	 *
+	 * @return string
+	 */
+	private function create_file_token() {
+		$token = bin2hex( random_bytes( 16 ) );
+		update_option( self::FILE_TOKEN_OPTION, $token );
+
+		return $token;
+	}
+	/**
+	 * Get the path of a log file.
+	 *
+	 * The file name carries a random token stored for this site, so the log cannot be requested by guessing its
+	 * URL. A log written under the earlier fixed name is moved to the new one.
+	 *
+	 * @param string $type Type of log (offload/rollback).
+	 *
+	 * @return string Absolute path of the log file.
+	 */
+	private function get_file_path( $type ) {
+		$legacy_path = $this->upload_dir . $this->log_filenames[ $type ];
+		$file_path   = $this->upload_dir . $type . '-' . $this->file_token . '.log';
+
+		// A log that cannot be moved is deleted, so nothing stays under the old name.
+		if ( file_exists( $legacy_path ) && ( file_exists( $file_path ) || ! @rename( $legacy_path, $file_path ) ) ) {
+			wp_delete_file( $legacy_path );
+		}
+
+		return $file_path;
+	}
+	/**
+	 * Move the logs written under the earlier fixed names, and add the files that keep a web server from listing
+	 * or serving the log directory. A file that already exists is kept as it is.
+	 *
+	 * @return void
+	 */
+	public function protect_log_files() {
+		if ( ! $this->has_permission() ) {
+			return;
+		}
+
+		foreach ( array_keys( $this->log_filenames ) as $type ) {
+			$this->get_file_path( $type );
+		}
+
+		$files = [
+			'index.html' => '',
+			'.htaccess'  => "<IfModule mod_authz_core.c>\n\tRequire all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n\tDeny from all\n</IfModule>\n",
+		];
+		foreach ( $files as $name => $content ) {
+			if ( ! file_exists( $this->upload_dir . $name ) ) {
+				file_put_contents( $this->upload_dir . $name, $content );
+			}
+		}
+	}
 	/**
 	 * Adds a log entry.
 	 *
@@ -84,7 +162,7 @@ class Optml_Logger {
 			return false;
 		}
 
-		$file_path = $this->upload_dir . $this->log_filenames[ $type ];
+		$file_path = $this->get_file_path( $type );
 		$handle    = @fopen( $file_path, 'a' );
 
 		if ( $handle === false ) {
@@ -110,9 +188,9 @@ class Optml_Logger {
 			return false;
 		}
 
-		$file_path = $this->upload_dir . $this->log_filenames[ $type ];
+		$file_path = $this->get_file_path( $type );
 
-		if ( $this->has_logs( $type ) ) {
+		if ( file_exists( $file_path ) ) {
 			$data = $this->tailCustom( $file_path, $lines, true, $separator );
 			return nl2br( esc_textarea( $data ) );
 		}
@@ -131,7 +209,7 @@ class Optml_Logger {
 			return false;
 		}
 
-		$file_path = $this->upload_dir . $this->log_filenames[ $type ];
+		$file_path = $this->get_file_path( $type );
 		return file_exists( $file_path );
 	}
 
@@ -215,8 +293,8 @@ class Optml_Logger {
 	 */
 	public function fetch_logs_ajax_handler() {
 		// Check for nonce security
-		$nonce = $_REQUEST['nonce'];
-		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) ) {
+		$nonce = isset( $_REQUEST['nonce'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['nonce'] ) ) : '';
+		if ( ! wp_verify_nonce( $nonce, 'wp_rest' ) || ! current_user_can( 'manage_options' ) ) {
 			wp_die( __( 'Security check failed', 'optimole-wp' ) );
 		}
 

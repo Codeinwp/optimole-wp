@@ -156,6 +156,16 @@ class Optml_Rest {
 						'type'     => 'string',
 						'required' => true,
 					],
+					't' => [
+						'type' => 'integer',
+					],
+					'h' => [
+						'type' => 'string',
+					],
+					'pu' => [
+						'type'    => 'string',
+						'default' => '',
+					],
 					'b' => [
 						'type'                 => 'object',
 						'default'              => [],
@@ -998,8 +1008,13 @@ class Optml_Rest {
 		if ( $time < time() - 300 ) {
 			return $this->response( 'Invalid Signature.', 'error' );
 		}
-		if ( wp_hash( $url . $time . $current_url, 'nonce' ) !== $hmac ) {
+		if ( ! hash_equals( Profile::sign( $url, $time, $current_url ), $hmac ) ) {
 			return $this->response( 'Invalid Signature.', 'error' );
+		}
+		// A stored profile is kept until it expires.
+		$profile = new Profile();
+		if ( $profile->exists( $url, $device_type ) ) {
+			return $this->response( 'Profile already stored', 'error' );
 		}
 		$bg_selectors = $request->get_param( 'b' );
 		$lcp_data = $request->get_param( 'l' );
@@ -1041,7 +1056,7 @@ class Optml_Rest {
 					array_map( 'sanitize_url', array_values( $bg_urls ) ),
 					function ( $url ) {
 						// we ignore urls that are not from our service
-						return strpos( $url, Optml_Config::$service_url ) === 0;
+						return self::is_service_url( $url );
 					}
 				);
 			}
@@ -1082,7 +1097,7 @@ class Optml_Rest {
 				array_map( 'sanitize_url', array_values( $lcp_data['u'] ?? [] ) ),
 				function ( $url ) {
 					// we ignore urls that are not from our service
-					return strpos( $url, Optml_Config::$service_url ) === 0;
+					return self::is_service_url( $url );
 				}
 			);
 			$sanitized_lcp_data['type'] = empty( $sanitized_lcp_data['imageId'] ) ? 'bg' : 'img';
@@ -1091,7 +1106,6 @@ class Optml_Rest {
 		if ( OPTML_DEBUG ) {
 			do_action( 'optml_log', 'Storing profile data: ' . $url . ' - ' . $device_type . ' - ' . print_r( $above_fold_images, true ) . print_r( $sanitized_selectors, true ) . print_r( $sanitized_lcp_data, true ) . print_r( $sanitized_missing_dimensions, true ) . print_r( $sanitized_missing_srcsets, true ) . print_r( $sanitized_crop_status, true ) );
 		}
-		$profile = new Profile();
 		$profile->store( $url, $device_type, $above_fold_images, $sanitized_selectors, $sanitized_lcp_data, $sanitized_missing_dimensions, $sanitized_missing_srcsets, $sanitized_crop_status );
 
 		if ( $profile->exists_all( $url ) ) {
@@ -1103,6 +1117,20 @@ class Optml_Rest {
 			do_action( 'optml_clear_cache', $current_url );
 		}
 		return $this->response( 'Optimization data stored successfully' );
+	}
+
+	/**
+	 * Check that a URL points at this site's Optimole host.
+	 *
+	 * The trailing slash ends the host, so a longer host that only starts with ours is not accepted. No URL is
+	 * accepted while the service URL is not set.
+	 *
+	 * @param string $url The URL to check.
+	 *
+	 * @return bool
+	 */
+	private static function is_service_url( string $url ): bool {
+		return '' !== Optml_Config::$service_url && strpos( $url, trailingslashit( Optml_Config::$service_url ) ) === 0;
 	}
 
 	/**
