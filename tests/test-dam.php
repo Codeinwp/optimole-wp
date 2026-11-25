@@ -254,6 +254,32 @@ class Test_Dam extends WP_UnitTestCase {
 		$this->settings->update( 'resize_smart', 'disabled' );
 	}
 
+	/**
+	 * @return array<string, array{0: array<string, string>, 1: string}>
+	 */
+	public function backreference_dimension_provider(): array {
+		return [
+			'width'  => [ [ 'originalWidth' => '$1' ], '/w:$1/h:1800/q:' ],
+			'height' => [ [ 'originalHeight' => '$2' ], '/w:1200/h:$2/q:' ],
+		];
+	}
+
+	/**
+	 * @dataProvider backreference_dimension_provider
+	 *
+	 * @param array<string, string> $meta     Dimension metadata override.
+	 * @param string                $expected Expected URL fragment.
+	 */
+	public function test_imported_dimensions_are_inserted_literally( array $meta, string $expected ): void {
+		$image         = self::MOCK_ATTACHMENTS[0];
+		$image['meta'] = array_merge( $image['meta'], $meta, [ 'resourceS3' => 'backreferenceDimension' ] );
+		$ids           = $this->dam->insert_attachments( [ $image ] );
+
+		$result = $this->dam->alter_attachment_image_src( false, $ids[0], 'full', false );
+
+		$this->assertStringContainsString( $expected, $result[0] );
+	}
+
 	public function test_alter_attachment_image_src() {
 		foreach ( $this->inserted_ids as $id ) {
 			$result = $this->dam->alter_attachment_image_src( false, $id, 'test_landscape', false );

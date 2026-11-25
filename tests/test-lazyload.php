@@ -653,5 +653,6 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertTrue( $tag->next_tag( 'img' ) );
 		$this->assertNull( $tag->get_attribute( 'onerror' ) );
 		$this->assertStringContainsString( 'x$1x$1onerror=alert(document.domain).jpg', (string) $tag->get_attribute( 'alt' ) );
+		$this->assertStringContainsString( 'x$1x$1onerror=alert(document.domain).jpg', (string) $tag->get_attribute( 'data-opt-src' ) );
 	}
 }
