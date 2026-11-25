@@ -207,14 +207,8 @@ final class Optml_Main {
 	 * @return array{is_pro: bool, support_email: string, links: array<int, array{icon: string, text: string, url: string}>}
 	 */
 	public static function add_support_hub_metadata() {
-		$is_pro = false;
-		if ( self::$_instance->admin->settings->is_connected() ) {
-			$service_data = self::$_instance->admin->settings->get( 'service_data' );
-			$is_pro       = isset( $service_data['plan'] ) && 'free' !== $service_data['plan'];
-		}
-
 		return [
-			'is_pro'        => $is_pro,
+			'is_pro'        => self::is_paid_plan(),
 			// The mailto fallback: Optimole users write to this address.
 			'support_email' => 'friends@optimole.com',
 			'links'         => [
@@ -340,12 +334,20 @@ final class Optml_Main {
 	 * @access public
 	 */
 	public static function sdk_hide_promo_notice( $should_show ) {
-		if ( self::$_instance->admin->settings->is_connected() ) {
-			$service_data = self::$_instance->admin->settings->get( 'service_data' );
-			if ( isset( $service_data['plan'] ) && 'free' !== $service_data['plan'] ) {
-				return true;
-			}
+		return self::is_paid_plan() ? true : $should_show;
+	}
+
+	/**
+	 * Whether the site is connected to a paid Optimole plan.
+	 *
+	 * @return bool
+	 */
+	private static function is_paid_plan() {
+		if ( ! self::$_instance->admin->settings->is_connected() ) {
+			return false;
 		}
-		return $should_show;
+		$service_data = self::$_instance->admin->settings->get( 'service_data' );
+
+		return isset( $service_data['plan'] ) && 'free' !== $service_data['plan'];
 	}
 }
