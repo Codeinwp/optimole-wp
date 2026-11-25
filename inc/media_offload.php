@@ -57,6 +57,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	const POST_OFFLOADED_FLAG = 'optimole_offload_post';
 	const POST_ROLLBACK_FLAG = 'optimole_rollback_post';
 	const RETRYABLE_META_COUNTER = '_optimole_retryable_errors';
+	/**
+	 * Meta that holds the file name and the deduplicated name of a new upload until it is offloaded.
+	 */
+	const DEDUPLICATED_UPLOAD_META = '_optimole_deduplicated_upload';
 
 	/**
 	 * Post meta holding the file a rollback moved into uploads before the attachment was updated to it.
@@ -104,29 +108,23 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 */
 	private static $current_file_deduplication = false;
 	/**
-	 * Keeps the last deduplicated lower case value.
+	 * The file name of the upload that is being offloaded under a deduplicated name.
 	 *
-	 * @var bool|string Used to check if the current processed image was deduplicated.
+	 * @var bool|string Used to find the local file of that upload.
 	 */
 	private static $last_deduplicated = false;
 	/**
-	 * The new uploads that get a deduplicated file name when they are offloaded, until their metadata is generated.
+	 * The upload that was given its deduplicated name in the update of the attached file that is running, until
+	 * its own file name is given back.
 	 *
-	 * Keyed by blog ID and attachment ID, as attachment IDs repeat across the sites of a network. `file` is the
-	 * path the upload was stored as, `alias` the same path with the deduplicated name.
+	 * `key` is the blog ID and the attachment ID, as attachment IDs repeat across the sites of a network. `file` is
+	 * the upload's file name and `alias` its deduplicated name.
 	 *
-	 * @var array<string, array{file: string, alias: string}>
-	 */
-	private static $uploaded_files = [];
-	/**
-	 * The key in $uploaded_files of the upload that was given its deduplicated name in the update of the attached
-	 * file that is running, until its own file name is given back.
-	 *
-	 * @var string|null
+	 * @var array{key: string, file: string, alias: string}|null
 	 */
 	private static $renamed_upload = null;
 	/**
-	 * The record of the upload whose offload is running, with its key in $uploaded_files, if any.
+	 * The upload whose offload is running under its deduplicated name, in the same shape, if any.
 	 *
 	 * @var array{key: string, file: string, alias: string}|null
 	 */
@@ -305,19 +303,17 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		// we replace the updated filename with the deduplicated filename for the filters that run next,
 		// and keep the uploaded file as the stored path until the upload is offloaded
 		if ( stripos( $deduplicated_name, $no_ext_file_name ) !== false ) {
-			$alias                        = self::replace_file_name( $file, $file, $deduplicated_name );
-			$key                          = get_current_blog_id() . ':' . $attachment_id;
-			self::$uploaded_files[ $key ] = [
-				'file'  => $file,
-				'alias' => $alias,
+			$names = [
+				'file'  => $file_name,
+				'alias' => basename( $deduplicated_name ),
 			];
-			self::$renamed_upload         = $key;
-			$file                         = $alias;
-			// we need to store the filename we replaced to check when uploading the image if it was deduplicated
-			self::$last_deduplicated = $file_name;
+			// Kept with the attachment, so an offload that runs in a later request uses the same name.
+			update_post_meta( $attachment_id, self::DEDUPLICATED_UPLOAD_META, wp_slash( $names ) );
+			self::$renamed_upload = [ 'key' => get_current_blog_id() . ':' . $attachment_id ] + $names;
+			$file                 = self::replace_file_name( $file, $names['file'], $names['alias'] );
 		}
 		if ( OPTML_DEBUG_MEDIA ) {
-			do_action( 'optml_log', self::$last_deduplicated );
+			do_action( 'optml_log', $file );
 		}
 
 		return $file;
@@ -336,12 +332,12 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @uses filter:update_attached_file
 	 */
 	public static function keep_uploaded_file( $file, $attachment_id ) {
-		$key = get_current_blog_id() . ':' . $attachment_id;
-		if ( self::$renamed_upload !== $key || ! isset( self::$uploaded_files[ $key ] ) || ! is_string( $file ) ) {
+		$upload = self::$renamed_upload;
+		if ( null === $upload || $upload['key'] !== get_current_blog_id() . ':' . $attachment_id || ! is_string( $file ) ) {
 			return $file;
 		}
 
-		$uploaded_file = self::replace_file_name( $file, self::$uploaded_files[ $key ]['alias'], self::$uploaded_files[ $key ]['file'] );
+		$uploaded_file = self::replace_file_name( $file, $upload['alias'], $upload['file'] );
 		// Given back once: a later update of the attached file, such as to the copy WordPress scaled, is stored as it is.
 		if ( $uploaded_file !== $file ) {
 			self::$renamed_upload = null;
@@ -354,8 +350,9 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Offload an image when its metadata is generated.
 	 *
 	 * A new upload with a deduplicated file name is offloaded under that name: while the offload runs, its attached
-	 * file and URL carry the name in memory. The name is stored only once the upload is offloaded, so an upload
-	 * that stays local, or whose offload fails, keeps the path of its own file.
+	 * file and URL carry the name in memory. The name becomes the stored path only once the upload is offloaded, so
+	 * an upload that stays local, or whose offload fails, keeps the path of its own file and gets the name when it
+	 * is offloaded later.
 	 *
 	 * @param array<string, mixed>|false $meta          Attachment metadata, false when WordPress could not read any.
 	 * @param int                        $attachment_id Attachment ID.
@@ -364,25 +361,32 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * @uses filter:wp_generate_attachment_metadata
 	 */
 	public function generate_image_meta( $meta, $attachment_id ) {
-		$key = get_current_blog_id() . ':' . $attachment_id;
-		if ( ! isset( self::$uploaded_files[ $key ] ) ) {
+		$names = get_post_meta( $attachment_id, self::DEDUPLICATED_UPLOAD_META, true );
+		// The name is for the upload's own file, not for a copy WordPress scaled, rotated or edited and attached since.
+		if (
+			! is_array( $names ) || ! isset( $names['file'], $names['alias'] ) || ! is_string( $names['file'] ) || ! is_string( $names['alias'] ) ||
+			basename( (string) get_attached_file( $attachment_id, true ) ) !== $names['file']
+		) {
 			return $this->offload_image( $meta, $attachment_id );
 		}
 
-		$upload                  = [ 'key' => $key ] + self::$uploaded_files[ $key ];
+		$upload                  = [
+			'key'   => get_current_blog_id() . ':' . $attachment_id,
+			'file'  => $names['file'],
+			'alias' => $names['alias'],
+		];
 		$outer_upload            = self::$offloading_upload;
+		$outer_name              = self::$last_deduplicated;
 		self::$offloading_upload = $upload;
-		unset( self::$uploaded_files[ $key ] );
+		// The offload finds the upload's local file by this name.
+		self::$last_deduplicated = $upload['file'];
 		add_filter( 'get_attached_file', [ __CLASS__, 'deduplicate_offloading_upload' ], 10, 2 );
 		add_filter( 'wp_get_attachment_url', [ __CLASS__, 'deduplicate_offloading_upload' ], -1000, 2 );
 
 		try {
 			$meta = $this->offload_image( $meta, $attachment_id );
 		} finally {
-			// The name kept for this upload's offload is dropped, so a later upload is not read from this one's file.
-			if ( self::$last_deduplicated === basename( $upload['file'] ) ) {
-				self::$last_deduplicated = false;
-			}
+			self::$last_deduplicated = $outer_name;
 			self::$offloading_upload = $outer_upload;
 			if ( null === $outer_upload ) {
 				remove_filter( 'get_attached_file', [ __CLASS__, 'deduplicate_offloading_upload' ], 10 );
@@ -391,12 +395,10 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 		}
 
 		if ( isset( $meta['file'] ) && self::is_uploaded_image( $meta['file'] ) ) {
-			$attached_file = (string) get_attached_file( $attachment_id, true );
-			$alias_file    = self::replace_file_name( $attached_file, $upload['file'], $upload['alias'] );
-			if ( $alias_file !== $attached_file ) {
-				// Written without the update_attached_file filters, which were given this name when the upload was added.
-				update_post_meta( $attachment_id, '_wp_attached_file', _wp_relative_upload_path( $alias_file ) );
-			}
+			$alias_file = self::replace_file_name( (string) get_attached_file( $attachment_id, true ), $upload['file'], $upload['alias'] );
+			// Written without the update_attached_file filters, which were given this name when the upload was added.
+			update_post_meta( $attachment_id, '_wp_attached_file', _wp_relative_upload_path( $alias_file ) );
+			delete_post_meta( $attachment_id, self::DEDUPLICATED_UPLOAD_META );
 		}
 
 		return $meta;
@@ -426,8 +428,8 @@ class Optml_Media_Offload extends Optml_App_Replacer {
 	 * Replace the file name a path or URL ends in.
 	 *
 	 * @param string $location A file path or URL.
-	 * @param string $from     Path of the file whose name is replaced.
-	 * @param string $to       Path of the file whose name is used instead.
+	 * @param string $from     The file whose name is replaced, as a path or a name.
+	 * @param string $to       The file whose name is used instead, as a path or a name.
 	 *
 	 * @return string The location, unchanged when it ends in another file name.
 	 */

@@ -427,6 +427,31 @@ src="https://www.facebook.com/tr?id=472300923567306&ev=PageView&noscript=1" />
 		$this->assertEquals(3, substr_count( $replaced_content, 'loading=\"lazy\"' ));
 	}
 
+	public function test_image_id_is_added_to_the_tag_only() {
+		$content = '<img src="https://example.org/wp-content/uploads/2020/02/Herren.jpg" title="<img">';
+
+		$this->assertStringContainsString( ' title="<img">', Optml_Manager::instance()->replace_content( $content ) );
+	}
+
+	public function test_attributes_added_to_an_image_that_is_not_lazy_loaded_go_on_the_tag_only() {
+		$settings = new Optml_Settings();
+		$settings->update( 'native_lazyload', 'enabled' );
+		$settings->update( 'lazyload_type', 'fixed' );
+		Optml_Tag_Replacer::instance()->init();
+		// One of the first images on the page. The limit is cached in a static, so it is set for this test only.
+		$skip_limit = new ReflectionProperty( Optml_Lazyload_Replacer::class, 'skip_lazyload_images' );
+		$skip_limit->setAccessible( true );
+		$cached_limit = $skip_limit->getValue();
+		$skip_limit->setValue( null, 3 );
+		Optml_Tag_Replacer::$lazyload_skipped_images = 0;
+
+		$url = 'https://example.org/wp-content/uploads/2020/02/Herren.jpg';
+		$tag = Optml_Tag_Replacer::instance()->regular_tag_replace( '<img src="' . $url . '" title="<img">', $url, $url, [] );
+		$skip_limit->setValue( null, $cached_limit );
+
+		$this->assertSame( '<img fetchpriority="high" loading="eager" src="' . $url . '" title="<img">', $tag );
+	}
+
 	public function test_native_lazyload_reads_loading_as_an_attribute_only() {
 		// As when the images that are never lazy-loaded were already found on the page.
 		Optml_Tag_Replacer::$lazyload_skipped_images = Optml_Lazyload_Replacer::get_skip_lazyload_limit();
