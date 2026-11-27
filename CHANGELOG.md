@@ -1,3 +1,12 @@
+##### [Version 4.2.21](https://github.com/Codeinwp/optimole-wp/compare/v4.2.20...v4.2.21) (2026-11-25)
+
+- Fixed Cloud Library staying on Loading on slow admin pages
+- Fixed storing of above-fold background images
+- Fixed above-the-fold background images staying lazy-loaded after profiling
+- Added a Help panel to make it easier to contact support and find answers
+- Enhanced security
+- Updated dependencies
+
 ##### [Version 4.2.20](https://github.com/Codeinwp/optimole-wp/compare/v4.2.19...v4.2.20) (2026-11-12)
 
 - Fixed unreadable selected compression mode on WordPress 7.1.
